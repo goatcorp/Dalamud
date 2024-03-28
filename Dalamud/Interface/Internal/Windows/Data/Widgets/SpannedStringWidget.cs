@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
@@ -56,16 +57,14 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
     private bool showDynamicOffsetTest;
     private bool showTransformationTest;
     private bool showParseTest;
-    private bool showFlowerTest;
     private WordBreakType wordBreakType;
     private long catchMeBegin;
-
-    private float buttonFlowerAngle;
-    private float buttonFlowerScale;
 
     private ButtonControl[] spannableButton = null!;
     private ContainerControl rootContainer = null!;
     private LabelControl lblStopwatch = null!;
+
+    private LabelControl? lblComplicated;
 
     private (TextSpannable? Parsed, Exception? Exception) parseAttempt;
 
@@ -78,28 +77,6 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
     /// <inheritdoc/>
     public bool Ready { get; set; }
 
-    private TextState.Options TextStateOptions => new()
-    {
-        WordBreak = this.wordBreakType,
-        WrapMarker =
-            this.useWrapMarkers
-                ? this.wordBreakType == WordBreakType.KeepAll
-                      ? this.ellipsisSpannable
-                      : this.wrapMarkerSpannable
-                : null,
-        ControlCharactersStyle =
-            this.useVisibleControlCharacters
-                ? new()
-                {
-                    Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
-                    BackColor = 0xFF004400,
-                    ForeColor = 0xFFCCFFCC,
-                    FontSize = ImGui.GetFont().FontSize * 0.6f,
-                    VerticalAlignment = 0.5f,
-                }
-                : null,
-    };
-
     /// <inheritdoc/>
     public void Load()
     {
@@ -108,10 +85,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         this.vertOffset = 0;
         this.useImages = false;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = this.showTransformationTest = false;
-        this.showFlowerTest = this.showParseTest = false;
         this.parseAttempt = default;
-        this.buttonFlowerAngle = 0;
-        this.buttonFlowerScale = 1f;
         this.setupControlNeeded = true;
 
         this.ellipsisSpannable = new TextSpannableBuilder().PushForeColor(0x80FFFFFF).Append("…");
@@ -147,6 +121,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             {tds solid}1/8 Solid {tdt 0.125}{td _}Underlined{/td} {td -}Strikethrough{/td} {td ^}Over{/td} {td below,above,mid}all{/td}{br}
             """u8);
 
+        this.lblComplicated = null;
+
         this.Ready = true;
     }
 
@@ -174,21 +150,38 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                  Vector2.Zero,
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
 
-        renderer.Render(
-            this.rootContainer,
-            new(
-                "LinearContainerTest",
-                this.renderContextOptions with
+        var myopt = (TextSpannableBase.Options)(this.renderContextOptions.RootOptions ??=
+                                                    new TextSpannableBase.Options());
+
+        myopt.Style = TextStyle.FromContext;
+        myopt.WordBreak = this.wordBreakType;
+        myopt.WrapMarker =
+            this.useWrapMarkers
+                ? this.wordBreakType == WordBreakType.KeepAll
+                      ? this.ellipsisSpannable
+                      : this.wrapMarkerSpannable
+                : null;
+        myopt.ControlCharactersStyle =
+            this.useVisibleControlCharacters
+                ? new()
                 {
-                    MinSize = ImGui.GetContentRegionAvail(),
-                    MaxSize = ImGui.GetContentRegionAvail(),
-                }),
-            this.TextStateOptions);
+                    Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
+                    BackColor = 0xFF004400,
+                    ForeColor = 0xFFCCFFCC,
+                    FontSize = ImGui.GetFont().FontSize * 0.6f,
+                    VerticalAlignment = 0.5f,
+                }
+                : default;
+
+        renderer.DrawSpannable(
+                    this.rootContainer,
+                    new("LinearContainerTest", this.renderContextOptions with { Size = ImGui.GetContentRegionAvail() }))
+                .ReturnMeasurementToSpannable();
 
         var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
         var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);
         dynamicOffsetTestOffset.X += pad;
-        this.renderContextOptions.MaxSize = new(ImGui.GetColumnWidth() - pad, float.PositiveInfinity);
+        this.renderContextOptions.Size = new(ImGui.GetColumnWidth() - pad, float.PositiveInfinity);
 
         ImGuiHelpers.ScaledDummy(8);
         ImGui.Separator();
@@ -201,8 +194,6 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             this.DrawTestComplicatedTextBlock(ssb, dynamicOffsetTestOffset.X);
         if (this.showParseTest)
             this.DrawParseTest(ssb, dynamicOffsetTestOffset.X);
-        if (this.showFlowerTest)
-            this.DrawFlowerTest();
         if (this.showDynamicOffsetTest)
             this.DrawDynamicOffsetTest(ssb);
         if (this.showTransformationTest)
@@ -225,6 +216,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             this.spannableButton[i] = new()
             {
                 Margin = new(64, 0, 0, 0),
+                InnerOrigin = new(0.5f, 0),
                 // Margin = new(0, 0, 0, 0),
                 Enabled = i % 4 != 3,
                 ShowAnimation = new SpannableSizeAnimator
@@ -324,7 +316,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             Direction = LinearContainer.LinearDirection.LeftToRight,
             Size = new(ControlSpannable.WrapContent),
             Padding = new(16f),
-            TextStateOptions = new() { InitialStyle = defaultStyle },
+            TextStyle = defaultStyle,
             ShowAnimation = new SpannableSizeAnimator
             {
                 BeforeRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
@@ -353,7 +345,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Name = "lblLinearContainerTestsDirection",
                             Text = "Direction",
                             Margin = new(0, 4),
-                            TextStateOptions = new() { InitialStyle = h2Style },
+                            TextStyle = h2Style,
                         },
                         new LinearContainer
                         {
@@ -370,7 +362,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         new RadioControl
                                             {
                                                 Text = FontAwesomeIcon.ArrowRight.ToIconString(),
-                                                TextStateOptions = new() { InitialStyle = directionTextStyle },
+                                                TextStyle = directionTextStyle,
                                                 Side = BooleanControl.IconSide.Top,
                                                 Alignment = new(0.5f, 0),
                                                 Checked = true,
@@ -379,7 +371,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         new RadioControl
                                             {
                                                 Text = FontAwesomeIcon.ArrowLeft.ToIconString(),
-                                                TextStateOptions = new() { InitialStyle = directionTextStyle },
+                                                TextStyle = directionTextStyle,
                                                 Side = BooleanControl.IconSide.Top,
                                                 Alignment = new(0.5f, 0),
                                             }
@@ -395,7 +387,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         new RadioControl
                                             {
                                                 Text = FontAwesomeIcon.ArrowDown.ToIconString(),
-                                                TextStateOptions = new() { InitialStyle = directionTextStyle },
+                                                TextStyle = directionTextStyle,
                                                 Side = BooleanControl.IconSide.Top,
                                                 Alignment = new(0.5f, 0),
                                                 Checked = true,
@@ -404,7 +396,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         new RadioControl
                                             {
                                                 Text = FontAwesomeIcon.ArrowUp.ToIconString(),
-                                                TextStateOptions = new() { InitialStyle = directionTextStyle },
+                                                TextStyle = directionTextStyle,
                                                 Side = BooleanControl.IconSide.Top,
                                                 Alignment = new(0.5f, 0),
                                             }
@@ -419,7 +411,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Name = "lblLinearContainerTestsAlignment",
                             Text = "Alignment",
                             Margin = new(0, 4),
-                            TextStateOptions = new() { InitialStyle = h2Style },
+                            TextStyle = h2Style,
                         },
                         new LinearContainer
                         {
@@ -434,8 +426,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         Checked = true,
                                         Side = BooleanControl.IconSide.Top,
                                         Alignment = new(0.5f, 0),
-                                        TextStateOptions = new()
-                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                        TextStyle = defaultStyle with { HorizontalAlignment = 0.5f },
                                     }
                                     .GetAsOut(out var optAlignHorzLeft),
                                 new RadioControl
@@ -443,8 +434,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         Text = "M",
                                         Side = BooleanControl.IconSide.Top,
                                         Alignment = new(0.5f, 0),
-                                        TextStateOptions = new()
-                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                        TextStyle = defaultStyle with { HorizontalAlignment = 0.5f },
                                     }
                                     .GetAsOut(out var optAlignHorzMid).WithBound(optAlignHorzLeft),
                                 new RadioControl
@@ -452,8 +442,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         Text = "R",
                                         Side = BooleanControl.IconSide.Top,
                                         Alignment = new(0.5f, 0),
-                                        TextStateOptions = new()
-                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                        TextStyle = defaultStyle with { HorizontalAlignment = 0.5f },
                                     }
                                     .GetAsOut(out var optAlignHorzRight).WithBound(optAlignHorzLeft),
                                 new ControlSpannable { Size = new(12, 0) },
@@ -463,8 +452,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         Checked = true,
                                         Side = BooleanControl.IconSide.Top,
                                         Alignment = new(0.5f, 0),
-                                        TextStateOptions = new()
-                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                        TextStyle = defaultStyle with { HorizontalAlignment = 0.5f },
                                     }
                                     .GetAsOut(out var optAlignVertTop),
                                 new RadioControl
@@ -472,8 +460,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         Text = "M",
                                         Side = BooleanControl.IconSide.Top,
                                         Alignment = new(0.5f, 0),
-                                        TextStateOptions = new()
-                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                        TextStyle = defaultStyle with { HorizontalAlignment = 0.5f },
                                     }
                                     .GetAsOut(out var optAlignVertMid).WithBound(optAlignVertTop),
                                 new RadioControl
@@ -481,8 +468,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                         Text = "B",
                                         Side = BooleanControl.IconSide.Top,
                                         Alignment = new(0.5f, 0),
-                                        TextStateOptions = new()
-                                            { InitialStyle = defaultStyle with { HorizontalAlignment = 0.5f } },
+                                        TextStyle = defaultStyle with { HorizontalAlignment = 0.5f },
                                     }
                                     .GetAsOut(out var optAlignVertBottom).WithBound(optAlignVertTop),
                             },
@@ -493,7 +479,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Name = "lblLinearContainerTestsBias",
                             Text = "Bias",
                             Margin = new(0, 4),
-                            TextStateOptions = new() { InitialStyle = h2Style },
+                            TextStyle = h2Style,
                         },
                         new LinearContainer
                         {
@@ -502,15 +488,41 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Direction = LinearContainer.LinearDirection.LeftToRight,
                             ChildrenList =
                             {
-                                new RadioControl { Text = "0/4", Checked = true, Side = BooleanControl.IconSide.Top }
+                                new RadioControl
+                                    {
+                                        Text = "0/4",
+                                        Checked = true,
+                                        Side = BooleanControl.IconSide.Top,
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optBias0),
-                                new RadioControl { Text = "1/4", Side = BooleanControl.IconSide.Top, }
+                                new RadioControl
+                                    {
+                                        Text = "1/4",
+                                        Side = BooleanControl.IconSide.Top,
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optBias1).WithBound(optBias0),
-                                new RadioControl { Text = "2/4", Side = BooleanControl.IconSide.Top, }
+                                new RadioControl
+                                    {
+                                        Text = "2/4",
+                                        Side = BooleanControl.IconSide.Top,
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optBias2).WithBound(optBias0),
-                                new RadioControl { Text = "3/4", Side = BooleanControl.IconSide.Top, }
+                                new RadioControl
+                                    {
+                                        Text = "3/4",
+                                        Side = BooleanControl.IconSide.Top,
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optBias3).WithBound(optBias0),
-                                new RadioControl { Text = "4/4", Side = BooleanControl.IconSide.Top, }
+                                new RadioControl
+                                    {
+                                        Text = "4/4",
+                                        Side = BooleanControl.IconSide.Top,
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optBias4).WithBound(optBias0),
                             },
                         },
@@ -519,6 +531,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             Text = "Rotate it",
                             Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                            TextStyle = defaultStyle,
                         }.GetAsOut(out var cmdRotate),
                     },
                 },
@@ -533,7 +546,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             Name = "lblNotALink",
                             SpannableText = new TextSpannableBuilder().Append("Not a Link"),
-                            TextStateOptions = new() { InitialStyle = notLinkStyle },
+                            TextStyle = notLinkStyle,
                         },
                         new ControlSpannable { Size = new(0, 12) },
                         new LabelControl
@@ -541,7 +554,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Name = "lblSpannableTestsOptions",
                             Text = "Options",
                             Margin = new(0, 4),
-                            TextStateOptions = new() { InitialStyle = h2Style },
+                            TextStyle = h2Style,
                         },
                         new LinearContainer
                         {
@@ -550,9 +563,17 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Direction = LinearContainer.LinearDirection.TopToBottom,
                             ChildrenList =
                             {
-                                new CheckboxControl { Text = "Use Wrap Markers" }
+                                new CheckboxControl
+                                    {
+                                        Text = "Use Wrap Markers",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var chkWrapMarker),
-                                new CheckboxControl { Text = "Show Control Characters" }
+                                new CheckboxControl
+                                    {
+                                        Text = "Show Control Characters",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var chkVisibleControlCharacters),
                             },
                         },
@@ -562,7 +583,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Name = "lblSpannableTestsWordBreakType",
                             Text = "Word Break Type",
                             Margin = new(0, 4),
-                            TextStateOptions = new() { InitialStyle = h2Style },
+                            TextStyle = h2Style,
                         },
                         new LinearContainer
                         {
@@ -571,13 +592,30 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Direction = LinearContainer.LinearDirection.TopToBottom,
                             ChildrenList =
                             {
-                                new RadioControl { Text = "Normal", Checked = true, }
+                                new RadioControl
+                                    {
+                                        Text = "Normal",
+                                        Checked = true,
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optBreakNormal),
-                                new RadioControl { Text = "Break All" }
+                                new RadioControl
+                                    {
+                                        Text = "Break All",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optBreakAll).WithBound(optBreakNormal),
-                                new RadioControl { Text = "Keep All" }
+                                new RadioControl
+                                    {
+                                        Text = "Keep All",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optKeepAll).WithBound(optBreakNormal),
-                                new RadioControl { Text = "Break Word" }
+                                new RadioControl
+                                    {
+                                        Text = "Break Word",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var optBreakWord).WithBound(optKeepAll),
                             },
                         },
@@ -585,9 +623,9 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         new LabelControl
                         {
                             Name = "lblSpannableTestsMiscTests",
-                            Text = "Miscellaneuos Tests",
+                            Text = "Miscellaneous Tests",
                             Margin = new(0, 4),
-                            TextStateOptions = new() { InitialStyle = h2Style },
+                            TextStyle = h2Style,
                         },
                         new LinearContainer
                         {
@@ -596,21 +634,35 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                             Direction = LinearContainer.LinearDirection.TopToBottom,
                             ChildrenList =
                             {
-                                new CheckboxControl { Text = "Complicated Text", }
+                                new CheckboxControl
+                                    {
+                                        Text = "Complicated Text",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var chkComplicatedText),
-                                new CheckboxControl { Text = "Dynamic Offset", }
+                                new CheckboxControl
+                                    {
+                                        Text = "Dynamic Offset",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var chkDynamicOffset),
-                                new CheckboxControl { Text = "Transformation", }
+                                new CheckboxControl
+                                    {
+                                        Text = "Transformation",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var chkTransformation),
-                                new CheckboxControl { Text = "Parsing", }
+                                new CheckboxControl
+                                    {
+                                        Text = "Parsing",
+                                        TextStyle = defaultStyle,
+                                    }
                                     .GetAsOut(out var chkParsing),
-                                new CheckboxControl { Text = "Button Flower", }
-                                    .GetAsOut(out var chkFlower),
                             },
                         },
                     },
                 },
-                new LabelControl { ActiveTextState = new(this.TextStateOptions), }.GetAsOut(out var lblOptions),
+                new LabelControl().GetAsOut(out var lblOptions),
             },
         };
 
@@ -645,24 +697,23 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             this.rootContainer.ScrollBoundary = new(new Vector2(-float.PositiveInfinity), new(float.PositiveInfinity));
             // this.rootContainer.Scroll = linearContainer.MeasuredContentBox.Center -
             //                             this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
-            this.rootContainer.SmoothScroll(
+            this.rootContainer.Scroll =
                 linearContainer.MeasuredContentBox.Center -
-                this.rootContainer.MeasuredContentBox.Center - pzt.Pan,
-                new InOutCubic(TimeSpan.FromMilliseconds(150)));
+                this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
             linearContainer.Scale = pzt.EffectiveZoom;
             linearContainer.Transformation = Matrix4x4.CreateRotationZ(pzt.Rotation);
         };
         this.rootContainer.MeasuredBoundaryBoxChange += _ =>
         {
-            pzt.Size = linearContainer.MeasuredBoundaryBox.Size;
+            pzt.Size = linearContainer.MeasuredBoundaryBox.Size * ImGuiHelpers.GlobalScale;
         };
 
         cmdRotate.Click += _ => pzt.Rotation += MathF.PI / 16f;
 
         optLinearContainerLtr.CheckedChange += e =>
             linearContainer.Direction = e.NewValue
-                                                 ? LinearContainer.LinearDirection.LeftToRight
-                                                 : LinearContainer.LinearDirection.RightToLeft;
+                                            ? LinearContainer.LinearDirection.LeftToRight
+                                            : LinearContainer.LinearDirection.RightToLeft;
         optLinearContainerTtb.CheckedChange += e =>
         {
             foreach (var x in linearContainer.ChildrenList.OfType<LinearContainer>())
@@ -727,9 +778,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         chkTransformation.CheckedChange += UpdateLblOptions;
 
         chkParsing.CheckedChange += e => this.showParseTest = e.NewValue;
-        chkFlower.CheckedChange += e => this.showFlowerTest = e.NewValue;
         chkParsing.CheckedChange += UpdateLblOptions;
-        chkFlower.CheckedChange += UpdateLblOptions;
 
         lblOptions.LinkMouseClick += e =>
         {
@@ -748,8 +797,6 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 chkTransformation.Checked = this.showTransformationTest ^= true;
             else if (linkSpan.SequenceEqual("showParseTest"u8))
                 chkParsing.Checked = this.showParseTest ^= true;
-            else if (linkSpan.SequenceEqual("showFlowerTest"u8))
-                chkFlower.Checked = this.showFlowerTest ^= true;
 
             if (linkSpan.SequenceEqual("wordBreakTypeNormal"u8))
             {
@@ -813,7 +860,16 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         void UpdateLblOptions(PropertyChangeEventArgs<ControlSpannable, bool>? e)
         {
-            lblOptions.ActiveTextState = new(this.TextStateOptions);
+            if (this.renderContextOptions.RootOptions is null)
+            {
+                Service<Framework>.Get().RunOnTick(() => UpdateLblOptions(null));
+                return;
+            }
+
+            var opt = (TextSpannableBase.Options)this.renderContextOptions.RootOptions!;
+            opt.Style = TextStyle.FromContext;
+            lblOptions.SpannableTextOptions = opt;
+            lblOptions.TextStyle = opt.Style;
             lblOptions.SpannableText =
                 new TextSpannableBuilder()
                     .PushLink("copy"u8)
@@ -976,212 +1032,219 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                     .PopShadowOffset()
                     .PopForeColor()
                     .AppendLine("\u00A0Test Parsing")
-                    .PopLink()
-                    .PushLink("showFlowerTest"u8)
-                    .PushForeColor(0xFFFFFFFF)
-                    .PushShadowOffset(Vector2.Zero)
-                    .AppendTexture(
-                        texIdCheckbox,
-                        this.showFlowerTest ? new(0.5f, 0) : Vector2.Zero,
-                        this.showFlowerTest ? Vector2.One : new(0.5f, 1))
-                    .PopShadowOffset()
-                    .PopForeColor()
-                    .AppendLine("\u00A0Test Flower")
                     .PopLink();
         }
     }
 
     private void DrawTestComplicatedTextBlock(TextSpannableBuilder ssb, float x)
     {
-        ssb.Clear()
-           .PushLink("copy"u8)
-           .PushEdgeColor(ImGuiColors.HealerGreen)
-           .PushEdgeWidth(1)
-           .Append("Copy ToString")
-           .PopEdgeWidth()
-           .PopEdgeColor()
-           .PopLink()
-           .AppendLine()
-           .AppendLine();
-
-        var fontSizeCounter = 9;
-        ssb.PushLink("valign_next"u8)
-           .PushVerticalAlignment(this.valign)
-           .PushVerticalOffset(this.vertOffset);
-        foreach (var c in $"Vertical Align: {this.valign}")
+        if (this.lblComplicated is null)
         {
-            ssb.PushFontSet(new(DalamudDefaultFontAndFamilyId.Instance), out _)
-               .PushFontSize((fontSizeCounter * 4f) / 3)
-               .PushBackColor(0xFF111111)
-               .Append(c)
-               .PopBackColor()
-               .PopFontSize()
-               .PopFontSet();
-            fontSizeCounter++;
-        }
-
-        ssb.PopLink()
-           .PopVerticalAlignment()
-           .PopVerticalOffset()
-           .Append(' ')
-           .PushBackColor(0xFF000044)
-           .PushFontSize(18)
-           .PushVerticalAlignment(VerticalAlignment.Middle)
-           .PushLink("valign_up"u8)
-           .AppendIcon(GfdIcon.RelativeLocationUp)
-           .PopLink()
-           .PushLink("valign_down"u8)
-           .AppendIcon(GfdIcon.RelativeLocationDown)
-           .PopLink()
-           .PushLink("image_toggle"u8)
-           .PushFontSet(new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)), out _)
-           .PushFontSize(18)
-           .PushVerticalAlignment(VerticalAlignment.Middle)
-           .Append(FontAwesomeIcon.Image.ToIconChar())
-           .PopVerticalAlignment()
-           .PopFontSize()
-           .PopFontSet()
-           .PopFontSize()
-           .PopVerticalAlignment()
-           .PopBackColor()
-           .PopLink()
-           .AppendLine()
-           .AppendLine();
-
-        ssb.PushForeColor(0xFFC5E1EE)
-           .PushShadowColor(0xFF000000)
-           .PushShadowOffset(new(0, 1))
-           .Append("Soft Hyphen test:"u8);
-        for (var c = 'a'; c <= 'z'; c++)
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                ssb.AppendChar(i == 0 ? ' ' : '\u00AD', i == 0 ? (c - 'a') + 1 : 1)
-                   .PushLink("a"u8)
-                   .PushItalic(i % 2 == 0)
-                   .Append(c, 5)
-                   .PopItalic()
-                   .PopLink();
-            }
-        }
-
-        ssb.PopShadowOffset()
-           .PopShadowColor()
-           .AppendLine()
-           .PopForeColor()
-           .AppendLine();
-
-        ssb.PushLink("Link 1"u8)
-           .PushHorizontalAlignment(HorizontalAlignment.Center)
-           .Append("This link is clicked "u8)
-           .PushBold(true)
-           .Append(this.numLinkClicks)
-           .PopBold()
-           .Append(" times."u8)
-           .PopHorizontalAlignment()
-           .PopLink()
-           .AppendLine()
-           .AppendLine();
-
-        ssb.PushLink("Link 2"u8)
-           .PushForeColor(0xFF00CC00)
-           .PushEdgeColor(0xFF005500)
-           .PushEdgeWidth(1)
-           .PushHorizontalAlignment(HorizontalAlignment.Right)
-           .Append("Another "u8)
-           .PushFontSet(new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)), out _)
-           .PushForeColor(0xFF9999FF)
-           .PushVerticalOffset(-0.4f).Append('M').PopVerticalOffset()
-           .PushVerticalOffset(-0.3f).Append('o').PopVerticalOffset()
-           .PushVerticalOffset(-0.2f).Append('n').PopVerticalOffset()
-           .PushVerticalOffset(-0.1f).Append('o').PopVerticalOffset()
-           .PushVerticalOffset(+0.0f).Append('s').PopVerticalOffset()
-           .PushVerticalOffset(+0.1f).Append('p').PopVerticalOffset()
-           .PushVerticalOffset(+0.2f).Append('a').PopVerticalOffset()
-           .PushVerticalOffset(+0.3f).Append('c').PopVerticalOffset()
-           .PushVerticalOffset(+0.4f).Append('e').PopVerticalOffset()
-           .PopForeColor()
-           .PopFontSet()
-           .Append(" Link.")
-           .PopHorizontalAlignment()
-           .PopEdgeWidth()
-           .PopEdgeColor()
-           .PopForeColor()
-           .PopLink()
-           .AppendLine()
-           .AppendLine();
-
-        if (this.useImages)
-        {
-            for (var i = 0; i < 30; i++)
-            {
-                var tex = Service<TextureManager>.Get().GetTextureFromGame($"ui/icon/000000/{i:000000}.tex");
-                ssb.AppendTexture(tex, out _)
-                   .Append("UI#")
-                   .PushForeColor(0xFF9999FF)
-                   .Append(i)
-                   .PopForeColor()
-                   .Append(' ');
-            }
-
-            ssb.AppendLine()
+            ssb.Clear()
+               .PushLink("copy"u8)
+               .PushEdgeColor(ImGuiColors.HealerGreen)
+               .PushEdgeWidth(1)
+               .Append("Copy ToString")
+               .PopEdgeWidth()
+               .PopEdgeColor()
+               .PopLink()
+               .AppendLine()
                .AppendLine();
 
-            foreach (var e in Enum.GetValues<GfdIcon>())
+            var fontSizeCounter = 9;
+            ssb.PushLink("valign_next"u8)
+               .PushVerticalAlignment(this.valign)
+               .PushVerticalOffset(this.vertOffset);
+            foreach (var c in $"Vertical Align: {this.valign}")
             {
-                ssb.AppendIcon(e)
-                   .Append('#')
-                   .PushForeColor(0xFFFF9999)
-                   .Append((int)e)
-                   .PopForeColor()
-                   .Append('\u00A0')
-                   .Append(Enum.GetName(e))
-                   .Append(' ');
-            }
-        }
-
-        ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
-        if (Service<SpannableRenderer>.Get().Render(
-                ssb,
-                new(nameof(this.DrawTestComplicatedTextBlock), this.renderContextOptions),
-                this.TextStateOptions).TryGetLinkOnClick(out var link))
-        {
-            if (link.SequenceEqual("copy"u8))
-            {
-                this.CopyMe(ssb.Build().ToString());
-            }
-            else if (link.SequenceEqual("Link 1"u8))
-            {
-                this.numLinkClicks++;
-            }
-            else if (link.SequenceEqual("valign_up"u8))
-            {
-                this.vertOffset -= 1 / 8f;
-            }
-            else if (link.SequenceEqual("valign_next"u8))
-            {
-                this.valign =
-                    (VerticalAlignment)(((int)this.valign + 1) %
-                                        Enum.GetValues<VerticalAlignment>().Length);
-            }
-            else if (link.SequenceEqual("valign_down"u8))
-            {
-                this.vertOffset += 1 / 8f;
-            }
-            else if (link.SequenceEqual("image_toggle"u8))
-            {
-                this.useImages ^= true;
+                ssb.PushFontSet(new(DalamudDefaultFontAndFamilyId.Instance), out _)
+                   .PushFontSize((fontSizeCounter * 4f) / 3)
+                   .PushBackColor(0xFF111111)
+                   .Append(c)
+                   .PopBackColor()
+                   .PopFontSize()
+                   .PopFontSet();
+                fontSizeCounter++;
             }
 
-            if (!link.SequenceEqual("a"u8))
+            ssb.PopLink()
+               .PopVerticalAlignment()
+               .PopVerticalOffset()
+               .Append(' ')
+               .PushBackColor(0xFF000044)
+               .PushFontSize(18)
+               .PushVerticalAlignment(VerticalAlignment.Middle)
+               .PushLink("valign_up"u8)
+               .AppendIcon(GfdIcon.RelativeLocationUp)
+               .PopLink()
+               .PushLink("valign_down"u8)
+               .AppendIcon(GfdIcon.RelativeLocationDown)
+               .PopLink()
+               .PushLink("image_toggle"u8)
+               .PushFontSet(new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)), out _)
+               .PushFontSize(18)
+               .PushVerticalAlignment(VerticalAlignment.Middle)
+               .Append(FontAwesomeIcon.Image.ToIconChar())
+               .PopVerticalAlignment()
+               .PopFontSize()
+               .PopFontSet()
+               .PopFontSize()
+               .PopVerticalAlignment()
+               .PopBackColor()
+               .PopLink()
+               .AppendLine()
+               .AppendLine();
+
+            ssb.PushForeColor(0xFFC5E1EE)
+               .PushShadowColor(0xFF000000)
+               .PushShadowOffset(new(0, 1))
+               .Append("Soft Hyphen test:"u8);
+            for (var c = 'a'; c <= 'z'; c++)
             {
-                unsafe
+                for (var i = 0; i < 10; i++)
                 {
-                    fixed (byte* p2 = link)
-                        ImGuiNative.igSetTooltip(p2);
+                    ssb.AppendChar(i == 0 ? ' ' : '\u00AD', i == 0 ? (c - 'a') + 1 : 1)
+                       .PushLink("a"u8)
+                       .PushItalic(i % 2 == 0)
+                       .Append(c, 5)
+                       .PopItalic()
+                       .PopLink();
                 }
             }
+
+            ssb.PopShadowOffset()
+               .PopShadowColor()
+               .AppendLine()
+               .PopForeColor()
+               .AppendLine();
+
+            ssb.PushLink("Link 1"u8)
+               .PushHorizontalAlignment(HorizontalAlignment.Center)
+               .Append("This link is clicked "u8)
+               .PushBold(true)
+               .Append(this.numLinkClicks)
+               .PopBold()
+               .Append(" times."u8)
+               .PopHorizontalAlignment()
+               .PopLink()
+               .AppendLine()
+               .AppendLine();
+
+            ssb.PushLink("Link 2"u8)
+               .PushForeColor(0xFF00CC00)
+               .PushEdgeColor(0xFF005500)
+               .PushEdgeWidth(1)
+               .PushHorizontalAlignment(HorizontalAlignment.Right)
+               .Append("Another "u8)
+               .PushFontSet(new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)), out _)
+               .PushForeColor(0xFF9999FF)
+               .PushVerticalOffset(-0.4f).Append('M').PopVerticalOffset()
+               .PushVerticalOffset(-0.3f).Append('o').PopVerticalOffset()
+               .PushVerticalOffset(-0.2f).Append('n').PopVerticalOffset()
+               .PushVerticalOffset(-0.1f).Append('o').PopVerticalOffset()
+               .PushVerticalOffset(+0.0f).Append('s').PopVerticalOffset()
+               .PushVerticalOffset(+0.1f).Append('p').PopVerticalOffset()
+               .PushVerticalOffset(+0.2f).Append('a').PopVerticalOffset()
+               .PushVerticalOffset(+0.3f).Append('c').PopVerticalOffset()
+               .PushVerticalOffset(+0.4f).Append('e').PopVerticalOffset()
+               .PopForeColor()
+               .PopFontSet()
+               .Append(" Link.")
+               .PopHorizontalAlignment()
+               .PopEdgeWidth()
+               .PopEdgeColor()
+               .PopForeColor()
+               .PopLink()
+               .AppendLine()
+               .AppendLine();
+
+            if (this.useImages)
+            {
+                for (var i = 0; i < 30; i++)
+                {
+                    var tex = Service<TextureManager>.Get().GetTextureFromGame($"ui/icon/000000/{i:000000}.tex");
+                    ssb.AppendTexture(tex, out _)
+                       .Append("UI#")
+                       .PushForeColor(0xFF9999FF)
+                       .Append(i)
+                       .PopForeColor()
+                       .Append(' ');
+                }
+
+                ssb.AppendLine()
+                   .AppendLine();
+
+                foreach (var e in Enum.GetValues<GfdIcon>())
+                {
+                    ssb.AppendIcon(e)
+                       .Append('#')
+                       .PushForeColor(0xFFFF9999)
+                       .Append((int)e)
+                       .PopForeColor()
+                       .Append('\u00A0')
+                       .Append(Enum.GetName(e))
+                       .Append(' ');
+                }
+            }
+
+            this.lblComplicated = new()
+            {
+                SpannableText = ssb.Build(),
+                Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+            };
+            this.lblComplicated.LinkMouseClick += e =>
+            {
+                var link = e.Link.Span;
+                if (link.SequenceEqual("copy"u8))
+                {
+                    this.CopyMe(ssb.Build().ToString());
+                }
+                else if (link.SequenceEqual("Link 1"u8))
+                {
+                    this.numLinkClicks++;
+                    this.lblComplicated = null;
+                }
+                else if (link.SequenceEqual("valign_up"u8))
+                {
+                    this.vertOffset -= 1 / 8f;
+                    this.lblComplicated = null;
+                }
+                else if (link.SequenceEqual("valign_next"u8))
+                {
+                    this.valign =
+                        (VerticalAlignment)(((int)this.valign + 1) %
+                                            Enum.GetValues<VerticalAlignment>().Length);
+                    this.lblComplicated = null;
+                }
+                else if (link.SequenceEqual("valign_down"u8))
+                {
+                    this.vertOffset += 1 / 8f;
+                    this.lblComplicated = null;
+                }
+                else if (link.SequenceEqual("image_toggle"u8))
+                {
+                    this.useImages ^= true;
+                    this.lblComplicated = null;
+                }
+
+                if (!link.SequenceEqual("a"u8))
+                {
+                    unsafe
+                    {
+                        fixed (byte* p2 = link)
+                            ImGuiNative.igSetTooltip(p2);
+                    }
+                }
+            };
         }
+
+        if (this.lblComplicated is null)
+            return;
+
+        ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
+        Service<SpannableRenderer>.Get().DrawSpannable(
+            this.lblComplicated,
+            new(nameof(this.DrawTestComplicatedTextBlock), this.renderContextOptions)).ReturnMeasurementToSpannable();
     }
 
     private unsafe void DrawParseTest(TextSpannableBuilder ssb, float x)
@@ -1223,69 +1286,24 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
         if (this.parseAttempt.Parsed is { } parsed)
         {
-            Service<SpannableRenderer>.Get().Render(
+            Service<SpannableRenderer>.Get().DrawSpannable(
                 parsed,
-                new(nameof(this.DrawParseTest), this.renderContextOptions),
-                this.TextStateOptions);
+                new(nameof(this.DrawParseTest), this.renderContextOptions)).ReturnMeasurementToSpannable();
         }
         else if (this.parseAttempt.Exception is { } e)
         {
-            Service<SpannableRenderer>.Get().Render(
+            Service<SpannableRenderer>.Get().DrawSpannable(
                 ssb.Clear()
                    .PushEdgeColor(new Rgba32(ImGuiColors.DalamudRed).MultiplyOpacity(0.5f))
                    .Append(e.ToString()),
-                new(nameof(this.DrawParseTest), this.renderContextOptions),
-                this.TextStateOptions);
+                new(nameof(this.DrawParseTest), this.renderContextOptions)).ReturnMeasurementToSpannable();
         }
         else
         {
-            Service<SpannableRenderer>.Get().Render(
+            Service<SpannableRenderer>.Get().DrawSpannable(
                 ssb.Clear().Append("Try writing something to the above text box."),
-                new(nameof(this.DrawParseTest), this.renderContextOptions),
-                this.TextStateOptions);
+                new(nameof(this.DrawParseTest), this.renderContextOptions)).ReturnMeasurementToSpannable();
         }
-    }
-
-    private void DrawFlowerTest()
-    {
-        ImGui.SliderFloat("Angle##angle", ref this.buttonFlowerAngle, 0f, MathF.PI * 2);
-        ImGui.SliderFloat("Scale##angle", ref this.buttonFlowerScale, 0f, 2f);
-        {
-            var tmp = this.spannableButton[0].Visible;
-            if (ImGui.Checkbox("Visibility?", ref tmp))
-            {
-                foreach (ref var v in this.spannableButton.AsSpan())
-                    v.Visible = tmp;
-            }
-        }
-
-        var renderer = Service<SpannableRenderer>.Get();
-        var off = ImGui.GetCursorPos();
-        ImGui.SetCursorPos(off);
-        var origin = ImGui.GetCursorScreenPos() + new Vector2(
-                         ImGui.GetWindowSize().X / 2f,
-                         180 * ImGuiHelpers.GlobalScale);
-        ImGui.GetWindowDrawList().AddCircle(origin, 5, uint.MaxValue);
-        for (var i = 0; i < this.spannableButton.Length; i++)
-        {
-            var transformation =
-                Matrix4x4.Multiply(
-                    Matrix4x4.CreateScale(this.buttonFlowerScale, this.buttonFlowerScale, 1f),
-                    Matrix4x4.CreateRotationZ(this.buttonFlowerAngle + ((i / 6f) * MathF.PI)));
-            ImGui.SetCursorPos(off);
-            renderer.Render(
-                this.spannableButton[i],
-                new(
-                    $"TestButton{i}",
-                    new()
-                    {
-                        ScreenOffset = origin,
-                        InnerOrigin = new(0f, 0.5f),
-                        Transformation = transformation,
-                    }));
-        }
-
-        ImGui.SetCursorPos(off + (new Vector2(0, 480) * ImGuiHelpers.GlobalScale));
     }
 
     private void DrawDynamicOffsetTest(TextSpannableBuilder ssb)
@@ -1303,24 +1321,22 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
            .Append("Text\ngoing\nround");
 
         var prevPos = ImGui.GetCursorScreenPos();
-        if (Service<SpannableRenderer>.Get().Render(
-                ssb,
-                new(
-                    nameof(this.DrawDynamicOffsetTest),
-                    this.renderContextOptions with
-                    {
-                        MaxSize = size,
-                        ScreenOffset = ImGui.GetWindowPos(),
-                    }),
-                this.TextStateOptions with
+        var o2 = (TextSpannableBase.Options)this.renderContextOptions.RootOptions!;
+        o2.VerticalAlignment = 0.5f;
+        o2.Style = TextStyle.FromContext with { HorizontalAlignment = 0.5f };
+        var rm = (TextSpannableBase.Measurement)Service<SpannableRenderer>.Get().DrawSpannable(
+            ssb,
+            new(
+                nameof(this.DrawDynamicOffsetTest),
+                this.renderContextOptions with
                 {
-                    VerticalAlignment = 0.5f,
-                    InitialStyle = TextStyle.FromContext with
-                    {
-                        HorizontalAlignment = 0.5f,
-                    },
-                }).TryGetLink(out _))
+                    Size = size,
+                    ScreenOffset = ImGui.GetWindowPos(),
+                    RootOptions = o2,
+                }));
+        if (rm.GetInteractedLink(out _) is not TextSpannableBase.LinkState.Clear)
             this.catchMeBegin += 50;
+        rm.ReturnMeasurementToSpannable();
         ImGui.SetCursorScreenPos(prevPos);
     }
 
@@ -1347,27 +1363,28 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 (minDim * (1 + MathF.Sin(v - (MathF.PI / 2)) / 4)) / 2,
                 0));
 
-        if (Service<SpannableRenderer>.Get().Render(
-                ssb,
-                new(
-                    nameof(this.DrawDynamicOffsetTest),
-                    this.renderContextOptions with
-                    {
-                        ScreenOffset = ImGui.GetWindowPos(),
-                        Transformation = mtx,
-                        MaxSize = size with { X = 0 },
-                    }),
-                this.TextStateOptions with
+        var o2 = (TextSpannableBase.Options)this.renderContextOptions.RootOptions!;
+        o2.WordBreak = WordBreakType.KeepAll;
+        o2.Style = TextStyle.FromContext with
+        {
+            EdgeWidth = 1f,
+            EdgeColor = new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f)),
+            HorizontalAlignment = 0.5f,
+        };
+        var rm = (TextSpannableBase.Measurement)Service<SpannableRenderer>.Get().DrawSpannable(
+            ssb,
+            new(
+                nameof(this.DrawDynamicOffsetTest),
+                this.renderContextOptions with
                 {
-                    WordBreak = WordBreakType.KeepAll,
-                    InitialStyle = TextStyle.FromContext with
-                    {
-                        EdgeWidth = 1f,
-                        EdgeColor = new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f)),
-                        HorizontalAlignment = 0.5f,
-                    },
-                }).TryGetLink(out _))
+                    ScreenOffset = ImGui.GetWindowPos(),
+                    Transformation = mtx,
+                    Size = size with { X = 0 },
+                    RootOptions = o2,
+                }));
+        if (rm.GetInteractedLink(out _) is not TextSpannableBase.LinkState.Clear)
             this.catchMeBegin += 50;
+        rm.ReturnMeasurementToSpannable();
         ImGui.SetCursorScreenPos(prevPos);
     }
 

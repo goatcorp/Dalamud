@@ -120,7 +120,7 @@ public class SpannableAnimator
     /// <summary>Updates the animation.</summary>
     /// <param name="renderPass">Render pass of the spannable being animated.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Update(ISpannableRenderPass renderPass) => this.Update(renderPass.Boundary);
+    public void Update(ISpannableMeasurement renderPass) => this.Update(renderPass.Boundary);
 
     /// <summary>Updates the animation.</summary>
     /// <param name="boundary">Boundary to animate.</param>

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Game.Config;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Spannables.Internal;
 
@@ -35,9 +36,15 @@ internal sealed unsafe partial class SpannableRenderer
         out Vector2 uv0,
         out Vector2 uv1)
     {
-        if (iconType < 0
-            || iconType >= this.gfdTextures.Length
-            || !this.GfdFileView.TryGetEntry(iconId, out var entry))
+        if (iconType < 0 || iconType >= this.gfdTextures.Length)
+        {
+            iconType =
+                Service<GameConfig>.Get().TryGet(SystemConfigOption.PadSelectButtonIcon, out uint iconTmp)
+                    ? (int)iconTmp
+                    : 0;
+        }
+
+        if (!this.GfdFileView.TryGetEntry(iconId, out var entry))
         {
             textureWrap = null;
             uv0 = uv1 = default;

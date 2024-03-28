@@ -7,7 +7,7 @@ public class FitInClientRectScaleMode : IRectScaleModeWithZoomInToFit
 {
     private static readonly FitInClientRectScaleMode WithZoomInToFit = new(true);
     private static readonly FitInClientRectScaleMode WithoutZoomInToFit = new(false);
-    
+
     private FitInClientRectScaleMode(bool zoomInToFit) => this.ZoomInToFit = zoomInToFit;
 
     /// <inheritdoc/>
@@ -39,7 +39,8 @@ public class FitInClientRectScaleMode : IRectScaleModeWithZoomInToFit
     /// <param name="zoomInToFit">Whether to allow zooming in to fit.</param>
     /// <param name="exponentDivisor">The exponent divisor.</param>
     /// <returns>The calculated zoom exponent value.</returns>
-    public static float CalcZoomExponentStatic(Vector2 content, Vector2 client, bool zoomInToFit, float exponentDivisor) =>
+    public static float CalcZoomExponentStatic(
+        Vector2 content, Vector2 client, bool zoomInToFit, float exponentDivisor) =>
         IRectScaleMode.ZoomToExponent(CalcZoomStatic(content, client, zoomInToFit), exponentDivisor);
 
     /// <inheritdoc/>

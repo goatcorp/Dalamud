@@ -264,6 +264,7 @@ public abstract partial class TextSpannableBase
         /// <param name="tabWidth">The width.</param>
         public void AddTabCharacter(in TextStyleFontData font, float tabWidth)
         {
+            tabWidth = font.CalculateTabSize(tabWidth);
             this.X = MathF.Floor(((this.X + tabWidth) / tabWidth) * font.RenderScale) * tabWidth * font.RenderScale;
             this.UnionBBoxHorizontal(this.X, this.X, font.RenderScale);
             this.UnionBBoxVertical(font.BBoxVertical.X, font.BBoxVertical.X, font.RenderScale);

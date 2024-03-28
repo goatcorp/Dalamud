@@ -1,12 +1,11 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
-using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Utility;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
@@ -32,10 +31,10 @@ public abstract partial class TextSpannableBase
 
         public MeasuredLine.LastThingStruct LastRendered;
 
-        private readonly SpannableDrawArgs args;
+        private readonly IInternalMeasurement mm;
+        private readonly ImDrawListPtr drawListPtr;
+        private readonly ISpannableRenderer renderer;
         private readonly DataRef data;
-        private readonly RenderPass renderPass;
-        private readonly bool skipDraw;
 
         private TextStyleFontData fontInfo;
         private StateInfo stateInfo;
@@ -49,21 +48,21 @@ public abstract partial class TextSpannableBase
         private bool useTextDecoration;
         private bool useForeground;
 
-        public CharRenderer(in SpannableDrawArgs args, in DataRef data, RenderPass renderPass, bool skipDraw)
+        public CharRenderer(IInternalMeasurement measurement, in DataRef data, ImDrawListPtr drawListPtr)
         {
-            this.args = args;
+            this.mm = measurement;
+            this.renderer = measurement.Renderer!;
             this.data = data;
-            this.renderPass = renderPass;
-            this.skipDraw = skipDraw || args.IsEmpty;
+            this.drawListPtr = drawListPtr;
 
-            if (!this.skipDraw)
+            if (drawListPtr.NativePtr is not null)
             {
-                this.BackChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.ShadowChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.BorderChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.TextDecorationOverUnderChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.ForeChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
-                this.TextDecorationThroughChannel = renderPass.Renderer.RentDrawList(args.DrawListPtr);
+                this.BackChannel = this.renderer.RentDrawList(drawListPtr);
+                this.ShadowChannel = this.renderer.RentDrawList(drawListPtr);
+                this.BorderChannel = this.renderer.RentDrawList(drawListPtr);
+                this.TextDecorationOverUnderChannel = this.renderer.RentDrawList(drawListPtr);
+                this.ForeChannel = this.renderer.RentDrawList(drawListPtr);
+                this.TextDecorationThroughChannel = this.renderer.RentDrawList(drawListPtr);
             }
 
             this.SpanFontOptionsUpdated();
@@ -76,40 +75,37 @@ public abstract partial class TextSpannableBase
             get => this.fontInfo.BBoxVertical.Y - this.fontInfo.BBoxVertical.X;
         }
 
-        public void AppendAndReturnChannels(in Matrix4x4 transformationFromParent)
+        public void AppendAndReturnChannels(in Matrix4x4 transformatin)
         {
-            if (!this.skipDraw)
-            {
-                var renderer = this.renderPass.Renderer;
-                var target = this.args.DrawListPtr;
-                this.BackChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
-                this.ShadowChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
-                this.BorderChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
-                this.TextDecorationOverUnderChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
-                this.ForeChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
-                this.TextDecorationThroughChannel.CopyDrawListDataTo(target, transformationFromParent, Vector4.One);
-                renderer.ReturnDrawList(this.BackChannel);
-                renderer.ReturnDrawList(this.ShadowChannel);
-                renderer.ReturnDrawList(this.BorderChannel);
-                renderer.ReturnDrawList(this.TextDecorationOverUnderChannel);
-                renderer.ReturnDrawList(this.ForeChannel);
-                renderer.ReturnDrawList(this.TextDecorationThroughChannel);
-            }
+            if (this.drawListPtr.NativePtr is null)
+                return;
+            this.BackChannel.CopyDrawListDataTo(this.drawListPtr, transformatin, Vector4.One);
+            this.ShadowChannel.CopyDrawListDataTo(this.drawListPtr, transformatin, Vector4.One);
+            this.BorderChannel.CopyDrawListDataTo(this.drawListPtr, transformatin, Vector4.One);
+            this.TextDecorationOverUnderChannel.CopyDrawListDataTo(this.drawListPtr, transformatin, Vector4.One);
+            this.ForeChannel.CopyDrawListDataTo(this.drawListPtr, transformatin, Vector4.One);
+            this.TextDecorationThroughChannel.CopyDrawListDataTo(this.drawListPtr, transformatin, Vector4.One);
+            this.renderer.ReturnDrawList(this.BackChannel);
+            this.renderer.ReturnDrawList(this.ShadowChannel);
+            this.renderer.ReturnDrawList(this.BorderChannel);
+            this.renderer.ReturnDrawList(this.TextDecorationOverUnderChannel);
+            this.renderer.ReturnDrawList(this.ForeChannel);
+            this.renderer.ReturnDrawList(this.TextDecorationThroughChannel);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLine(in MeasuredLine measuredLine)
         {
-            this.stateInfo = new(this.renderPass, in measuredLine);
+            this.stateInfo = new(this.mm, in measuredLine);
             this.RenderStateUpdated();
         }
 
         public RectVector4 HandleSpan(in SpannedRecord record, ReadOnlySpan<byte> recordData)
         {
-            this.renderPass.ActiveTextState.LastStyle.UpdateFrom(
+            this.mm.LastStyle.UpdateFrom(
                 record,
                 recordData,
-                this.renderPass.ActiveTextState.InitialStyle,
+                this.mm.Options.Style,
                 this.data.FontSets,
                 out var fontUpdated,
                 out var drawOptionsUpdated);
@@ -135,8 +131,8 @@ public abstract partial class TextSpannableBase
 
         public TextStyle UpdateSpanParams(in TextStyle newStyle)
         {
-            var old = this.renderPass.ActiveTextState.LastStyle;
-            this.renderPass.ActiveTextState.LastStyle = newStyle;
+            var old = this.mm.LastStyle;
+            this.mm.LastStyle = newStyle;
             this.SpanFontOptionsUpdated();
             this.RenderStateUpdated();
             this.SpanDrawOptionsUpdated();
@@ -157,7 +153,7 @@ public abstract partial class TextSpannableBase
                 case '\r' or '\n': // Newline characters are never drawn.
                 case '\u00AD': // Soft hyphen is never drawn here, and is not considered for kerning.
                     return RectVector4.FromCoordAndSize(
-                        this.renderPass.Offset + this.StyleTranslation,
+                        this.mm.LastOffset + this.StyleTranslation,
                         new(0, this.fontInfo.ScaledFontSize));
             }
 
@@ -181,8 +177,8 @@ public abstract partial class TextSpannableBase
                     {
                         case SpannedRecordType.ObjectIcon
                             when SpannedRecordCodec.TryDecodeObjectIcon(recordData, out var gfdIcon)
-                                 && this.renderPass.Renderer.TryGetIcon(
-                                     this.renderPass.ActiveTextState.GfdIndex,
+                                 && this.renderer.TryGetIcon(
+                                     this.mm.Options.GfdIconMode,
                                      (uint)gfdIcon,
                                      new(0, this.fontInfo.ScaledFontSize),
                                      out var tex,
@@ -221,15 +217,15 @@ public abstract partial class TextSpannableBase
                         case SpannedRecordType.ObjectSpannable
                             when SpannedRecordCodec.TryDecodeObjectSpannable(recordData, out nonNullSpannableStateIndex)
                                  && this.data.TryGetSpannableAt(nonNullSpannableStateIndex, out spannable)
-                                 && this.renderPass.SpannableStates[nonNullSpannableStateIndex] is { } spannableState:
+                                 && this.mm.ChildMeasurements[nonNullSpannableStateIndex] is { } spannableState:
                         {
-                            ref readonly var spanBounds = ref spannableState.Boundary;
+                            var spanBounds = spannableState.Boundary;
                             xy0 = spanBounds.LeftTop;
                             xy1 = spanBounds.RightBottom;
                             if (Math.Abs(spanBounds.Height - this.fontInfo.ScaledFontSize) > 0.00001f)
                             {
                                 var d = (this.fontInfo.ScaledFontSize - spanBounds.Height) *
-                                        this.renderPass.ActiveTextState.LastStyle.VerticalAlignment;
+                                        this.mm.LastStyle.VerticalAlignment;
                                 xy0.Y += d;
                                 xy1.Y += d;
                                 xySpannableBase = new(0, d);
@@ -253,9 +249,9 @@ public abstract partial class TextSpannableBase
 
                 case '\t':
                 {
-                    var tabWidth = this.renderPass.ActiveTextState.TabWidth;
-                    var next = MathF.Floor((this.renderPass.Offset.X + tabWidth) / tabWidth) * tabWidth;
-                    advX = next - this.renderPass.Offset.X;
+                    var tabWidth = this.fontInfo.CalculateTabSize(this.mm.Options.TabWidth);
+                    var next = MathF.Floor((this.mm.LastOffset.X + tabWidth) / tabWidth) * tabWidth;
+                    advX = next - this.mm.LastOffset.X;
                     xy0 = Vector2.Zero;
                     xy1 = new(advX, this.fontInfo.ScaledFontSize);
                     break;
@@ -267,28 +263,28 @@ public abstract partial class TextSpannableBase
                     xy1 *= this.fontInfo.Scale;
                     advX *= this.fontInfo.Scale;
                     if (this.LastRendered.TryGetCodepoint(out var lastCodepoint))
-                        this.renderPass.Offset.X += this.fontInfo.GetScaledGap(lastCodepoint, glyph.Codepoint);
+                        this.mm.LastOffset.X += this.fontInfo.GetScaledGap(lastCodepoint, glyph.Codepoint);
                     break;
                 }
             }
 
             xy0 += this.StyleTranslation;
             xy1 += this.StyleTranslation;
-            advX = MathF.Round(advX * this.renderPass.Scale) / this.renderPass.Scale;
+            advX = MathF.Round(advX * this.mm.RenderScale) / this.mm.RenderScale;
 
             var topSkewDistance = this.fontInfo.GetScaledTopSkew(xy0);
-            var bounds = RectVector4.Translate(new(xy0, xy1), this.renderPass.Offset);
+            var bounds = RectVector4.Translate(new(xy0, xy1), this.mm.LastOffset);
             var visible = forceVisible ?? (glyph.Visible && c is not ' ' and not '\t');
 
             if (this.useBackground)
             {
-                var lt = this.renderPass.Offset + this.StyleTranslation;
+                var lt = this.mm.LastOffset + this.StyleTranslation;
                 var rb = lt + new Vector2(advX + this.fontInfo.BoldExtraWidth, this.fontInfo.ScaledFontSize);
                 ImGuiNative.ImDrawList_AddRectFilled(
                     this.BackChannel,
                     lt,
                     rb,
-                    this.renderPass.ActiveTextState.LastStyle.BackColor,
+                    this.mm.LastStyle.BackColor,
                     0,
                     ImDrawFlags.None);
             }
@@ -299,8 +295,8 @@ public abstract partial class TextSpannableBase
                 if (push)
                     ImGuiNative.ImDrawList_PushTextureID(this.ShadowChannel, texId);
 
-                var lt = this.renderPass.Offset + this.renderPass.ActiveTextState.LastStyle.ShadowOffset + xy0;
-                var rb = this.renderPass.Offset + this.renderPass.ActiveTextState.LastStyle.ShadowOffset + xy1;
+                var lt = this.mm.LastOffset + this.mm.LastStyle.ShadowOffset + xy0;
+                var rb = this.mm.LastOffset + this.mm.LastStyle.ShadowOffset + xy1;
                 var rt = new Vector2(rb.X, lt.Y);
                 var lb = new Vector2(lt.X, rb.Y);
                 lt.X += topSkewDistance;
@@ -327,7 +323,7 @@ public abstract partial class TextSpannableBase
                                 new(uv1.X, uv0.Y),
                                 uv1,
                                 new(uv0.X, uv1.Y),
-                                this.renderPass.ActiveTextState.LastStyle.ShadowColor);
+                                this.mm.LastStyle.ShadowColor);
                         }
                     }
                 }
@@ -342,8 +338,8 @@ public abstract partial class TextSpannableBase
                 if (push)
                     ImGuiNative.ImDrawList_PushTextureID(this.BorderChannel, texId);
 
-                var lt = this.renderPass.Offset + xy0;
-                var rb = this.renderPass.Offset + xy1;
+                var lt = this.mm.LastOffset + xy0;
+                var rb = this.mm.LastOffset + xy1;
                 var rt = new Vector2(rb.X, lt.Y);
                 var lb = new Vector2(lt.X, rb.Y);
                 lt.X += topSkewDistance;
@@ -372,7 +368,7 @@ public abstract partial class TextSpannableBase
                                 new(uv1.X, uv0.Y),
                                 uv1,
                                 new(uv0.X, uv1.Y),
-                                this.renderPass.ActiveTextState.LastStyle.EdgeColor);
+                                this.mm.LastStyle.EdgeColor);
                         }
                     }
                 }
@@ -383,7 +379,7 @@ public abstract partial class TextSpannableBase
 
             if (this.useTextDecoration)
             {
-                var lt = this.renderPass.Offset + this.StyleTranslation +
+                var lt = this.mm.LastOffset + this.StyleTranslation +
                          new Vector2(0, this.stateInfo.VerticalOffsetWrtLine);
                 var rbase = lt + new Vector2(advX + this.fontInfo.BoldExtraWidth, -this.fontInfo.BBoxVertical.X);
                 var rbottom = lt + new Vector2(advX + this.fontInfo.BoldExtraWidth, this.fontInfo.ScaledFontSize);
@@ -393,17 +389,17 @@ public abstract partial class TextSpannableBase
                 lt.X += skew;
                 rt.X += skew;
                 var xdivy = this.fontInfo.SlopeVector2;
-                if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration
+                if ((this.mm.LastStyle.TextDecoration
                      & (TextDecoration.Overline | TextDecoration.Underline)) != 0)
                 {
                     var push = texId != this.TextDecorationOverUnderChannel._CmdHeader.TextureId;
                     if (push)
                         ImGuiNative.ImDrawList_PushTextureID(this.TextDecorationOverUnderChannel, texId);
 
-                    if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.Overline) != 0)
+                    if ((this.mm.LastStyle.TextDecoration & TextDecoration.Overline) != 0)
                         this.DrawDecoration(this.TextDecorationOverUnderChannel, lt, rt, -1, xdivy);
 
-                    if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.Underline) != 0)
+                    if ((this.mm.LastStyle.TextDecoration & TextDecoration.Underline) != 0)
                     {
                         this.DrawDecoration(
                             this.TextDecorationOverUnderChannel,
@@ -417,7 +413,7 @@ public abstract partial class TextSpannableBase
                         ImGuiNative.ImDrawList_PopTextureID(this.TextDecorationOverUnderChannel);
                 }
 
-                if ((this.renderPass.ActiveTextState.LastStyle.TextDecoration & TextDecoration.LineThrough) != 0)
+                if ((this.mm.LastStyle.TextDecoration & TextDecoration.LineThrough) != 0)
                 {
                     var push = texId != this.TextDecorationThroughChannel._CmdHeader.TextureId;
                     if (push)
@@ -445,8 +441,8 @@ public abstract partial class TextSpannableBase
                     6 * (1 + this.fontInfo.BoldExtraWidth),
                     4 * (1 + this.fontInfo.BoldExtraWidth));
 
-                var lt = this.renderPass.Offset + xy0;
-                var rb = this.renderPass.Offset + xy1;
+                var lt = this.mm.LastOffset + xy0;
+                var rb = this.mm.LastOffset + xy1;
                 var rt = new Vector2(rb.X, lt.Y);
                 var lb = new Vector2(lt.X, rb.Y);
                 lt.X += topSkewDistance;
@@ -464,7 +460,7 @@ public abstract partial class TextSpannableBase
                         new(uv1.X, uv0.Y),
                         uv1,
                         new(uv0.X, uv1.Y),
-                        this.renderPass.ActiveTextState.LastStyle.ForeColor);
+                        this.mm.LastStyle.ForeColor);
                 }
 
                 if (push)
@@ -473,29 +469,29 @@ public abstract partial class TextSpannableBase
 
             if (spannable is not null && nonNullSpannableStateIndex != -1)
             {
-                ref var spannableState = ref this.renderPass.SpannableStates[nonNullSpannableStateIndex]!;
-                if (this.skipDraw)
+                ref var spannableState = ref this.mm.ChildMeasurements[nonNullSpannableStateIndex]!;
+                if (this.drawListPtr.NativePtr is null)
                 {
                     // Measure pass
-                    spannableState.ActiveTextState = this.renderPass.ActiveTextState;
-                    this.renderPass.SpannableOffsets[nonNullSpannableStateIndex] =
-                        this.renderPass.Offset + this.StyleTranslation + xySpannableBase;
+                    spannableState.RenderScale = this.mm.RenderScale;
+                    this.mm.ChildOffsets[nonNullSpannableStateIndex] =
+                        this.mm.LastOffset + this.StyleTranslation + xySpannableBase;
                 }
                 else
                 {
-                    this.args.NotifyChild(spannableState, this.args);
+                    spannableState.Draw(this.drawListPtr);
                 }
             }
 
-            this.renderPass.Offset.X += advX;
+            this.mm.LastOffset.X += advX;
             return bounds;
         }
 
         public void SpanFontOptionsUpdated()
         {
-            this.renderPass.Renderer.TryGetFontData(
-                this.renderPass.Scale,
-                in this.renderPass.ActiveTextState.LastStyle,
+            this.renderer.TryGetFontData(
+                this.mm.RenderScale,
+                in this.mm.LastStyle,
                 out this.fontInfo);
         }
 
@@ -511,26 +507,26 @@ public abstract partial class TextSpannableBase
 
         private void SpanDrawOptionsUpdated()
         {
-            if (this.skipDraw)
+            if (this.drawListPtr.NativePtr is null)
                 return;
 
             this.useBackground =
-                IsColorVisible(this.renderPass.ActiveTextState.LastStyle.BackColor);
+                IsColorVisible(this.mm.LastStyle.BackColor);
             this.useShadow =
-                IsColorVisible(this.renderPass.ActiveTextState.LastStyle.ShadowColor)
-                && this.renderPass.ActiveTextState.LastStyle.ShadowOffset != Vector2.Zero;
+                IsColorVisible(this.mm.LastStyle.ShadowColor)
+                && this.mm.LastStyle.ShadowOffset != Vector2.Zero;
             this.useBorder =
-                IsColorVisible(this.renderPass.ActiveTextState.LastStyle.EdgeColor) &&
-                this.renderPass.ActiveTextState.LastStyle.EdgeWidth >= 1f;
+                IsColorVisible(this.mm.LastStyle.EdgeColor) &&
+                this.mm.LastStyle.EdgeWidth >= 1f;
             this.useTextDecoration =
-                this.renderPass.ActiveTextState.LastStyle.TextDecoration != TextDecoration.None
-                && IsColorVisible(this.renderPass.ActiveTextState.LastStyle.TextDecorationColor)
-                && this.renderPass.ActiveTextState.LastStyle.TextDecorationThickness > 0f;
+                this.mm.LastStyle.TextDecoration != TextDecoration.None
+                && IsColorVisible(this.mm.LastStyle.TextDecorationColor)
+                && this.mm.LastStyle.TextDecorationThickness > 0f;
             this.useForeground =
-                IsColorVisible(this.renderPass.ActiveTextState.LastStyle.ForeColor);
+                IsColorVisible(this.mm.LastStyle.ForeColor);
             if (this.useBorder)
             {
-                this.borderRange = Math.Max(0, (int)this.renderPass.ActiveTextState.LastStyle.EdgeWidth);
+                this.borderRange = Math.Max(0, (int)this.mm.LastStyle.EdgeWidth);
                 this.numBorderDraws = (((2 * this.borderRange) + 1) * ((2 * this.borderRange) + 1)) - 1;
             }
             else
@@ -542,8 +538,8 @@ public abstract partial class TextSpannableBase
         private void DrawDecoration(ImDrawListPtr drawList, Vector2 xy0, Vector2 xy1, int direction, Vector2 xdivy)
         {
             var thicc = this.fontInfo.ScaledTextDecorationThickness;
-            var color = this.renderPass.ActiveTextState.LastStyle.TextDecorationColor;
-            switch (this.renderPass.ActiveTextState.LastStyle.TextDecorationStyle)
+            var color = this.mm.LastStyle.TextDecorationColor;
+            switch (this.mm.LastStyle.TextDecorationStyle)
             {
                 case TextDecorationStyle.Solid:
                 default:

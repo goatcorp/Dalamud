@@ -53,5 +53,6 @@ public interface IRectScaleMode
     /// <param name="exponentDivisor">The exponent divisor.</param>
     /// <returns>The calculated raw zoom scale value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float ExponentToZoom(float exponent, float exponentDivisor) => MathF.Pow(2, exponent / exponentDivisor);
+    public static float ExponentToZoom(float exponent, float exponentDivisor) =>
+        MathF.Pow(2, exponent / exponentDivisor);
 }

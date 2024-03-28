@@ -82,7 +82,7 @@ public interface ISpannableRenderer
     bool TryGetFontData(float renderScale, scoped in TextStyle style, out TextStyleFontData fontData);
 
     /// <summary>Attempts to get an icon by icon ID.</summary>
-    /// <param name="iconType">The icon type.</param>
+    /// <param name="iconType">The icon type. Out of range value will use the default.</param>
     /// <param name="iconId">The icon ID.</param>
     /// <param name="minDimensions">The minimum dimensions that this icon will be rendered.</param>
     /// <param name="textureWrap">The retrieved texture wrap.</param>
@@ -100,20 +100,22 @@ public interface ISpannableRenderer
     /// <summary>Renders plain text.</summary>
     /// <param name="sequence">The UTF-16 character sequence.</param>
     /// <param name="renderContext">The render context.</param>
-    /// <param name="textOptions">The text styling options.</param>
-    /// <returns>The render results.</returns>
-    RenderResult Render(
-        ReadOnlySpan<char> sequence,
-        in RenderContext renderContext = default,
-        in TextState.Options textOptions = default);
+    /// <returns>The measurement result. You should call
+    /// <see cref="ISpannableMeasurement.ReturnMeasurementToSpannable"/>, optionally after inspecting it, or reuse it
+    /// with <see cref="DrawText"/>.</returns>
+    ISpannableMeasurement DrawText(ReadOnlySpan<char> sequence, in RenderContext renderContext);
 
     /// <summary>Renders a spannable.</summary>
     /// <param name="spannable">An instance of <see cref="ISpannable"/>.</param>
     /// <param name="renderContext">The render context.</param>
-    /// <param name="textOptions">The initial text styling options.</param>
-    /// <returns>The render results.</returns>
-    RenderResult Render(
-        ISpannable spannable,
-        in RenderContext renderContext = default,
-        in TextState.Options textOptions = default);
+    /// <returns>The measurement result. You should call
+    /// <see cref="ISpannableMeasurement.ReturnMeasurementToSpannable"/>, optionally after inspecting it, or reuse it
+    /// with <see cref="DrawText"/>.</returns>
+    ISpannableMeasurement DrawSpannable(ISpannable spannable, in RenderContext renderContext);
+
+    /// <summary>Renders a spannable from a measurement.</summary>
+    /// <param name="spannableMeasurement">An instance of <see cref="ISpannableMeasurement"/>.</param>
+    /// <param name="renderContext">The render context.</param>
+    /// <returns>The measurement result.</returns>
+    ISpannableMeasurement DrawSpannableFromMeasurement(ISpannableMeasurement spannableMeasurement, in RenderContext renderContext);
 }

@@ -4,5 +4,4 @@ namespace Dalamud.Interface.Spannables.Controls.TODO;
 /// </summary>
 public class GroupFrameControl : ControlSpannable
 {
-    
 }

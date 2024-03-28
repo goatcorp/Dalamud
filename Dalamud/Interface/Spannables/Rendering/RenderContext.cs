@@ -17,43 +17,31 @@ public readonly struct RenderContext
     /// <summary>The resolved ImGui global ID, or 0 if no ImGui state management is used.</summary>
     public readonly uint ImGuiGlobalId;
 
-    /// <summary>Gets or sets the scale.</summary>
-    /// <remarks>
-    /// <para>Defaults to <see cref="ImGuiHelpers.GlobalScale"/>.</para>
-    /// <para>Scale specified here will be referred to when a font is loaded. The scale specified from
-    /// <see cref="Transformation"/> only affects drawing.</para>
-    /// </remarks>
-    public readonly float Scale;
+    /// <summary>Render scale.</summary>
+    /// <remarks>Defaults to <see cref="ImGuiHelpers.GlobalScale"/>.</remarks>
+    public readonly float RenderScale;
 
-    /// <summary>The target draw list. Can be null.</summary>
+    /// <summary>Target draw list. Can be null.</summary>
     public readonly ImDrawListPtr DrawListPtr;
 
-    /// <summary>The location of the mouse in screen coordinates.</summary>
-    public readonly Vector2 MouseScreenLocation;
-
-    /// <summary>Gets or sets the minimum size for the calculated boundary.</summary>
-    /// <remarks>Default value is <see cref="Vector2.Zero"/>.</remarks>
-    public readonly Vector2 MinSize;
-
-    /// <summary>Gets or sets the maximum size at which point line break or ellipsis should happen.</summary>
+    /// <summary>Size of the spannable being rendered.</summary>
     /// <remarks>Default value is <c>new Vector2(ImGui.GetColumnWidth(), float.PositiveInfinity)</c>.</remarks>
-    public readonly Vector2 MaxSize;
+    public readonly Vector2 Size;
 
-    /// <summary>The offset to start drawing in screen offset.</summary>
+    /// <summary>Offset to start drawing in screen offset.</summary>
     public readonly Vector2 ScreenOffset;
 
-    /// <inheritdoc cref="ISpannableRenderPass.InnerOrigin"/>
-    /// <remarks>Default value is <c>(0.5, 0.5)</c>.</remarks>
-    public readonly Vector2 InnerOrigin;
-
-    /// <inheritdoc cref="ISpannableRenderPass.TransformationFromParent"/>
-    /// <remarks>Default value is <see cref="Matrix4x4.Identity"/>.</remarks>
+    /// <summary>Transformation matrix.</summary>
+    /// <remarks>Defaults to <see cref="Matrix4x4.Identity"/>.</remarks>
     public readonly Matrix4x4 Transformation;
+
+    /// <summary>Options for the root <see cref="ISpannable"/> being rendered.</summary>
+    public readonly ISpannableMeasurementOptions? RootOptions;
 
     /// <summary>Whether to put a dummy after rendering.</summary>
     public readonly bool PutDummyAfterRender;
 
-    /// <summary>Gets or sets a value indicating whether to handle interactions.</summary>
+    /// <summary>Whether to handle interactions.</summary>
     /// <remarks>Default value is to enable interaction handling. Will turn to <c>false</c> if <see cref="DrawListPtr"/>
     /// is empty.</remarks>
     public readonly bool UseInteraction;
@@ -126,15 +114,13 @@ public readonly struct RenderContext
         ThreadSafety.DebugAssertMainThread();
 
         this.UseInteraction = options.UseLinks ?? true;
-        this.MinSize = options.MinSize ?? Vector2.Zero;
-        this.MaxSize = options.MaxSize ?? new(ImGui.GetColumnWidth(), float.PositiveInfinity);
-        this.Scale = options.Scale ?? ImGuiHelpers.GlobalScale;
+        this.Size = options.Size ?? new(ImGui.GetColumnWidth(), float.PositiveInfinity);
+        this.RenderScale = options.Scale ?? ImGuiHelpers.GlobalScale;
         this.DrawListPtr = drawListPtr;
         this.PutDummyAfterRender = putDummyAfterRender;
-        this.MouseScreenLocation = ImGui.GetMousePos();
         this.ScreenOffset = options.ScreenOffset ?? ImGui.GetCursorScreenPos();
-        this.InnerOrigin = options.InnerOrigin ?? new(0.5f);
         this.Transformation = options.Transformation ?? Matrix4x4.Identity;
+        this.RootOptions = options.RootOptions;
 
         this.UseInteraction &= this.UseDrawing;
     }
@@ -152,22 +138,19 @@ public readonly struct RenderContext
         /// <inheritdoc cref="RenderContext.UseInteraction"/>
         public bool? UseLinks { get; set; }
 
-        /// <inheritdoc cref="RenderContext.Scale"/>
+        /// <inheritdoc cref="RenderContext.RenderScale"/>
         public float? Scale { get; set; }
 
-        /// <inheritdoc cref="RenderContext.MinSize"/>
-        public Vector2? MinSize { get; set; }
-
-        /// <inheritdoc cref="RenderContext.MaxSize"/>
-        public Vector2? MaxSize { get; set; }
+        /// <inheritdoc cref="RenderContext.Size"/>
+        public Vector2? Size { get; set; }
 
         /// <inheritdoc cref="RenderContext.ScreenOffset"/>
         public Vector2? ScreenOffset { get; set; }
 
-        /// <inheritdoc cref="RenderContext.InnerOrigin"/>
-        public Vector2? InnerOrigin { get; set; }
-
         /// <inheritdoc cref="RenderContext.Transformation"/>
         public Matrix4x4? Transformation { get; set; }
+
+        /// <inheritdoc cref="RenderContext.RootOptions"/>
+        public ISpannableMeasurementOptions? RootOptions { get; set; }
     }
 }

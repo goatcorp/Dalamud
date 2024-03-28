@@ -581,12 +581,8 @@ public sealed class MouseActivityTracker : IDisposable
         }
     }
 
-    private void OnHandleInteraction(
-        ControlHandleInteractionEventArgs args,
-        out SpannableLinkInteracted interactedlink)
+    private void OnHandleInteraction(SpannableControlEventArgs args)
     {
-        interactedlink = default;
-
         if (this.IsDragging)
             ImGui.SetMouseCursor(ImGuiMouseCursor.None);
 

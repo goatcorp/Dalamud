@@ -1,7 +1,6 @@
 using System.Numerics;
 
 using Dalamud.Interface.Spannables.Helpers;
-using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 
@@ -67,12 +66,13 @@ public class ShapePattern : PatternSpannable
     public BorderVector4 Margin { get; set; }
 
     /// <inheritdoc/>
-    protected override PatternRenderPass CreateNewRenderPass() => new CheckmarkRenderPass(this);
+    protected override PatternSpannableMeasurement CreateNewRenderPass() => new CheckmarkRenderPass(this, new());
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class CheckmarkRenderPass(ShapePattern owner) : PatternRenderPass(owner)
+    private class CheckmarkRenderPass(ShapePattern owner, SpannableMeasurementOptions options)
+        : PatternSpannableMeasurement(owner, options)
     {
-        protected override void DrawUntransformed(SpannableDrawArgs args)
+        protected override void DrawUntransformed(ImDrawListPtr drawListPtr)
         {
             var color =
                 owner.ImGuiColor is not null
@@ -86,15 +86,15 @@ public class ShapePattern : PatternSpannable
             if (sz1 is >= float.PositiveInfinity or <= 0)
                 return;
 
-            pos *= this.Scale;
-            sz *= this.Scale;
-            sz1 *= this.Scale;
-            using var st = new ScopedTransformer(args.DrawListPtr, Matrix4x4.Identity, new(1 / this.Scale), 1f);
+            pos *= this.RenderScale;
+            sz *= this.RenderScale;
+            sz1 *= this.RenderScale;
+            using var st = new ScopedTransformer(drawListPtr, Matrix4x4.Identity, new(1 / this.RenderScale), 1f);
 
             switch (owner.Type)
             {
                 case Shape.Rect:
-                    args.DrawListPtr.AddRect(
+                    drawListPtr.AddRect(
                         pos,
                         pos + sz,
                         color,
@@ -103,10 +103,10 @@ public class ShapePattern : PatternSpannable
                         owner.Thickness);
                     break;
                 case Shape.RectFilled:
-                    args.DrawListPtr.AddRectFilled(pos, pos + sz, color, owner.Rounding, owner.RoundingFlags);
+                    drawListPtr.AddRectFilled(pos, pos + sz, color, owner.Rounding, owner.RoundingFlags);
                     break;
                 case Shape.Square:
-                    args.DrawListPtr.AddRect(
+                    drawListPtr.AddRect(
                         pos + ((sz - new Vector2(sz1)) / 2f),
                         pos + ((sz + new Vector2(sz1)) / 2f),
                         color,
@@ -115,7 +115,7 @@ public class ShapePattern : PatternSpannable
                         owner.Thickness);
                     break;
                 case Shape.SquareFilled:
-                    args.DrawListPtr.AddRectFilled(
+                    drawListPtr.AddRectFilled(
                         pos + ((sz - new Vector2(sz1)) / 2f),
                         pos + ((sz + new Vector2(sz1)) / 2f),
                         color,
@@ -123,10 +123,10 @@ public class ShapePattern : PatternSpannable
                         owner.RoundingFlags);
                     break;
                 case Shape.Circle:
-                    args.DrawListPtr.AddCircle(pos + (sz / 2), sz1 / 2, color, 0, owner.Thickness);
+                    drawListPtr.AddCircle(pos + (sz / 2), sz1 / 2, color, 0, owner.Thickness);
                     break;
                 case Shape.CircleFilled:
-                    args.DrawListPtr.AddCircleFilled(pos + (sz / 2), sz1 / 2, color);
+                    drawListPtr.AddCircleFilled(pos + (sz / 2), sz1 / 2, color);
                     break;
                 case Shape.Checkmark:
                 {
@@ -143,10 +143,10 @@ public class ShapePattern : PatternSpannable
                     var bx = pos.X + third;
                     var by = (pos.Y + sz1) - (third * 0.5f);
 
-                    args.DrawListPtr.PathLineTo(new(bx - third, by - third));
-                    args.DrawListPtr.PathLineTo(new(bx, by));
-                    args.DrawListPtr.PathLineTo(new(bx + (third * 2.0f), by - (third * 2.0f)));
-                    args.DrawListPtr.PathStroke(color, 0, thickness);
+                    drawListPtr.PathLineTo(new(bx - third, by - third));
+                    drawListPtr.PathLineTo(new(bx, by));
+                    drawListPtr.PathLineTo(new(bx + (third * 2.0f), by - (third * 2.0f)));
+                    drawListPtr.PathStroke(color, 0, thickness);
                     break;
                 }
             }

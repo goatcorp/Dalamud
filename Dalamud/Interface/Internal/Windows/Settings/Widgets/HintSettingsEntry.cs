@@ -19,6 +19,7 @@ public class HintSettingsEntry : SettingsEntry
 {
     private readonly TextSpannable text;
     private readonly Vector4 color;
+    private readonly TextSpannableBase.Options options;
 
     public HintSettingsEntry(string text, Vector4? color = null)
     {
@@ -33,6 +34,14 @@ public class HintSettingsEntry : SettingsEntry
         }
 
         this.color = color ?? ImGuiColors.DalamudGrey;
+        this.options = new()
+        {
+            Style = new()
+            {
+                ForeColor = this.color,
+                TextDecorationColor = this.color,
+            },
+        };
     }
 
     public override void Load()
@@ -47,17 +56,8 @@ public class HintSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        Service<SpannableRenderer>.Get().Render(
+        Service<SpannableRenderer>.Get().DrawSpannable(
             this.text,
-            new(false),
-            new()
-            {
-                WordBreak = WordBreakType.BreakWord,
-                InitialStyle = new()
-                {
-                    ForeColor = this.color,
-                    TextDecorationColor = this.color,
-                },
-            });
+            new(false, new() { RootOptions = this.options }));
     }
 }

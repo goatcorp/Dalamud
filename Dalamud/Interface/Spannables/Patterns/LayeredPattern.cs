@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
-using Dalamud.Interface.Spannables.Helpers;
-using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Utility.Enumeration;
+
+using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Patterns;
 
@@ -23,7 +24,7 @@ public sealed class LayeredPattern : PatternSpannable
     public IReadOnlyList<ISpannable> ChildrenReadOnlyList => (IReadOnlyList<ISpannable>)this.ChildrenList;
 
     /// <inheritdoc/>
-    protected override PatternRenderPass CreateNewRenderPass() => new LayeredRenderPass(this);
+    protected override PatternSpannableMeasurement CreateNewRenderPass() => new LayeredRenderPass(this, new());
 
     private class ChildrenCollection(LayeredPattern owner)
         : IList<ISpannable?>, IReadOnlyList<ISpannable?>, ICollection
@@ -125,68 +126,53 @@ public sealed class LayeredPattern : PatternSpannable
     }
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class LayeredRenderPass(LayeredPattern owner) : PatternRenderPass(owner)
+    private class LayeredRenderPass(LayeredPattern owner, SpannableMeasurementOptions options)
+        : PatternSpannableMeasurement(owner, options)
     {
         private readonly ChildrenCollection children = owner.childrenCollection;
-        private readonly List<ISpannableRenderPass?> passes = new();
+        private readonly List<ISpannableMeasurement?> childMeasurements = new();
 
-        public override void MeasureSpannable(scoped in SpannableMeasureArgs args)
+        public override bool Measure()
         {
-            base.MeasureSpannable(in args);
+            var changed = base.Measure();
 
-            while (this.passes.Count < this.children.Count)
-                this.passes.Add(null);
-            this.passes.RemoveRange(this.children.Count, this.passes.Count - this.children.Count);
+            while (this.childMeasurements.Count < this.children.Count)
+                this.childMeasurements.Add(null);
+            this.childMeasurements.RemoveRange(this.children.Count, this.childMeasurements.Count - this.children.Count);
+
             for (var i = 0; i < this.children.Count; i++)
             {
                 if (this.children[i] is not { } child)
                     continue;
 
-                this.passes[i] ??= child.RentRenderPass(this.Renderer);
-                args.NotifyChild(
-                    this.passes[i],
-                    owner.InnerIdAvailableSlot + i,
-                    args with
-                    {
-                        TextState = this.ActiveTextState.Fork(),
-                    });
+                var cm = this.childMeasurements[i] ??= child.RentMeasurement(this.Renderer);
+                cm.RenderScale = this.RenderScale;
+                cm.Options.Size = this.Boundary.Size;
+                changed |= cm.Measure();
             }
+
+            return changed;
         }
 
-        public override void CommitSpannableMeasurement(scoped in SpannableCommitMeasurementArgs args)
+        public override void UpdateTransformation(scoped in Matrix4x4 local, scoped in Matrix4x4 ancestral)
         {
-            base.CommitSpannableMeasurement(in args);
-            foreach (var pass in this.passes)
-            {
-                if (pass is not null)
-                    args.NotifyChild(pass, args);
-            }
+            base.UpdateTransformation(in local, in ancestral);
+            foreach (var cm in this.childMeasurements)
+                cm?.UpdateTransformation(Matrix4x4.Identity, this.FullTransformation);
         }
 
-        public override void HandleSpannableInteraction(
-            scoped in SpannableHandleInteractionArgs args, out SpannableLinkInteracted link)
+        public override bool HandleInteraction()
         {
-            base.HandleSpannableInteraction(in args, out link);
-            foreach (var pass in this.passes)
-            {
-                if (pass is null)
-                    continue;
-
-                if (link.IsEmpty)
-                    args.NotifyChild(pass, args, out link);
-                else
-                    args.NotifyChild(pass, args, out _);
-            }
+            foreach (var cm in this.childMeasurements)
+                cm?.HandleInteraction();
+            return base.HandleInteraction();
         }
 
-        protected override void DrawUntransformed(SpannableDrawArgs args)
+        protected override void DrawUntransformed(ImDrawListPtr drawListPtr)
         {
-            base.DrawUntransformed(args);
-            for (var i = 0; i < this.children.Count; i++)
-            {
-                if (this.passes[i] is { } pass)
-                    args.NotifyChild(pass, args);
-            }
+            base.DrawUntransformed(drawListPtr);
+            foreach (var cm in this.childMeasurements)
+                cm?.Draw(drawListPtr);
         }
     }
 }

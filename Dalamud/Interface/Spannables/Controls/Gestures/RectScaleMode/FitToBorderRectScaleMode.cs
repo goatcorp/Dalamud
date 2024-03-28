@@ -21,7 +21,7 @@ public class FitToBorderRectScaleMode : IRectScaleModeWithZoomInToFit
     {
         /// <summary>Fit the content region inside the client region horizontally.</summary>
         Horizontal,
-        
+
         /// <summary>Fit the content region inside the client region vertically.</summary>
         Vertical,
     }

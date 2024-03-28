@@ -1,37 +1,53 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.Helpers;
-using Dalamud.Interface.Spannables.Rendering;
-using Dalamud.Interface.Spannables.RenderPassMethodArgs;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
+
+using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Patterns;
 
 /// <summary>A spannable that can be used as a pattern, for backgrounds, borders, and alike.</summary>
-/// <remarks>If <see cref="SpannableMeasureArgs.MaxSize"/> is not bound, then nothing will be drawn.</remarks>
+/// <remarks>If <see cref="ISpannableMeasurementOptions.Size"/> is not bound, then nothing will be drawn.</remarks>
 [SuppressMessage(
     "StyleCop.CSharp.SpacingRules",
     "SA1010:Opening square brackets should be spaced correctly",
     Justification = "No")]
 public abstract class PatternSpannable : ISpannable
 {
-    private readonly PatternRenderPass?[] statePool = new PatternRenderPass?[4];
-
-    /// <summary>Gets or sets the size.</summary>
-    public Vector2 Size { get; set; } = new(float.PositiveInfinity);
-
-    /// <summary>Gets or sets the minimum size.</summary>
-    public Vector2 MinSize { get; set; } = Vector2.Zero;
-
-    /// <summary>Gets or sets the maximum size.</summary>
-    public Vector2 MaxSize { get; set; } = new(float.PositiveInfinity);
+    private readonly PatternSpannableMeasurement?[] statePool = new PatternSpannableMeasurement?[4];
+    private Vector2 size = new(float.PositiveInfinity);
+    private Vector2 minSize = Vector2.Zero;
+    private Vector2 maxSize = new(float.PositiveInfinity);
 
     /// <inheritdoc/>
-    public int StateGeneration { get; protected set; }
+    public event Action<ISpannable>? SpannableChange;
+
+    /// <summary>Gets or sets the size.</summary>
+    public Vector2 Size
+    {
+        get => this.size;
+        set => this.HandlePropertyChange(nameof(this.Size), ref this.size, value);
+    }
+
+    /// <summary>Gets or sets the minimum size.</summary>
+    public Vector2 MinSize
+    {
+        get => this.minSize;
+        set => this.HandlePropertyChange(nameof(this.MinSize), ref this.minSize, value);
+    }
+
+    /// <summary>Gets or sets the maximum size.</summary>
+    public Vector2 MaxSize
+    {
+        get => this.maxSize;
+        set => this.HandlePropertyChange(nameof(this.MaxSize), ref this.maxSize, value);
+    }
 
     /// <summary>Gets the list of all children contained within this control, including decorative ones.</summary>
     protected List<ISpannable?> AllChildren { get; } = [];
@@ -54,9 +70,9 @@ public abstract class PatternSpannable : ISpannable
     public IReadOnlyCollection<ISpannable?> GetAllChildSpannables() => this.AllChildren;
 
     /// <inheritdoc/>
-    public ISpannableRenderPass RentRenderPass(ISpannableRenderer renderer)
+    public virtual ISpannableMeasurement RentMeasurement(ISpannableRenderer renderer)
     {
-        PatternRenderPass? res = null;
+        PatternSpannableMeasurement? res = null;
         foreach (ref var s in this.statePool.AsSpan())
         {
             if (s is not null)
@@ -67,19 +83,19 @@ public abstract class PatternSpannable : ISpannable
         }
 
         res ??= this.CreateNewRenderPass();
-        res.OnRentState(renderer);
+        res.OnRentMeasurement(renderer);
         return res;
     }
 
     /// <inheritdoc/>
-    public void ReturnRenderPass(ISpannableRenderPass? pass)
+    public virtual void ReturnMeasurement(ISpannableMeasurement? pass)
     {
         foreach (ref var s in this.statePool.AsSpan())
         {
             if (s is null)
             {
-                s = pass as PatternRenderPass;
-                s?.OnReturnState();
+                s = pass as PatternSpannableMeasurement;
+                s?.OnReturnMeasurement();
                 return;
             }
         }
@@ -101,99 +117,136 @@ public abstract class PatternSpannable : ISpannable
 
     /// <summary>Creates a new state.</summary>
     /// <returns>The new state.</returns>
-    protected virtual PatternRenderPass CreateNewRenderPass() => new(this);
+    protected virtual PatternSpannableMeasurement CreateNewRenderPass() => new(this, new());
+
+    /// <summary>Assigns a new value to a property..</summary>
+    /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
+    /// <param name="storage">The reference of the stored value.</param>
+    /// <param name="newValue">The new value.</param>
+    /// <typeparam name="T">Type of the changed value.</typeparam>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected void HandlePropertyChange<T>(string propName, ref T storage, T newValue)
+    {
+        if (Equals(storage, newValue))
+            return;
+        storage = newValue;
+        this.SpannableChange?.Invoke(this);
+    }
 
     /// <summary>A state for <see cref="PatternSpannable"/>.</summary>
-    protected class PatternRenderPass(PatternSpannable owner) : ISpannableRenderPass
+    protected class PatternSpannableMeasurement : ISpannableMeasurement
     {
-        private TextState activeTextState;
-        private RectVector4 boundary;
-        private Matrix4x4 transformationFromParent;
-        private Matrix4x4 transformationFromAncestors;
+        private readonly PatternSpannable owner;
+        private readonly SpannableMeasurementOptions options;
+
+        private Matrix4x4 localTransformation;
+        private Matrix4x4 fullTransformation;
+
+        /// <summary>Initializes a new instance of the <see cref="PatternSpannableMeasurement"/> class.</summary>
+        /// <param name="owner">The owner of this render pass.</param>
+        /// <param name="options">The options for this render pass.</param>
+        public PatternSpannableMeasurement(PatternSpannable owner, SpannableMeasurementOptions options)
+        {
+            this.owner = owner;
+            this.options = options;
+            this.options.PropertyChanged += this.OptionsOnPropertyChanged;
+        }
 
         /// <inheritdoc/>
-        public ISpannable RenderPassCreator => owner;
-
-        /// <inheritdoc/>
-        public ref TextState ActiveTextState => ref this.activeTextState;
-
-        /// <summary>Gets the active render scale.</summary>
-        public float Scale { get; private set; }
-
-        /// <inheritdoc/>
-        public uint ImGuiGlobalId { get; private set; }
-
-        /// <inheritdoc/>
-        public ref readonly RectVector4 Boundary => ref this.boundary;
-
-        /// <inheritdoc/>
-        public Vector2 InnerOrigin { get; private set; }
-
-        /// <inheritdoc/>
-        public ref readonly Matrix4x4 TransformationFromParent => ref this.transformationFromParent;
-
-        /// <inheritdoc/>
-        public ref readonly Matrix4x4 TransformationFromAncestors => ref this.transformationFromAncestors;
+        public ISpannable? Spannable => this.owner;
 
         /// <inheritdoc/>
         public ISpannableRenderer Renderer { get; private set; } = null!;
 
-        /// <summary>Called when <see cref="ISpannable.RentRenderPass"/> has been called.</summary>
-        /// <param name="renderer">The renderer.</param>
-        public virtual void OnRentState(ISpannableRenderer renderer) => this.Renderer = renderer;
+        /// <inheritdoc/>
+        public bool IsMeasurementValid { get; private set; }
 
-        /// <summary>Called when <see cref="ISpannable.ReturnRenderPass"/> has been called.</summary>
-        public virtual void OnReturnState()
+        /// <inheritdoc/>
+        public RectVector4 Boundary { get; private set; }
+
+        /// <inheritdoc/>
+        public ISpannableMeasurementOptions Options => this.options;
+
+        /// <inheritdoc/>
+        public uint ImGuiGlobalId { get; set; }
+
+        /// <inheritdoc/>
+        public float RenderScale { get; set; }
+
+        /// <summary>Gets a read-only reference to the local transformation matrix.</summary>
+        public ref readonly Matrix4x4 LocalTransformation => ref this.localTransformation;
+
+        /// <inheritdoc/>
+        public ref readonly Matrix4x4 FullTransformation => ref this.fullTransformation;
+
+        /// <inheritdoc/>
+        public virtual bool TryReset()
+        {
+            this.localTransformation = this.fullTransformation = Matrix4x4.Identity;
+            this.Renderer = null!;
+            this.IsMeasurementValid = false;
+            this.Boundary = RectVector4.InvertedExtrema;
+            this.ImGuiGlobalId = 0u;
+            this.RenderScale = 1f;
+            return true;
+        }
+
+        /// <summary>Called when <see cref="ISpannable.RentMeasurement"/> has been called.</summary>
+        /// <param name="renderer">The renderer.</param>
+        public virtual void OnRentMeasurement(ISpannableRenderer renderer) => this.Renderer = renderer;
+
+        /// <summary>Called when <see cref="ISpannable.ReturnMeasurement"/> has been called.</summary>
+        public virtual void OnReturnMeasurement()
         {
         }
 
-        /// <inheritdoc/>
-        public virtual void MeasureSpannable(scoped in SpannableMeasureArgs args)
+        /// <summary>Measures the spannable according to the parameters specified, and updates the result properties.
+        /// </summary>
+        /// <returns><c>true</c> if a measurement has changed.</returns>
+        public virtual bool Measure()
         {
-            this.Scale = args.Scale;
-            this.ImGuiGlobalId = args.ImGuiGlobalId;
-            this.activeTextState = args.TextState;
-
-            var ps = (PatternSpannable)owner;
-
-            var size = Vector2.Clamp(ps.Size, ps.MinSize, ps.MaxSize);
-            size = Vector2.Clamp(size, args.MinSize, args.MaxSize);
+            var size = Vector2.Clamp(this.owner.Size, this.owner.MinSize, this.owner.MaxSize);
 
             if (size.X >= float.PositiveInfinity)
-                size.X = 0;
+                size.X = this.Options.Size.X;
             if (size.Y >= float.PositiveInfinity)
-                size.Y = 0;
+                size.Y = this.Options.Size.Y;
 
-            this.boundary = new(Vector2.Zero, size);
+            if (this.Boundary.LeftTop == Vector2.Zero && this.Boundary.RightBottom == size)
+                return false;
+            this.Boundary = new(Vector2.Zero, size);
+            return true;
         }
 
         /// <inheritdoc/>
-        public virtual void CommitSpannableMeasurement(scoped in SpannableCommitMeasurementArgs args)
+        public virtual bool HandleInteraction() => true;
+
+        /// <summary>Updates the transformation for the measured data.</summary>
+        /// <param name="local">The local transformation matrix.</param>
+        /// <param name="ancestral">The ancestral transformation matrix.</param>
+        public virtual void UpdateTransformation(scoped in Matrix4x4 local, scoped in Matrix4x4 ancestral)
         {
-            this.InnerOrigin = args.InnerOrigin;
-            this.transformationFromParent = args.TransformationFromParent;
-            this.transformationFromAncestors = args.TransformationFromAncestors;
+            this.localTransformation = local;
+            this.fullTransformation = Matrix4x4.Multiply(local, ancestral);
+        }
+
+        /// <summary>Draws from the measured data.</summary>
+        /// <param name="drawListPtr">The target draw list.</param>
+        public void Draw(ImDrawListPtr drawListPtr)
+        {
+            using var st = new ScopedTransformer(drawListPtr, this.localTransformation, Vector2.One, 1f);
+            this.DrawUntransformed(drawListPtr);
         }
 
         /// <inheritdoc/>
-        public void DrawSpannable(SpannableDrawArgs args)
+        public void ReturnMeasurementToSpannable() => this.Spannable?.ReturnMeasurement(this);
+
+        /// <summary>Draws the spannable without regarding to <see cref="LocalTransformation"/>.</summary>
+        /// <param name="drawListPtr">The target draw list.</param>
+        protected virtual void DrawUntransformed(ImDrawListPtr drawListPtr)
         {
-            using var st = ScopedTransformer.From(args, Vector2.One, 1f);
-            this.DrawUntransformed(args);
         }
 
-        /// <inheritdoc/>
-        public virtual void HandleSpannableInteraction(
-            scoped in SpannableHandleInteractionArgs args,
-            out SpannableLinkInteracted link)
-        {
-            link = default;
-        }
-
-        /// <summary>Draws the spannable without regarding to <see cref="TransformationFromParent"/>.</summary>
-        /// <param name="args">The drawing arguments.</param>
-        protected virtual void DrawUntransformed(SpannableDrawArgs args)
-        {
-        }
+        private void OptionsOnPropertyChanged(string obj) => this.IsMeasurementValid = false;
     }
 }

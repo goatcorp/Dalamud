@@ -2,7 +2,7 @@ using System.Numerics;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
-using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls;
@@ -10,11 +10,14 @@ namespace Dalamud.Interface.Spannables.Controls;
 /// <summary>A base spannable control that does nothing by itself.</summary>
 public partial class ControlSpannable
 {
-    /// <summary>Occurs when the control obtained the final layout parameters for the render pass.</summary>
-    public event ControlCommitMeasurementEventHandler? CommitMeasurement;
+    /// <inheritdoc/>
+    public event Action<ISpannable>? SpannableChange;
 
     /// <summary>Occurs when the control should handle interactions.</summary>
-    public event ControlHandleInteractionEventHandler? HandleInteraction;
+    public event SpannableControlEventHandler? HandleInteraction;
+
+    /// <summary>Occurs when the control receives new transformation parameters.</summary>
+    public event SpannableControlEventHandler? UpdateTransformation;
 
     /// <summary>Occurs when the control is clicked.</summary>
     public event SpannableControlEventHandler? Click;
@@ -88,11 +91,14 @@ public partial class ControlSpannable
     /// <summary>Occurs when the property <see cref="Text"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, string?>? TextChange;
 
-    /// <summary>Occurs when the property <see cref="TextStateOptions"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, TextState.Options>? TextStateOptionsChange;
+    /// <summary>Occurs when the property <see cref="TextStyle"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, TextStyle>? TextStyleChange;
 
     /// <summary>Occurs when the property <see cref="Scale"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, float>? ScaleChange;
+
+    /// <summary>Occurs when the property <see cref="RenderScale"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, float>? RenderScaleChange;
 
     /// <summary>Occurs when the property <see cref="Size"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, Vector2>? SizeChange;
@@ -154,10 +160,22 @@ public partial class ControlSpannable
     /// <summary>Occurs when the property <see cref="TakeKeyboardInputsOnFocus"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, bool>? TakeKeyboardInputsOnFocusChange;
 
-    /// <summary>Raises the <see cref="CommitMeasurement"/> event.</summary>
-    /// <param name="args">A <see cref="ControlCommitMeasurementEventArgs"/> that contains the event data.</param>
-    protected virtual void OnCommitMeasurement(ControlCommitMeasurementEventArgs args) =>
-        this.CommitMeasurement?.Invoke(args);
+    /// <summary>Raises the <see cref="SpannableChange"/> event.</summary>
+    /// <param name="obj">The spannable that has been changed.</param>
+    protected virtual void OnSpannableChange(ISpannable obj)
+    {
+        this.IsMeasurementValid = false;
+        this.SpannableChange?.Invoke(obj);
+    }
+
+    /// <summary>Raises the <see cref="HandleInteraction"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlEventArgs"/> that contains the event data.</param>
+    protected virtual void OnHandleInteraction(SpannableControlEventArgs args) => this.HandleInteraction?.Invoke(args);
+
+    /// <summary>Raises the <see cref="UpdateTransformation"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableControlEventArgs"/> that contains the event data.</param>
+    protected virtual void OnUpdateTransformation(SpannableControlEventArgs args) =>
+        this.UpdateTransformation?.Invoke(args);
 
     /// <summary>Raises the <see cref="Click"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlEventArgs"/> that contains the event data.</param>
@@ -166,17 +184,6 @@ public partial class ControlSpannable
     /// <summary>Raises the <see cref="Draw"/> event.</summary>
     /// <param name="args">A <see cref="ControlDrawEventArgs"/> that contains the event data.</param>
     protected virtual void OnDraw(ControlDrawEventArgs args) => this.Draw?.Invoke(args);
-
-    /// <summary>Raises the <see cref="HandleInteraction"/> event.</summary>
-    /// <param name="args">A <see cref="ControlHandleInteractionEventArgs"/> that contains the event data.</param>
-    /// <param name="link">The interacted link, if any.</param>
-    protected virtual void OnHandleInteraction(
-        ControlHandleInteractionEventArgs args,
-        out SpannableLinkInteracted link)
-    {
-        link = default;
-        this.HandleInteraction?.Invoke(args, out link);
-    }
 
     /// <summary>Raises the <see cref="GotFocus"/> event.</summary>
     /// <param name="args">A <see cref="SpannableControlEventArgs"/> that contains the event data.</param>
@@ -275,7 +282,7 @@ public partial class ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnVisibleChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
     {
-        this.transformationFromParentDirectBefore = default;
+        this.localTransformationDirectBefore = default;
         this.VisibleChange?.Invoke(args);
     }
 
@@ -289,15 +296,20 @@ public partial class ControlSpannable
     protected virtual void OnTextChange(PropertyChangeEventArgs<ControlSpannable, string?> args) =>
         this.TextChange?.Invoke(args);
 
-    /// <summary>Raises the <see cref="TextStateOptionsChange"/> event.</summary>
+    /// <summary>Raises the <see cref="TextStyleChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnTextStateOptionsChange(PropertyChangeEventArgs<ControlSpannable, TextState.Options> args)
-        => this.TextStateOptionsChange?.Invoke(args);
+    protected virtual void OnTextStyleChange(PropertyChangeEventArgs<ControlSpannable, TextStyle> args)
+        => this.TextStyleChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="ScaleChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnScaleChange(PropertyChangeEventArgs<ControlSpannable, float> args) =>
         this.ScaleChange?.Invoke(args);
+
+    /// <summary>Raises the <see cref="RenderScaleChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
+    protected virtual void OnRenderScaleChange(PropertyChangeEventArgs<ControlSpannable, float> args) =>
+        this.RenderScaleChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="SizeChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
@@ -347,8 +359,8 @@ public partial class ControlSpannable
                 this.transformationChangeAnimation.Update(this);
             }
 
-            this.transformationFromParent = Matrix4x4.Multiply(
-                this.transformationFromParent,
+            this.localTransformation = Matrix4x4.Multiply(
+                this.localTransformation,
                 this.transformationChangeAnimation.IsRunning
                     ? this.transformationChangeAnimation.AnimatedTransformation
                     : args.NewValue);

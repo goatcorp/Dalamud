@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text;
 using Dalamud.Interface.Utility;
 
 using ImGuiNET;
@@ -151,4 +152,15 @@ public readonly ref struct TextStyleFontData
             (ushort)current);
         return gap * this.Scale;
     }
+
+    /// <summary>Calculates tab size.</summary>
+    /// <param name="tabWidthValue">The TabWidth value.</param>
+    /// <returns>The calculated tab size.</returns>
+    /// <remarks>See <see cref="TextSpannableBase.Options.TabWidth"/>.</remarks>
+    public float CalculateTabSize(float tabWidthValue) => tabWidthValue switch
+    {
+        0 => this.GetEffectiveGlyph(' ').AdvanceX,
+        < 0 => this.GetEffectiveGlyph(' ').AdvanceX * -tabWidthValue * this.Scale,
+        _ => tabWidthValue * this.Scale,
+    };
 }

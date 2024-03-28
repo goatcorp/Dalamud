@@ -18,7 +18,6 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Spannables;
-using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Rendering.Internal;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Spannables.Text;
@@ -67,6 +66,8 @@ internal class ConsoleWindow : Window, IDisposable
 
     private readonly ISpannable ellipsisSpannable;
     private readonly ISpannable wrapMarkerSpannable;
+
+    private readonly TextSpannableBase.Options textOptions = new();
 
     private bool pendingRefilter;
     private bool pendingClearLog;
@@ -156,6 +157,30 @@ internal class ConsoleWindow : Window, IDisposable
     /// </summary>
     /// <remarks>Do not modify the return value.</remarks>
     private DalamudConfiguration StagingConfig => this.newSettings ?? this.activeConfiguration;
+
+    private TextSpannableBase.Options TextOptions
+    {
+        get
+        {
+            this.textOptions.WordBreak = this.activeConfiguration.LogLineBreakMode;
+            this.textOptions.Style = new() { EdgeWidth = 1f };
+            this.textOptions.DisplayControlCharacters = true;
+            this.textOptions.ControlCharactersStyle = new()
+            {
+                Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
+                BackColor = 0xFF333333,
+                EdgeWidth = 1,
+                ForeColor = 0xFFFFFFFF,
+                FontSize = ImGui.GetFont().FontSize * 0.6f,
+                VerticalAlignment = 0.5f,
+            };
+            this.textOptions.WrapMarker =
+                this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
+                    ? this.ellipsisSpannable
+                    : this.wrapMarkerSpannable;
+            return this.textOptions;
+        }
+    }
 
     /// <inheritdoc/>
     public override void OnOpen()
@@ -259,10 +284,12 @@ internal class ConsoleWindow : Window, IDisposable
                 break;
             }
 
-            entry.NumLines = Service<SpannableRenderer>.Get().Render(
+            var rm = Renderer.DrawText(
                 entry.Line,
-                new(true, new() { MaxSize = new(messageAreaWidth, float.MaxValue) }),
-                this.GetTextStateOptions()).FinalTextState.LineCount;
+                new(true, new() { Size = new(messageAreaWidth, float.MaxValue), RootOptions = this.TextOptions }));
+            entry.NumLines = (rm as TextSpannableBase.Measurement)?.LineCount ?? 1;
+            rm.ReturnMeasurementToSpannable();
+
             this.totalWrappedLines += entry.NumLines;
 
             if (i == 0)
@@ -1183,25 +1210,6 @@ internal class ConsoleWindow : Window, IDisposable
         return ~l;
     }
 
-    private TextState.Options GetTextStateOptions() => new()
-    {
-        WordBreak = this.activeConfiguration.LogLineBreakMode,
-        InitialStyle = new() { EdgeWidth = 1f },
-        ControlCharactersStyle = new()
-        {
-            Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
-            BackColor = 0xFF333333,
-            EdgeWidth = 1,
-            ForeColor = 0xFFFFFFFF,
-            FontSize = ImGui.GetFont().FontSize * 0.6f,
-            VerticalAlignment = 0.5f,
-        },
-        WrapMarker =
-            this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
-                ? this.ellipsisSpannable
-                : this.wrapMarkerSpannable,
-    };
-
     private unsafe void DrawHighlighted(
         ReadOnlySpan<char> line,
         MatchCollection? matches,
@@ -1237,12 +1245,15 @@ internal class ConsoleWindow : Window, IDisposable
                .PopForeColor();
         }
 
-        Renderer.Render(
+        Renderer.DrawSpannable(
             ssb,
             new(
                 ImGui.GetWindowDrawList(),
-                new() { MaxSize = new((width + ImGui.GetScrollX()) - ImGui.GetCursorPosX()) }),
-            this.GetTextStateOptions());
+                new()
+                {
+                    Size = new((width + ImGui.GetScrollX()) - ImGui.GetCursorPosX()),
+                    RootOptions = this.TextOptions,
+                })).ReturnMeasurementToSpannable();
 
         // Allocate scroll region
         if (this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll)
@@ -1258,10 +1269,10 @@ internal class ConsoleWindow : Window, IDisposable
             }
 
             ImGui.SetCursorScreenPos(cursorScreenPos);
-            Renderer.Render(
-                ssb,
-                new(false, new() { MaxSize = new(float.MaxValue) }),
-                this.GetTextStateOptions());
+            Renderer.DrawSpannable(
+                        ssb,
+                        new(false, new() { Size = new(float.PositiveInfinity), RootOptions = this.TextOptions }))
+                    .ReturnMeasurementToSpannable();
         }
 
         Renderer.ReturnBuilder(ssb);

@@ -2,7 +2,8 @@ using System.Numerics;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Helpers;
-using Dalamud.Interface.Spannables.RenderPassMethodArgs;
+
+using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Patterns;
 
@@ -59,34 +60,42 @@ public class TristateIconPattern : PatternSpannable
     }
 
     /// <inheritdoc/>
-    protected override PatternRenderPass CreateNewRenderPass() => new CheckmarkRenderPass(this);
+    protected override PatternSpannableMeasurement CreateNewRenderPass() => new CheckmarkRenderPass(this, new());
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class CheckmarkRenderPass(TristateIconPattern owner) : PatternRenderPass(owner)
+    private class CheckmarkRenderPass(TristateIconPattern owner, SpannableMeasurementOptions options)
+        : PatternSpannableMeasurement(owner, options)
     {
         private ISpannable? activeState;
         private ISpannable? disappearingState;
-        private ISpannableRenderPass? backgroundRenderPass;
-        private ISpannableRenderPass? activeStateRenderPass;
-        private ISpannableRenderPass? disappearingStateRenderPass;
+        private ISpannableMeasurement? backgroundRenderPass;
+        private ISpannableMeasurement? activeStateRenderPass;
+        private ISpannableMeasurement? disappearingStateRenderPass;
 
-        public override void OnReturnState()
+        public override void OnReturnMeasurement()
         {
-            base.OnReturnState();
+            base.OnReturnMeasurement();
 
-            owner.Background?.ReturnRenderPass(this.backgroundRenderPass);
+            owner.Background?.ReturnMeasurement(this.backgroundRenderPass);
             this.backgroundRenderPass = null;
 
-            this.activeState?.ReturnRenderPass(this.activeStateRenderPass);
+            this.activeState?.ReturnMeasurement(this.activeStateRenderPass);
             this.activeStateRenderPass = null;
 
-            this.disappearingState?.ReturnRenderPass(this.disappearingStateRenderPass);
+            this.disappearingState?.ReturnMeasurement(this.disappearingStateRenderPass);
             this.disappearingStateRenderPass = null;
         }
 
-        public override void MeasureSpannable(scoped in SpannableMeasureArgs args)
+        public override bool HandleInteraction()
         {
-            base.MeasureSpannable(in args);
+            this.backgroundRenderPass?.HandleInteraction();
+            this.activeStateRenderPass?.HandleInteraction();
+            return base.HandleInteraction();
+        }
+
+        public override bool Measure()
+        {
+            var changed = base.Measure();
 
             this.activeState = owner.State switch
             {
@@ -95,17 +104,13 @@ public class TristateIconPattern : PatternSpannable
                 false => owner.FalseIcon,
             };
 
-            this.backgroundRenderPass = owner.Background?.RentRenderPass(this.Renderer);
+            this.backgroundRenderPass = owner.Background?.RentMeasurement(this.Renderer);
             if (this.backgroundRenderPass is not null)
             {
-                args.NotifyChild(
-                    this.backgroundRenderPass,
-                    owner.backgroundInnerId,
-                    args with
-                    {
-                        MaxSize = this.Boundary.Size,
-                        TextState = this.ActiveTextState.Fork(),
-                    });
+                this.backgroundRenderPass.RenderScale = this.RenderScale;
+                this.backgroundRenderPass.Options.Size = this.Boundary.Size;
+                this.backgroundRenderPass.ImGuiGlobalId = this.GetGlobalIdFromInnerId(owner.backgroundInnerId);
+                changed |= this.backgroundRenderPass.Measure();
             }
 
             if (owner.HideIconAnimation?.IsRunning is true)
@@ -118,120 +123,69 @@ public class TristateIconPattern : PatternSpannable
                     false => owner.FalseIcon,
                 };
 
-                this.disappearingStateRenderPass = this.disappearingState?.RentRenderPass(this.Renderer);
+                this.disappearingStateRenderPass = this.disappearingState?.RentMeasurement(this.Renderer);
                 if (this.disappearingStateRenderPass is not null)
                 {
-                    args.NotifyChild(
-                        this.disappearingStateRenderPass,
-                        -1,
-                        args with
-                        {
-                            MaxSize = this.Boundary.Size,
-                            TextState = this.ActiveTextState.Fork(),
-                        });
+                    this.disappearingStateRenderPass.RenderScale = this.RenderScale;
+                    this.disappearingStateRenderPass.Options.Size = this.Boundary.Size;
+                    changed |= this.disappearingStateRenderPass.Measure();
                 }
             }
 
             owner.ShowIconAnimation?.Update(this.Boundary);
 
-            this.activeStateRenderPass = this.activeState?.RentRenderPass(this.Renderer);
+            this.activeStateRenderPass = this.activeState?.RentMeasurement(this.Renderer);
             if (this.activeStateRenderPass is not null)
             {
-                args.NotifyChild(
-                    this.activeStateRenderPass,
-                    owner.foregroundInnerId,
-                    args with
-                    {
-                        MaxSize = this.Boundary.Size,
-                        TextState = this.ActiveTextState.Fork(),
-                    });
+                this.activeStateRenderPass.RenderScale = this.RenderScale;
+                this.activeStateRenderPass.Options.Size = this.Boundary.Size;
+                this.activeStateRenderPass.ImGuiGlobalId = this.GetGlobalIdFromInnerId(owner.foregroundInnerId);
+                changed |= this.activeStateRenderPass.Measure();
             }
+
+            return changed;
         }
 
-        public override void CommitSpannableMeasurement(scoped in SpannableCommitMeasurementArgs args)
+        public override void UpdateTransformation(scoped in Matrix4x4 local, scoped in Matrix4x4 ancestral)
         {
-            base.CommitSpannableMeasurement(in args);
+            base.UpdateTransformation(in local, in ancestral);
 
-            if (this.backgroundRenderPass is not null)
-                args.NotifyChild(this.backgroundRenderPass, args);
+            this.backgroundRenderPass?.UpdateTransformation(Matrix4x4.Identity, this.FullTransformation);
 
-            if (this.disappearingStateRenderPass is not null)
-            {
-                if (owner.HideIconAnimation?.IsRunning is true)
-                {
-                    args.NotifyChild(
-                        this.disappearingStateRenderPass,
-                        args,
-                        owner.HideIconAnimation.AnimatedTransformation);
-                }
-                else
-                {
-                    args.NotifyChild(this.disappearingStateRenderPass, args);
-                }
-            }
+            this.disappearingStateRenderPass?.UpdateTransformation(
+                owner.HideIconAnimation?.IsRunning is true
+                    ? owner.HideIconAnimation.AnimatedTransformation
+                    : Matrix4x4.Identity,
+                this.FullTransformation);
 
-            if (this.activeStateRenderPass is not null)
-            {
-                if (owner.HideIconAnimation?.IsRunning is true)
-                {
-                    args.NotifyChild(
-                        this.activeStateRenderPass,
-                        args,
-                        owner.HideIconAnimation.AnimatedTransformation);
-                }
-                else
-                {
-                    args.NotifyChild(this.activeStateRenderPass, args);
-                }
-            }
+            this.activeStateRenderPass?.UpdateTransformation(
+                owner.ShowIconAnimation?.IsRunning is true
+                    ? owner.ShowIconAnimation.AnimatedTransformation
+                    : Matrix4x4.Identity,
+                this.FullTransformation);
         }
 
-        public override void HandleSpannableInteraction(
-            scoped in SpannableHandleInteractionArgs args,
-            out SpannableLinkInteracted link)
+        protected override void DrawUntransformed(ImDrawListPtr drawListPtr)
         {
-            base.HandleSpannableInteraction(in args, out link);
-
-            if (this.backgroundRenderPass is not null)
-            {
-                if (link.IsEmpty)
-                    args.NotifyChild(this.backgroundRenderPass, args, out link);
-                else
-                    args.NotifyChild(this.backgroundRenderPass, args, out _);
-            }
-
-            if (this.activeStateRenderPass is not null)
-            {
-                if (link.IsEmpty)
-                    args.NotifyChild(this.activeStateRenderPass, args, out link);
-                else
-                    args.NotifyChild(this.activeStateRenderPass, args, out _);
-            }
-        }
-
-        protected override void DrawUntransformed(SpannableDrawArgs args)
-        {
-            if (this.backgroundRenderPass is not null)
-                args.NotifyChild(this.backgroundRenderPass, args);
-
+            this.backgroundRenderPass?.Draw(drawListPtr);
             if (this.disappearingStateRenderPass is not null)
             {
                 using var transformer = new ScopedTransformer(
-                    args.DrawListPtr,
+                    drawListPtr,
                     Matrix4x4.Identity,
                     Vector2.One,
                     owner.HideIconAnimation?.IsRunning is true ? owner.HideIconAnimation.AnimatedOpacity : 0f);
-                args.NotifyChild(this.disappearingStateRenderPass, args);
+                this.disappearingStateRenderPass.Draw(drawListPtr);
             }
 
             if (this.activeStateRenderPass is not null)
             {
                 using var transformer = new ScopedTransformer(
-                    args.DrawListPtr,
+                    drawListPtr,
                     Matrix4x4.Identity,
                     Vector2.One,
                     owner.ShowIconAnimation?.IsRunning is true ? owner.ShowIconAnimation.AnimatedOpacity : 1f);
-                args.NotifyChild(this.activeStateRenderPass, args);
+                this.activeStateRenderPass.Draw(drawListPtr);
             }
         }
     }

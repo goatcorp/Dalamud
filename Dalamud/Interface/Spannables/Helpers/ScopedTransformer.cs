@@ -1,7 +1,5 @@
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.RenderPassMethodArgs;
-
 using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Helpers;
@@ -32,15 +30,6 @@ public readonly ref struct ScopedTransformer
         this.opacityMultiplier = opacityMultiplier;
         this.numVertices = drawListPtr.VtxBuffer.Size;
     }
-
-    /// <summary>Creates a new instance of <see cref="ScopedTransformer"/> from a <see cref="SpannableDrawArgs"/>.
-    /// </summary>
-    /// <param name="args">The argunents.</param>
-    /// <param name="scale">The scale to apply before transforming.</param>
-    /// <param name="opacityMultiplier">The opacity multiplier.</param>
-    /// <returns>A new instance of <see cref="ScopedTransformer"/>.</returns>
-    public static ScopedTransformer From(SpannableDrawArgs args, Vector2 scale, float opacityMultiplier) =>
-        new(args.DrawListPtr, args.RenderPass.TransformationFromParent, scale, opacityMultiplier);
 
     /// <summary>Transforms the vertices.</summary>
     public unsafe void Dispose()

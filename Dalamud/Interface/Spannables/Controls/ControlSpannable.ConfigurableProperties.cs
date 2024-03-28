@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Rendering;
+using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls;
@@ -17,8 +18,17 @@ public partial class ControlSpannable
     private bool visible = true;
     private bool clipChildren = true;
     private string? text;
-    private TextState.Options textStateOptions;
+
+    private TextStyle textStyle = new()
+    {
+        ForeColor = 0xFFFFFFFF,
+        TextDecorationColor = 0xFFFFFFFF,
+        TextDecorationThickness = 1 / 16f,
+        VerticalAlignment = -1,
+    };
+    
     private float scale = 1f;
+    private float renderScale = 1f;
     private Vector2 size = new(WrapContent);
     private Vector2 minSize = Vector2.Zero;
     private Vector2 maxSize = new(float.PositiveInfinity);
@@ -94,20 +104,19 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the text state options.</summary>
-    /// <remarks>If empty, the text state from the parent will be used.</remarks>
-    public TextState.Options TextStateOptions
+    public TextStyle TextStyle
     {
-        get => this.textStateOptions;
+        get => this.textStyle;
         set => this.HandlePropertyChange(
-            nameof(this.TextStateOptions),
-            ref this.textStateOptions,
+            nameof(this.TextStyle),
+            ref this.textStyle,
             value,
-            this.OnTextStateOptionsChange);
+            this.OnTextStyleChange);
     }
 
     /// <summary>Gets or sets the scale, applicable for this and all the descendant spannables.</summary>
-    /// <remarks>Effective scale is <see cref="EffectiveScale"/>, which takes this and the render scale specified from
-    /// <see cref="RenderContext.Scale"/> into consideration.</remarks>
+    /// <remarks>Effective scale is <see cref="EffectiveRenderScale"/>, which takes this and the render scale specified from
+    /// <see cref="RenderContext.RenderScale"/> into consideration.</remarks>
     public float Scale
     {
         get => this.scale;
@@ -118,10 +127,21 @@ public partial class ControlSpannable
             this.OnScaleChange);
     }
 
+    /// <inheritdoc/>
+    public float RenderScale
+    {
+        get => this.renderScale;
+        set => this.HandlePropertyChange(
+            nameof(this.RenderScale),
+            ref this.renderScale,
+            value,
+            this.OnRenderScaleChange);
+    }
+
     /// <summary>Gets or sets the size.</summary>
     /// <remarks>
     /// <para><see cref="MatchParent"/> and <see cref="WrapContent"/> can be used.</para>
-    /// <para>The value will be scaled by <see cref="EffectiveScale"/>.</para>
+    /// <para>The value will be scaled by <see cref="EffectiveRenderScale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 Size
@@ -132,7 +152,7 @@ public partial class ControlSpannable
 
     /// <summary>Gets or sets the minimum size.</summary>
     /// <remarks>
-    /// <para>The value will be scaled by <see cref="EffectiveScale"/>.</para>
+    /// <para>The value will be scaled by <see cref="EffectiveRenderScale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 MinSize
@@ -143,7 +163,7 @@ public partial class ControlSpannable
 
     /// <summary>Gets or sets the maximum size.</summary>
     /// <remarks>
-    /// <para>The value will be scaled by <see cref="EffectiveScale"/>.</para>
+    /// <para>The value will be scaled by <see cref="EffectiveRenderScale"/>.</para>
     /// <para>The value includes the margin and padding.</para>
     /// </remarks>
     public Vector2 MaxSize
@@ -153,7 +173,7 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the extrusion.</summary>
-    /// <remarks>The value will be scaled by <see cref="EffectiveScale"/>.</remarks>
+    /// <remarks>The value will be scaled by <see cref="EffectiveRenderScale"/>.</remarks>
     public BorderVector4 ExtendOutside
     {
         get => this.extendOutside;
@@ -165,7 +185,7 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the margin.</summary>
-    /// <remarks>The value will be scaled by <see cref="EffectiveScale"/>.</remarks>
+    /// <remarks>The value will be scaled by <see cref="EffectiveRenderScale"/>.</remarks>
     public BorderVector4 Margin
     {
         get => this.margin;
@@ -173,7 +193,7 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the padding.</summary>
-    /// <remarks>The value will be scaled by <see cref="EffectiveScale"/>.</remarks>
+    /// <remarks>The value will be scaled by <see cref="EffectiveRenderScale"/>.</remarks>
     public BorderVector4 Padding
     {
         get => this.padding;
@@ -181,7 +201,7 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the transformation.</summary>
-    /// <remarks>This value does not count when calculating <see cref="EffectiveScale"/>.</remarks>
+    /// <remarks>This value does not count when calculating <see cref="EffectiveRenderScale"/>.</remarks>
     public Matrix4x4 Transformation
     {
         get => this.transformation;
@@ -377,7 +397,7 @@ public partial class ControlSpannable
         e.NewValue = newValue;
         eh(e);
         SpannableControlEventArgsPool.Return(e);
-        return false;
+        return true;
     }
 
     /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
@@ -394,6 +414,6 @@ public partial class ControlSpannable
         PropertyChangeEventHandler<ControlSpannable, T> eh)
     {
         if (HandlePropertyChange(this, propName, ref storage, newValue, eh))
-            this.StateGeneration++;
+            this.OnSpannableChange(this);
     }
 }

@@ -81,7 +81,7 @@ public struct TextStyle
     /// <para><c>0</c> will align to left. <c>1</c> will align to right. <c>0.5</c> will align to center.
     /// Values outside the range to [0, 1] are clamped.</para>
     /// <para>If changed multiple times in a line, the last value wins.</para>
-    /// <para>Will use <see cref="ISpannableRenderPass.Boundary"/> instead of <see cref="RenderContext.MaxSize"/> if maximum
+    /// <para>Will use <see cref="ISpannableMeasurement.Boundary"/> instead of <see cref="RenderContext.Size"/> if maximum
     /// size is unspecified (<see cref="float.PositiveInfinity"/> or <see cref="float.PositiveInfinity"/>.)</para>
     /// </remarks>
     public float HorizontalAlignment;

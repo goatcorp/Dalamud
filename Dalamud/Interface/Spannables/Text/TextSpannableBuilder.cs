@@ -118,6 +118,7 @@ public sealed partial class TextSpannableBuilder
         var off = unchecked((int)this.textStream.Length);
         this.textStream.SetLength(off + numBytes);
         this.textStream.Position = off + numBytes;
+        this.OnSpannableChange(this);
         return this.textStream.GetBuffer().AsSpan(off, numBytes);
     }
 
@@ -144,6 +145,7 @@ public sealed partial class TextSpannableBuilder
             reservedData = default;
         }
 
+        this.OnSpannableChange(this);
         return this.records.Count - 1;
     }
 
@@ -153,6 +155,7 @@ public sealed partial class TextSpannableBuilder
         ref var rec = ref CollectionsMarshal.AsSpan(this.records)[recordIndex];
         var textStart = unchecked((int)this.textStream.Length);
         this.records.Add(new(textStart, rec.DataStart, rec.DataLength, rec.Type));
+        this.OnSpannableChange(this);
     }
 
     /// <summary>Adds a record that instructs to revert to the initial state.</summary>
@@ -161,5 +164,6 @@ public sealed partial class TextSpannableBuilder
     {
         var textStart = unchecked((int)this.textStream.Length);
         this.records.Add(new(textStart, 0, 0, type, true));
+        this.OnSpannableChange(this);
     }
 }

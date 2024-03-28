@@ -7,7 +7,6 @@ using System.Text.Unicode;
 
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Rendering;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
@@ -56,7 +55,7 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
     }
 
     /// <inheritdoc/>
-    public int StateGeneration { get; protected set; }
+    public event Action<ISpannable>? SpannableChange;
 
     /// <inheritdoc/>
     public void Dispose()
@@ -68,16 +67,6 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
 
     /// <inheritdoc/>
     public abstract IReadOnlyCollection<ISpannable?> GetAllChildSpannables();
-
-    /// <inheritdoc/>
-    public ISpannableRenderPass RentRenderPass(ISpannableRenderer renderer) => RenderPass.Rent(renderer, this);
-
-    /// <inheritdoc/>
-    public void ReturnRenderPass(ISpannableRenderPass? pass)
-    {
-        if (pass is RenderPass s)
-            RenderPass.Return(s, this.GetData());
-    }
 
     /// <inheritdoc/>
     public int SerializeState(Span<byte> buffer) =>
@@ -106,15 +95,14 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
         public float HorizontalOffsetWrtLine;
         public float VerticalOffsetWrtLine;
 
-        private readonly RenderPass renderPass;
-
+        private readonly IInternalMeasurement mm;
         private readonly Vector2 lineBBoxVertical;
         private readonly float lineWidth;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StateInfo(RenderPass renderPass, scoped in MeasuredLine lineMeasurement)
+        public StateInfo(IInternalMeasurement mm, scoped in MeasuredLine lineMeasurement)
         {
-            this.renderPass = renderPass;
+            this.mm = mm;
             this.lineBBoxVertical = lineMeasurement.BBoxVertical;
             this.lineWidth = lineMeasurement.Width;
         }
@@ -123,8 +111,8 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
         {
             var lineAscentDescent = this.lineBBoxVertical;
             this.VerticalOffsetWrtLine = (fontInfo.BBoxVertical.Y - fontInfo.BBoxVertical.X) *
-                                         this.renderPass.ActiveTextState.LastStyle.VerticalOffset;
-            switch (this.renderPass.ActiveTextState.LastStyle.VerticalAlignment)
+                                         this.mm.LastStyle.VerticalOffset;
+            switch (this.mm.LastStyle.VerticalAlignment)
             {
                 case < 0:
                     this.VerticalOffsetWrtLine -= lineAscentDescent.X + (fontInfo.Font.Ascent * fontInfo.Scale);
@@ -135,27 +123,27 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
                 default:
                     this.VerticalOffsetWrtLine +=
                         (lineAscentDescent.Y - lineAscentDescent.X - fontInfo.ScaledFontSize) *
-                        this.renderPass.ActiveTextState.LastStyle.VerticalAlignment;
+                        this.mm.LastStyle.VerticalAlignment;
                     break;
             }
 
             this.VerticalOffsetWrtLine = MathF.Round(this.VerticalOffsetWrtLine * fontInfo.Scale) / fontInfo.Scale;
 
-            var alignWidth = this.renderPass.MaxSize.X;
+            var alignWidth = this.mm.Options.Size.X;
             var alignLeft = 0f;
             if (IsEffectivelyInfinity(alignWidth))
             {
-                if (!this.renderPass.Boundary.IsValid)
+                if (!this.mm.Boundary.IsValid)
                 {
                     this.HorizontalOffsetWrtLine = 0;
                     return;
                 }
 
-                alignWidth = this.renderPass.Boundary.Width;
-                alignLeft = this.renderPass.Boundary.Left;
+                alignWidth = this.mm.Boundary.Width;
+                alignLeft = this.mm.Boundary.Left;
             }
 
-            switch (this.renderPass.ActiveTextState.LastStyle.HorizontalAlignment)
+            switch (this.mm.LastStyle.HorizontalAlignment)
             {
                 case <= 0f:
                     this.HorizontalOffsetWrtLine = 0;
@@ -169,13 +157,17 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
                     this.HorizontalOffsetWrtLine =
                         MathF.Round(
                             (alignLeft + (alignWidth - this.lineWidth)) *
-                            this.renderPass.ActiveTextState.LastStyle.HorizontalAlignment *
+                            this.mm.LastStyle.HorizontalAlignment *
                             fontInfo.Scale)
                         / fontInfo.Scale;
                     break;
             }
         }
     }
+
+    /// <summary>Raises the <see cref="SpannableChange"/> event.</summary>
+    /// <param name="obj">The spannable that has been changed.</param>
+    protected virtual void OnSpannableChange(ISpannable obj) => this.SpannableChange?.Invoke(obj);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct BoundaryToRecord
@@ -189,48 +181,11 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
             this.Boundary = boundary;
         }
     }
-
-    /// <summary>Item state for the spanned string itself.</summary>
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
-    private struct ImGuiItemStateStruct
+    
+    /// <summary>Struct for storing link interaction data.</summary>
+    private struct LinkInteractionData
     {
-        [FieldOffset(0)]
-        public int InteractedLinkRecordIndex;
-
-        [FieldOffset(4)]
-        public InteractionState State;
-
-        public enum InteractionState : byte
-        {
-            Clear,
-            Hover,
-            Active,
-        }
-    }
-
-    /// <summary>Item state for individual links.</summary>
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
-    private struct ImGuiLinkStateStruct
-    {
-        [FieldOffset(0)]
-        public uint Flags;
-
-        public bool IsMouseButtonDownHandled
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => (this.Flags & 1) != 0;
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this.Flags = (this.Flags & ~1u) | (value ? 1u : 0u);
-        }
-
-        public ImGuiMouseButton FirstMouseButton
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => (ImGuiMouseButton)((this.Flags >> 1) & 3);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this.Flags = (this.Flags & ~(3u << 1)) | ((uint)value << 1);
-        }
+        public bool IsMouseButtonDownHandled;
+        public ImGuiMouseButton FirstMouseButton;
     }
 }

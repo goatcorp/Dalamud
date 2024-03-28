@@ -4,5 +4,4 @@ namespace Dalamud.Interface.Spannables.Controls.TODO;
 // TODO: can this also do Slider?
 public class ScrollBarControl : ControlSpannable
 {
-    
 }

@@ -103,87 +103,60 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
     }
 
     /// <inheritdoc/>
-    public RenderResult Render(
-        ReadOnlySpan<char> sequence,
-        in RenderContext renderContext = default,
-        in TextState.Options textOptions = default)
+    public ISpannableMeasurement DrawText(ReadOnlySpan<char> sequence, in RenderContext renderContext)
     {
         var ssb = this.RentBuilder();
         ssb.Append(sequence);
-        var res = this.Render(ssb, in renderContext, in textOptions);
+        var res = this.DrawSpannable(ssb, in renderContext);
         this.ReturnBuilder(ssb);
         return res;
     }
 
     /// <inheritdoc/>
-    public RenderResult Render(
-        ISpannable spannable,
-        in RenderContext renderContext = default,
-        in TextState.Options textOptions = default)
+    public ISpannableMeasurement DrawSpannable(ISpannable spannable, in RenderContext renderContext) =>
+        this.DrawSpannableFromMeasurement(spannable.RentMeasurement(this), in renderContext);
+
+    /// <inheritdoc/>
+    public ISpannableMeasurement DrawSpannableFromMeasurement(
+        ISpannableMeasurement spannableMeasurement,
+        in RenderContext renderContext)
     {
         ThreadSafety.AssertMainThread();
 
-        var result = default(RenderResult);
-        var state = spannable.RentRenderPass(this);
-        state.MeasureSpannable(
-            new(
-                state,
-                renderContext.MinSize / renderContext.Scale,
-                renderContext.MaxSize / renderContext.Scale,
-                renderContext.Scale,
-                new(textOptions),
-                renderContext.ImGuiGlobalId));
+        spannableMeasurement.RenderScale = renderContext.RenderScale;
+        spannableMeasurement.ImGuiGlobalId = renderContext.ImGuiGlobalId;
+        if (renderContext.RootOptions is not null)
+            spannableMeasurement.Options.CopyFrom(renderContext.RootOptions);
+        spannableMeasurement.Options.Size = renderContext.Size / spannableMeasurement.RenderScale;
 
-        state.CommitSpannableMeasurement(
-            new(
-                state,
-                renderContext.InnerOrigin,
-                renderContext.Transformation,
-                Matrix4x4.Multiply(
-                    renderContext.Transformation,
-                    Matrix4x4.Multiply(
-                        Matrix4x4.CreateScale(renderContext.Scale),
-                        Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0))))));
+        var interactionHandled = renderContext.UseInteraction && spannableMeasurement.HandleInteraction();
+
+        spannableMeasurement.Measure();
+
+        var mtx = Matrix4x4.Multiply(
+            renderContext.Transformation,
+            Matrix4x4.Multiply(
+                Matrix4x4.CreateScale(renderContext.RenderScale),
+                Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0))));
+        spannableMeasurement.UpdateTransformation(mtx, Matrix4x4.Identity);
 
         if (renderContext.UseDrawing)
         {
-            using (new ScopedTransformer(
-                       renderContext.DrawListPtr,
-                       Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0)),
-                       new(renderContext.Scale),
-                       1f))
-            {
-                state.DrawSpannable(new(state, renderContext.DrawListPtr));
-            }
+            using (new ScopedTransformer(renderContext.DrawListPtr, Matrix4x4.Identity, Vector2.One, 1f))
+                spannableMeasurement.Draw(renderContext.DrawListPtr);
 
-            if (renderContext.UseInteraction)
-            {
-                var msl = renderContext.MouseScreenLocation;
-                var mll = Vector2.Transform(
-                    (msl - renderContext.ScreenOffset) / renderContext.Scale,
-                    Matrix4x4.Invert(state.TransformationFromParent, out var inverted) ? inverted : Matrix4x4.Identity);
-                state.HandleSpannableInteraction(
-                    new(state)
-                    {
-                        MouseButtonStateFlags = (ImGui.IsMouseDown(ImGuiMouseButton.Left) ? 1 : 0)
-                                                | (ImGui.IsMouseDown(ImGuiMouseButton.Right) ? 2 : 0)
-                                                | (ImGui.IsMouseDown(ImGuiMouseButton.Middle) ? 4 : 0),
-                        MouseScreenLocation = msl,
-                        MouseLocalLocation = mll,
-                        WheelDelta = new(ImGui.GetIO().MouseWheelH, ImGui.GetIO().MouseWheel),
-                    },
-                    out result.InteractedLink);
-            }
+            if (renderContext.UseInteraction && !interactionHandled)
+                spannableMeasurement.HandleInteraction();
 
             if (renderContext.PutDummyAfterRender)
             {
                 var tf = Matrix4x4.Multiply(
-                    Matrix4x4.CreateScale(new Vector3(renderContext.Scale)),
+                    Matrix4x4.CreateScale(new Vector3(renderContext.RenderScale)),
                     renderContext.Transformation);
-                var lt = renderContext.ScreenOffset + Vector2.Transform(state.Boundary.LeftTop, tf);
-                var rt = renderContext.ScreenOffset + Vector2.Transform(state.Boundary.RightTop, tf);
-                var rb = renderContext.ScreenOffset + Vector2.Transform(state.Boundary.RightBottom, tf);
-                var lb = renderContext.ScreenOffset + Vector2.Transform(state.Boundary.LeftBottom, tf);
+                var lt = renderContext.ScreenOffset + Vector2.Transform(spannableMeasurement.Boundary.LeftTop, tf);
+                var rt = renderContext.ScreenOffset + Vector2.Transform(spannableMeasurement.Boundary.RightTop, tf);
+                var rb = renderContext.ScreenOffset + Vector2.Transform(spannableMeasurement.Boundary.RightBottom, tf);
+                var lb = renderContext.ScreenOffset + Vector2.Transform(spannableMeasurement.Boundary.LeftBottom, tf);
                 var minPos = Vector2.Min(Vector2.Min(lt, rt), Vector2.Min(lb, rb));
                 var maxPos = Vector2.Max(Vector2.Max(lt, rt), Vector2.Max(lb, rb));
                 if (minPos.X <= maxPos.X && minPos.Y <= maxPos.Y)
@@ -194,12 +167,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
             }
         }
 
-        result.Boundary = state.Boundary;
-        result.FinalTextState = state.ActiveTextState;
-
-        spannable.ReturnRenderPass(state);
-
-        return result;
+        return spannableMeasurement;
     }
 
     /// <inheritdoc/>
@@ -212,7 +180,8 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         {
             < 0f => -style.FontSize * currentFont.FontSize,
             > 0f => style.FontSize,
-            _ => this.fontAtlasFactory.DefaultFontSpec.SizePx,
+            _ => MathF.Round(this.fontAtlasFactory.DefaultFontSpec.SizePx * ImGuiHelpers.GlobalScale) /
+                 ImGuiHelpers.GlobalScale,
         };
 
         IFontHandle? fh;

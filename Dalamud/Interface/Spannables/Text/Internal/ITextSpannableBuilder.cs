@@ -276,7 +276,7 @@ internal interface ITextSpannableBuilder
     TextSpannableBuilder PopHorizontalOffset();
 
     /// <summary>Pushes a horizontal alignment mode to use from now on, with respect to the whole alloted region
-    /// specified from <see cref="RenderContext.MaxSize"/>, or <see cref="ISpannableRenderPass.Boundary"/> if no maximum
+    /// specified from <see cref="RenderContext.Size"/>, or <see cref="ISpannableMeasurement.Boundary"/> if no maximum
     /// width is specified.</summary>
     /// <param name="value">The horizontal alignment.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
@@ -284,7 +284,7 @@ internal interface ITextSpannableBuilder
     TextSpannableBuilder PushHorizontalAlignment(float value);
 
     /// <summary>Pushes a horizontal alignment mode to use from now on, with respect to the whole alloted region
-    /// specified from <see cref="RenderContext.MaxSize"/>, or <see cref="ISpannableRenderPass.Boundary"/> if no maximum
+    /// specified from <see cref="RenderContext.Size"/>, or <see cref="ISpannableMeasurement.Boundary"/> if no maximum
     /// width is specified.</summary>
     /// <param name="value">The horizontal alignment.</param>
     /// <returns>A reference of this instance after the push operation is completed.</returns>
@@ -292,7 +292,7 @@ internal interface ITextSpannableBuilder
     TextSpannableBuilder PushHorizontalAlignment(HorizontalAlignment value);
 
     /// <summary>Pops a horizontal alignment mode to use from now on, with respect to the whole alloted region
-    /// specified from <see cref="RenderContext.MaxSize"/>, or <see cref="ISpannableRenderPass.Boundary"/> if no maximum
+    /// specified from <see cref="RenderContext.Size"/>, or <see cref="ISpannableMeasurement.Boundary"/> if no maximum
     /// width is specified.</summary>
     /// <returns>A reference of this instance after the pop operation is completed.</returns>
     /// <exception cref="InvalidOperationException">The stack is empty.</exception>

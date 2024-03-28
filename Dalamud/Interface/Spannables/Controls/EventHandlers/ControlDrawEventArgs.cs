@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-using Dalamud.Interface.Spannables.RenderPassMethodArgs;
+using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
@@ -9,12 +9,12 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 public record ControlDrawEventArgs : SpannableControlEventArgs
 {
     /// <summary>Gets or sets the draw arguments from the spannable invoker.</summary>
-    public SpannableDrawArgs SpannableArgs { get; set; }
+    public ImDrawListPtr DrawListPtr { get; set; }
 
     /// <inheritdoc/>
     public override bool TryReset()
     {
-        this.SpannableArgs = default;
+        this.DrawListPtr = default;
         return base.TryReset();
     }
 }

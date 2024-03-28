@@ -473,7 +473,7 @@ public sealed class PanZoomTracker : IDisposable
         var rvr = Vector2.Transform(v, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, this.rotation));
         var rvq = Vector2.Transform(v, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, newRotation));
         var dist = rvr - rvq;
-        
+
         this.rotation = newRotation;
         if (!this.UpdatePan(this.pan + dist))
             this.ViewportChanged?.Invoke();
