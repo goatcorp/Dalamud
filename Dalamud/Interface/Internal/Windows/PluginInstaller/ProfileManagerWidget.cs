@@ -651,13 +651,13 @@ internal class ProfileManagerWidget
             Loc.Localize("ProfileManagerTutorialCommands", "You can use the following commands in chat or in macros to manage active collections:");
         
         public static string TutorialCommandsEnable =>
-            Loc.Localize("ProfileManagerTutorialCommandsEnable", "/xlenableprofile \"Collection Name\" - Enable a collection");
+            Loc.Localize("ProfileManagerTutorialCommandsEnable", "{0} \"Collection Name\" - Enable a collection").Format(ProfileCommandHandler.CommandEnable);
 
         public static string TutorialCommandsDisable =>
-            Loc.Localize("ProfileManagerTutorialCommandsDisable", "/xldisableprofile \"Collection Name\" - Disable a collection");
+            Loc.Localize("ProfileManagerTutorialCommandsDisable", "{0} \"Collection Name\" - Disable a collection").Format(ProfileCommandHandler.CommandDisable);
         
         public static string TutorialCommandsToggle =>
-            Loc.Localize("ProfileManagerTutorialCommandsToggle", "/xltoggleprofile \"Collection Name\" - Toggle a collection's state");
+            Loc.Localize("ProfileManagerTutorialCommandsToggle", "{0} \"Collection Name\" - Toggle a collection's state").Format(ProfileCommandHandler.CommandToggle);
         
         public static string TutorialCommandsEnd =>
             Loc.Localize("ProfileManagerTutorialCommandsEnd", "If you run multiple of these commands, they will be executed in order.");

@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 
+using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.GameFonts;
@@ -110,6 +111,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
     /// <summary>Undo range for modifying the buffer while composition is in progress.</summary>
     private (int Start, int End, int Cursor)? temporaryUndoSelection;
 
+    private bool hadWantTextInput;
     private bool updateInputLanguage = true;
     private bool updateImeStatusAgain;
 
@@ -262,20 +264,37 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         if (!ImGuiHelpers.IsImGuiInitialized)
         {
             this.updateInputLanguage = true;
+            this.temporaryUndoSelection = null;
             return;
         }
 
         // Are we not the target of text input?
         if (!ImGui.GetIO().WantTextInput)
         {
+            if (this.hadWantTextInput)
+            {
+                // Force the cancellation of whatever was being input.
+                var hImc2 = ImmGetContext(args.Hwnd);
+                if (hImc2 != 0)
+                {
+                    ImmNotifyIME(hImc2, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
+                    ImmReleaseContext(args.Hwnd, hImc2);
+                }
+            }
+
+            this.hadWantTextInput = false;
             this.updateInputLanguage = true;
+            this.temporaryUndoSelection = null;
             return;
         }
+
+        this.hadWantTextInput = true;
 
         var hImc = ImmGetContext(args.Hwnd);
         if (hImc == nint.Zero)
         {
             this.updateInputLanguage = true;
+            this.temporaryUndoSelection = null;
             return;
         }
 
@@ -338,9 +357,11 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 this.updateInputLanguage = false;
             }
 
+            // Microsoft Korean IME and Google Japanese IME drop notifying us of a candidate list change.
+            // As the candidate list update is already there on the next WndProc call, update the candidate list again
+            // here.
             if (this.updateImeStatusAgain)
             {
-                this.ReplaceCompositionString(hImc, false);
                 this.UpdateCandidates(hImc);
                 this.updateImeStatusAgain = false;
             }
@@ -410,7 +431,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                                         or VK.VK_RIGHT
                                         or VK.VK_DOWN
                                         or VK.VK_RETURN:
-                    if (this.candidateStrings.Count != 0)
+                    // If key inputs that usually result in focus change, cancel the input process.
+                    if (!string.IsNullOrEmpty(ImmGetCompositionString(hImc, GCS.GCS_COMPSTR)))
                     {
                         this.ClearState(hImc);
                         args.WParam = VK.VK_PROCESSKEY;
@@ -428,7 +450,15 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 case WM.WM_RBUTTONDOWN:
                 case WM.WM_MBUTTONDOWN:
                 case WM.WM_XBUTTONDOWN:
-                    ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
+                    // If mouse click happened while IME composition was in progress, force complete the input process.
+                    if (!string.IsNullOrEmpty(ImmGetCompositionString(hImc, GCS.GCS_COMPSTR)))
+                    {
+                        ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
+                        
+                        // Disable further handling of mouse button down event, or something would lock up the cursor.
+                        args.SuppressWithValue(1);
+                    }
+
                     break;
             }
         }
