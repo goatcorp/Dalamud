@@ -182,7 +182,7 @@ internal class SettingsWindow : Window
             {
                 ImGui.SetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
                                      ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
-                                     : Loc.Localize("DalamudSettingsSaveAndExit", "Save changes"));
+                                     : Loc.Localize("DalamudSettingsSave", "Save changes"));
             }
         }
 
