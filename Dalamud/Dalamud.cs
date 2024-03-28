@@ -43,8 +43,8 @@ internal sealed class Dalamud : IServiceType
     /// <param name="info">DalamudStartInfo instance.</param>
     /// <param name="fs">ReliableFileStorage instance.</param>
     /// <param name="configuration">The Dalamud configuration.</param>
-    /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
-    public Dalamud(DalamudStartInfo info, ReliableFileStorage fs, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
+    /// <param name="mainThreadHandle">Handle to the suspended main thread.</param>
+    public Dalamud(DalamudStartInfo info, ReliableFileStorage fs, DalamudConfiguration configuration, nint mainThreadHandle)
     {
         this.StartInfo = info;
         
@@ -71,7 +71,7 @@ internal sealed class Dalamud : IServiceType
 
         if (!configuration.IsResumeGameAfterPluginLoad)
         {
-            NativeFunctions.SetEvent(mainThreadContinueEvent);
+            this.ResumeThread(mainThreadHandle);
             ServiceManager.InitializeEarlyLoadableServices()
                           .ContinueWith(t =>
                           {
@@ -101,7 +101,7 @@ internal sealed class Dalamud : IServiceType
                     if (faultedTasks.Any())
                         throw new AggregateException(faultedTasks);
 
-                    NativeFunctions.SetEvent(mainThreadContinueEvent);
+                    this.ResumeThread(mainThreadHandle);
 
                     await Task.WhenAll(tasks);
                 }
@@ -112,7 +112,7 @@ internal sealed class Dalamud : IServiceType
                 }
                 finally
                 {
-                    NativeFunctions.SetEvent(mainThreadContinueEvent);
+                    this.ResumeThread(mainThreadHandle);
                 }
             });
         }
@@ -221,4 +221,25 @@ internal sealed class Dalamud : IServiceType
             FFXIVClientStructs.Interop.Resolver.GetInstance.Resolve();
         }
     }
+
+    /// <summary>
+    /// Resumes a thread by incrementing its suspend count to zero, and then closing its handle.
+    /// </summary>
+    /// <param name="threadHandle">Handle to the thread to be resumed.</param>
+    private void ResumeThread(nint threadHandle)
+    {
+        int previousSuspendCount;
+
+        while ((previousSuspendCount = (int)NativeFunctions.ResumeThread(threadHandle)) > 1)
+        {
+            if (previousSuspendCount == -1)
+            {
+                Log.Error("Failed to resume main thread");
+                return;
+            }
+        }
+
+        NativeFunctions.CloseHandle(threadHandle);
+    }
+
 }

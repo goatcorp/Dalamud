@@ -14,4 +14,9 @@ public enum LoadMethod
     /// Load Dalamud via DLL-injection.
     /// </summary>
     DllInject,
+
+    /// <summary>
+    /// Load Dalamud via DLL-injection at the suspended entrypoint.
+    /// </summary>
+    Hybrid,
 }

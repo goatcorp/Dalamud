@@ -29,6 +29,7 @@ struct DalamudStartInfo {
     enum class LoadMethod : int {
         Entrypoint,
         DllInject,
+        Hybrid,
     };
     friend void from_json(const nlohmann::json&, LoadMethod&);
 

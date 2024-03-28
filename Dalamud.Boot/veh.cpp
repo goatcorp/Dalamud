@@ -111,6 +111,9 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
         break;
     case DalamudStartInfo::LoadMethod::DllInject:
         args.emplace_back(L"--mode=inject");
+        break;
+    case DalamudStartInfo::LoadMethod::Hybrid:
+        args.emplace_back(L"--mode=hybrid");
     }
     args.emplace_back(L"--dalamud-working-directory=\"" + unicode::convert<std::wstring>(g_startInfo.WorkingDirectory) + L"\"");
     args.emplace_back(L"--dalamud-configuration-path=\"" + unicode::convert<std::wstring>(g_startInfo.ConfigurationPath) + L"\"");

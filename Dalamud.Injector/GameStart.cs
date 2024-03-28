@@ -24,11 +24,13 @@ namespace Dalamud.Injector
         /// <param name="arguments">Arguments to pass to the executable file.</param>
         /// <param name="dontFixAcl">Don't actually fix the ACL.</param>
         /// <param name="beforeResume">Action to execute before the process is started.</param>
+        /// <param name="afterResume">Action to execute after the process is started.</param>
         /// <param name="waitForGameWindow">Wait for the game window to be ready before proceeding.</param>
-        /// <returns>The started process.</returns>
+        /// <param name="attach">Attach to the game process as debugger.</param>
+        /// <returns>The started process and handle to the started main thread.</returns>
         /// <exception cref="Win32Exception">Thrown when a win32 error occurs.</exception>
         /// <exception cref="GameStartException">Thrown when the process did not start correctly.</exception>
-        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, bool waitForGameWindow = true)
+        public static (Process GameProcess, nint MainThreadHandle) LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, Action<Process, nint> afterResume, bool waitForGameWindow = true, bool attach = false)
         {
             Process process = null;
 
@@ -98,7 +100,7 @@ namespace Dalamud.Injector
                             ref lpProcessAttributes,
                             IntPtr.Zero,
                             false,
-                            PInvoke.CREATE_SUSPENDED,
+                            attach ? PInvoke.DEBUG_ONLY_THIS_PROCESS : PInvoke.CREATE_SUSPENDED,
                             IntPtr.Zero,
                             workingDir,
                             ref lpStartupInfo,
@@ -120,6 +122,8 @@ namespace Dalamud.Injector
                 beforeResume?.Invoke(process);
 
                 PInvoke.ResumeThread(lpProcessInformation.hThread);
+
+                afterResume?.Invoke(process, lpProcessInformation.hThread);
 
                 // Ensure that the game main window is prepared
                 if (waitForGameWindow)
@@ -172,10 +176,20 @@ namespace Dalamud.Injector
             {
                 if (psecDesc != IntPtr.Zero)
                     Marshal.FreeHGlobal(psecDesc);
-                PInvoke.CloseHandle(lpProcessInformation.hThread);
             }
 
-            return process;
+            NativeFunctions.DuplicateHandle(
+                PInvoke.GetCurrentProcess(),
+                lpProcessInformation.hThread,
+                lpProcessInformation.hProcess,
+                out var mainThreadHandle,
+                0,
+                false,
+                NativeFunctions.DuplicateOptions.SameAccess);
+
+            PInvoke.CloseHandle(lpProcessInformation.hThread);
+
+            return (process, mainThreadHandle);
         }
 
         /// <summary>
@@ -358,6 +372,7 @@ namespace Dalamud.Injector
 
             public const UInt32 SECURITY_DESCRIPTOR_REVISION = 1;
 
+            public const UInt32 DEBUG_ONLY_THIS_PROCESS = 0x00000002;
             public const UInt32 CREATE_SUSPENDED = 0x00000004;
 
             public const UInt32 TOKEN_QUERY = 0x0008;
