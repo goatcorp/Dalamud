@@ -3,7 +3,7 @@
 #include "logging.h"
 #include "utils.h"
 
-HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue);
+HRESULT WINAPI InitializeImpl(char* pLoadInfo, HANDLE hMainThread);
 
 struct RewrittenEntryPointParameters {
     char* pEntrypoint;
@@ -226,6 +226,34 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
     throw std::runtime_error("corresponding base address not found");
 }
 
+/// @brief Get the target process' entry point.
+/// @param hProcess Process handle.
+/// @param pcwzPath Path to target process.
+/// @return address to entry point; null if unsuccessful.
+/// 
+extern "C" char* WINAPI GetRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcwzPath) {
+    try {
+        const auto base_address = static_cast<char*>(get_mapped_image_base_address(hProcess, pcwzPath));
+
+        IMAGE_DOS_HEADER dos_header{};
+        union {
+            IMAGE_NT_HEADERS32 nt_header32;
+            IMAGE_NT_HEADERS64 nt_header64{};
+        };
+
+        read_process_memory_or_throw(hProcess, base_address, dos_header);
+        read_process_memory_or_throw(hProcess, base_address + dos_header.e_lfanew, nt_header64);
+        const auto entrypoint = base_address + (nt_header32.OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC
+            ? nt_header32.OptionalHeader.AddressOfEntryPoint
+            : nt_header64.OptionalHeader.AddressOfEntryPoint);
+        return entrypoint;
+    }
+    catch (const std::exception& e) {
+        logging::E("Failed to retrieve entry point for 0x{:X}: {}", hProcess, e.what());
+        return nullptr;
+    }
+}
+
 /// @brief Rewrite target process' entry point so that this DLL can be loaded and executed first.
 /// @param hProcess Process handle.
 /// @param pcwzPath Path to target process.
@@ -240,23 +268,10 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
     std::wstring last_operation;
     SetLastError(ERROR_SUCCESS);
     try {
-        last_operation = L"get_mapped_image_base_address";
-        const auto base_address = static_cast<char*>(get_mapped_image_base_address(hProcess, pcwzPath));
-
-        IMAGE_DOS_HEADER dos_header{};
-        union {
-            IMAGE_NT_HEADERS32 nt_header32;
-            IMAGE_NT_HEADERS64 nt_header64{};
-        };
-
-        last_operation = L"read_process_memory_or_throw(base_address)";
-        read_process_memory_or_throw(hProcess, base_address, dos_header);
-
-        last_operation = L"read_process_memory_or_throw(base_address + dos_header.e_lfanew)";
-        read_process_memory_or_throw(hProcess, base_address + dos_header.e_lfanew, nt_header64);
-        const auto entrypoint = base_address + (nt_header32.OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC
-            ? nt_header32.OptionalHeader.AddressOfEntryPoint
-            : nt_header64.OptionalHeader.AddressOfEntryPoint);
+        last_operation = L"GetRemoteEntryPointW";
+        const auto entrypoint = GetRemoteEntryPointW(hProcess, pcwzPath);
+        if (!entrypoint)
+            throw std::runtime_error("GetRemoteEntryPointW");
 
         last_operation = L"get_path_from_local_module(g_hModule)";
         auto local_module_path = get_path_from_local_module(g_hModule);
@@ -336,7 +351,7 @@ extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_
 /// @brief Entry point function "called" instead of game's original main entry point.
 /// @param params Parameters set up from RewriteRemoteEntryPoint.
 extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointParameters & params) {
-    HANDLE hMainThreadContinue = nullptr;
+    HANDLE hMainThread = nullptr;
     auto hr = S_OK;
     std::wstring last_operation;
     std::wstring exc_msg;
@@ -352,13 +367,13 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
         write_process_memory_or_throw(GetCurrentProcess(), params.pEntrypoint, pOriginalEntryPointBytes, params.entrypointLength);
         FlushInstructionCache(GetCurrentProcess(), params.pEntrypoint, params.entrypointLength);
 
-        hMainThreadContinue = CreateEventW(nullptr, true, false, nullptr);
-        last_operation = L"hMainThreadContinue = CreateEventW";
-        if (!hMainThreadContinue)
-            throw std::runtime_error("CreateEventW");
+        last_operation = L"duplicate main thread handle";
+        DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), &hMainThread, 0, FALSE, DUPLICATE_SAME_ACCESS);
+        if (!hMainThread)
+            throw std::runtime_error("DuplicateHandle");
 
         last_operation = L"InitializeImpl";
-        hr = InitializeImpl(pLoadInfo, hMainThreadContinue);
+        hr = InitializeImpl(pLoadInfo, hMainThread);
     } catch (const std::exception& e) {
         if (hr == S_OK) {
             const auto err = GetLastError();
@@ -385,14 +400,11 @@ extern "C" void WINAPI RewrittenEntryPoint_AdjustedStack(RewrittenEntryPointPara
             desc.GetBSTR()).c_str(),
             L"Dalamud.Boot", MB_OK | MB_YESNO) == IDNO)
             ExitProcess(-1);
-        if (hMainThreadContinue) {
-            CloseHandle(hMainThreadContinue);
-            hMainThreadContinue = nullptr;
+        if (hMainThread) {
+            CloseHandle(hMainThread);
+            hMainThread = nullptr;
         }
     }
-
-    if (hMainThreadContinue)
-        WaitForSingleObject(hMainThreadContinue, INFINITE);
 
     VirtualFree(&params, 0, MEM_RELEASE);
 }

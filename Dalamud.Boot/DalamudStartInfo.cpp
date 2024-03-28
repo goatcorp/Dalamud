@@ -74,10 +74,10 @@ void from_json(const nlohmann::json& json, DalamudStartInfo::LoadMethod& value) 
 
     }
     else if (json.is_string()) {
-        const auto langstr = unicode::convert<std::string>(json.get<std::string>(), &unicode::lower);
-        if (langstr == "entrypoint")
+        const auto loadstr = unicode::convert<std::string>(json.get<std::string>(), &unicode::lower);
+        if (loadstr == "entrypoint")
             value = DalamudStartInfo::LoadMethod::Entrypoint;
-        else if (langstr == "inject")
+        else if (loadstr == "inject")
             value = DalamudStartInfo::LoadMethod::DllInject;
     }
 }
