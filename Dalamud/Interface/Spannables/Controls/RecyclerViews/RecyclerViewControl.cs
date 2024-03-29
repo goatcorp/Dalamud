@@ -220,6 +220,11 @@ public abstract partial class RecyclerViewControl : ControlSpannable
         /// <summary>Gets or sets the decided spannable type.</summary>
         /// <remarks>Assign to this property to assign a spannable type.</remarks>
         public int SpannableType { get; set; }
+        
+        /// <summary>Gets or sets the decided spannable type for decoration.</summary>
+        /// <remarks>This is used as the background which does not get scrolled in non-main direction.
+        /// Leave it as <see cref="RecyclerViewControl.InvalidSpannableType"/> to disable.</remarks>
+        public int DecorationType { get; set; }
     }
 
     public record AddMoreSpannablesEventArg : SpannableControlEventArgs

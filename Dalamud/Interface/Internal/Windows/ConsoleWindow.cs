@@ -289,17 +289,6 @@ internal partial class ConsoleWindow : Window, IDisposable
         _ => "???",
     };
 
-    private static uint GetColorForLogEventLevel(LogEventLevel level) => level switch
-    {
-        LogEventLevel.Error => 0x800000EE,
-        LogEventLevel.Verbose => 0x00000000,
-        LogEventLevel.Debug => 0x00000000,
-        LogEventLevel.Information => 0x00000000,
-        LogEventLevel.Warning => 0x8A0070EE,
-        LogEventLevel.Fatal => 0xFF00000A,
-        _ => 0x30FFFFFF,
-    };
-
     private void MonoFontOnImFontChanged(IFontHandle fonthandle, ILockedImFont lockedfont) =>
         this.configGeneration++;
 
@@ -331,26 +320,75 @@ internal partial class ConsoleWindow : Window, IDisposable
         {
             AnchorOffsetRatio = 1f,
             StickToTerminus = true,
-            CellDecoration = new BorderPattern
-            {
-                Color = 0xFF444444,
-                DrawBottom = true,
-            },
         };
         this.rvc = new();
         this.rvc.LayoutManager = llm;
-        this.rvc.DecideSpannableType += e => e.SpannableType = 0;
-        this.rvc.AddMoreSpannables += _ => this.rvc.AddPlaceholder(0, new LogEntryControl());
+        this.rvc.DecideSpannableType += e =>
+        {
+            e.SpannableType = 0;
+            if (this.copyStart <= this.copyEnd
+                    ? this.copyStart <= e.Index && e.Index <= this.copyEnd
+                    : this.copyEnd <= e.Index && e.Index <= this.copyStart)
+            {
+                e.DecorationType = 2;
+            }
+            else
+            {
+                e.DecorationType = this.filteredLogEntries[e.Index].Level switch
+                {
+                    LogEventLevel.Error => 3,
+                    LogEventLevel.Warning => 4,
+                    LogEventLevel.Fatal => 5,
+                    _ => 1,
+                };
+            }
+        };
+        this.rvc.AddMoreSpannables += e => this.rvc.AddPlaceholder(
+            e.SpannableType,
+            e.SpannableType switch
+            {
+                0 => new LogEntryControl(),
+                1 => new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                2 => new LayeredPattern // selected
+                {
+                    ChildrenList =
+                    {
+                        new ShapePattern { Color = ImGuiColors.ParsedGrey, Type = ShapePattern.Shape.RectFilled },
+                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                    },
+                },
+                3 => new LayeredPattern // error
+                {
+                    ChildrenList =
+                    {
+                        new ShapePattern { Color = 0x800000EE, Type = ShapePattern.Shape.RectFilled },
+                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                    },
+                },
+                4 => new LayeredPattern // warning
+                {
+                    ChildrenList =
+                    {
+                        new ShapePattern { Color = 0x8A0070EE, Type = ShapePattern.Shape.RectFilled },
+                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                    },
+                },
+                5 => new LayeredPattern // fatal
+                {
+                    ChildrenList =
+                    {
+                        new ShapePattern { Color = 0xFF00000A, Type = ShapePattern.Shape.RectFilled },
+                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                    },
+                },
+                _ => throw new InvalidOperationException(),
+            });
         this.rvc.PopulateSpannable += e =>
         {
             if (e.Spannable is not LogEntryControl lec)
                 return;
             lec.Entry = this.filteredLogEntries[e.Index];
             lec.HighlightRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
-            lec.SelectedForCopy =
-                this.copyStart <= this.copyEnd
-                    ? this.copyStart <= e.Index && e.Index <= this.copyEnd
-                    : this.copyEnd <= e.Index && e.Index <= this.copyStart;
             lec.TextSpannableMeasurementOptions = this.textOptions;
         };
         this.rvc.ClearSpannable += e =>
@@ -467,15 +505,7 @@ internal partial class ConsoleWindow : Window, IDisposable
 
             if (index < prevEnd)
                 (index, prevEnd) = (prevEnd, index);
-            for (var i = prevEnd; i <= index; i++)
-            {
-                if (llm.FindMeasurementFromItemIndex(i)?.Spannable is not LogEntryControl lec)
-                    continue;
-                lec.SelectedForCopy =
-                    this.copyStart <= this.copyEnd
-                        ? this.copyStart <= i && i <= this.copyEnd
-                        : this.copyEnd <= i && i <= this.copyStart;
-            }
+            llm.NotifyCollectionReplace(index, (prevEnd - index) + 1);
         }
     }
 

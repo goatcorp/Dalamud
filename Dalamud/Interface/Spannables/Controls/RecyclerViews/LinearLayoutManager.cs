@@ -58,11 +58,6 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     /// 0.5, then it will stick to the beginning; otherwise, it will stick to the end.</summary>
     public bool StickToTerminus { get; set; } = false;
 
-    /// <summary>Gets or sets the cell decoration.</summary>
-    /// <remarks>Same cell decoration spannable will be used multiple times; use instances of <see cref="ISpannable"/>s
-    /// that can exist as children of multiple parents. This rules out all <see cref="ControlSpannable"/>s.</remarks>
-    public ISpannable? CellDecoration { get; set; }
-
     /// <summary>Gets the index of the anchored item.</summary>
     /// <value><c>-1</c> if no item is anchored, because no item is visible.</value>
     /// <remarks>When item is added or removed above or the anchored item, the scroll position of the recycler view
@@ -795,6 +790,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 continue;
 
             this.CurrentToPreviousVisibleItem(ref v);
+            this.ReturnDecorativeVisibleItem(ref v);
             v.PreviousAnimation = new()
             {
                 BeforeOpacity = 1f,
@@ -921,19 +917,17 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         {
             if (vi.Removed)
                 return;
-            vi.SpannableType = this.ResolveSpannableType(vi.Index);
+            this.ResolveSpannableType(vi.Index, out var st, out var dt);
+            vi.SpannableType = st;
+            vi.CellDecorationType = dt;
             vi.Spannable = this.TakePlaceholder(vi.SpannableType, out vi.SpannableSlot, out vi.SpannableInnerId);
-        }
-
-        if (!ReferenceEquals(this.CellDecoration, vi.CellDecorationSpannable))
-        {
-            vi.CellDecorationMeasurement?.ReturnMeasurementToSpannable();
-            vi.CellDecorationMeasurement = null;
-
-            vi.CellDecorationSpannable = this.CellDecoration;
-            vi.CellDecorationMeasurement = this.CellDecoration?.RentMeasurement(this.Parent.Renderer);
-            if (this.CellDecoration is not null)
-                this.RentSlotAndInnerId(this.CellDecoration, out vi.CellDecorationSlot, out vi.CellDecorationInnerId);
+            if (dt != RecyclerViewControl.InvalidSpannableType)
+            {
+                vi.CellDecorationSpannable = this.TakePlaceholder(
+                    vi.CellDecorationType,
+                    out vi.CellDecorationSlot,
+                    out vi.CellDecorationInnerId);
+            }
         }
 
         if (vi.Measurement is null && vi.Spannable is not null)
@@ -972,7 +966,20 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             pm = null;
         }
 
-        if (vi.CellDecorationMeasurement is not null && (m ?? pm) is { } any)
+        if ((m ?? pm) is not { } any)
+            return;
+        
+        if (vi.CellDecorationMeasurement is null && vi.CellDecorationSpannable is not null)
+        {
+            vi.CellDecorationMeasurement = vi.CellDecorationSpannable.RentMeasurement(this.Parent.Renderer);
+            this.PopulateSpannable(
+                vi.Index,
+                vi.CellDecorationType,
+                vi.CellDecorationSpannable,
+                vi.CellDecorationMeasurement);
+        }
+
+        if (vi.CellDecorationMeasurement is not null)
         {
             // VERTICAL
             vi.CellDecorationMeasurement.Options.Size = new(nonLimDim, any.Boundary.Height);
@@ -997,10 +1004,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     {
         this.ReturnCurrentVisibleItem(ref v);
         this.ReturnPreviousVisibleItem(ref v);
-        v.CellDecorationMeasurement = null;
-        v.CellDecorationSpannable = null;
-        this.ReturnSlotAndInnerId(v.CellDecorationSlot, v.CellDecorationInnerId);
-        v.CellDecorationSlot = v.CellDecorationInnerId = -1;
+        this.ReturnDecorativeVisibleItem(ref v);
     }
 
     private float GetVisibleItemExpandingDimensionSize(in VisibleItem v)
@@ -1017,6 +1021,22 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         if (v.PreviousMeasurement?.Boundary.Right is { } ph && v.SizeEasing is { } se)
             return float.Lerp(ph, h, (float)se.Value);
         return h;
+    }
+
+    private void ReturnDecorativeVisibleItem(ref VisibleItem v)
+    {
+        if (v.CellDecorationSpannable is not null && v.CellDecorationMeasurement is not null)
+            this.ClearSpannable(v.CellDecorationType, v.CellDecorationSpannable, v.CellDecorationMeasurement);
+        v.CellDecorationSpannable?.ReturnMeasurement(v.CellDecorationMeasurement);
+        this.ReturnPlaceholder(
+            v.CellDecorationType,
+            v.CellDecorationSpannable,
+            v.CellDecorationSlot,
+            v.CellDecorationInnerId);
+        v.CellDecorationMeasurement = null;
+        v.CellDecorationSpannable = null;
+        v.CellDecorationType = -1;
+        v.CellDecorationSlot = v.CellDecorationInnerId = -1;
     }
 
     private void ReturnCurrentVisibleItem(ref VisibleItem v)
@@ -1088,6 +1108,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         public int SpannableSlot;
         public int SpannableInnerId;
 
+        public int CellDecorationType;
         public ISpannable? CellDecorationSpannable;
         public ISpannableMeasurement? CellDecorationMeasurement;
         public int CellDecorationSlot;

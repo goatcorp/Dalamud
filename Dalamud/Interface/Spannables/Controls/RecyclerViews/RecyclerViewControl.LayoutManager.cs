@@ -324,63 +324,6 @@ public abstract partial class RecyclerViewControl
             SpannableControlEventArgsPool.Return(e);
         }
 
-        /// <summary>Rents slot and inner IDs.</summary>
-        /// <param name="spannable">The spannable being bound to the slot.</param>
-        /// <param name="slotIndex">The slot index in <see cref="ControlSpannable.AllSpannables"/>.</param>
-        /// <param name="innerId">The inner ID for this placeholder.</param>
-        protected void RentSlotAndInnerId(ISpannable spannable, out int slotIndex, out int innerId)
-        {
-            slotIndex = innerId = -1;
-            if (this.Parent is null)
-                return;
-
-            if (this.Parent.availablePlaceholderSlotIndices.Count == 0)
-            {
-                slotIndex = this.Parent.AllSpannablesAvailableSlot++;
-                this.Parent.AllSpannables.Add(spannable);
-            }
-            else
-            {
-                slotIndex = this.Parent.availablePlaceholderSlotIndices[^1];
-                this.Parent.availablePlaceholderSlotIndices.RemoveAt(
-                    this.Parent.availablePlaceholderSlotIndices.Count - 1);
-                this.Parent.AllSpannables[slotIndex] = spannable;
-            }
-
-            if (this.Parent.availablePlaceholderInnerIdIndices.Count == 0)
-            {
-                innerId = this.Parent.InnerIdAvailableSlot++;
-            }
-            else
-            {
-                innerId = this.Parent.availablePlaceholderInnerIdIndices[^1];
-                this.Parent.availablePlaceholderInnerIdIndices.RemoveAt(
-                    this.Parent.availablePlaceholderInnerIdIndices.Count - 1);
-            }
-
-            this.Parent.OnSpannableChange(this.Parent);
-        }
-
-        /// <summary>Returns a slot index and inner ID that are no longer in use.</summary>
-        /// <param name="slotIndex">The slot index in <see cref="ControlSpannable.AllSpannables"/>.</param>
-        /// <param name="innerId">The inner ID for this placeholder.</param>
-        protected void ReturnSlotAndInnerId(int slotIndex, int innerId)
-        {
-            if (this.Parent is null)
-                return;
-
-            if (slotIndex != -1)
-            {
-                this.Parent.availablePlaceholderSlotIndices.Add(slotIndex);
-                this.Parent.AllSpannables[slotIndex] = null;
-            }
-
-            if (innerId != -1)
-                this.Parent.availablePlaceholderInnerIdIndices.Add(innerId);
-
-            this.Parent.OnSpannableChange(this.Parent);
-        }
-
         /// <summary>Takes a placeholder, creating new ones as necessary.</summary>
         /// <param name="spannableType">Spannable type of the placeholders in need.</param>
         /// <param name="slotIndex">The slot index in <see cref="ControlSpannable.AllSpannables"/>.</param>
@@ -441,20 +384,25 @@ public abstract partial class RecyclerViewControl
 
         /// <summary>Resolves the type of spannable for the item at the given index.</summary>
         /// <param name="index">Index of the associated item.</param>
-        /// <returns>Type of the spannable.</returns>
-        protected int ResolveSpannableType(int index)
+        /// <param name="spannableType">Retrieved spannable type.</param>
+        /// <param name="decorationType">Retrieved decoration spannable type.</param>
+        protected void ResolveSpannableType(int index, out int spannableType, out int decorationType)
         {
             if (this.Parent is null)
-                return InvalidSpannableType;
+            {
+                spannableType = decorationType = InvalidSpannableType;
+                return;
+            }
 
             var e = SpannableControlEventArgsPool.Rent<DecideSpannableTypeEventArg>();
             e.Sender = this.Parent;
             e.Index = index;
             e.SpannableType = 0;
+            e.DecorationType = InvalidSpannableType;
             this.Parent.OnDecideSpannableType(e);
-            var r = e.SpannableType;
+            spannableType = e.SpannableType;
+            decorationType = e.DecorationType;
             SpannableControlEventArgsPool.Return(e);
-            return r;
         }
 
         /// <summary>Populates the given spannable.</summary>

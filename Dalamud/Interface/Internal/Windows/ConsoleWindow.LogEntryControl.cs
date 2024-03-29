@@ -9,7 +9,6 @@ using Dalamud.Interface.Spannables.Controls;
 using Dalamud.Interface.Spannables.Controls.Containers;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.Labels;
-using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Spannables.Text;
 using Dalamud.Utility.Numerics;
@@ -51,7 +50,6 @@ internal partial class ConsoleWindow
         private LogEntry? entry;
         private RowMode rowMode;
         private Regex? highlightRegex;
-        private bool selectedForCopy;
 
         private MatchCollection? matches;
 
@@ -73,15 +71,11 @@ internal partial class ConsoleWindow
 
             this.Size = new(MatchParent, WrapContent);
             this.Padding = new(2);
-
-            this.NormalBackground = new ShapePattern { Type = ShapePattern.Shape.RectFilled };
         }
 
         public event PropertyChangeEventHandler<ControlSpannable, LogEntry?>? EntryChange;
 
         public event PropertyChangeEventHandler<ControlSpannable, Regex>? HighlightRegexChange;
-
-        public event PropertyChangeEventHandler<ControlSpannable, bool>? SelectedForCopyChange;
 
         public event PropertyChangeEventHandler<ControlSpannable, TextSpannableBase.Options>?
             TextSpannableMeasurementOptionsChange;
@@ -114,16 +108,6 @@ internal partial class ConsoleWindow
                 this.OnHighlightRegexChange);
         }
 
-        public bool SelectedForCopy
-        {
-            get => this.selectedForCopy;
-            set => this.HandlePropertyChange(
-                nameof(this.SelectedForCopy),
-                ref this.selectedForCopy,
-                value,
-                this.OnSelectedForCopyChange);
-        }
-
         public TextSpannableBase.Options? TextSpannableMeasurementOptions
         {
             get => this.lblText.SpannableTextOptions as TextSpannableBase.Options;
@@ -138,8 +122,6 @@ internal partial class ConsoleWindow
                 this.lblText.SpannableTextOptions = storage;
             }
         }
-
-        private ShapePattern Background => (ShapePattern)this.NormalBackground!;
 
         protected override RectVector4 MeasureChildren(
             Vector2 suggestedSize,
@@ -186,7 +168,7 @@ internal partial class ConsoleWindow
 
                     this.lblTime.ExplicitMeasure();
                     this.lblLevel.ExplicitMeasure();
-                    
+
                     this.lblText.TextStyle = LogTextStyle;
                     if (isKeepAll)
                     {
@@ -328,13 +310,11 @@ internal partial class ConsoleWindow
             {
                 this.lblTime.Text = this.lblLevel.Text = this.lblText.Text = string.Empty;
                 this.lblText.SpannableText = null;
-                this.Background.Color = 0;
                 return;
             }
 
             this.lblTime.Text = args.NewValue.TimestampString;
             this.lblLevel.Text = GetTextForLogEventLevel(args.NewValue.Level);
-            this.UpdateBackground();
             this.UpdateMatches();
         }
 
@@ -342,12 +322,6 @@ internal partial class ConsoleWindow
         {
             this.HighlightRegexChange?.Invoke(args);
             this.UpdateMatches();
-        }
-
-        protected virtual void OnSelectedForCopyChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
-        {
-            this.SelectedForCopyChange?.Invoke(args);
-            this.UpdateBackground();
         }
 
         protected virtual void OnWordBreakChange(
@@ -369,18 +343,6 @@ internal partial class ConsoleWindow
 
             this.matches = this.highlightRegex?.Matches(this.entry.Line);
             this.UpdateHighlights();
-        }
-
-        private void UpdateBackground()
-        {
-            if (this.entry is null)
-                this.Background.Color = 0;
-            else if (this.selectedForCopy)
-                this.Background.Color = ImGuiColors.ParsedGrey;
-            else if (GetColorForLogEventLevel(this.entry.Level) is var color && color != 0)
-                this.Background.Color = color;
-            else
-                this.Background.Color = 0;
         }
 
         private void UpdateHighlights()
