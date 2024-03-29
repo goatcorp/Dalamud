@@ -19,7 +19,7 @@ using Dalamud.Interface.Spannables.Controls.Containers;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.Gestures;
 using Dalamud.Interface.Spannables.Controls.Labels;
-using Dalamud.Interface.Spannables.Controls.TODO.RecyclerViews;
+using Dalamud.Interface.Spannables.Controls.RecyclerViews;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering;
@@ -674,15 +674,15 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         };
 
         rvc.Collection = new(Enumerable.Range(0, 100));
-        rvc.NeedDecideSpannableType += e => e.SpannableType = e.Index % 3;
-        rvc.NeedMoreSpannables += e => rvc.AddPlaceholder(
+        rvc.DecideSpannableType += e => e.SpannableType = e.Index % 3;
+        rvc.AddMoreSpannables += e => rvc.AddPlaceholder(
             e.SpannableType,
             new LabelControl
             {
                 Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                 Padding = new(8 * e.SpannableType),
             });
-        rvc.NeedPopulateSpannable += e => ((LabelControl)e.Spannable).Text = $"{e.Index} ({e.SpannableType})";
+        rvc.PopulateSpannable += e => ((LabelControl)e.Spannable).Text = $"{e.Index} ({e.SpannableType})";
 
         this.rootContainer = new()
         {

@@ -55,9 +55,9 @@ public struct TextStyle
 
     /// <summary>The font size.</summary>
     /// <remarks>
-    /// <para>If not set <c>0</c>, then the current font size will be used.</para>
-    /// <para>If below zero, then the value will be interpreted as the scale to the current ImGui font base size.<br />
-    /// For example, <c>-1</c> will use the font size from <see cref="ImGui.GetFont"/>.<see cref="ImFontPtr.FontSize"/>.
+    /// <para>If <c>0</c>, then the default font size will be used.</para>
+    /// <para>If below zero, then the value will be interpreted as the scale to the default font size.<br />
+    /// For example, <c>-2</c> will use the font size from the configuration multiplied by 2.
     /// </para>
     /// </remarks>
     public float FontSize;

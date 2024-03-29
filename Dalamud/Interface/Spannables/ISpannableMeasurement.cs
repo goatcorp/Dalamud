@@ -61,6 +61,11 @@ public interface ISpannableMeasurement : IResettable
     /// <param name="drawListPtr">The target draw list.</param>
     void Draw(ImDrawListPtr drawListPtr);
 
+    /// <summary>Finds a measurement for the child at the given offset.</summary>
+    /// <param name="screenOffset">The screen offset.</param>
+    /// <returns>The found child, or <c>null</c> if none was found.</returns>
+    ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset);
+
     /// <summary>Returns this measurement to the pool owned by <see cref="Spannable"/>.</summary>
     void ReturnMeasurementToSpannable();
 }

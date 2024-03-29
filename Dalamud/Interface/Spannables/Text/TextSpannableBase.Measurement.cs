@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -118,7 +119,7 @@ public abstract partial class TextSpannableBase
     }
 
     /// <summary>Options for <see cref="Measurement"/>.</summary>
-    public sealed class Options : SpannableMeasurementOptions
+    public sealed class Options : SpannableMeasurementOptions, IEquatable<Options>
     {
         private bool displayControlCharacters;
         private WordBreakType wordBreak;
@@ -215,6 +216,10 @@ public abstract partial class TextSpannableBase
             set => this.UpdateProperty(nameof(this.WrapMarker), ref this.wrapMarker, value);
         }
 
+        public static bool operator ==(Options? left, Options? right) => Equals(left, right);
+
+        public static bool operator !=(Options? left, Options? right) => !Equals(left, right);
+
         /// <inheritdoc/>
         public override void CopyFrom(ISpannableMeasurementOptions source)
         {
@@ -253,6 +258,31 @@ public abstract partial class TextSpannableBase
             this.WrapMarker = null;
             return base.TryReset();
         }
+        
+        /// <inheritdoc/>
+        public bool Equals(Options? other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return
+                this.displayControlCharacters == other.displayControlCharacters
+                && this.wordBreak == other.wordBreak
+                && this.acceptedNewLines == other.acceptedNewLines
+                && this.tabWidth.Equals(other.tabWidth)
+                && this.verticalAlignment.Equals(other.verticalAlignment)
+                && this.gfdIconMode == other.gfdIconMode
+                && this.controlCharactersStyle.Equals(other.controlCharactersStyle)
+                && this.style.Equals(other.style)
+                && Equals(this.wrapMarker, other.wrapMarker);
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object? obj) =>
+            ReferenceEquals(this, obj) || (obj is Options other && this.Equals(other));
+        
+        /// <inheritdoc/>
+        // just shutting up warnings on not having HashCode impl'd when Equals is
+        public override int GetHashCode() => RuntimeHelpers.GetHashCode(this);
     }
 
     /// <summary>Measurement for <see cref="TextSpannable"/> and <see cref="TextSpannableBuilder"/>.</summary>
@@ -264,7 +294,7 @@ public abstract partial class TextSpannableBase
         private readonly List<MeasuredLine> lines = [];
         private readonly List<LinkInteractionData> linkInteractions = [];
         private readonly List<ISpannableMeasurement?> childrenMeasurements = [];
-        private readonly List<Vector2> spannableOffsets = [];
+        private readonly List<Vector2> childOffsets = [];
         private readonly Options options;
 
         private float scale;
@@ -356,7 +386,7 @@ public abstract partial class TextSpannableBase
 
         /// <inheritdoc/>
         Span<Vector2> IInternalMeasurement.ChildOffsets =>
-            CollectionsMarshal.AsSpan(this.spannableOffsets)[..this.childCount];
+            CollectionsMarshal.AsSpan(this.childOffsets)[..this.childCount];
 
         /// <inheritdoc/>
         ref Matrix4x4 IInternalMeasurement.LocalTransformation => ref this.localTransformation;
@@ -419,11 +449,11 @@ public abstract partial class TextSpannableBase
             var children = data.Spannables;
             this.childCount = children.Length;
             this.childrenMeasurements.EnsureCapacity(this.childCount);
-            this.spannableOffsets.EnsureCapacity(this.childCount);
+            this.childOffsets.EnsureCapacity(this.childCount);
             while (this.childrenMeasurements.Count < this.childCount)
             {
                 this.childrenMeasurements.Add(null);
-                this.spannableOffsets.Add(default);
+                this.childOffsets.Add(default);
             }
 
             for (var i = 0; i < children.Length; i++)
@@ -813,10 +843,10 @@ public abstract partial class TextSpannableBase
             else
                 this.boundary.Right += 1;
 
-            if (this.Options.Size.X < float.PositiveInfinity)
-                this.boundary.Right = this.Options.Size.X;
-            if (this.Options.Size.Y < float.PositiveInfinity)
-                this.boundary.Bottom = this.Options.Size.Y;
+            // if (this.Options.Size.X < float.PositiveInfinity)
+            //     this.boundary.Right = this.Options.Size.X;
+            // if (this.Options.Size.Y < float.PositiveInfinity)
+            //     this.boundary.Bottom = this.Options.Size.Y;
 
             if (this.Options.VerticalAlignment > 0f && this.Options.Size.Y < float.PositiveInfinity)
             {
@@ -954,6 +984,20 @@ public abstract partial class TextSpannableBase
             {
                 charRenderer.AppendAndReturnChannels(this.localTransformation);
             }
+        }
+
+        /// <inheritdoc/>
+        public ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
+        {
+            for (var i = 0; i < this.childCount; i++)
+            {
+                if (this.childrenMeasurements[i] is not { } m)
+                    continue;
+                if (m.Boundary.Contains(m.PointToClient(screenOffset)))
+                    return m;
+            }
+
+            return null;
         }
 
         /// <inheritdoc/>

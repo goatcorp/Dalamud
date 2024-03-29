@@ -99,7 +99,11 @@ public class LabelControl : ControlSpannable
     }
 
     /// <summary>Gets or sets options for <see cref="SpannableText"/>.</summary>
-    /// <remarks><see cref="ControlSpannable.TextStyle"/> will override this.</remarks>
+    /// <remarks>
+    /// <para><see cref="ControlSpannable.TextStyle"/> will override this.</para>
+    /// <para>The change will not be reflected if the referenced object is the same. Unset and set this property if
+    /// the innards of the reference object got changed.</para>
+    /// </remarks>
     public ISpannableMeasurementOptions? SpannableTextOptions
     {
         get => this.spannableTextOptions;
@@ -184,7 +188,6 @@ public class LabelControl : ControlSpannable
             if (ReferenceEquals(value, this.AllSpannables[this.childrenSlotText]))
                 return;
 
-            this.AllSpannables[this.childrenSlotText]?.ReturnMeasurement(this.activeSpannableMeasurement);
             this.AllSpannables[this.childrenSlotText] = value;
         }
     }
@@ -192,6 +195,27 @@ public class LabelControl : ControlSpannable
     /// <summary>Gets the spannables used as icons.</summary>
     private ReadOnlySpan<ISpannable?> IconSpannables =>
         CollectionsMarshal.AsSpan(this.AllSpannables).Slice(this.childrenSlotIconBase, IconSlotCount);
+
+    /// <inheritdoc/>
+    public override ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
+    {
+        foreach (var m in this.iconMeasurements)
+        {
+            if (m is null)
+                continue;
+            if (m.Boundary.Contains(m.PointToClient(screenOffset)))
+                return m;
+        }
+
+        if (this.activeSpannableMeasurement is { } asm)
+        {
+            if (!Matrix4x4.Invert(asm.FullTransformation, out var inv)
+                && asm.Boundary.Contains(Vector2.Transform(screenOffset, inv)))
+                return asm;
+        }
+
+        return base.FindChildMeasurementAt(screenOffset);
+    }
 
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)
@@ -204,8 +228,6 @@ public class LabelControl : ControlSpannable
             this.lastLink = null;
             this.spannableText?.Dispose();
             this.spannableText = null;
-            this.textSpannableBuilder?.Dispose();
-            this.textSpannableBuilder = null!;
         }
 
         base.Dispose(disposing);
@@ -232,6 +254,7 @@ public class LabelControl : ControlSpannable
             im.RenderScale = this.EffectiveRenderScale;
             im.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.innerIdIconBase + i);
             im.Options.Size = suggestedSize - this.textMargin.Size;
+            im.Options.VisibleSize = this.MeasurementOptions.VisibleSize - this.textMargin.Size;
             im.Measure();
         }
 
@@ -449,7 +472,7 @@ public class LabelControl : ControlSpannable
     protected override void OnTextChange(PropertyChangeEventArgs<ControlSpannable, string?> args)
     {
         ObjectDisposedException.ThrowIf(this.textSpannableBuilder is null, this);
-        
+
         if (args.State == PropertyChangeState.After)
         {
             this.textSpannableBuilder.Clear().Append(args.NewValue);
@@ -473,10 +496,10 @@ public class LabelControl : ControlSpannable
     protected virtual void OnSpannableTextChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args)
     {
         ObjectDisposedException.ThrowIf(this.textSpannableBuilder is null, this);
-        
+
         if (args.State == PropertyChangeState.After)
             this.ActiveSpannable = this.spannableText ?? this.textSpannableBuilder;
-        
+
         this.SpannableTextChange?.Invoke(args);
     }
 
@@ -489,7 +512,9 @@ public class LabelControl : ControlSpannable
 
         if (args.State == PropertyChangeState.After)
         {
-            if (args.NewValue is not null)
+            if (args.NewValue is null)
+                this.activeSpannableMeasurement?.Options.TryReset();
+            else
                 this.activeSpannableMeasurement?.Options.CopyFrom(args.NewValue);
 
             if (this.activeSpannableMeasurement?.Options is TextSpannableBase.Options mo)

@@ -239,6 +239,9 @@ public abstract class PatternSpannable : ISpannable
         }
 
         /// <inheritdoc/>
+        public virtual ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset) => null;
+
+        /// <inheritdoc/>
         public void ReturnMeasurementToSpannable() => this.Spannable?.ReturnMeasurement(this);
 
         /// <summary>Draws the spannable without regarding to <see cref="LocalTransformation"/>.</summary>

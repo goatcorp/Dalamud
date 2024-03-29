@@ -8,6 +8,8 @@ using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
+using ImGuiNET;
+
 namespace Dalamud.Interface.Spannables.Controls;
 
 /// <summary>A base spannable control that does nothing by itself.</summary>
@@ -17,7 +19,8 @@ public partial class ControlSpannable
     private bool enabled = true;
     private bool focusable;
     private bool visible = true;
-    private bool clipChildren = true;
+    private bool clipChildren;
+    private ImGuiMouseCursor mouseCursor = ImGuiMouseCursor.Arrow;
     private string? text;
 
     private TextStyle textStyle = new()
@@ -31,8 +34,6 @@ public partial class ControlSpannable
     private float scale = 1f;
     private float renderScale = 1f;
     private Vector2 size = new(WrapContent);
-    private Vector2 minSize = Vector2.Zero;
-    private Vector2 maxSize = new(float.PositiveInfinity);
     private BorderVector4 extendOutside = BorderVector4.Zero;
     private BorderVector4 margin = BorderVector4.Zero;
     private BorderVector4 padding = BorderVector4.Zero;
@@ -95,6 +96,17 @@ public partial class ControlSpannable
             this.OnClipChildrenChange);
     }
 
+    /// <summary>Gets or sets the mouse cursor.</summary>
+    public ImGuiMouseCursor MouseCursor
+    {
+        get => this.mouseCursor;
+        set => this.HandlePropertyChange(
+            nameof(this.MouseCursor),
+            ref this.mouseCursor,
+            value,
+            this.OnMouseCursorChange);
+    }
+
     /// <summary>Gets or sets a text.</summary>
     /// <remarks>Default implementation does nothing with it, else than to display it in <see cref="ToString"/>.
     /// </remarks>
@@ -149,28 +161,6 @@ public partial class ControlSpannable
     {
         get => this.size;
         set => this.HandlePropertyChange(nameof(this.Size), ref this.size, value, this.OnSizeChange);
-    }
-
-    /// <summary>Gets or sets the minimum size.</summary>
-    /// <remarks>
-    /// <para>The value will be scaled by <see cref="EffectiveRenderScale"/>.</para>
-    /// <para>The value includes the margin and padding.</para>
-    /// </remarks>
-    public Vector2 MinSize
-    {
-        get => this.minSize;
-        set => this.HandlePropertyChange(nameof(this.MinSize), ref this.minSize, value, this.OnMinSizeChange);
-    }
-
-    /// <summary>Gets or sets the maximum size.</summary>
-    /// <remarks>
-    /// <para>The value will be scaled by <see cref="EffectiveRenderScale"/>.</para>
-    /// <para>The value includes the margin and padding.</para>
-    /// </remarks>
-    public Vector2 MaxSize
-    {
-        get => this.maxSize;
-        set => this.HandlePropertyChange(nameof(this.MaxSize), ref this.maxSize, value, this.OnMaxSizeChange);
     }
 
     /// <summary>Gets or sets the extrusion.</summary>

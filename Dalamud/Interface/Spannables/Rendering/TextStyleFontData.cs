@@ -4,6 +4,9 @@ using System.Runtime.CompilerServices;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Spannables.Text;
 using Dalamud.Interface.Utility;
+using Dalamud.Utility;
+using Dalamud.Utility.Numerics;
+using Dalamud.Utility.Text;
 
 using ImGuiNET;
 
@@ -163,4 +166,53 @@ public readonly ref struct TextStyleFontData
         < 0 => this.GetEffectiveGlyph(' ').AdvanceX * -tabWidthValue * this.Scale,
         _ => tabWidthValue * this.Scale,
     };
+
+    /// <summary>Calculates the size of the given text. No consideration for boundaries is done.</summary>
+    /// <param name="str">The string to calculate.</param>
+    /// <param name="acceptedNewLines">Newline sequences to handle.</param>
+    /// <returns>The calculated border.</returns>
+    public RectVector4 CalcTextSizeSimple(ReadOnlySpan<char> str, NewLineType acceptedNewLines = NewLineType.All)
+    {
+        var res = RectVector4.InvertedExtrema;
+        var wptr = Vector2.Zero;
+        var pendingCrLf = false;
+
+        var useCr = (acceptedNewLines & NewLineType.Cr) != 0;
+        var useLf = (acceptedNewLines & NewLineType.Lf) != 0;
+        var useCrLf = (acceptedNewLines & NewLineType.CrLf) != 0;
+        foreach (var u in str.EnumerateUtf(UtfEnumeratorFlags.Utf16))
+        {
+            if (u.Value.IntValue == 0x0d)
+            {
+                if (useCrLf)
+                    pendingCrLf = true;
+                else if (useCr)
+                    wptr = new(0, wptr.Y + this.ScaledFontSize);
+                continue;
+            }
+
+            if (u.Value.IntValue == 0x0a && (pendingCrLf || useLf))
+            {
+                wptr = new(0, wptr.Y + this.ScaledFontSize);
+                pendingCrLf = false;
+                continue;
+            }
+
+            if (pendingCrLf)
+            {
+                // Expected CR "LF", but didn't get one before.
+                if (useCr)
+                    wptr = new(0, wptr.Y + this.ScaledFontSize);
+                pendingCrLf = false;
+            }
+
+            ref readonly var g = ref this.GetEffectiveGlyph(u.BrokenSequence ? 0xFFFD : u.Value);
+            res = RectVector4.Union(res, RectVector4.Translate(new RectVector4(g.XY) * this.Scale, wptr));
+            wptr.X += g.AdvanceX * this.Scale;
+        }
+
+        if (pendingCrLf && useCr)
+            wptr = new(0, wptr.Y + this.ScaledFontSize);
+        return RectVector4.Union(res, new(Vector2.Zero, wptr));
+    }
 }

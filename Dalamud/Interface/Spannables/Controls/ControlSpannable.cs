@@ -35,6 +35,8 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     /// <summary>Uses the dimensions that will wrap the content.</summary>
     public const float WrapContent = -2f;
 
+    private static readonly bool DrawDebugControlBorder = false;
+
     private static readonly ImGuiMouseButton[] MouseButtonsWeCare =
         [ImGuiMouseButton.Left, ImGuiMouseButton.Right, ImGuiMouseButton.Middle];
 
@@ -64,7 +66,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     private RectVector4 measuredContentBox;
 
     private Vector2 lastMouseLocation;
-    private int heldMouseButtons;
+    private int capturingMouseButtons;
 
     private bool suppressNextAnimation;
     private bool wasVisible;
@@ -141,13 +143,13 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     }
 
     /// <summary>Gets a value indicating whether the left mouse button is down.</summary>
-    public bool IsLeftMouseButtonDown => (this.heldMouseButtons & 1) != 0;
+    public bool IsLeftMouseButtonDown { get; private set; }
 
     /// <summary>Gets a value indicating whether the right mouse button is down.</summary>
-    public bool IsRightMouseButtonDown => (this.heldMouseButtons & 2) != 0;
+    public bool IsRightMouseButtonDown { get; private set; }
 
     /// <summary>Gets a value indicating whether the middle mouse button is down.</summary>
-    public bool IsMiddleMouseButtonDown => (this.heldMouseButtons & 4) != 0;
+    public bool IsMiddleMouseButtonDown { get; private set; }
 
     /// <summary>Gets the last measured outside box size.</summary>
     /// <remarks>Useful for drawing decoration outside the standard box, such as glow or shadow effects.<br />
@@ -325,7 +327,6 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         if (!this.visible && this.hideAnimation?.IsRunning is not true)
         {
             this.IsMouseHovered = false;
-            this.heldMouseButtons = 0;
 
             newBackground = this.normalBackground;
             focused = false;
@@ -333,13 +334,17 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         else if (!this.Enabled)
         {
             this.IsMouseHovered = false;
-            this.heldMouseButtons = 0;
 
             newBackground = this.disabledBackground ?? this.normalBackground;
             focused = false;
         }
         else
         {
+            var prevCapturiongMouseButtons = this.capturingMouseButtons;
+
+            if (hovered || prevCapturiongMouseButtons != 0)
+                ImGui.SetMouseCursor(this.mouseCursor);
+
             if (hovered != this.IsMouseHovered)
             {
                 this.IsMouseHovered = hovered;
@@ -347,6 +352,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                 if (hovered)
                 {
                     SpannableImGuiItem.SetHovered(this, this.selfInnerId, this.captureMouseWheel);
+
                     cmea.Handled = false;
                     this.OnMouseEnter(cmea);
                 }
@@ -372,77 +378,114 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                 this.OnMouseMove(cmea);
             }
 
-            var lastHeldMouseButtons = this.heldMouseButtons;
-            if (lastHeldMouseButtons != 0 || hovered)
+            for (var i = 0; i < MouseButtonsWeCare.Length; i++)
             {
-                for (var i = 0; i < MouseButtonsWeCare.Length; i++)
-                {
-                    var held = ImGui.IsMouseDown(MouseButtonsWeCare[i]);
-                    if (held == ((this.heldMouseButtons & (1 << i)) != 0))
-                        continue;
+                cmea.Button = MouseButtonsWeCare[i];
 
-                    cmea.Button = MouseButtonsWeCare[i];
-                    if (held)
+                if (ImGui.IsMouseClicked(MouseButtonsWeCare[i]))
+                {
+                    switch (cmea.Button)
                     {
-                        this.heldMouseButtons |= 1 << i;
-                        if (hovered)
-                        {
-                            cmea.Handled = false;
-                            this.OnMouseDown(cmea);
-                        }
+                        case ImGuiMouseButton.Left:
+                            this.IsLeftMouseButtonDown = hovered;
+                            break;
+                        case ImGuiMouseButton.Right:
+                            this.IsRightMouseButtonDown = hovered;
+                            break;
+                        case ImGuiMouseButton.Middle:
+                            this.IsMiddleMouseButtonDown = hovered;
+                            break;
+                    }
+
+                    if (hovered)
+                        this.capturingMouseButtons |= 1 << i;
+
+                    if (hovered)
+                    {
+                        cmea.Handled = false;
+                        this.OnMouseDown(cmea);
 
                         if (this.focusable)
                             focused = true;
                     }
+                }
+
+                if (ImGui.IsMouseReleased(MouseButtonsWeCare[i]))
+                {
+                    this.capturingMouseButtons &= ~(1 << i);
+
+                    switch (cmea.Button)
+                    {
+                        case ImGuiMouseButton.Left when this.IsLeftMouseButtonDown:
+                            this.IsLeftMouseButtonDown = false;
+                            break;
+                        case ImGuiMouseButton.Right when this.IsRightMouseButtonDown:
+                            this.IsRightMouseButtonDown = false;
+                            break;
+                        case ImGuiMouseButton.Middle when this.IsMiddleMouseButtonDown:
+                            this.IsMiddleMouseButtonDown = false;
+                            break;
+                        default:
+                            continue;
+                    }
+
+                    cmea.Handled = false;
+                    this.OnMouseUp(cmea);
+
+                    if (!cmea.Handled && hovered)
+                    {
+                        if (this.lastMouseClickTick[i] < Environment.TickCount64)
+                            this.lastMouseClickCount[i] = 1;
+                        else
+                            this.lastMouseClickCount[i] += 1;
+                        this.lastMouseClickTick[i] = Environment.TickCount64 + GetDoubleClickTime();
+                        cmea.Clicks = this.lastMouseClickCount[i];
+                        cmea.Handled = false;
+                        this.OnMouseClick(cmea);
+                    }
                     else
                     {
-                        this.heldMouseButtons &= ~(1 << i);
-                        if (hovered || this.captureMouse || this.captureMouseOnMouseDown)
-                        {
-                            cmea.Handled = false;
-                            this.OnMouseUp(cmea);
-
-                            if (hovered)
-                            {
-                                if (this.lastMouseClickTick[i] < Environment.TickCount64)
-                                    this.lastMouseClickCount[i] = 1;
-                                else
-                                    this.lastMouseClickCount[i] += 1;
-                                this.lastMouseClickTick[i] = Environment.TickCount64 + GetDoubleClickTime();
-                                cmea.Clicks = this.lastMouseClickCount[i];
-                                cmea.Handled = false;
-                                this.OnMouseClick(cmea);
-                            }
-                        }
-                        else
-                        {
-                            this.lastMouseClickTick[i] = 0;
-                        }
+                        this.lastMouseClickTick[i] = 0;
                     }
                 }
             }
 
+            var effectivelyWantCaptureMouse = false;
+            var effectivelyWantReleaseMouse = false;
             if (this.captureMouseOnMouseDown)
             {
-                if ((this.heldMouseButtons != 0) != (lastHeldMouseButtons != 0))
+                if (this.capturingMouseButtons != 0)
                 {
-                    ImGui.SetNextFrameWantCaptureMouse(this.heldMouseButtons != 0);
-                    if (this.heldMouseButtons == 0)
-                        SpannableImGuiItem.ClearActive();
+                    effectivelyWantCaptureMouse = true;
                 }
-
-                if (this.heldMouseButtons != 0)
-                    SpannableImGuiItem.SetActive(this, this.selfInnerId, this.captureMouseWheel);
+                else if (this.capturingMouseButtons == 0 && prevCapturiongMouseButtons != 0)
+                {
+                    effectivelyWantReleaseMouse = true;
+                }
             }
 
             if (this.captureMouse != this.wasCapturingMouseViaProperty)
             {
                 this.wasCapturingMouseViaProperty = this.captureMouse;
-                ImGui.SetNextFrameWantCaptureMouse(this.captureMouse);
                 if (this.captureMouse)
-                    SpannableImGuiItem.SetActive(this, this.selfInnerId, true);
+                {
+                    effectivelyWantCaptureMouse = true;
+                }
                 else
-                    SpannableImGuiItem.ClearActive();
+                {
+                    effectivelyWantReleaseMouse = true;
+                }
+            }
+
+            if (effectivelyWantCaptureMouse)
+            {
+                ImGui.SetNextFrameWantCaptureMouse(true);
+                SpannableImGuiItem.SetActive(this, this.selfInnerId, this.captureMouseWheel);
+            }
+            else if (effectivelyWantReleaseMouse)
+            {
+                SpannableImGuiItem.ClearActive();
+                ImGui.SetNextFrameWantCaptureMouse(false);
             }
 
             if (hoveredOnRect && this.captureMouseWheel)
@@ -598,6 +641,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
             this.currentBackgroundMeasurement ??= this.currentBackground.RentMeasurement(this.Renderer);
             this.currentBackgroundMeasurement.RenderScale = this.EffectiveRenderScale;
             this.currentBackgroundMeasurement.Options.Size = this.Boundary.Size;
+            this.currentBackgroundMeasurement.Options.VisibleSize = this.MeasurementOptions.VisibleSize;
             this.currentBackgroundMeasurement.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.backgroundInnerId);
             this.currentBackgroundMeasurement.Measure();
         }
@@ -756,14 +800,17 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         }
 
         // TODO: testing
-        using (new ScopedTransformer(drawListPtr, this.localTransformation, Vector2.One, 1f))
+        if (DrawDebugControlBorder)
         {
-            drawListPtr.AddRect(
-                this.MeasuredBoundaryBox.LeftTop,
-                this.MeasuredBoundaryBox.RightBottom,
-                0x20FFFFFF);
-            if (this.IsMouseHovered)
-                drawListPtr.AddCircle(this.lastMouseLocation, 3, 0x407777FF);
+            using (new ScopedTransformer(drawListPtr, this.localTransformation, Vector2.One, 1f))
+            {
+                drawListPtr.AddRect(
+                    this.MeasuredBoundaryBox.LeftTop,
+                    this.MeasuredBoundaryBox.RightBottom,
+                    0x20FFFFFF);
+                if (this.IsMouseHovered)
+                    drawListPtr.AddCircle(this.lastMouseLocation, 3, 0x407777FF);
+            }
         }
 
         // TODO: make better focus indicator
@@ -782,6 +829,16 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                         : 1f);
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public virtual ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
+    {
+        if (this.currentBackgroundMeasurement is not { } m)
+            return null;
+        if (m.Boundary.Contains(m.PointToClient(screenOffset)))
+            return m;
+        return null;
     }
 
     /// <inheritdoc/>

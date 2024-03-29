@@ -60,27 +60,28 @@ public class TristateIconPattern : PatternSpannable
     }
 
     /// <inheritdoc/>
-    protected override PatternSpannableMeasurement CreateNewRenderPass() => new CheckmarkRenderPass(this, new());
+    protected override PatternSpannableMeasurement CreateNewRenderPass() =>
+        new TristateIconPatternMeasurement(this, new());
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class CheckmarkRenderPass(TristateIconPattern owner, SpannableMeasurementOptions options)
+    private class TristateIconPatternMeasurement(TristateIconPattern owner, SpannableMeasurementOptions options)
         : PatternSpannableMeasurement(owner, options)
     {
         private ISpannable? activeState;
         private ISpannable? disappearingState;
-        private ISpannableMeasurement? backgroundRenderPass;
-        private ISpannableMeasurement? activeStateRenderPass;
+        private ISpannableMeasurement? backgroundMeasurement;
+        private ISpannableMeasurement? activeStateMeasurement;
         private ISpannableMeasurement? disappearingStateRenderPass;
 
         public override void OnReturnMeasurement()
         {
             base.OnReturnMeasurement();
 
-            owner.Background?.ReturnMeasurement(this.backgroundRenderPass);
-            this.backgroundRenderPass = null;
+            owner.Background?.ReturnMeasurement(this.backgroundMeasurement);
+            this.backgroundMeasurement = null;
 
-            this.activeState?.ReturnMeasurement(this.activeStateRenderPass);
-            this.activeStateRenderPass = null;
+            this.activeState?.ReturnMeasurement(this.activeStateMeasurement);
+            this.activeStateMeasurement = null;
 
             this.disappearingState?.ReturnMeasurement(this.disappearingStateRenderPass);
             this.disappearingStateRenderPass = null;
@@ -88,8 +89,8 @@ public class TristateIconPattern : PatternSpannable
 
         public override bool HandleInteraction()
         {
-            this.backgroundRenderPass?.HandleInteraction();
-            this.activeStateRenderPass?.HandleInteraction();
+            this.backgroundMeasurement?.HandleInteraction();
+            this.activeStateMeasurement?.HandleInteraction();
             return base.HandleInteraction();
         }
 
@@ -104,13 +105,14 @@ public class TristateIconPattern : PatternSpannable
                 false => owner.FalseIcon,
             };
 
-            this.backgroundRenderPass = owner.Background?.RentMeasurement(this.Renderer);
-            if (this.backgroundRenderPass is not null)
+            this.backgroundMeasurement = owner.Background?.RentMeasurement(this.Renderer);
+            if (this.backgroundMeasurement is not null)
             {
-                this.backgroundRenderPass.RenderScale = this.RenderScale;
-                this.backgroundRenderPass.Options.Size = this.Boundary.Size;
-                this.backgroundRenderPass.ImGuiGlobalId = this.GetGlobalIdFromInnerId(owner.backgroundInnerId);
-                changed |= this.backgroundRenderPass.Measure();
+                this.backgroundMeasurement.RenderScale = this.RenderScale;
+                this.backgroundMeasurement.Options.Size = this.Boundary.Size;
+                this.backgroundMeasurement.Options.VisibleSize = this.Boundary.Size;
+                this.backgroundMeasurement.ImGuiGlobalId = this.GetGlobalIdFromInnerId(owner.backgroundInnerId);
+                changed |= this.backgroundMeasurement.Measure();
             }
 
             if (owner.HideIconAnimation?.IsRunning is true)
@@ -128,19 +130,21 @@ public class TristateIconPattern : PatternSpannable
                 {
                     this.disappearingStateRenderPass.RenderScale = this.RenderScale;
                     this.disappearingStateRenderPass.Options.Size = this.Boundary.Size;
+                    this.disappearingStateRenderPass.Options.VisibleSize = this.Boundary.Size;
                     changed |= this.disappearingStateRenderPass.Measure();
                 }
             }
 
             owner.ShowIconAnimation?.Update(this.Boundary);
 
-            this.activeStateRenderPass = this.activeState?.RentMeasurement(this.Renderer);
-            if (this.activeStateRenderPass is not null)
+            this.activeStateMeasurement = this.activeState?.RentMeasurement(this.Renderer);
+            if (this.activeStateMeasurement is not null)
             {
-                this.activeStateRenderPass.RenderScale = this.RenderScale;
-                this.activeStateRenderPass.Options.Size = this.Boundary.Size;
-                this.activeStateRenderPass.ImGuiGlobalId = this.GetGlobalIdFromInnerId(owner.foregroundInnerId);
-                changed |= this.activeStateRenderPass.Measure();
+                this.activeStateMeasurement.RenderScale = this.RenderScale;
+                this.activeStateMeasurement.Options.Size = this.Boundary.Size;
+                this.activeStateMeasurement.Options.VisibleSize = this.Boundary.Size;
+                this.activeStateMeasurement.ImGuiGlobalId = this.GetGlobalIdFromInnerId(owner.foregroundInnerId);
+                changed |= this.activeStateMeasurement.Measure();
             }
 
             return changed;
@@ -150,7 +154,7 @@ public class TristateIconPattern : PatternSpannable
         {
             base.UpdateTransformation(in local, in ancestral);
 
-            this.backgroundRenderPass?.UpdateTransformation(Matrix4x4.Identity, this.FullTransformation);
+            this.backgroundMeasurement?.UpdateTransformation(Matrix4x4.Identity, this.FullTransformation);
 
             this.disappearingStateRenderPass?.UpdateTransformation(
                 owner.HideIconAnimation?.IsRunning is true
@@ -158,16 +162,35 @@ public class TristateIconPattern : PatternSpannable
                     : Matrix4x4.Identity,
                 this.FullTransformation);
 
-            this.activeStateRenderPass?.UpdateTransformation(
+            this.activeStateMeasurement?.UpdateTransformation(
                 owner.ShowIconAnimation?.IsRunning is true
                     ? owner.ShowIconAnimation.AnimatedTransformation
                     : Matrix4x4.Identity,
                 this.FullTransformation);
         }
 
+        public override ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
+        {
+            if (this.backgroundMeasurement is { } bm)
+            {
+                if (!Matrix4x4.Invert(bm.FullTransformation, out var inv)
+                    && bm.Boundary.Contains(Vector2.Transform(screenOffset, inv)))
+                    return bm;
+            }
+
+            if (this.activeStateMeasurement is { } asm)
+            {
+                if (!Matrix4x4.Invert(asm.FullTransformation, out var inv)
+                    && asm.Boundary.Contains(Vector2.Transform(screenOffset, inv)))
+                    return asm;
+            }
+
+            return base.FindChildMeasurementAt(screenOffset);
+        }
+
         protected override void DrawUntransformed(ImDrawListPtr drawListPtr)
         {
-            this.backgroundRenderPass?.Draw(drawListPtr);
+            this.backgroundMeasurement?.Draw(drawListPtr);
             if (this.disappearingStateRenderPass is not null)
             {
                 using var transformer = new ScopedTransformer(
@@ -178,14 +201,14 @@ public class TristateIconPattern : PatternSpannable
                 this.disappearingStateRenderPass.Draw(drawListPtr);
             }
 
-            if (this.activeStateRenderPass is not null)
+            if (this.activeStateMeasurement is not null)
             {
                 using var transformer = new ScopedTransformer(
                     drawListPtr,
                     Matrix4x4.Identity,
                     Vector2.One,
                     owner.ShowIconAnimation?.IsRunning is true ? owner.ShowIconAnimation.AnimatedOpacity : 1f);
-                this.activeStateRenderPass.Draw(drawListPtr);
+                this.activeStateMeasurement.Draw(drawListPtr);
             }
         }
     }

@@ -1,4 +1,4 @@
-using Dalamud.Interface.Spannables.Controls.TODO.RecyclerViews;
+using Dalamud.Interface.Spannables.Controls.RecyclerViews;
 
 namespace Dalamud.Interface.Spannables.Controls.TODO;
 

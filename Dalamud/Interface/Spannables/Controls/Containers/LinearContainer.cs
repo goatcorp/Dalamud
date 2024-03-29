@@ -16,6 +16,12 @@ public class LinearContainer : ContainerControl
     private float contentBias;
     private float totalWeight = 1f;
 
+    /// <summary>Initializes a new instance of the <see cref="LinearContainer"/> class.</summary>
+    public LinearContainer()
+    {
+        this.UseDefaultScrollHandling = true;
+    }
+
     /// <summary>Occurs when the property <see cref="Direction"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, LinearDirection>? DirectionChange;
 
@@ -167,6 +173,13 @@ public class LinearContainer : ContainerControl
                     maxChildSize = new(float.PositiveInfinity);
 
                 cm.Options.Size = maxChildSize;
+                cm.Options.VisibleSize = new(
+                    isHorizontal
+                        ? this.MeasurementOptions.VisibleSize.X - childSizeSum.X
+                        : this.MeasurementOptions.VisibleSize.X,
+                    isVertical
+                        ? this.MeasurementOptions.VisibleSize.Y - childSizeSum.Y
+                        : this.MeasurementOptions.VisibleSize.Y);
                 cm.Measure();
 
                 var b = Vector2.Max(cm.Boundary.RightBottom, cm.Boundary.Size);
@@ -218,7 +231,7 @@ public class LinearContainer : ContainerControl
     }
 
     /// <inheritdoc/>
-    protected override void CommitMeasurementChildren(
+    protected override void UpdateTransformationChildren(
         SpannableControlEventArgs args,
         ReadOnlySpan<ISpannableMeasurement> childMeasurements)
     {

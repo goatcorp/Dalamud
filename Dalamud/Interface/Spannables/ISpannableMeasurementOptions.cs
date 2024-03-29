@@ -11,6 +11,10 @@ public interface ISpannableMeasurementOptions : IResettable
     /// <value><see cref="float.PositiveInfinity"/> for a dimension means that the boundary will resized to wrap the
     /// content.</value>
     Vector2 Size { get; set; }
+    
+    /// <summary>Gets or sets the visible size.</summary>
+    /// <value><see cref="float.PositiveInfinity"/> if there are no limits.</value>
+    Vector2 VisibleSize { get; set; }
 
     /// <summary>Copies applicable options from another spannable options.</summary>
     /// <param name="source">The source to copy from.</param>
@@ -22,6 +26,7 @@ public interface ISpannableMeasurementOptions : IResettable
     public static void DefaultCopyFrom(ISpannableMeasurementOptions source, ISpannableMeasurementOptions target)
     {
         target.Size = source.Size;
+        target.VisibleSize = source.VisibleSize;
     }
 }
 
@@ -29,6 +34,7 @@ public interface ISpannableMeasurementOptions : IResettable
 public class SpannableMeasurementOptions : ISpannableMeasurementOptions
 {
     private Vector2 size = new(float.PositiveInfinity);
+    private Vector2 visibleSize = new(float.PositiveInfinity);
 
     /// <summary>Occurs when a property has changed.</summary>
     public event Action<string>? PropertyChanged;
@@ -41,6 +47,13 @@ public class SpannableMeasurementOptions : ISpannableMeasurementOptions
     }
 
     /// <inheritdoc/>
+    public Vector2 VisibleSize
+    {
+        get => this.visibleSize;
+        set => this.UpdateProperty(nameof(this.VisibleSize), ref this.visibleSize, value);
+    }
+
+    /// <inheritdoc/>
     public virtual void CopyFrom(ISpannableMeasurementOptions source) =>
         ISpannableMeasurementOptions.DefaultCopyFrom(source, this);
 
@@ -48,6 +61,7 @@ public class SpannableMeasurementOptions : ISpannableMeasurementOptions
     public virtual bool TryReset()
     {
         this.Size = new(float.PositiveInfinity);
+        this.VisibleSize = new(float.PositiveInfinity);
         return true;
     }
 

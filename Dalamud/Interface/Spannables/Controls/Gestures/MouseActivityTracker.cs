@@ -423,7 +423,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseUp(ControlMouseEventArgs e)
     {
-        if (!this.enabled || !e.Sender.IsMouseHovered)
+        if (!this.enabled)
             return;
 
         this.RecordActivity(new(ActivityType.Up, e.Button, e.LocalLocation));

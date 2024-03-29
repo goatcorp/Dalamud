@@ -66,10 +66,10 @@ public class ShapePattern : PatternSpannable
     public BorderVector4 Margin { get; set; }
 
     /// <inheritdoc/>
-    protected override PatternSpannableMeasurement CreateNewRenderPass() => new CheckmarkRenderPass(this, new());
+    protected override PatternSpannableMeasurement CreateNewRenderPass() => new ShapePatternMeasurement(this, new());
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class CheckmarkRenderPass(ShapePattern owner, SpannableMeasurementOptions options)
+    private class ShapePatternMeasurement(ShapePattern owner, SpannableMeasurementOptions options)
         : PatternSpannableMeasurement(owner, options)
     {
         protected override void DrawUntransformed(ImDrawListPtr drawListPtr)

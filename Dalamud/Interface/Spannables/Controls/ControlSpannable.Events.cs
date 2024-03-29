@@ -5,6 +5,8 @@ using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
+using ImGuiNET;
+
 namespace Dalamud.Interface.Spannables.Controls;
 
 /// <summary>A base spannable control that does nothing by itself.</summary>
@@ -88,6 +90,9 @@ public partial class ControlSpannable
     /// <summary>Occurs when the property <see cref="ClipChildren"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, bool>? ClipChildrenChange;
 
+    /// <summary>Occurs when the property <see cref="MouseCursor"/> has been changed.</summary>
+    public event PropertyChangeEventHandler<ControlSpannable, ImGuiMouseCursor>? MouseCursorChange;
+
     /// <summary>Occurs when the property <see cref="Text"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, string?>? TextChange;
 
@@ -102,12 +107,6 @@ public partial class ControlSpannable
 
     /// <summary>Occurs when the property <see cref="Size"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, Vector2>? SizeChange;
-
-    /// <summary>Occurs when the property <see cref="MinSize"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, Vector2>? MinSizeChange;
-
-    /// <summary>Occurs when the property <see cref="MaxSize"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, Vector2>? MaxSizeChange;
 
     /// <summary>Occurs when the property <see cref="ExtendOutside"/> has been changed.</summary>
     public event PropertyChangeEventHandler<ControlSpannable, BorderVector4>? ExtendOutsideChange;
@@ -292,6 +291,11 @@ public partial class ControlSpannable
     protected virtual void OnClipChildrenChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
         this.ClipChildrenChange?.Invoke(args);
 
+    /// <summary>Raises the <see cref="MouseCursorChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
+    protected virtual void OnMouseCursorChange(PropertyChangeEventArgs<ControlSpannable, ImGuiMouseCursor> args) =>
+        this.MouseCursorChange?.Invoke(args);
+
     /// <summary>Raises the <see cref="TextChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnTextChange(PropertyChangeEventArgs<ControlSpannable, string?> args) =>
@@ -316,16 +320,6 @@ public partial class ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnSizeChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args) =>
         this.SizeChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MinSizeChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnMinSizeChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args) =>
-        this.MinSizeChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="MaxSizeChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnMaxSizeChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args) =>
-        this.MaxSizeChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="ExtendOutsideChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>

@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 
-namespace Dalamud.Interface.Spannables.Controls.TODO.RecyclerViews;
+namespace Dalamud.Interface.Spannables.Controls.RecyclerViews;
 
 /// <summary>A recycler view control, which is a base for list views and grid views.</summary>
 /// <typeparam name="TCollection">Type of the collection that is observable.</typeparam>
@@ -40,7 +40,7 @@ public class ObservingRecyclerViewControl<TCollection> : RecyclerViewControl
             if (args.NewValue is { } newData)
                 newData.CollectionChanged += this.LayoutManager.CollectionChanged;
 
-            this.NotifyCollectionChanged(new(NotifyCollectionChangedAction.Reset));
+            this.LayoutManager.NotifyCollectionReset();
         }
     }
 

@@ -25,7 +25,7 @@ public class ContainerControl : ControlSpannable
 
     private Vector2 scroll;
     private RectVector4 scrollBoundary;
-    private bool useDefaultScrollHandling = true;
+    private bool useDefaultScrollHandling;
 
     private Vector2 smoothScrollSource;
     private Vector2 smoothScrollTarget;
@@ -121,6 +121,20 @@ public class ContainerControl : ControlSpannable
     }
 
     /// <inheritdoc/>
+    public override ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
+    {
+        foreach (var m in this.childMeasurementsList)
+        {
+            if (m is null)
+                continue;
+            if (m.Boundary.Contains(m.PointToClient(screenOffset)))
+                return m;
+        }
+        
+        return base.FindChildMeasurementAt(screenOffset);
+    }
+
+    /// <inheritdoc/>
     protected override RectVector4 MeasureContentBox(Vector2 suggestedSize)
     {
         var unboundChildren = this.MeasureChildren(suggestedSize, this.ChildMeasurements);
@@ -162,7 +176,7 @@ public class ContainerControl : ControlSpannable
     protected override void OnUpdateTransformation(SpannableControlEventArgs args)
     {
         base.OnUpdateTransformation(args);
-        this.CommitMeasurementChildren(args, this.ChildMeasurements);
+        this.UpdateTransformationChildren(args, this.ChildMeasurements);
     }
 
     /// <inheritdoc/>
@@ -190,6 +204,7 @@ public class ContainerControl : ControlSpannable
         foreach (var childMeasurement in childMeasurements)
         {
             childMeasurement.Options.Size = suggestedSize;
+            childMeasurement.Options.VisibleSize = this.MeasurementOptions.VisibleSize;
             childMeasurement.Measure();
         }
 
@@ -205,10 +220,10 @@ public class ContainerControl : ControlSpannable
     protected virtual void UpdateScrollBoundary(float horizontal, float vertical) =>
         this.ScrollBoundary = new(0, 0, horizontal, vertical);
 
-    /// <summary>Commits measurements for the children.</summary>
+    /// <summary>Updates transformation matrices for the children.</summary>
     /// <param name="args">The event arguments.</param>
     /// <param name="childMeasurements">The render passes for each of the children.</param>
-    protected virtual void CommitMeasurementChildren(
+    protected virtual void UpdateTransformationChildren(
         SpannableControlEventArgs args,
         ReadOnlySpan<ISpannableMeasurement> childMeasurements)
     {
@@ -216,7 +231,7 @@ public class ContainerControl : ControlSpannable
         foreach (var cm in childMeasurements)
             cm.UpdateTransformation(Matrix4x4.CreateTranslation(new(offset, 0)), this.FullTransformation);
     }
-
+    
     /// <summary>Handlers interactions for the children.</summary>
     /// <param name="args">The event arguments.</param>
     /// <param name="childMeasurements">Child measurements.</param>
@@ -228,7 +243,7 @@ public class ContainerControl : ControlSpannable
             cm.HandleInteraction();
     }
 
-    /// <summary>Draw the children.</summary>
+    /// <summary>Draws the children.</summary>
     /// <param name="args">The event arguments.</param>
     /// <param name="childMeasurements">Child measurements.</param>
     protected virtual void DrawChildren(

@@ -131,6 +131,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         if (renderContext.RootOptions is not null)
             spannableMeasurement.Options.CopyFrom(renderContext.RootOptions);
         spannableMeasurement.Options.Size = renderContext.Size / spannableMeasurement.RenderScale;
+        spannableMeasurement.Options.VisibleSize = spannableMeasurement.Options.Size;
 
         var interactionHandled = renderContext.UseInteraction && spannableMeasurement.HandleInteraction();
 
@@ -293,7 +294,7 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
         }
 
         fontData = new(renderScale, style, font, intendedFontSize, fakeItalic, fakeBold);
-        return style.Font.Normal?.Available is true;
+        return font.IsNotNullAndLoaded();
     }
 
     /// <summary>Clear the resources used by this instance.</summary>

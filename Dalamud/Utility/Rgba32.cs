@@ -9,7 +9,7 @@ namespace Dalamud.Utility;
 /// <summary>Represents a 32-bit RGBA color.</summary>
 [StructLayout(LayoutKind.Explicit, Size = 4)]
 [DebuggerDisplay("#{Rgba,h} ({R}, {G}, {B} / {A})")]
-public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable
+public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable, IEquatable<Rgba32>
 {
     /// <summary>The RGBA value.</summary>
     [FieldOffset(0)]
@@ -68,6 +68,12 @@ public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Vector4(Rgba32 color) => color.AsVector4();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(Rgba32 left, Rgba32 right) => left.Equals(right);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(Rgba32 left, Rgba32 right) => !left.Equals(right);
+
     /// <summary>Creates an RGBA value from a BGRA value.</summary>
     /// <param name="value">The BGRA color value.</param>
     /// <returns>The RGBA color.</returns>
@@ -121,6 +127,15 @@ public struct Rgba32 : ISpanParsable<Rgba32>, ISpanFormattable
     /// <returns>The multiplied value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Rgba32 MultiplyOpacity(float by) => this.Multiply(new Vector4(1, 1, 1, by));
+
+    /// <inheritdoc/>
+    public readonly bool Equals(Rgba32 other) => this.Rgba == other.Rgba;
+
+    /// <inheritdoc/>
+    public override readonly bool Equals(object? obj) => obj is Rgba32 other && this.Equals(other);
+
+    /// <inheritdoc/>
+    public override readonly int GetHashCode() => (int)this.Rgba;
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

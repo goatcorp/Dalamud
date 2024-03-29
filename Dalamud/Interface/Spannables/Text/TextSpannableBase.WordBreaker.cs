@@ -158,6 +158,7 @@ public abstract partial class TextSpannableBase
                             smm.Options.Size = new(
                                 float.PositiveInfinity,
                                 Math.Min(this.mm.Options.Size.Y - this.mm.LastOffset.Y, this.fontInfo.ScaledFontSize));
+                            smm.Options.VisibleSize = smm.Options.Size;
                             smm.Measure();
                             boundary = smm.Boundary;
                             break;

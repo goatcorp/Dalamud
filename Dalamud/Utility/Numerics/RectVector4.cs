@@ -275,6 +275,38 @@ public struct RectVector4 : IEquatable<RectVector4>
     public readonly bool Contains(Vector2 coord) =>
         this.Left <= coord.X && this.Top <= coord.Y && coord.X < this.Right && coord.Y < this.Bottom;
 
+    /// <summary>Gets the squared distance from a given point to the nearest border of the rectangle if the coordinate
+    /// is outside; otherwise, <c>0</c>.</summary>
+    /// <param name="coord">The coordinates to test.</param>
+    /// <returns>The squared distance.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly float DistanceSquared(Vector2 coord)
+    {
+        if (coord.X < this.Left)
+        {
+            if (coord.Y < this.Top)
+                return MathF.Pow(this.Top - coord.Y, 2) + MathF.Pow(this.Left - coord.X, 2);
+            if (coord.Y > this.Bottom)
+                return MathF.Pow(this.Bottom - coord.Y, 2) + MathF.Pow(this.Left - coord.X, 2);
+            return MathF.Pow(this.Left - coord.X, 2);
+        }
+        
+        if (coord.X > this.Right)
+        {
+            if (coord.Y < this.Top)
+                return MathF.Pow(this.Top - coord.Y, 2) + MathF.Pow(this.Right - coord.X, 2);
+            if (coord.Y > this.Bottom)
+                return MathF.Pow(this.Bottom - coord.Y, 2) + MathF.Pow(this.Right - coord.X, 2);
+            return MathF.Pow(this.Right - coord.X, 2);
+        }
+        
+        if (coord.Y < this.Top)
+            return MathF.Pow(this.Top - coord.Y, 2);
+        if (coord.Y > this.Bottom)
+            return MathF.Pow(this.Bottom - coord.Y, 2);
+        return 0;
+    }
+
     /// <inheritdoc/>
     public override readonly string ToString() => $"<({this.Left:g}, {this.Top:g})-({this.Right:g}, {this.Bottom:g})>";
 

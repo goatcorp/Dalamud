@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Utility.Enumeration;
 
 using ImGuiNET;
@@ -24,7 +25,7 @@ public sealed class LayeredPattern : PatternSpannable
     public IReadOnlyList<ISpannable> ChildrenReadOnlyList => (IReadOnlyList<ISpannable>)this.ChildrenList;
 
     /// <inheritdoc/>
-    protected override PatternSpannableMeasurement CreateNewRenderPass() => new LayeredRenderPass(this, new());
+    protected override PatternSpannableMeasurement CreateNewRenderPass() => new LayeredPatternMeasurement(this, new());
 
     private class ChildrenCollection(LayeredPattern owner)
         : IList<ISpannable?>, IReadOnlyList<ISpannable?>, ICollection
@@ -126,7 +127,7 @@ public sealed class LayeredPattern : PatternSpannable
     }
 
     /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class LayeredRenderPass(LayeredPattern owner, SpannableMeasurementOptions options)
+    private class LayeredPatternMeasurement(LayeredPattern owner, SpannableMeasurementOptions options)
         : PatternSpannableMeasurement(owner, options)
     {
         private readonly ChildrenCollection children = owner.childrenCollection;
@@ -147,7 +148,7 @@ public sealed class LayeredPattern : PatternSpannable
 
                 var cm = this.childMeasurements[i] ??= child.RentMeasurement(this.Renderer);
                 cm.RenderScale = this.RenderScale;
-                cm.Options.Size = this.Boundary.Size;
+                cm.Options.VisibleSize = cm.Options.Size = this.Boundary.Size;
                 changed |= cm.Measure();
             }
 
@@ -166,6 +167,17 @@ public sealed class LayeredPattern : PatternSpannable
             foreach (var cm in this.childMeasurements)
                 cm?.HandleInteraction();
             return base.HandleInteraction();
+        }
+
+        public override ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
+        {
+            foreach (var m in this.childMeasurements)
+            {
+                if (m?.Boundary.Contains(m.PointToClient(screenOffset)) is true)
+                    return m;
+            }
+
+            return base.FindChildMeasurementAt(screenOffset);
         }
 
         protected override void DrawUntransformed(ImDrawListPtr drawListPtr)
