@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -26,7 +27,7 @@ public partial class ControlSpannable
         TextDecorationThickness = 1 / 16f,
         VerticalAlignment = -1,
     };
-    
+
     private float scale = 1f;
     private float renderScale = 1f;
     private Vector2 size = new(WrapContent);
@@ -326,10 +327,7 @@ public partial class ControlSpannable
             this.OnCaptureMouseOnMouseDownChange);
     }
 
-    /// <summary>Gets or sets a value indicating whether to capture mouse events when a mouse button is held on
-    /// the control.</summary>
-    /// <remarks>Enabling this when <see cref="Enabled"/> is set will typically prevent moving the container window by
-    /// dragging on what <i>looks</i> like the window background.</remarks>
+    /// <summary>Gets or sets a value indicating whether to capture mouse wheel events at all times.</summary>
     public bool CaptureMouseWheel
     {
         get => this.captureMouseWheel;
@@ -387,16 +385,67 @@ public partial class ControlSpannable
     {
         if (Equals(storage, newValue))
             return false;
-        var old = storage;
-        storage = newValue;
 
         var e = SpannableControlEventArgsPool.Rent<PropertyChangeEventArgs<TSender, T>>();
         e.Sender = sender;
         e.PropertyName = propName;
-        e.PreviousValue = old;
+        e.PreviousValue = storage;
         e.NewValue = newValue;
-        eh(e);
+
+        var exs = default(List<Exception>?);
+
+        e.State = PropertyChangeState.Before;
+        try
+        {
+            eh(e);
+        }
+        catch (Exception ex)
+        {
+            exs = [ex];
+        }
+
+        if (e.State == PropertyChangeState.Cancelled)
+        {
+            e.NewValue = storage;
+            
+            try
+            {
+                eh(e);
+            }
+            catch (Exception ex)
+            {
+                exs ??= [];
+                exs.Add(ex);
+            }
+
+            SpannableControlEventArgsPool.Return(e);
+            if (exs is not null)
+                throw new AggregateException(exs);
+
+            return false;
+        }
+
+        var old = storage;
+        storage = e.NewValue;
+
+        e.State = PropertyChangeState.After;
+        try
+        {
+            eh(e);
+        }
+        catch (Exception ex)
+        {
+            exs ??= [];
+            exs.Add(ex);
+        }
+
         SpannableControlEventArgsPool.Return(e);
+        if (exs is not null)
+        {
+            storage = old;
+            throw new AggregateException(exs);
+        }
+
         return true;
     }
 

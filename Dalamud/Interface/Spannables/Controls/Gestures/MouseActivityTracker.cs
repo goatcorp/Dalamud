@@ -304,7 +304,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseDown(ControlMouseEventArgs e)
     {
-        if (!this.enabled)
+        if (!this.enabled || !e.Sender.IsMouseHovered)
             return;
 
         this.RecordActivity(new(ActivityType.Down, e.Button, e.LocalLocation));
@@ -354,7 +354,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseMove(ControlMouseEventArgs e)
     {
-        if (!this.enabled)
+        if (!this.enabled || !e.Sender.IsMouseHovered)
             return;
 
         if (this.DragOrigin is not { } dragOrigin)
@@ -423,7 +423,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseUp(ControlMouseEventArgs e)
     {
-        if (!this.enabled)
+        if (!this.enabled || !e.Sender.IsMouseHovered)
             return;
 
         this.RecordActivity(new(ActivityType.Up, e.Button, e.LocalLocation));
@@ -567,7 +567,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseWheel(ControlMouseEventArgs e)
     {
-        if (!this.enabled)
+        if (!this.enabled || !e.Sender.IsMouseHovered)
             return;
 
         if (e.WheelDelta == Vector2.Zero)

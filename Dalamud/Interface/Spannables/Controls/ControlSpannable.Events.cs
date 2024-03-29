@@ -282,8 +282,9 @@ public partial class ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnVisibleChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
     {
-        this.localTransformationDirectBefore = default;
         this.VisibleChange?.Invoke(args);
+        if (args.State != PropertyChangeState.After)
+            this.localTransformationDirectBefore = default;
     }
 
     /// <summary>Raises the <see cref="ClipChildrenChange"/> event.</summary>
@@ -345,6 +346,11 @@ public partial class ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnTransformationChange(PropertyChangeEventArgs<ControlSpannable, Matrix4x4> args)
     {
+        this.TransformationChange?.Invoke(args);
+
+        if (args.State != PropertyChangeState.After)
+            return;
+
         if (this.transformationChangeAnimation is not null)
         {
             this.transformationChangeAnimation.Update(this);
@@ -368,15 +374,14 @@ public partial class ControlSpannable
 
         if (!this.suppressNextAnimation)
             this.transformationChangeAnimation?.Restart();
-
-        this.TransformationChange?.Invoke(args);
     }
 
     /// <summary>Raises the <see cref="NormalBackgroundChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnNormalBackgroundChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args)
     {
-        this.AllSpannables[this.normalBackgroundChildIndex] = args.NewValue;
+        if (args.State == PropertyChangeState.After)
+            this.AllSpannables[this.normalBackgroundChildIndex] = args.NewValue;
         this.NormalBackgroundChange?.Invoke(args);
     }
 
@@ -384,7 +389,8 @@ public partial class ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnHoveredBackgroundChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args)
     {
-        this.AllSpannables[this.hoveredBackgroundChildIndex] = args.NewValue;
+        if (args.State == PropertyChangeState.After)
+            this.AllSpannables[this.hoveredBackgroundChildIndex] = args.NewValue;
         this.HoveredBackgroundChange?.Invoke(args);
     }
 
@@ -392,7 +398,8 @@ public partial class ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnActiveBackgroundChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args)
     {
-        this.AllSpannables[this.activeBackgroundChildIndex] = args.NewValue;
+        if (args.State == PropertyChangeState.After)
+            this.AllSpannables[this.activeBackgroundChildIndex] = args.NewValue;
         this.ActiveBackgroundChange?.Invoke(args);
     }
 
@@ -400,7 +407,8 @@ public partial class ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnDisabledBackgroundChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args)
     {
-        this.AllSpannables[this.disabledBackgroundChildIndex] = args.NewValue;
+        if (args.State == PropertyChangeState.After)
+            this.AllSpannables[this.disabledBackgroundChildIndex] = args.NewValue;
         this.DisabledBackgroundChange?.Invoke(args);
     }
 

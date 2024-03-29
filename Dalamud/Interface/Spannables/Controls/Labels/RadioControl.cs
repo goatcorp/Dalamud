@@ -195,7 +195,7 @@ public class RadioControl : BooleanControl
     /// <inheritdoc/>
     protected override void OnCheckedChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
     {
-        if (!this.Indeterminate && this.Checked)
+        if (args.State == PropertyChangeState.After && !this.Indeterminate && this.Checked)
         {
             if (this.bindGroup is null)
             {

@@ -608,6 +608,8 @@ public sealed class PanZoomTracker : IDisposable
 
     private void ControlOnMeasuredBoundaryBoxChange(PropertyChangeEventArgs<ControlSpannable, RectVector4> args)
     {
+        if (args.State != PropertyChangeState.After)
+            return;
         if (!this.EnforceLimits())
             this.ViewportChanged?.Invoke();
     }

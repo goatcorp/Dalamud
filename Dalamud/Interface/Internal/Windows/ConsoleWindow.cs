@@ -18,6 +18,9 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Spannables;
+using Dalamud.Interface.Spannables.Controls;
+using Dalamud.Interface.Spannables.Controls.Labels;
+using Dalamud.Interface.Spannables.Controls.TODO.RecyclerViews;
 using Dalamud.Interface.Spannables.Rendering.Internal;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Spannables.Text;
@@ -68,6 +71,8 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly ISpannable wrapMarkerSpannable;
 
     private readonly TextSpannableBase.Options textOptions = new();
+
+    private readonly ObservingRecyclerViewControl<RollingList<LogEntry>> rvc;
 
     private bool pendingRefilter;
     private bool pendingClearLog;
@@ -126,6 +131,29 @@ internal class ConsoleWindow : Window, IDisposable
         this.newLogEntries = new();
         this.logText = new(limit);
         this.filteredLogEntries = new(limit);
+        this.rvc = new();
+
+        Service<Framework>.GetAsync().ContinueWith(
+            r => r.Result.RunOnFrameworkThread(
+                () =>
+                {
+                    this.rvc.LayoutManager = new LinearLayoutManager
+                    {
+                        AnchorOffsetRatio = 1f,
+                        StickToTerminus = true,
+                    };
+                    this.rvc.NeedDecideSpannableType += e => e.SpannableType = e.Index % 3;
+                    this.rvc.NeedMoreSpannables += e => this.rvc.AddPlaceholder(
+                        e.SpannableType,
+                        new LabelControl
+                        {
+                            Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                            Padding = new(8 * e.SpannableType),
+                        });
+                    this.rvc.NeedPopulateSpannable +=
+                        e => ((LabelControl)e.Spannable).Text = this.filteredLogEntries[e.Index].Line;
+                    return this.rvc.Collection = this.filteredLogEntries;
+                }));
 
         this.ellipsisSpannable = new TextSpannableBuilder().PushForeColor(0x80FFFFFF).Append("…");
         this.wrapMarkerSpannable = new TextSpannableBuilder()
@@ -241,172 +269,176 @@ internal class ConsoleWindow : Window, IDisposable
         var sendButtonSize = ImGui.CalcTextSize("Send") +
                              ((new Vector2(16, 0) + (ImGui.GetStyle().FramePadding * 2)) * ImGuiHelpers.GlobalScale);
         var scrollingHeight = ImGui.GetContentRegionAvail().Y - sendButtonSize.Y;
-        var useHorizontalScrolling =
-            this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll;
-        ImGui.BeginChild(
-            "scrolling",
-            new(0, scrollingHeight),
-            false,
-            (useHorizontalScrolling ? ImGuiWindowFlags.AlwaysHorizontalScrollbar : 0)
-            | ImGuiWindowFlags.AlwaysVerticalScrollbar);
-
-        if (!useHorizontalScrolling)
-            ImGui.SetScrollX(0);
-
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-
-        ImGui.PushFont(InterfaceManager.MonoFont);
-
-        var childPos = ImGui.GetWindowPos();
-        var childDrawList = ImGui.GetWindowDrawList();
-        var childSize = ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin();
-
-        var timestampWidth = ImGui.CalcTextSize("00:00:00.000").X;
-        var levelWidth = ImGui.CalcTextSize("AAA").X;
-        var separatorWidth = ImGui.CalcTextSize(" | ").X;
-        var cursorLogLevel = timestampWidth + separatorWidth;
-        var cursorLogLine = cursorLogLevel + levelWidth + separatorWidth;
-
-        var logLineHeight = ImGui.GetTextLineHeight();
-        var messageAreaWidth = childSize.X - cursorLogLine;
-        for (var i = this.filteredLogEntries.Count - 1; i >= 0; i--)
-        {
-            var entry = this.filteredLogEntries[i];
-            if (entry.NumLines > 0)
-            {
-                for (i++; i < this.filteredLogEntries.Count; i++)
+        // var useHorizontalScrolling =
+        //     this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll;
+        ImGui.BeginChild("scrolling", new(0, scrollingHeight), false);
+        this.rvc.Size = new(ControlSpannable.MatchParent);
+        Renderer.DrawSpannable(
+            this.rvc,
+            new(
+                "##list",
+                new()
                 {
-                    this.filteredLogEntries[i].FirstLine =
-                        this.filteredLogEntries[i - 1].FirstLine +
-                        this.filteredLogEntries[i - 1].NumLines;
-                }
+                    Size = ImGui.GetContentRegionMax(),
+                }));
 
-                break;
-            }
-
-            var rm = Renderer.DrawText(
-                entry.Line,
-                new(true, new() { Size = new(messageAreaWidth, float.MaxValue), RootOptions = this.TextOptions }));
-            entry.NumLines = (rm as TextSpannableBase.Measurement)?.LineCount ?? 1;
-            rm.ReturnMeasurementToSpannable();
-
-            this.totalWrappedLines += entry.NumLines;
-
-            if (i == 0)
-            {
-                this.totalRolledLines = 0;
-                this.filteredLogEntries[i].FirstLine = 0;
-                this.totalWrappedLines = this.filteredLogEntries[i].NumLines;
-                for (i++; i < this.filteredLogEntries.Count; i++)
-                {
-                    this.totalWrappedLines += this.filteredLogEntries[i].NumLines;
-                    this.filteredLogEntries[i].FirstLine =
-                        this.filteredLogEntries[i - 1].FirstLine +
-                        this.filteredLogEntries[i - 1].NumLines;
-                }
-
-                break;
-            }
-        }
-
-        this.clipperPtr.Begin(this.totalWrappedLines - this.totalRolledLines, logLineHeight);
-
-        while (this.clipperPtr.Step())
-        {
-            var entryIndex = this.clipperPtr.DisplayStart - this.newRolledLines;
-            var entryIndexEnd = this.clipperPtr.DisplayEnd - this.newRolledLines;
-            entryIndex = this.BinarySearchFilteredLogEntries(entryIndex + this.totalRolledLines);
-            entryIndexEnd = this.BinarySearchFilteredLogEntries(entryIndexEnd + this.totalRolledLines);
-            if (entryIndex < 0)
-                entryIndex = ~entryIndex - 1;
-            if (entryIndexEnd < 0)
-                entryIndexEnd = ~entryIndexEnd;
-            entryIndex = Math.Clamp(entryIndex, 0, Math.Max(0, this.filteredLogEntries.Count - 1));
-            entryIndexEnd = Math.Clamp(entryIndexEnd, 0, this.filteredLogEntries.Count);
-
-            for (var i = entryIndex; i < entryIndexEnd; i++)
-            {
-                var entry = this.filteredLogEntries[i];
-                var pos = new Vector2(
-                    0,
-                    ((entry.FirstLine - this.totalRolledLines) + this.newRolledLines) * logLineHeight);
-
-                ImGui.SetCursorPos(pos);
-                ImGui.Separator();
-
-                if (entry.SelectedForCopy)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedGrey);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, ImGuiColors.ParsedGrey);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ImGuiColors.ParsedGrey);
-                }
-                else
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Header, GetColorForLogEventLevel(entry.Level));
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, GetColorForLogEventLevel(entry.Level));
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, GetColorForLogEventLevel(entry.Level));
-                }
-
-                ImGui.SetCursorPos(pos + new Vector2(ImGui.GetScrollX(), 0));
-                ImGui.Selectable(
-                    "###console_null",
-                    true,
-                    ImGuiSelectableFlags.AllowItemOverlap,
-                    childSize with { Y = logLineHeight * entry.NumLines });
-
-                // This must be after ImGui.Selectable, it uses ImGui.IsItem... functions
-                this.HandleCopyMode(i, entry);
-
-                ImGui.SetCursorPos(pos);
-
-                ImGui.PopStyleColor(3);
-
-                ImGui.TextUnformatted(entry.TimestampString);
-                ImGui.SameLine();
-
-                ImGui.SetCursorPosX(cursorLogLevel);
-                ImGui.TextUnformatted(GetTextForLogEventLevel(entry.Level));
-                ImGui.SameLine();
-
-                ImGui.SetCursorPosX(cursorLogLine);
-                entry.HighlightMatches ??= (this.compiledLogHighlight ?? this.compiledLogFilter)?.Matches(entry.Line);
-                this.DrawHighlighted(
-                    entry.Line,
-                    entry.HighlightMatches,
-                    ImGui.GetColorU32(ImGuiCol.Text),
-                    ImGui.GetColorU32(ImGuiColors.HealerGreen));
-            }
-        }
-
-        this.clipperPtr.End();
-
-        ImGui.PopFont();
-
-        ImGui.PopStyleVar();
-
-        if (!this.activeConfiguration.LogAutoScroll || ImGui.GetScrollY() < ImGui.GetScrollMaxY())
-        {
-            ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * this.newRolledLines));
-        }
-
-        if (this.activeConfiguration.LogAutoScroll && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())
-        {
-            ImGui.SetScrollHereY(1.0f);
-        }
-
-        // Draw dividing lines
-        var div1Offset = MathF.Round((timestampWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
-        var div2Offset = MathF.Round((cursorLogLevel + levelWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
-        childDrawList.AddLine(
-            new(childPos.X + div1Offset, childPos.Y),
-            new(childPos.X + div1Offset, childPos.Y + childSize.Y),
-            0x4FFFFFFF,
-            1.0f);
-        childDrawList.AddLine(
-            new(childPos.X + div2Offset, childPos.Y),
-            new(childPos.X + div2Offset, childPos.Y + childSize.Y),
-            0x4FFFFFFF,
-            1.0f);
+        // if (!useHorizontalScrolling)
+        //     ImGui.SetScrollX(0);
+        //
+        // ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+        //
+        // ImGui.PushFont(InterfaceManager.MonoFont);
+        //
+        // var childPos = ImGui.GetWindowPos();
+        // var childDrawList = ImGui.GetWindowDrawList();
+        // var childSize = ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin();
+        //
+        // var timestampWidth = ImGui.CalcTextSize("00:00:00.000").X;
+        // var levelWidth = ImGui.CalcTextSize("AAA").X;
+        // var separatorWidth = ImGui.CalcTextSize(" | ").X;
+        // var cursorLogLevel = timestampWidth + separatorWidth;
+        // var cursorLogLine = cursorLogLevel + levelWidth + separatorWidth;
+        //
+        // var logLineHeight = ImGui.GetTextLineHeight();
+        // var messageAreaWidth = childSize.X - cursorLogLine;
+        // for (var i = this.filteredLogEntries.Count - 1; i >= 0; i--)
+        // {
+        //     var entry = this.filteredLogEntries[i];
+        //     if (entry.NumLines > 0)
+        //     {
+        //         for (i++; i < this.filteredLogEntries.Count; i++)
+        //         {
+        //             this.filteredLogEntries[i].FirstLine =
+        //                 this.filteredLogEntries[i - 1].FirstLine +
+        //                 this.filteredLogEntries[i - 1].NumLines;
+        //         }
+        //
+        //         break;
+        //     }
+        //
+        //     var rm = Renderer.DrawText(
+        //         entry.Line,
+        //         new(true, new() { Size = new(messageAreaWidth, float.MaxValue), RootOptions = this.TextOptions }));
+        //     entry.NumLines = (rm as TextSpannableBase.Measurement)?.LineCount ?? 1;
+        //     rm.ReturnMeasurementToSpannable();
+        //
+        //     this.totalWrappedLines += entry.NumLines;
+        //
+        //     if (i == 0)
+        //     {
+        //         this.totalRolledLines = 0;
+        //         this.filteredLogEntries[i].FirstLine = 0;
+        //         this.totalWrappedLines = this.filteredLogEntries[i].NumLines;
+        //         for (i++; i < this.filteredLogEntries.Count; i++)
+        //         {
+        //             this.totalWrappedLines += this.filteredLogEntries[i].NumLines;
+        //             this.filteredLogEntries[i].FirstLine =
+        //                 this.filteredLogEntries[i - 1].FirstLine +
+        //                 this.filteredLogEntries[i - 1].NumLines;
+        //         }
+        //
+        //         break;
+        //     }
+        // }
+        //
+        // this.clipperPtr.Begin(this.totalWrappedLines - this.totalRolledLines, logLineHeight);
+        //
+        // while (this.clipperPtr.Step())
+        // {
+        //     var entryIndex = this.clipperPtr.DisplayStart - this.newRolledLines;
+        //     var entryIndexEnd = this.clipperPtr.DisplayEnd - this.newRolledLines;
+        //     entryIndex = this.BinarySearchFilteredLogEntries(entryIndex + this.totalRolledLines);
+        //     entryIndexEnd = this.BinarySearchFilteredLogEntries(entryIndexEnd + this.totalRolledLines);
+        //     if (entryIndex < 0)
+        //         entryIndex = ~entryIndex - 1;
+        //     if (entryIndexEnd < 0)
+        //         entryIndexEnd = ~entryIndexEnd;
+        //     entryIndex = Math.Clamp(entryIndex, 0, Math.Max(0, this.filteredLogEntries.Count - 1));
+        //     entryIndexEnd = Math.Clamp(entryIndexEnd, 0, this.filteredLogEntries.Count);
+        //
+        //     for (var i = entryIndex; i < entryIndexEnd; i++)
+        //     {
+        //         var entry = this.filteredLogEntries[i];
+        //         var pos = new Vector2(
+        //             0,
+        //             ((entry.FirstLine - this.totalRolledLines) + this.newRolledLines) * logLineHeight);
+        //
+        //         ImGui.SetCursorPos(pos);
+        //         ImGui.Separator();
+        //
+        //         if (entry.SelectedForCopy)
+        //         {
+        //             ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedGrey);
+        //             ImGui.PushStyleColor(ImGuiCol.HeaderActive, ImGuiColors.ParsedGrey);
+        //             ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ImGuiColors.ParsedGrey);
+        //         }
+        //         else
+        //         {
+        //             ImGui.PushStyleColor(ImGuiCol.Header, GetColorForLogEventLevel(entry.Level));
+        //             ImGui.PushStyleColor(ImGuiCol.HeaderActive, GetColorForLogEventLevel(entry.Level));
+        //             ImGui.PushStyleColor(ImGuiCol.HeaderHovered, GetColorForLogEventLevel(entry.Level));
+        //         }
+        //
+        //         ImGui.SetCursorPos(pos + new Vector2(ImGui.GetScrollX(), 0));
+        //         ImGui.Selectable(
+        //             "###console_null",
+        //             true,
+        //             ImGuiSelectableFlags.AllowItemOverlap,
+        //             childSize with { Y = logLineHeight * entry.NumLines });
+        //
+        //         // This must be after ImGui.Selectable, it uses ImGui.IsItem... functions
+        //         this.HandleCopyMode(i, entry);
+        //
+        //         ImGui.SetCursorPos(pos);
+        //
+        //         ImGui.PopStyleColor(3);
+        //
+        //         ImGui.TextUnformatted(entry.TimestampString);
+        //         ImGui.SameLine();
+        //
+        //         ImGui.SetCursorPosX(cursorLogLevel);
+        //         ImGui.TextUnformatted(GetTextForLogEventLevel(entry.Level));
+        //         ImGui.SameLine();
+        //
+        //         ImGui.SetCursorPosX(cursorLogLine);
+        //         entry.HighlightMatches ??= (this.compiledLogHighlight ?? this.compiledLogFilter)?.Matches(entry.Line);
+        //         this.DrawHighlighted(
+        //             entry.Line,
+        //             entry.HighlightMatches,
+        //             ImGui.GetColorU32(ImGuiCol.Text),
+        //             ImGui.GetColorU32(ImGuiColors.HealerGreen));
+        //     }
+        // }
+        //
+        // this.clipperPtr.End();
+        //
+        // ImGui.PopFont();
+        //
+        // ImGui.PopStyleVar();
+        //
+        // if (!this.activeConfiguration.LogAutoScroll || ImGui.GetScrollY() < ImGui.GetScrollMaxY())
+        // {
+        //     ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * this.newRolledLines));
+        // }
+        //
+        // if (this.activeConfiguration.LogAutoScroll && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())
+        // {
+        //     ImGui.SetScrollHereY(1.0f);
+        // }
+        //
+        // // Draw dividing lines
+        // var div1Offset = MathF.Round((timestampWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
+        // var div2Offset = MathF.Round((cursorLogLevel + levelWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
+        // childDrawList.AddLine(
+        //     new(childPos.X + div1Offset, childPos.Y),
+        //     new(childPos.X + div1Offset, childPos.Y + childSize.Y),
+        //     0x4FFFFFFF,
+        //     1.0f);
+        // childDrawList.AddLine(
+        //     new(childPos.X + div2Offset, childPos.Y),
+        //     new(childPos.X + div2Offset, childPos.Y + childSize.Y),
+        //     0x4FFFFFFF,
+        //     1.0f);
 
         ImGui.EndChild();
 

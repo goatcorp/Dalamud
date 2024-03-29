@@ -123,6 +123,9 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
     {
         ThreadSafety.AssertMainThread();
 
+        if (spannableMeasurement.Renderer is null)
+            throw new InvalidOperationException();
+
         spannableMeasurement.RenderScale = renderContext.RenderScale;
         spannableMeasurement.ImGuiGlobalId = renderContext.ImGuiGlobalId;
         if (renderContext.RootOptions is not null)
@@ -138,11 +141,11 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
             Matrix4x4.Multiply(
                 Matrix4x4.CreateScale(renderContext.RenderScale),
                 Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0))));
-        spannableMeasurement.UpdateTransformation(mtx, Matrix4x4.Identity);
+        spannableMeasurement.UpdateTransformation(Matrix4x4.Identity, mtx);
 
         if (renderContext.UseDrawing)
         {
-            using (new ScopedTransformer(renderContext.DrawListPtr, Matrix4x4.Identity, Vector2.One, 1f))
+            using (new ScopedTransformer(renderContext.DrawListPtr, mtx, Vector2.One, 1f))
                 spannableMeasurement.Draw(renderContext.DrawListPtr);
 
             if (renderContext.UseInteraction && !interactionHandled)

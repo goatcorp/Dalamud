@@ -135,48 +135,54 @@ public class BooleanControl : LabelControl
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnCheckedChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
     {
+        if (args.State == PropertyChangeState.After)
+            this.UpdateIcon();
         this.CheckedChange?.Invoke(args);
-        this.UpdateIcon();
     }
 
     /// <summary>Raises the <see cref="CheckedChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnIndeterminateChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
     {
+        if (args.State == PropertyChangeState.After)
+            this.UpdateIcon();
         this.IndeterminateChange?.Invoke(args);
-        this.UpdateIcon();
     }
 
     /// <summary>Raises the <see cref="NormalIconChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnNormalIconChange(PropertyChangeEventArgs<ControlSpannable, TristateIconPattern?> args)
     {
+        if (args.State == PropertyChangeState.After)
+            this.UpdateIcon();
         this.NormalIconChange?.Invoke(args);
-        this.UpdateIcon();
     }
 
     /// <summary>Raises the <see cref="OnHoveredIconChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnHoveredIconChange(PropertyChangeEventArgs<ControlSpannable, TristateIconPattern?> args)
     {
+        if (args.State == PropertyChangeState.After)
+            this.UpdateIcon();
         this.HoveredIconChange?.Invoke(args);
-        this.UpdateIcon();
     }
 
     /// <summary>Raises the <see cref="OnActiveIconChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnActiveIconChange(PropertyChangeEventArgs<ControlSpannable, TristateIconPattern?> args)
     {
+        if (args.State == PropertyChangeState.After)
+            this.UpdateIcon();
         this.ActiveIconChange?.Invoke(args);
-        this.UpdateIcon();
     }
 
     /// <summary>Raises the <see cref="OnSideChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
     protected virtual void OnSideChange(PropertyChangeEventArgs<ControlSpannable, IconSide> args)
     {
+        if (args.State == PropertyChangeState.After)
+            this.UpdateIcon();
         this.SideChange?.Invoke(args);
-        this.UpdateIcon();
     }
 
     /// <summary>Updates the icon.</summary>

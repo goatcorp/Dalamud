@@ -277,6 +277,9 @@ public class ContainerControl : ControlSpannable
     protected virtual void OnScrollChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args)
     {
         this.ScrollChange?.Invoke(args);
+        
+        if (args.State != PropertyChangeState.After)
+            return;
         this.SuppressNextAnimation();
         this.UpdateInterceptMouseWheel();
     }
@@ -286,6 +289,9 @@ public class ContainerControl : ControlSpannable
     protected virtual void OnScrollBoundaryChange(PropertyChangeEventArgs<ControlSpannable, RectVector4> args)
     {
         this.ScrollBoundaryChange?.Invoke(args);
+        
+        if (args.State != PropertyChangeState.After)
+            return;
         this.Scroll = Vector2.Clamp(this.Scroll, this.scrollBoundary.LeftTop, this.scrollBoundary.RightBottom);
         this.UpdateInterceptMouseWheel();
     }

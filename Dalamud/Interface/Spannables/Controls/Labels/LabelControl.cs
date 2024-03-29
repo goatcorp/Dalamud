@@ -251,7 +251,7 @@ public class LabelControl : ControlSpannable
         if (this.activeSpannableMeasurement is null)
         {
             this.activeSpannableMeasurement = spannable.RentMeasurement(this.Renderer);
-            
+
             if (this.spannableTextOptions is not null)
                 this.activeSpannableMeasurement.Options.CopyFrom(this.spannableTextOptions);
 
@@ -448,18 +448,22 @@ public class LabelControl : ControlSpannable
     /// <inheritdoc/>
     protected override void OnTextChange(PropertyChangeEventArgs<ControlSpannable, string?> args)
     {
-        if (this.textSpannableBuilder is null)
-            return;
+        ObjectDisposedException.ThrowIf(this.textSpannableBuilder is null, this);
+        
+        if (args.State == PropertyChangeState.After)
+        {
+            this.textSpannableBuilder.Clear().Append(args.NewValue);
+            this.ActiveSpannable = this.spannableText ?? this.textSpannableBuilder;
+        }
 
-        this.textSpannableBuilder.Clear().Append(args.NewValue);
-        this.ActiveSpannable = this.spannableText ?? this.textSpannableBuilder;
         base.OnTextChange(args);
     }
 
     /// <inheritdoc/>
     protected override void OnTextStyleChange(PropertyChangeEventArgs<ControlSpannable, TextStyle> args)
     {
-        if (this.activeSpannableMeasurement?.Options is TextSpannableBase.Options mo)
+        if (args.State == PropertyChangeState.After
+            && this.activeSpannableMeasurement?.Options is TextSpannableBase.Options mo)
             mo.Style = args.NewValue;
         base.OnTextStyleChange(args);
     }
@@ -468,10 +472,11 @@ public class LabelControl : ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
     protected virtual void OnSpannableTextChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args)
     {
-        if (this.textSpannableBuilder is null)
-            return;
-
-        this.ActiveSpannable = this.spannableText ?? this.textSpannableBuilder;
+        ObjectDisposedException.ThrowIf(this.textSpannableBuilder is null, this);
+        
+        if (args.State == PropertyChangeState.After)
+            this.ActiveSpannable = this.spannableText ?? this.textSpannableBuilder;
+        
         this.SpannableTextChange?.Invoke(args);
     }
 
@@ -480,11 +485,16 @@ public class LabelControl : ControlSpannable
     protected virtual void OnSpannableTextOptionsChange(
         PropertyChangeEventArgs<ControlSpannable, ISpannableMeasurementOptions?> args)
     {
-        if (args.NewValue is not null)
-            this.activeSpannableMeasurement?.Options.CopyFrom(args.NewValue);
+        ObjectDisposedException.ThrowIf(this.textSpannableBuilder is null, this);
 
-        if (this.activeSpannableMeasurement?.Options is TextSpannableBase.Options mo)
-            mo.Style = this.TextStyle;
+        if (args.State == PropertyChangeState.After)
+        {
+            if (args.NewValue is not null)
+                this.activeSpannableMeasurement?.Options.CopyFrom(args.NewValue);
+
+            if (this.activeSpannableMeasurement?.Options is TextSpannableBase.Options mo)
+                mo.Style = this.TextStyle;
+        }
 
         this.SpannableTextOptionsChange?.Invoke(args);
     }

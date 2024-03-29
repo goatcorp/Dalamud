@@ -104,6 +104,11 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     /// <inheritdoc/>
     ISpannableMeasurementOptions ISpannableMeasurement.Options => this.optionsFromParent;
 
+    /// <summary>Gets the <see cref="ISpannableMeasurementOptions"/> for this <see cref="ISpannable"/>.</summary>
+    /// <remarks>Alias of <see cref="ISpannableMeasurement.Options"/>, as <c>Options</c> is confusing in the context
+    /// of controls.</remarks>
+    public ISpannableMeasurementOptions MeasurementOptions => this.optionsFromParent;
+
     /// <summary>Gets a read-only reference of the local transformation matrix.</summary>
     public ref readonly Matrix4x4 LocalTransformation => ref this.localTransformation;
 
@@ -116,8 +121,24 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     /// <summary>Gets or sets the inner transform origin.</summary>
     public Vector2 InnerOrigin { get; set; } = new(0.5f);
 
-    /// <summary>Gets a value indicating whether the mouse pointer is hovering.</summary>
+    /// <summary>Gets a value indicating whether the mouse pointer is hovering on this control.</summary>
     public bool IsMouseHovered { get; private set; }
+
+    /// <summary>Gets a value indicating whether the mouse pointer is hovering on this control or any of its child
+    /// controls.</summary>
+    public bool IsMouseHoveredIncludingChildren
+    {
+        get
+        {
+            foreach (var x in this.EnumerateHierarchy<ControlSpannable>())
+            {
+                if (x.IsMouseHovered)
+                    return true;
+            }
+
+            return false;
+        }
+    }
 
     /// <summary>Gets a value indicating whether the left mouse button is down.</summary>
     public bool IsLeftMouseButtonDown => (this.heldMouseButtons & 1) != 0;
@@ -215,12 +236,12 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     /// <summary>Gets the list of all children contained within this control, including decorative ones.</summary>
     protected List<ISpannable?> AllSpannables { get; } = [];
 
-    /// <summary>Gets the available slot index in <see cref="AllSpannables"/> for use by inheritors.</summary>
-    protected int AllSpannablesAvailableSlot { get; init; }
+    /// <summary>Gets or sets the available slot index in <see cref="AllSpannables"/> for use by inheritors.</summary>
+    protected int AllSpannablesAvailableSlot { get; set; }
 
-    /// <summary>Gets the available slot index for inner ID, for use with
+    /// <summary>Gets or sets the available slot index for inner ID, for use with
     /// <see cref="SpannableExtensions.GetGlobalIdFromInnerId"/>.</summary>
-    protected int InnerIdAvailableSlot { get; init; }
+    protected int InnerIdAvailableSlot { get; set; }
 
     /// <summary>Gets a value indicating whether <see cref="IDisposable.Dispose"/> has been called.</summary>
     protected bool IsDisposed { get; private set; }
@@ -340,6 +361,8 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
             {
                 cmea.Handled = false;
                 this.OnMouseWheel(cmea);
+                if (cmea.Handled)
+                    io->MouseWheel = io->MouseWheelH = 0f;
             }
 
             if (this.lastMouseLocation != cmea.LocalLocation)
@@ -740,10 +763,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                 this.MeasuredBoundaryBox.RightBottom,
                 0x20FFFFFF);
             if (this.IsMouseHovered)
-            {
                 drawListPtr.AddCircle(this.lastMouseLocation, 3, 0x407777FF);
-                ImGui.SetTooltip($"{this.Name}: {this.scale:g}x\n{this.MeasuredBoundaryBox}\n{this.Boundary}");
-            }
         }
 
         // TODO: make better focus indicator
@@ -837,7 +857,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     /// <summary>Determines if <see cref="MeasureContentBox"/> should be called from
     /// <see cref="ISpannableMeasurement.Measure"/>.</summary>
     /// <returns><c>true</c> if it is.</returns>
-    protected virtual bool ShouldMeasureAgain() => !this.IsMeasurementValid;
+    protected virtual bool ShouldMeasureAgain() => !this.IsMeasurementValid || this.IsAnyAnimationRunning;
 
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="suggestedSize">Suggested size of the content box.</param>

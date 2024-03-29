@@ -55,6 +55,13 @@ public class SpannableAnimator
         get => this.OpacityEasing?.IsRunning is true || this.TransformationEasing?.IsRunning is true;
     }
 
+    /// <inheritdoc cref="Animation.Easing.IsDone"/>
+    public bool IsDone
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.OpacityEasing?.IsDone is not false && this.TransformationEasing?.IsDone is not false;
+    }
+
     /// <summary>Gets the transformation matrix for the animation.</summary>
     public ref readonly Matrix4x4 AnimatedTransformation
     {

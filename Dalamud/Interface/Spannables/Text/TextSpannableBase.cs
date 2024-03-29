@@ -83,6 +83,10 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
         return true;
     }
 
+    /// <summary>Raises the <see cref="SpannableChange"/> event.</summary>
+    /// <param name="obj">The spannable that has been changed.</param>
+    protected virtual void OnSpannableChange(ISpannable obj) => this.SpannableChange?.Invoke(obj);
+
     /// <summary>Gets the data required for rendering.</summary>
     /// <returns>The data.</returns>
     private protected abstract DataRef GetData();
@@ -164,10 +168,6 @@ public abstract partial class TextSpannableBase : ISpannable, ISpannableSerializ
             }
         }
     }
-
-    /// <summary>Raises the <see cref="SpannableChange"/> event.</summary>
-    /// <param name="obj">The spannable that has been changed.</param>
-    protected virtual void OnSpannableChange(ISpannable obj) => this.SpannableChange?.Invoke(obj);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct BoundaryToRecord

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -18,6 +19,7 @@ using Dalamud.Interface.Spannables.Controls.Containers;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.Gestures;
 using Dalamud.Interface.Spannables.Controls.Labels;
+using Dalamud.Interface.Spannables.Controls.TODO.RecyclerViews;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering;
@@ -331,6 +333,11 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             },
             ChildrenList =
             {
+                new ObservingRecyclerViewControl<ObservableCollection<int>>
+                {
+                    Size = new(160, 480),
+                    LayoutManager = new LinearLayoutManager(),
+                }.GetAsOut(out var rvc),
                 new LinearContainer
                 {
                     Name = "linearContainerTests",
@@ -666,6 +673,17 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             },
         };
 
+        rvc.Collection = new(Enumerable.Range(0, 100));
+        rvc.NeedDecideSpannableType += e => e.SpannableType = e.Index % 3;
+        rvc.NeedMoreSpannables += e => rvc.AddPlaceholder(
+            e.SpannableType,
+            new LabelControl
+            {
+                Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
+                Padding = new(8 * e.SpannableType),
+            });
+        rvc.NeedPopulateSpannable += e => ((LabelControl)e.Spannable).Text = $"{e.Index} ({e.SpannableType})";
+
         this.rootContainer = new()
         {
             Name = "root",
@@ -825,6 +843,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         void UpdateHorzAlignment(PropertyChangeEventArgs<ControlSpannable, bool> args)
         {
+            if (args.State != PropertyChangeState.After)
+                return;
             var n = optAlignHorzLeft.Checked ? 0f : optAlignHorzMid.Checked ? 0.5f : 1f;
             foreach (var x in linearContainer.EnumerateHierarchy<LinearContainer>())
             {
@@ -839,6 +859,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         void UpdateVertAlignment(PropertyChangeEventArgs<ControlSpannable, bool> args)
         {
+            if (args.State != PropertyChangeState.After)
+                return;
             var n = optAlignVertTop.Checked ? 0f : optAlignVertMid.Checked ? 0.5f : 1f;
             foreach (var x in linearContainer.EnumerateHierarchy<LinearContainer>())
             {
@@ -853,6 +875,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         void UpdateBias(PropertyChangeEventArgs<ControlSpannable, bool> args)
         {
+            if (args.State != PropertyChangeState.After)
+                return;
             var n = optBias0.Checked ? 0f : optBias1.Checked ? 1f : optBias2.Checked ? 2f : optBias3.Checked ? 3f : 4f;
             foreach (var x in linearContainer.EnumerateHierarchy<LinearContainer>())
                 x.ContentBias = n / 4f;
@@ -860,6 +884,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         void UpdateLblOptions(PropertyChangeEventArgs<ControlSpannable, bool>? e)
         {
+            if (e?.State is PropertyChangeState.Before)
+                return;
             if (this.renderContextOptions.RootOptions is null)
             {
                 Service<Framework>.Get().RunOnTick(() => UpdateLblOptions(null));
