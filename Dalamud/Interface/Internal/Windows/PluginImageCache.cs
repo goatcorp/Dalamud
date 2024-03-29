@@ -191,6 +191,11 @@ internal class PluginImageCache : IInternalDisposableService
     {
         iconTexture = null;
         loadedSince = null;
+        
+        // Wait for the horse icon list to be there, if applicable
+        var fools = Service<Fools24>.Get();
+        if (Fools24.IsDayApplicable() && fools.IsWaitingForIconList && !fools.Failed)
+            return false;
 
         if (manifest == null || manifest.InternalName == null)
         {
@@ -638,6 +643,14 @@ internal class PluginImageCache : IInternalDisposableService
     {
         if (isThirdParty)
             return manifest.IconUrl;
+        
+        var fools = Service<Fools24>.Get();
+        if (Fools24.IsDayApplicable())
+        {
+            var iconLink = fools.GetHorseIconLink(manifest.InternalName);
+            if (iconLink != null)
+                return iconLink;
+        }
 
         return MainRepoDip17ImageUrl.Format(manifest.Dip17Channel!, manifest.InternalName, "icon.png");
     }

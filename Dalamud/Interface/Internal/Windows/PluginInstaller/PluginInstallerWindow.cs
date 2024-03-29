@@ -268,6 +268,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void OnOpen()
     {
+        Service<Fools24>.Get().NotifyInstallerWindowOpened();
+        
         var pluginManager = Service<PluginManager>.Get();
 
         _ = pluginManager.ReloadPluginMastersAsync();
