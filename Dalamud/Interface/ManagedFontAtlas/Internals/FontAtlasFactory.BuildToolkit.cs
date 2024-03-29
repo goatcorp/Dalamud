@@ -1,9 +1,9 @@
 ﻿using System.Buffers;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.FontIdentifier;
@@ -16,6 +16,8 @@ using Dalamud.Utility;
 using ImGuiNET;
 
 using SharpDX.DXGI;
+
+using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -434,8 +436,162 @@ internal sealed partial class FontAtlasFactory
             this.gameFontHandleSubstance.AttachGameGlyphs(this, mergeFont, gameFontStyle, glyphRanges);
 
         /// <inheritdoc/>
+        public void AttachWindowsDefaultFont(
+            CultureInfo cultureInfo,
+            in SafeFontConfig fontConfig,
+            int weight = (int)DWRITE_FONT_WEIGHT.DWRITE_FONT_WEIGHT_NORMAL,
+            int stretch = (int)DWRITE_FONT_STRETCH.DWRITE_FONT_STRETCH_NORMAL,
+            int style = (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL)
+        {
+            var targetFont = fontConfig.MergeFont;
+            if (targetFont.IsNull())
+                targetFont = this.Font;
+            if (targetFont.IsNull())
+                return;
+
+            // https://learn.microsoft.com/en-us/windows/apps/design/globalizing/loc-international-fonts
+            var splitTag = cultureInfo.IetfLanguageTag.Split("-");
+            foreach (var test in new[]
+                     {
+                         cultureInfo.IetfLanguageTag,
+                         $"{splitTag[0]}-{splitTag[^1]}",
+                     })
+            {
+                var familyName = test switch
+                {
+                    "af-ZA" => "Segoe UI",
+                    "am-ET" => "Ebrima",
+                    "ar-SA" => "Segoe UI",
+                    "as-IN" => "Nirmala UI",
+                    "az-Latn-AZ" => "Segoe UI",
+                    "be-BY" => "Segoe UI",
+                    "bg-BG" => "Segoe UI",
+                    "bn-BD" => "Nirmala UI",
+                    "bn-IN" => "Nirmala UI",
+                    "bs-Latn-BA" => "Segoe UI",
+                    "ca-ES" => "Segoe UI",
+                    "ca-ES-valencia" => "Segoe UI",
+                    "chr-CHER-US" => "Gadugi",
+                    "cs-CZ" => "Segoe UI",
+                    "cy-GB" => "Segoe UI",
+                    "da-DK" => "Segoe UI",
+                    "de-DE" => "Segoe UI",
+                    "el-GR" => "Segoe UI",
+                    "en-GB" => "Segoe UI",
+                    "es-ES" => "Segoe UI",
+                    "et-EE" => "Segoe UI",
+                    "eu-ES" => "Segoe UI",
+                    "fa-IR" => "Segoe UI",
+                    "fi-FI" => "Segoe UI",
+                    "fil-PH" => "Segoe UI",
+                    "fr-FR" => "Segoe UI",
+                    "ga-IE" => "Segoe UI",
+                    "gd-GB" => "Segoe UI",
+                    "gl-ES" => "Segoe UI",
+                    "gu-IN" => "Nirmala UI",
+                    "ha-Latn-NG" => "Segoe UI",
+                    "he-IL" => "Segoe UI",
+                    "hi-IN" => "Nirmala UI",
+                    "hr-HR" => "Segoe UI",
+                    "hu-HU" => "Segoe UI",
+                    "hy-AM" => "Segoe UI",
+                    "id-ID" => "Segoe UI",
+                    "ig-NG" => "Segoe UI",
+                    "is-IS" => "Segoe UI",
+                    "it-IT" => "Segoe UI",
+                    "ja-JP" => "Yu Gothic UI",
+                    "ka-GE" => "Segoe UI",
+                    "kk-KZ" => "Segoe UI",
+                    "km-KH" => "Leelawadee UI",
+                    "kn-IN" => "Nirmala UI",
+                    "ko-KR" => "Malgun Gothic",
+                    "kok-IN" => "Nirmala UI",
+                    "ku-ARAB-IQ" => "Segoe UI",
+                    "ky-KG" => "Segoe UI",
+                    "lb-LU" => "Segoe UI",
+                    "lt-LT" => "Segoe UI",
+                    "lv-LV" => "Segoe UI",
+                    "mi-NZ" => "Segoe UI",
+                    "mk-MK" => "Segoe UI",
+                    "ml-IN" => "Nirmala UI",
+                    "mn-MN" => "Segoe UI",
+                    "mr-IN" => "Nirmala UI",
+                    "ms-MY" => "Segoe UI",
+                    "mt-MT" => "Segoe UI",
+                    "nb-NO" => "Segoe UI",
+                    "ne-NP" => "Nirmala UI",
+                    "nl-NL" => "Segoe UI",
+                    "nn-NO" => "Segoe UI",
+                    "nso-ZA" => "Segoe UI",
+                    "or-IN" => "Nirmala UI",
+                    "pa-Arab-PK" => "Segoe UI",
+                    "pa-IN" => "Nirmala UI",
+                    "pl-PL" => "Segoe UI",
+                    "prs-AF" => "Segoe UI",
+                    "pt-BR" => "Segoe UI",
+                    "pt-PT" => "Segoe UI",
+                    "qut-GT" => "Segoe UI",
+                    "quz-PE" => "Segoe UI",
+                    "ro-RO" => "Segoe UI",
+                    "ru-RU" => "Segoe UI",
+                    "rw-RW" => "Segoe UI",
+                    "sd-Arab-PK" => "Segoe UI",
+                    "si-LK" => "Nirmala UI",
+                    "sk-SK" => "Segoe UI",
+                    "sl-SI" => "Segoe UI",
+                    "sq-AL" => "Segoe UI",
+                    "sr-Cyrl-BA" => "Segoe UI",
+                    "sr-Cyrl-CS" => "Segoe UI",
+                    "sr-Latn-CS" => "Segoe UI",
+                    "sv-SE" => "Segoe UI",
+                    "sw-KE" => "Segoe UI",
+                    "ta-IN" => "Nirmala UI",
+                    "te-IN" => "Nirmala UI",
+                    "tg-Cyrl-TJ" => "Segoe UI",
+                    "th-TH" => "Leelawadee UI",
+                    "ti-ET" => "Ebrima",
+                    "tk-TM" => "Segoe UI",
+                    "tn-ZA" => "Segoe UI",
+                    "tr-TR" => "Segoe UI",
+                    "tt-RU" => "Segoe UI",
+                    "ug-CN" => "Segoe UI",
+                    "uk-UA" => "Segoe UI",
+                    "ur-PK" => "Segoe UI",
+                    "uz-Latn-UZ" => "Segoe UI",
+                    "vi-VN" => "Segoe UI",
+                    "wo-SN" => "Segoe UI",
+                    "xh-ZA" => "Segoe UI",
+                    "yo-NG" => "Segoe UI",
+                    "zh-CN" => "Microsoft YaHei UI",
+                    "zh-HK" => "Microsoft JhengHei UI",
+                    "zh-TW" => "Microsoft JhengHei UI",
+                    "zh-Hans" => "Microsoft YaHei UI",
+                    "zh-Hant" => "Microsoft YaHei UI",
+                    "zu-ZA" => "Segoe UI",
+                    _ => null,
+                };
+                if (familyName is null)
+                    continue;
+                var family = IFontFamilyId
+                             .ListSystemFonts(false)
+                             .FirstOrDefault(
+                                 x => x.EnglishName.Equals(familyName, StringComparison.InvariantCultureIgnoreCase));
+                if (family?.Fonts[family.FindBestMatch(weight, stretch, style)] is not { } font)
+                    return;
+                font.AddToBuildToolkit(this, fontConfig with { MergeFont = targetFont });
+                return;
+            }
+        }
+
+        /// <inheritdoc/>
         public void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig)
         {
+            var targetFont = fontConfig.MergeFont;
+            if (targetFont.IsNull())
+                targetFont = this.Font;
+            if (targetFont.IsNull())
+                return;
+
             var dalamudConfiguration = Service<DalamudConfiguration>.Get();
             if (dalamudConfiguration.EffectiveLanguage == "ko"
                 || Service<DalamudIme>.GetNullable()?.EncounteredHangul is true)
@@ -444,41 +600,24 @@ internal sealed partial class FontAtlasFactory
                     DalamudAsset.NotoSansKrRegular,
                     fontConfig with
                     {
-                        GlyphRanges = ImGuiHelpers.CreateImGuiRangesFrom(
-                            UnicodeRanges.HangulJamo,
-                            UnicodeRanges.HangulCompatibilityJamo,
-                            UnicodeRanges.HangulSyllables,
-                            UnicodeRanges.HangulJamoExtendedA,
-                            UnicodeRanges.HangulJamoExtendedB),
+                        MergeFont = targetFont,
+                        GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("ko-kr").BuildExact(),
                     });
             }
 
-            var windowsDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-            var fontPathChs = Path.Combine(windowsDir, "Fonts", "msyh.ttc");
-            if (!File.Exists(fontPathChs))
-                fontPathChs = null;
-
-            var fontPathCht = Path.Combine(windowsDir, "Fonts", "msjh.ttc");
-            if (!File.Exists(fontPathCht))
-                fontPathCht = null;
-
-            if (fontPathCht != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "tw")
+            if (Service<DalamudConfiguration>.Get().EffectiveLanguage == "tw")
             {
-                this.AddFontFromFile(fontPathCht, fontConfig with
+                this.AttachWindowsDefaultFont(CultureInfo.GetCultureInfo("zh-hant"), fontConfig with
                 {
-                    GlyphRanges = ImGuiHelpers.CreateImGuiRangesFrom(
-                        UnicodeRanges.CjkUnifiedIdeographs,
-                        UnicodeRanges.CjkUnifiedIdeographsExtensionA),
+                    GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("zh-hant").BuildExact(),
                 });
             }
-            else if (fontPathChs != null && (Service<DalamudConfiguration>.Get().EffectiveLanguage == "zh"
-                                               || Service<DalamudIme>.GetNullable()?.EncounteredHan is true))
+            else if (Service<DalamudConfiguration>.Get().EffectiveLanguage == "zh"
+                     || Service<DalamudIme>.GetNullable()?.EncounteredHan is true)
             {
-                this.AddFontFromFile(fontPathChs, fontConfig with
+                this.AttachWindowsDefaultFont(CultureInfo.GetCultureInfo("zh-hans"), fontConfig with
                 {
-                    GlyphRanges = ImGuiHelpers.CreateImGuiRangesFrom(
-                        UnicodeRanges.CjkUnifiedIdeographs,
-                        UnicodeRanges.CjkUnifiedIdeographsExtensionA),
+                    GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("zh-hans").BuildExact(),
                 });
             }
         }
