@@ -12,9 +12,18 @@ using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.Spannables;
+using Dalamud.Interface.Spannables.Controls;
+using Dalamud.Interface.Spannables.Controls.RecyclerViews;
+using Dalamud.Interface.Spannables.Patterns;
+using Dalamud.Interface.Spannables.Rendering.Internal;
+using Dalamud.Interface.Spannables.Styles;
+using Dalamud.Interface.Spannables.Text;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -33,10 +42,18 @@ namespace Dalamud.Interface.Internal.Windows;
 /// <summary>
 /// The window that displays the Dalamud log file in-game.
 /// </summary>
-internal class ConsoleWindow : Window, IDisposable
+internal partial class ConsoleWindow : Window, IDisposable
 {
     private const int LogLinesMinimum = 100;
     private const int LogLinesMaximum = 1000000;
+
+    private static readonly string[] WordBreakModeNames =
+    {
+        "Normal",
+        "Break All",
+        "Keep All",
+        "Break Word",
+    };
 
     // Only this field may be touched from any thread.
     private readonly ConcurrentQueue<(string Line, LogEvent LogEvent)> newLogEntries;
@@ -48,7 +65,15 @@ internal class ConsoleWindow : Window, IDisposable
     private readonly List<string> history = new();
     private readonly List<PluginFilterEntry> pluginFilters = new();
 
-    private int newRolledLines;
+    private readonly DalamudConfiguration activeConfiguration;
+
+    private readonly ISpannable ellipsisSpannable;
+    private readonly ISpannable wrapMarkerSpannable;
+
+    private TextSpannableBase.Options textOptions = new();
+
+    private ObservingRecyclerViewControl<RollingList<LogEntry>> rvc = null!;
+
     private bool pendingRefilter;
     private bool pendingClearLog;
 
@@ -68,15 +93,20 @@ internal class ConsoleWindow : Window, IDisposable
 
     private bool filterShowUncaughtExceptions;
     private bool settingsPopupWasOpen;
+    private DalamudConfiguration? newSettings;
     private bool showFilterToolbar;
     private bool copyMode;
     private bool killGameArmed;
-    private bool autoScroll;
-    private int logLinesLimit;
-    private bool autoOpen;
+
+    private Vector2 prevWindowSize;
+    private int configGeneration;
+    private int prevConfigGeneration;
 
     private int historyPos;
     private int copyStart = -1;
+    private int copyEnd = -1;
+
+    private Vector2 mmbScrollOrigin = new(float.NaN);
 
     private IActiveNotification? prevCopyNotification;
 
@@ -85,23 +115,38 @@ internal class ConsoleWindow : Window, IDisposable
     public ConsoleWindow(DalamudConfiguration configuration)
         : base("Dalamud Console", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
-        this.autoScroll = configuration.LogAutoScroll;
-        this.autoOpen = configuration.LogOpenAtStartup;
+        this.activeConfiguration = configuration;
         SerilogEventSink.Instance.LogLine += this.OnLogLine;
 
         Service<Framework>.GetAsync().ContinueWith(r => r.Result.Update += this.FrameworkOnUpdate);
+        Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(
+            r => r.Result.Manager.MonoFontHandle!.ImFontChanged += this.MonoFontOnImFontChanged);
 
         this.Size = new Vector2(500, 400);
         this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.RespectCloseHotkey = false;
 
-        this.logLinesLimit = configuration.LogLinesLimit;
-
-        var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
+        var limit = Math.Clamp(configuration.LogLinesLimit, LogLinesMinimum, LogLinesMaximum);
         this.newLogEntries = new();
         this.logText = new(limit);
         this.filteredLogEntries = new(limit);
+
+        Service<Framework>.GetAsync().ContinueWith(r => r.Result.RunOnFrameworkThread(this.SetupMainThread));
+
+        this.ellipsisSpannable = new TextSpannableBuilder().PushForeColor(0x80FFFFFF).Append("…");
+        this.wrapMarkerSpannable = new TextSpannableBuilder()
+                                   .PushFontSet(
+                                       new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
+                                       out _)
+                                   .PushEdgeColor(0xFF000044)
+                                   .PushEdgeWidth(1)
+                                   .PushForeColor(0xFFCCCCFF)
+                                   .PushItalic(true)
+                                   .PushFontSize(-0.4f)
+                                   .PushLineHeight(2.5f)
+                                   .PushVerticalAlignment(VerticalAlignment.Middle)
+                                   .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
 
@@ -110,6 +155,15 @@ internal class ConsoleWindow : Window, IDisposable
             this.clipperPtr = new(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
         }
     }
+
+    private static SpannableRenderer Renderer => Service<SpannableRenderer>.Get();
+
+    /// <summary>
+    /// Gets an instance of <see cref="DalamudConfiguration"/> that may point to the live object or our temporary object
+    /// for storing the configuration being changed.
+    /// </summary>
+    /// <remarks>Do not modify the return value.</remarks>
+    private DalamudConfiguration StagingConfig => this.newSettings ?? this.activeConfiguration;
 
     /// <inheritdoc/>
     public override void OnOpen()
@@ -122,9 +176,11 @@ internal class ConsoleWindow : Window, IDisposable
     public void Dispose()
     {
         SerilogEventSink.Instance.LogLine -= this.OnLogLine;
-        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+        this.activeConfiguration.DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         if (Service<Framework>.GetNullable() is { } framework)
             framework.Update -= this.FrameworkOnUpdate;
+        if (Service<InterfaceManager.InterfaceManagerWithScene>.GetNullable() is { } imws)
+            imws.Manager.MonoFontHandle!.ImFontChanged -= this.MonoFontOnImFontChanged;
 
         this.clipperPtr.Destroy();
         this.clipperPtr = default;
@@ -133,6 +189,12 @@ internal class ConsoleWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
+        if (this.prevWindowSize != ImGui.GetWindowSize() || this.configGeneration != this.prevConfigGeneration)
+        {
+            this.prevWindowSize = ImGui.GetWindowSize();
+            this.prevConfigGeneration = this.configGeneration;
+        }
+
         this.DrawOptionsToolbar();
 
         this.DrawFilterToolbar();
@@ -156,128 +218,17 @@ internal class ConsoleWindow : Window, IDisposable
         var sendButtonSize = ImGui.CalcTextSize("Send") +
                              ((new Vector2(16, 0) + (ImGui.GetStyle().FramePadding * 2)) * ImGuiHelpers.GlobalScale);
         var scrollingHeight = ImGui.GetContentRegionAvail().Y - sendButtonSize.Y;
-        ImGui.BeginChild(
-            "scrolling",
-            new Vector2(0, scrollingHeight),
-            false,
-            ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-
-        ImGui.PushFont(InterfaceManager.MonoFont);
-
-        var childPos = ImGui.GetWindowPos();
-        var childDrawList = ImGui.GetWindowDrawList();
-        var childSize = ImGui.GetWindowSize();
-
-        var timestampWidth = ImGui.CalcTextSize("00:00:00.000").X;
-        var levelWidth = ImGui.CalcTextSize("AAA").X;
-        var separatorWidth = ImGui.CalcTextSize(" | ").X;
-        var cursorLogLevel = timestampWidth + separatorWidth;
-        var cursorLogLine = cursorLogLevel + levelWidth + separatorWidth;
-
-        var lastLinePosY = 0.0f;
-        var logLineHeight = 0.0f;
-
-        this.clipperPtr.Begin(this.filteredLogEntries.Count);
-        while (this.clipperPtr.Step())
-        {
-            for (var i = this.clipperPtr.DisplayStart; i < this.clipperPtr.DisplayEnd; i++)
-            {
-                var index = Math.Max(
-                    i - this.newRolledLines,
-                    0); // Prevents flicker effect. Also workaround to avoid negative indexes.
-                var line = this.filteredLogEntries[index];
-
-                if (!line.IsMultiline)
-                    ImGui.Separator();
-
-                if (line.SelectedForCopy)
+        ImGui.BeginChild("scrolling", new(0, scrollingHeight), false);
+        this.rvc.Size = new(ControlSpannable.MatchParent);
+        Renderer.DrawSpannable(
+            this.rvc,
+            new(
+                "##list",
+                new()
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Header, ImGuiColors.ParsedGrey);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, ImGuiColors.ParsedGrey);
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ImGuiColors.ParsedGrey);
-                }
-                else
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Header, GetColorForLogEventLevel(line.Level));
-                    ImGui.PushStyleColor(ImGuiCol.HeaderActive, GetColorForLogEventLevel(line.Level));
-                    ImGui.PushStyleColor(ImGuiCol.HeaderHovered, GetColorForLogEventLevel(line.Level));
-                }
-
-                ImGui.Selectable(
-                    "###console_null",
-                    true,
-                    ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
-
-                // This must be after ImGui.Selectable, it uses ImGui.IsItem... functions
-                this.HandleCopyMode(i, line);
-
-                ImGui.SameLine();
-
-                ImGui.PopStyleColor(3);
-
-                if (!line.IsMultiline)
-                {
-                    ImGui.TextUnformatted(line.TimestampString);
-                    ImGui.SameLine();
-
-                    ImGui.SetCursorPosX(cursorLogLevel);
-                    ImGui.TextUnformatted(GetTextForLogEventLevel(line.Level));
-                    ImGui.SameLine();
-                }
-
-                ImGui.SetCursorPosX(cursorLogLine);
-                line.HighlightMatches ??= (this.compiledLogHighlight ?? this.compiledLogFilter)?.Matches(line.Line);
-                if (line.HighlightMatches is { } matches)
-                {
-                    this.DrawHighlighted(
-                        line.Line,
-                        matches,
-                        ImGui.GetColorU32(ImGuiCol.Text),
-                        ImGui.GetColorU32(ImGuiColors.HealerGreen));
-                }
-                else
-                {
-                    ImGui.TextUnformatted(line.Line);
-                }
-
-                var currentLinePosY = ImGui.GetCursorPosY();
-                logLineHeight = currentLinePosY - lastLinePosY;
-                lastLinePosY = currentLinePosY;
-            }
-        }
-
-        this.clipperPtr.End();
-
-        ImGui.PopFont();
-
-        ImGui.PopStyleVar();
-
-        if (!this.autoScroll || ImGui.GetScrollY() < ImGui.GetScrollMaxY())
-        {
-            ImGui.SetScrollY(ImGui.GetScrollY() - (logLineHeight * this.newRolledLines));
-        }
-
-        if (this.autoScroll && ImGui.GetScrollY() >= ImGui.GetScrollMaxY())
-        {
-            ImGui.SetScrollHereY(1.0f);
-        }
-
-        // Draw dividing lines
-        var div1Offset = MathF.Round((timestampWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
-        var div2Offset = MathF.Round((cursorLogLevel + levelWidth + (separatorWidth / 2)) - ImGui.GetScrollX());
-        childDrawList.AddLine(
-            new(childPos.X + div1Offset, childPos.Y),
-            new(childPos.X + div1Offset, childPos.Y + childSize.Y),
-            0x4FFFFFFF,
-            1.0f);
-        childDrawList.AddLine(
-            new(childPos.X + div2Offset, childPos.Y),
-            new(childPos.X + div2Offset, childPos.Y + childSize.Y),
-            0x4FFFFFFF,
-            1.0f);
-
+                    Size = ImGui.GetContentRegionMax(),
+                }));
         ImGui.EndChild();
 
         var hadColor = false;
@@ -349,6 +300,185 @@ internal class ConsoleWindow : Window, IDisposable
         _ => 0x30FFFFFF,
     };
 
+    private void MonoFontOnImFontChanged(IFontHandle fonthandle, ILockedImFont lockedfont) =>
+        this.configGeneration++;
+
+    private void SetupTextStyle() =>
+        this.textOptions = new()
+        {
+            WordBreak = this.activeConfiguration.LogLineBreakMode,
+            Style = new() { EdgeWidth = 1f },
+            DisplayControlCharacters = true,
+            ControlCharactersStyle = new()
+            {
+                Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
+                BackColor = 0xFF333333,
+                EdgeWidth = 1,
+                ForeColor = 0xFFFFFFFF,
+                FontSize = -0.6f,
+                VerticalAlignment = 0.5f,
+            },
+            WrapMarker =
+                this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
+                    ? this.ellipsisSpannable
+                    : this.wrapMarkerSpannable,
+        };
+
+    private void SetupMainThread()
+    {
+        this.SetupTextStyle();
+        var llm = new LinearLayoutManager
+        {
+            AnchorOffsetRatio = 1f,
+            StickToTerminus = true,
+            CellDecoration = new BorderPattern
+            {
+                Color = 0xFF444444,
+                DrawBottom = true,
+            },
+        };
+        this.rvc = new();
+        this.rvc.LayoutManager = llm;
+        this.rvc.DecideSpannableType += e => e.SpannableType = 0;
+        this.rvc.AddMoreSpannables += _ => this.rvc.AddPlaceholder(0, new LogEntryControl());
+        this.rvc.PopulateSpannable += e =>
+        {
+            if (e.Spannable is not LogEntryControl lec)
+                return;
+            lec.Entry = this.filteredLogEntries[e.Index];
+            lec.HighlightRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
+            lec.SelectedForCopy =
+                this.copyStart <= this.copyEnd
+                    ? this.copyStart <= e.Index && e.Index <= this.copyEnd
+                    : this.copyEnd <= e.Index && e.Index <= this.copyStart;
+            lec.TextSpannableMeasurementOptions = this.textOptions;
+        };
+        this.rvc.ClearSpannable += e =>
+        {
+            if (e.Spannable is not LogEntryControl lec)
+                return;
+            lec.Entry = null;
+            lec.HighlightRegex = null;
+        };
+        this.rvc.MouseDown += e =>
+        {
+            switch (e.Button)
+            {
+                case ImGuiMouseButton.Left when this.mmbScrollOrigin.X is float.NaN:
+                {
+                    if (this.rvc.FindChildMeasurementAt(ImGui.GetMousePos()) is not { } cm)
+                        return;
+
+                    var index = llm.FindItemIndexFromSpannable(cm.Spannable);
+                    if (index < 0)
+                        return;
+
+                    if (this.copyMode)
+                    {
+                        this.copyStart = this.copyEnd = index;
+                        e.Handled = true;
+                        HandleRvcDrag();
+                    }
+
+                    break;
+                }
+
+                case ImGuiMouseButton.Middle when this.copyStart == -1:
+                {
+                    this.rvc.MouseCursor = ImGuiMouseCursor.ResizeAll;
+                    this.mmbScrollOrigin = e.LocalLocation;
+                    break;
+                }
+            }
+        };
+        this.rvc.MouseMove += e =>
+        {
+            if (this.mmbScrollOrigin.X is not float.NaN)
+            {
+                this.rvc.AutoScrollPerSecond = (e.LocalLocation - this.mmbScrollOrigin) / 4f;
+                return;
+            }
+
+            if (this.copyStart == -1 || !this.copyMode)
+                return;
+
+            HandleRvcDrag();
+            var marg = this.rvc.MeasuredBoundaryBox.Height / 8f;
+            if (e.LocalLocation.Y < marg)
+            {
+                this.rvc.AutoScrollPerSecond = new Vector2(0, -5) * ((marg - e.LocalLocation.Y) / marg);
+            }
+            else if (e.LocalLocation.Y > this.rvc.MeasuredBoundaryBox.Height - marg)
+            {
+                this.rvc.AutoScrollPerSecond = new Vector2(0, 5) *
+                                               ((e.LocalLocation.Y - (this.rvc.MeasuredBoundaryBox.Height - marg)) /
+                                                marg);
+            }
+            else
+            {
+                this.rvc.AutoScrollPerSecond = Vector2.Zero;
+            }
+        };
+        this.rvc.MouseUp += _ =>
+        {
+            if (this.mmbScrollOrigin.X is not float.NaN)
+            {
+                this.rvc.AutoScrollPerSecond = Vector2.Zero;
+                this.mmbScrollOrigin = new(float.NaN);
+                this.rvc.MouseCursor = ImGuiMouseCursor.Arrow;
+                return;
+            }
+
+            if (!this.copyMode)
+                return;
+
+            if (this.copyStart > this.copyEnd)
+                (this.copyStart, this.copyEnd) = (this.copyEnd, this.copyStart);
+
+            this.CopyFilteredLogEntries(true);
+
+            var (s, e) = (this.copyStart, this.copyEnd);
+            this.copyStart = this.copyEnd = -1;
+            llm.NotifyCollectionReplace(s, (e - s) + 1);
+            this.rvc.AutoScrollPerSecond = Vector2.Zero;
+        };
+        this.rvc.Scroll += _ =>
+        {
+            if (this.copyStart == -1 || !this.copyMode)
+                return;
+
+            HandleRvcDrag();
+        };
+        this.rvc.Collection = this.filteredLogEntries;
+        this.rvc.CaptureMouseOnMouseDown = true;
+
+        return;
+
+        void HandleRvcDrag()
+        {
+            var cm = llm.FindChildMeasurementAt(ImGui.GetMousePos());
+            cm ??= llm.FindClosestChildMeasurementAt(ImGui.GetMousePos());
+            var index = llm.FindItemIndexFromSpannable(cm?.Spannable);
+            if (index < 0)
+                return;
+
+            var prevEnd = this.copyEnd;
+            this.copyEnd = index;
+
+            if (index < prevEnd)
+                (index, prevEnd) = (prevEnd, index);
+            for (var i = prevEnd; i <= index; i++)
+            {
+                if (llm.FindMeasurementFromItemIndex(i)?.Spannable is not LogEntryControl lec)
+                    continue;
+                lec.SelectedForCopy =
+                    this.copyStart <= this.copyEnd
+                        ? this.copyStart <= i && i <= this.copyEnd
+                        : this.copyEnd <= i && i <= this.copyStart;
+            }
+        }
+    }
+
     private void FrameworkOnUpdate(IFramework framework)
     {
         if (this.pendingClearLog)
@@ -366,71 +496,30 @@ internal class ConsoleWindow : Window, IDisposable
             foreach (var log in this.logText)
             {
                 if (this.IsFilterApplicable(log))
-                    this.filteredLogEntries.Add(log);
-            }
-        }
-
-        var numPrevFilteredLogEntries = this.filteredLogEntries.Count;
-        var addedLines = 0;
-        while (this.newLogEntries.TryDequeue(out var logLine))
-            addedLines += this.HandleLogLine(logLine.Line, logLine.LogEvent);
-        this.newRolledLines = addedLines - (this.filteredLogEntries.Count - numPrevFilteredLogEntries);
-    }
-
-    private void HandleCopyMode(int i, LogEntry line)
-    {
-        var selectionChanged = false;
-
-        // If copyStart is -1, it means a drag has not been started yet, let's start one, and select the starting spot.
-        if (this.copyMode && this.copyStart == -1 && ImGui.IsItemClicked())
-        {
-            this.copyStart = i;
-            line.SelectedForCopy = !line.SelectedForCopy;
-
-            selectionChanged = true;
-        }
-
-        // Update the selected range when dragging over entries
-        if (this.copyMode && this.copyStart != -1 && ImGui.IsItemHovered() &&
-            ImGui.IsMouseDragging(ImGuiMouseButton.Left))
-        {
-            if (!line.SelectedForCopy)
-            {
-                foreach (var index in Enumerable.Range(0, this.filteredLogEntries.Count))
                 {
-                    if (this.copyStart < i)
-                    {
-                        this.filteredLogEntries[index].SelectedForCopy = index >= this.copyStart && index <= i;
-                    }
-                    else
-                    {
-                        this.filteredLogEntries[index].SelectedForCopy = index >= i && index <= this.copyStart;
-                    }
+                    this.filteredLogEntries.Add(log);
                 }
-
-                selectionChanged = true;
             }
         }
 
-        // Finish the drag, we should have already marked all dragged entries as selected by now.
-        if (this.copyMode && this.copyStart != -1 && ImGui.IsItemHovered() &&
-            ImGui.IsMouseReleased(ImGuiMouseButton.Left))
-        {
-            this.copyStart = -1;
-        }
-
-        if (selectionChanged)
-            this.CopyFilteredLogEntries(true);
+        while (this.newLogEntries.TryDequeue(out var logLine))
+            this.HandleLogLine(logLine.Line, logLine.LogEvent);
     }
 
     private void CopyFilteredLogEntries(bool selectedOnly)
     {
         var sb = new StringBuilder();
         var n = 0;
+        var i = 0;
         foreach (var entry in this.filteredLogEntries)
         {
-            if (selectedOnly && !entry.SelectedForCopy)
-                continue;
+            if (selectedOnly)
+            {
+                var skip = i < this.copyStart || i > this.copyEnd;
+                i++;
+                if (skip)
+                    continue;
+            }
 
             n++;
             sb.AppendLine(entry.ToString());
@@ -452,7 +541,7 @@ internal class ConsoleWindow : Window, IDisposable
 
     private void DrawOptionsToolbar()
     {
-        var configuration = Service<DalamudConfiguration>.Get();
+        var configuration = this.activeConfiguration;
 
         ImGui.PushItemWidth(150.0f * ImGuiHelpers.GlobalScale);
         if (ImGui.BeginCombo("##log_level", $"{EntryPoint.LogLevelSwitch.MinimumLevel}+"))
@@ -482,7 +571,7 @@ internal class ConsoleWindow : Window, IDisposable
         else if (this.settingsPopupWasOpen)
         {
             // Prevent side effects in case Apply wasn't clicked
-            this.logLinesLimit = configuration.LogLinesLimit;
+            this.newSettings = null;
         }
 
         this.settingsPopupWasOpen = settingsPopup;
@@ -530,14 +619,7 @@ internal class ConsoleWindow : Window, IDisposable
                 ref this.copyMode))
         {
             this.copyMode = !this.copyMode;
-
-            if (!this.copyMode)
-            {
-                foreach (var entry in this.filteredLogEntries)
-                {
-                    entry.SelectedForCopy = false;
-                }
-            }
+            this.rvc.LayoutManager!.NotifyCollectionReset();
         }
 
         if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
@@ -568,7 +650,7 @@ internal class ConsoleWindow : Window, IDisposable
             inputWidth = ImGui.GetWindowWidth() - (ImGui.GetStyle().WindowPadding.X * 2);
 
             if (!breakInputLines)
-                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2; 
+                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2;
         }
         else
         {
@@ -596,8 +678,7 @@ internal class ConsoleWindow : Window, IDisposable
                 this.exceptionLogHighlight = e;
             }
 
-            foreach (var log in this.logText)
-                log.HighlightMatches = null;
+            this.rvc.LayoutManager!.NotifyCollectionReset();
         }
 
         if (!breakInputLines)
@@ -625,35 +706,56 @@ internal class ConsoleWindow : Window, IDisposable
                 this.exceptionLogFilter = e;
             }
 
-            foreach (var log in this.logText)
-                log.HighlightMatches = null;
+            this.rvc.LayoutManager!.NotifyCollectionReset();
         }
     }
 
     private void DrawSettingsPopup(DalamudConfiguration configuration)
     {
-        if (ImGui.Checkbox("Open at startup", ref this.autoOpen))
-        {
-            configuration.LogOpenAtStartup = this.autoOpen;
-            configuration.QueueSave();
-        }
+        var boolt = this.StagingConfig.LogOpenAtStartup;
+        if (ImGui.Checkbox("Open at startup", ref boolt))
+            (this.newSettings ??= this.activeConfiguration with { }).LogOpenAtStartup = boolt;
 
-        if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
+        boolt = this.StagingConfig.LogAutoScroll;
+        if (ImGui.Checkbox("Auto-scroll", ref boolt))
+            (this.newSettings ??= this.activeConfiguration with { }).LogAutoScroll = boolt;
+
+        var intt = (int)this.StagingConfig.LogLineBreakMode;
+        if (ImGui.Combo("Word Break", ref intt, WordBreakModeNames, WordBreakModeNames.Length))
         {
-            configuration.LogAutoScroll = this.autoScroll;
-            configuration.QueueSave();
+            (this.newSettings ??= this.activeConfiguration with { }).LogLineBreakMode =
+                (WordBreakType)intt;
         }
 
         ImGui.TextUnformatted("Logs buffer");
-        ImGui.SliderInt("lines", ref this.logLinesLimit, LogLinesMinimum, LogLinesMaximum);
-        if (ImGui.Button("Apply"))
+        intt = this.StagingConfig.LogLinesLimit;
+        if (ImGui.SliderInt("lines", ref intt, LogLinesMinimum, LogLinesMaximum))
+            (this.newSettings ??= this.activeConfiguration with { }).LogLinesLimit = intt;
+
+        if (this.newSettings is null)
         {
-            this.logLinesLimit = Math.Max(LogLinesMinimum, this.logLinesLimit);
+            ImGui.BeginDisabled();
+            ImGui.Button("Apply");
+            ImGui.EndDisabled();
+        }
+        else
+        {
+            if (ImGui.Button("Apply"))
+            {
+                configuration.LogOpenAtStartup = this.StagingConfig.LogOpenAtStartup;
+                configuration.LogAutoScroll = this.StagingConfig.LogAutoScroll;
+                configuration.LogLinesLimit = Math.Clamp(
+                    this.StagingConfig.LogLinesLimit,
+                    LogLinesMinimum,
+                    LogLinesMaximum);
+                configuration.LogLineBreakMode = this.StagingConfig.LogLineBreakMode;
+                configuration.QueueSave();
+                this.newSettings = null;
 
-            configuration.LogLinesLimit = this.logLinesLimit;
-            configuration.QueueSave();
-
-            ImGui.CloseCurrentPopup();
+                this.SetupTextStyle();
+                this.rvc.LayoutManager!.NotifyCollectionReset();
+                ImGui.CloseCurrentPopup();
+            }
         }
     }
 
@@ -888,16 +990,15 @@ internal class ConsoleWindow : Window, IDisposable
     }
 
     /// <summary>Add a log entry to the display.</summary>
-    /// <param name="line">The line to add.</param>
+    /// <param name="line">The log entry to add.</param>
     /// <param name="logEvent">The Serilog event associated with this line.</param>
-    /// <returns>Number of lines added to <see cref="filteredLogEntries"/>.</returns>
-    private int HandleLogLine(string line, LogEvent logEvent)
+    private void HandleLogLine(string line, LogEvent logEvent)
     {
         ThreadSafety.DebugAssertMainThread();
 
         // These lines are too huge, and only useful for troubleshooting after the game exist.
         if (line.StartsWith("TROUBLESHOOTING:") || line.StartsWith("LASTEXCEPTION:"))
-            return 0;
+            return;
 
         // Create a log entry template.
         var entry = new LogEntry
@@ -905,6 +1006,7 @@ internal class ConsoleWindow : Window, IDisposable
             Level = logEvent.Level,
             TimeStamp = logEvent.Timestamp,
             HasException = logEvent.Exception != null,
+            Line = line,
         };
 
         if (logEvent.Properties.ContainsKey("Dalamud.ModuleName"))
@@ -917,47 +1019,12 @@ internal class ConsoleWindow : Window, IDisposable
             entry.Source = sourceValue;
         }
 
-        var ssp = line.AsSpan();
-        var numLines = 0;
-        while (true)
-        {
-            var next = ssp.IndexOfAny('\r', '\n');
-            if (next == -1)
-            {
-                // Last occurrence; transfer the ownership of the new entry to the queue.
-                entry.Line = ssp.ToString();
-                numLines += this.AddAndFilter(entry);
-                break;
-            }
-
-            // There will be more; create a clone of the entry with the current line.
-            numLines += this.AddAndFilter(entry with { Line = ssp[..next].ToString() });
-
-            // Mark further lines as multiline.
-            entry.IsMultiline = true;
-
-            // Skip the detected line break.
-            ssp = ssp[next..];
-            ssp = ssp.StartsWith("\r\n") ? ssp[2..] : ssp[1..];
-        }
-
-        return numLines;
-    }
-
-    /// <summary>Adds a line to the log list and the filtered log list accordingly.</summary>
-    /// <param name="entry">The new log entry to add.</param>
-    /// <returns>Number of lines added to <see cref="filteredLogEntries"/>.</returns>
-    private int AddAndFilter(LogEntry entry)
-    {
         ThreadSafety.DebugAssertMainThread();
 
         this.logText.Add(entry);
 
-        if (!this.IsFilterApplicable(entry))
-            return 0;
-
-        this.filteredLogEntries.Add(entry);
-        return 1;
+        if (this.IsFilterApplicable(entry))
+            this.filteredLogEntries.Add(entry);
     }
 
     /// <summary>Determines if a log entry passes the user-specified filter.</summary>
@@ -1048,63 +1115,13 @@ internal class ConsoleWindow : Window, IDisposable
 
     private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)
     {
-        this.logLinesLimit = dalamudConfiguration.LogLinesLimit;
-        var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
+        var limit = Math.Clamp(this.activeConfiguration.LogLinesLimit, LogLinesMinimum, LogLinesMaximum);
         this.logText.Size = limit;
         this.filteredLogEntries.Size = limit;
+        this.configGeneration++;
     }
 
-    private unsafe void DrawHighlighted(
-        ReadOnlySpan<char> line,
-        MatchCollection matches,
-        uint col,
-        uint highlightCol)
-    {
-        Span<int> charOffsets = stackalloc int[(matches.Count * 2) + 2];
-        var charOffsetsIndex = 1;
-        for (var j = 0; j < matches.Count; j++)
-        {
-            var g = matches[j].Groups[0];
-            charOffsets[charOffsetsIndex++] = g.Index;
-            charOffsets[charOffsetsIndex++] = g.Index + g.Length;
-        }
-
-        charOffsets[charOffsetsIndex++] = line.Length;
-
-        var screenPos = ImGui.GetCursorScreenPos();
-        var drawList = ImGui.GetWindowDrawList().NativePtr;
-        var font = ImGui.GetFont();
-        var size = ImGui.GetFontSize();
-        var scale = size / font.FontSize;
-        var hotData = font.IndexedHotDataWrapped();
-        var lookup = font.IndexLookupWrapped();
-        var kern = (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NoKerning) == 0;
-        var lastc = '\0';
-        for (var i = 0; i < charOffsetsIndex - 1; i++)
-        {
-            var begin = charOffsets[i];
-            var end = charOffsets[i + 1];
-            if (begin == end)
-                continue;
-
-            for (var j = begin; j < end; j++)
-            {
-                var currc = line[j];
-                if (currc >= lookup.Length || lookup[currc] == ushort.MaxValue)
-                    currc = (char)font.FallbackChar;
-
-                if (kern)
-                    screenPos.X += scale * ImGui.GetFont().GetDistanceAdjustmentForPair(lastc, currc);
-                font.RenderChar(drawList, size, screenPos, i % 2 == 1 ? highlightCol : col, currc);
-
-                screenPos.X += scale * hotData[currc].AdvanceX;
-                lastc = currc;
-            }
-        }
-
-        ImGui.Dummy(screenPos - ImGui.GetCursorScreenPos());
-    }
-
+    [DebuggerDisplay("{TimestampString}: {Line}")]
     private record LogEntry
     {
         public string Line { get; set; } = string.Empty;
@@ -1113,26 +1130,18 @@ internal class ConsoleWindow : Window, IDisposable
 
         public DateTimeOffset TimeStamp { get; init; }
 
-        public bool IsMultiline { get; set; }
-
         /// <summary>
         /// Gets or sets the system responsible for generating this log entry. Generally will be a plugin's
         /// InternalName.
         /// </summary>
         public string? Source { get; set; }
 
-        public bool SelectedForCopy { get; set; }
-
         public bool HasException { get; init; }
-
-        public MatchCollection? HighlightMatches { get; set; }
 
         public string TimestampString => this.TimeStamp.ToString("HH:mm:ss.fff");
 
         public override string ToString() =>
-            this.IsMultiline
-                ? $"\t{this.Line}"
-                : $"{this.TimestampString} | {GetTextForLogEventLevel(this.Level)} | {this.Line}";
+            $"{this.TimestampString} | {GetTextForLogEventLevel(this.Level)} | {this.Line.Trim().ReplaceLineEndings("\n\t")}";
     }
 
     private class PluginFilterEntry

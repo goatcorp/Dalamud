@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Linq;
 
 using Dalamud.Game.Addon.Lifecycle;

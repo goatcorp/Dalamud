@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Dalamud.Utility
     /// Insertions and Removals are not supported.
     /// Not thread-safe.
     /// </remarks>
-    internal class RollingList<T> : IList<T>
+    internal class RollingList<T> : ICollection, IList<T>, INotifyCollectionChanged
     {
         private List<T> items;
         private int size;
@@ -68,8 +69,17 @@ namespace Dalamud.Utility
             this.AddRange(items);
         }
 
+        /// <summary>Occurs when an item is added, removed, or moved, or the entire list is refreshed.</summary>
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
         /// <summary>Gets item count.</summary>
         public int Count => this.items.Count;
+
+        /// <inheritdoc/>
+        bool ICollection.IsSynchronized => false;
+
+        /// <inheritdoc/>
+        object ICollection.SyncRoot => this;
 
         /// <summary>Gets or sets the internal list capacity.</summary>
         public int Capacity
@@ -104,6 +114,7 @@ namespace Dalamud.Utility
                     }
                 }
 
+                this.CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
                 this.size = value;
             }
         }
@@ -127,7 +138,9 @@ namespace Dalamud.Utility
             {
                 ThrowHelper.ThrowArgumentOutOfRangeExceptionIfGreaterThanOrEqual(nameof(index), index, this.Count);
                 ThrowHelper.ThrowArgumentOutOfRangeExceptionIfLessThan(nameof(index), index, 0);
+                var old = this.items[this.GetRealIndex(index)];
                 this.items[this.GetRealIndex(index)] = value;
+                this.CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Replace, value, old, index));
             }
         }
 
@@ -138,8 +151,12 @@ namespace Dalamud.Utility
             if (this.size == 0) return;
             if (this.items.Count >= this.size)
             {
+                var old = this.items[this.firstIndex];
                 this.items[this.firstIndex] = item;
                 this.firstIndex = (this.firstIndex + 1) % this.size;
+                
+                this.CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, old, 0));
+                this.CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Add, item, this.size - 1));
             }
             else
             {
@@ -151,6 +168,9 @@ namespace Dalamud.Utility
                 }
 
                 this.items.Add(item);
+                this.CollectionChanged?.Invoke(
+                    this,
+                    new(NotifyCollectionChangedAction.Add, item, this.items.Count - 1));
             }
 
             Debug.Assert(this.items.Count <= this.size, "Item count should be less than Size");
@@ -168,6 +188,7 @@ namespace Dalamud.Utility
         public void Clear()
         {
             this.items.Clear();
+            this.CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
             this.firstIndex = 0;
         }
 
@@ -206,6 +227,9 @@ namespace Dalamud.Utility
                 array[arrayIndex++] = this[index];
             }
         }
+
+        /// <inheritdoc/>
+        void ICollection.CopyTo(Array array, int index) => this.CopyTo((T[])array, index);
 
         /// <summary>Not supported.</summary>
         [SuppressMessage("Documentation Rules", "SA1611", Justification = "Not supported")]

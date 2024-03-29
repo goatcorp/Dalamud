@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 using Dalamud.Interface.ManagedFontAtlas;
 
@@ -20,6 +21,9 @@ public sealed class DalamudDefaultFontAndFamilyId : IFontId, IFontFamilyId
     /// </summary>
     public static readonly DalamudDefaultFontAndFamilyId Instance = new();
 
+    private static readonly ImmutableList<DalamudDefaultFontAndFamilyId> InstanceArray =
+        new[] { Instance }.ToImmutableList();
+    
     private DalamudDefaultFontAndFamilyId()
     {
     }
@@ -50,7 +54,7 @@ public sealed class DalamudDefaultFontAndFamilyId : IFontId, IFontFamilyId
 
     /// <inheritdoc/>
     [JsonIgnore]
-    public IReadOnlyList<IFontId> Fonts => new List<IFontId> { this }.AsReadOnly();
+    public IReadOnlyList<IFontId> Fonts => InstanceArray;
 
     public static bool operator ==(DalamudDefaultFontAndFamilyId? left, DalamudDefaultFontAndFamilyId? right) =>
         left is null == right is null;
