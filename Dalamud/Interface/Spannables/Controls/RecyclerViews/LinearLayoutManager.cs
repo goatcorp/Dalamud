@@ -10,12 +10,10 @@ using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.Controls.TODO;
 using Dalamud.Interface.Spannables.Helpers;
+using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
-
-using TerraFX.Interop.Windows;
-
-using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Spannables.Controls.RecyclerViews;
 
@@ -40,41 +38,27 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     private bool needDispatchScrollEvent;
     private bool useOffDirectionScroll;
 
+    private float scrollRequestedPosition;
+
     private bool wasBeginningVisible = true;
     private bool wasEndVisible = true;
 
     private bool useResetAnimationOnVisibleEntryPopulationOnce;
 
-    /// <summary>Occurs when the property <see cref="Direction"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Direction"/> is changing.</summary>
     public event PropertyChangeEventHandler<LinearDirection>? DirectionChange;
 
-    /// <summary>Occurs when the property <see cref="Gravity"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Gravity"/> is changing.</summary>
     public event PropertyChangeEventHandler<Vector2>? GravityChange;
 
-    /// <summary>Occurs when the property <see cref="AnchorOffsetRatio"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="AnchorOffsetRatio"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? AnchorOffsetRatioChange;
 
-    /// <summary>Occurs when the property <see cref="StickToTerminal"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="StickToTerminal"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? StickToTerminalChange;
 
-    /// <summary>Occurs when the property <see cref="UseOffDirectionScroll"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="UseOffDirectionScroll"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? UseOffDirectionScrollChange;
-
-    /// <summary>Direction of laying out the controls.</summary>
-    public enum LinearDirection
-    {
-        /// <summary>Lay out controls, left to right.</summary>
-        LeftToRight,
-
-        /// <summary>Lay out controls, right to left.</summary>
-        RightToLeft,
-
-        /// <summary>Lay out controls, top to bottom.</summary>
-        TopToBottom,
-
-        /// <summary>Lay out controls, bottom to top.</summary>
-        BottomToTop,
-    }
 
     /// <summary>Gets or sets the direction of laying out the child controls.</summary>
     public LinearDirection Direction
@@ -152,6 +136,18 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     /// <summary>Gets the scrolled offset ratio within the anchored item.</summary>
     public float AnchoredItemScrollOffsetRatio { get; private set; }
 
+    /// <summary>Gets the scrolled offset within the first visible item.</summary>
+    public float FirstVisibleItemScrollOffset { get; private set; }
+
+    /// <summary>Gets the scrolled offset ratio within the first visible item.</summary>
+    public float FirstVisibleItemScrollOffsetRatio { get; private set; }
+
+    /// <summary>Gets the scrolled offset within the last visible item.</summary>
+    public float LastVisibleItemScrollOffset { get; private set; }
+
+    /// <summary>Gets the scrolled offset ratio within the last visible item.</summary>
+    public float LastVisibleItemScrollOffsetRatio { get; private set; }
+
     /// <inheritdoc cref="ControlSpannable.IsAnyAnimationRunning"/>
     public override bool IsAnyAnimationRunning
     {
@@ -177,19 +173,12 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
     private Span<VisibleEntry> VisibleEntries => CollectionsMarshal.AsSpan(this.visibleEntries);
 
-    /// <summary>Gets a value indicating whether we're instructed to lay out children vertically.</summary>
-    private bool IsVertical
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => this.Direction is LinearDirection.BottomToTop or LinearDirection.TopToBottom;
-    }
-
     /// <summary>Gets a value indicating whether the lower index in the visible items, which always means the earlier
     /// items in the the given collection, are on the side with lesser coordinate values (left/top side.)</summary>
     private bool IsLowerIndexBeginningSide
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => this.Direction is LinearDirection.TopToBottom or LinearDirection.LeftToRight;
+        get => this.direction.IsDirectionConsistentWithIndex();
     }
 
     /// <summary>Gets the gravity in the main direction specified from <see cref="Direction"/>,
@@ -200,7 +189,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            var t = this.IsVertical ? this.Gravity.Y : this.Gravity.X;
+            var t = this.direction.IsVertical() ? this.Gravity.Y : this.Gravity.X;
             if (!this.IsLowerIndexBeginningSide)
                 t = 1 - t;
             return t;
@@ -211,7 +200,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     private float OffDirectionScreenCoordinatesGravity
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => this.IsVertical ? this.Gravity.X : this.Gravity.Y;
+        get => this.direction.IsVertical() ? this.Gravity.X : this.Gravity.Y;
     }
 
     public void ScrollBy(float delta) => throw new NotImplementedException();
@@ -334,12 +323,21 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         foreach (ref var x in this.VisibleEntries)
             this.ReturnVisibleEntry(ref x);
         this.visibleEntries.Clear();
+        this.Parent!.VerticalScrollBar.Scroll -= this.VerticalScrollBarOnScroll;
+        base.BeforeParentDetach();
+    }
+
+    /// <inheritdoc/>
+    protected override void AfterParentAttach()
+    {
+        base.AfterParentAttach();
         this.lastHandleInteractionTick = long.MaxValue;
         this.nonLimDimScroll = 0;
         this.smoothScrollAmount = Vector2.Zero;
         this.accumulatedScrollDelta = Vector2.Zero;
         this.AnchoredItem = -1;
-        base.BeforeParentDetach();
+        this.scrollRequestedPosition = float.NaN;
+        this.Parent!.VerticalScrollBar.Scroll += VerticalScrollBarOnScroll;
     }
 
     /// <inheritdoc/>
@@ -446,14 +444,9 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             else
                 scrollScale = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx * this.Parent.Scale;
 
-            int nlines;
-            unsafe
-            {
-                if (!SystemParametersInfoW(SPI.SPI_GETWHEELSCROLLLINES, 0, &nlines, 0))
-                    nlines = 3;
-            }
+            var nlines = WindowsUiConfigHelper.GetWheelScrollLines();
 
-            if (this.IsVertical)
+            if (this.direction.IsVertical())
             {
                 scrollOffsetDelta += this.accumulatedScrollDelta.Y * scrollScale * nlines;
                 this.nonLimDimScroll += this.accumulatedScrollDelta.X * scrollScale * nlines;
@@ -473,13 +466,13 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             {
                 // Stick to beginning
                 this.AnchoredItem = 0;
-                this.AnchorOffsetRatio = 0;
+                this.AnchoredItemScrollOffsetRatio = 0;
             }
             else if (this.wasEndVisible && (!this.wasBeginningVisible || a))
             {
                 // Stick to the end
                 this.AnchoredItem = itemCount - 1;
-                this.AnchorOffsetRatio = 0;
+                this.AnchoredItemScrollOffsetRatio = 0;
             }
         }
 
@@ -495,6 +488,23 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         else
         {
             this.AnchoredItem = -1;
+        }
+
+        // Temporarily use scroll request information as anchor, if specified.
+        if (this.scrollRequestedPosition is not float.NaN)
+        {
+            // TODO: only Bottom-To-Top is tested
+
+            var itemCountRange =
+                this.direction.IsDirectionConsistentWithIndex()
+                    ? this.visibleEntries.Count * this.AnchorOffsetRatio
+                    : this.visibleEntries.Count * (1f - this.AnchorOffsetRatio);
+            this.AnchoredItem = Math.Clamp(
+                (int)(this.scrollRequestedPosition * (itemCount - itemCountRange)),
+                0,
+                itemCount - 1);
+            this.AnchoredItemScrollOffsetRatio = 0;
+            this.scrollRequestedPosition = float.NaN;
         }
 
         var veAnchorIndex = -1;
@@ -517,8 +527,12 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             this.MeasureVisibleEntry(ref veAnchor, nonExpandingDimension, expandingDimension);
 
             // Navigate to the offset that the anchor specifies.
-            veAnchor.Offset =
-                expandingDimension >= float.PositiveInfinity ? 0f : expandingDimension * this.AnchorOffsetRatio;
+            if (expandingDimension >= float.PositiveInfinity)
+                veAnchor.Offset = 0f;
+            else if (this.direction.IsDirectionConsistentWithIndex())
+                veAnchor.Offset = expandingDimension * this.AnchorOffsetRatio;
+            else
+                veAnchor.Offset = expandingDimension * (1f - this.AnchorOffsetRatio);
 
             // Navigate to the offset that the value that specifies the ratio inside anchor specified.
             veAnchor.Offset -= this.GetExpandingDimensionLerped(veAnchor) * this.AnchoredItemScrollOffsetRatio;
@@ -704,7 +718,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             lesserOffsetVisibleEntryIndex = this.IsLowerIndexBeginningSide ? 0 : this.visibleEntries.Count - 1;
             greaterOffsetVisibleEntryIndex = this.IsLowerIndexBeginningSide ? this.visibleEntries.Count - 1 : 0;
         }
-        
+
         // If the list of visible entries is empty after the above operation, stop.
         if (this.visibleEntries.Count == 0)
         {
@@ -715,7 +729,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             this.ClearVisibleEntries();
             return new(Vector2.Zero, suggestedSize);
         }
-        
+
         // If everything is contained in the viewport, apply gravity.
         if (true)
         {
@@ -765,7 +779,11 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         // Figure out the anchor again.
         if (true)
         {
-            var anchorOffset = expandingDimension * this.AnchorOffsetRatio;
+            var anchorOffset = expandingDimension;
+            if (this.direction.IsDirectionConsistentWithIndex())
+                anchorOffset *= this.AnchorOffsetRatio;
+            else
+                anchorOffset *= 1 - this.AnchorOffsetRatio;
             var anchoredItemDist = float.PositiveInfinity;
             this.AnchoredItem = -1;
             this.AnchoredItemScrollOffset = 0f;
@@ -801,20 +819,123 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 this.AnchoredItemScrollOffsetRatio = 0f;
             this.AnchoredItemScrollOffsetRatio = Math.Clamp(this.AnchoredItemScrollOffsetRatio, 0f, 1f);
 
-            this.nonLimDimScroll = Math.Clamp(
-                this.nonLimDimScroll,
-                0,
-                Math.Max(0, nonLimDimScrollRangeMax - nonExpandingDimension));
+            nonLimDimScrollRangeMax = Math.Max(0, nonLimDimScrollRangeMax - nonExpandingDimension);
+            this.nonLimDimScroll = Math.Clamp(this.nonLimDimScroll, 0, nonLimDimScrollRangeMax);
+            if (this.direction.IsVertical())
+                this.ScrollRange = this.ScrollRange with { X = nonLimDimScrollRangeMax };
+            else
+                this.ScrollRange = this.ScrollRange with { Y = nonLimDimScrollRangeMax };
         }
 
         if (prevAnchor != (this.AnchoredItem, this.AnchoredItemScrollOffsetRatio, this.nonLimDimScroll))
             this.needDispatchScrollEvent = true;
 
-        this.CanScroll = this.visibleEntries.Count > 0 && !isEverythingFullyVisible;
+        // Count the "exact" number of items visible, counting invisible sections out.
+        var numVisible = (float)this.visibleEntries.Count;
+        if (numVisible > 0)
+        {
+            var o0 = this.VisibleEntries[0].Offset;
+            var h0 = GetExpandingDimensionLerped(this.VisibleEntries[0]);
+            var o1 = this.VisibleEntries[^1].Offset;
+            var h1 = GetExpandingDimensionLerped(this.VisibleEntries[^1]);
+            if (o0 < 0)
+                numVisible += o0 / h0;
+            if (o1 < 0)
+                numVisible += o1 / h1;
+            if (o0 + h0 >= expandingDimension)
+                numVisible -= ((o0 + h0) - expandingDimension) / h0;
+            if (o1 + h1 >= expandingDimension)
+                numVisible -= ((o1 + h1) - expandingDimension) / h1;
+        }
+
+        if (this.direction.IsDirectionConsistentWithIndex())
+        {
+            this.FirstVisibleItemScrollOffset = -this.visibleEntries[0].Offset;
+            this.FirstVisibleItemScrollOffsetRatio =
+                this.FirstVisibleItemScrollOffset / this.GetExpandingDimensionLerped(this.visibleEntries[0]);
+
+            this.LastVisibleItemScrollOffset = expandingDimension - this.visibleEntries[^1].Offset;
+            this.LastVisibleItemScrollOffsetRatio =
+                this.LastVisibleItemScrollOffset / this.GetExpandingDimensionLerped(this.visibleEntries[^1]);
+        }
+        else
+        {
+            this.FirstVisibleItemScrollOffset = expandingDimension - this.visibleEntries[0].Offset;
+            this.FirstVisibleItemScrollOffsetRatio =
+                this.FirstVisibleItemScrollOffset / this.GetExpandingDimensionLerped(this.visibleEntries[0]);
+
+            this.LastVisibleItemScrollOffset = -this.visibleEntries[^1].Offset;
+            this.LastVisibleItemScrollOffsetRatio =
+                this.LastVisibleItemScrollOffset / this.GetExpandingDimensionLerped(this.visibleEntries[^1]);
+        }
+
+        if (isEverythingFullyVisible)
+        {
+            if (this.direction.IsVertical())
+            {
+                this.ScrollRange = this.ScrollRange with { Y = 0 };
+                this.ScrollPosition = this.ScrollPosition with { Y = 0 };
+            }
+            else
+            {
+                this.ScrollRange = this.ScrollRange with { X = 0 };
+                this.ScrollPosition = this.ScrollPosition with { X = 0 };
+            }
+        }
+        else
+        {
+            // Estimate the scroll range from what's currently visible.
+            switch (this.direction)
+            {
+                case LinearDirection.LeftToRight:
+                    // TODO branch
+                    this.ScrollPosition = new(
+                        this.AnchoredItem + this.AnchoredItemScrollOffsetRatio,
+                        this.nonLimDimScroll);
+                    break;
+
+                case LinearDirection.RightToLeft:
+                    // TODO branch
+                    this.ScrollPosition = new(
+                        (this.AnchoredItem + 1) - this.AnchoredItemScrollOffsetRatio,
+                        this.nonLimDimScroll);
+                    break;
+
+                case LinearDirection.TopToBottom:
+                    // TODO branch
+                    this.ScrollPosition = new(
+                        this.nonLimDimScroll,
+                        this.AnchoredItem + this.AnchoredItemScrollOffsetRatio);
+                    break;
+
+                case LinearDirection.BottomToTop:
+                {
+                    this.ScrollPosition = new(
+                        this.nonLimDimScroll,
+                        (1 + this.FirstVisibleItem) - this.FirstVisibleItemScrollOffsetRatio);
+                    this.ScrollRange = this.ScrollRange with
+                    {
+                        Y = itemCount - (numVisible * ((float)(this.LastVisibleItem + 1) / itemCount)),
+                    };
+                    break;
+                }
+            }
+        }
+
+        if (this.direction.IsVertical())
+        {
+            if (numVisible > 0)
+            {
+                this.Parent.VerticalScrollBar.Direction = this.direction;
+                this.Parent.VerticalScrollBar.PageSize = Math.Max(1 / 8f, numVisible / (itemCount + 1));
+                // TODO: this.Parent.HorizontalScrollBar.Direction = LinearDirection.LeftToRight;
+            }
+        }
+
         this.useResetAnimationOnVisibleEntryPopulationOnce = false;
 
         return
-            this.IsVertical
+            this.direction.IsVertical()
                 ? new(Vector2.Zero, new(nonExpandingDimension, expandingDimension))
                 : new(Vector2.Zero, new(expandingDimension, nonExpandingDimension));
     }
@@ -830,7 +951,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             if (vi.CellDecorationMeasurement is not null)
             {
                 Vector2 translation =
-                    this.IsVertical
+                    this.direction.IsVertical()
                         ? new(0, vi.Offset)
                         : new(vi.Offset, 0);
 
@@ -849,7 +970,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                     mtx = vi.Animation.AnimatedTransformation;
 
                 Vector2 translation =
-                    this.IsVertical
+                    this.direction.IsVertical()
                         ? new(
                             ((this.Parent.MeasuredContentBox.Width - vi.Measurement.Boundary.Right)
                              * this.OffDirectionScreenCoordinatesGravity)
@@ -874,7 +995,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                     mtx = vi.PreviousAnimation.AnimatedTransformation;
 
                 Vector2 translation =
-                    this.IsVertical
+                    this.direction.IsVertical()
                         ? new(
                             ((this.Parent.MeasuredContentBox.Width - vi.PreviousMeasurement.Boundary.Right)
                              * this.OffDirectionScreenCoordinatesGravity)
@@ -1198,6 +1319,36 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     protected virtual void OnUseOffDirectionScrollChange(PropertyChangeEventArgs<bool> args) =>
         this.UseOffDirectionScrollChange?.Invoke(args);
 
+    private void VerticalScrollBarOnScroll(ScrollBarControl.ScrollEventArgs args)
+    {
+        if (this.Collection?.Count is not (> 0 and var colCount))
+            return;
+        
+        switch (args.Action)
+        {
+            case ScrollBarControl.ScrollAction.LineDecrement:
+                this.SmoothScrollBy(new Vector2(0, this.Parent!.MeasuredContentBox.Height / +256f));
+                break;
+            case ScrollBarControl.ScrollAction.LineIncrement:
+                this.SmoothScrollBy(new Vector2(0, this.Parent!.MeasuredContentBox.Height / -256f));
+                break;
+            case ScrollBarControl.ScrollAction.PageDecrement:
+                this.SmoothScrollBy(new Vector2(0, this.Parent!.MeasuredContentBox.Height / +16f));
+                break;
+            case ScrollBarControl.ScrollAction.PageIncrement:
+                this.SmoothScrollBy(new Vector2(0, this.Parent!.MeasuredContentBox.Height / -16f));
+                break;
+            case ScrollBarControl.ScrollAction.ThumbTrack:
+                Debug.WriteLine($"T={args.NewValue}\n");
+                this.scrollRequestedPosition = args.NewValue / ((ScrollBarControl)args.Sender).MaxValue;
+                this.accumulatedScrollDelta = Vector2.Zero;
+                this.smoothScrollAmount = Vector2.Zero;
+                this.ScrollEasing.Reset();
+                this.RequestMeasure();
+                break;
+        }
+    }
+
     private void MeasureAroundAnchor(ref int veAnchorIndex, int itemCount, float limDim, float nonLimDim)
     {
         var ilibs = this.IsLowerIndexBeginningSide;
@@ -1341,7 +1492,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
         if (vi.Measurement is { } m)
         {
-            if (this.IsVertical)
+            if (this.direction.IsVertical())
             {
                 m.Options.Size = new(nonLimDim, float.PositiveInfinity);
                 m.Options.VisibleSize = new(nonLimDim, limDim);
@@ -1363,7 +1514,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
         if (vi.PreviousMeasurement is { } pm)
         {
-            if (this.IsVertical)
+            if (this.direction.IsVertical())
             {
                 pm.Options.Size = new(nonLimDim, float.PositiveInfinity);
                 pm.Options.VisibleSize = new(nonLimDim, limDim);
@@ -1430,7 +1581,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 vi.SizeEasing?.IsRunning is true
                     ? RectVector4.Lerp(vi.SizeEasingFrom, any.Boundary, (float)vi.SizeEasing.Value)
                     : any.Boundary;
-            if (this.IsVertical)
+            if (this.direction.IsVertical())
             {
                 vi.CellDecorationMeasurement.Options.Size = new(nonLimDim, lerpedBoundary.Height);
                 vi.CellDecorationMeasurement.Options.VisibleSize = new(nonLimDim, lerpedBoundary.Height);
@@ -1467,15 +1618,15 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private float GetExpandingDimension(Vector2 size2D) => this.IsVertical ? size2D.Y : size2D.X;
+    private float GetExpandingDimension(Vector2 size2D) => this.direction.IsVertical() ? size2D.Y : size2D.X;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private float GetNonExpandingDimension(Vector2 size2D) => this.IsVertical ? size2D.X : size2D.Y;
+    private float GetNonExpandingDimension(Vector2 size2D) => this.direction.IsVertical() ? size2D.X : size2D.Y;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void GetDimensions(Vector2 size2D, out float expandingDimension, out float nonExpandingDimension)
     {
-        if (this.IsVertical)
+        if (this.direction.IsVertical())
         {
             expandingDimension = size2D.Y;
             nonExpandingDimension = size2D.X;

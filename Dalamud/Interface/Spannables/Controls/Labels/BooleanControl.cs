@@ -18,22 +18,22 @@ public class BooleanControl : LabelControl
     {
     }
 
-    /// <summary>Occurs when the property <see cref="Checked"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Checked"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? CheckedChange;
 
-    /// <summary>Occurs when the property <see cref="Indeterminate"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Indeterminate"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? IndeterminateChange;
 
-    /// <summary>Occurs when the property <see cref="Side"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Side"/> is changing.</summary>
     public event PropertyChangeEventHandler<IconSide>? SideChange;
 
-    /// <summary>Occurs when the property <see cref="NormalIcon"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="NormalIcon"/> is changing.</summary>
     public event PropertyChangeEventHandler<TristateIconPattern?>? NormalIconChange;
 
-    /// <summary>Occurs when the property <see cref="HoveredIcon"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="HoveredIcon"/> is changing.</summary>
     public event PropertyChangeEventHandler<TristateIconPattern?>? HoveredIconChange;
 
-    /// <summary>Occurs when the property <see cref="ActiveIcon"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="ActiveIcon"/> is changing.</summary>
     public event PropertyChangeEventHandler<TristateIconPattern?>? ActiveIconChange;
 
     /// <summary>Side of an icon.</summary>

@@ -61,29 +61,29 @@ public class LabelControl : ControlSpannable
     /// <summary>Occurs when a link in the control is clicked by the mouse.</summary>
     public event ControlMouseLinkEventHandler? LinkMouseClick;
 
-    /// <summary>Occurs when the property <see cref="SpannableText"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="SpannableText"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? SpannableTextChange;
 
-    /// <summary>Occurs when the property <see cref="SpannableText"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="SpannableText"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannableMeasurementOptions?>?
         SpannableTextOptionsChange;
 
-    /// <summary>Occurs when the property <see cref="TextMargin"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="TextMargin"/> is changing.</summary>
     public event PropertyChangeEventHandler<BorderVector4>? TextMarginChange;
 
-    /// <summary>Occurs when the property <see cref="Alignment"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Alignment"/> is changing.</summary>
     public event PropertyChangeEventHandler<Vector2>? AlignmentChange;
 
-    /// <summary>Occurs when the property <see cref="LeftIcon"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="LeftIcon"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? LeftIconChange;
 
-    /// <summary>Occurs when the property <see cref="TopIcon"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="TopIcon"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? TopIconChange;
 
-    /// <summary>Occurs when the property <see cref="RightIcon"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="RightIcon"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? RightIconChange;
 
-    /// <summary>Occurs when the property <see cref="BottomIcon"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="BottomIcon"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? BottomIconChange;
 
     /// <summary>Gets or sets a spannable text.</summary>
@@ -397,12 +397,12 @@ public class LabelControl : ControlSpannable
         {
             if (this.lastLink.Length != 0)
             {
-                e = SpannableControlEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
+                e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
                 e.Sender = this;
                 e.Link = this.lastLink.GetDataMemory();
                 this.OnLinkMouseLeave(e);
                 this.lastLink.Clear();
-                SpannableControlEventArgsPool.Return(e);
+                SpannableEventArgsPool.Return(e);
             }
 
             return;
@@ -427,7 +427,7 @@ public class LabelControl : ControlSpannable
 
         if (!this.lastLink!.GetDataSpan().SequenceEqual(link))
         {
-            e = SpannableControlEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
+            e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
             e.Sender = this;
             e.Link = this.lastLink.GetDataMemory();
 
@@ -444,13 +444,13 @@ public class LabelControl : ControlSpannable
 
         if (issueClickEvent)
         {
-            e ??= SpannableControlEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
+            e ??= SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
             e.Sender = this;
             e.Link = this.lastLink.GetDataMemory();
             this.OnLinkMouseClick(e);
         }
 
-        SpannableControlEventArgsPool.Return(e);
+        SpannableEventArgsPool.Return(e);
     }
 
     /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>

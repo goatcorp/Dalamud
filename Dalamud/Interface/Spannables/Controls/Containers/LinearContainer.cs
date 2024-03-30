@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls.Containers;
@@ -22,30 +23,14 @@ public class LinearContainer : ContainerControl
         this.UseDefaultScrollHandling = true;
     }
 
-    /// <summary>Occurs when the property <see cref="Direction"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Direction"/> is changing.</summary>
     public event PropertyChangeEventHandler<LinearDirection>? DirectionChange;
 
-    /// <summary>Occurs when the property <see cref="ContentBias"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="ContentBias"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? ContentBiasChange;
 
-    /// <summary>Occurs when the property <see cref="TotalWeight"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="TotalWeight"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? TotalWeightChange;
-
-    /// <summary>Direction of laying out the controls.</summary>
-    public enum LinearDirection
-    {
-        /// <summary>Lay out controls, left to right.</summary>
-        LeftToRight,
-
-        /// <summary>Lay out controls, right to left.</summary>
-        RightToLeft,
-
-        /// <summary>Lay out controls, top to bottom.</summary>
-        TopToBottom,
-
-        /// <summary>Lay out controls, bottom to top.</summary>
-        BottomToTop,
-    }
 
     /// <summary>Gets or sets the direction of laying out the child controls.</summary>
     public LinearDirection Direction
@@ -125,9 +110,6 @@ public class LinearContainer : ContainerControl
                 weightSum = 1f;
         }
 
-        var isHorizontal = this.direction is LinearDirection.LeftToRight or LinearDirection.RightToLeft;
-        var isVertical = this.direction is LinearDirection.TopToBottom or LinearDirection.BottomToTop;
-
         var contentBox = RectVector4.InvertedExtrema;
         var requiredMinSizeForWeight = Vector2.Zero;
         for (var j = 0; j < 2; j++)
@@ -138,7 +120,7 @@ public class LinearContainer : ContainerControl
             // so that the second pass can be skipped when unnecessary.
             if (j == 1)
             {
-                if (isVertical)
+                if (this.direction.IsVertical())
                     suggestedSize.X = contentBox.Right;
                 else
                     suggestedSize.Y = contentBox.Bottom;
@@ -156,28 +138,28 @@ public class LinearContainer : ContainerControl
                 var layout = this.childLayouts[i];
 
                 var useHorizontalWeight =
-                    isHorizontal && layout.Weight > 0f && suggestedSize.X < float.PositiveInfinity;
+                    this.direction.IsHorizontal() && layout.Weight > 0f && suggestedSize.X < float.PositiveInfinity;
                 var useVerticalWeight =
-                    isVertical && layout.Weight > 0f && suggestedSize.Y < float.PositiveInfinity;
+                    this.direction.IsVertical() && layout.Weight > 0f && suggestedSize.Y < float.PositiveInfinity;
 
                 Vector2 maxChildSize;
                 if (useHorizontalWeight)
                     maxChildSize = new(suggestedSize.X * (layout.Weight / weightSum), float.PositiveInfinity);
                 else if (useVerticalWeight)
                     maxChildSize = new(float.PositiveInfinity, suggestedSize.Y * (layout.Weight / weightSum));
-                else if (isHorizontal)
+                else if (this.direction.IsHorizontal())
                     maxChildSize = suggestedSize with { X = float.PositiveInfinity };
-                else if (isVertical)
+                else if (this.direction.IsVertical())
                     maxChildSize = suggestedSize with { Y = float.PositiveInfinity };
                 else
                     maxChildSize = new(float.PositiveInfinity);
 
                 cm.Options.Size = maxChildSize;
                 cm.Options.VisibleSize = new(
-                    isHorizontal
+                    this.direction.IsHorizontal()
                         ? this.MeasurementOptions.VisibleSize.X - childSizeSum.X
                         : this.MeasurementOptions.VisibleSize.X,
-                    isVertical
+                    this.direction.IsVertical()
                         ? this.MeasurementOptions.VisibleSize.Y - childSizeSum.Y
                         : this.MeasurementOptions.VisibleSize.Y);
                 cm.Measure();
@@ -185,7 +167,7 @@ public class LinearContainer : ContainerControl
                 var b = Vector2.Max(cm.Boundary.RightBottom, cm.Boundary.Size);
                 childSizeSum += b;
 
-                if (isHorizontal && layout.Weight > 0 && weightSum > 0)
+                if (this.direction.IsHorizontal() && layout.Weight > 0 && weightSum > 0)
                 {
                     requiredMinSizeForWeight.X = Math.Max(
                         requiredMinSizeForWeight.X,

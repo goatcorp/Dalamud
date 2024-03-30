@@ -315,7 +315,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         var linearContainer = new LinearContainer
         {
             Name = "columns",
-            Direction = LinearContainer.LinearDirection.LeftToRight,
+            Direction = LinearDirection.LeftToRight,
             Size = new(ControlSpannable.WrapContent),
             Padding = new(16f),
             TextStyle = defaultStyle,
@@ -341,7 +341,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 new LinearContainer
                 {
                     Name = "linearContainerTests",
-                    Direction = LinearContainer.LinearDirection.TopToBottom,
+                    Direction = LinearDirection.TopToBottom,
                     Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                     ChildrenList =
                     {
@@ -358,12 +358,12 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             Name = "linearContainerTestsDirection",
                             Margin = new(16f, 0f),
-                            Direction = LinearContainer.LinearDirection.LeftToRight,
+                            Direction = LinearDirection.LeftToRight,
                             ChildrenList =
                             {
                                 new LinearContainer
                                 {
-                                    Direction = LinearContainer.LinearDirection.LeftToRight,
+                                    Direction = LinearDirection.LeftToRight,
                                     ChildrenList =
                                     {
                                         new RadioControl
@@ -388,7 +388,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                                 new ControlSpannable { Size = new(12, 0) },
                                 new LinearContainer
                                 {
-                                    Direction = LinearContainer.LinearDirection.LeftToRight,
+                                    Direction = LinearDirection.LeftToRight,
                                     ChildrenList =
                                     {
                                         new RadioControl
@@ -424,7 +424,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             Name = "linearContainerTestsAlignment",
                             Margin = new(16f, 0f),
-                            Direction = LinearContainer.LinearDirection.LeftToRight,
+                            Direction = LinearDirection.LeftToRight,
                             ChildrenList =
                             {
                                 new RadioControl
@@ -492,7 +492,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             Name = "linearContainerTestsBias",
                             Margin = new(16f, 0f),
-                            Direction = LinearContainer.LinearDirection.LeftToRight,
+                            Direction = LinearDirection.LeftToRight,
                             ChildrenList =
                             {
                                 new RadioControl
@@ -545,7 +545,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 new LinearContainer
                 {
                     Name = "textSpannableTests",
-                    Direction = LinearContainer.LinearDirection.TopToBottom,
+                    Direction = LinearDirection.TopToBottom,
                     Size = new(ControlSpannable.MatchParent, ControlSpannable.WrapContent),
                     ChildrenList =
                     {
@@ -567,7 +567,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             Name = "linearContainerSpannableTestsOptions",
                             Margin = new(16f, 0f),
-                            Direction = LinearContainer.LinearDirection.TopToBottom,
+                            Direction = LinearDirection.TopToBottom,
                             ChildrenList =
                             {
                                 new CheckboxControl
@@ -596,7 +596,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             Name = "linearContainerSpannableTestsWordBreakType",
                             Margin = new(16f, 0f),
-                            Direction = LinearContainer.LinearDirection.TopToBottom,
+                            Direction = LinearDirection.TopToBottom,
                             ChildrenList =
                             {
                                 new RadioControl
@@ -638,7 +638,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         {
                             Name = "linearContainerSpannableTestsMiscTests",
                             Margin = new(16f, 0f),
-                            Direction = LinearContainer.LinearDirection.TopToBottom,
+                            Direction = LinearDirection.TopToBottom,
                             ChildrenList =
                             {
                                 new CheckboxControl
@@ -730,16 +730,16 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         optLinearContainerLtr.CheckedChange += e =>
             linearContainer.Direction = e.NewValue
-                                            ? LinearContainer.LinearDirection.LeftToRight
-                                            : LinearContainer.LinearDirection.RightToLeft;
+                                            ? LinearDirection.LeftToRight
+                                            : LinearDirection.RightToLeft;
         optLinearContainerTtb.CheckedChange += e =>
         {
             foreach (var x in linearContainer.ChildrenList.OfType<LinearContainer>())
             {
                 x.Direction =
                     e.NewValue
-                        ? LinearContainer.LinearDirection.TopToBottom
-                        : LinearContainer.LinearDirection.BottomToTop;
+                        ? LinearDirection.TopToBottom
+                        : LinearDirection.BottomToTop;
             }
         };
 
@@ -848,8 +848,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             var n = optAlignHorzLeft.Checked ? 0f : optAlignHorzMid.Checked ? 0.5f : 1f;
             foreach (var x in linearContainer.EnumerateHierarchy<LinearContainer>())
             {
-                if (x.Direction is LinearContainer.LinearDirection.TopToBottom
-                    or LinearContainer.LinearDirection.BottomToTop)
+                if (x.Direction is LinearDirection.TopToBottom
+                    or LinearDirection.BottomToTop)
                 {
                     for (var i = 0; i < x.ChildrenList.Count; i++)
                         x.SetChildLayout(i, x.GetChildLayout(i) with { Alignment = n });
@@ -864,8 +864,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             var n = optAlignVertTop.Checked ? 0f : optAlignVertMid.Checked ? 0.5f : 1f;
             foreach (var x in linearContainer.EnumerateHierarchy<LinearContainer>())
             {
-                if (x.Direction is LinearContainer.LinearDirection.LeftToRight
-                    or LinearContainer.LinearDirection.RightToLeft)
+                if (x.Direction is LinearDirection.LeftToRight
+                    or LinearDirection.RightToLeft)
                 {
                     for (var i = 0; i < x.ChildrenList.Count; i++)
                         x.SetChildLayout(i, x.GetChildLayout(i) with { Alignment = n });

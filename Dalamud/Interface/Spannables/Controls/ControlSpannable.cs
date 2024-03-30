@@ -52,6 +52,9 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
 
     private readonly long[] lastMouseClickTick = new long[MouseButtonsWeCare.Length];
     private readonly int[] lastMouseClickCount = new int[MouseButtonsWeCare.Length];
+    private readonly DateTime[] lastMouseHeldDownTime = new DateTime[MouseButtonsWeCare.Length];
+    private readonly DateTime[] nextMousePressRepeatTime = new DateTime[MouseButtonsWeCare.Length];
+    private readonly bool[] nextMousePressRepeatIsFirst = new bool[MouseButtonsWeCare.Length];
 
     private ISpannable? currentBackground;
     private ISpannableMeasurement? currentBackgroundMeasurement;
@@ -88,6 +91,9 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         this.AllSpannables.Add(null);
         this.AllSpannables.Add(null);
         this.AllSpannables.Add(null);
+
+        this.lastMouseHeldDownTime.AsSpan().Fill(DateTime.MinValue);
+        this.nextMousePressRepeatTime.AsSpan().Fill(DateTime.MinValue);
     }
 
     /// <inheritdoc />
@@ -142,14 +148,54 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         }
     }
 
-    /// <summary>Gets a value indicating whether the left mouse button is down.</summary>
-    public bool IsLeftMouseButtonDown { get; private set; }
+    /// <summary>Gets the time when the left mouse button is held down.</summary>
+    /// <value><see cref="DateTime.MinValue"/> if not currently pressed.</value>
+    public DateTime LeftMouseButtonHeldTime
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.lastMouseHeldDownTime[0];
+    }
 
-    /// <summary>Gets a value indicating whether the right mouse button is down.</summary>
-    public bool IsRightMouseButtonDown { get; private set; }
+    /// <summary>Gets the time when the right mouse button is held down.</summary>
+    /// <value><see cref="DateTime.MinValue"/> if not currently pressed.</value>
+    public DateTime RightMouseButtonHeldTime
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.lastMouseHeldDownTime[1];
+    }
 
-    /// <summary>Gets a value indicating whether the middle mouse button is down.</summary>
-    public bool IsMiddleMouseButtonDown { get; private set; }
+    /// <summary>Gets the time when the middle mouse button is held down.</summary>
+    /// <value><see cref="DateTime.MinValue"/> if not currently pressed.</value>
+    public DateTime MiddleMouseButtonHeldTime
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.lastMouseHeldDownTime[2];
+    }
+
+    /// <summary>Gets a value indicating whether the left mouse button is being held down.</summary>
+    public bool IsLeftMouseButtonDown
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.LeftMouseButtonHeldTime != DateTime.MinValue;
+    }
+
+    /// <summary>Gets a value indicating whether the right mouse button is being held down.</summary>
+    public bool IsRightMouseButtonDown
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.RightMouseButtonHeldTime != DateTime.MinValue;
+    }
+
+    /// <summary>Gets a value indicating whether the middle mouse button is being held down.</summary>
+    public bool IsMiddleMouseButtonDown
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.MiddleMouseButtonHeldTime != DateTime.MinValue;
+    }
+
+    /// <summary>Gets a value indicating whether any mouse button is being held down.</summary>
+    public bool IsAnyMouseButtonDown =>
+        this.IsLeftMouseButtonDown || this.IsRightMouseButtonDown || this.IsMiddleMouseButtonDown;
 
     /// <summary>Gets the last measured outside box size.</summary>
     /// <remarks>Useful for drawing decoration outside the standard box, such as glow or shadow effects.<br />
@@ -267,7 +313,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     public IReadOnlyCollection<ISpannable?> GetAllChildSpannables() => this.AllSpannables;
 
     /// <inheritdoc/>
-    ISpannableMeasurement ISpannable.RentMeasurement(ISpannableRenderer renderer)
+    public ISpannableMeasurement RentMeasurement(ISpannableRenderer renderer)
     {
         this.Renderer = renderer;
 
@@ -292,12 +338,12 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         var inputEventsTrail = new ImVectorWrapper<ImGuiInternals.ImGuiInputEvent>(
             (ImVector*)Unsafe.AsPointer(ref ImGuiInternals.ImGuiContext.Instance.InputEventsTrail));
 
-        var chiea = SpannableControlEventArgsPool.Rent<SpannableEventArgs>();
+        var chiea = SpannableEventArgsPool.Rent<SpannableEventArgs>();
         chiea.Sender = this;
         this.OnHandleInteraction(chiea);
-        SpannableControlEventArgsPool.Return(chiea);
+        SpannableEventArgsPool.Return(chiea);
 
-        var cmea = SpannableControlEventArgsPool.Rent<SpannableMouseEventArgs>();
+        var cmea = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
         cmea.Handled = false;
         cmea.Sender = this;
         cmea.LocalLocation = this.PointToClient(ImGui.GetMousePos());
@@ -323,19 +369,14 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
             this.captureMouseOnMouseDown ? this.selfInnerId : -1);
         var focused = ImGui.IsItemFocused();
 
-        ISpannable? newBackground;
         if (!this.visible && this.hideAnimation?.IsRunning is not true)
         {
             this.IsMouseHovered = false;
-
-            newBackground = this.normalBackground;
             focused = false;
         }
-        else if (!this.Enabled)
+        else if (!this.enabled)
         {
             this.IsMouseHovered = false;
-
-            newBackground = this.disabledBackground ?? this.normalBackground;
             focused = false;
         }
         else
@@ -354,11 +395,13 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                     SpannableImGuiItem.SetHovered(this, this.selfInnerId, this.captureMouseWheel);
 
                     cmea.Handled = false;
+                    cmea.Clicks = 0;
                     this.OnMouseEnter(cmea);
                 }
                 else
                 {
                     cmea.Handled = false;
+                    cmea.Clicks = 0;
                     this.OnMouseLeave(cmea);
                 }
             }
@@ -366,6 +409,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
             if (cmea.WheelDelta != Vector2.Zero)
             {
                 cmea.Handled = false;
+                cmea.Clicks = 0;
                 this.OnMouseWheel(cmea);
                 if (cmea.Handled)
                     io->MouseWheel = io->MouseWheelH = 0f;
@@ -375,6 +419,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
             {
                 this.lastMouseLocation = cmea.LocalLocation;
                 cmea.Handled = false;
+                cmea.Clicks = 0;
                 this.OnMouseMove(cmea);
             }
 
@@ -382,54 +427,29 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
             {
                 cmea.Button = MouseButtonsWeCare[i];
 
-                if (ImGui.IsMouseClicked(MouseButtonsWeCare[i]))
+                if (ImGui.IsMouseClicked(MouseButtonsWeCare[i]) && hovered)
                 {
-                    switch (cmea.Button)
-                    {
-                        case ImGuiMouseButton.Left:
-                            this.IsLeftMouseButtonDown = hovered;
-                            break;
-                        case ImGuiMouseButton.Right:
-                            this.IsRightMouseButtonDown = hovered;
-                            break;
-                        case ImGuiMouseButton.Middle:
-                            this.IsMiddleMouseButtonDown = hovered;
-                            break;
-                    }
+                    this.lastMouseHeldDownTime[i] = DateTime.Now;
+                    this.capturingMouseButtons |= 1 << i;
+                    cmea.Handled = false;
+                    cmea.Clicks = 1;
+                    this.OnMouseDown(cmea);
 
-                    if (hovered)
-                        this.capturingMouseButtons |= 1 << i;
-
-                    if (hovered)
-                    {
-                        cmea.Handled = false;
-                        this.OnMouseDown(cmea);
-
-                        if (this.focusable)
-                            focused = true;
-                    }
+                    if (this.focusable)
+                        focused = true;
                 }
 
                 if (ImGui.IsMouseReleased(MouseButtonsWeCare[i]))
                 {
                     this.capturingMouseButtons &= ~(1 << i);
 
-                    switch (cmea.Button)
-                    {
-                        case ImGuiMouseButton.Left when this.IsLeftMouseButtonDown:
-                            this.IsLeftMouseButtonDown = false;
-                            break;
-                        case ImGuiMouseButton.Right when this.IsRightMouseButtonDown:
-                            this.IsRightMouseButtonDown = false;
-                            break;
-                        case ImGuiMouseButton.Middle when this.IsMiddleMouseButtonDown:
-                            this.IsMiddleMouseButtonDown = false;
-                            break;
-                        default:
-                            continue;
-                    }
+                    if (this.lastMouseHeldDownTime[i] == DateTime.MinValue)
+                        continue;
+
+                    this.lastMouseHeldDownTime[i] = DateTime.MinValue;
 
                     cmea.Handled = false;
+                    cmea.Clicks = 1;
                     this.OnMouseUp(cmea);
 
                     if (!cmea.Handled && hovered)
@@ -447,6 +467,46 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                     {
                         this.lastMouseClickTick[i] = 0;
                     }
+                }
+
+                ref var nextRepeatTime = ref this.nextMousePressRepeatTime[i];
+                ref var nextRepeatFirst = ref this.nextMousePressRepeatIsFirst[i];
+                if (this.lastMouseHeldDownTime[i] != DateTime.MinValue && hovered)
+                {
+                    var d = DateTime.Now - nextRepeatTime;
+                    if (nextRepeatTime == DateTime.MaxValue)
+                    {
+                        // suppressed
+                    }
+                    else if (nextRepeatTime == DateTime.MinValue)
+                    {
+                        nextRepeatTime = DateTime.Now + WindowsUiConfigHelper.GetKeyboardRepeatInitialDelay();
+                        nextRepeatFirst = true;
+                    }
+                    else if (nextRepeatFirst && d >= TimeSpan.Zero)
+                    {
+                        cmea.Handled = false;
+                        cmea.Clicks = 1;
+                        this.OnMousePressLong(cmea);
+                        nextRepeatFirst = false;
+                        if (cmea.Handled)
+                            nextRepeatTime = DateTime.MaxValue;
+                        else
+                            nextRepeatTime = DateTime.Now + WindowsUiConfigHelper.GetKeyboardRepeatInterval();
+                    }
+                    else if (!nextRepeatFirst && d >= TimeSpan.Zero)
+                    {
+                        var repeatInterval = WindowsUiConfigHelper.GetKeyboardRepeatInterval();
+                        var repeatCount = 1 + (int)MathF.Floor((float)(d / repeatInterval));
+                        nextRepeatTime += repeatInterval * repeatCount;
+                        cmea.Handled = false;
+                        cmea.Clicks = repeatCount;
+                        this.OnMousePressRepeat(cmea);
+                    }
+                }
+                else
+                {
+                    nextRepeatTime = DateTime.MinValue;
                 }
             }
 
@@ -490,13 +550,6 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
 
             if (hoveredOnRect && this.captureMouseWheel)
                 SpannableImGuiItem.SetHovered(this, -1, true);
-
-            if (this.IsMouseHovered && this.IsLeftMouseButtonDown && this.ActiveBackground is not null)
-                newBackground = this.ActiveBackground;
-            else if (this.IsMouseHovered && this.HoveredBackground is not null)
-                newBackground = this.HoveredBackground;
-            else
-                newBackground = this.NormalBackground;
         }
 
         if (!this.focusable && focused)
@@ -517,7 +570,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                             if (this.ProcessCmdKey(trailedEvent.Key.Key))
                                 ImGuiInternals.ImGuiNavMoveRequestCancel();
 
-                            var kpe = SpannableControlEventArgsPool.Rent<SpannableKeyEventArgs>();
+                            var kpe = SpannableEventArgsPool.Rent<SpannableKeyEventArgs>();
                             kpe.Sender = this;
                             kpe.Handled = false;
                             kpe.KeyCode = trailedEvent.Key.Key;
@@ -529,13 +582,13 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                                 this.OnKeyDown(kpe);
                             else
                                 this.OnKeyUp(kpe);
-                            SpannableControlEventArgsPool.Return(kpe);
+                            SpannableEventArgsPool.Return(kpe);
                             break;
                         }
 
                         case ImGuiInternals.ImGuiInputEventType.Text:
                         {
-                            var kpe = SpannableControlEventArgsPool.Rent<SpannableKeyPressEventArgs>();
+                            var kpe = SpannableEventArgsPool.Rent<SpannableKeyPressEventArgs>();
                             kpe.Sender = this;
                             kpe.Handled = false;
                             kpe.Rune =
@@ -544,7 +597,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                                     : Rune.ReplacementChar;
                             kpe.KeyChar = unchecked((char)rune.Value);
                             this.OnKeyPress(kpe);
-                            SpannableControlEventArgsPool.Return(kpe);
+                            SpannableEventArgsPool.Return(kpe);
                             break;
                         }
                     }
@@ -556,7 +609,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         {
             this.wasFocused = focused;
 
-            var cea = SpannableControlEventArgsPool.Rent<SpannableEventArgs>();
+            var cea = SpannableEventArgsPool.Rent<SpannableEventArgs>();
             cea.Sender = this;
             if (focused)
             {
@@ -568,16 +621,18 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                 this.OnLostFocus(cea);
             }
 
-            SpannableControlEventArgsPool.Return(cea);
+            SpannableEventArgsPool.Return(cea);
         }
 
-        SpannableControlEventArgsPool.Return(cmea);
+        SpannableEventArgsPool.Return(cmea);
 
+        var newBackground = this.DecideBackground();
         if (!ReferenceEquals(this.currentBackground, newBackground))
         {
             this.currentBackground?.ReturnMeasurement(this.currentBackgroundMeasurement);
             this.currentBackgroundMeasurement = null;
             this.currentBackground = newBackground;
+            this.OnSpannableChange(this);
         }
 
         this.currentBackgroundMeasurement?.HandleInteraction();
@@ -589,6 +644,9 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
     {
         if (!this.ShouldMeasureAgain())
             return false;
+
+        // Let the implementors make it measure again on next render pass.
+        this.IsMeasurementValid = true;
 
         // Note: EffectiveScale is for preparing the source resources.
         // We deal only with our own scale here, as the outer scale is dealt by the caller.
@@ -646,7 +704,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
             this.currentBackgroundMeasurement.Measure();
         }
 
-        this.IsMeasurementValid = !this.IsAnyAnimationRunning;
+        this.IsMeasurementValid &= !this.IsAnyAnimationRunning;
         return true;
     }
 
@@ -728,10 +786,10 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
 
         this.currentBackgroundMeasurement?.UpdateTransformation(Matrix4x4.Identity, this.fullTransformation);
 
-        var e = SpannableControlEventArgsPool.Rent<SpannableEventArgs>();
+        var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
         e.Sender = this;
         this.OnUpdateTransformation(e);
-        SpannableControlEventArgsPool.Return(e);
+        SpannableEventArgsPool.Return(e);
     }
 
     /// <inheritdoc/>
@@ -757,11 +815,11 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                        Vector2.One,
                        this.enabled ? 1f : this.disabledTextOpacity))
             {
-                var e = SpannableControlEventArgsPool.Rent<SpannableDrawEventArgs>();
+                var e = SpannableEventArgsPool.Rent<SpannableDrawEventArgs>();
                 e.Sender = this;
                 e.DrawListPtr = tmpDrawList;
                 this.OnDraw(e);
-                SpannableControlEventArgsPool.Return(e);
+                SpannableEventArgsPool.Return(e);
             }
 
             var opacity = this.VisibilityAnimation?.AnimatedOpacity ?? 1f;
@@ -926,4 +984,22 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
             new(
                 suggestedSize.X >= float.PositiveInfinity ? 0 : suggestedSize.X,
                 suggestedSize.Y >= float.PositiveInfinity ? 0 : suggestedSize.Y));
+
+    /// <summary>Decides the background to use, judging from properties such as <see cref="Enabled"/>,
+    /// <see cref="IsMouseHovered"/>, and <see cref="IsAnyMouseButtonDown"/>.</summary>
+    /// <returns>The decided background.</returns>
+    /// <remarks>The background should be one of <see cref="NormalBackground"/>, <see cref="HoveredBackground"/>,
+    /// <see cref="ActiveBackground"/>, or <see cref="DisabledBackground"/>.</remarks>
+    protected virtual ISpannable? DecideBackground()
+    {
+        if (!this.visible && this.hideAnimation?.IsRunning is not true)
+            return this.normalBackground;
+        if (!this.enabled)
+            return this.disabledBackground ?? this.normalBackground;
+        if (this.IsMouseHovered && this.IsAnyMouseButtonDown && this.activeBackground is not null)
+            return this.activeBackground;
+        if (this.IsMouseHovered && this.hoveredBackground is not null)
+            return this.hoveredBackground;
+        return this.normalBackground;
+    }
 }

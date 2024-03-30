@@ -374,7 +374,7 @@ public partial class ControlSpannable
         if (Equals(storage, newValue))
             return false;
 
-        var e = SpannableControlEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
+        var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
         e.Sender = sender;
         e.PropertyName = propName;
         e.PreviousValue = storage;
@@ -406,7 +406,7 @@ public partial class ControlSpannable
                 exs.Add(ex);
             }
 
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
             if (exs is not null)
                 throw new AggregateException(exs);
 
@@ -427,7 +427,7 @@ public partial class ControlSpannable
             exs.Add(ex);
         }
 
-        SpannableControlEventArgsPool.Return(e);
+        SpannableEventArgsPool.Return(e);
         if (exs is not null)
         {
             storage = old;

@@ -3,7 +3,7 @@ using Dalamud.Utility;
 namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>A non-threadsafe pool of objects derived from <see cref="SpannableEventArgs"/>.</summary>
-public static class SpannableControlEventArgsPool
+public static class SpannableEventArgsPool
 {
     /// <summary>Rents an instance of the object.</summary>
     /// <returns>The rented object.</returns>

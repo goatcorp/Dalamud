@@ -22,5 +22,5 @@ public static class ControlSpannableExtensions
 
     /// <inheritdoc cref="ISpannableMeasurement.Draw"/>
     public static void ExplicitDraw(this ControlSpannable cs, ImDrawListPtr drawListPtr) =>
-        ((ISpannableMeasurement)cs).Measure();
+        ((ISpannableMeasurement)cs).Draw(drawListPtr);
 }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.Controls.TODO;
+using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls.RecyclerViews;
@@ -22,11 +24,27 @@ public abstract partial class RecyclerViewControl : ControlSpannable
 
     private BaseLayoutManager? layoutManager;
     private Vector2 autoScrollPerSecond;
+    private ScrollBarMode verticalScrollBarMode;
+    private ScrollBarMode horizontalScrollBarMode;
 
     /// <summary>Initializes a new instance of the <see cref="RecyclerViewControl"/> class.</summary>
     protected RecyclerViewControl()
     {
         this.ClipChildren = true;
+        this.VerticalScrollBar = new()
+        {
+            Direction = LinearDirection.TopToBottom,
+            Size = new(WrapContent, MatchParent),
+            AutoValueUpdate = false,
+        };
+        this.HorizontalScrollBar = new()
+        {
+            Direction = LinearDirection.TopToBottom, // TODO: LTR
+            Size = new(MatchParent, WrapContent),
+            AutoValueUpdate = false,
+        };
+        this.VerticalScrollBar.SpannableChange += this.ChildOnSpannableChange;
+        this.HorizontalScrollBar.SpannableChange += this.ChildOnSpannableChange;
     }
 
     /// <summary>Delegate for <see cref="DecideSpannableType"/>.</summary>
@@ -61,11 +79,17 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     /// <summary>Occurs when the list has been scrolled.</summary>
     public event SpannableControlEventHandler? Scroll;
 
-    /// <summary>Occurs when the property <see cref="LayoutManager"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="LayoutManager"/> is changing.</summary>
     public event PropertyChangeEventHandler<BaseLayoutManager?>? LayoutManagerChange;
 
-    /// <summary>Occurs when the property <see cref="AutoScrollPerSecond"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="AutoScrollPerSecond"/> is changing.</summary>
     public event PropertyChangeEventHandler<Vector2>? AutoScrollPerSecondChange;
+
+    /// <summary>Occurs when the property <see cref="HorizontalScrollBarMode"/> is changing.</summary>
+    public event PropertyChangeEventHandler<ScrollBarMode>? HorizontalScrollBarModeChange;
+
+    /// <summary>Occurs when the property <see cref="VerticalScrollBarMode"/> is changing.</summary>
+    public event PropertyChangeEventHandler<ScrollBarMode>? VerticalScrollBarModeChange;
 
     /// <summary>Gets or sets the layout manager.</summary>
     public BaseLayoutManager? LayoutManager
@@ -90,10 +114,44 @@ public abstract partial class RecyclerViewControl : ControlSpannable
             this.OnAutoScrollPerSecondChange);
     }
 
+    /// <summary>Gets or sets when to display the vertical scroll bar.</summary>
+    public ScrollBarMode VerticalScrollBarMode
+    {
+        get => this.verticalScrollBarMode;
+        set => this.HandlePropertyChange(
+            nameof(this.VerticalScrollBarMode),
+            ref this.verticalScrollBarMode,
+            value,
+            this.OnVerticalScrollBarModeChange);
+    }
+
+    /// <summary>Gets or sets when to display the horizontal scroll bar.</summary>
+    public ScrollBarMode HorizontalScrollBarMode
+    {
+        get => this.horizontalScrollBarMode;
+        set => this.HandlePropertyChange(
+            nameof(this.HorizontalScrollBarMode),
+            ref this.horizontalScrollBarMode,
+            value,
+            this.OnHorizontalScrollBarModeChange);
+    }
+
     /// <inheritdoc/>
     public override bool IsAnyAnimationRunning =>
         base.IsAnyAnimationRunning
         || this.layoutManager?.IsAnyAnimationRunning is true;
+
+    /// <summary>Gets the vertical scroll bar.</summary>
+    public ScrollBarControl VerticalScrollBar { get; }
+
+    /// <summary>Gets the horizontal scroll bar.</summary>
+    public ScrollBarControl HorizontalScrollBar { get; }
+
+    /// <summary>Gets or sets a value indicating whether to show the vertical scroll bar.</summary>
+    protected bool ShowVerticalScrollBar { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether to show the vertical scroll bar.</summary>
+    protected bool ShowHorizontalScrollBar { get; set; }
 
     /// <summary>Adds a placeholder for use.</summary>
     /// <param name="spannableType">Spannable type of the placeholder.</param>
@@ -106,7 +164,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
         if (!this.placeholders.TryGetValue(spannableType, out var plist))
             this.placeholders.Add(spannableType, plist = []);
         plist.Add(spannable);
-        spannable.SpannableChange += this.SpannableOnSpannableChange;
+        spannable.SpannableChange += this.ChildOnSpannableChange;
 
         this.availablePlaceholderSlotIndices.Add(this.AllSpannablesAvailableSlot++);
         this.availablePlaceholderInnerIdIndices.Add(this.InnerIdAvailableSlot++);
@@ -145,17 +203,57 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     protected override void OnHandleInteraction(SpannableEventArgs args)
     {
         this.layoutManager?.HandleInteraction();
+        if (this.ShowHorizontalScrollBar)
+            this.HorizontalScrollBar.ExplicitHandleInteraction();
+        if (this.ShowVerticalScrollBar)
+            this.VerticalScrollBar.ExplicitHandleInteraction();
         base.OnHandleInteraction(args);
     }
 
     /// <inheritdoc/>
-    protected override RectVector4 MeasureContentBox(Vector2 suggestedSize) =>
-        this.layoutManager?.MeasureContentBox(suggestedSize) ?? base.MeasureContentBox(suggestedSize);
+    protected override RectVector4 MeasureContentBox(Vector2 suggestedSize)
+    {
+        this.HorizontalScrollBar.RentMeasurement(this.Renderer);
+        this.VerticalScrollBar.RentMeasurement(this.Renderer);
+        if (this.ShowHorizontalScrollBar)
+        {
+            this.HorizontalScrollBar.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
+            this.HorizontalScrollBar.MeasurementOptions.Size =
+                this.MeasurementOptions.Size with { Y = float.PositiveInfinity };
+            this.HorizontalScrollBar.ExplicitMeasure();
+            this.Padding = this.Padding with { Bottom = this.HorizontalScrollBar.Boundary.Bottom };
+        }
+
+        if (this.ShowVerticalScrollBar)
+        {
+            this.VerticalScrollBar.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
+            this.VerticalScrollBar.MeasurementOptions.Size =
+                this.MeasurementOptions.Size with { X = float.PositiveInfinity, };
+            this.VerticalScrollBar.ExplicitMeasure();
+            this.Padding = this.Padding with { Right = this.VerticalScrollBar.Boundary.Right };
+        }
+
+        return this.layoutManager?.MeasureContentBox(suggestedSize) ?? base.MeasureContentBox(suggestedSize);
+    }
 
     /// <inheritdoc/>
     protected override void OnUpdateTransformation(SpannableEventArgs args)
     {
         this.layoutManager?.UpdateTransformation();
+        if (this.ShowHorizontalScrollBar)
+        {
+            this.HorizontalScrollBar.ExplicitUpdateTransformation(
+                Matrix4x4.CreateTranslation(new(this.MeasuredContentBox.LeftBottom, 0)),
+                this.FullTransformation);
+        }
+
+        if (this.ShowVerticalScrollBar)
+        {
+            this.VerticalScrollBar.ExplicitUpdateTransformation(
+                Matrix4x4.CreateTranslation(new(this.MeasuredContentBox.RightTop, 0)),
+                this.FullTransformation);
+        }
+
         base.OnUpdateTransformation(args);
     }
 
@@ -163,6 +261,12 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     protected override void OnDraw(SpannableDrawEventArgs args)
     {
         this.layoutManager?.Draw(args);
+        if (this.ShowHorizontalScrollBar)
+            this.HorizontalScrollBar.ExplicitDraw(args.DrawListPtr);
+
+        if (this.ShowVerticalScrollBar)
+            this.VerticalScrollBar.ExplicitDraw(args.DrawListPtr);
+
         base.OnDraw(args);
     }
 
@@ -199,18 +303,31 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     protected virtual void OnAutoScrollPerSecondChange(PropertyChangeEventArgs<Vector2> args) =>
         this.AutoScrollPerSecondChange?.Invoke(args);
 
+    /// <summary>Raises the <see cref="HorizontalScrollBarModeChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnHorizontalScrollBarModeChange(PropertyChangeEventArgs<ScrollBarMode> args) =>
+        this.HorizontalScrollBarModeChange?.Invoke(args);
+
+    /// <summary>Raises the <see cref="VerticalScrollBarModeChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnVerticalScrollBarModeChange(PropertyChangeEventArgs<ScrollBarMode> args) =>
+        this.VerticalScrollBarModeChange?.Invoke(args);
+
     /// <inheritdoc/>
     protected override void OnMouseWheel(SpannableMouseEventArgs args)
     {
         base.OnMouseWheel(args);
-        if (this.layoutManager?.CanScroll is not true || args.Handled || !this.IsMouseHoveredIncludingChildren)
+        if ((!this.ShowVerticalScrollBar && !this.ShowHorizontalScrollBar)
+            || args.Handled
+            || !this.IsMouseHoveredIncludingChildren
+            || this.layoutManager is null)
             return;
 
         args.Handled = true;
         this.layoutManager.SmoothScrollBy(-args.WheelDelta);
     }
 
-    private void SpannableOnSpannableChange(ISpannable obj) => this.OnSpannableChange(this);
+    private void ChildOnSpannableChange(ISpannable obj) => this.OnSpannableChange(this);
 
     public record DecideSpannableTypeEventArg : SpannableEventArgs
     {

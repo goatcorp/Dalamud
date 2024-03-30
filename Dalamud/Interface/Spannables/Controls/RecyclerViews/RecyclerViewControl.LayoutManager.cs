@@ -8,6 +8,7 @@ using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls.RecyclerViews;
@@ -112,8 +113,13 @@ public abstract partial class RecyclerViewControl
         /// <inheritdoc/>
         public int LastVisibleItem { get; protected set; } = -1;
 
-        /// <summary>Gets or sets a value indicating whether the RV can be scrolled.</summary>
-        public bool CanScroll { get; protected set; }
+        /// <summary>Gets or sets the scroll range.</summary>
+        /// <remarks>This does not have to immediately correspond to the screen offsets.</remarks>
+        public Vector2 ScrollRange { get; protected set; }
+
+        /// <summary>Gets or sets the scroll position.</summary>
+        /// <remarks>This does not have to immediately correspond to the screen offsets.</remarks>
+        public Vector2 ScrollPosition { get; protected set; }
 
         /// <summary>Gets or sets the smooth scroll easing.</summary>
         public Easing ScrollEasing { get; set; } = new OutCubic(TimeSpan.FromMilliseconds(200));
@@ -132,6 +138,8 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is not null)
                 this.BeforeParentDetach();
             this.Parent = rv;
+            if (this.Parent is not null)
+                this.AfterParentAttach();
         }
 
         /// <inheritdoc/>
@@ -183,10 +191,10 @@ public abstract partial class RecyclerViewControl
                     default:
                         continue;
                 }
-                
+
                 changeQueueAny = true;
             }
-            
+
             if (changeQueueAny)
                 this.Parent.OnSpannableChange(this.Parent);
 
@@ -194,7 +202,42 @@ public abstract partial class RecyclerViewControl
         }
 
         /// <inheritdoc/>
-        public RectVector4 MeasureContentBox(Vector2 suggestedSize) => this.MeasureChildren(suggestedSize);
+        public RectVector4 MeasureContentBox(Vector2 suggestedSize)
+        {
+            if (this.Parent is null)
+                return RectVector4.InvertedExtrema;
+            var res = this.MeasureChildren(suggestedSize);
+            this.Parent.ShowHorizontalScrollBar =
+                this.Parent.horizontalScrollBarMode switch
+                {
+                    ScrollBarMode.Automatic => this.ScrollRange.X > 0,
+                    ScrollBarMode.Never => false,
+                    ScrollBarMode.Always => true,
+                    _ => false,
+                };
+            this.Parent.ShowVerticalScrollBar =
+                this.Parent.verticalScrollBarMode switch
+                {
+                    ScrollBarMode.Automatic => this.ScrollRange.Y > 0,
+                    ScrollBarMode.Never => false,
+                    ScrollBarMode.Always => true,
+                    _ => false,
+                };
+
+            if (this.Parent.ShowHorizontalScrollBar)
+            {
+                this.Parent.HorizontalScrollBar.Value = this.ScrollPosition.X;
+                this.Parent.HorizontalScrollBar.MaxValue = this.ScrollRange.X;
+            }
+
+            if (this.Parent.ShowVerticalScrollBar)
+            {
+                this.Parent.VerticalScrollBar.Value = this.ScrollPosition.Y;
+                this.Parent.VerticalScrollBar.MaxValue = this.ScrollRange.Y;
+            }
+
+            return res;
+        }
 
         /// <inheritdoc/>
         public void UpdateTransformation() => this.UpdateTransformationChildren();
@@ -298,6 +341,12 @@ public abstract partial class RecyclerViewControl
         protected virtual void BeforeParentDetach()
         {
             this.FirstVisibleItem = this.LastVisibleItem = -1;
+            this.ScrollRange = Vector2.Zero;
+        }
+
+        /// <summary>Called after attaching parent.</summary>
+        protected virtual void AfterParentAttach()
+        {
         }
 
         /// <summary>Handles interactions for children.</summary>
@@ -358,10 +407,10 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is null)
                 return;
 
-            var e = SpannableControlEventArgsPool.Rent<SpannableEventArgs>();
+            var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
             e.Sender = this.Parent;
             this.Parent.OnScroll(e);
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
         }
 
         /// <summary>Takes a placeholder, creating new ones as necessary.</summary>
@@ -378,11 +427,11 @@ public abstract partial class RecyclerViewControl
             _ = this.Parent.placeholders.TryGetValue(spannableType, out var plist);
             if (plist?.Count is not > 0)
             {
-                var e = SpannableControlEventArgsPool.Rent<AddMoreSpannablesEventArg>();
+                var e = SpannableEventArgsPool.Rent<AddMoreSpannablesEventArg>();
                 e.Sender = this.Parent;
                 e.SpannableType = spannableType;
                 this.Parent.OnAddMoreSpannables(e);
-                SpannableControlEventArgsPool.Return(e);
+                SpannableEventArgsPool.Return(e);
 
                 if (!this.Parent.placeholders.TryGetValue(spannableType, out plist) || plist?.Count is not > 0)
                     return null;
@@ -434,7 +483,7 @@ public abstract partial class RecyclerViewControl
                 return;
             }
 
-            var e = SpannableControlEventArgsPool.Rent<DecideSpannableTypeEventArg>();
+            var e = SpannableEventArgsPool.Rent<DecideSpannableTypeEventArg>();
             e.Sender = this.Parent;
             e.Index = index;
             e.SpannableType = 0;
@@ -442,7 +491,7 @@ public abstract partial class RecyclerViewControl
             this.Parent.OnDecideSpannableType(e);
             spannableType = e.SpannableType;
             decorationType = e.DecorationType;
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
         }
 
         /// <summary>Populates the given spannable.</summary>
@@ -458,13 +507,13 @@ public abstract partial class RecyclerViewControl
         {
             if (this.Parent is null)
                 return;
-            var e = SpannableControlEventArgsPool.Rent<PopulateSpannableEventArg>();
+            var e = SpannableEventArgsPool.Rent<PopulateSpannableEventArg>();
             e.Index = index;
             e.SpannableType = spannableType;
             e.Spannable = spannable;
             e.Measurement = measurement;
             this.Parent.OnPopulateSpannable(e);
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
             this.Parent.OnSpannableChange(this.Parent);
         }
 
@@ -479,12 +528,12 @@ public abstract partial class RecyclerViewControl
         {
             if (this.Parent is null)
                 return;
-            var e = SpannableControlEventArgsPool.Rent<ClearSpannableEventArg>();
+            var e = SpannableEventArgsPool.Rent<ClearSpannableEventArg>();
             e.SpannableType = spannableType;
             e.Spannable = spannable;
             e.Measurement = measurement;
             this.Parent.OnClearSpannable(e);
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
             this.Parent.OnSpannableChange(this.Parent);
         }
 
@@ -507,7 +556,7 @@ public abstract partial class RecyclerViewControl
                 return;
             }
 
-            var e = SpannableControlEventArgsPool.Rent<SetupChangeAnimationEventArg>();
+            var e = SpannableEventArgsPool.Rent<SetupChangeAnimationEventArg>();
             e.Sender = this;
             e.Action = action;
             e.UseDefault = true;
@@ -518,7 +567,7 @@ public abstract partial class RecyclerViewControl
             animation = e.Animation;
             previousAnimation?.Start();
             animation?.Start();
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
         }
 
         /// <summary>Resolves item resize easing.</summary>
@@ -531,13 +580,13 @@ public abstract partial class RecyclerViewControl
                 return;
             }
 
-            var e = SpannableControlEventArgsPool.Rent<SetupItemResizeAnimationEventArg>();
+            var e = SpannableEventArgsPool.Rent<SetupItemResizeAnimationEventArg>();
             e.Sender = this;
             e.UseDefault = true;
             this.OnSetupItemResizeAnimation(e);
             easing = e.Easing;
             easing?.Start();
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
         }
 
         /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
@@ -562,16 +611,16 @@ public abstract partial class RecyclerViewControl
         {
             /// <summary>Gets or sets the action that resulted in a chance for animation.</summary>
             public NotifyCollectionChangedAction Action { get; set; }
-            
+
             /// <summary>Gets or sets a value indicating whether to use the default animations, if
             /// <see cref="PreviousAnimation"/> or <see cref="Animation"/> are set to <c>null</c> when they are going to
             /// be used.</summary>
             /// <remarks>To be modified from the event handler.</remarks>
             public bool UseDefault { get; set; }
-            
+
             /// <summary>Gets or sets a value indicating whether <see cref="PreviousAnimation"/> is wanted.</summary>
             public bool WantPreviousAnimation { get; set; }
-            
+
             /// <summary>Gets or sets a value indicating whether <see cref="Animation"/> is wanted.</summary>
             public bool WantAnimation { get; set; }
 

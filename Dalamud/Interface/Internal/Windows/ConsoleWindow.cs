@@ -316,8 +316,8 @@ internal partial class ConsoleWindow : Window, IDisposable
         var llm = (LinearLayoutManager)this.rvc.LayoutManager!;
         llm.Direction =
             this.activeConfiguration.LogNewestOnTop
-                ? LinearLayoutManager.LinearDirection.TopToBottom
-                : LinearLayoutManager.LinearDirection.BottomToTop;
+                ? LinearDirection.TopToBottom
+                : LinearDirection.BottomToTop;
         llm.UseOffDirectionScroll = this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll;
     }
 
@@ -329,11 +329,13 @@ internal partial class ConsoleWindow : Window, IDisposable
             AnchorOffsetRatio = 1f,
             Gravity = new(0, 1f),
             Direction = this.activeConfiguration.LogNewestOnTop
-                            ? LinearLayoutManager.LinearDirection.TopToBottom
-                            : LinearLayoutManager.LinearDirection.BottomToTop,
+                            ? LinearDirection.TopToBottom
+                            : LinearDirection.BottomToTop,
         };
         this.rvc = new();
         this.rvc.LayoutManager = llm;
+        this.rvc.HorizontalScrollBarMode = ScrollBarMode.Never;
+        this.rvc.VerticalScrollBarMode = ScrollBarMode.Always;
         this.rvc.DecideSpannableType += e =>
         {
             e.SpannableType = 0;

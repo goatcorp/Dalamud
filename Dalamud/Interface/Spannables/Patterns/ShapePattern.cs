@@ -89,6 +89,7 @@ public class ShapePattern : PatternSpannable
             pos *= this.RenderScale;
             sz *= this.RenderScale;
             sz1 *= this.RenderScale;
+            var rd = owner.Rounding * this.RenderScale;
             using var st = new ScopedTransformer(drawListPtr, Matrix4x4.Identity, new(1 / this.RenderScale), 1f);
 
             switch (owner.Type)
@@ -98,19 +99,19 @@ public class ShapePattern : PatternSpannable
                         pos,
                         pos + sz,
                         color,
-                        owner.Rounding,
+                        rd,
                         owner.RoundingFlags,
                         owner.Thickness);
                     break;
                 case Shape.RectFilled:
-                    drawListPtr.AddRectFilled(pos, pos + sz, color, owner.Rounding, owner.RoundingFlags);
+                    drawListPtr.AddRectFilled(pos, pos + sz, color, rd, owner.RoundingFlags);
                     break;
                 case Shape.Square:
                     drawListPtr.AddRect(
                         pos + ((sz - new Vector2(sz1)) / 2f),
                         pos + ((sz + new Vector2(sz1)) / 2f),
                         color,
-                        owner.Rounding,
+                        rd,
                         owner.RoundingFlags,
                         owner.Thickness);
                     break;
@@ -119,7 +120,7 @@ public class ShapePattern : PatternSpannable
                         pos + ((sz - new Vector2(sz1)) / 2f),
                         pos + ((sz + new Vector2(sz1)) / 2f),
                         color,
-                        owner.Rounding,
+                        rd,
                         owner.RoundingFlags);
                     break;
                 case Shape.Circle:

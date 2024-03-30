@@ -11,7 +11,7 @@ public interface ISpannable : IDisposable
     /// <remarks>Used to determine when to measure again.</remarks>
     event Action<ISpannable>? SpannableChange;
 
-    // ^ TOOD: implement on TextSpannableBuilder
+    // ^ TODO: implement on TextSpannableBuilder
 
     /// <summary>Gets all the child spannables.</summary>
     /// <returns>A collection of every <see cref="ISpannable"/> children. May contain nulls.</returns>

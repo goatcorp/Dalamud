@@ -10,10 +10,6 @@ using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Utility.Enumeration;
 using Dalamud.Utility.Numerics;
 
-using TerraFX.Interop.Windows;
-
-using static TerraFX.Interop.Windows.Windows;
-
 namespace Dalamud.Interface.Spannables.Controls.Containers;
 
 /// <summary>A control that contains multiple spannables.</summary>
@@ -37,7 +33,7 @@ public class ContainerControl : ControlSpannable
     /// <summary>Occurs when a child has been added.</summary>
     public event ControlChildEventHandler? ChildAdd;
 
-    /// <summary>Occurs when a child has been changed.</summary>
+    /// <summary>Occurs when a child is changing.</summary>
     public event ControlChildEventHandler? ChildChange;
 
     /// <summary>Occurs when a child has been removed.</summary>
@@ -275,14 +271,7 @@ public class ContainerControl : ControlSpannable
         else
             scrollScale = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx * this.EffectiveRenderScale;
 
-        int nlines;
-        unsafe
-        {
-            if (!SystemParametersInfoW(SPI.SPI_GETWHEELSCROLLLINES, 0, &nlines, 0))
-                nlines = 3;
-        }
-
-        this.Scroll -= args.WheelDelta * scrollScale * nlines;
+        this.Scroll -= args.WheelDelta * scrollScale * WindowsUiConfigHelper.GetWheelScrollLines();
 
         this.UpdateInterceptMouseWheel();
     }
@@ -380,13 +369,13 @@ public class ContainerControl : ControlSpannable
                 owner.AllSpannables[owner.AllSpannablesAvailableSlot + index] =
                     value ?? throw new NullReferenceException();
 
-                var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
+                var e = SpannableEventArgsPool.Rent<SpannableChildEventArgs>();
                 e.Sender = owner;
                 e.OldChild = prev;
                 e.Child = value;
                 e.Index = index;
                 owner.OnChildChange(e);
-                SpannableControlEventArgsPool.Return(e);
+                SpannableEventArgsPool.Return(e);
             }
         }
 
@@ -396,18 +385,18 @@ public class ContainerControl : ControlSpannable
             owner.AllSpannables.Add(item ?? throw new NullReferenceException());
             owner.childMeasurementsList.Add(null);
 
-            var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
+            var e = SpannableEventArgsPool.Rent<SpannableChildEventArgs>();
             e.Sender = owner;
             e.Child = item;
             e.Index = owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot - 1;
             owner.OnChildAdd(e);
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
         }
 
         /// <inheritdoc/>
         public void Clear()
         {
-            var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
+            var e = SpannableEventArgsPool.Rent<SpannableChildEventArgs>();
 
             while (owner.AllSpannables.Count > owner.AllSpannablesAvailableSlot)
             {
@@ -419,7 +408,7 @@ public class ContainerControl : ControlSpannable
                 owner.AllSpannables.RemoveAt(i);
             }
 
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
         }
 
         /// <inheritdoc/>
@@ -456,13 +445,13 @@ public class ContainerControl : ControlSpannable
             owner.AllSpannables.RemoveAt(owner.AllSpannablesAvailableSlot + index);
             owner.childMeasurementsList.RemoveAt(index);
 
-            var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
+            var e = SpannableEventArgsPool.Rent<SpannableChildEventArgs>();
             e.Sender = owner;
             e.OldChild = removedChild;
             e.Child = removedChild;
             e.Index = index;
             owner.OnChildRemove(e);
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
         }
 
         /// <inheritdoc/>
@@ -482,12 +471,12 @@ public class ContainerControl : ControlSpannable
             owner.AllSpannables.Insert(owner.AllSpannablesAvailableSlot + index, item);
             owner.childMeasurementsList.Insert(index, null);
 
-            var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
+            var e = SpannableEventArgsPool.Rent<SpannableChildEventArgs>();
             e.Sender = owner;
             e.Child = item;
             e.Index = index;
             owner.OnChildAdd(e);
-            SpannableControlEventArgsPool.Return(e);
+            SpannableEventArgsPool.Return(e);
         }
 
         /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>

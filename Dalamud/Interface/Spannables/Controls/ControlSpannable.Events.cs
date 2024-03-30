@@ -36,6 +36,14 @@ public partial class ControlSpannable
     /// <summary>Occurs when the control is clicked by the mouse.</summary>
     public event ControlMouseEventHandler? MouseClick;
 
+    /// <summary>Occurs when the control is held down for a duration that would start repeated key press events.
+    /// </summary>
+    public event ControlMouseEventHandler? MousePressLong;
+
+    /// <summary>Occurs when the control has been held down for a duration and is repeatedly generating events like
+    /// <see cref="KeyPress"/>.</summary>
+    public event ControlMouseEventHandler? MousePressRepeat;
+
     /// <summary>Occurs when the mouse pointer is over the control and a mouse button is pressed.</summary>
     public event ControlMouseEventHandler? MouseDown;
 
@@ -63,100 +71,100 @@ public partial class ControlSpannable
     /// <summary>Occurs when a key is released while the control has focus.</summary>
     public event ControlKeyEventHandler? KeyUp;
 
-    /// <summary>Occurs when the property <see cref="MeasuredOutsideBox"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="MeasuredOutsideBox"/> is changing.</summary>
     public event PropertyChangeEventHandler<RectVector4>? MeasuredOutsideBoxChange;
 
-    /// <summary>Occurs when the property <see cref="MeasuredBoundaryBox"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="MeasuredBoundaryBox"/> is changing.</summary>
     public event PropertyChangeEventHandler<RectVector4>? MeasuredBoundaryBoxChange;
 
-    /// <summary>Occurs when the property <see cref="MeasuredInteractiveBox"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="MeasuredInteractiveBox"/> is changing.</summary>
     public event PropertyChangeEventHandler<RectVector4>? MeasuredInteractiveBoxChange;
 
-    /// <summary>Occurs when the property <see cref="MeasuredContentBox"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="MeasuredContentBox"/> is changing.</summary>
     public event PropertyChangeEventHandler<RectVector4>? MeasuredContentBoxChange;
 
-    /// <summary>Occurs when the property <see cref="Name"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Name"/> is changing.</summary>
     public event PropertyChangeEventHandler<string>? NameChange;
 
-    /// <summary>Occurs when the property <see cref="Enabled"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Enabled"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? EnabledChange;
 
-    /// <summary>Occurs when the property <see cref="Focusable"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Focusable"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? FocusableChange;
 
-    /// <summary>Occurs when the property <see cref="Visible"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Visible"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? VisibleChange;
 
-    /// <summary>Occurs when the property <see cref="ClipChildren"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="ClipChildren"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? ClipChildrenChange;
 
-    /// <summary>Occurs when the property <see cref="MouseCursor"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="MouseCursor"/> is changing.</summary>
     public event PropertyChangeEventHandler<ImGuiMouseCursor>? MouseCursorChange;
 
-    /// <summary>Occurs when the property <see cref="Text"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Text"/> is changing.</summary>
     public event PropertyChangeEventHandler<string?>? TextChange;
 
-    /// <summary>Occurs when the property <see cref="TextStyle"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="TextStyle"/> is changing.</summary>
     public event PropertyChangeEventHandler<TextStyle>? TextStyleChange;
 
-    /// <summary>Occurs when the property <see cref="Scale"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Scale"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? ScaleChange;
 
-    /// <summary>Occurs when the property <see cref="RenderScale"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="RenderScale"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? RenderScaleChange;
 
-    /// <summary>Occurs when the property <see cref="Size"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Size"/> is changing.</summary>
     public event PropertyChangeEventHandler<Vector2>? SizeChange;
 
-    /// <summary>Occurs when the property <see cref="ExtendOutside"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="ExtendOutside"/> is changing.</summary>
     public event PropertyChangeEventHandler<BorderVector4>? ExtendOutsideChange;
 
-    /// <summary>Occurs when the property <see cref="Margin"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Margin"/> is changing.</summary>
     public event PropertyChangeEventHandler<BorderVector4>? MarginChange;
 
-    /// <summary>Occurs when the property <see cref="Padding"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Padding"/> is changing.</summary>
     public event PropertyChangeEventHandler<BorderVector4>? PaddingChange;
 
-    /// <summary>Occurs when the property <see cref="Transformation"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Transformation"/> is changing.</summary>
     public event PropertyChangeEventHandler<Matrix4x4>? TransformationChange;
 
-    /// <summary>Occurs when the property <see cref="NormalBackground"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="NormalBackground"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? NormalBackgroundChange;
 
-    /// <summary>Occurs when the property <see cref="HoveredBackground"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="HoveredBackground"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? HoveredBackgroundChange;
 
-    /// <summary>Occurs when the property <see cref="ActiveBackground"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="ActiveBackground"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? ActiveBackgroundChange;
 
-    /// <summary>Occurs when the property <see cref="DisabledBackground"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="DisabledBackground"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannable?>? DisabledBackgroundChange;
 
-    /// <summary>Occurs when the property <see cref="ShowAnimation"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="ShowAnimation"/> is changing.</summary>
     public event PropertyChangeEventHandler<SpannableAnimator?>? ShowAnimationChange;
 
-    /// <summary>Occurs when the property <see cref="HideAnimation"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="HideAnimation"/> is changing.</summary>
     public event PropertyChangeEventHandler<SpannableAnimator?>? HideAnimationChange;
 
-    /// <summary>Occurs when the property <see cref="MoveAnimation"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="MoveAnimation"/> is changing.</summary>
     public event PropertyChangeEventHandler<SpannableAnimator?>? MoveAnimationChange;
 
-    /// <summary>Occurs when the property <see cref="TransformationChangeAnimationChange"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="TransformationChangeAnimationChange"/> is changing.</summary>
     public event PropertyChangeEventHandler<SpannableAnimator?>? TransformationChangeAnimationChange;
 
-    /// <summary>Occurs when the property <see cref="DisabledTextOpacity"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="DisabledTextOpacity"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? DisabledTextOpacityChange;
 
-    /// <summary>Occurs when the property <see cref="CaptureMouseOnMouseDown"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="CaptureMouseOnMouseDown"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? CaptureMouseOnMouseDownChange;
 
-    /// <summary>Occurs when the property <see cref="CaptureMouseWheel"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="CaptureMouseWheel"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? CaptureMouseWheelChange;
 
-    /// <summary>Occurs when the property <see cref="CaptureMouse"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="CaptureMouse"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? CaptureMouseChange;
 
-    /// <summary>Occurs when the property <see cref="TakeKeyboardInputsOnFocus"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="TakeKeyboardInputsOnFocus"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? TakeKeyboardInputsOnFocusChange;
 
     /// <summary>Raises the <see cref="SpannableChange"/> event.</summary>
@@ -199,6 +207,14 @@ public partial class ControlSpannable
         this.MouseClick?.Invoke(args);
         this.OnClick(args);
     }
+
+    /// <summary>Raises the <see cref="MousePressLong"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
+    protected virtual void OnMousePressLong(SpannableMouseEventArgs args) => this.MousePressLong?.Invoke(args);
+
+    /// <summary>Raises the <see cref="MousePressRepeat"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
+    protected virtual void OnMousePressRepeat(SpannableMouseEventArgs args) => this.MousePressRepeat?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseDown"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>

@@ -12,7 +12,7 @@ public class ObservingRecyclerViewControl<TCollection> : RecyclerViewControl
 {
     private TCollection? collection;
 
-    /// <summary>Occurs when the property <see cref="Collection"/> has been changed.</summary>
+    /// <summary>Occurs when the property <see cref="Collection"/> is changing.</summary>
     public event PropertyChangeEventHandler<TCollection?>? CollectionChange;
 
     /// <summary>Gets or sets the data collection.</summary>

@@ -6,64 +6,64 @@ internal enum SpannedRecordType : byte
     /// <summary>This span entry is empty.</summary>
     None,
 
-    /// <summary>Link data offset has been changed.</summary>
+    /// <summary>Link data offset is changing.</summary>
     Link,
 
-    /// <summary>Font has been changed.</summary>
+    /// <summary>Font is changing.</summary>
     FontHandleSetIndex,
 
-    /// <summary>Font size has been changed.</summary>
+    /// <summary>Font size is changing.</summary>
     FontSize,
 
-    /// <summary>Line height has been changed.</summary>
+    /// <summary>Line height is changing.</summary>
     LineHeight,
 
-    /// <summary>Horizontal offset for glyphs has been changed.</summary>
+    /// <summary>Horizontal offset for glyphs is changing.</summary>
     HorizontalOffset,
 
-    /// <summary>Horizontal alignment for the line has been changed.</summary>
+    /// <summary>Horizontal alignment for the line is changing.</summary>
     HorizontalAlignment,
 
-    /// <summary>Vertical offset for glyphs has been changed.</summary>
+    /// <summary>Vertical offset for glyphs is changing.</summary>
     VerticalOffset,
 
-    /// <summary>Vertical alignment w.r.t. the line has been changed.</summary>
+    /// <summary>Vertical alignment w.r.t. the line is changing.</summary>
     VerticalAlignment,
 
-    /// <summary>Whether to use italic fonts has been changed.</summary>
+    /// <summary>Whether to use italic fonts is changing.</summary>
     Italic,
 
-    /// <summary>Whether to use bold fonts has been changed.</summary>
+    /// <summary>Whether to use bold fonts is changing.</summary>
     Bold,
 
-    /// <summary>Text decoration has been changed.</summary>
+    /// <summary>Text decoration is changing.</summary>
     TextDecoration,
 
-    /// <summary>Text decoration style has been changed.</summary>
+    /// <summary>Text decoration style is changing.</summary>
     TextDecorationStyle,
 
-    /// <summary>Background color has been changed.</summary>
+    /// <summary>Background color is changing.</summary>
     BackColor,
 
-    /// <summary>Shadow color has been changed.</summary>
+    /// <summary>Shadow color is changing.</summary>
     ShadowColor,
 
-    /// <summary>Border color has been changed.</summary>
+    /// <summary>Border color is changing.</summary>
     EdgeColor,
 
-    /// <summary>Text decoration color has been changed.</summary>
+    /// <summary>Text decoration color is changing.</summary>
     TextDecorationColor,
 
-    /// <summary>Foreground color has been changed.</summary>
+    /// <summary>Foreground color is changing.</summary>
     ForeColor,
 
-    /// <summary>Border width has been changed.</summary>
+    /// <summary>Border width is changing.</summary>
     EdgeWidth,
 
-    /// <summary>Shadow offset has been changed.</summary>
+    /// <summary>Shadow offset is changing.</summary>
     ShadowOffset,
 
-    /// <summary>Thickness of text decoration has been changed.</summary>
+    /// <summary>Thickness of text decoration is changing.</summary>
     TextDecorationThickness,
 
     /// <summary>An icon entity should be drawn from gfdata.gfd file.</summary>
