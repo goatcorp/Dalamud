@@ -226,8 +226,11 @@ internal sealed record DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets the log line break mode.
     /// </summary>
-    public WordBreakType LogLineBreakMode { get; set; } =
-        WordBreakType.KeepAll;
+    public WordBreakType LogLineBreakMode { get; set; } = WordBreakType.KeepAll;
+
+    /// <summary>Gets or sets a value indicating whether to display the newest log entries on the top of the list in
+    /// the log window.</summary>
+    public bool LogNewestOnTop { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the dev bar should open at startup.

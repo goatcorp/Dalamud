@@ -125,7 +125,7 @@ public class CheckboxControl : BooleanControl
     }
 
     /// <inheritdoc/>
-    protected override void OnClick(SpannableControlEventArgs args)
+    protected override void OnClick(SpannableEventArgs args)
     {
         if (!this.Indeterminate)
             this.Checked = !this.Checked;

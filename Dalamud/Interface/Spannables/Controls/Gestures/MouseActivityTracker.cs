@@ -302,9 +302,9 @@ public sealed class MouseActivityTracker : IDisposable
         this.clickTimerFireMiddleClickAfter = long.MaxValue;
     }
 
-    private void OnMouseDown(ControlMouseEventArgs e)
+    private void OnMouseDown(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !e.Sender.IsMouseHovered)
+        if (!this.enabled || !this.Control.IsMouseHovered)
             return;
 
         this.RecordActivity(new(ActivityType.Down, e.Button, e.LocalLocation));
@@ -352,9 +352,9 @@ public sealed class MouseActivityTracker : IDisposable
         }
     }
 
-    private void OnMouseMove(ControlMouseEventArgs e)
+    private void OnMouseMove(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !e.Sender.IsMouseHovered)
+        if (!this.enabled || !this.Control.IsMouseHovered)
             return;
 
         if (this.DragOrigin is not { } dragOrigin)
@@ -421,7 +421,7 @@ public sealed class MouseActivityTracker : IDisposable
         }
     }
 
-    private void OnMouseUp(ControlMouseEventArgs e)
+    private void OnMouseUp(SpannableMouseEventArgs e)
     {
         if (!this.enabled)
             return;
@@ -565,9 +565,9 @@ public sealed class MouseActivityTracker : IDisposable
         }
     }
 
-    private void OnMouseWheel(ControlMouseEventArgs e)
+    private void OnMouseWheel(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !e.Sender.IsMouseHovered)
+        if (!this.enabled || !this.Control.IsMouseHovered)
             return;
 
         if (e.WheelDelta == Vector2.Zero)
@@ -581,7 +581,7 @@ public sealed class MouseActivityTracker : IDisposable
         }
     }
 
-    private void OnHandleInteraction(SpannableControlEventArgs args)
+    private void OnHandleInteraction(SpannableEventArgs args)
     {
         if (this.IsDragging)
             ImGui.SetMouseCursor(ImGuiMouseCursor.None);

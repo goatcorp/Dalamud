@@ -73,11 +73,11 @@ internal partial class ConsoleWindow
             this.Padding = new(2);
         }
 
-        public event PropertyChangeEventHandler<ControlSpannable, LogEntry?>? EntryChange;
+        public event PropertyChangeEventHandler<LogEntry?>? EntryChange;
 
-        public event PropertyChangeEventHandler<ControlSpannable, Regex>? HighlightRegexChange;
+        public event PropertyChangeEventHandler<Regex>? HighlightRegexChange;
 
-        public event PropertyChangeEventHandler<ControlSpannable, TextSpannableBase.Options>?
+        public event PropertyChangeEventHandler<TextSpannableBase.Options>?
             TextSpannableMeasurementOptionsChange;
 
         private enum RowMode
@@ -232,7 +232,7 @@ internal partial class ConsoleWindow
         }
 
         protected override void UpdateTransformationChildren(
-            SpannableControlEventArgs args,
+            SpannableEventArgs args,
             ReadOnlySpan<ISpannableMeasurement> childMeasurements)
         {
             var mcblt = new Vector3(this.MeasuredContentBox.LeftTop, 0);
@@ -301,7 +301,7 @@ internal partial class ConsoleWindow
             }
         }
 
-        protected virtual void OnEntryChange(PropertyChangeEventArgs<ControlSpannable, LogEntry?> args)
+        protected virtual void OnEntryChange(PropertyChangeEventArgs<LogEntry?> args)
         {
             this.EntryChange?.Invoke(args);
             if (args.State != PropertyChangeState.After)
@@ -318,14 +318,13 @@ internal partial class ConsoleWindow
             this.UpdateMatches();
         }
 
-        protected virtual void OnHighlightRegexChange(PropertyChangeEventArgs<ControlSpannable, Regex> args)
+        protected virtual void OnHighlightRegexChange(PropertyChangeEventArgs<Regex> args)
         {
             this.HighlightRegexChange?.Invoke(args);
             this.UpdateMatches();
         }
 
-        protected virtual void OnWordBreakChange(
-            PropertyChangeEventArgs<ControlSpannable, TextSpannableBase.Options> args)
+        protected virtual void OnWordBreakChange(PropertyChangeEventArgs<TextSpannableBase.Options> args)
         {
             this.TextSpannableMeasurementOptionsChange?.Invoke(args);
             this.lblText.SpannableTextOptions = args.NewValue;

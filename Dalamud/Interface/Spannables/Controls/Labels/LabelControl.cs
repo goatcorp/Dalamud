@@ -62,29 +62,29 @@ public class LabelControl : ControlSpannable
     public event ControlMouseLinkEventHandler? LinkMouseClick;
 
     /// <summary>Occurs when the property <see cref="SpannableText"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, ISpannable?>? SpannableTextChange;
+    public event PropertyChangeEventHandler<ISpannable?>? SpannableTextChange;
 
     /// <summary>Occurs when the property <see cref="SpannableText"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, ISpannableMeasurementOptions?>?
+    public event PropertyChangeEventHandler<ISpannableMeasurementOptions?>?
         SpannableTextOptionsChange;
 
     /// <summary>Occurs when the property <see cref="TextMargin"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, BorderVector4>? TextMarginChange;
+    public event PropertyChangeEventHandler<BorderVector4>? TextMarginChange;
 
     /// <summary>Occurs when the property <see cref="Alignment"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, Vector2>? AlignmentChange;
+    public event PropertyChangeEventHandler<Vector2>? AlignmentChange;
 
     /// <summary>Occurs when the property <see cref="LeftIcon"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, ISpannable?>? LeftIconChange;
+    public event PropertyChangeEventHandler<ISpannable?>? LeftIconChange;
 
     /// <summary>Occurs when the property <see cref="TopIcon"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, ISpannable?>? TopIconChange;
+    public event PropertyChangeEventHandler<ISpannable?>? TopIconChange;
 
     /// <summary>Occurs when the property <see cref="RightIcon"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, ISpannable?>? RightIconChange;
+    public event PropertyChangeEventHandler<ISpannable?>? RightIconChange;
 
     /// <summary>Occurs when the property <see cref="BottomIcon"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, ISpannable?>? BottomIconChange;
+    public event PropertyChangeEventHandler<ISpannable?>? BottomIconChange;
 
     /// <summary>Gets or sets a spannable text.</summary>
     /// <remarks>Having this property set takes priority over <see cref="ControlSpannable.Text"/>.</remarks>
@@ -303,7 +303,7 @@ public class LabelControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnUpdateTransformation(SpannableControlEventArgs args)
+    protected override void OnUpdateTransformation(SpannableEventArgs args)
     {
         base.OnUpdateTransformation(args);
 
@@ -364,7 +364,7 @@ public class LabelControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnDraw(ControlDrawEventArgs args)
+    protected override void OnDraw(SpannableDrawEventArgs args)
     {
         base.OnDraw(args);
 
@@ -378,7 +378,7 @@ public class LabelControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnHandleInteraction(SpannableControlEventArgs args)
+    protected override void OnHandleInteraction(SpannableEventArgs args)
     {
         base.OnHandleInteraction(args);
 
@@ -392,12 +392,12 @@ public class LabelControl : ControlSpannable
 
         Debug.Assert(this.lastLink is not null, "LastLink must not be null if not disposed");
 
-        ControlMouseLinkEventArgs? e = null;
+        SpannableMouseLinkEventArgs? e = null;
         if (this.activeSpannableMeasurement is not TextSpannableBase.Measurement tsmm)
         {
             if (this.lastLink.Length != 0)
             {
-                e = SpannableControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
+                e = SpannableControlEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
                 e.Sender = this;
                 e.Link = this.lastLink.GetDataMemory();
                 this.OnLinkMouseLeave(e);
@@ -427,7 +427,7 @@ public class LabelControl : ControlSpannable
 
         if (!this.lastLink!.GetDataSpan().SequenceEqual(link))
         {
-            e = SpannableControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
+            e = SpannableControlEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
             e.Sender = this;
             e.Link = this.lastLink.GetDataMemory();
 
@@ -444,7 +444,7 @@ public class LabelControl : ControlSpannable
 
         if (issueClickEvent)
         {
-            e ??= SpannableControlEventArgsPool.Rent<ControlMouseLinkEventArgs>();
+            e ??= SpannableControlEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
             e.Sender = this;
             e.Link = this.lastLink.GetDataMemory();
             this.OnLinkMouseClick(e);
@@ -454,22 +454,22 @@ public class LabelControl : ControlSpannable
     }
 
     /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>
-    /// <param name="args">A <see cref="ControlMouseLinkEventArgs"/> that contains the event data.</param>
-    protected virtual void OnLinkMouseEnter(ControlMouseLinkEventArgs args) =>
+    /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseEnter(SpannableMouseLinkEventArgs args) =>
         this.LinkMouseEnter?.Invoke(args);
 
     /// <summary>Raises the <see cref="LinkMouseLeave"/> event.</summary>
-    /// <param name="args">A <see cref="ControlMouseLinkEventArgs"/> that contains the event data.</param>
-    protected virtual void OnLinkMouseLeave(ControlMouseLinkEventArgs args) =>
+    /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseLeave(SpannableMouseLinkEventArgs args) =>
         this.LinkMouseLeave?.Invoke(args);
 
     /// <summary>Raises the <see cref="LinkMouseClick"/> event.</summary>
-    /// <param name="args">A <see cref="ControlMouseLinkEventArgs"/> that contains the event data.</param>
-    protected virtual void OnLinkMouseClick(ControlMouseLinkEventArgs args) =>
+    /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseClick(SpannableMouseLinkEventArgs args) =>
         this.LinkMouseClick?.Invoke(args);
 
     /// <inheritdoc/>
-    protected override void OnTextChange(PropertyChangeEventArgs<ControlSpannable, string?> args)
+    protected override void OnTextChange(PropertyChangeEventArgs<string?> args)
     {
         ObjectDisposedException.ThrowIf(this.textSpannableBuilder is null, this);
 
@@ -483,7 +483,7 @@ public class LabelControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnTextStyleChange(PropertyChangeEventArgs<ControlSpannable, TextStyle> args)
+    protected override void OnTextStyleChange(PropertyChangeEventArgs<TextStyle> args)
     {
         if (args.State == PropertyChangeState.After
             && this.activeSpannableMeasurement?.Options is TextSpannableBase.Options mo)
@@ -492,8 +492,8 @@ public class LabelControl : ControlSpannable
     }
 
     /// <summary>Raises the <see cref="SpannableTextChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnSpannableTextChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnSpannableTextChange(PropertyChangeEventArgs<ISpannable?> args)
     {
         ObjectDisposedException.ThrowIf(this.textSpannableBuilder is null, this);
 
@@ -504,9 +504,9 @@ public class LabelControl : ControlSpannable
     }
 
     /// <summary>Raises the <see cref="SpannableTextOptionsChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
     protected virtual void OnSpannableTextOptionsChange(
-        PropertyChangeEventArgs<ControlSpannable, ISpannableMeasurementOptions?> args)
+        PropertyChangeEventArgs<ISpannableMeasurementOptions?> args)
     {
         ObjectDisposedException.ThrowIf(this.textSpannableBuilder is null, this);
 
@@ -525,32 +525,32 @@ public class LabelControl : ControlSpannable
     }
 
     /// <summary>Raises the <see cref="TextMarginChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnTextMarginChange(PropertyChangeEventArgs<ControlSpannable, BorderVector4> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnTextMarginChange(PropertyChangeEventArgs<BorderVector4> args) =>
         this.TextMarginChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="AlignmentChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnAlignmentChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnAlignmentChange(PropertyChangeEventArgs<Vector2> args) =>
         this.AlignmentChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="LeftIconChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnLeftIconChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnLeftIconChange(PropertyChangeEventArgs<ISpannable?> args) =>
         this.LeftIconChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="TopIconChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnTopIconChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnTopIconChange(PropertyChangeEventArgs<ISpannable?> args) =>
         this.TopIconChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="RightIconChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnRightIconChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnRightIconChange(PropertyChangeEventArgs<ISpannable?> args) =>
         this.RightIconChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="BottomIconChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnBottomIconChange(PropertyChangeEventArgs<ControlSpannable, ISpannable?> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnBottomIconChange(PropertyChangeEventArgs<ISpannable?> args) =>
         this.BottomIconChange?.Invoke(args);
 }

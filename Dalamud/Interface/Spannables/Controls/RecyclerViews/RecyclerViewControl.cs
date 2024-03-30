@@ -62,10 +62,10 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     public event SpannableControlEventHandler? Scroll;
 
     /// <summary>Occurs when the property <see cref="LayoutManager"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, BaseLayoutManager?>? LayoutManagerChange;
+    public event PropertyChangeEventHandler<BaseLayoutManager?>? LayoutManagerChange;
 
     /// <summary>Occurs when the property <see cref="AutoScrollPerSecond"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, Vector2>? AutoScrollPerSecondChange;
+    public event PropertyChangeEventHandler<Vector2>? AutoScrollPerSecondChange;
 
     /// <summary>Gets or sets the layout manager.</summary>
     public BaseLayoutManager? LayoutManager
@@ -142,7 +142,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnHandleInteraction(SpannableControlEventArgs args)
+    protected override void OnHandleInteraction(SpannableEventArgs args)
     {
         this.layoutManager?.HandleInteraction();
         base.OnHandleInteraction(args);
@@ -153,14 +153,14 @@ public abstract partial class RecyclerViewControl : ControlSpannable
         this.layoutManager?.MeasureContentBox(suggestedSize) ?? base.MeasureContentBox(suggestedSize);
 
     /// <inheritdoc/>
-    protected override void OnUpdateTransformation(SpannableControlEventArgs args)
+    protected override void OnUpdateTransformation(SpannableEventArgs args)
     {
         this.layoutManager?.UpdateTransformation();
         base.OnUpdateTransformation(args);
     }
 
     /// <inheritdoc/>
-    protected override void OnDraw(ControlDrawEventArgs args)
+    protected override void OnDraw(SpannableDrawEventArgs args)
     {
         this.layoutManager?.Draw(args);
         base.OnDraw(args);
@@ -186,21 +186,21 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     protected virtual void OnClearSpannable(ClearSpannableEventArg args) => this.ClearSpannable?.Invoke(args);
 
     /// <summary>Raises the <see cref="Scroll"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableControlEventArgs"/> that contains the event data.</param>
-    protected virtual void OnScroll(SpannableControlEventArgs args) => this.Scroll?.Invoke(args);
+    /// <param name="args">A <see cref="SpannableEventArgs"/> that contains the event data.</param>
+    protected virtual void OnScroll(SpannableEventArgs args) => this.Scroll?.Invoke(args);
 
     /// <summary>Raises the <see cref="LayoutManagerChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnLayoutManagerChange(PropertyChangeEventArgs<ControlSpannable, BaseLayoutManager?> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnLayoutManagerChange(PropertyChangeEventArgs<BaseLayoutManager?> args) =>
         this.LayoutManagerChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="AutoScrollPerSecondChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnAutoScrollPerSecondChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnAutoScrollPerSecondChange(PropertyChangeEventArgs<Vector2> args) =>
         this.AutoScrollPerSecondChange?.Invoke(args);
 
     /// <inheritdoc/>
-    protected override void OnMouseWheel(ControlMouseEventArgs args)
+    protected override void OnMouseWheel(SpannableMouseEventArgs args)
     {
         base.OnMouseWheel(args);
         if (this.layoutManager?.CanScroll is not true || args.Handled || !this.IsMouseHoveredIncludingChildren)
@@ -212,7 +212,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
 
     private void SpannableOnSpannableChange(ISpannable obj) => this.OnSpannableChange(this);
 
-    public record DecideSpannableTypeEventArg : SpannableControlEventArgs
+    public record DecideSpannableTypeEventArg : SpannableEventArgs
     {
         /// <summary>Gets or sets the index of the item that needs to have its spannable type decided.</summary>
         public int Index { get; set; }
@@ -220,20 +220,34 @@ public abstract partial class RecyclerViewControl : ControlSpannable
         /// <summary>Gets or sets the decided spannable type.</summary>
         /// <remarks>Assign to this property to assign a spannable type.</remarks>
         public int SpannableType { get; set; }
-        
+
         /// <summary>Gets or sets the decided spannable type for decoration.</summary>
         /// <remarks>This is used as the background which does not get scrolled in non-main direction.
         /// Leave it as <see cref="RecyclerViewControl.InvalidSpannableType"/> to disable.</remarks>
         public int DecorationType { get; set; }
+
+        /// <inheritdoc/>
+        public override bool TryReset()
+        {
+            this.Index = this.SpannableType = this.DecorationType = 0;
+            return base.TryReset();
+        }
     }
 
-    public record AddMoreSpannablesEventArg : SpannableControlEventArgs
+    public record AddMoreSpannablesEventArg : SpannableEventArgs
     {
         /// <summary>Gets or sets the type of the spannable that needs to be populated.</summary>
         public int SpannableType { get; set; }
+
+        /// <inheritdoc/>
+        public override bool TryReset()
+        {
+            this.SpannableType = 0;
+            return base.TryReset();
+        }
     }
 
-    public record PopulateSpannableEventArg : SpannableControlEventArgs
+    public record PopulateSpannableEventArg : SpannableEventArgs
     {
         /// <summary>Gets or sets the index of the item that needs to have its spannable type decided.</summary>
         public int Index { get; set; }
@@ -246,9 +260,18 @@ public abstract partial class RecyclerViewControl : ControlSpannable
 
         /// <summary>Gets or sets the associated spannable measurement.</summary>
         public ISpannableMeasurement Measurement { get; set; } = null!;
+
+        /// <inheritdoc/>
+        public override bool TryReset()
+        {
+            this.Index = this.SpannableType = 0;
+            this.Spannable = null!;
+            this.Measurement = null!;
+            return base.TryReset();
+        }
     }
 
-    public record ClearSpannableEventArg : SpannableControlEventArgs
+    public record ClearSpannableEventArg : SpannableEventArgs
     {
         /// <summary>Gets or sets the decided spannable type from <see cref="DecideSpannableType"/>.</summary>
         public int SpannableType { get; set; }
@@ -258,5 +281,14 @@ public abstract partial class RecyclerViewControl : ControlSpannable
 
         /// <summary>Gets or sets the associated spannable measurement.</summary>
         public ISpannableMeasurement Measurement { get; set; } = null!;
+
+        /// <inheritdoc/>
+        public override bool TryReset()
+        {
+            this.SpannableType = 0;
+            this.Spannable = null!;
+            this.Measurement = null!;
+            return base.TryReset();
+        }
     }
 }

@@ -292,7 +292,8 @@ internal partial class ConsoleWindow : Window, IDisposable
     private void MonoFontOnImFontChanged(IFontHandle fonthandle, ILockedImFont lockedfont) =>
         this.configGeneration++;
 
-    private void SetupTextStyle() =>
+    private void SetupFromConfig()
+    {
         this.textOptions = new()
         {
             WordBreak = this.activeConfiguration.LogLineBreakMode,
@@ -312,14 +313,24 @@ internal partial class ConsoleWindow : Window, IDisposable
                     ? this.ellipsisSpannable
                     : this.wrapMarkerSpannable,
         };
+        var llm = (LinearLayoutManager)this.rvc.LayoutManager!;
+        llm.Direction =
+            this.activeConfiguration.LogNewestOnTop
+                ? LinearLayoutManager.LinearDirection.TopToBottom
+                : LinearLayoutManager.LinearDirection.BottomToTop;
+        llm.UseOffDirectionScroll = this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll;
+    }
 
     private void SetupMainThread()
     {
-        this.SetupTextStyle();
         var llm = new LinearLayoutManager
         {
+            StickToTerminal = true,
             AnchorOffsetRatio = 1f,
-            StickToTerminus = true,
+            Gravity = new(0, 1f),
+            Direction = this.activeConfiguration.LogNewestOnTop
+                            ? LinearLayoutManager.LinearDirection.TopToBottom
+                            : LinearLayoutManager.LinearDirection.BottomToTop,
         };
         this.rvc = new();
         this.rvc.LayoutManager = llm;
@@ -413,8 +424,9 @@ internal partial class ConsoleWindow : Window, IDisposable
 
                     if (this.copyMode)
                     {
-                        this.copyStart = this.copyEnd = index;
+                        this.copyStart = index;
                         e.Handled = true;
+                        this.rvc.MouseCursor = ImGuiMouseCursor.ResizeNS;
                         HandleRvcDrag();
                     }
 
@@ -470,15 +482,25 @@ internal partial class ConsoleWindow : Window, IDisposable
             if (!this.copyMode)
                 return;
 
-            if (this.copyStart > this.copyEnd)
-                (this.copyStart, this.copyEnd) = (this.copyEnd, this.copyStart);
-
-            this.CopyFilteredLogEntries(true);
-
             var (s, e) = (this.copyStart, this.copyEnd);
+            if (s != -1 && e != -1)
+            {
+                if (this.copyStart > this.copyEnd)
+                    (this.copyStart, this.copyEnd) = (this.copyEnd, this.copyStart);
+
+                this.CopyFilteredLogEntries(true);
+            }
+
             this.copyStart = this.copyEnd = -1;
-            llm.NotifyCollectionReplace(s, (e - s) + 1);
+            if (s != -1 && s <= e)
+                llm.NotifyCollectionReplace(s, (e - s) + 1);
+            else if (s != -1 && e <= s)
+                llm.NotifyCollectionReplace(e, (s - e) + 1);
+            else if (s != -1 || e != -1) // handling errorneous state, just in case
+                llm.NotifyCollectionReplace(0, this.rvc.Collection!.Count);
+
             this.rvc.AutoScrollPerSecond = Vector2.Zero;
+            this.rvc.MouseCursor = ImGuiMouseCursor.Arrow;
         };
         this.rvc.Scroll += _ =>
         {
@@ -490,6 +512,8 @@ internal partial class ConsoleWindow : Window, IDisposable
         this.rvc.Collection = this.filteredLogEntries;
         this.rvc.CaptureMouseOnMouseDown = true;
 
+        this.SetupFromConfig();
+
         return;
 
         void HandleRvcDrag()
@@ -497,15 +521,20 @@ internal partial class ConsoleWindow : Window, IDisposable
             var cm = llm.FindChildMeasurementAt(ImGui.GetMousePos());
             cm ??= llm.FindClosestChildMeasurementAt(ImGui.GetMousePos());
             var index = llm.FindItemIndexFromSpannable(cm?.Spannable);
-            if (index < 0)
+            if (index < 0 || this.copyEnd == index)
                 return;
 
-            var prevEnd = this.copyEnd;
+            var changeStart = this.copyEnd;
+            var changeEnd = index;
+
             this.copyEnd = index;
 
-            if (index < prevEnd)
-                (index, prevEnd) = (prevEnd, index);
-            llm.NotifyCollectionReplace(index, (prevEnd - index) + 1);
+            if (changeStart == -1)
+                changeStart = this.copyStart;
+            if (changeEnd < changeStart)
+                (changeEnd, changeStart) = (changeStart, changeEnd);
+            Debug.WriteLine($"{changeStart}..{changeEnd}");
+            llm.NotifyCollectionReplace(changeStart, (changeEnd - changeStart) + 1);
         }
     }
 
@@ -649,7 +678,6 @@ internal partial class ConsoleWindow : Window, IDisposable
                 ref this.copyMode))
         {
             this.copyMode = !this.copyMode;
-            this.rvc.LayoutManager!.NotifyCollectionReset();
         }
 
         if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
@@ -708,7 +736,7 @@ internal partial class ConsoleWindow : Window, IDisposable
                 this.exceptionLogHighlight = e;
             }
 
-            this.rvc.LayoutManager!.NotifyCollectionReset();
+            this.rvc.LayoutManager!.NotifyCollectionReplace(0, this.rvc.Collection!.Count);
         }
 
         if (!breakInputLines)
@@ -782,8 +810,8 @@ internal partial class ConsoleWindow : Window, IDisposable
                 configuration.QueueSave();
                 this.newSettings = null;
 
-                this.SetupTextStyle();
-                this.rvc.LayoutManager!.NotifyCollectionReset();
+                this.SetupFromConfig();
+                this.rvc.LayoutManager!.NotifyCollectionReplace(0, this.rvc.Collection!.Count);
                 ImGui.CloseCurrentPopup();
             }
         }

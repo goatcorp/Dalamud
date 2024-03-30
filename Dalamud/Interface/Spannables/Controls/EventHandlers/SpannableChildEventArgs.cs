@@ -4,9 +4,9 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Arguments for child controls related events.</summary>
 [SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
-public record ControlChildEventArgs : SpannableControlEventArgs
+public record SpannableChildEventArgs : SpannableEventArgs
 {
-    /// <summary>Gets or sets index of <see cref="Child"/> within <see cref="SpannableControlEventArgs.Sender"/>.</summary>
+    /// <summary>Gets or sets index of <see cref="Child"/> within <see cref="SpannableEventArgs.Sender"/>.</summary>
     public int Index { get; set; }
 
     /// <summary>Gets or sets the relevant child control.</summary>

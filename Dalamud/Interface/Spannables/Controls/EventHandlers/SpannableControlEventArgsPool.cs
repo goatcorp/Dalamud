@@ -2,13 +2,13 @@ using Dalamud.Utility;
 
 namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
-/// <summary>A non-threadsafe pool of objects derived from <see cref="SpannableControlEventArgs"/>.</summary>
+/// <summary>A non-threadsafe pool of objects derived from <see cref="SpannableEventArgs"/>.</summary>
 public static class SpannableControlEventArgsPool
 {
     /// <summary>Rents an instance of the object.</summary>
     /// <returns>The rented object.</returns>
     /// <typeparam name="T">The type of the event.</typeparam>
-    public static T Rent<T>() where T : SpannableControlEventArgs, new()
+    public static T Rent<T>() where T : SpannableEventArgs, new()
     {
         ThreadSafety.DebugAssertMainThread();
         foreach (ref var x in Storage<T>.ObjectPool.AsSpan())
@@ -28,7 +28,7 @@ public static class SpannableControlEventArgsPool
     /// <param name="value">The object being returnd.</param>
     /// <typeparam name="T">The type of the event.</typeparam>
     /// <remarks>Returning a <c>null</c> is a no-op.</remarks>
-    public static void Return<T>(T? value) where T : SpannableControlEventArgs, new()
+    public static void Return<T>(T? value) where T : SpannableEventArgs, new()
     {
         ThreadSafety.DebugAssertMainThread();
         if (value is null)
@@ -44,7 +44,7 @@ public static class SpannableControlEventArgsPool
         }
     }
 
-    private static class Storage<T> where T : SpannableControlEventArgs, new()
+    private static class Storage<T> where T : SpannableEventArgs, new()
     {
         public static readonly T?[] ObjectPool = new T?[16];
     }

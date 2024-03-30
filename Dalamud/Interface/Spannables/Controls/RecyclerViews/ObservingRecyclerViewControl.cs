@@ -13,7 +13,7 @@ public class ObservingRecyclerViewControl<TCollection> : RecyclerViewControl
     private TCollection? collection;
 
     /// <summary>Occurs when the property <see cref="Collection"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, TCollection?>? CollectionChange;
+    public event PropertyChangeEventHandler<TCollection?>? CollectionChange;
 
     /// <summary>Gets or sets the data collection.</summary>
     public TCollection? Collection
@@ -26,9 +26,9 @@ public class ObservingRecyclerViewControl<TCollection> : RecyclerViewControl
     protected override ICollection? GetCollection() => this.collection;
 
     /// <summary>Raises the <see cref="CollectionChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
     protected virtual void OnCollectionChange(
-        PropertyChangeEventArgs<ControlSpannable, TCollection?> args)
+        PropertyChangeEventArgs<TCollection?> args)
     {
         this.CollectionChange?.Invoke(args);
 
@@ -45,7 +45,7 @@ public class ObservingRecyclerViewControl<TCollection> : RecyclerViewControl
     }
 
     /// <inheritdoc/>
-    protected override void OnLayoutManagerChange(PropertyChangeEventArgs<ControlSpannable, BaseLayoutManager?> args)
+    protected override void OnLayoutManagerChange(PropertyChangeEventArgs<BaseLayoutManager?> args)
     {
         base.OnLayoutManagerChange(args);
 

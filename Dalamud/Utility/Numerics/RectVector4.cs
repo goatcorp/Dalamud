@@ -184,7 +184,7 @@ public struct RectVector4 : IEquatable<RectVector4>
     public static RectVector4 Expand(in RectVector4 what, in Vector2 by) =>
         new(what.LeftTop - by, what.RightBottom + by);
 
-    /// <summary>expands <paramref name="what"/> by <paramref name="by"/>, by subtracting <see cref="LeftTop"/>
+    /// <summary>Expands <paramref name="what"/> by <paramref name="by"/>, by subtracting <see cref="LeftTop"/>
     /// and adding <see cref="RightBottom"/>.</summary>
     /// <param name="what">The rect vector to extrude from.</param>
     /// <param name="by">The expansion distance.</param>
@@ -224,6 +224,15 @@ public struct RectVector4 : IEquatable<RectVector4>
             res.Top = res.Bottom = MathF.Round((res.Top + res.Bottom) / 2);
         return res;
     }
+
+    /// <summary>Linear interpolates between <paramref name="a"/> and <paramref name="b"/>.</summary>
+    /// <param name="a">The rect vector 1.</param>
+    /// <param name="b">The rect vector 2.</param>
+    /// <param name="ratio">The ratio between.</param>
+    /// <returns>The expanded rect vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RectVector4 Lerp(in RectVector4 a, in RectVector4 b, float ratio) =>
+        new(Vector2.Lerp(a.LeftTop, b.LeftTop, ratio), Vector2.Lerp(a.RightBottom, b.RightBottom, ratio));
 
     /// <summary>Rounds every components of <paramref name="rv"/>.</summary>
     /// <param name="rv">The rect vector.</param>

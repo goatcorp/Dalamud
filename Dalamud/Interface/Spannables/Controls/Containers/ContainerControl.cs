@@ -44,13 +44,13 @@ public class ContainerControl : ControlSpannable
     public event ControlChildEventHandler? ChildRemove;
 
     /// <summary>Occurs when the scroll position changes.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, Vector2>? ScrollChange;
+    public event PropertyChangeEventHandler<Vector2>? ScrollChange;
 
     /// <summary>Occurs when the scroll boundary changes.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, RectVector4>? ScrollBoundaryChange;
+    public event PropertyChangeEventHandler<RectVector4>? ScrollBoundaryChange;
 
     /// <summary>Occurs when <see cref="UseDefaultScrollHandling"/> changes.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, bool>? UseDefaultScrollHandlingChange;
+    public event PropertyChangeEventHandler<bool>? UseDefaultScrollHandlingChange;
 
     /// <summary>Gets or sets the current scroll distance.</summary>
     public Vector2 Scroll
@@ -173,21 +173,21 @@ public class ContainerControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnUpdateTransformation(SpannableControlEventArgs args)
+    protected override void OnUpdateTransformation(SpannableEventArgs args)
     {
         base.OnUpdateTransformation(args);
         this.UpdateTransformationChildren(args, this.ChildMeasurements);
     }
 
     /// <inheritdoc/>
-    protected override void OnHandleInteraction(SpannableControlEventArgs args)
+    protected override void OnHandleInteraction(SpannableEventArgs args)
     {
         base.OnHandleInteraction(args);
         this.HandleInteractionChildren(args, this.ChildMeasurements);
     }
 
     /// <inheritdoc/>
-    protected override void OnDraw(ControlDrawEventArgs args)
+    protected override void OnDraw(SpannableDrawEventArgs args)
     {
         base.OnDraw(args);
         this.DrawChildren(args, this.ChildMeasurements);
@@ -224,7 +224,7 @@ public class ContainerControl : ControlSpannable
     /// <param name="args">The event arguments.</param>
     /// <param name="childMeasurements">The render passes for each of the children.</param>
     protected virtual void UpdateTransformationChildren(
-        SpannableControlEventArgs args,
+        SpannableEventArgs args,
         ReadOnlySpan<ISpannableMeasurement> childMeasurements)
     {
         var offset = (this.MeasuredContentBox.LeftTop - this.Scroll).Round(1 / this.EffectiveRenderScale);
@@ -236,7 +236,7 @@ public class ContainerControl : ControlSpannable
     /// <param name="args">The event arguments.</param>
     /// <param name="childMeasurements">Child measurements.</param>
     protected virtual void HandleInteractionChildren(
-        SpannableControlEventArgs args,
+        SpannableEventArgs args,
         ReadOnlySpan<ISpannableMeasurement> childMeasurements)
     {
         foreach (var cm in childMeasurements)
@@ -247,7 +247,7 @@ public class ContainerControl : ControlSpannable
     /// <param name="args">The event arguments.</param>
     /// <param name="childMeasurements">Child measurements.</param>
     protected virtual void DrawChildren(
-        ControlDrawEventArgs args,
+        SpannableDrawEventArgs args,
         ReadOnlySpan<ISpannableMeasurement> childMeasurements)
     {
         foreach (var cm in childMeasurements)
@@ -263,7 +263,7 @@ public class ContainerControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnMouseWheel(ControlMouseEventArgs args)
+    protected override void OnMouseWheel(SpannableMouseEventArgs args)
     {
         base.OnMouseWheel(args);
         if (args.Handled || !this.useDefaultScrollHandling)
@@ -288,8 +288,8 @@ public class ContainerControl : ControlSpannable
     }
 
     /// <summary>Raises the <see cref="ScrollChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnScrollChange(PropertyChangeEventArgs<ControlSpannable, Vector2> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnScrollChange(PropertyChangeEventArgs<Vector2> args)
     {
         this.ScrollChange?.Invoke(args);
         
@@ -300,8 +300,8 @@ public class ContainerControl : ControlSpannable
     }
 
     /// <summary>Raises the <see cref="ScrollBoundaryChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnScrollBoundaryChange(PropertyChangeEventArgs<ControlSpannable, RectVector4> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnScrollBoundaryChange(PropertyChangeEventArgs<RectVector4> args)
     {
         this.ScrollBoundaryChange?.Invoke(args);
         
@@ -312,16 +312,16 @@ public class ContainerControl : ControlSpannable
     }
 
     /// <summary>Raises the <see cref="ChildAdd"/> event.</summary>
-    /// <param name="args">A <see cref="ControlChildEventArgs"/> that contains the event data.</param>
-    protected virtual void OnChildAdd(ControlChildEventArgs args)
+    /// <param name="args">A <see cref="SpannableChildEventArgs"/> that contains the event data.</param>
+    protected virtual void OnChildAdd(SpannableChildEventArgs args)
     {
         args.Child.SpannableChange += this.ChildOnSpannableChange;
         this.ChildAdd?.Invoke(args);
     }
 
     /// <summary>Raises the <see cref="ChildChange"/> event.</summary>
-    /// <param name="args">A <see cref="ControlChildEventArgs"/> that contains the event data.</param>
-    protected virtual void OnChildChange(ControlChildEventArgs args)
+    /// <param name="args">A <see cref="SpannableChildEventArgs"/> that contains the event data.</param>
+    protected virtual void OnChildChange(SpannableChildEventArgs args)
     {
         if (args.OldChild is { } oldChild)
             oldChild.SpannableChange -= this.ChildOnSpannableChange;
@@ -330,16 +330,16 @@ public class ContainerControl : ControlSpannable
     }
 
     /// <summary>Raises the <see cref="ChildRemove"/> event.</summary>
-    /// <param name="args">A <see cref="ControlChildEventArgs"/> that contains the event data.</param>
-    protected virtual void OnChildRemove(ControlChildEventArgs args)
+    /// <param name="args">A <see cref="SpannableChildEventArgs"/> that contains the event data.</param>
+    protected virtual void OnChildRemove(SpannableChildEventArgs args)
     {
         args.Child.SpannableChange -= this.ChildOnSpannableChange;
         this.ChildRemove?.Invoke(args);
     }
 
     /// <summary>Raises the <see cref="ChildRemove"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{TSender,T}"/> that contains the event data.</param>
-    protected virtual void OnUseDefaultScrollHandlingChange(PropertyChangeEventArgs<ControlSpannable, bool> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnUseDefaultScrollHandlingChange(PropertyChangeEventArgs<bool> args) =>
         this.UseDefaultScrollHandlingChange?.Invoke(args);
 
     private void ChildOnSpannableChange(ISpannable obj) => this.OnSpannableChange(this);
@@ -380,7 +380,7 @@ public class ContainerControl : ControlSpannable
                 owner.AllSpannables[owner.AllSpannablesAvailableSlot + index] =
                     value ?? throw new NullReferenceException();
 
-                var e = SpannableControlEventArgsPool.Rent<ControlChildEventArgs>();
+                var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
                 e.Sender = owner;
                 e.OldChild = prev;
                 e.Child = value;
@@ -396,7 +396,7 @@ public class ContainerControl : ControlSpannable
             owner.AllSpannables.Add(item ?? throw new NullReferenceException());
             owner.childMeasurementsList.Add(null);
 
-            var e = SpannableControlEventArgsPool.Rent<ControlChildEventArgs>();
+            var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
             e.Sender = owner;
             e.Child = item;
             e.Index = owner.AllSpannables.Count - owner.AllSpannablesAvailableSlot - 1;
@@ -407,7 +407,7 @@ public class ContainerControl : ControlSpannable
         /// <inheritdoc/>
         public void Clear()
         {
-            var e = SpannableControlEventArgsPool.Rent<ControlChildEventArgs>();
+            var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
 
             while (owner.AllSpannables.Count > owner.AllSpannablesAvailableSlot)
             {
@@ -456,7 +456,7 @@ public class ContainerControl : ControlSpannable
             owner.AllSpannables.RemoveAt(owner.AllSpannablesAvailableSlot + index);
             owner.childMeasurementsList.RemoveAt(index);
 
-            var e = SpannableControlEventArgsPool.Rent<ControlChildEventArgs>();
+            var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
             e.Sender = owner;
             e.OldChild = removedChild;
             e.Child = removedChild;
@@ -482,7 +482,7 @@ public class ContainerControl : ControlSpannable
             owner.AllSpannables.Insert(owner.AllSpannablesAvailableSlot + index, item);
             owner.childMeasurementsList.Insert(index, null);
 
-            var e = SpannableControlEventArgsPool.Rent<ControlChildEventArgs>();
+            var e = SpannableControlEventArgsPool.Rent<SpannableChildEventArgs>();
             e.Sender = owner;
             e.Child = item;
             e.Index = index;

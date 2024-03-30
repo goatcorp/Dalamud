@@ -606,7 +606,7 @@ public sealed class PanZoomTracker : IDisposable
             this.MouseActivity.DragOrigin ?? this.ContentRelativeToLocal(this.DefaultRelativeOrigin));
     }
 
-    private void ControlOnMeasuredBoundaryBoxChange(PropertyChangeEventArgs<ControlSpannable, RectVector4> args)
+    private void ControlOnMeasuredBoundaryBoxChange(PropertyChangeEventArgs<RectVector4> args)
     {
         if (args.State != PropertyChangeState.After)
             return;

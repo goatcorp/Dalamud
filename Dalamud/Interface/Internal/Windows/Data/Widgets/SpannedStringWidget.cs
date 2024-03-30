@@ -841,7 +841,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         UpdateLblOptions(null);
         return;
 
-        void UpdateHorzAlignment(PropertyChangeEventArgs<ControlSpannable, bool> args)
+        void UpdateHorzAlignment(PropertyChangeEventArgs<bool> args)
         {
             if (args.State != PropertyChangeState.After)
                 return;
@@ -857,7 +857,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             }
         }
 
-        void UpdateVertAlignment(PropertyChangeEventArgs<ControlSpannable, bool> args)
+        void UpdateVertAlignment(PropertyChangeEventArgs<bool> args)
         {
             if (args.State != PropertyChangeState.After)
                 return;
@@ -873,7 +873,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             }
         }
 
-        void UpdateBias(PropertyChangeEventArgs<ControlSpannable, bool> args)
+        void UpdateBias(PropertyChangeEventArgs<bool> args)
         {
             if (args.State != PropertyChangeState.After)
                 return;
@@ -882,7 +882,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 x.ContentBias = n / 4f;
         }
 
-        void UpdateLblOptions(PropertyChangeEventArgs<ControlSpannable, bool>? e)
+        void UpdateLblOptions(PropertyChangeEventArgs<bool>? e)
         {
             if (e?.State is PropertyChangeState.Before)
                 return;

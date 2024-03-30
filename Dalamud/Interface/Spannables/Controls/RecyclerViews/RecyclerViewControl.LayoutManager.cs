@@ -2,9 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
+using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Utility.Numerics;
 
@@ -41,7 +43,7 @@ public abstract partial class RecyclerViewControl
         RectVector4 MeasureContentBox(Vector2 suggestedSize);
 
         /// <inheritdoc cref="ISpannableMeasurement.Draw"/>
-        void Draw(ControlDrawEventArgs args);
+        void Draw(SpannableDrawEventArgs args);
 
         /// <inheritdoc cref="ISpannableMeasurement.UpdateTransformation"/>
         void UpdateTransformation();
@@ -85,14 +87,30 @@ public abstract partial class RecyclerViewControl
                 int OldCount)>
             changeQueue = new();
 
+        /// <summary>Delegate for <see cref="SetupChangeAnimation"/>.</summary>
+        /// <param name="args">The event arguments.</param>
+        public delegate void SetupChangeAnimationEventDelegate(SetupChangeAnimationEventArg args);
+
+        /// <summary>Delegate for <see cref="SetupItemResizeAnimation"/>.</summary>
+        /// <param name="args">The event arguments.</param>
+        public delegate void SetupItemResizeAnimationEventDelegate(SetupItemResizeAnimationEventArg args);
+
+        /// <summary>Occurs when an item animation is about to play, and instances of animations need to be provided.
+        /// </summary>
+        public event SetupChangeAnimationEventDelegate? SetupChangeAnimation;
+
+        /// <summary>Occurs when an item resize animation is about to play, and an instance of easing need to be
+        /// provided.</summary>
+        public event SetupItemResizeAnimationEventDelegate? SetupItemResizeAnimation;
+
         /// <inheritdoc/>
         public RecyclerViewControl? Parent { get; private set; }
 
         /// <inheritdoc/>
-        public int FirstVisibleItem { get; protected set; }
+        public int FirstVisibleItem { get; protected set; } = -1;
 
         /// <inheritdoc/>
-        public int LastVisibleItem { get; protected set; }
+        public int LastVisibleItem { get; protected set; } = -1;
 
         /// <summary>Gets or sets a value indicating whether the RV can be scrolled.</summary>
         public bool CanScroll { get; protected set; }
@@ -119,6 +137,13 @@ public abstract partial class RecyclerViewControl
         /// <inheritdoc/>
         public void HandleInteraction()
         {
+            if (this.Parent is null)
+            {
+                this.changeQueue.Clear();
+                return;
+            }
+
+            var changeQueueAny = false;
             while (this.changeQueue.TryDequeue(out var e))
             {
                 switch (e.Action)
@@ -156,9 +181,14 @@ public abstract partial class RecyclerViewControl
                         break;
 
                     default:
-                        return;
+                        continue;
                 }
+                
+                changeQueueAny = true;
             }
+            
+            if (changeQueueAny)
+                this.Parent.OnSpannableChange(this.Parent);
 
             this.HandleInteractionChildren();
         }
@@ -170,7 +200,7 @@ public abstract partial class RecyclerViewControl
         public void UpdateTransformation() => this.UpdateTransformationChildren();
 
         /// <inheritdoc/>
-        public void Draw(ControlDrawEventArgs args) => this.DrawChildren(args);
+        public void Draw(SpannableDrawEventArgs args) => this.DrawChildren(args);
 
         /// <inheritdoc/>
         public void CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -184,7 +214,6 @@ public abstract partial class RecyclerViewControl
                     e.NewItems?.Count ?? 0,
                     e.OldStartingIndex,
                     e.OldItems?.Count ?? 0));
-            this.Parent.OnSpannableChange(this.Parent);
         }
 
         /// <inheritdoc/>
@@ -268,6 +297,7 @@ public abstract partial class RecyclerViewControl
         /// <summary>Called before detaching parent.</summary>
         protected virtual void BeforeParentDetach()
         {
+            this.FirstVisibleItem = this.LastVisibleItem = -1;
         }
 
         /// <summary>Handles interactions for children.</summary>
@@ -283,7 +313,7 @@ public abstract partial class RecyclerViewControl
 
         /// <summary>Draws the children.</summary>
         /// <param name="args">The event arguments.</param>
-        protected abstract void DrawChildren(ControlDrawEventArgs args);
+        protected abstract void DrawChildren(SpannableDrawEventArgs args);
 
         /// <summary>Processes when the collection got reset and all items needs to be inspected again.</summary>
         protected abstract void OnCollectionReset();
@@ -309,6 +339,16 @@ public abstract partial class RecyclerViewControl
         /// <param name="count">Number of items moved.</param>
         protected abstract void OnCollectionMove(int oldStartIndex, int newStartIndex, int count);
 
+        /// <summary>Raises the <see cref="SetupChangeAnimation"/> event.</summary>
+        /// <param name="args">A <see cref="SetupChangeAnimationEventArg"/> that contains the event data.</param>
+        protected virtual void OnSetupChangeAnimation(SetupChangeAnimationEventArg args) =>
+            this.SetupChangeAnimation?.Invoke(args);
+
+        /// <summary>Raises the <see cref="SetupItemResizeAnimation"/> event.</summary>
+        /// <param name="args">A <see cref="SetupItemResizeAnimationEventArg"/> that contains the event data.</param>
+        protected virtual void OnSetupItemResizeAnimation(SetupItemResizeAnimationEventArg args) =>
+            this.SetupItemResizeAnimation?.Invoke(args);
+
         /// <summary>Requests parent to measure again.</summary>
         protected void RequestMeasure() => this.Parent?.OnSpannableChange(this.Parent);
 
@@ -318,7 +358,7 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is null)
                 return;
 
-            var e = SpannableControlEventArgsPool.Rent<SpannableControlEventArgs>();
+            var e = SpannableControlEventArgsPool.Rent<SpannableEventArgs>();
             e.Sender = this.Parent;
             this.Parent.OnScroll(e);
             SpannableControlEventArgsPool.Return(e);
@@ -446,6 +486,148 @@ public abstract partial class RecyclerViewControl
             this.Parent.OnClearSpannable(e);
             SpannableControlEventArgsPool.Return(e);
             this.Parent.OnSpannableChange(this.Parent);
+        }
+
+        /// <summary>Resolves change animations.</summary>
+        /// <param name="action">The action.</param>
+        /// <param name="wantPreviousAnimation">Whether <paramref name="previousAnimation"/> is wanted.</param>
+        /// <param name="wantAnimation">Whether <paramref name="animation"/> is wanted.</param>
+        /// <param name="previousAnimation">Resolved previous animation.</param>
+        /// <param name="animation">Resolved animation.</param>
+        protected void ResolveChangeAnimations(
+            NotifyCollectionChangedAction action,
+            bool wantPreviousAnimation,
+            bool wantAnimation,
+            out SpannableAnimator? previousAnimation,
+            out SpannableAnimator? animation)
+        {
+            if (this.Parent is null)
+            {
+                previousAnimation = animation = null;
+                return;
+            }
+
+            var e = SpannableControlEventArgsPool.Rent<SetupChangeAnimationEventArg>();
+            e.Sender = this;
+            e.Action = action;
+            e.UseDefault = true;
+            e.WantPreviousAnimation = wantPreviousAnimation;
+            e.WantAnimation = wantAnimation;
+            this.OnSetupChangeAnimation(e);
+            previousAnimation = e.PreviousAnimation;
+            animation = e.Animation;
+            previousAnimation?.Start();
+            animation?.Start();
+            SpannableControlEventArgsPool.Return(e);
+        }
+
+        /// <summary>Resolves item resize easing.</summary>
+        /// <param name="easing">The resolved item resize easing.</param>
+        protected void ResolveSizingEasing(out Easing? easing)
+        {
+            if (this.Parent is null)
+            {
+                easing = null;
+                return;
+            }
+
+            var e = SpannableControlEventArgsPool.Rent<SetupItemResizeAnimationEventArg>();
+            e.Sender = this;
+            e.UseDefault = true;
+            this.OnSetupItemResizeAnimation(e);
+            easing = e.Easing;
+            easing?.Start();
+            SpannableControlEventArgsPool.Return(e);
+        }
+
+        /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
+        /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
+        /// <param name="storage">The reference of the stored value.</param>
+        /// <param name="newValue">The new value.</param>
+        /// <param name="eh">The event handler.</param>
+        /// <typeparam name="T">Type of the changed value.</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void HandlePropertyChange<T>(
+            string propName,
+            ref T storage,
+            T newValue,
+            PropertyChangeEventHandler<T> eh)
+        {
+            if (ControlSpannable.HandlePropertyChange(this, propName, ref storage, newValue, eh))
+                this.RequestMeasure();
+        }
+
+        /// <summary>Event arguments for <see cref="SetupChangeAnimationEventDelegate"/>.</summary>
+        public record SetupChangeAnimationEventArg : SpannableEventArgs
+        {
+            /// <summary>Gets or sets the action that resulted in a chance for animation.</summary>
+            public NotifyCollectionChangedAction Action { get; set; }
+            
+            /// <summary>Gets or sets a value indicating whether to use the default animations, if
+            /// <see cref="PreviousAnimation"/> or <see cref="Animation"/> are set to <c>null</c> when they are going to
+            /// be used.</summary>
+            /// <remarks>To be modified from the event handler.</remarks>
+            public bool UseDefault { get; set; }
+            
+            /// <summary>Gets or sets a value indicating whether <see cref="PreviousAnimation"/> is wanted.</summary>
+            public bool WantPreviousAnimation { get; set; }
+            
+            /// <summary>Gets or sets a value indicating whether <see cref="Animation"/> is wanted.</summary>
+            public bool WantAnimation { get; set; }
+
+            /// <summary>Gets or sets the animation for the previous item to use.</summary>
+            /// <remarks>
+            /// <para>To be modified from the event handler.</para>
+            /// <para>Valid for the following.</para>
+            /// <ul>
+            /// <li><see cref="NotifyCollectionChangedAction.Remove"/></li>
+            /// <li><see cref="NotifyCollectionChangedAction.Replace"/></li>
+            /// <li><see cref="NotifyCollectionChangedAction.Reset"/></li>
+            /// </ul></remarks>
+            public SpannableAnimator? PreviousAnimation { get; set; }
+
+            /// <summary>Gets or sets the animation for the current item to use.</summary>
+            /// <remarks>
+            /// <para>To be modified from the event handler.</para>
+            /// <para>Valid for the following.</para>
+            /// <ul>
+            /// <li><see cref="NotifyCollectionChangedAction.Add"/></li>
+            /// <li><see cref="NotifyCollectionChangedAction.Move"/></li>
+            /// <li><see cref="NotifyCollectionChangedAction.Replace"/></li>
+            /// <li><see cref="NotifyCollectionChangedAction.Reset"/></li>
+            /// </ul></remarks>
+            public SpannableAnimator? Animation { get; set; }
+
+            /// <inheritdoc/>
+            public override bool TryReset()
+            {
+                this.UseDefault = true;
+                this.WantPreviousAnimation = this.WantPreviousAnimation = false;
+                this.PreviousAnimation = null;
+                this.Animation = null;
+                return base.TryReset();
+            }
+        }
+
+        /// <summary>Event arguments for <see cref="SetupItemResizeAnimationEventDelegate"/>.</summary>
+        public record SetupItemResizeAnimationEventArg : SpannableEventArgs
+        {
+            /// <summary>Gets or sets a value indicating whether to use the default animations, if <see cref="Easing"/>
+            /// is set to <c>null</c>.</summary>
+            /// <remarks>To be modified from the event handler.</remarks>
+            public bool UseDefault { get; set; }
+
+            /// <summary>Gets or sets the easing.</summary>
+            /// <remarks>To be modified from the event handler.</remarks>
+            public Easing? Easing { get; set; }
+
+            /// <inheritdoc/>
+            public override bool TryReset()
+            {
+                this.UseDefault = true;
+                this.Easing = null;
+                return base.TryReset();
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Key press event arguments.</summary>
 [SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
-public record ControlKeyPressEventArgs : SpannableControlEventArgs
+public record SpannableKeyPressEventArgs : SpannableEventArgs
 {
     /// <summary>Gets or sets a value indicating whether the event was handled.</summary>
     /// <value><c>true</c> to bypass the control's default handling; otherwise, <c>false</c> to also pass the event

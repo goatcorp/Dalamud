@@ -23,13 +23,13 @@ public class LinearContainer : ContainerControl
     }
 
     /// <summary>Occurs when the property <see cref="Direction"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, LinearDirection>? DirectionChange;
+    public event PropertyChangeEventHandler<LinearDirection>? DirectionChange;
 
     /// <summary>Occurs when the property <see cref="ContentBias"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, float>? ContentBiasChange;
+    public event PropertyChangeEventHandler<float>? ContentBiasChange;
 
     /// <summary>Occurs when the property <see cref="TotalWeight"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, float>? TotalWeightChange;
+    public event PropertyChangeEventHandler<float>? TotalWeightChange;
 
     /// <summary>Direction of laying out the controls.</summary>
     public enum LinearDirection
@@ -232,7 +232,7 @@ public class LinearContainer : ContainerControl
 
     /// <inheritdoc/>
     protected override void UpdateTransformationChildren(
-        SpannableControlEventArgs args,
+        SpannableEventArgs args,
         ReadOnlySpan<ISpannableMeasurement> childMeasurements)
     {
         var childSizeSum = Vector2.Zero;
@@ -298,7 +298,7 @@ public class LinearContainer : ContainerControl
     }
 
     /// <inheritdoc/>
-    protected override void OnChildAdd(ControlChildEventArgs args)
+    protected override void OnChildAdd(SpannableChildEventArgs args)
     {
         this.childLayouts.Insert(args.Index, new());
         this.childOffsets.Insert(args.Index, default);
@@ -306,7 +306,7 @@ public class LinearContainer : ContainerControl
     }
 
     /// <inheritdoc/>
-    protected override void OnChildRemove(ControlChildEventArgs args)
+    protected override void OnChildRemove(SpannableChildEventArgs args)
     {
         this.childLayouts.RemoveAt(args.Index);
         this.childOffsets.RemoveAt(args.Index);
@@ -314,18 +314,18 @@ public class LinearContainer : ContainerControl
     }
 
     /// <summary>Raises the <see cref="DirectionChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnDirectionChange(PropertyChangeEventArgs<ControlSpannable, LinearDirection> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnDirectionChange(PropertyChangeEventArgs<LinearDirection> args) =>
         this.DirectionChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="ContentBiasChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnContentBiasChange(PropertyChangeEventArgs<ControlSpannable, float> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnContentBiasChange(PropertyChangeEventArgs<float> args) =>
         this.ContentBiasChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="TotalWeightChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnTotalWeightChange(PropertyChangeEventArgs<ControlSpannable, float> args) =>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnTotalWeightChange(PropertyChangeEventArgs<float> args) =>
         this.TotalWeightChange?.Invoke(args);
 
     /// <summary>Declares a child layout.</summary>

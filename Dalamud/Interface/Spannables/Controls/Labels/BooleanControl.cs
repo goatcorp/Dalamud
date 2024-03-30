@@ -19,22 +19,22 @@ public class BooleanControl : LabelControl
     }
 
     /// <summary>Occurs when the property <see cref="Checked"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, bool>? CheckedChange;
+    public event PropertyChangeEventHandler<bool>? CheckedChange;
 
     /// <summary>Occurs when the property <see cref="Indeterminate"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, bool>? IndeterminateChange;
+    public event PropertyChangeEventHandler<bool>? IndeterminateChange;
 
     /// <summary>Occurs when the property <see cref="Side"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, IconSide>? SideChange;
+    public event PropertyChangeEventHandler<IconSide>? SideChange;
 
     /// <summary>Occurs when the property <see cref="NormalIcon"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, TristateIconPattern?>? NormalIconChange;
+    public event PropertyChangeEventHandler<TristateIconPattern?>? NormalIconChange;
 
     /// <summary>Occurs when the property <see cref="HoveredIcon"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, TristateIconPattern?>? HoveredIconChange;
+    public event PropertyChangeEventHandler<TristateIconPattern?>? HoveredIconChange;
 
     /// <summary>Occurs when the property <see cref="ActiveIcon"/> has been changed.</summary>
-    public event PropertyChangeEventHandler<ControlSpannable, TristateIconPattern?>? ActiveIconChange;
+    public event PropertyChangeEventHandler<TristateIconPattern?>? ActiveIconChange;
 
     /// <summary>Side of an icon.</summary>
     public enum IconSide
@@ -104,36 +104,36 @@ public class BooleanControl : LabelControl
     }
 
     /// <inheritdoc/> 
-    protected override void OnMouseEnter(ControlMouseEventArgs args)
+    protected override void OnMouseEnter(SpannableMouseEventArgs args)
     {
         base.OnMouseEnter(args);
         this.UpdateIcon();
     }
 
     /// <inheritdoc/>
-    protected override void OnMouseLeave(ControlMouseEventArgs args)
+    protected override void OnMouseLeave(SpannableMouseEventArgs args)
     {
         base.OnMouseLeave(args);
         this.UpdateIcon();
     }
 
     /// <inheritdoc/>
-    protected override void OnMouseDown(ControlMouseEventArgs args)
+    protected override void OnMouseDown(SpannableMouseEventArgs args)
     {
         base.OnMouseDown(args);
         this.UpdateIcon();
     }
 
     /// <inheritdoc/>
-    protected override void OnMouseUp(ControlMouseEventArgs args)
+    protected override void OnMouseUp(SpannableMouseEventArgs args)
     {
         base.OnMouseUp(args);
         this.UpdateIcon();
     }
 
     /// <summary>Raises the <see cref="CheckedChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnCheckedChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnCheckedChange(PropertyChangeEventArgs<bool> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();
@@ -141,8 +141,8 @@ public class BooleanControl : LabelControl
     }
 
     /// <summary>Raises the <see cref="CheckedChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnIndeterminateChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnIndeterminateChange(PropertyChangeEventArgs<bool> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();
@@ -150,8 +150,8 @@ public class BooleanControl : LabelControl
     }
 
     /// <summary>Raises the <see cref="NormalIconChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnNormalIconChange(PropertyChangeEventArgs<ControlSpannable, TristateIconPattern?> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnNormalIconChange(PropertyChangeEventArgs<TristateIconPattern?> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();
@@ -159,8 +159,8 @@ public class BooleanControl : LabelControl
     }
 
     /// <summary>Raises the <see cref="OnHoveredIconChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnHoveredIconChange(PropertyChangeEventArgs<ControlSpannable, TristateIconPattern?> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnHoveredIconChange(PropertyChangeEventArgs<TristateIconPattern?> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();
@@ -168,8 +168,8 @@ public class BooleanControl : LabelControl
     }
 
     /// <summary>Raises the <see cref="OnActiveIconChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnActiveIconChange(PropertyChangeEventArgs<ControlSpannable, TristateIconPattern?> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnActiveIconChange(PropertyChangeEventArgs<TristateIconPattern?> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();
@@ -177,8 +177,8 @@ public class BooleanControl : LabelControl
     }
 
     /// <summary>Raises the <see cref="OnSideChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T, TSender}"/> that contains the event data.</param>
-    protected virtual void OnSideChange(PropertyChangeEventArgs<ControlSpannable, IconSide> args)
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnSideChange(PropertyChangeEventArgs<IconSide> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();

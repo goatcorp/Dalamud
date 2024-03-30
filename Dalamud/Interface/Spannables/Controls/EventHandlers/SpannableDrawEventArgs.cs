@@ -6,7 +6,7 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Draw event arguments.</summary>
 [SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
-public record ControlDrawEventArgs : SpannableControlEventArgs
+public record SpannableDrawEventArgs : SpannableEventArgs
 {
     /// <summary>Gets or sets the draw arguments from the spannable invoker.</summary>
     public ImDrawListPtr DrawListPtr { get; set; }

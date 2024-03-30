@@ -168,7 +168,7 @@ public class RadioControl : BooleanControl
     }
 
     /// <inheritdoc/>
-    protected override void OnClick(SpannableControlEventArgs args)
+    protected override void OnClick(SpannableEventArgs args)
     {
         if (!this.Indeterminate && !this.Checked)
         {
@@ -193,7 +193,7 @@ public class RadioControl : BooleanControl
     }
 
     /// <inheritdoc/>
-    protected override void OnCheckedChange(PropertyChangeEventArgs<ControlSpannable, bool> args)
+    protected override void OnCheckedChange(PropertyChangeEventArgs<bool> args)
     {
         if (args.State == PropertyChangeState.After && !this.Indeterminate && this.Checked)
         {

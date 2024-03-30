@@ -361,22 +361,20 @@ public partial class ControlSpannable
     /// <param name="storage">The reference of the stored value.</param>
     /// <param name="newValue">The new value.</param>
     /// <param name="eh">The event handler.</param>
-    /// <typeparam name="TSender">Type of the object that generated the event.</typeparam>
     /// <typeparam name="T">Type of the changed value.</typeparam>
     /// <returns><c>true</c> if changed.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static bool HandlePropertyChange<TSender, T>(
-        TSender sender,
+    protected static bool HandlePropertyChange<T>(
+        object sender,
         string propName,
         ref T storage,
         T newValue,
-        PropertyChangeEventHandler<TSender, T> eh)
-        where TSender : ControlSpannable
+        PropertyChangeEventHandler<T> eh)
     {
         if (Equals(storage, newValue))
             return false;
 
-        var e = SpannableControlEventArgsPool.Rent<PropertyChangeEventArgs<TSender, T>>();
+        var e = SpannableControlEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
         e.Sender = sender;
         e.PropertyName = propName;
         e.PreviousValue = storage;
@@ -450,7 +448,7 @@ public partial class ControlSpannable
         string propName,
         ref T storage,
         T newValue,
-        PropertyChangeEventHandler<ControlSpannable, T> eh)
+        PropertyChangeEventHandler<T> eh)
     {
         if (HandlePropertyChange(this, propName, ref storage, newValue, eh))
             this.OnSpannableChange(this);

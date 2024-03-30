@@ -292,12 +292,12 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         var inputEventsTrail = new ImVectorWrapper<ImGuiInternals.ImGuiInputEvent>(
             (ImVector*)Unsafe.AsPointer(ref ImGuiInternals.ImGuiContext.Instance.InputEventsTrail));
 
-        var chiea = SpannableControlEventArgsPool.Rent<SpannableControlEventArgs>();
+        var chiea = SpannableControlEventArgsPool.Rent<SpannableEventArgs>();
         chiea.Sender = this;
         this.OnHandleInteraction(chiea);
         SpannableControlEventArgsPool.Return(chiea);
 
-        var cmea = SpannableControlEventArgsPool.Rent<ControlMouseEventArgs>();
+        var cmea = SpannableControlEventArgsPool.Rent<SpannableMouseEventArgs>();
         cmea.Handled = false;
         cmea.Sender = this;
         cmea.LocalLocation = this.PointToClient(ImGui.GetMousePos());
@@ -517,7 +517,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                             if (this.ProcessCmdKey(trailedEvent.Key.Key))
                                 ImGuiInternals.ImGuiNavMoveRequestCancel();
 
-                            var kpe = SpannableControlEventArgsPool.Rent<ControlKeyEventArgs>();
+                            var kpe = SpannableControlEventArgsPool.Rent<SpannableKeyEventArgs>();
                             kpe.Sender = this;
                             kpe.Handled = false;
                             kpe.KeyCode = trailedEvent.Key.Key;
@@ -535,7 +535,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
 
                         case ImGuiInternals.ImGuiInputEventType.Text:
                         {
-                            var kpe = SpannableControlEventArgsPool.Rent<ControlKeyPressEventArgs>();
+                            var kpe = SpannableControlEventArgsPool.Rent<SpannableKeyPressEventArgs>();
                             kpe.Sender = this;
                             kpe.Handled = false;
                             kpe.Rune =
@@ -556,7 +556,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
         {
             this.wasFocused = focused;
 
-            var cea = SpannableControlEventArgsPool.Rent<SpannableControlEventArgs>();
+            var cea = SpannableControlEventArgsPool.Rent<SpannableEventArgs>();
             cea.Sender = this;
             if (focused)
             {
@@ -728,7 +728,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
 
         this.currentBackgroundMeasurement?.UpdateTransformation(Matrix4x4.Identity, this.fullTransformation);
 
-        var e = SpannableControlEventArgsPool.Rent<SpannableControlEventArgs>();
+        var e = SpannableControlEventArgsPool.Rent<SpannableEventArgs>();
         e.Sender = this;
         this.OnUpdateTransformation(e);
         SpannableControlEventArgsPool.Return(e);
@@ -757,7 +757,7 @@ public partial class ControlSpannable : ISpannable, ISpannableMeasurement, ISpan
                        Vector2.One,
                        this.enabled ? 1f : this.disabledTextOpacity))
             {
-                var e = SpannableControlEventArgsPool.Rent<ControlDrawEventArgs>();
+                var e = SpannableControlEventArgsPool.Rent<SpannableDrawEventArgs>();
                 e.Sender = this;
                 e.DrawListPtr = tmpDrawList;
                 this.OnDraw(e);

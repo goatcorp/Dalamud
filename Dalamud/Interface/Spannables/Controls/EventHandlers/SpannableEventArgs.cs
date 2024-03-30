@@ -7,10 +7,10 @@ namespace Dalamud.Interface.Spannables.Controls.EventHandlers;
 
 /// <summary>Base class for control events.</summary>
 [SuppressMessage("ReSharper", "NotNullOrRequiredMemberIsNotInitialized", Justification = "Pooled object")]
-public record SpannableControlEventArgs : IResettable
+public record SpannableEventArgs : IResettable
 {
-    /// <summary>Gets or sets the control that generated the event.</summary>
-    public ControlSpannable Sender { get; set; }
+    /// <summary>Gets or sets the object that generated the event.</summary>
+    public object Sender { get; set; }
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
