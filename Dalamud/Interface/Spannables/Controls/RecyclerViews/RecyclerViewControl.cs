@@ -4,6 +4,7 @@ using System.Numerics;
 
 using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.TODO;
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
@@ -22,6 +23,9 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     private readonly List<int> availablePlaceholderSlotIndices = [];
     private readonly List<int> availablePlaceholderInnerIdIndices = [];
 
+    private readonly int innerIdVerticalScrollBar;
+    private readonly int innerIdHorizontalScrollBar;
+
     private BaseLayoutManager? layoutManager;
     private Vector2 autoScrollPerSecond;
     private ScrollBarMode verticalScrollBarMode;
@@ -31,6 +35,8 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     protected RecyclerViewControl()
     {
         this.ClipChildren = true;
+        this.innerIdVerticalScrollBar = this.InnerIdAvailableSlot++;
+        this.innerIdHorizontalScrollBar = this.InnerIdAvailableSlot++;
         this.VerticalScrollBar = new()
         {
             Direction = LinearDirection.TopToBottom,
@@ -220,6 +226,8 @@ public abstract partial class RecyclerViewControl : ControlSpannable
             this.HorizontalScrollBar.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
             this.HorizontalScrollBar.MeasurementOptions.Size =
                 this.MeasurementOptions.Size with { Y = float.PositiveInfinity };
+            this.HorizontalScrollBar.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.innerIdHorizontalScrollBar);
+            this.HorizontalScrollBar.RenderScale = this.EffectiveRenderScale;
             this.HorizontalScrollBar.ExplicitMeasure();
             this.Padding = this.Padding with { Bottom = this.HorizontalScrollBar.Boundary.Bottom };
         }
@@ -229,6 +237,8 @@ public abstract partial class RecyclerViewControl : ControlSpannable
             this.VerticalScrollBar.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
             this.VerticalScrollBar.MeasurementOptions.Size =
                 this.MeasurementOptions.Size with { X = float.PositiveInfinity, };
+            this.VerticalScrollBar.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.innerIdVerticalScrollBar);
+            this.VerticalScrollBar.RenderScale = this.EffectiveRenderScale;
             this.VerticalScrollBar.ExplicitMeasure();
             this.Padding = this.Padding with { Right = this.VerticalScrollBar.Boundary.Right };
         }

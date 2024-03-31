@@ -187,13 +187,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     private float MainDirectionScreenCoordinatesGravity
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            var t = this.direction.IsVertical() ? this.Gravity.Y : this.Gravity.X;
-            if (!this.IsLowerIndexBeginningSide)
-                t = 1 - t;
-            return t;
-        }
+        get => this.direction.ConvertGravity(this.gravity.GetMainDirection(this.direction));
     }
 
     /// <summary>Gets the gravity in the off direction specified from <see cref="Direction"/>.</summary>
@@ -466,13 +460,13 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             {
                 // Stick to beginning
                 this.AnchoredItem = 0;
-                this.AnchoredItemScrollOffsetRatio = 0;
+                this.AnchoredItemScrollOffsetRatio = this.direction.ConvertGravity(0);
             }
             else if (this.wasEndVisible && (!this.wasBeginningVisible || a))
             {
                 // Stick to the end
                 this.AnchoredItem = itemCount - 1;
-                this.AnchoredItemScrollOffsetRatio = 0;
+                this.AnchoredItemScrollOffsetRatio = this.direction.ConvertGravity(1);
             }
         }
 
@@ -493,17 +487,22 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         // Temporarily use scroll request information as anchor, if specified.
         if (this.scrollRequestedPosition is not float.NaN)
         {
+            // idk why but this seems to work for now
+            const int numVisibleEntriesDelta = 3;
+
             // TODO: only Bottom-To-Top is tested
 
-            var itemCountRange =
-                this.direction.IsDirectionConsistentWithIndex()
-                    ? this.visibleEntries.Count * this.AnchorOffsetRatio
-                    : this.visibleEntries.Count * (1f - this.AnchorOffsetRatio);
+            Debug.WriteLine($"T={this.scrollRequestedPosition}\n");
+            var itemCountRange = (itemCount - this.visibleEntries.Count) + numVisibleEntriesDelta;
+            var itemIndexOffset =
+                Math.Max(
+                    (int)MathF.Ceiling(this.visibleEntries.Count * this.AnchorOffsetRatio) - numVisibleEntriesDelta,
+                    0);
             this.AnchoredItem = Math.Clamp(
-                (int)(this.scrollRequestedPosition * (itemCount - itemCountRange)),
+                (int)(itemIndexOffset + (this.scrollRequestedPosition * itemCountRange)),
                 0,
                 itemCount - 1);
-            this.AnchoredItemScrollOffsetRatio = 0;
+            this.AnchoredItemScrollOffsetRatio = this.direction.ConvertGravity(1f);
             this.scrollRequestedPosition = float.NaN;
         }
 
@@ -529,10 +528,8 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             // Navigate to the offset that the anchor specifies.
             if (expandingDimension >= float.PositiveInfinity)
                 veAnchor.Offset = 0f;
-            else if (this.direction.IsDirectionConsistentWithIndex())
-                veAnchor.Offset = expandingDimension * this.AnchorOffsetRatio;
             else
-                veAnchor.Offset = expandingDimension * (1f - this.AnchorOffsetRatio);
+                veAnchor.Offset = expandingDimension * this.direction.ConvertGravity(this.AnchorOffsetRatio);
 
             // Navigate to the offset that the value that specifies the ratio inside anchor specified.
             veAnchor.Offset -= this.GetExpandingDimensionLerped(veAnchor) * this.AnchoredItemScrollOffsetRatio;
@@ -779,11 +776,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         // Figure out the anchor again.
         if (true)
         {
-            var anchorOffset = expandingDimension;
-            if (this.direction.IsDirectionConsistentWithIndex())
-                anchorOffset *= this.AnchorOffsetRatio;
-            else
-                anchorOffset *= 1 - this.AnchorOffsetRatio;
+            var anchorOffset = expandingDimension * this.direction.ConvertGravity(this.anchorOffsetRatio);
             var anchoredItemDist = float.PositiveInfinity;
             this.AnchoredItem = -1;
             this.AnchoredItemScrollOffset = 0f;
@@ -802,8 +795,8 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 var dist = 0f;
                 if (anchorOffset < vi.Offset)
                     dist = vi.Offset - anchorOffset;
-                else if (anchorOffset > vi.Offset + limDimSize)
-                    dist = anchorOffset - (vi.Offset + limDimSize);
+                else if (anchorOffset >= vi.Offset + limDimSize)
+                    dist = 1 + anchorOffset - (vi.Offset + limDimSize);
                 if (this.AnchoredItem == -1 || dist < anchoredItemDist)
                 {
                     this.AnchoredItem = vi.Index;
@@ -902,14 +895,16 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                     break;
 
                 case LinearDirection.TopToBottom:
-                    // TODO branch
                     this.ScrollPosition = new(
                         this.nonLimDimScroll,
-                        this.AnchoredItem + this.AnchoredItemScrollOffsetRatio);
+                        this.FirstVisibleItem + this.FirstVisibleItemScrollOffsetRatio);
+                    this.ScrollRange = this.ScrollRange with
+                    {
+                        Y = itemCount - (numVisible * ((float)(this.LastVisibleItem + 1) / itemCount)),
+                    };
                     break;
 
                 case LinearDirection.BottomToTop:
-                {
                     this.ScrollPosition = new(
                         this.nonLimDimScroll,
                         (1 + this.FirstVisibleItem) - this.FirstVisibleItemScrollOffsetRatio);
@@ -918,7 +913,6 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                         Y = itemCount - (numVisible * ((float)(this.LastVisibleItem + 1) / itemCount)),
                     };
                     break;
-                }
             }
         }
 
@@ -927,7 +921,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             if (numVisible > 0)
             {
                 this.Parent.VerticalScrollBar.Direction = this.direction;
-                this.Parent.VerticalScrollBar.PageSize = Math.Max(1 / 8f, numVisible / (itemCount + 1));
+                this.Parent.VerticalScrollBar.PageSizeProportion = numVisible / (itemCount + 1);
                 // TODO: this.Parent.HorizontalScrollBar.Direction = LinearDirection.LeftToRight;
             }
         }
@@ -1321,25 +1315,29 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
     private void VerticalScrollBarOnScroll(ScrollBarControl.ScrollEventArgs args)
     {
-        if (this.Collection?.Count is not (> 0 and var colCount))
+        if (this.Collection?.Count is not > 0)
             return;
-        
+
+        var mult = this.direction.IsDirectionConsistentWithIndex() ? 1f : -1f;
+        mult *= this.Parent!.MeasuredContentBox.Height;
         switch (args.Action)
         {
             case ScrollBarControl.ScrollAction.LineDecrement:
-                this.SmoothScrollBy(new Vector2(0, this.Parent!.MeasuredContentBox.Height / +256f));
+                this.SmoothScrollBy(new Vector2(0, mult / -256f));
                 break;
             case ScrollBarControl.ScrollAction.LineIncrement:
-                this.SmoothScrollBy(new Vector2(0, this.Parent!.MeasuredContentBox.Height / -256f));
+                this.SmoothScrollBy(new Vector2(0, mult / +256f));
                 break;
+
+            // TODO: probably can just scroll by the current visible height
             case ScrollBarControl.ScrollAction.PageDecrement:
-                this.SmoothScrollBy(new Vector2(0, this.Parent!.MeasuredContentBox.Height / +16f));
+                this.SmoothScrollBy(new Vector2(0, mult / -64f));
                 break;
             case ScrollBarControl.ScrollAction.PageIncrement:
-                this.SmoothScrollBy(new Vector2(0, this.Parent!.MeasuredContentBox.Height / -16f));
+                this.SmoothScrollBy(new Vector2(0, mult / +64f));
                 break;
+
             case ScrollBarControl.ScrollAction.ThumbTrack:
-                Debug.WriteLine($"T={args.NewValue}\n");
                 this.scrollRequestedPosition = args.NewValue / ((ScrollBarControl)args.Sender).MaxValue;
                 this.accumulatedScrollDelta = Vector2.Zero;
                 this.smoothScrollAmount = Vector2.Zero;

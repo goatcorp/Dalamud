@@ -43,8 +43,9 @@ public class ScrollBarControl : ControlSpannable
     private float value;
     private float minValue;
     private float maxValue = 1f;
-    private float lineSize = 1 / 32f;
-    private float pageSize = 1 / 8f;
+    private float lineSizeProportion = 1 / 32f;
+    private float pageSizeProportion = 1 / 8f;
+    private float minThumbSize = DefaultButtonLength;
     private LinearDirection direction;
 
     private float barOffset;
@@ -59,7 +60,6 @@ public class ScrollBarControl : ControlSpannable
     /// <summary>Initializes a new instance of the <see cref="ScrollBarControl"/> class.</summary>
     public ScrollBarControl()
     {
-        this.AllSpannables.Add(null);
         this.AllSpannables.Add(null);
         this.AllSpannables.Add(null);
         this.AllSpannables.Add(null);
@@ -81,23 +81,33 @@ public class ScrollBarControl : ControlSpannable
 
         this.DecreaseButton = new ButtonControl
         {
-            Text = FontAwesomeIcon.CaretUp.ToString(),
+            Text = FontAwesomeIcon.CaretUp.ToIconString(),
             TextStyle = new()
             {
                 Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
+                FontSize = 12f,
+                ForeColor = 0xFF9F9F9F,
             },
+            NormalBackground = null,
+            Size = new(MatchParent, MatchParent),
             Padding = BorderVector4.Zero,
-            Alignment = new(0.5f), 
+            Alignment = new(0.6f, 0.5f),
             Focusable = false,
         };
 
         this.IncreaseButton = new ButtonControl
         {
-            Text = FontAwesomeIcon.CaretDown.ToString(),
+            Text = FontAwesomeIcon.CaretDown.ToIconString(),
             TextStyle = new()
             {
                 Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
+                FontSize = 12f,
+                ForeColor = 0xFF9F9F9F,
             },
+            NormalBackground = null,
+            Size = new(MatchParent, MatchParent),
+            Padding = BorderVector4.Zero,
+            Alignment = new(0.6f, 0.5f),
             Focusable = false,
         };
 
@@ -131,11 +141,14 @@ public class ScrollBarControl : ControlSpannable
     /// <summary>Occurs when the property <see cref="MaxValue"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? MaxValueChange;
 
-    /// <summary>Occurs when the property <see cref="LineSize"/> is changing.</summary>
-    public event PropertyChangeEventHandler<float>? LineSizeChange;
+    /// <summary>Occurs when the property <see cref="LineSizeProportion"/> is changing.</summary>
+    public event PropertyChangeEventHandler<float>? LineSizeProportionChange;
 
-    /// <summary>Occurs when the property <see cref="PageSize"/> is changing.</summary>
-    public event PropertyChangeEventHandler<float>? PageSizeChange;
+    /// <summary>Occurs when the property <see cref="PageSizeProportion"/> is changing.</summary>
+    public event PropertyChangeEventHandler<float>? PageSizeProportionChange;
+
+    /// <summary>Occurs when the property <see cref="MinThumbSize"/> is changing.</summary>
+    public event PropertyChangeEventHandler<float>? MinThumbSizeChange;
 
     /// <summary>Occurs when the property <see cref="Direction"/> is changing.</summary>
     public event PropertyChangeEventHandler<LinearDirection>? DirectionChange;
@@ -210,10 +223,14 @@ public class ScrollBarControl : ControlSpannable
     /// <summary>Gets or sets the line size, proportional to the available range.</summary>
     /// <value>A value ranging from 0 to 1. Values outside will be clamped.</value>
     /// <remarks>This is the scroll amount for increase and decrease buttons.</remarks>
-    public float LineSize
+    public float LineSizeProportion
     {
-        get => this.lineSize;
-        set => this.HandlePropertyChange(nameof(this.LineSize), ref this.lineSize, value, this.OnLineSizeChange);
+        get => this.lineSizeProportion;
+        set => this.HandlePropertyChange(
+            nameof(this.LineSizeProportion),
+            ref this.lineSizeProportion,
+            value,
+            this.OnLineSizeProportionChange);
     }
 
     /// <summary>Gets or sets the page size, proportional to the available range.</summary>
@@ -221,10 +238,25 @@ public class ScrollBarControl : ControlSpannable
     /// scrolling.</value>
     /// <remarks>This is the scroll amount for clicking on the bar that is not on the thumb, and this is the size of the
     /// thumb proportional to the bar size.</remarks>
-    public float PageSize
+    public float PageSizeProportion
     {
-        get => this.pageSize;
-        set => this.HandlePropertyChange(nameof(this.PageSize), ref this.pageSize, value, this.OnPageSizeChange);
+        get => this.pageSizeProportion;
+        set => this.HandlePropertyChange(
+            nameof(this.PageSizeProportion),
+            ref this.pageSizeProportion,
+            value,
+            this.OnPageSizeProportionChange);
+    }
+
+    /// <summary>Gets or sets the minimum size of the thumb, in pixels (pre-scaled).</summary>
+    public float MinThumbSize
+    {
+        get => this.minThumbSize;
+        set => this.HandlePropertyChange(
+            nameof(this.MinThumbSize),
+            ref this.minThumbSize,
+            value,
+            this.OnMinThumbSizeChange);
     }
 
     /// <summary>Gets or sets the increasing direction of the scroll bar.</summary>
@@ -332,21 +364,24 @@ public class ScrollBarControl : ControlSpannable
             this.barSize = suggestedSize.Y;
             if (measurements[MeasurementIndexDecreaseButton] is { } decbut)
             {
-                decbut.Options.VisibleSize = decbut.Options.Size = suggestedSize with { Y = DefaultButtonLength };
+                decbut.Options.VisibleSize = decbut.Options.Size = suggestedSize with { Y = suggestedSize.X };
                 decbut.Measure();
                 this.barSize -= decbut.Boundary.Bottom;
             }
 
             if (measurements[MeasurementIndexIncreaseButton] is { } incbut)
             {
-                incbut.Options.VisibleSize = incbut.Options.Size = suggestedSize with { Y = DefaultButtonLength };
+                incbut.Options.VisibleSize = incbut.Options.Size = suggestedSize with { Y = suggestedSize.X };
                 incbut.Measure();
                 this.barSize -= incbut.Boundary.Bottom;
             }
 
             if (this.EffectiveRange > 0)
             {
-                this.thumbSize = this.barSize * Math.Clamp(this.pageSize, 0, 1);
+                this.thumbSize = this.barSize * Math.Clamp(this.pageSizeProportion, 0, 1);
+                this.thumbSize = Math.Max(
+                    this.barSize * Math.Clamp(this.pageSizeProportion, 0, 1),
+                    Math.Min(this.minThumbSize, this.barSize / 2f));
                 this.thumbOffset = (this.barSize - this.thumbSize) * this.NormalizedValue;
                 this.thumbOffset =
                     this.direction == LinearDirection.TopToBottom
@@ -547,15 +582,20 @@ public class ScrollBarControl : ControlSpannable
     protected virtual void OnMaxValueChange(PropertyChangeEventArgs<float> args) =>
         this.MaxValueChange?.Invoke(args);
 
-    /// <summary>Raises the <see cref="LineSizeChange"/> event.</summary>
+    /// <summary>Raises the <see cref="LineSizeProportionChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnLineSizeChange(PropertyChangeEventArgs<float> args) =>
-        this.LineSizeChange?.Invoke(args);
+    protected virtual void OnLineSizeProportionChange(PropertyChangeEventArgs<float> args) =>
+        this.LineSizeProportionChange?.Invoke(args);
 
-    /// <summary>Raises the <see cref="PageSizeChange"/> event.</summary>
+    /// <summary>Raises the <see cref="PageSizeProportionChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnPageSizeChange(PropertyChangeEventArgs<float> args) =>
-        this.PageSizeChange?.Invoke(args);
+    protected virtual void OnPageSizeProportionChange(PropertyChangeEventArgs<float> args) =>
+        this.PageSizeProportionChange?.Invoke(args);
+
+    /// <summary>Raises the <see cref="MinThumbSizeChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnMinThumbSizeChange(PropertyChangeEventArgs<float> args) =>
+        this.MinThumbSizeChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="DirectionChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
@@ -628,7 +668,7 @@ public class ScrollBarControl : ControlSpannable
             e.Action = ScrollAction.LineDecrement;
             e.RepeatCount = args.Clicks;
             e.OldValue = this.value;
-            e.UnboundDelta = -this.lineSize * this.EffectiveRange;
+            e.UnboundDelta = -this.lineSizeProportion * this.EffectiveRange;
             e.NewValue = Math.Clamp(this.value + (e.RepeatCount * e.UnboundDelta), this.minValue, this.maxValue);
             this.OnScroll(e);
             if (this.autoValueUpdate)
@@ -641,7 +681,7 @@ public class ScrollBarControl : ControlSpannable
             e.Action = ScrollAction.LineIncrement;
             e.RepeatCount = args.Clicks;
             e.OldValue = this.value;
-            e.UnboundDelta = +this.lineSize * this.EffectiveRange;
+            e.UnboundDelta = +this.lineSizeProportion * this.EffectiveRange;
             e.NewValue = Math.Clamp(this.value + (e.RepeatCount * e.UnboundDelta), this.minValue, this.maxValue);
             this.OnScroll(e);
             if (this.autoValueUpdate)
@@ -676,18 +716,20 @@ public class ScrollBarControl : ControlSpannable
         {
             // Following two cases will be called if IncrementButton/DecrementButtons are not ControlSpannables.
             case ScrollAction.LineDecrement:
-                unboundDelta = -this.lineSize * this.EffectiveRange;
+                unboundDelta = -this.lineSizeProportion * this.EffectiveRange;
                 break;
             case ScrollAction.LineIncrement:
-                unboundDelta = +this.lineSize * this.EffectiveRange;
+                unboundDelta = +this.lineSizeProportion * this.EffectiveRange;
                 break;
 
             // Following two cases will be called when the bar is being held down.
             case ScrollAction.PageDecrement:
-                unboundDelta = -this.pageSize * this.EffectiveRange;
+                unboundDelta = -this.pageSizeProportion * this.EffectiveRange;
+                // TODO: prevent going past the mouse
                 break;
             case ScrollAction.PageIncrement:
-                unboundDelta = +this.pageSize * this.EffectiveRange;
+                unboundDelta = +this.pageSizeProportion * this.EffectiveRange;
+                // TODO: prevent going past the mouse
                 break;
 
             // This case is the one about dragging.

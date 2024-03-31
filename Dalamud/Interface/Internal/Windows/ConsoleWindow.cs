@@ -316,8 +316,8 @@ internal partial class ConsoleWindow : Window, IDisposable
         var llm = (LinearLayoutManager)this.rvc.LayoutManager!;
         llm.Direction =
             this.activeConfiguration.LogNewestOnTop
-                ? LinearDirection.TopToBottom
-                : LinearDirection.BottomToTop;
+                ? LinearDirection.BottomToTop
+                : LinearDirection.TopToBottom;
         llm.UseOffDirectionScroll = this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll;
     }
 
@@ -329,8 +329,8 @@ internal partial class ConsoleWindow : Window, IDisposable
             AnchorOffsetRatio = 1f,
             Gravity = new(0, 1f),
             Direction = this.activeConfiguration.LogNewestOnTop
-                            ? LinearDirection.TopToBottom
-                            : LinearDirection.BottomToTop,
+                            ? LinearDirection.BottomToTop
+                            : LinearDirection.TopToBottom,
         };
         this.rvc = new();
         this.rvc.LayoutManager = llm;
@@ -780,6 +780,10 @@ internal partial class ConsoleWindow : Window, IDisposable
         if (ImGui.Checkbox("Auto-scroll", ref boolt))
             (this.newSettings ??= this.activeConfiguration with { }).LogAutoScroll = boolt;
 
+        boolt = this.StagingConfig.LogNewestOnTop;
+        if (ImGui.Checkbox("Newest logs on top", ref boolt))
+            (this.newSettings ??= this.activeConfiguration with { }).LogNewestOnTop = boolt;
+
         var intt = (int)this.StagingConfig.LogLineBreakMode;
         if (ImGui.Combo("Word Break", ref intt, WordBreakModeNames, WordBreakModeNames.Length))
         {
@@ -809,6 +813,7 @@ internal partial class ConsoleWindow : Window, IDisposable
                     LogLinesMinimum,
                     LogLinesMaximum);
                 configuration.LogLineBreakMode = this.StagingConfig.LogLineBreakMode;
+                configuration.LogNewestOnTop = this.StagingConfig.LogNewestOnTop;
                 configuration.QueueSave();
                 this.newSettings = null;
 

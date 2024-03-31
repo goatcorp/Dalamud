@@ -288,7 +288,7 @@ public class LabelControl : ControlSpannable
         this.activeSpannableMeasurement.Measure();
 
         var bb = RectVector4.Normalize(this.activeSpannableMeasurement.Boundary);
-        var b = Vector2.Max(bb.Size, bb.RightBottom);
+        var b = bb.Size;
         b += totalIconSize;
         b.X = Math.Max(b.X, this.iconMeasurements[1]?.Boundary.Width ?? 0);
         b.X = Math.Max(b.X, this.iconMeasurements[3]?.Boundary.Width ?? 0);
