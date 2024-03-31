@@ -1,6 +1,4 @@
 using Dalamud.Game.Gui.ContextMenu;
-using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Plugin.Services;
 
@@ -16,8 +14,9 @@ public interface IContextMenu
     public delegate void OnMenuOpenedDelegate(MenuOpenedArgs args);
 
     /// <summary>
-    /// Event that gets fired every time the game framework updates.
+    /// Event that gets fired whenever any context menu is opened.
     /// </summary>
+    /// <remarks>Use this event and then check if the triggering addon is the desired addon, then add custom context menu items to the provided args.</remarks>
     event OnMenuOpenedDelegate OnMenuOpened;
 
     /// <summary>
@@ -25,6 +24,7 @@ public interface IContextMenu
     /// </summary>
     /// <param name="menuType">The type of context menu to add the item to.</param>
     /// <param name="item">The item to add.</param>
+    /// <remarks>Used to add a context menu entry to <em>all</em> context menus.</remarks>
     void AddMenuItem(ContextMenuType menuType, MenuItem item);
 
     /// <summary>
@@ -32,6 +32,7 @@ public interface IContextMenu
     /// </summary>
     /// <param name="menuType">The type of context menu to remove the item from.</param>
     /// <param name="item">The item to add.</param>
+    /// <remarks>Used to remove a context menu entry from <em>all</em> context menus.</remarks>
     /// <returns><see langword="true"/> if the item was removed, <see langword="false"/> if it was not found.</returns>
     bool RemoveMenuItem(ContextMenuType menuType, MenuItem item);
 }
