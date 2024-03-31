@@ -17,20 +17,20 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
     Justification = "Internals")]
 public class HintSettingsEntry : SettingsEntry
 {
-    private readonly TextSpannable text;
+    private readonly AbstractStyledText.TextSpannable text;
     private readonly Vector4 color;
-    private readonly TextSpannableBase.Options options;
+    private readonly AbstractStyledText.Options options;
 
     public HintSettingsEntry(string text, Vector4? color = null)
     {
         try
         {
-            this.text = TextSpannable.Parse(text, CultureInfo.InvariantCulture);
+            this.text = StyledText.Parse(text, CultureInfo.InvariantCulture).CreateSpannable();
         }
         catch (Exception e)
         {
             Log.Error(e, $"{nameof(HintSettingsEntry)}: failed to parse");
-            this.text = new TextSpannableBuilder().Append(text).Build();
+            this.text = new StyledTextBuilder().Append(text).Build().CreateSpannable();
         }
 
         this.color = color ?? ImGuiColors.DalamudGrey;
@@ -56,7 +56,7 @@ public class HintSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        Service<SpannableRenderer>.Get().DrawSpannable(
+        Service<SpannableRenderer>.Get().Draw(
             this.text,
             new(false, new() { RootOptions = this.options }));
     }

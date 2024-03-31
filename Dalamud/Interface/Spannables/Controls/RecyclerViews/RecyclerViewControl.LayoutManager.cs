@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Spannables.Controls.Animations;
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.EventHandlers;
+using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
@@ -37,16 +38,16 @@ public abstract partial class RecyclerViewControl
         /// <param name="rv">The recycler view to attach, or <c>null</c> to detach.</param>
         void SetRecyclerView(RecyclerViewControl? rv);
 
-        /// <inheritdoc cref="ISpannableMeasurement.HandleInteraction"/>
-        void HandleInteraction();
+        /// <inheritdoc cref="Spannable.RenderPassPreDispatchEvents"/>
+        void PreDispatchEvents();
 
         /// <inheritdoc cref="ControlSpannable.MeasureContentBox"/>
         RectVector4 MeasureContentBox(Vector2 suggestedSize);
 
-        /// <inheritdoc cref="ISpannableMeasurement.Draw"/>
+        /// <inheritdoc cref="Spannable.RenderPassDraw"/>
         void Draw(SpannableDrawEventArgs args);
 
-        /// <inheritdoc cref="ISpannableMeasurement.UpdateTransformation"/>
+        /// <inheritdoc cref="Spannable.RenderPassPlace"/>
         void UpdateTransformation();
 
         /// <inheritdoc cref="NotifyCollectionChangedEventHandler"/>
@@ -143,7 +144,7 @@ public abstract partial class RecyclerViewControl
         }
 
         /// <inheritdoc/>
-        public void HandleInteraction()
+        public virtual void PreDispatchEvents()
         {
             if (this.Parent is null)
             {
@@ -196,9 +197,7 @@ public abstract partial class RecyclerViewControl
             }
 
             if (changeQueueAny)
-                this.Parent.OnSpannableChange(this.Parent);
-
-            this.HandleInteractionChildren();
+                this.Parent.RequestMeasure();
         }
 
         /// <inheritdoc/>
@@ -240,7 +239,7 @@ public abstract partial class RecyclerViewControl
         }
 
         /// <inheritdoc/>
-        public void UpdateTransformation() => this.UpdateTransformationChildren();
+        public void UpdateTransformation() => this.PlaceChildren();
 
         /// <inheritdoc/>
         public void Draw(SpannableDrawEventArgs args) => this.DrawChildren(args);
@@ -265,7 +264,7 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is null)
                 return;
             this.changeQueue.Enqueue((NotifyCollectionChangedAction.Reset, 0, 0, 0, 0));
-            this.Parent.OnSpannableChange(this.Parent);
+            this.Parent.RequestMeasure();
         }
 
         /// <inheritdoc/>
@@ -274,7 +273,7 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is null)
                 return;
             this.changeQueue.Enqueue((NotifyCollectionChangedAction.Add, startIndex, count, 0, 0));
-            this.Parent.OnSpannableChange(this.Parent);
+            this.Parent.RequestMeasure();
         }
 
         /// <inheritdoc/>
@@ -283,7 +282,7 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is null)
                 return;
             this.changeQueue.Enqueue((NotifyCollectionChangedAction.Remove, 0, 0, startIndex, count));
-            this.Parent.OnSpannableChange(this.Parent);
+            this.Parent.RequestMeasure();
         }
 
         /// <inheritdoc/>
@@ -292,7 +291,7 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is null)
                 return;
             this.changeQueue.Enqueue((NotifyCollectionChangedAction.Replace, startIndex, count, startIndex, count));
-            this.Parent.OnSpannableChange(this.Parent);
+            this.Parent.RequestMeasure();
         }
 
         /// <inheritdoc/>
@@ -302,7 +301,45 @@ public abstract partial class RecyclerViewControl
                 return;
             this.changeQueue.Enqueue(
                 (NotifyCollectionChangedAction.Replace, oldStartIndex, count, newStartIndex, count));
-            this.Parent.OnSpannableChange(this.Parent);
+            this.Parent.RequestMeasure();
+        }
+
+        /// <summary>Scrolls by given distance in lines.</summary>
+        /// <param name="delta">Number of lines in each direction.</param>
+        public void ScrollByLines(Vector2 delta)
+        {
+            if (this.Parent?.Renderer is null)
+                return;
+
+            float scrollScale;
+            if (this.Parent.Renderer.TryGetFontData(
+                    this.Parent.EffectiveRenderScale,
+                    this.Parent.TextStyle,
+                    out var fontData))
+                scrollScale = fontData.ScaledFontSize;
+            else
+                scrollScale = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx * this.Parent.Scale;
+
+            this.ScrollBy(delta * scrollScale * WindowsUiConfigHelper.GetWheelScrollLines());
+        }
+
+        /// <summary>Scrolls by given distance in lines with an animation.</summary>
+        /// <param name="delta">Number of lines in each direction.</param>
+        public void SmoothScrollByLines(Vector2 delta)
+        {
+            if (this.Parent?.Renderer is null)
+                return;
+
+            float scrollScale;
+            if (this.Parent.Renderer.TryGetFontData(
+                    this.Parent.EffectiveRenderScale,
+                    this.Parent.TextStyle,
+                    out var fontData))
+                scrollScale = fontData.ScaledFontSize;
+            else
+                scrollScale = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx * this.Parent.Scale;
+
+            this.SmoothScrollBy(delta * scrollScale * WindowsUiConfigHelper.GetWheelScrollLines());
         }
 
         /// <summary>Scrolls by given distance.</summary>
@@ -316,25 +353,25 @@ public abstract partial class RecyclerViewControl
         /// <summary>Finds the corresponding item index in the collection from a spannable.</summary>
         /// <param name="spannable">The spannable to find the item index.</param>
         /// <returns>The found index, or <c>-1</c> if none found.</returns>
-        public abstract int FindItemIndexFromSpannable(ISpannable? spannable);
+        public abstract int FindItemIndexFromSpannable(Spannable? spannable);
 
         /// <summary>Finds the corresponding spannable from the item index.</summary>
         /// <param name="index">The item index.</param>
         /// <returns>The corresponding spannable, or <c>null</c> if none was available.</returns>
-        public abstract ISpannableMeasurement? FindMeasurementFromItemIndex(int index);
+        public abstract Spannable? FindMeasurementFromItemIndex(int index);
 
-        /// <inheritdoc cref="ISpannableMeasurement.FindChildMeasurementAt"/>
-        public abstract ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset);
+        /// <inheritdoc cref="Spannable.FindChildAtPos"/>
+        public abstract Spannable? FindChildAtPos(Vector2 screenOffset);
 
-        /// <summary><see cref="ISpannableMeasurement.FindChildMeasurementAt"/>, but also looks for children closest
+        /// <summary><see cref="Spannable.FindChildAtPos"/>, but also looks for children closest
         /// to the given point, if the offset does not match any children.</summary>
         /// <param name="screenOffset">The screen offset.</param>
         /// <returns>A children closest to the given screen offset, or <c>null</c> if there are no children.</returns>
-        public abstract ISpannableMeasurement? FindClosestChildMeasurementAt(Vector2 screenOffset);
+        public abstract Spannable? FindClosestChildMeasurementAt(Vector2 screenOffset);
 
         /// <summary>Enumerates the spannable measurements and its corresponding item indices.</summary>
         /// <returns>The enumerable.</returns>
-        public abstract IEnumerable<(int Index, ISpannableMeasurement Measurement)>
+        public abstract IEnumerable<(int Index, Spannable Spannable)>
             EnumerateItemSpannableMeasurements();
 
         /// <summary>Called before detaching parent.</summary>
@@ -349,16 +386,13 @@ public abstract partial class RecyclerViewControl
         {
         }
 
-        /// <summary>Handles interactions for children.</summary>
-        protected abstract void HandleInteractionChildren();
-
         /// <summary>Measures childrens to calculate the size of content box of the parent.</summary>
         /// <param name="suggestedSize">The suggested size.</param>
         /// <returns>The measured content box.</returns>
         protected abstract RectVector4 MeasureChildren(Vector2 suggestedSize);
 
         /// <summary>Updates transformation matrices for the children.</summary>
-        protected abstract void UpdateTransformationChildren();
+        protected abstract void PlaceChildren();
 
         /// <summary>Draws the children.</summary>
         /// <param name="args">The event arguments.</param>
@@ -398,9 +432,6 @@ public abstract partial class RecyclerViewControl
         protected virtual void OnSetupItemResizeAnimation(SetupItemResizeAnimationEventArg args) =>
             this.SetupItemResizeAnimation?.Invoke(args);
 
-        /// <summary>Requests parent to measure again.</summary>
-        protected void RequestMeasure() => this.Parent?.OnSpannableChange(this.Parent);
-
         /// <summary>Requests parent to invoke the scroll event.</summary>
         protected void RequestNotifyScroll()
         {
@@ -408,7 +439,7 @@ public abstract partial class RecyclerViewControl
                 return;
 
             var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-            e.Sender = this.Parent;
+            e.Initialize(this.Parent, SpannableEventStep.DirectTarget);
             this.Parent.OnScroll(e);
             SpannableEventArgsPool.Return(e);
         }
@@ -418,7 +449,7 @@ public abstract partial class RecyclerViewControl
         /// <param name="slotIndex">The slot index in <see cref="ControlSpannable.AllSpannables"/>.</param>
         /// <param name="innerId">The inner ID for this placeholder.</param>
         /// <returns>The placeholder available for use, or <c>null</c> if none could be provided.</returns>
-        protected ISpannable? TakePlaceholder(int spannableType, out int slotIndex, out int innerId)
+        protected Spannable? TakePlaceholder(int spannableType, out int slotIndex, out int innerId)
         {
             slotIndex = innerId = -1;
             if (this.Parent is null)
@@ -428,8 +459,8 @@ public abstract partial class RecyclerViewControl
             if (plist?.Count is not > 0)
             {
                 var e = SpannableEventArgsPool.Rent<AddMoreSpannablesEventArg>();
-                e.Sender = this.Parent;
-                e.SpannableType = spannableType;
+                e.Initialize(this, SpannableEventStep.DirectTarget);
+                e.InitializeAddMoreSpannables(spannableType);
                 this.Parent.OnAddMoreSpannables(e);
                 SpannableEventArgsPool.Return(e);
 
@@ -448,7 +479,7 @@ public abstract partial class RecyclerViewControl
             var t = plist[^1];
             plist.RemoveAt(plist.Count - 1);
             this.Parent.AllSpannables[slotIndex] = t;
-            this.Parent.OnSpannableChange(this.Parent);
+            this.Parent.RequestMeasure();
             return t;
         }
 
@@ -457,7 +488,7 @@ public abstract partial class RecyclerViewControl
         /// <param name="placeholder">The placeholder to return. Can be null, in which case nothing will happen.</param>
         /// <param name="slotIndex">The slot index in <see cref="ControlSpannable.AllSpannables"/>.</param>
         /// <param name="innerId">The inner ID for this placeholder.</param>
-        protected void ReturnPlaceholder(int spannableType, ISpannable? placeholder, int slotIndex, int innerId)
+        protected void ReturnPlaceholder(int spannableType, Spannable? placeholder, int slotIndex, int innerId)
         {
             if (placeholder is null || this.Parent is null)
                 return;
@@ -468,7 +499,7 @@ public abstract partial class RecyclerViewControl
             this.Parent.availablePlaceholderInnerIdIndices.Add(innerId);
             plist.Add(placeholder);
             this.Parent.AllSpannables[slotIndex] = null;
-            this.Parent.OnSpannableChange(this.Parent);
+            this.Parent.RequestMeasure();
         }
 
         /// <summary>Resolves the type of spannable for the item at the given index.</summary>
@@ -484,10 +515,8 @@ public abstract partial class RecyclerViewControl
             }
 
             var e = SpannableEventArgsPool.Rent<DecideSpannableTypeEventArg>();
-            e.Sender = this.Parent;
-            e.Index = index;
-            e.SpannableType = 0;
-            e.DecorationType = InvalidSpannableType;
+            e.Initialize(this.Parent, SpannableEventStep.DirectTarget);
+            e.InitializeDecideSpannableType(index);
             this.Parent.OnDecideSpannableType(e);
             spannableType = e.SpannableType;
             decorationType = e.DecorationType;
@@ -497,44 +526,35 @@ public abstract partial class RecyclerViewControl
         /// <summary>Populates the given spannable.</summary>
         /// <param name="index">Index of the associated item.</param>
         /// <param name="spannableType">Type of the spannable.</param>
-        /// <param name="spannable">Spannable.</param>
-        /// <param name="measurement">Spannable measurement.</param>
-        protected void PopulateSpannable(
-            int index,
-            int spannableType,
-            ISpannable spannable,
-            ISpannableMeasurement measurement)
+        /// <param name="spannable">Spannable measurement.</param>
+        protected void PopulateSpannable(int index, int spannableType, Spannable spannable)
         {
             if (this.Parent is null)
                 return;
+
             var e = SpannableEventArgsPool.Rent<PopulateSpannableEventArg>();
-            e.Index = index;
-            e.SpannableType = spannableType;
-            e.Spannable = spannable;
-            e.Measurement = measurement;
+            e.Initialize(this.Parent, SpannableEventStep.DirectTarget);
+            e.InitializePopulateSpannable(index, spannableType, spannable);
             this.Parent.OnPopulateSpannable(e);
             SpannableEventArgsPool.Return(e);
-            this.Parent.OnSpannableChange(this.Parent);
+
+            this.Parent.RequestMeasure();
         }
 
         /// <summary>Populates the given spannable.</summary>
         /// <param name="spannableType">Type of the spannable.</param>
-        /// <param name="spannable">Spannable.</param>
-        /// <param name="measurement">Spannable measurement.</param>
-        protected void ClearSpannable(
-            int spannableType,
-            ISpannable spannable,
-            ISpannableMeasurement measurement)
+        /// <param name="spannable">Spannable measurement.</param>
+        protected void ClearSpannable(int spannableType, Spannable spannable)
         {
             if (this.Parent is null)
                 return;
             var e = SpannableEventArgsPool.Rent<ClearSpannableEventArg>();
-            e.SpannableType = spannableType;
-            e.Spannable = spannable;
-            e.Measurement = measurement;
+            e.Initialize(this.Parent, SpannableEventStep.DirectTarget);
+            e.InitializeClearSpannable(spannableType, spannable);
             this.Parent.OnClearSpannable(e);
             SpannableEventArgsPool.Return(e);
-            this.Parent.OnSpannableChange(this.Parent);
+
+            this.Parent.RequestMeasure();
         }
 
         /// <summary>Resolves change animations.</summary>
@@ -557,17 +577,15 @@ public abstract partial class RecyclerViewControl
             }
 
             var e = SpannableEventArgsPool.Rent<SetupChangeAnimationEventArg>();
-            e.Sender = this;
-            e.Action = action;
-            e.UseDefault = true;
-            e.WantPreviousAnimation = wantPreviousAnimation;
-            e.WantAnimation = wantAnimation;
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.InitializeSetupChangeAnimation(action, wantPreviousAnimation, wantAnimation);
             this.OnSetupChangeAnimation(e);
             previousAnimation = e.PreviousAnimation;
             animation = e.Animation;
+            SpannableEventArgsPool.Return(e);
+
             previousAnimation?.Start();
             animation?.Start();
-            SpannableEventArgsPool.Return(e);
         }
 
         /// <summary>Resolves item resize easing.</summary>
@@ -581,48 +599,77 @@ public abstract partial class RecyclerViewControl
             }
 
             var e = SpannableEventArgsPool.Rent<SetupItemResizeAnimationEventArg>();
-            e.Sender = this;
-            e.UseDefault = true;
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.InitializeSetupItemResizeAnimation();
             this.OnSetupItemResizeAnimation(e);
             easing = e.Easing;
-            easing?.Start();
             SpannableEventArgsPool.Return(e);
+
+            easing?.Start();
         }
 
         /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
         /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
         /// <param name="storage">The reference of the stored value.</param>
         /// <param name="newValue">The new value.</param>
+        /// <param name="eq">Whether the values are equal.</param>
         /// <param name="eh">The event handler.</param>
         /// <typeparam name="T">Type of the changed value.</typeparam>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void HandlePropertyChange<T>(
+        /// <returns><c>true</c> if changed.</returns>
+        protected bool HandlePropertyChange<T>(
             string propName,
             ref T storage,
             T newValue,
+            bool eq,
             PropertyChangeEventHandler<T> eh)
         {
-            if (ControlSpannable.HandlePropertyChange(this, propName, ref storage, newValue, eh))
-                this.RequestMeasure();
+            if (eq)
+                return false;
+
+            var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.InitializePropertyChangeEvent(propName, PropertyChangeState.Before, storage, newValue);
+
+            eh(e);
+
+            if (e.SuppressHandling)
+            {
+                e.Initialize(this, SpannableEventStep.DirectTarget);
+                e.InitializePropertyChangeEvent(propName, PropertyChangeState.Cancelled, storage, newValue);
+                eh(e);
+
+                SpannableEventArgsPool.Return(e);
+                return false;
+            }
+
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.InitializePropertyChangeEvent(propName, PropertyChangeState.After, storage, newValue);
+            storage = e.NewValue;
+
+            this.Parent?.RequestMeasure();
+            eh(e);
+
+            SpannableEventArgsPool.Return(e);
+            return true;
         }
 
         /// <summary>Event arguments for <see cref="SetupChangeAnimationEventDelegate"/>.</summary>
         public record SetupChangeAnimationEventArg : SpannableEventArgs
         {
-            /// <summary>Gets or sets the action that resulted in a chance for animation.</summary>
-            public NotifyCollectionChangedAction Action { get; set; }
+            /// <summary>Gets the action that resulted in a chance for animation.</summary>
+            public NotifyCollectionChangedAction Action { get; private set; }
+
+            /// <summary>Gets a value indicating whether <see cref="PreviousAnimation"/> is wanted.</summary>
+            public bool WantPreviousAnimation { get; private set; }
+
+            /// <summary>Gets a value indicating whether <see cref="Animation"/> is wanted.</summary>
+            public bool WantAnimation { get; private set; }
 
             /// <summary>Gets or sets a value indicating whether to use the default animations, if
             /// <see cref="PreviousAnimation"/> or <see cref="Animation"/> are set to <c>null</c> when they are going to
             /// be used.</summary>
             /// <remarks>To be modified from the event handler.</remarks>
             public bool UseDefault { get; set; }
-
-            /// <summary>Gets or sets a value indicating whether <see cref="PreviousAnimation"/> is wanted.</summary>
-            public bool WantPreviousAnimation { get; set; }
-
-            /// <summary>Gets or sets a value indicating whether <see cref="Animation"/> is wanted.</summary>
-            public bool WantAnimation { get; set; }
 
             /// <summary>Gets or sets the animation for the previous item to use.</summary>
             /// <remarks>
@@ -650,11 +697,24 @@ public abstract partial class RecyclerViewControl
             /// <inheritdoc/>
             public override bool TryReset()
             {
-                this.UseDefault = true;
-                this.WantPreviousAnimation = this.WantPreviousAnimation = false;
-                this.PreviousAnimation = null;
-                this.Animation = null;
+                this.PreviousAnimation = this.Animation = null;
                 return base.TryReset();
+            }
+
+            /// <summary>Initializes the direct properties of <see cref="SetupChangeAnimationEventArg"/>.</summary>
+            /// <param name="action">Action that caused the animation.</param>
+            /// <param name="wantPreviousAnimation">Whether an animation for the previous spannable is wanted.</param>
+            /// <param name="wantAnimation">Whether an animation for the current spannable is wanted.</param>
+            public void InitializeSetupChangeAnimation(
+                NotifyCollectionChangedAction action,
+                bool wantPreviousAnimation,
+                bool wantAnimation)
+            {
+                this.Action = action;
+                this.WantPreviousAnimation = wantPreviousAnimation;
+                this.WantAnimation = wantAnimation;
+                this.UseDefault = true;
+                this.PreviousAnimation = this.Animation = null;
             }
         }
 
@@ -673,9 +733,15 @@ public abstract partial class RecyclerViewControl
             /// <inheritdoc/>
             public override bool TryReset()
             {
-                this.UseDefault = true;
                 this.Easing = null;
                 return base.TryReset();
+            }
+
+            /// <summary>Initializes the direct properties of <see cref="SetupItemResizeAnimationEventArg"/>.</summary>
+            public void InitializeSetupItemResizeAnimation()
+            {
+                this.UseDefault = true;
+                this.Easing = null;
             }
         }
     }

@@ -1,6 +1,6 @@
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Spannables.Controls.Animations;
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Patterns;
 
 using ImGuiNET;
@@ -38,90 +38,102 @@ public class CheckboxControl : BooleanControl
         this.TextMargin = new(4);
         this.Alignment = new(0, 0.5f);
         this.Padding = new(4);
-        this.NormalIcon = new()
-        {
-            Size = new(checkSize, checkSize),
-            MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
-            MaxSize = new(checkSize, checkSize),
-            ShowIconAnimation = showAnimation,
-            HideIconAnimation = hideAnimation,
-            Background = new ShapePattern
+        this.NormalIcon = new(
+            new()
             {
-                Type = ShapePattern.Shape.SquareFilled,
-                ImGuiColor = ImGuiCol.FrameBg,
-                Rounding = 4,
-                Margin = new(0, 0, 0, 0),
-            },
-            TrueIcon = new ShapePattern
+                Size = new(checkSize, checkSize),
+                MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
+                MaxSize = new(checkSize, checkSize),
+                ShowIconAnimation = showAnimation,
+                HideIconAnimation = hideAnimation,
+                Background = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.SquareFilled,
+                        ImGuiColor = ImGuiCol.FrameBg,
+                        Rounding = 4,
+                        Margin = new(0, 0, 0, 0),
+                    }),
+                TrueIcon = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.Checkmark,
+                        ImGuiColor = ImGuiCol.CheckMark,
+                        Margin = new(checkmarkMargin),
+                    }),
+                NullIcon = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.CircleFilled,
+                        ImGuiColor = ImGuiCol.CheckMark,
+                        ColorMultiplier = new(1, 1, 1, 0.6f),
+                        Margin = new(circleMargin),
+                    }),
+            });
+        this.HoveredIcon = new(
+            new()
             {
-                Type = ShapePattern.Shape.Checkmark,
-                ImGuiColor = ImGuiCol.CheckMark,
-                Margin = new(checkmarkMargin),
-            },
-            NullIcon = new ShapePattern
+                Size = new(checkSize, checkSize),
+                MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
+                MaxSize = new(checkSize, checkSize),
+                ShowIconAnimation = showAnimation,
+                HideIconAnimation = hideAnimation,
+                Background = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.SquareFilled,
+                        ImGuiColor = ImGuiCol.FrameBgHovered,
+                        Rounding = 4,
+                        Margin = new(0, 0, 0, 0),
+                    }),
+                TrueIcon = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.Checkmark,
+                        ImGuiColor = ImGuiCol.CheckMark,
+                        Margin = new(checkmarkMargin),
+                    }),
+                NullIcon = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.CircleFilled,
+                        ImGuiColor = ImGuiCol.CheckMark,
+                        ColorMultiplier = new(1, 1, 1, 0.6f),
+                        Margin = new(circleMargin),
+                    }),
+            });
+        this.ActiveIcon = new(
+            new()
             {
-                Type = ShapePattern.Shape.CircleFilled,
-                ImGuiColor = ImGuiCol.CheckMark,
-                ColorMultiplier = new(1, 1, 1, 0.6f),
-                Margin = new(circleMargin),
-            },
-        };
-        this.HoveredIcon = new()
-        {
-            Size = new(checkSize, checkSize),
-            MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
-            MaxSize = new(checkSize, checkSize),
-            ShowIconAnimation = showAnimation,
-            HideIconAnimation = hideAnimation,
-            Background = new ShapePattern
-            {
-                Type = ShapePattern.Shape.SquareFilled,
-                ImGuiColor = ImGuiCol.FrameBgHovered,
-                Rounding = 4,
-                Margin = new(0, 0, 0, 0),
-            },
-            TrueIcon = new ShapePattern
-            {
-                Type = ShapePattern.Shape.Checkmark,
-                ImGuiColor = ImGuiCol.CheckMark,
-                Margin = new(checkmarkMargin),
-            },
-            NullIcon = new ShapePattern
-            {
-                Type = ShapePattern.Shape.CircleFilled,
-                ImGuiColor = ImGuiCol.CheckMark,
-                ColorMultiplier = new(1, 1, 1, 0.6f),
-                Margin = new(circleMargin),
-            },
-        };
-        this.ActiveIcon = new()
-        {
-            Size = new(checkSize, checkSize),
-            MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
-            MaxSize = new(checkSize, checkSize),
-            ShowIconAnimation = showAnimation,
-            HideIconAnimation = hideAnimation,
-            Background = new ShapePattern
-            {
-                Type = ShapePattern.Shape.SquareFilled,
-                ImGuiColor = ImGuiCol.FrameBgActive,
-                Rounding = 4,
-                Margin = new(0, 0, 0, 0),
-            },
-            TrueIcon = new ShapePattern
-            {
-                Type = ShapePattern.Shape.Checkmark,
-                ImGuiColor = ImGuiCol.CheckMark,
-                Margin = new(checkmarkMargin),
-            },
-            NullIcon = new ShapePattern
-            {
-                Type = ShapePattern.Shape.CircleFilled,
-                ImGuiColor = ImGuiCol.CheckMark,
-                ColorMultiplier = new(1, 1, 1, 0.6f),
-                Margin = new(circleMargin),
-            },
-        };
+                Size = new(checkSize, checkSize),
+                MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
+                MaxSize = new(checkSize, checkSize),
+                ShowIconAnimation = showAnimation,
+                HideIconAnimation = hideAnimation,
+                Background = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.SquareFilled,
+                        ImGuiColor = ImGuiCol.FrameBgActive,
+                        Rounding = 4,
+                        Margin = new(0, 0, 0, 0),
+                    }),
+                TrueIcon = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.Checkmark,
+                        ImGuiColor = ImGuiCol.CheckMark,
+                        Margin = new(checkmarkMargin),
+                    }),
+                NullIcon = new ShapePattern.Template(
+                    new()
+                    {
+                        Shape = ShapePattern.Shape.CircleFilled,
+                        ImGuiColor = ImGuiCol.CheckMark,
+                        ColorMultiplier = new(1, 1, 1, 0.6f),
+                        Margin = new(circleMargin),
+                    }),
+            });
     }
 
     /// <inheritdoc/>

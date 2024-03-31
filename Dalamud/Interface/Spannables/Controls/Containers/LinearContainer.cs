@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
 
@@ -40,6 +40,7 @@ public class LinearContainer : ContainerControl
             nameof(this.Direction),
             ref this.direction,
             value,
+            this.direction == value,
             this.OnDirectionChange);
     }
 
@@ -54,6 +55,7 @@ public class LinearContainer : ContainerControl
             nameof(this.ContentBias),
             ref this.contentBias,
             value,
+            this.contentBias == value,
             this.OnContentBiasChange);
     }
 
@@ -67,6 +69,7 @@ public class LinearContainer : ContainerControl
             nameof(this.TotalWeight),
             ref this.totalWeight,
             value,
+            this.totalWeight == value,
             this.OnTotalWeightChange);
     }
 
@@ -94,11 +97,11 @@ public class LinearContainer : ContainerControl
     /// <inheritdoc/>
     protected override RectVector4 MeasureChildren(
         Vector2 suggestedSize,
-        ReadOnlySpan<ISpannableMeasurement> childMeasurements)
+        ReadOnlySpan<Spannable> children)
     {
         Debug.Assert(
-            childMeasurements.Length == this.childLayouts.Count,
-            $"{nameof(childMeasurements)} and {nameof(this.childLayouts)} got out of synchronization.");
+            children.Length == this.childLayouts.Count,
+            $"{nameof(children)} and {nameof(this.childLayouts)} got out of synchronization.");
 
         var weightSum = this.totalWeight;
         if (weightSum <= 0)
@@ -132,9 +135,9 @@ public class LinearContainer : ContainerControl
             var childOffset = Vector2.Zero;
             var childSizeSum = Vector2.Zero;
 
-            for (var i = 0; i < childMeasurements.Length; i++)
+            for (var i = 0; i < children.Length; i++)
             {
-                var cm = childMeasurements[i];
+                var cm = children[i];
                 var layout = this.childLayouts[i];
 
                 var useHorizontalWeight =
@@ -154,15 +157,15 @@ public class LinearContainer : ContainerControl
                 else
                     maxChildSize = new(float.PositiveInfinity);
 
-                cm.Options.Size = maxChildSize;
+                cm.Options.PreferredSize = maxChildSize;
                 cm.Options.VisibleSize = new(
                     this.direction.IsHorizontal()
-                        ? this.MeasurementOptions.VisibleSize.X - childSizeSum.X
-                        : this.MeasurementOptions.VisibleSize.X,
+                        ? this.Options.VisibleSize.X - childSizeSum.X
+                        : this.Options.VisibleSize.X,
                     this.direction.IsVertical()
-                        ? this.MeasurementOptions.VisibleSize.Y - childSizeSum.Y
-                        : this.MeasurementOptions.VisibleSize.Y);
-                cm.Measure();
+                        ? this.Options.VisibleSize.Y - childSizeSum.Y
+                        : this.Options.VisibleSize.Y);
+                cm.RenderPassMeasure();
 
                 var b = Vector2.Max(cm.Boundary.RightBottom, cm.Boundary.Size);
                 childSizeSum += b;
@@ -200,7 +203,7 @@ public class LinearContainer : ContainerControl
         }
 
         if (!contentBox.IsValid)
-            contentBox = base.MeasureChildren(suggestedSize, childMeasurements);
+            contentBox = base.MeasureChildren(suggestedSize, children);
 
         var rb = contentBox.Size;
         if (suggestedSize.X < float.PositiveInfinity)
@@ -213,13 +216,13 @@ public class LinearContainer : ContainerControl
     }
 
     /// <inheritdoc/>
-    protected override void UpdateTransformationChildren(
+    protected override void PlaceChildren(
         SpannableEventArgs args,
-        ReadOnlySpan<ISpannableMeasurement> childMeasurements)
+        ReadOnlySpan<Spannable> children)
     {
         var childSizeSum = Vector2.Zero;
         var childSizeMax = Vector2.Zero;
-        foreach (var x in childMeasurements)
+        foreach (var x in children)
         {
             childSizeSum += x.Boundary.RightBottom;
             childSizeMax = Vector2.Max(childSizeMax, x.Boundary.RightBottom);
@@ -257,9 +260,9 @@ public class LinearContainer : ContainerControl
         baseOffset += Vector2.Max(Vector2.Zero, myFullBoxSize - myBoxSize) * bias;
         baseOffset -= this.Scroll;
 
-        for (var i = 0; i < childMeasurements.Length; i++)
+        for (var i = 0; i < children.Length; i++)
         {
-            var cm = childMeasurements[i];
+            var cm = children[i];
             var layout = this.childLayouts[i];
             var offset = this.childOffsets[i];
             switch (this.direction)
@@ -273,7 +276,7 @@ public class LinearContainer : ContainerControl
             }
 
             var childFinalLocalOffset = baseOffset + offset;
-            cm.UpdateTransformation(
+            cm.RenderPassPlace(
                 Matrix4x4.CreateTranslation(new(childFinalLocalOffset.Round(1f / this.EffectiveRenderScale), 0)),
                 this.FullTransformation);
         }

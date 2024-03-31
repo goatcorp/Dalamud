@@ -13,26 +13,30 @@ public class ButtonControl : LabelControl
         this.CaptureMouseOnMouseDown = true;
         this.Focusable = true;
         this.Padding = new(8);
-        this.NormalBackground = new ShapePattern
-        {
-            Type = ShapePattern.Shape.RectFilled,
-            ImGuiColor = ImGuiCol.Button,
-        };
-        this.HoveredBackground = new ShapePattern
-        {
-            Type = ShapePattern.Shape.RectFilled,
-            ImGuiColor = ImGuiCol.ButtonHovered,
-        };
-        this.ActiveBackground = new ShapePattern
-        {
-            Type = ShapePattern.Shape.RectFilled,
-            ImGuiColor = ImGuiCol.ButtonActive,
-        };
-        this.DisabledBackground = new ShapePattern
-        {
-            Type = ShapePattern.Shape.RectFilled,
-            ImGuiColor = ImGuiCol.Button,
-            ColorMultiplier = new(1.4f, 1.4f, 1.4f, 0.6f),
-        };
+        this.NormalBackground = new ShapePattern.Template(
+            new()
+            {
+                Shape = ShapePattern.Shape.RectFilled,
+                ImGuiColor = ImGuiCol.Button,
+            });
+        this.HoveredBackground = new ShapePattern.Template(
+            new()
+            {
+                Shape = ShapePattern.Shape.RectFilled,
+                ImGuiColor = ImGuiCol.ButtonHovered,
+            });
+        this.ActiveBackground = new ShapePattern.Template(
+            new()
+            {
+                Shape = ShapePattern.Shape.RectFilled,
+                ImGuiColor = ImGuiCol.ButtonActive,
+            });
+        this.DisabledBackground = new ShapePattern.Template(
+            new()
+            {
+                Shape = ShapePattern.Shape.RectFilled,
+                ImGuiColor = ImGuiCol.Button,
+                ColorMultiplier = new(1.4f, 1.4f, 1.4f, 0.6f),
+            });
     }
 }

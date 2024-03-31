@@ -2,7 +2,7 @@ using Dalamud.Interface.Spannables.Text;
 
 namespace Dalamud.Interface.Spannables.Internal;
 
-/// <summary>Instructions on how to parse a string into a <see cref="TextSpannable"/>.</summary>
+/// <summary>Instructions on how to parse a string into a <see cref="StyledText"/>.</summary>
 [AttributeUsage(AttributeTargets.Method)]
 internal class SpannedParseInstructionAttribute : Attribute
 {

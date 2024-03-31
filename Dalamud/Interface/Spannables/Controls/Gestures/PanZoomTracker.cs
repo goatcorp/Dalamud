@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.Gestures.RectScaleMode;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Utility.Numerics;
 
@@ -298,9 +298,9 @@ public sealed class PanZoomTracker : IDisposable
                 mode = fzsm;
             }
 
-            if (Equals(
-                    mode.CalcZoom(this.RotatedSize, this.ControlBodySize, this.ZoomExponentDivisor),
-                    this.EffectiveZoom))
+            if (Math.Abs(
+                    mode.CalcZoom(this.RotatedSize, this.ControlBodySize, this.ZoomExponentDivisor) -
+                    this.EffectiveZoom) < 0.00001f)
             {
                 this.scaleMode = mode;
                 return false;
@@ -308,7 +308,7 @@ public sealed class PanZoomTracker : IDisposable
         }
         else if (this.scaleMode is null)
         {
-            if (Equals(this.lastKnownZoom, this.EffectiveZoom))
+            if (Math.Abs(this.lastKnownZoom - this.EffectiveZoom) < 0.000001f)
                 return false;
 
             this.ViewportChanged?.Invoke();
@@ -466,7 +466,7 @@ public sealed class PanZoomTracker : IDisposable
     public bool UpdateRotation(float newRotation, Vector2 localOrigin)
     {
         this.rotation %= MathF.PI * 2;
-        if (Equals(newRotation, this.rotation))
+        if (Math.Abs(newRotation - this.rotation) < 0.000001f)
             return false;
 
         var v = this.LocalToContentRelative(localOrigin) * this.size * this.EffectiveZoom;

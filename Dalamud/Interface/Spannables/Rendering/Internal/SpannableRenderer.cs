@@ -103,64 +103,55 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
     }
 
     /// <inheritdoc/>
-    public ISpannableMeasurement DrawText(ReadOnlySpan<char> sequence, in RenderContext renderContext)
-    {
-        var ssb = this.RentBuilder();
-        ssb.Append(sequence);
-        var res = this.DrawSpannable(ssb, in renderContext);
-        this.ReturnBuilder(ssb);
-        return res;
-    }
-
-    /// <inheritdoc/>
-    public ISpannableMeasurement DrawSpannable(ISpannable spannable, in RenderContext renderContext) =>
-        this.DrawSpannableFromMeasurement(spannable.RentMeasurement(this), in renderContext);
-
-    /// <inheritdoc/>
-    public ISpannableMeasurement DrawSpannableFromMeasurement(
-        ISpannableMeasurement spannableMeasurement,
-        in RenderContext renderContext)
+    public Spannable Draw(Spannable spannable, in RenderContext renderContext)
     {
         ThreadSafety.AssertMainThread();
 
-        if (spannableMeasurement.Renderer is null)
-            throw new InvalidOperationException();
-
-        spannableMeasurement.RenderScale = renderContext.RenderScale;
-        spannableMeasurement.ImGuiGlobalId = renderContext.ImGuiGlobalId;
         if (renderContext.RootOptions is not null)
-            spannableMeasurement.Options.CopyFrom(renderContext.RootOptions);
-        spannableMeasurement.Options.Size = renderContext.Size / spannableMeasurement.RenderScale;
-        spannableMeasurement.Options.VisibleSize = spannableMeasurement.Options.Size;
+        {
+            renderContext.RootOptions.RenderScale = renderContext.RenderScale;
+            renderContext.RootOptions.PreferredSize = renderContext.Size / renderContext.RenderScale;
+            renderContext.RootOptions.VisibleSize = renderContext.RootOptions.PreferredSize;
+            spannable.Options.CopyFrom(renderContext.RootOptions);
+        }
+        else
+        {
+            spannable.Options.RenderScale = renderContext.RenderScale;
+            spannable.Options.PreferredSize = renderContext.Size / renderContext.RenderScale;
+            spannable.Options.VisibleSize = spannable.Options.PreferredSize;
+        }
 
-        var interactionHandled = renderContext.UseInteraction && spannableMeasurement.HandleInteraction();
+        spannable.Renderer = this;
+        spannable.ImGuiGlobalId = renderContext.ImGuiGlobalId;
 
-        spannableMeasurement.Measure();
+        spannable.RenderPassPreDispatchEvents();
+
+        if (renderContext.UseInteraction)
+            spannable.RenderPassDispatchEventsAsRoot();
+
+        spannable.RenderPassMeasure();
 
         var mtx = Matrix4x4.Multiply(
             renderContext.Transformation,
             Matrix4x4.Multiply(
                 Matrix4x4.CreateScale(renderContext.RenderScale),
                 Matrix4x4.CreateTranslation(new(renderContext.ScreenOffset, 0))));
-        spannableMeasurement.UpdateTransformation(Matrix4x4.Identity, mtx);
+        spannable.RenderPassPlace(Matrix4x4.Identity, mtx);
 
         if (renderContext.UseDrawing)
         {
             using (new ScopedTransformer(renderContext.DrawListPtr, mtx, Vector2.One, 1f))
-                spannableMeasurement.Draw(renderContext.DrawListPtr);
-
-            if (renderContext.UseInteraction && !interactionHandled)
-                spannableMeasurement.HandleInteraction();
+                spannable.RenderPassDraw(renderContext.DrawListPtr);
 
             if (renderContext.PutDummyAfterRender)
             {
                 var tf = Matrix4x4.Multiply(
                     Matrix4x4.CreateScale(new Vector3(renderContext.RenderScale)),
                     renderContext.Transformation);
-                var lt = renderContext.ScreenOffset + Vector2.Transform(spannableMeasurement.Boundary.LeftTop, tf);
-                var rt = renderContext.ScreenOffset + Vector2.Transform(spannableMeasurement.Boundary.RightTop, tf);
-                var rb = renderContext.ScreenOffset + Vector2.Transform(spannableMeasurement.Boundary.RightBottom, tf);
-                var lb = renderContext.ScreenOffset + Vector2.Transform(spannableMeasurement.Boundary.LeftBottom, tf);
+                var lt = renderContext.ScreenOffset + Vector2.Transform(spannable.Boundary.LeftTop, tf);
+                var rt = renderContext.ScreenOffset + Vector2.Transform(spannable.Boundary.RightTop, tf);
+                var rb = renderContext.ScreenOffset + Vector2.Transform(spannable.Boundary.RightBottom, tf);
+                var lb = renderContext.ScreenOffset + Vector2.Transform(spannable.Boundary.LeftBottom, tf);
                 var minPos = Vector2.Min(Vector2.Min(lt, rt), Vector2.Min(lb, rb));
                 var maxPos = Vector2.Max(Vector2.Max(lt, rt), Vector2.Max(lb, rb));
                 if (minPos.X <= maxPos.X && minPos.Y <= maxPos.Y)
@@ -171,7 +162,10 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
             }
         }
 
-        return spannableMeasurement;
+        if (renderContext.UseInteraction)
+            spannable.RenderPassPostDispatchEvents();
+
+        return spannable;
     }
 
     /// <inheritdoc/>

@@ -16,12 +16,11 @@ using Dalamud.Interface.Spannables;
 using Dalamud.Interface.Spannables.Controls;
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.Controls.Containers;
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.Gestures;
 using Dalamud.Interface.Spannables.Controls.Labels;
 using Dalamud.Interface.Spannables.Controls.RecyclerViews;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
-using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Rendering.Internal;
 using Dalamud.Interface.Spannables.Styles;
@@ -36,14 +35,14 @@ using Serilog;
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
-/// Widget for displaying <see cref="TextSpannable"/> test.
+/// Widget for displaying <see cref="StyledText"/> test.
 /// </summary>
 internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 {
     private readonly Stopwatch stopwatch = new();
 
-    private ISpannable ellipsisSpannable = null!;
-    private ISpannable wrapMarkerSpannable = null!;
+    private ISpannableTemplate ellipsisSpannableTemplate = null!;
+    private ISpannableTemplate wrapMarkerSpannableTemplate = null!;
 
     private RenderContext.Options renderContextOptions;
 
@@ -62,13 +61,12 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
     private WordBreakType wordBreakType;
     private long catchMeBegin;
 
-    private ButtonControl[] spannableButton = null!;
     private ContainerControl rootContainer = null!;
     private LabelControl lblStopwatch = null!;
 
     private LabelControl? lblComplicated;
 
-    private (TextSpannable? Parsed, Exception? Exception) parseAttempt;
+    private (AbstractStyledText.TextSpannable? Parsed, Exception? Exception) parseAttempt;
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "TextSpannable" };
@@ -90,8 +88,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         this.parseAttempt = default;
         this.setupControlNeeded = true;
 
-        this.ellipsisSpannable = new TextSpannableBuilder().PushForeColor(0x80FFFFFF).Append("…");
-        this.wrapMarkerSpannable = new TextSpannableBuilder()
+        this.ellipsisSpannableTemplate = new StyledTextBuilder().PushForeColor(0x80FFFFFF).Append("…");
+        this.wrapMarkerSpannableTemplate = new StyledTextBuilder()
                                    .PushFontSet(
                                        new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
                                        out _)
@@ -152,16 +150,16 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                  Vector2.Zero,
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
 
-        var myopt = (TextSpannableBase.Options)(this.renderContextOptions.RootOptions ??=
-                                                    new TextSpannableBase.Options());
+        var myopt = (AbstractStyledText.Options)(this.renderContextOptions.RootOptions ??=
+                                                    new AbstractStyledText.Options());
 
         myopt.Style = TextStyle.FromContext;
         myopt.WordBreak = this.wordBreakType;
         myopt.WrapMarker =
             this.useWrapMarkers
                 ? this.wordBreakType == WordBreakType.KeepAll
-                      ? this.ellipsisSpannable
-                      : this.wrapMarkerSpannable
+                      ? this.ellipsisSpannableTemplate
+                      : this.wrapMarkerSpannableTemplate
                 : null;
         myopt.ControlCharactersStyle =
             this.useVisibleControlCharacters
@@ -175,10 +173,9 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 }
                 : default;
 
-        renderer.DrawSpannable(
+        renderer.Draw(
                     this.rootContainer,
-                    new("LinearContainerTest", this.renderContextOptions with { Size = ImGui.GetContentRegionAvail() }))
-                .ReturnMeasurementToSpannable();
+                    new("LinearContainerTest", this.renderContextOptions with { Size = ImGui.GetContentRegionAvail() }));
 
         var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
         var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);
@@ -212,71 +209,6 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
         var animTimeSpan = TimeSpan.FromMilliseconds(300);
         this.setupControlNeeded = false;
-        this.spannableButton = new ButtonControl[12];
-        for (var i = 0; i < this.spannableButton.Length; i++)
-        {
-            this.spannableButton[i] = new()
-            {
-                Margin = new(64, 0, 0, 0),
-                InnerOrigin = new(0.5f, 0),
-                // Margin = new(0, 0, 0, 0),
-                Enabled = i % 4 != 3,
-                ShowAnimation = new SpannableSizeAnimator
-                {
-                    BeforeRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
-                    BeforeOpacity = 0f,
-                    TransformationEasing = new OutCubic(animTimeSpan),
-                    OpacityEasing = new OutCubic(animTimeSpan),
-                },
-                HideAnimation = new SpannableSizeAnimator
-                {
-                    AfterRatio = new(-0.7f, -0.7f, 0.7f, 0.7f),
-                    AfterOpacity = 0f,
-                    TransformationEasing = new InCubic(animTimeSpan),
-                    OpacityEasing = new InCubic(animTimeSpan),
-                },
-                MoveAnimation = new SpannableSizeAnimator { TransformationEasing = new InOutCubic(animTimeSpan) },
-                SpannableText = new TextSpannableBuilder()
-                                .PushVerticalAlignment(0.5f)
-                                .PushLink("tlink"u8)
-                                .PushEdgeWidth(1)
-                                .PushEdgeColor(0xFF2222AA)
-                                .Append("Link ")
-                                .PopEdgeColor()
-                                .PopEdgeWidth()
-                                .PopLink()
-                                .PushItalic()
-                                .Append("Italic ")
-                                .AppendSpannable(
-                                    new ButtonControl
-                                    {
-                                        SpannableText = new TextSpannableBuilder()
-                                                        .Append("Inner ")
-                                                        .PushSystemFontFamilyIfAvailable("Comic Sans MS")
-                                                        .Append("Comic"),
-                                    },
-                                    out _)
-                                .Append(' ')
-                                .PushItalic()
-                                .Append(i)
-                                .PopItalic()
-                                .Append(" end")
-                                .Build(),
-            };
-
-            if (i % 3 == 0)
-            {
-                this.spannableButton[i].NormalBackground =
-                    new LayeredPattern
-                    {
-                        ChildrenList =
-                        {
-                            new ShapePattern { ImGuiColor = ImGuiCol.Button, Type = ShapePattern.Shape.RectFilled },
-                            new ShapePattern { Color = 0xFF000000, Type = ShapePattern.Shape.Rect },
-                        },
-                    };
-            }
-        }
 
         var defaultStyle = new TextStyle
         {
@@ -336,7 +268,10 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 new ObservingRecyclerViewControl<ObservableCollection<int>>
                 {
                     Size = new(160, 480),
-                    LayoutManager = new LinearLayoutManager(),
+                    LayoutManager = new LinearLayoutManager
+                    {
+                        Direction = LinearDirection.TopToBottom,
+                    },
                 }.GetAsOut(out var rvc),
                 new LinearContainer
                 {
@@ -552,7 +487,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                         new LabelControl
                         {
                             Name = "lblNotALink",
-                            SpannableText = new TextSpannableBuilder().Append("Not a Link"),
+                            SpannableText = new StyledTextBuilder().Append("Not a Link"),
                             TextStyle = notLinkStyle,
                         },
                         new ControlSpannable { Size = new(0, 12) },
@@ -698,35 +633,35 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 dc.MoveAnimation = new SpannableSizeAnimator { TransformationEasing = new InOutCubic(animTimeSpan) };
         }
 
-        var mat = new MouseActivityTracker(this.rootContainer);
-        var pzt = new PanZoomTracker(mat);
-        mat.UseLeftDrag = true;
-        mat.UseMiddleDrag = true;
-        mat.UseRightDrag = true;
-        mat.UseLeftDouble = true;
-        mat.UseWheelZoom = MouseActivityTracker.WheelZoomMode.RequireControlKey;
-        mat.UseDoubleClickDragZoom = true;
-        mat.UseInfiniteLeftDrag = true;
-        mat.UseInfiniteRightDrag = true;
-        mat.UseInfiniteMiddleDrag = true;
-        pzt.PanExtraRange = new(64);
-        pzt.ViewportChanged += () =>
-        {
-            this.rootContainer.ScrollBoundary = new(new Vector2(-float.PositiveInfinity), new(float.PositiveInfinity));
-            // this.rootContainer.Scroll = linearContainer.MeasuredContentBox.Center -
-            //                             this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
-            this.rootContainer.Scroll =
-                linearContainer.MeasuredContentBox.Center -
-                this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
-            linearContainer.Scale = pzt.EffectiveZoom;
-            linearContainer.Transformation = Matrix4x4.CreateRotationZ(pzt.Rotation);
-        };
-        this.rootContainer.MeasuredBoundaryBoxChange += _ =>
-        {
-            pzt.Size = linearContainer.MeasuredBoundaryBox.Size * ImGuiHelpers.GlobalScale;
-        };
-
-        cmdRotate.Click += _ => pzt.Rotation += MathF.PI / 16f;
+        // TODO
+        // var mat = new MouseActivityTracker(this.rootContainer);
+        // var pzt = new PanZoomTracker(mat);
+        // mat.UseLeftDrag = true;
+        // mat.UseMiddleDrag = true;
+        // mat.UseRightDrag = true;
+        // mat.UseLeftDouble = true;
+        // mat.UseWheelZoom = MouseActivityTracker.WheelZoomMode.RequireControlKey;
+        // mat.UseDoubleClickDragZoom = true;
+        // mat.UseInfiniteLeftDrag = true;
+        // mat.UseInfiniteRightDrag = true;
+        // mat.UseInfiniteMiddleDrag = true;
+        // pzt.PanExtraRange = new(64);
+        // pzt.ViewportChanged += () =>
+        // {
+        //     this.rootContainer.ScrollBoundary = new(new Vector2(-float.PositiveInfinity), new(float.PositiveInfinity));
+        //     // this.rootContainer.Scroll = linearContainer.MeasuredContentBox.Center -
+        //     //                             this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
+        //     this.rootContainer.Scroll =
+        //         linearContainer.MeasuredContentBox.Center -
+        //         this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
+        //     linearContainer.Scale = pzt.EffectiveZoom;
+        //     linearContainer.Transformation = Matrix4x4.CreateRotationZ(pzt.Rotation);
+        // };
+        // this.rootContainer.MeasuredBoundaryBoxChange += _ =>
+        // {
+        //     pzt.Size = linearContainer.MeasuredBoundaryBox.Size * ImGuiHelpers.GlobalScale;
+        // };
+        // cmdRotate.Click += _ => pzt.Rotation += MathF.PI / 16f;
 
         optLinearContainerLtr.CheckedChange += e =>
             linearContainer.Direction = e.NewValue
@@ -892,12 +827,12 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 return;
             }
 
-            var opt = (TextSpannableBase.Options)this.renderContextOptions.RootOptions!;
+            var opt = (AbstractStyledText.Options)this.renderContextOptions.RootOptions!;
             opt.Style = TextStyle.FromContext;
             lblOptions.SpannableTextOptions = opt;
             lblOptions.TextStyle = opt.Style;
             lblOptions.SpannableText =
-                new TextSpannableBuilder()
+                new StyledTextBuilder()
                     .PushLink("copy"u8)
                     .PushEdgeColor(ImGuiColors.TankBlue)
                     .PushTextDecoration(TextDecoration.Underline)
@@ -1062,7 +997,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         }
     }
 
-    private void DrawTestComplicatedTextBlock(TextSpannableBuilder ssb, float x)
+    private void DrawTestComplicatedTextBlock(StyledTextBuilder ssb, float x)
     {
         if (this.lblComplicated is null)
         {
@@ -1268,12 +1203,12 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             return;
 
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
-        Service<SpannableRenderer>.Get().DrawSpannable(
+        Service<SpannableRenderer>.Get().Draw(
             this.lblComplicated,
-            new(nameof(this.DrawTestComplicatedTextBlock), this.renderContextOptions)).ReturnMeasurementToSpannable();
+            new(nameof(this.DrawTestComplicatedTextBlock), this.renderContextOptions));
     }
 
-    private unsafe void DrawParseTest(TextSpannableBuilder ssb, float x)
+    private unsafe void DrawParseTest(StyledTextBuilder ssb, float x)
     {
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
@@ -1298,12 +1233,12 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                     this.testStringBuffer.StorageSpan[len] = default;
                 }
 
-                if (TextSpannable.TryParse(
+                if (StyledText.TryParse(
                         Encoding.UTF8.GetString(this.testStringBuffer.DataSpan),
                         CultureInfo.InvariantCulture,
                         out var r,
                         out var e))
-                    this.parseAttempt = (r, null);
+                    this.parseAttempt = (r.CreateSpannable(), null);
                 else
                     this.parseAttempt = (null, e);
             }
@@ -1312,27 +1247,32 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         ImGui.SetCursorScreenPos(ImGui.GetCursorScreenPos() with { X = x });
         if (this.parseAttempt.Parsed is { } parsed)
         {
-            Service<SpannableRenderer>.Get().DrawSpannable(
+            Service<SpannableRenderer>.Get().Draw(
                 parsed,
-                new(nameof(this.DrawParseTest), this.renderContextOptions)).ReturnMeasurementToSpannable();
+                new(nameof(this.DrawParseTest), this.renderContextOptions));
         }
         else if (this.parseAttempt.Exception is { } e)
         {
-            Service<SpannableRenderer>.Get().DrawSpannable(
-                ssb.Clear()
-                   .PushEdgeColor(new Rgba32(ImGuiColors.DalamudRed).MultiplyOpacity(0.5f))
-                   .Append(e.ToString()),
-                new(nameof(this.DrawParseTest), this.renderContextOptions)).ReturnMeasurementToSpannable();
+            var t = ssb.Clear()
+                       .PushEdgeColor(new Rgba32(ImGuiColors.DalamudRed).MultiplyOpacity(0.5f))
+                       .Append(e.ToString())
+                       .CreateSpannable();
+            Service<SpannableRenderer>.Get().Draw(
+                t,
+                new(nameof(this.DrawParseTest), this.renderContextOptions));
+            ssb.RecycleSpannable(t);
         }
         else
         {
-            Service<SpannableRenderer>.Get().DrawSpannable(
-                ssb.Clear().Append("Try writing something to the above text box."),
-                new(nameof(this.DrawParseTest), this.renderContextOptions)).ReturnMeasurementToSpannable();
+            var t = ssb.Clear().Append("Try writing something to the above text box.").CreateSpannable();
+            Service<SpannableRenderer>.Get().Draw(
+                t,
+                new(nameof(this.DrawParseTest), this.renderContextOptions));
+            ssb.RecycleSpannable(t);
         }
     }
 
-    private void DrawDynamicOffsetTest(TextSpannableBuilder ssb)
+    private void DrawDynamicOffsetTest(StyledTextBuilder ssb)
     {
         const float interval = 2000;
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
@@ -1347,11 +1287,12 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
            .Append("Text\ngoing\nround");
 
         var prevPos = ImGui.GetCursorScreenPos();
-        var o2 = (TextSpannableBase.Options)this.renderContextOptions.RootOptions!;
+        var o2 = (AbstractStyledText.Options)this.renderContextOptions.RootOptions!;
         o2.VerticalAlignment = 0.5f;
         o2.Style = TextStyle.FromContext with { HorizontalAlignment = 0.5f };
-        var rm = (TextSpannableBase.Measurement)Service<SpannableRenderer>.Get().DrawSpannable(
-            ssb,
+        var t = ssb.CreateSpannable();
+        var rm = (AbstractStyledText.TextSpannable)Service<SpannableRenderer>.Get().Draw(
+            t,
             new(
                 nameof(this.DrawDynamicOffsetTest),
                 this.renderContextOptions with
@@ -1360,13 +1301,13 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                     ScreenOffset = ImGui.GetWindowPos(),
                     RootOptions = o2,
                 }));
-        if (rm.GetInteractedLink(out _) is not TextSpannableBase.LinkState.Clear)
+        if (rm.GetInteractedLink(out _) is not AbstractStyledText.LinkState.Clear)
             this.catchMeBegin += 50;
-        rm.ReturnMeasurementToSpannable();
+        ssb.RecycleSpannable(t);
         ImGui.SetCursorScreenPos(prevPos);
     }
 
-    private void DrawTransformationTest(TextSpannableBuilder ssb)
+    private void DrawTransformationTest(StyledTextBuilder ssb)
     {
         const float interval = 2000;
         var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
@@ -1389,7 +1330,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 (minDim * (1 + MathF.Sin(v - (MathF.PI / 2)) / 4)) / 2,
                 0));
 
-        var o2 = (TextSpannableBase.Options)this.renderContextOptions.RootOptions!;
+        var o2 = (AbstractStyledText.Options)this.renderContextOptions.RootOptions!;
         o2.WordBreak = WordBreakType.KeepAll;
         o2.Style = TextStyle.FromContext with
         {
@@ -1397,8 +1338,9 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             EdgeColor = new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f)),
             HorizontalAlignment = 0.5f,
         };
-        var rm = (TextSpannableBase.Measurement)Service<SpannableRenderer>.Get().DrawSpannable(
-            ssb,
+        var t = ssb.CreateSpannable();
+        var rm = (AbstractStyledText.TextSpannable)Service<SpannableRenderer>.Get().Draw(
+            t,
             new(
                 nameof(this.DrawDynamicOffsetTest),
                 this.renderContextOptions with
@@ -1408,9 +1350,9 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                     Size = size with { X = 0 },
                     RootOptions = o2,
                 }));
-        if (rm.GetInteractedLink(out _) is not TextSpannableBase.LinkState.Clear)
+        if (rm.GetInteractedLink(out _) is not AbstractStyledText.LinkState.Clear)
             this.catchMeBegin += 50;
-        rm.ReturnMeasurementToSpannable();
+        ssb.RecycleSpannable(t);
         ImGui.SetCursorScreenPos(prevPos);
     }
 

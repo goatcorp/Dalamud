@@ -23,7 +23,7 @@ public static class SpannableImGuiItem
     /// <param name="noNavDefaultFocus">Whether to not apply default focus.</param>
     /// <param name="disabled">Whether the item is disabled.</param>
     public static unsafe void ItemAdd(
-        ISpannableMeasurement measurement,
+        Spannable measurement,
         int innerId,
         RectVector4 rcHover,
         RectVector4 rcNav,
@@ -62,7 +62,7 @@ public static class SpannableImGuiItem
     /// <param name="useWheel">Whether to take wheel inputs, preventing window from handling wheel events.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void SetActive(
-        ISpannableMeasurement measurement, int innerId, bool useWheel = false)
+        Spannable measurement, int innerId, bool useWheel = false)
     {
         if (innerId != -1)
         {
@@ -80,7 +80,7 @@ public static class SpannableImGuiItem
     /// <param name="innerId">The inner ID.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void SetFocused(
-        ISpannableMeasurement measurement, int innerId)
+        Spannable measurement, int innerId)
     {
         if (innerId != -1)
         {
@@ -96,7 +96,7 @@ public static class SpannableImGuiItem
     /// <param name="useWheel">Whether to take wheel inputs, preventing window from handling wheel events.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void SetHovered(
-        ISpannableMeasurement measurement, int innerId, bool useWheel = false)
+        Spannable measurement, int innerId, bool useWheel = false)
     {
         if (innerId != -1)
             ImGuiInternals.ImGuiSetHoveredId(measurement.GetGlobalIdFromInnerId(innerId));
@@ -116,7 +116,7 @@ public static class SpannableImGuiItem
     /// <param name="innerId">The inner ID.</param>
     /// <returns><c>true</c> if something else is active.</returns>
     public static unsafe bool IsItemHoverable(
-        ISpannableMeasurement measurement,
+        Spannable measurement,
         Vector2 mouseLocalLocation,
         in RectVector4 rc,
         int innerId)

@@ -1,14 +1,9 @@
-using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Spannables.Controls.Animations;
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Spannables.Controls;
 
@@ -16,11 +11,7 @@ namespace Dalamud.Interface.Spannables.Controls;
 public partial class ControlSpannable
 {
     private string name = string.Empty;
-    private bool enabled = true;
-    private bool focusable;
-    private bool visible = true;
     private bool clipChildren;
-    private ImGuiMouseCursor mouseCursor = ImGuiMouseCursor.Arrow;
     private string? text;
 
     private TextStyle textStyle = new()
@@ -32,57 +23,36 @@ public partial class ControlSpannable
     };
 
     private float scale = 1f;
-    private float renderScale = 1f;
     private Vector2 size = new(WrapContent);
     private BorderVector4 extendOutside = BorderVector4.Zero;
     private BorderVector4 margin = BorderVector4.Zero;
     private BorderVector4 padding = BorderVector4.Zero;
     private Matrix4x4 transformation = Matrix4x4.Identity;
-    private ISpannable? normalBackground;
-    private ISpannable? hoveredBackground;
-    private ISpannable? activeBackground;
-    private ISpannable? disabledBackground;
+    private ISpannableTemplate? normalBackground;
+    private ISpannableTemplate? hoveredBackground;
+    private ISpannableTemplate? activeBackground;
+    private ISpannableTemplate? disabledBackground;
     private SpannableAnimator? showAnimation;
     private SpannableAnimator? hideAnimation;
     private SpannableAnimator? moveAnimation;
     private SpannableAnimator? transformationChangeAnimation;
     private float disabledTextOpacity = 0.5f;
-    private bool captureMouseOnMouseDown;
-    private bool captureMouseWheel;
-    private bool captureMouse;
-    private bool takeKeyboardInputsOnFocus = true;
 
     /// <summary>Gets or sets a name, for internal identification purpose.</summary>
     public string Name
     {
         get => this.name;
-        set => this.HandlePropertyChange(
-            nameof(this.Name),
-            ref this.name,
-            value ?? throw new NullReferenceException(),
-            this.OnNameChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether this control is enabled.</summary>
-    public bool Enabled
-    {
-        get => this.enabled;
-        set => this.HandlePropertyChange(nameof(this.Enabled), ref this.enabled, value, this.OnEnabledChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether this control is focusable.</summary>
-    public bool Focusable
-    {
-        get => this.focusable;
-        set => this.HandlePropertyChange(nameof(this.Focusable), ref this.focusable, value, this.OnFocusableChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether this control is visible.</summary>
-    // TODO: a property indicating whether to assume zero size when invisible, so that it can skip measure pass
-    public bool Visible
-    {
-        get => this.visible;
-        set => this.HandlePropertyChange(nameof(this.Visible), ref this.visible, value, this.OnVisibleChange);
+        set
+        {
+            if (value is null)
+                throw new NullReferenceException();
+            this.HandlePropertyChange(
+                nameof(this.Name),
+                ref this.name,
+                value,
+                string.Equals(this.name, value, StringComparison.Ordinal),
+                this.OnNameChange);
+        }
     }
 
     /// <summary>Gets or sets a value indicating whether to clip the children.</summary>
@@ -93,18 +63,8 @@ public partial class ControlSpannable
             nameof(this.ClipChildren),
             ref this.clipChildren,
             value,
+            this.clipChildren == value,
             this.OnClipChildrenChange);
-    }
-
-    /// <summary>Gets or sets the mouse cursor.</summary>
-    public ImGuiMouseCursor MouseCursor
-    {
-        get => this.mouseCursor;
-        set => this.HandlePropertyChange(
-            nameof(this.MouseCursor),
-            ref this.mouseCursor,
-            value,
-            this.OnMouseCursorChange);
     }
 
     /// <summary>Gets or sets a text.</summary>
@@ -113,7 +73,12 @@ public partial class ControlSpannable
     public string? Text
     {
         get => this.text;
-        set => this.HandlePropertyChange(nameof(this.Text), ref this.text, value, this.OnTextChange);
+        set => this.HandlePropertyChange(
+            nameof(this.Text),
+            ref this.text,
+            value,
+            string.Equals(this.text, value, StringComparison.Ordinal),
+            this.OnTextChange);
     }
 
     /// <summary>Gets or sets the text state options.</summary>
@@ -124,6 +89,7 @@ public partial class ControlSpannable
             nameof(this.TextStyle),
             ref this.textStyle,
             value,
+            TextStyle.PropertyReferenceEquals(this.textStyle, value),
             this.OnTextStyleChange);
     }
 
@@ -137,18 +103,8 @@ public partial class ControlSpannable
             nameof(this.Scale),
             ref this.scale,
             value,
+            this.scale - value == 0f,
             this.OnScaleChange);
-    }
-
-    /// <inheritdoc/>
-    public float RenderScale
-    {
-        get => this.renderScale;
-        set => this.HandlePropertyChange(
-            nameof(this.RenderScale),
-            ref this.renderScale,
-            value,
-            this.OnRenderScaleChange);
     }
 
     /// <summary>Gets or sets the size.</summary>
@@ -160,7 +116,12 @@ public partial class ControlSpannable
     public Vector2 Size
     {
         get => this.size;
-        set => this.HandlePropertyChange(nameof(this.Size), ref this.size, value, this.OnSizeChange);
+        set => this.HandlePropertyChange(
+            nameof(this.Size),
+            ref this.size,
+            value,
+            this.size == value,
+            this.OnSizeChange);
     }
 
     /// <summary>Gets or sets the extrusion.</summary>
@@ -172,6 +133,7 @@ public partial class ControlSpannable
             nameof(this.ExtendOutside),
             ref this.extendOutside,
             value,
+            this.extendOutside == value,
             this.OnExtendOutsideChange);
     }
 
@@ -180,7 +142,12 @@ public partial class ControlSpannable
     public BorderVector4 Margin
     {
         get => this.margin;
-        set => this.HandlePropertyChange(nameof(this.Margin), ref this.margin, value, this.OnMarginChange);
+        set => this.HandlePropertyChange(
+            nameof(this.Margin),
+            ref this.margin,
+            value,
+            this.margin == value,
+            this.OnMarginChange);
     }
 
     /// <summary>Gets or sets the padding.</summary>
@@ -188,7 +155,12 @@ public partial class ControlSpannable
     public BorderVector4 Padding
     {
         get => this.padding;
-        set => this.HandlePropertyChange(nameof(this.Padding), ref this.padding, value, this.OnPaddingChange);
+        set => this.HandlePropertyChange(
+            nameof(this.Padding),
+            ref this.padding,
+            value,
+            this.padding == value,
+            this.OnPaddingChange);
     }
 
     /// <summary>Gets or sets the transformation.</summary>
@@ -200,54 +172,60 @@ public partial class ControlSpannable
             nameof(this.Transformation),
             ref this.transformation,
             value,
+            this.transformation == value,
             this.OnTransformationChange);
     }
 
     /// <summary>Gets or sets the normal background spannable.</summary>
-    public ISpannable? NormalBackground
+    public ISpannableTemplate? NormalBackground
     {
         get => this.normalBackground;
         set => this.HandlePropertyChange(
             nameof(this.NormalBackground),
             ref this.normalBackground,
             value,
+            ReferenceEquals(this.normalBackground, value),
             this.OnNormalBackgroundChange);
     }
 
     /// <summary>Gets or sets the hovered background spannable.</summary>
-    public ISpannable? HoveredBackground
+    public ISpannableTemplate? HoveredBackground
     {
         get => this.hoveredBackground;
         set => this.HandlePropertyChange(
             nameof(this.HoveredBackground),
             ref this.hoveredBackground,
             value,
+            ReferenceEquals(this.hoveredBackground, value),
             this.OnHoveredBackgroundChange);
     }
 
     /// <summary>Gets or sets the active background spannable.</summary>
-    public ISpannable? ActiveBackground
+    public ISpannableTemplate? ActiveBackground
     {
         get => this.activeBackground;
         set => this.HandlePropertyChange(
             nameof(this.ActiveBackground),
             ref this.activeBackground,
             value,
+            ReferenceEquals(this.activeBackground, value),
             this.OnActiveBackgroundChange);
     }
 
     /// <summary>Gets or sets the disabled background spannable.</summary>
-    public ISpannable? DisabledBackground
+    public ISpannableTemplate? DisabledBackground
     {
         get => this.disabledBackground;
         set => this.HandlePropertyChange(
             nameof(this.DisabledBackground),
             ref this.disabledBackground,
             value,
+            ReferenceEquals(this.disabledBackground, value),
             this.OnDisabledBackgroundChange);
     }
 
-    /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>true</c>.</summary>
+    /// <summary>Gets or sets the animation to play when <see cref="Spannable.Visible"/> changes to
+    /// <c>true</c>.</summary>
     public SpannableAnimator? ShowAnimation
     {
         get => this.showAnimation;
@@ -255,10 +233,12 @@ public partial class ControlSpannable
             nameof(this.ShowAnimation),
             ref this.showAnimation,
             value,
+            this.showAnimation == value,
             this.OnShowAnimationChange);
     }
 
-    /// <summary>Gets or sets the animation to play when <see cref="Visible"/> changes to <c>false</c>.</summary>
+    /// <summary>Gets or sets the animation to play when <see cref="Spannable.Visible"/> changes to
+    /// <c>false</c>.</summary>
     public SpannableAnimator? HideAnimation
     {
         get => this.hideAnimation;
@@ -266,6 +246,7 @@ public partial class ControlSpannable
             nameof(this.HideAnimation),
             ref this.hideAnimation,
             value,
+            this.hideAnimation == value,
             this.OnHideAnimationChange);
     }
 
@@ -278,6 +259,7 @@ public partial class ControlSpannable
             nameof(this.MoveAnimation),
             ref this.moveAnimation,
             value,
+            this.moveAnimation == value,
             this.OnMoveAnimationChange);
     }
 
@@ -289,6 +271,7 @@ public partial class ControlSpannable
             nameof(this.TransformationChangeAnimation),
             ref this.transformationChangeAnimation,
             value,
+            this.transformationChangeAnimation == value,
             this.OnTransformationChangeAnimationChange);
     }
 
@@ -300,157 +283,7 @@ public partial class ControlSpannable
             nameof(this.DisabledTextOpacity),
             ref this.disabledTextOpacity,
             value,
+            this.disabledTextOpacity - value == 0f,
             this.OnDisabledTextOpacityChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether to capture mouse events when a mouse button is held on
-    /// the control.</summary>
-    /// <remarks>Enabling this when <see cref="Enabled"/> is set will typically prevent moving the container window by
-    /// dragging on what <i>looks</i> like the window background.</remarks>
-    public bool CaptureMouseOnMouseDown
-    {
-        get => this.captureMouseOnMouseDown;
-        set => this.HandlePropertyChange(
-            nameof(this.CaptureMouseOnMouseDown),
-            ref this.captureMouseOnMouseDown,
-            value,
-            this.OnCaptureMouseOnMouseDownChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether to capture mouse wheel events at all times.</summary>
-    public bool CaptureMouseWheel
-    {
-        get => this.captureMouseWheel;
-        set => this.HandlePropertyChange(
-            nameof(this.CaptureMouseWheel),
-            ref this.captureMouseWheel,
-            value,
-            this.OnCaptureMouseWheelChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether to capture mouse events, regardless of whether the control is
-    /// held.</summary>
-    public bool CaptureMouse
-    {
-        get => this.captureMouse;
-        set => this.HandlePropertyChange(
-            nameof(this.CaptureMouse),
-            ref this.captureMouse,
-            value,
-            this.OnCaptureMouseChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether to take and claim keyboard inputs when focused.</summary>
-    /// <remarks>
-    /// <para>If set to <c>true</c>, then the game will not receive keyboard inputs when this control is focused.</para>
-    /// <para>Does nothing if <see cref="Focusable"/> is <c>false</c>.</para>
-    /// </remarks>
-    public bool TakeKeyboardInputsOnFocus
-    {
-        get => this.takeKeyboardInputsOnFocus;
-        set => this.HandlePropertyChange(
-            nameof(this.TakeKeyboardInputsOnFocus),
-            ref this.takeKeyboardInputsOnFocus,
-            value,
-            this.OnTakeKeyboardInputsOnFocusChange);
-    }
-
-    /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
-    /// <param name="sender">The object that generated the event.</param>
-    /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
-    /// <param name="storage">The reference of the stored value.</param>
-    /// <param name="newValue">The new value.</param>
-    /// <param name="eh">The event handler.</param>
-    /// <typeparam name="T">Type of the changed value.</typeparam>
-    /// <returns><c>true</c> if changed.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static bool HandlePropertyChange<T>(
-        object sender,
-        string propName,
-        ref T storage,
-        T newValue,
-        PropertyChangeEventHandler<T> eh)
-    {
-        if (Equals(storage, newValue))
-            return false;
-
-        var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
-        e.Sender = sender;
-        e.PropertyName = propName;
-        e.PreviousValue = storage;
-        e.NewValue = newValue;
-
-        var exs = default(List<Exception>?);
-
-        e.State = PropertyChangeState.Before;
-        try
-        {
-            eh(e);
-        }
-        catch (Exception ex)
-        {
-            exs = [ex];
-        }
-
-        if (e.State == PropertyChangeState.Cancelled)
-        {
-            e.NewValue = storage;
-            
-            try
-            {
-                eh(e);
-            }
-            catch (Exception ex)
-            {
-                exs ??= [];
-                exs.Add(ex);
-            }
-
-            SpannableEventArgsPool.Return(e);
-            if (exs is not null)
-                throw new AggregateException(exs);
-
-            return false;
-        }
-
-        var old = storage;
-        storage = e.NewValue;
-
-        e.State = PropertyChangeState.After;
-        try
-        {
-            eh(e);
-        }
-        catch (Exception ex)
-        {
-            exs ??= [];
-            exs.Add(ex);
-        }
-
-        SpannableEventArgsPool.Return(e);
-        if (exs is not null)
-        {
-            storage = old;
-            throw new AggregateException(exs);
-        }
-
-        return true;
-    }
-
-    /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
-    /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
-    /// <param name="storage">The reference of the stored value.</param>
-    /// <param name="newValue">The new value.</param>
-    /// <param name="eh">The event handler.</param>
-    /// <typeparam name="T">Type of the changed value.</typeparam>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected void HandlePropertyChange<T>(
-        string propName,
-        ref T storage,
-        T newValue,
-        PropertyChangeEventHandler<T> eh)
-    {
-        if (HandlePropertyChange(this, propName, ref storage, newValue, eh))
-            this.OnSpannableChange(this);
     }
 }

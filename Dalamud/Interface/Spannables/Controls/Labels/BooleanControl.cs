@@ -1,4 +1,4 @@
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Patterns;
 
 namespace Dalamud.Interface.Spannables.Controls.Labels;
@@ -8,9 +8,9 @@ public class BooleanControl : LabelControl
 {
     private bool @checked;
     private bool indeterminate;
-    private TristateIconPattern? normalIcon;
-    private TristateIconPattern? hoveredIcon;
-    private TristateIconPattern? activeIcon;
+    private TristateIconPattern.Template? normalIcon;
+    private TristateIconPattern.Template? hoveredIcon;
+    private TristateIconPattern.Template? activeIcon;
     private IconSide side;
 
     /// <summary>Initializes a new instance of the <see cref="BooleanControl"/> class.</summary>
@@ -28,13 +28,13 @@ public class BooleanControl : LabelControl
     public event PropertyChangeEventHandler<IconSide>? SideChange;
 
     /// <summary>Occurs when the property <see cref="NormalIcon"/> is changing.</summary>
-    public event PropertyChangeEventHandler<TristateIconPattern?>? NormalIconChange;
+    public event PropertyChangeEventHandler<TristateIconPattern.Template?>? NormalIconChange;
 
     /// <summary>Occurs when the property <see cref="HoveredIcon"/> is changing.</summary>
-    public event PropertyChangeEventHandler<TristateIconPattern?>? HoveredIconChange;
+    public event PropertyChangeEventHandler<TristateIconPattern.Template?>? HoveredIconChange;
 
     /// <summary>Occurs when the property <see cref="ActiveIcon"/> is changing.</summary>
-    public event PropertyChangeEventHandler<TristateIconPattern?>? ActiveIconChange;
+    public event PropertyChangeEventHandler<TristateIconPattern.Template?>? ActiveIconChange;
 
     /// <summary>Side of an icon.</summary>
     public enum IconSide
@@ -56,7 +56,12 @@ public class BooleanControl : LabelControl
     public bool Checked
     {
         get => this.@checked;
-        set => this.HandlePropertyChange(nameof(this.Checked), ref this.@checked, value, this.OnCheckedChange);
+        set => this.HandlePropertyChange(
+            nameof(this.Checked),
+            ref this.@checked,
+            value,
+            this.@checked == value,
+            this.OnCheckedChange);
     }
 
     /// <summary>Gets or sets a value indicating whether this checkbox is indeterminate.</summary>
@@ -68,6 +73,7 @@ public class BooleanControl : LabelControl
             nameof(this.Indeterminate),
             ref this.indeterminate,
             value,
+            this.indeterminate == value,
             this.OnIndeterminateChange);
     }
 
@@ -75,32 +81,48 @@ public class BooleanControl : LabelControl
     public IconSide Side
     {
         get => this.side;
-        set => this.HandlePropertyChange(nameof(this.Side), ref this.side, value, this.OnSideChange);
+        set => this.HandlePropertyChange(
+            nameof(this.Side),
+            ref this.side,
+            value,
+            this.side == value,
+            this.OnSideChange);
     }
 
     /// <summary>Gets or sets the icon to use when not checked.</summary>
-    public TristateIconPattern? NormalIcon
+    public TristateIconPattern.Template? NormalIcon
     {
         get => this.normalIcon;
-        set => this.HandlePropertyChange(nameof(this.NormalIcon), ref this.normalIcon, value, this.OnNormalIconChange);
+        set => this.HandlePropertyChange(
+            nameof(this.NormalIcon),
+            ref this.normalIcon,
+            value,
+            this.normalIcon == value,
+            this.OnNormalIconChange);
     }
 
     /// <summary>Gets or sets the icon to use when checked.</summary>
-    public TristateIconPattern? HoveredIcon
+    public TristateIconPattern.Template? HoveredIcon
     {
         get => this.hoveredIcon;
         set => this.HandlePropertyChange(
             nameof(this.HoveredIcon),
             ref this.hoveredIcon,
             value,
+            this.hoveredIcon == value,
             this.OnHoveredIconChange);
     }
 
     /// <summary>Gets or sets the icon to use when indeterminate.</summary>
-    public TristateIconPattern? ActiveIcon
+    public TristateIconPattern.Template? ActiveIcon
     {
         get => this.activeIcon;
-        set => this.HandlePropertyChange(nameof(this.ActiveIcon), ref this.activeIcon, value, this.OnActiveIconChange);
+        set => this.HandlePropertyChange(
+            nameof(this.ActiveIcon),
+            ref this.activeIcon,
+            value,
+            this.activeIcon == value,
+            this.OnActiveIconChange);
     }
 
     /// <inheritdoc/> 
@@ -151,7 +173,7 @@ public class BooleanControl : LabelControl
 
     /// <summary>Raises the <see cref="NormalIconChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnNormalIconChange(PropertyChangeEventArgs<TristateIconPattern?> args)
+    protected virtual void OnNormalIconChange(PropertyChangeEventArgs<TristateIconPattern.Template?> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();
@@ -160,7 +182,7 @@ public class BooleanControl : LabelControl
 
     /// <summary>Raises the <see cref="OnHoveredIconChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnHoveredIconChange(PropertyChangeEventArgs<TristateIconPattern?> args)
+    protected virtual void OnHoveredIconChange(PropertyChangeEventArgs<TristateIconPattern.Template?> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();
@@ -169,7 +191,7 @@ public class BooleanControl : LabelControl
 
     /// <summary>Raises the <see cref="OnActiveIconChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnActiveIconChange(PropertyChangeEventArgs<TristateIconPattern?> args)
+    protected virtual void OnActiveIconChange(PropertyChangeEventArgs<TristateIconPattern.Template?> args)
     {
         if (args.State == PropertyChangeState.After)
             this.UpdateIcon();
@@ -188,20 +210,14 @@ public class BooleanControl : LabelControl
     /// <summary>Updates the icon.</summary>
     private void UpdateIcon()
     {
+        bool? state = this.indeterminate ? null : this.@checked;
+
         var stateIcon =
             this.IsMouseHovered && this.IsLeftMouseButtonDown
-                ? this.activeIcon
+                ? this.activeIcon?.WithState(state)
                 : this.IsMouseHovered
-                    ? this.hoveredIcon
-                    : this.normalIcon;
-
-        bool? state = this.indeterminate ? null : this.@checked;
-        if (this.normalIcon is not null)
-            this.normalIcon.State = state;
-        if (this.hoveredIcon is not null)
-            this.hoveredIcon.State = state;
-        if (this.activeIcon is not null)
-            this.activeIcon.State = state;
+                    ? this.hoveredIcon?.WithState(state)
+                    : this.normalIcon?.WithState(state);
 
         this.LeftIcon = this.side == IconSide.Left ? stateIcon : null;
         this.TopIcon = this.side == IconSide.Top ? stateIcon : null;

@@ -137,7 +137,7 @@ internal struct SpannedRecord
                   : $"{this.TextStart}({this.Type}, set)"
             : $"{this.TextStart}({this.Type}, {this.DataStart}, {this.DataLength})";
 
-    /// <summary>Write parameters for use with <see cref="ITextSpannableBuilder"/> functions.</summary>
+    /// <summary>Write parameters for use with <see cref="IStyledTextBuilder"/> functions.</summary>
     /// <param name="sb">The string builder.</param>
     /// <param name="data">The data attached to the record.</param>
     /// <param name="fontSets">The font sets.</param>

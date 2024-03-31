@@ -23,17 +23,17 @@ internal sealed unsafe partial class SpannableRenderer
 
     private readonly ConcurrentBag<DrawListTexture> returnToPoolLater = new();
 
-    private ObjectPool<TextSpannableBuilder>? textSpannableBuilderPool =
-        new DefaultObjectPool<TextSpannableBuilder>(new DefaultPooledObjectPolicy<TextSpannableBuilder>());
+    private ObjectPool<StyledTextBuilder>? textSpannableBuilderPool =
+        new DefaultObjectPool<StyledTextBuilder>(new DefaultPooledObjectPolicy<StyledTextBuilder>());
 
     /// <inheritdoc/>
     // Let it throw NRE of builderPool is null (disposed).
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TextSpannableBuilder RentBuilder() => this.textSpannableBuilderPool!.Get();
+    public StyledTextBuilder RentBuilder() => this.textSpannableBuilderPool!.Get();
 
     /// <inheritdoc/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ReturnBuilder(TextSpannableBuilder? builder)
+    public void ReturnBuilder(StyledTextBuilder? builder)
     {
         // Let it throw NRE of builderPool is null (disposed).
         if (builder != null)

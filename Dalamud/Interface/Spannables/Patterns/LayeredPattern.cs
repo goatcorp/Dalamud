@@ -1,190 +1,142 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
-using Dalamud.Interface.Spannables.Helpers;
-using Dalamud.Utility.Enumeration;
-
-using ImGuiNET;
+using Dalamud.Interface.Spannables.EventHandlers;
 
 namespace Dalamud.Interface.Spannables.Patterns;
 
+#pragma warning disable SA1010
+
 /// <summary>A pattern spannable that has multiple layers.</summary>
-public sealed class LayeredPattern : PatternSpannable
+public sealed class LayeredPattern : AbstractPattern.AbstractSpannable<LayeredPattern.LayerOptions>
 {
-    private readonly ChildrenCollection childrenCollection;
+    private readonly List<Spannable?> children = [];
 
     /// <summary>Initializes a new instance of the <see cref="LayeredPattern"/> class.</summary>
-    public LayeredPattern() => this.childrenCollection = new(this);
-
-    /// <summary>Gets the children as an <see cref="IList{T}"/>.</summary>
-    public IList<ISpannable> ChildrenList => this.childrenCollection;
-
-    /// <summary>Gets the children as an <see cref="IReadOnlyList{T}"/>.</summary>
-    public IReadOnlyList<ISpannable> ChildrenReadOnlyList => (IReadOnlyList<ISpannable>)this.ChildrenList;
-
-    /// <inheritdoc/>
-    protected override PatternSpannableMeasurement CreateNewRenderPass() => new LayeredPatternMeasurement(this, new());
-
-    private class ChildrenCollection(LayeredPattern owner)
-        : IList<ISpannable?>, IReadOnlyList<ISpannable?>, ICollection
+    /// <param name="options">Layer options.</param>
+    /// <param name="sourceTemplate">The source template.</param>
+    public LayeredPattern(LayerOptions options, ISpannableTemplate? sourceTemplate = null)
+        : base(options, sourceTemplate)
     {
-        /// <inheritdoc cref="ICollection.Count"/>
-        public int Count => owner.AllChildren.Count - owner.AllChildrenAvailableSlot;
-
-        /// <inheritdoc/>
-        bool ICollection.IsSynchronized => false;
-
-        /// <inheritdoc/>
-        object ICollection.SyncRoot => this;
-
-        /// <inheritdoc/>
-        public bool IsReadOnly => false;
-
-        /// <inheritdoc cref="IList{T}.this"/>
-        public ISpannable? this[int index]
-        {
-            get
-            {
-                if (index < 0 || index >= owner.AllChildren.Count - owner.AllChildrenAvailableSlot)
-                    throw new IndexOutOfRangeException();
-                return owner.AllChildren[owner.AllChildrenAvailableSlot + index];
-            }
-
-            set
-            {
-                if (index < 0 || index >= owner.AllChildren.Count - owner.AllChildrenAvailableSlot)
-                    throw new IndexOutOfRangeException();
-                owner.AllChildren[owner.AllChildrenAvailableSlot + index] = value;
-            }
-        }
-
-        /// <inheritdoc/>
-        public void Add(ISpannable? item) => owner.AllChildren.Add(item);
-
-        /// <inheritdoc/>
-        public void Clear() =>
-            owner.AllChildren.RemoveRange(
-                owner.AllChildrenAvailableSlot,
-                owner.AllChildren.Count - owner.AllChildrenAvailableSlot);
-
-        /// <inheritdoc/>
-        public bool Contains(ISpannable? item) => owner.AllChildren.IndexOf(item) >= owner.AllChildrenAvailableSlot;
-
-        /// <inheritdoc/>
-        public void CopyTo(ISpannable?[] array, int arrayIndex) =>
-            CollectionsMarshal.AsSpan(owner.AllChildren)[owner.AllChildrenAvailableSlot..]
-                              .CopyTo(array.AsSpan(arrayIndex));
-
-        /// <inheritdoc/>
-        void ICollection.CopyTo(Array array, int index) => this.CopyTo((ISpannable?[])array, index);
-
-        /// <inheritdoc/>
-        public int IndexOf(ISpannable? item)
-        {
-            var i = owner.AllChildren.IndexOf(item);
-            if (i >= owner.AllChildrenAvailableSlot)
-                return i - owner.AllChildrenAvailableSlot;
-            return -1;
-        }
-
-        /// <inheritdoc/>
-        public void Insert(int index, ISpannable? item)
-        {
-            if (index < 0 || index > owner.AllChildren.Count - owner.AllChildrenAvailableSlot)
-                throw new IndexOutOfRangeException();
-            owner.AllChildren.Insert(owner.AllChildrenAvailableSlot + index, item);
-        }
-
-        /// <inheritdoc/>
-        public bool Remove(ISpannable? item)
-        {
-            var i = owner.AllChildren.IndexOf(item);
-            if (i < owner.AllChildrenAvailableSlot)
-                return false;
-            owner.AllChildren.RemoveAt(i);
-            return true;
-        }
-
-        /// <inheritdoc/>
-        public void RemoveAt(int index)
-        {
-            if (index < 0 || index >= owner.AllChildren.Count - owner.AllChildrenAvailableSlot)
-                throw new IndexOutOfRangeException();
-            owner.AllChildren.RemoveAt(owner.AllChildrenAvailableSlot + index);
-        }
-
-        /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
-        public ListRangeEnumerator<ISpannable> GetEnumerator() =>
-            new(owner.AllChildren, owner.AllChildrenAvailableSlot..);
-
-        /// <inheritdoc/>
-        IEnumerator<ISpannable?> IEnumerable<ISpannable?>.GetEnumerator() => this.GetEnumerator();
-
-        /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+        this.children.EnsureCapacity(this.Options.Children.Count);
+        foreach (var c in this.Options.Children)
+            this.children.Add(c?.CreateSpannable());
+        this.Options.Children.CollectionChanged += this.ChildrenOnCollectionChanged;
     }
 
-    /// <summary>A state for <see cref="LayeredPattern"/>.</summary>
-    private class LayeredPatternMeasurement(LayeredPattern owner, SpannableMeasurementOptions options)
-        : PatternSpannableMeasurement(owner, options)
+    /// <inheritdoc />
+    public override IReadOnlyList<Spannable?> GetAllChildSpannables() => this.children;
+
+    /// <inheritdoc/>
+    protected override void OnMeasure(SpannableEventArgs args)
     {
-        private readonly ChildrenCollection children = owner.childrenCollection;
-        private readonly List<ISpannableMeasurement?> childMeasurements = new();
+        base.OnMeasure(args);
 
-        public override bool Measure()
+        foreach (var child in this.children)
         {
-            var changed = base.Measure();
+            if (child is null)
+                continue;
 
-            while (this.childMeasurements.Count < this.children.Count)
-                this.childMeasurements.Add(null);
-            this.childMeasurements.RemoveRange(this.children.Count, this.childMeasurements.Count - this.children.Count);
+            child.Options.RenderScale = this.Options.RenderScale;
+            child.Options.VisibleSize = child.Options.PreferredSize = this.Boundary.Size;
+            child.RenderPassMeasure();
+        }
+    }
 
-            for (var i = 0; i < this.children.Count; i++)
+    /// <inheritdoc/>
+    protected override void OnPlace(SpannableEventArgs args)
+    {
+        base.OnPlace(args);
+        foreach (var child in this.children)
+            child?.RenderPassPlace(Matrix4x4.Identity, this.FullTransformation);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDrawInside(SpannableDrawEventArgs args)
+    {
+        base.OnDrawInside(args);
+        foreach (var child in this.children)
+            child?.RenderPassDraw(args.DrawListPtr);
+    }
+
+    private void ChildrenOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        switch (e.Action)
+        {
+            case NotifyCollectionChangedAction.Add when e.NewItems?.Count is > 0:
+                this.children.InsertRange(
+                    e.NewStartingIndex,
+                    e.NewItems!.Cast<ISpannableTemplate?>().Select(x => x?.CreateSpannable()));
+                break;
+
+            case NotifyCollectionChangedAction.Remove when e.OldItems?.Count is > 0 and var count:
+                for (var i = e.OldStartingIndex; i < e.OldStartingIndex + count; i++)
+                    this.children[i]?.Dispose();
+                this.children.RemoveRange(e.NewStartingIndex, count);
+                break;
+
+            case NotifyCollectionChangedAction.Replace when e.NewItems?.Count is > 0 and var count:
+                for (var i = 0; i < count; i++)
+                {
+                    this.children[e.OldStartingIndex + i]?.Dispose();
+                    this.children[e.OldStartingIndex + i] = (e.NewItems[i] as ISpannableTemplate)?.CreateSpannable();
+                }
+
+                break;
+
+            case NotifyCollectionChangedAction.Move when e.OldItems?.Count is > 0 and var count:
+                var slice = this.children.Slice(e.OldStartingIndex, count);
+                this.children.RemoveRange(e.OldStartingIndex, count);
+                this.children.InsertRange(e.NewStartingIndex, slice);
+                break;
+
+            case NotifyCollectionChangedAction.Reset:
+                foreach (var c in this.children)
+                    c?.Dispose();
+                this.children.Clear();
+
+                this.children.EnsureCapacity(this.Options.Children.Count);
+                foreach (var c in this.Options.Children)
+                    this.children.Add(c?.CreateSpannable());
+                break;
+        }
+    }
+
+    /// <summary>Options for <see cref="LayeredPattern"/>.</summary>
+    public class LayerOptions : AbstractPattern.PatternOptions
+    {
+        /// <summary>Gets the list of children.</summary>
+        public ObservableCollection<ISpannableTemplate?> Children { get; } = [];
+
+        /// <inheritdoc/>
+        public override void CopyFrom(SpannableOptions source)
+        {
+            this.Children.Clear();
+
+            if (source is LayerOptions lo)
             {
-                if (this.children[i] is not { } child)
-                    continue;
-
-                var cm = this.childMeasurements[i] ??= child.RentMeasurement(this.Renderer);
-                cm.RenderScale = this.RenderScale;
-                cm.Options.VisibleSize = cm.Options.Size = this.Boundary.Size;
-                changed |= cm.Measure();
+                foreach (var c in lo.Children)
+                    this.Children.Add(c);
             }
 
-            return changed;
+            base.CopyFrom(source);
         }
 
-        public override void UpdateTransformation(scoped in Matrix4x4 local, scoped in Matrix4x4 ancestral)
+        /// <inheritdoc/>
+        public override bool TryReset()
         {
-            base.UpdateTransformation(in local, in ancestral);
-            foreach (var cm in this.childMeasurements)
-                cm?.UpdateTransformation(Matrix4x4.Identity, this.FullTransformation);
+            this.Children.Clear();
+            return base.TryReset();
         }
+    }
 
-        public override bool HandleInteraction()
-        {
-            foreach (var cm in this.childMeasurements)
-                cm?.HandleInteraction();
-            return base.HandleInteraction();
-        }
-
-        public override ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
-        {
-            foreach (var m in this.childMeasurements)
-            {
-                if (m?.Boundary.Contains(m.PointToClient(screenOffset)) is true)
-                    return m;
-            }
-
-            return base.FindChildMeasurementAt(screenOffset);
-        }
-
-        protected override void DrawUntransformed(ImDrawListPtr drawListPtr)
-        {
-            base.DrawUntransformed(drawListPtr);
-            foreach (var cm in this.childMeasurements)
-                cm?.Draw(drawListPtr);
-        }
+    /// <summary>A spannable that has multiple layers.</summary>
+    public class Template(LayerOptions options) : AbstractPattern.AbstractTemplate<LayerOptions>(options)
+    {
+        /// <inheritdoc/>
+        public override Spannable CreateSpannable() => new LayeredPattern(this.Options, this);
     }
 }

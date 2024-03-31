@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Numerics;
+using System.Reflection;
 
 namespace Dalamud.Interface.Animation;
 
 /// <summary>
 /// Base class facilitating the implementation of easing functions.
 /// </summary>
-public abstract class Easing
+public abstract class Easing : ICloneable
 {
     // TODO: Use game delta time here instead
     private readonly Stopwatch animationTimer = new();
@@ -121,4 +122,14 @@ public abstract class Easing
     /// Updates the animation.
     /// </summary>
     public abstract void Update();
+
+    /// <inheritdoc/>
+    public object Clone()
+    {
+        var c = (Easing)this.MemberwiseClone();
+        typeof(Easing)
+            .GetField(nameof(this.animationTimer), BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(c, new Stopwatch());
+        return c;
+    }
 }

@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.TODO;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
@@ -19,7 +19,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     /// <summary>A sentinel value that indicates that the spannable type is invalid (could not be fetched.)</summary>
     public const int InvalidSpannableType = -1;
 
-    private readonly Dictionary<int, List<ISpannable>> placeholders = new();
+    private readonly Dictionary<int, List<Spannable>> placeholders = new();
     private readonly List<int> availablePlaceholderSlotIndices = [];
     private readonly List<int> availablePlaceholderInnerIdIndices = [];
 
@@ -37,20 +37,24 @@ public abstract partial class RecyclerViewControl : ControlSpannable
         this.ClipChildren = true;
         this.innerIdVerticalScrollBar = this.InnerIdAvailableSlot++;
         this.innerIdHorizontalScrollBar = this.InnerIdAvailableSlot++;
-        this.VerticalScrollBar = new()
-        {
-            Direction = LinearDirection.TopToBottom,
-            Size = new(WrapContent, MatchParent),
-            AutoValueUpdate = false,
-        };
-        this.HorizontalScrollBar = new()
-        {
-            Direction = LinearDirection.TopToBottom, // TODO: LTR
-            Size = new(MatchParent, WrapContent),
-            AutoValueUpdate = false,
-        };
-        this.VerticalScrollBar.SpannableChange += this.ChildOnSpannableChange;
-        this.HorizontalScrollBar.SpannableChange += this.ChildOnSpannableChange;
+        this.AllSpannablesAvailableSlot++;
+        this.AllSpannablesAvailableSlot++;
+        this.AllSpannables.Add(
+            this.VerticalScrollBar = new()
+            {
+                Direction = LinearDirection.TopToBottom,
+                Size = new(WrapContent, MatchParent),
+                AutoValueUpdate = false,
+            });
+        this.AllSpannables.Add(
+            this.HorizontalScrollBar = new()
+            {
+                Direction = LinearDirection.TopToBottom, // TODO: LTR
+                Size = new(MatchParent, WrapContent),
+                AutoValueUpdate = false,
+            });
+        this.VerticalScrollBar.PropertyChange += this.ChildOnPropertyChange;
+        this.HorizontalScrollBar.PropertyChange += this.ChildOnPropertyChange;
     }
 
     /// <summary>Delegate for <see cref="DecideSpannableType"/>.</summary>
@@ -83,7 +87,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     public event ClearSpannableEventDelegate? ClearSpannable;
 
     /// <summary>Occurs when the list has been scrolled.</summary>
-    public event SpannableControlEventHandler? Scroll;
+    public event SpannableEventHandler? Scroll;
 
     /// <summary>Occurs when the property <see cref="LayoutManager"/> is changing.</summary>
     public event PropertyChangeEventHandler<BaseLayoutManager?>? LayoutManagerChange;
@@ -105,6 +109,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
             nameof(this.LayoutManager),
             ref this.layoutManager,
             value,
+            this.layoutManager == value,
             this.OnLayoutManagerChange);
     }
 
@@ -117,6 +122,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
             nameof(this.AutoScrollPerSecond),
             ref this.autoScrollPerSecond,
             value,
+            this.autoScrollPerSecond == value,
             this.OnAutoScrollPerSecondChange);
     }
 
@@ -128,6 +134,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
             nameof(this.VerticalScrollBarMode),
             ref this.verticalScrollBarMode,
             value,
+            this.verticalScrollBarMode == value,
             this.OnVerticalScrollBarModeChange);
     }
 
@@ -139,6 +146,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
             nameof(this.HorizontalScrollBarMode),
             ref this.horizontalScrollBarMode,
             value,
+            this.horizontalScrollBarMode == value,
             this.OnHorizontalScrollBarModeChange);
     }
 
@@ -161,8 +169,8 @@ public abstract partial class RecyclerViewControl : ControlSpannable
 
     /// <summary>Adds a placeholder for use.</summary>
     /// <param name="spannableType">Spannable type of the placeholder.</param>
-    /// <param name="spannable">Placeholder spannable.</param>
-    public void AddPlaceholder(int spannableType, ISpannable spannable)
+    /// <param name="spannable">New placeholder spannable.</param>
+    public void AddPlaceholder(int spannableType, Spannable spannable)
     {
         if (spannable is null)
             throw new NullReferenceException();
@@ -170,7 +178,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
         if (!this.placeholders.TryGetValue(spannableType, out var plist))
             this.placeholders.Add(spannableType, plist = []);
         plist.Add(spannable);
-        spannable.SpannableChange += this.ChildOnSpannableChange;
+        spannable.PropertyChange += this.ChildOnPropertyChange;
 
         this.availablePlaceholderSlotIndices.Add(this.AllSpannablesAvailableSlot++);
         this.availablePlaceholderInnerIdIndices.Add(this.InnerIdAvailableSlot++);
@@ -178,11 +186,25 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    public override ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
+    public override Spannable? FindChildAtPos(Vector2 screenOffset)
     {
-        if (this.layoutManager?.FindChildMeasurementAt(screenOffset) is { } r)
+        if (this.layoutManager?.FindChildAtPos(screenOffset) is { } r)
             return r;
-        return base.FindChildMeasurementAt(screenOffset);
+        return base.FindChildAtPos(screenOffset);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPreDispatchEvents(SpannableEventArgs args)
+    {
+        base.OnPreDispatchEvents(args);
+        if (!args.SuppressHandling)
+        {
+            if (this.ShowVerticalScrollBar)
+                this.VerticalScrollBar.RenderPassPreDispatchEvents();
+            if (this.ShowHorizontalScrollBar)
+                this.HorizontalScrollBar.RenderPassPreDispatchEvents();
+            this.layoutManager?.PreDispatchEvents();
+        }
     }
 
     /// <summary>Gets the underlying list.</summary>
@@ -206,40 +228,27 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnHandleInteraction(SpannableEventArgs args)
-    {
-        this.layoutManager?.HandleInteraction();
-        if (this.ShowHorizontalScrollBar)
-            this.HorizontalScrollBar.ExplicitHandleInteraction();
-        if (this.ShowVerticalScrollBar)
-            this.VerticalScrollBar.ExplicitHandleInteraction();
-        base.OnHandleInteraction(args);
-    }
-
-    /// <inheritdoc/>
     protected override RectVector4 MeasureContentBox(Vector2 suggestedSize)
     {
-        this.HorizontalScrollBar.RentMeasurement(this.Renderer);
-        this.VerticalScrollBar.RentMeasurement(this.Renderer);
         if (this.ShowHorizontalScrollBar)
         {
-            this.HorizontalScrollBar.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
-            this.HorizontalScrollBar.MeasurementOptions.Size =
-                this.MeasurementOptions.Size with { Y = float.PositiveInfinity };
+            this.HorizontalScrollBar.Options.VisibleSize = this.Options.VisibleSize;
+            this.HorizontalScrollBar.Options.PreferredSize = suggestedSize with { Y = float.PositiveInfinity };
+            this.HorizontalScrollBar.Options.RenderScale = this.EffectiveRenderScale;
+            this.HorizontalScrollBar.Renderer = this.Renderer;
             this.HorizontalScrollBar.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.innerIdHorizontalScrollBar);
-            this.HorizontalScrollBar.RenderScale = this.EffectiveRenderScale;
-            this.HorizontalScrollBar.ExplicitMeasure();
+            this.HorizontalScrollBar.RenderPassMeasure();
             this.Padding = this.Padding with { Bottom = this.HorizontalScrollBar.Boundary.Bottom };
         }
 
         if (this.ShowVerticalScrollBar)
         {
-            this.VerticalScrollBar.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
-            this.VerticalScrollBar.MeasurementOptions.Size =
-                this.MeasurementOptions.Size with { X = float.PositiveInfinity, };
+            this.VerticalScrollBar.Options.VisibleSize = this.Options.VisibleSize;
+            this.VerticalScrollBar.Options.PreferredSize = suggestedSize with { X = float.PositiveInfinity, };
+            this.VerticalScrollBar.Options.RenderScale = this.EffectiveRenderScale;
+            this.VerticalScrollBar.Renderer = this.Renderer;
             this.VerticalScrollBar.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.innerIdVerticalScrollBar);
-            this.VerticalScrollBar.RenderScale = this.EffectiveRenderScale;
-            this.VerticalScrollBar.ExplicitMeasure();
+            this.VerticalScrollBar.RenderPassMeasure();
             this.Padding = this.Padding with { Right = this.VerticalScrollBar.Boundary.Right };
         }
 
@@ -247,37 +256,37 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     }
 
     /// <inheritdoc/>
-    protected override void OnUpdateTransformation(SpannableEventArgs args)
+    protected override void OnPlace(SpannableEventArgs args)
     {
         this.layoutManager?.UpdateTransformation();
         if (this.ShowHorizontalScrollBar)
         {
-            this.HorizontalScrollBar.ExplicitUpdateTransformation(
+            this.HorizontalScrollBar.RenderPassPlace(
                 Matrix4x4.CreateTranslation(new(this.MeasuredContentBox.LeftBottom, 0)),
                 this.FullTransformation);
         }
 
         if (this.ShowVerticalScrollBar)
         {
-            this.VerticalScrollBar.ExplicitUpdateTransformation(
+            this.VerticalScrollBar.RenderPassPlace(
                 Matrix4x4.CreateTranslation(new(this.MeasuredContentBox.RightTop, 0)),
                 this.FullTransformation);
         }
 
-        base.OnUpdateTransformation(args);
+        base.OnPlace(args);
     }
 
     /// <inheritdoc/>
-    protected override void OnDraw(SpannableDrawEventArgs args)
+    protected override void OnDrawInside(SpannableDrawEventArgs args)
     {
         this.layoutManager?.Draw(args);
         if (this.ShowHorizontalScrollBar)
-            this.HorizontalScrollBar.ExplicitDraw(args.DrawListPtr);
+            this.HorizontalScrollBar.RenderPassDraw(args.DrawListPtr);
 
         if (this.ShowVerticalScrollBar)
-            this.VerticalScrollBar.ExplicitDraw(args.DrawListPtr);
+            this.VerticalScrollBar.RenderPassDraw(args.DrawListPtr);
 
-        base.OnDraw(args);
+        base.OnDrawInside(args);
     }
 
     /// <summary>Raises the <see cref="DecideSpannableType"/> event.</summary>
@@ -328,21 +337,23 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     {
         base.OnMouseWheel(args);
         if ((!this.ShowVerticalScrollBar && !this.ShowHorizontalScrollBar)
-            || args.Handled
+            || args.SuppressHandling
             || !this.IsMouseHoveredIncludingChildren
-            || this.layoutManager is null)
+            || this.layoutManager is null
+            || args.Step == SpannableEventStep.BeforeChildren)
             return;
 
-        args.Handled = true;
-        this.layoutManager.SmoothScrollBy(-args.WheelDelta);
+        args.SuppressHandling = true;
+
+        this.layoutManager.SmoothScrollByLines(-args.WheelDelta);
     }
 
-    private void ChildOnSpannableChange(ISpannable obj) => this.OnSpannableChange(this);
+    private void ChildOnPropertyChange(PropertyChangeEventArgs args) => this.RequestMeasure();
 
     public record DecideSpannableTypeEventArg : SpannableEventArgs
     {
-        /// <summary>Gets or sets the index of the item that needs to have its spannable type decided.</summary>
-        public int Index { get; set; }
+        /// <summary>Gets the index of the item that needs to have its spannable type decided.</summary>
+        public int Index { get; private set; }
 
         /// <summary>Gets or sets the decided spannable type.</summary>
         /// <remarks>Assign to this property to assign a spannable type.</remarks>
@@ -353,69 +364,78 @@ public abstract partial class RecyclerViewControl : ControlSpannable
         /// Leave it as <see cref="RecyclerViewControl.InvalidSpannableType"/> to disable.</remarks>
         public int DecorationType { get; set; }
 
-        /// <inheritdoc/>
-        public override bool TryReset()
+        /// <summary>Initializes the direct properties of <see cref="DecideSpannableTypeEventArg"/>.</summary>
+        /// <param name="index">Index.</param>
+        public void InitializeDecideSpannableType(int index)
         {
-            this.Index = this.SpannableType = this.DecorationType = 0;
-            return base.TryReset();
+            this.Index = index;
+            this.SpannableType = InvalidSpannableType;
+            this.DecorationType = InvalidSpannableType;
         }
     }
 
     public record AddMoreSpannablesEventArg : SpannableEventArgs
     {
-        /// <summary>Gets or sets the type of the spannable that needs to be populated.</summary>
-        public int SpannableType { get; set; }
+        /// <summary>Gets the type of the spannable that needs to be populated.</summary>
+        public int SpannableType { get; private set; }
 
-        /// <inheritdoc/>
-        public override bool TryReset()
-        {
-            this.SpannableType = 0;
-            return base.TryReset();
-        }
+        /// <summary>Initializes the direct properties of <see cref="AddMoreSpannablesEventArg"/>.</summary>
+        /// <param name="spannableType">The spannable type.</param>
+        public void InitializeAddMoreSpannables(int spannableType) => this.SpannableType = spannableType;
     }
 
     public record PopulateSpannableEventArg : SpannableEventArgs
     {
-        /// <summary>Gets or sets the index of the item that needs to have its spannable type decided.</summary>
-        public int Index { get; set; }
+        /// <summary>Gets the index of the item that needs to have its spannable type decided.</summary>
+        public int Index { get; private set; }
 
-        /// <summary>Gets or sets the decided spannable type from <see cref="DecideSpannableType"/>.</summary>
-        public int SpannableType { get; set; }
+        /// <summary>Gets the decided spannable type from <see cref="DecideSpannableType"/>.</summary>
+        public int SpannableType { get; private set; }
 
-        /// <summary>Gets or sets the associated spannable.</summary>
-        public ISpannable Spannable { get; set; } = null!;
-
-        /// <summary>Gets or sets the associated spannable measurement.</summary>
-        public ISpannableMeasurement Measurement { get; set; } = null!;
+        /// <summary>Gets the associated spannable measurement.</summary>
+        public Spannable Spannable { get; private set; } = null!;
 
         /// <inheritdoc/>
         public override bool TryReset()
         {
-            this.Index = this.SpannableType = 0;
             this.Spannable = null!;
-            this.Measurement = null!;
             return base.TryReset();
+        }
+
+        /// <summary>Initializes the direct properties of <see cref="PopulateSpannableEventArg"/>.</summary>
+        /// <param name="index">Index.</param>
+        /// <param name="spannableType">Spannable type.</param>
+        /// <param name="spannable">Spannable.</param>
+        public void InitializePopulateSpannable(int index, int spannableType, Spannable spannable)
+        {
+            this.Index = index;
+            this.SpannableType = spannableType;
+            this.Spannable = spannable;
         }
     }
 
     public record ClearSpannableEventArg : SpannableEventArgs
     {
-        /// <summary>Gets or sets the decided spannable type from <see cref="DecideSpannableType"/>.</summary>
-        public int SpannableType { get; set; }
+        /// <summary>Gets the decided spannable type from <see cref="DecideSpannableType"/>.</summary>
+        public int SpannableType { get; private set; }
 
-        /// <summary>Gets or sets the associated spannable.</summary>
-        public ISpannable Spannable { get; set; } = null!;
-
-        /// <summary>Gets or sets the associated spannable measurement.</summary>
-        public ISpannableMeasurement Measurement { get; set; } = null!;
+        /// <summary>Gets the associated spannable measurement.</summary>
+        public Spannable Spannable { get; private set; } = null!;
 
         /// <inheritdoc/>
         public override bool TryReset()
         {
-            this.SpannableType = 0;
             this.Spannable = null!;
-            this.Measurement = null!;
             return base.TryReset();
+        }
+
+        /// <summary>Initializes the direct properties of <see cref="ClearSpannableEventArg"/>.</summary>
+        /// <param name="spannableType">Spannable type.</param>
+        /// <param name="spannable">Spannable.</param>
+        public void InitializeClearSpannable(int spannableType, Spannable spannable)
+        {
+            this.SpannableType = spannableType;
+            this.Spannable = spannable;
         }
     }
 }

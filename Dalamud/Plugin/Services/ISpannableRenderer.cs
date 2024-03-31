@@ -22,9 +22,9 @@ public interface ISpannableRenderer
     /// <para>This function is safe to use from a non-main thread.</para>
     /// <para>Return using <see cref="ReturnBuilder"/>, but don't bother to wrap in <c>try { ... } finally { ... }</c>
     /// block, unless you already have one. The cost of throwing an exception is more significant enough that creating
-    /// another instance of <see cref="TextSpannableBuilder"/> doesn't matter at that point.</para>
+    /// another instance of <see cref="StyledTextBuilder"/> doesn't matter at that point.</para>
     /// </remarks>
-    TextSpannableBuilder RentBuilder();
+    StyledTextBuilder RentBuilder();
 
     /// <summary>Returns a builder borrowed using <see cref="RentBuilder"/>.</summary>
     /// <param name="builder">The rented builder using <see cref="RentBuilder"/>.</param>
@@ -32,7 +32,7 @@ public interface ISpannableRenderer
     /// <para>This function is safe to use from a non-main thread.</para>
     /// <para>Specifying <c>null</c> to <paramref name="builder"/> is a no-op.</para>
     /// </remarks>
-    void ReturnBuilder(TextSpannableBuilder? builder);
+    void ReturnBuilder(StyledTextBuilder? builder);
 
     /// <summary>Rents a private draw list.</summary>
     /// <param name="template">Template for the first draw command.</param>
@@ -97,25 +97,9 @@ public interface ISpannableRenderer
         out Vector2 uv0,
         out Vector2 uv1);
 
-    /// <summary>Renders plain text.</summary>
-    /// <param name="sequence">The UTF-16 character sequence.</param>
-    /// <param name="renderContext">The render context.</param>
-    /// <returns>The measurement result. You should call
-    /// <see cref="ISpannableMeasurement.ReturnMeasurementToSpannable"/>, optionally after inspecting it, or reuse it
-    /// with <see cref="DrawText"/>.</returns>
-    ISpannableMeasurement DrawText(ReadOnlySpan<char> sequence, in RenderContext renderContext);
-
-    /// <summary>Renders a spannable.</summary>
-    /// <param name="spannable">An instance of <see cref="ISpannable"/>.</param>
-    /// <param name="renderContext">The render context.</param>
-    /// <returns>The measurement result. You should call
-    /// <see cref="ISpannableMeasurement.ReturnMeasurementToSpannable"/>, optionally after inspecting it, or reuse it
-    /// with <see cref="DrawText"/>.</returns>
-    ISpannableMeasurement DrawSpannable(ISpannable spannable, in RenderContext renderContext);
-
     /// <summary>Renders a spannable from a measurement.</summary>
-    /// <param name="spannableMeasurement">An instance of <see cref="ISpannableMeasurement"/>.</param>
+    /// <param name="spannable">An instance of <see cref="Spannable"/>.</param>
     /// <param name="renderContext">The render context.</param>
     /// <returns>The measurement result.</returns>
-    ISpannableMeasurement DrawSpannableFromMeasurement(ISpannableMeasurement spannableMeasurement, in RenderContext renderContext);
+    Spannable Draw(Spannable spannable, in RenderContext renderContext);
 }

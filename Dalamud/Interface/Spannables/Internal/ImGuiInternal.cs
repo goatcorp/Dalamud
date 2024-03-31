@@ -211,6 +211,10 @@ internal static class ImGuiInternals
         [FieldOffset(0x4030)]
         public uint HoveredId;
 
+        /// <summary>Whether the item specified by <see cref="HoveredId"/> allows overlapping.</summary>
+        [FieldOffset(0x4038)]
+        public byte HoveredIdAllowOverlap;
+
         /// <summary>Whether the item specified by <see cref="HoveredId"/> is using the mouse wheel.</summary>
         [FieldOffset(0x4039)]
         public byte HoveredIdUsingMouseWheel;
@@ -227,9 +231,17 @@ internal static class ImGuiInternals
         [FieldOffset(0x4088)]
         public byte ActiveIdUsingMouseWheel;
 
+        /// <summary>Whether the item specified by <see cref="ActiveId"/> allows overlapping.</summary>
+        [FieldOffset(0x4091)]
+        public byte ActiveIdAllowOverlap;
+
         /// <summary>Last item data.</summary>
         [FieldOffset(0x40c0)]
         public ImGuiLastItemData LastItemData;
+
+        /// <summary>ID of the focused item.</summary>
+        [FieldOffset(0x4280)]
+        public uint NavId;
 
         /// <summary>Gets the reference of the current instance.</summary>
         public static unsafe ref ImGuiContext Instance => ref *(ImGuiContext*)ImGui.GetCurrentContext();

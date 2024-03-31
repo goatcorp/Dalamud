@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Specialized;
 
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.EventHandlers;
 
 namespace Dalamud.Interface.Spannables.Controls.RecyclerViews;
 
@@ -19,7 +19,12 @@ public class ObservingRecyclerViewControl<TCollection> : RecyclerViewControl
     public TCollection? Collection
     {
         get => this.collection;
-        set => this.HandlePropertyChange(nameof(this.Collection), ref this.collection, value, this.OnCollectionChange);
+        set => this.HandlePropertyChange(
+            nameof(this.Collection),
+            ref this.collection,
+            value,
+            ReferenceEquals(this.collection, value),
+            this.OnCollectionChange);
     }
 
     /// <inheritdoc/>
@@ -75,7 +80,7 @@ public class ObservingRecyclerViewControl<TCollection> : RecyclerViewControl
 // {
 //     public int Index { get; set; }
 //
-//     public ISpannable? Item { get; set; }
+//     public Spannable? Item { get; set; }
 // }
 //
 // public delegate void PopulateListItemEventHandler(PopulateListItemEventArgs e);
@@ -106,7 +111,7 @@ public class ObservingRecyclerViewControl<TCollection> : RecyclerViewControl
 //     
 //     public int Column { get; set; }
 //
-//     public ISpannable? Item { get; set; }
+//     public Spannable? Item { get; set; }
 // }
 //
 // public delegate void PopulateGridItemEventHandler(PopulateGridItemEventArgs e);

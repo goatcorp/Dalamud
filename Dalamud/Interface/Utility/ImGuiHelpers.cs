@@ -522,19 +522,18 @@ public static class ImGuiHelpers
         var sourceIndices = new ReadOnlySpan<ushort>((void*)source.IdxBuffer.Data, source.IdxBuffer.Size);
         var sourceVertices = new ReadOnlySpan<ImDrawVert>((void*)source.VtxBuffer.Data, source.VtxBuffer.Size);
         var sourceCommands = new ReadOnlySpan<ImDrawCmd>((void*)source.CmdBuffer.Data, source.CmdBuffer.Size);
-        var targetIndices = new ImVectorWrapper<ushort>(&target.NativePtr->IdxBuffer);
-        var targetVertices = new ImVectorWrapper<ImDrawVert>(&target.NativePtr->VtxBuffer);
-        var targetCommands = new ImVectorWrapper<ImDrawCmd>(&target.NativePtr->CmdBuffer);
 
         if (sourceIndices.Length == 0)
             return;
 
-        var vtxi = (ushort)targetVertices.Length;
+        var vtxi = (ushort)target.NativePtr->VtxBuffer.Size;
+
+        target.PrimReserve(0, sourceVertices.Length);
+        var newVertices = new Span<ImDrawVert>(target.NativePtr->_VtxWritePtr, sourceVertices.Length);
         target.NativePtr->_VtxWritePtr += sourceVertices.Length;
         target.NativePtr->_VtxCurrentIdx += (uint)sourceVertices.Length;
-        targetVertices.AddRange(sourceVertices);
+        sourceVertices.CopyTo(newVertices);
 
-        var newVertices = targetVertices.DataSpan[vtxi..];
         if (!transformation.IsIdentity)
         {
             foreach (ref var v in newVertices)
@@ -546,10 +545,7 @@ public static class ImGuiHelpers
             foreach (ref var v in newVertices)
                 v.col = new Rgba32(new Rgba32(v.col).AsVector4() * colorMultiplier);
         }
-        
-        // Not sure why can't I just copy the indices and commands, and then adjust the vertex/index indices
-        targetIndices.EnsureCapacity(targetIndices.Length + sourceIndices.Length);
-        targetCommands.EnsureCapacity(targetCommands.Length + sourceCommands.Length);
+
         foreach (ref readonly var cmd in sourceCommands)
         {
             var cmdIndices = sourceIndices.Slice((int)cmd.IdxOffset, (int)cmd.ElemCount);

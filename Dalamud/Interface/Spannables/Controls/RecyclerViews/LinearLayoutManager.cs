@@ -7,10 +7,9 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Spannables.Controls.Animations;
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.TODO;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
@@ -68,6 +67,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             nameof(this.Direction),
             ref this.direction,
             value,
+            this.direction == value,
             this.OnDirectionChange);
     }
 
@@ -82,6 +82,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             nameof(this.Gravity),
             ref this.gravity,
             value,
+            this.gravity == value,
             this.OnGravityChange);
     }
 
@@ -96,6 +97,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             nameof(this.AnchorOffsetRatio),
             ref this.anchorOffsetRatio,
             value,
+            this.anchorOffsetRatio - value == 0f,
             this.OnAnchorOffsetRatioChange);
     }
 
@@ -109,6 +111,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             nameof(this.StickToTerminal),
             ref this.stickToTerminal,
             value,
+            this.stickToTerminal == value,
             this.OnStickToTerminalChange);
     }
 
@@ -121,6 +124,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             nameof(this.UseOffDirectionScroll),
             ref this.useOffDirectionScroll,
             value,
+            this.useOffDirectionScroll == value,
             this.OnUseOffDirectionScrollChange);
     }
 
@@ -197,10 +201,6 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         get => this.direction.IsVertical() ? this.Gravity.X : this.Gravity.Y;
     }
 
-    public void ScrollBy(float delta) => throw new NotImplementedException();
-
-    public void SmoothScrollBy(float delta) => throw new NotImplementedException();
-
     public void ScrollTo(int firstItemIndex) => this.ScrollTo(firstItemIndex, 0);
 
     public void ScrollTo(int firstItemIndex, float delta) => throw new NotImplementedException();
@@ -214,7 +214,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     {
         this.accumulatedScrollDelta += delta;
 
-        this.RequestMeasure();
+        this.Parent?.RequestMeasure();
     }
 
     /// <inheritdoc/>
@@ -239,11 +239,11 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             this.ScrollEasing.Update();
         }
 
-        this.RequestMeasure();
+        this.Parent?.RequestMeasure();
     }
 
     /// <inheritdoc/>
-    public override int FindItemIndexFromSpannable(ISpannable? spannable)
+    public override int FindItemIndexFromSpannable(Spannable? spannable)
     {
         if (spannable is null)
             return -1;
@@ -257,20 +257,20 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     }
 
     /// <inheritdoc/>
-    public override ISpannableMeasurement? FindMeasurementFromItemIndex(int index)
+    public override Spannable? FindMeasurementFromItemIndex(int index)
     {
         var vi = this.VisibleEntries.BinarySearch(new VisibleEntry(index));
         if (vi < 0)
             return null;
-        return this.visibleEntries[vi].Measurement;
+        return this.visibleEntries[vi].Spannable;
     }
 
     /// <inheritdoc/>
-    public override ISpannableMeasurement? FindChildMeasurementAt(Vector2 screenOffset)
+    public override Spannable? FindChildAtPos(Vector2 screenOffset)
     {
         foreach (var vi in this.visibleEntries)
         {
-            if (vi.Measurement is not { } m)
+            if (vi.Spannable is not { } m)
                 continue;
             if (m.Boundary.Contains(m.PointToClient(screenOffset)))
                 return m;
@@ -280,13 +280,13 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     }
 
     /// <inheritdoc/>
-    public override ISpannableMeasurement? FindClosestChildMeasurementAt(Vector2 screenOffset)
+    public override Spannable? FindClosestChildMeasurementAt(Vector2 screenOffset)
     {
         var minDist = float.PositiveInfinity;
-        ISpannableMeasurement? minItem = null;
+        Spannable? minItem = null;
         foreach (var vi in this.visibleEntries)
         {
-            if (vi.Measurement is not { } m)
+            if (vi.Spannable is not { } m)
                 continue;
 
             var localOffset = m.PointToClient(screenOffset);
@@ -302,12 +302,47 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     }
 
     /// <inheritdoc/>
-    public override IEnumerable<(int Index, ISpannableMeasurement Measurement)> EnumerateItemSpannableMeasurements()
+    public override IEnumerable<(int Index, Spannable Spannable)> EnumerateItemSpannableMeasurements()
     {
         foreach (var vi in this.visibleEntries)
         {
-            if (vi.Measurement is not null)
-                yield return (vi.Index, vi.Measurement);
+            if (vi.Spannable is not null)
+                yield return (vi.Index, vi.Spannable);
+        }
+    }
+
+    /// <inheritdoc/>
+    public override void PreDispatchEvents()
+    {
+        base.PreDispatchEvents();
+
+        if (this.Parent is null)
+            return;
+
+        foreach (var vi in this.visibleEntries)
+            vi.Spannable?.RenderPassPreDispatchEvents();
+
+        if (this.needDispatchScrollEvent)
+        {
+            this.RequestNotifyScroll();
+            this.needDispatchScrollEvent = false;
+        }
+
+        var now = Environment.TickCount64;
+        if (this.lastHandleInteractionTick != long.MaxValue)
+        {
+            var secondsPastLastTick = (now - this.lastHandleInteractionTick) / 1000f;
+
+            // Prevent integration inaccuracies from making it not scroll at all.
+            if (secondsPastLastTick >= 0.01f)
+            {
+                this.ScrollByLines(this.Parent.AutoScrollPerSecond * secondsPastLastTick);
+                this.lastHandleInteractionTick = now;
+            }
+        }
+        else
+        {
+            this.lastHandleInteractionTick = now;
         }
     }
 
@@ -332,39 +367,6 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         this.AnchoredItem = -1;
         this.scrollRequestedPosition = float.NaN;
         this.Parent!.VerticalScrollBar.Scroll += VerticalScrollBarOnScroll;
-    }
-
-    /// <inheritdoc/>
-    protected override void HandleInteractionChildren()
-    {
-        if (this.Parent is null)
-            return;
-
-        foreach (var vi in this.visibleEntries)
-            vi.Measurement?.HandleInteraction();
-
-        if (this.needDispatchScrollEvent)
-        {
-            this.RequestNotifyScroll();
-            this.needDispatchScrollEvent = false;
-        }
-
-        var now = Environment.TickCount64;
-        if (this.lastHandleInteractionTick != long.MaxValue)
-        {
-            var secondsPastLastTick = (now - this.lastHandleInteractionTick) / 1000f;
-
-            // Prevent integration inaccuracies from making it not scroll at all.
-            if (secondsPastLastTick >= 0.01f)
-            {
-                this.accumulatedScrollDelta += this.Parent.AutoScrollPerSecond * secondsPastLastTick;
-                this.lastHandleInteractionTick = now;
-            }
-        }
-        else
-        {
-            this.lastHandleInteractionTick = now;
-        }
     }
 
     /// <inheritdoc/>
@@ -429,26 +431,15 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         var scrollOffsetDelta = 0f;
         if (this.accumulatedScrollDelta != Vector2.Zero)
         {
-            float scrollScale;
-            if (this.Parent.Renderer.TryGetFontData(
-                    this.Parent.EffectiveRenderScale,
-                    this.Parent.TextStyle,
-                    out var fontData))
-                scrollScale = fontData.ScaledFontSize;
-            else
-                scrollScale = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx * this.Parent.Scale;
-
-            var nlines = WindowsUiConfigHelper.GetWheelScrollLines();
-
             if (this.direction.IsVertical())
             {
-                scrollOffsetDelta += this.accumulatedScrollDelta.Y * scrollScale * nlines;
-                this.nonLimDimScroll += this.accumulatedScrollDelta.X * scrollScale * nlines;
+                scrollOffsetDelta += this.accumulatedScrollDelta.Y;
+                this.nonLimDimScroll += this.accumulatedScrollDelta.X;
             }
             else
             {
-                scrollOffsetDelta += this.accumulatedScrollDelta.X * scrollScale * nlines;
-                this.nonLimDimScroll += this.accumulatedScrollDelta.Y * scrollScale * nlines;
+                scrollOffsetDelta += this.accumulatedScrollDelta.X;
+                this.nonLimDimScroll += this.accumulatedScrollDelta.Y;
             }
 
             this.accumulatedScrollDelta = Vector2.Zero;
@@ -490,9 +481,6 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             // idk why but this seems to work for now
             const int numVisibleEntriesDelta = 3;
 
-            // TODO: only Bottom-To-Top is tested
-
-            Debug.WriteLine($"T={this.scrollRequestedPosition}\n");
             var itemCountRange = (itemCount - this.visibleEntries.Count) + numVisibleEntriesDelta;
             var itemIndexOffset =
                 Math.Max(
@@ -502,7 +490,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 (int)(itemIndexOffset + (this.scrollRequestedPosition * itemCountRange)),
                 0,
                 itemCount - 1);
-            this.AnchoredItemScrollOffsetRatio = this.direction.ConvertGravity(1f);
+            this.AnchoredItemScrollOffsetRatio = this.direction.ConvertGravity(this.anchorOffsetRatio);
             this.scrollRequestedPosition = float.NaN;
         }
 
@@ -554,7 +542,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             foreach (var v in this.VisibleEntries)
                 updated |= v.UpdateAnimation();
             if (updated)
-                this.RequestMeasure();
+                this.Parent?.RequestMeasure();
         }
 
         // Find the first and last visible entry indices.
@@ -699,6 +687,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             {
                 if (!ves[i].OutsideViewport)
                     break;
+                this.ReturnVisibleEntry(ref ves[i]);
             }
 
             this.visibleEntries.RemoveRange(0, i);
@@ -708,6 +697,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             {
                 if (!ves[i - 1].OutsideViewport)
                     break;
+                this.ReturnVisibleEntry(ref ves[i - 1]);
             }
 
             this.visibleEntries.RemoveRange(i, ves.Length - i);
@@ -935,14 +925,14 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     }
 
     /// <inheritdoc/>
-    protected override void UpdateTransformationChildren()
+    protected override void PlaceChildren()
     {
         if (this.Parent is null)
             return;
 
         foreach (ref var vi in this.VisibleEntries)
         {
-            if (vi.CellDecorationMeasurement is not null)
+            if (vi.Decoration is not null)
             {
                 Vector2 translation =
                     this.direction.IsVertical()
@@ -952,12 +942,12 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 translation += this.Parent.MeasuredContentBox.LeftTop;
                 translation = translation.Round(1f / this.Parent.EffectiveRenderScale);
 
-                vi.CellDecorationMeasurement.UpdateTransformation(
+                vi.Decoration.RenderPassPlace(
                     Matrix4x4.CreateTranslation(new(translation, 0)),
                     this.Parent.FullTransformation);
             }
 
-            if (vi.Measurement is not null)
+            if (vi.Spannable is not null)
             {
                 var mtx = Matrix4x4.Identity;
                 if (vi.Animation?.IsRunning is true)
@@ -966,23 +956,23 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 Vector2 translation =
                     this.direction.IsVertical()
                         ? new(
-                            ((this.Parent.MeasuredContentBox.Width - vi.Measurement.Boundary.Right)
+                            ((this.Parent.MeasuredContentBox.Width - vi.Spannable.Boundary.Right)
                              * this.OffDirectionScreenCoordinatesGravity)
                             - this.nonLimDimScroll,
                             vi.Offset)
                         : new(
                             vi.Offset,
-                            ((this.Parent.MeasuredContentBox.Height - vi.Measurement.Boundary.Bottom)
+                            ((this.Parent.MeasuredContentBox.Height - vi.Spannable.Boundary.Bottom)
                              * this.OffDirectionScreenCoordinatesGravity)
                             - this.nonLimDimScroll);
 
                 translation += this.Parent.MeasuredContentBox.LeftTop;
                 translation = translation.Round(1f / this.Parent.EffectiveRenderScale);
                 mtx = Matrix4x4.Multiply(mtx, Matrix4x4.CreateTranslation(new(translation, 0)));
-                vi.Measurement.UpdateTransformation(mtx, this.Parent.FullTransformation);
+                vi.Spannable.RenderPassPlace(mtx, this.Parent.FullTransformation);
             }
 
-            if (vi.PreviousMeasurement is not null)
+            if (vi.Previous is not null)
             {
                 var mtx = Matrix4x4.Identity;
                 if (vi.PreviousAnimation?.IsRunning is true)
@@ -991,20 +981,20 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 Vector2 translation =
                     this.direction.IsVertical()
                         ? new(
-                            ((this.Parent.MeasuredContentBox.Width - vi.PreviousMeasurement.Boundary.Right)
+                            ((this.Parent.MeasuredContentBox.Width - vi.Previous.Boundary.Right)
                              * this.OffDirectionScreenCoordinatesGravity)
                             - this.nonLimDimScroll,
                             vi.Offset)
                         : new(
                             vi.Offset,
-                            ((this.Parent.MeasuredContentBox.Height - vi.PreviousMeasurement.Boundary.Bottom)
+                            ((this.Parent.MeasuredContentBox.Height - vi.Previous.Boundary.Bottom)
                              * this.OffDirectionScreenCoordinatesGravity)
                             - this.nonLimDimScroll);
 
                 translation += this.Parent.MeasuredContentBox.LeftTop;
                 translation = translation.Round(1f / this.Parent.EffectiveRenderScale);
                 mtx = Matrix4x4.Multiply(mtx, Matrix4x4.CreateTranslation(new(translation, 0)));
-                vi.PreviousMeasurement.UpdateTransformation(mtx, this.Parent.FullTransformation);
+                vi.Previous.RenderPassPlace(mtx, this.Parent.FullTransformation);
             }
         }
     }
@@ -1017,51 +1007,51 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             var pao = vi.PreviousAnimation?.AnimatedOpacity ?? 1f;
             var aao = vi.Animation?.AnimatedOpacity ?? 1f;
 
-            if (vi.CellDecorationMeasurement is not null)
+            if (vi.Decoration is not null)
             {
-                // If both PreviousMeasurement and Measurement are set, then a replace animation is being played.
+                // If both PreviousSpannable and Spannable are set, then a replace animation is being played.
                 // Cell decoration is always rendered in full opacity in that case.
                 // Otherwise, prefer the opacity from the animation for current spannable..
                 var cdao =
-                    vi.PreviousMeasurement is not null && vi.Measurement is not null
+                    vi.Previous is not null && vi.Spannable is not null
                         ? 1f
-                        : vi.Measurement is not null
+                        : vi.Spannable is not null
                             ? aao
                             : pao;
                 if (cdao < 1f)
                 {
                     using var s = new ScopedTransformer(args.DrawListPtr, Matrix4x4.Identity, Vector2.One, cdao);
-                    vi.CellDecorationMeasurement.Draw(args.DrawListPtr);
+                    vi.Decoration.RenderPassDraw(args.DrawListPtr);
                 }
                 else
                 {
-                    vi.CellDecorationMeasurement.Draw(args.DrawListPtr);
+                    vi.Decoration.RenderPassDraw(args.DrawListPtr);
                 }
             }
 
-            if (vi.PreviousMeasurement is not null)
+            if (vi.Previous is not null)
             {
                 if (pao < 1f)
                 {
                     using var s = new ScopedTransformer(args.DrawListPtr, Matrix4x4.Identity, Vector2.One, pao);
-                    vi.PreviousMeasurement.Draw(args.DrawListPtr);
+                    vi.Previous.RenderPassDraw(args.DrawListPtr);
                 }
                 else
                 {
-                    vi.PreviousMeasurement.Draw(args.DrawListPtr);
+                    vi.Previous.RenderPassDraw(args.DrawListPtr);
                 }
             }
 
-            if (vi.Measurement is not null)
+            if (vi.Spannable is not null)
             {
                 if (aao < 1f)
                 {
                     using var s = new ScopedTransformer(args.DrawListPtr, Matrix4x4.Identity, Vector2.One, aao);
-                    vi.Measurement.Draw(args.DrawListPtr);
+                    vi.Spannable.RenderPassDraw(args.DrawListPtr);
                 }
                 else
                 {
-                    vi.Measurement.Draw(args.DrawListPtr);
+                    vi.Spannable.RenderPassDraw(args.DrawListPtr);
                 }
             }
         }
@@ -1315,26 +1305,24 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
     private void VerticalScrollBarOnScroll(ScrollBarControl.ScrollEventArgs args)
     {
-        if (this.Collection?.Count is not > 0)
+        if (this.Collection?.Count is not > 0 || this.Parent is null)
             return;
 
         var mult = this.direction.IsDirectionConsistentWithIndex() ? 1f : -1f;
-        mult *= this.Parent!.MeasuredContentBox.Height;
         switch (args.Action)
         {
             case ScrollBarControl.ScrollAction.LineDecrement:
-                this.SmoothScrollBy(new Vector2(0, mult / -256f));
+                this.SmoothScrollByLines(new(0, mult * -1f));
                 break;
             case ScrollBarControl.ScrollAction.LineIncrement:
-                this.SmoothScrollBy(new Vector2(0, mult / +256f));
+                this.SmoothScrollByLines(new(0, mult * +1f));
                 break;
 
-            // TODO: probably can just scroll by the current visible height
             case ScrollBarControl.ScrollAction.PageDecrement:
-                this.SmoothScrollBy(new Vector2(0, mult / -64f));
+                this.SmoothScrollBy(new(0, mult * -this.Parent.MeasuredContentBox.Height));
                 break;
             case ScrollBarControl.ScrollAction.PageIncrement:
-                this.SmoothScrollBy(new Vector2(0, mult / +64f));
+                this.SmoothScrollBy(new(0, mult * +this.Parent.MeasuredContentBox.Height));
                 break;
 
             case ScrollBarControl.ScrollAction.ThumbTrack:
@@ -1342,7 +1330,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 this.accumulatedScrollDelta = Vector2.Zero;
                 this.smoothScrollAmount = Vector2.Zero;
                 this.ScrollEasing.Reset();
-                this.RequestMeasure();
+                this.Parent.RequestMeasure();
                 break;
         }
     }
@@ -1465,67 +1453,72 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             if (vi.Removed)
             {
                 if (vi.UpdateAnimation())
-                    this.RequestMeasure();
+                    this.Parent.RequestMeasure();
                 return;
             }
 
             this.ResolveSpannableType(vi.Index, out var st, out var dt);
             vi.SpannableType = st;
-            vi.CellDecorationType = dt;
+            vi.DecorationType = dt;
             vi.Spannable = this.TakePlaceholder(vi.SpannableType, out vi.SpannableSlot, out vi.SpannableInnerId);
+            if (vi.Spannable is not null)
+                this.PopulateSpannable(vi.Index, vi.SpannableType, vi.Spannable);
             if (dt != RecyclerViewControl.InvalidSpannableType)
             {
-                vi.CellDecorationSpannable = this.TakePlaceholder(
-                    vi.CellDecorationType,
-                    out vi.CellDecorationSlot,
-                    out vi.CellDecorationInnerId);
+                vi.Decoration = this.TakePlaceholder(
+                    vi.DecorationType,
+                    out vi.DecorationSlot,
+                    out vi.DecorationInnerId);
+                if (vi.Decoration is not null)
+                {
+                    this.PopulateSpannable(
+                        vi.Index,
+                        vi.DecorationType,
+                        vi.Decoration);
+                }
             }
         }
 
-        if (vi.Measurement is null && vi.Spannable is not null)
-        {
-            vi.Measurement = vi.Spannable.RentMeasurement(this.Parent.Renderer);
-            this.PopulateSpannable(vi.Index, vi.SpannableType, vi.Spannable, vi.Measurement);
-        }
-
-        if (vi.Measurement is { } m)
+        if (vi.Spannable is { } m)
         {
             if (this.direction.IsVertical())
             {
-                m.Options.Size = new(nonLimDim, float.PositiveInfinity);
+                m.Options.PreferredSize = new(nonLimDim, float.PositiveInfinity);
                 m.Options.VisibleSize = new(nonLimDim, limDim);
             }
             else
             {
-                m.Options.Size = new(float.PositiveInfinity, nonLimDim);
+                m.Options.PreferredSize = new(float.PositiveInfinity, nonLimDim);
                 m.Options.VisibleSize = new(limDim, nonLimDim);
             }
 
-            m.RenderScale = this.Parent.RenderScale;
+            m.Options.RenderScale = this.Parent.Options.RenderScale;
+            m.Renderer = this.Parent.Renderer;
             m.ImGuiGlobalId = this.Parent.GetGlobalIdFromInnerId(vi.SpannableInnerId);
-            m.Measure();
+            m.RenderPassMeasure();
         }
         else
         {
             m = null;
         }
 
-        if (vi.PreviousMeasurement is { } pm)
+        if (vi.Previous is { } pm)
         {
             if (this.direction.IsVertical())
             {
-                pm.Options.Size = new(nonLimDim, float.PositiveInfinity);
+                pm.Options.PreferredSize = new(nonLimDim, float.PositiveInfinity);
                 pm.Options.VisibleSize = new(nonLimDim, limDim);
             }
             else
             {
-                pm.Options.Size = new(float.PositiveInfinity, nonLimDim);
+                pm.Options.PreferredSize = new(float.PositiveInfinity, nonLimDim);
                 pm.Options.VisibleSize = new(limDim, nonLimDim);
             }
 
-            pm.RenderScale = this.Parent.RenderScale;
+            pm.Options.RenderScale = this.Parent.Options.RenderScale;
+            pm.Renderer = this.Parent.Renderer;
             pm.ImGuiGlobalId = this.Parent.GetGlobalIdFromInnerId(vi.SpannableInnerId);
-            pm.Measure();
+            pm.RenderPassMeasure();
         }
         else
         {
@@ -1536,7 +1529,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             return;
 
         if (vi.UpdateAnimation())
-            this.RequestMeasure();
+            this.Parent.RequestMeasure();
 
         if (any.Boundary.IsValid
             && Math.Abs(
@@ -1563,17 +1556,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             vi.PreviousSize = any.Boundary;
         }
 
-        if (vi.CellDecorationMeasurement is null && vi.CellDecorationSpannable is not null)
-        {
-            vi.CellDecorationMeasurement = vi.CellDecorationSpannable.RentMeasurement(this.Parent.Renderer);
-            this.PopulateSpannable(
-                vi.Index,
-                vi.CellDecorationType,
-                vi.CellDecorationSpannable,
-                vi.CellDecorationMeasurement);
-        }
-
-        if (vi.CellDecorationMeasurement is not null)
+        if (vi.Decoration is { } cdm)
         {
             var lerpedBoundary =
                 vi.SizeEasing?.IsRunning is true
@@ -1581,18 +1564,19 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                     : any.Boundary;
             if (this.direction.IsVertical())
             {
-                vi.CellDecorationMeasurement.Options.Size = new(nonLimDim, lerpedBoundary.Height);
-                vi.CellDecorationMeasurement.Options.VisibleSize = new(nonLimDim, lerpedBoundary.Height);
+                cdm.Options.PreferredSize = new(nonLimDim, lerpedBoundary.Height);
+                cdm.Options.VisibleSize = new(nonLimDim, lerpedBoundary.Height);
             }
             else
             {
-                vi.CellDecorationMeasurement.Options.Size = new(lerpedBoundary.Width, nonLimDim);
-                vi.CellDecorationMeasurement.Options.VisibleSize = new(lerpedBoundary.Width, nonLimDim);
+                cdm.Options.PreferredSize = new(lerpedBoundary.Width, nonLimDim);
+                cdm.Options.VisibleSize = new(lerpedBoundary.Width, nonLimDim);
             }
 
-            vi.CellDecorationMeasurement.RenderScale = this.Parent.RenderScale;
-            vi.CellDecorationMeasurement.ImGuiGlobalId = this.Parent.GetGlobalIdFromInnerId(vi.CellDecorationInnerId);
-            vi.CellDecorationMeasurement.Measure();
+            cdm.Options.RenderScale = this.Parent.Options.RenderScale;
+            cdm.Renderer = this.Parent.Renderer;
+            cdm.ImGuiGlobalId = this.Parent.GetGlobalIdFromInnerId(vi.DecorationInnerId);
+            cdm.RenderPassMeasure();
         }
     }
 
@@ -1639,7 +1623,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     private float GetExpandingDimensionLerped(in VisibleEntry v)
     {
         var dim = this.GetExpandingDimension(
-            v.Measurement?.Boundary.RightBottom ?? v.PreviousMeasurement?.Boundary.RightBottom ?? Vector2.Zero);
+            v.Spannable?.Boundary.RightBottom ?? v.Previous?.Boundary.RightBottom ?? Vector2.Zero);
         if (v.SizeEasing?.IsDone is not false)
             return dim;
 
@@ -1650,7 +1634,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     private float GetNonExpandingDimensionLerped(in VisibleEntry v)
     {
         var dim = this.GetNonExpandingDimension(
-            v.Measurement?.Boundary.RightBottom ?? v.PreviousMeasurement?.Boundary.RightBottom ?? Vector2.Zero);
+            v.Spannable?.Boundary.RightBottom ?? v.Previous?.Boundary.RightBottom ?? Vector2.Zero);
         if (v.SizeEasing?.IsDone is not false)
             return dim;
 
@@ -1660,67 +1644,51 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
     private void ReturnDecorativeVisibleEntry(ref VisibleEntry v)
     {
-        if (v.CellDecorationSpannable is not null && v.CellDecorationMeasurement is not null)
-            this.ClearSpannable(v.CellDecorationType, v.CellDecorationSpannable, v.CellDecorationMeasurement);
-        v.CellDecorationSpannable?.ReturnMeasurement(v.CellDecorationMeasurement);
-        this.ReturnPlaceholder(
-            v.CellDecorationType,
-            v.CellDecorationSpannable,
-            v.CellDecorationSlot,
-            v.CellDecorationInnerId);
-        v.CellDecorationMeasurement = null;
-        v.CellDecorationSpannable = null;
-        v.CellDecorationType = -1;
-        v.CellDecorationSlot = v.CellDecorationInnerId = -1;
+        if (v.Decoration is not null)
+            this.ClearSpannable(v.DecorationType, v.Decoration);
+        this.ReturnPlaceholder(v.DecorationType, v.Decoration, v.DecorationSlot, v.DecorationInnerId);
+        v.Decoration = null;
+        v.DecorationType = -1;
+        v.DecorationSlot = v.DecorationInnerId = -1;
     }
 
     private void ReturnCurrentVisibleEntry(ref VisibleEntry v)
     {
-        if (v.Spannable is not null && v.Measurement is not null)
-            this.ClearSpannable(v.SpannableType, v.Spannable, v.Measurement);
-        v.Spannable?.ReturnMeasurement(v.Measurement);
+        if (v.Spannable is not null)
+            this.ClearSpannable(v.SpannableType, v.Spannable);
         this.ReturnPlaceholder(v.SpannableType, v.Spannable, v.SpannableSlot, v.SpannableInnerId);
         v.Spannable = null;
-        v.Measurement = null;
         v.Animation = null;
         v.SpannableSlot = v.SpannableInnerId = -1;
     }
 
     private void ReturnPreviousVisibleEntry(ref VisibleEntry v)
     {
-        if (v.PreviousSpannable is not null && v.PreviousMeasurement is not null)
-            this.ClearSpannable(v.PreviousSpannableType, v.PreviousSpannable, v.PreviousMeasurement);
-        v.PreviousSpannable?.ReturnMeasurement(v.PreviousMeasurement);
-        this.ReturnPlaceholder(
-            v.PreviousSpannableType,
-            v.PreviousSpannable,
-            v.PreviousSpannableSlot,
-            v.PreviousSpannableInnerId);
-        v.PreviousSpannable = null;
-        v.PreviousMeasurement = null;
+        if (v.Previous is not null)
+            this.ClearSpannable(v.PreviousType, v.Previous);
+        this.ReturnPlaceholder(v.PreviousType, v.Previous, v.PreviousSlot, v.PreviousInnerId);
+        v.Previous = null;
         v.PreviousAnimation = null;
-        v.PreviousSpannableSlot = v.PreviousSpannableInnerId = -1;
+        v.PreviousSlot = v.PreviousInnerId = -1;
     }
 
     private void CurrentToPreviousVisibleEntry(ref VisibleEntry v)
     {
         this.ReturnPreviousVisibleEntry(ref v);
 
-        v.PreviousMeasurement = v.Measurement;
-        v.PreviousSpannable = v.Spannable;
-        v.PreviousSpannableType = v.SpannableType;
+        v.Previous = v.Spannable;
+        v.PreviousType = v.SpannableType;
         v.PreviousAnimation = null;
-        v.PreviousSpannableSlot = v.SpannableSlot;
-        v.PreviousSpannableInnerId = v.SpannableInnerId;
+        v.PreviousSlot = v.SpannableSlot;
+        v.PreviousInnerId = v.SpannableInnerId;
 
-        v.Measurement = null;
         v.Spannable = null;
         v.SpannableType = RecyclerViewControl.InvalidSpannableType;
         v.Animation = null;
         v.SpannableSlot = v.SpannableInnerId = -1;
     }
 
-    [DebuggerDisplay("#{Index} ({Spannable}): {Offset} / {Measurement}")]
+    [DebuggerDisplay("#{Index} ({Spannable}): {Offset} / {Spannable}")]
     private struct VisibleEntry : IComparable<VisibleEntry>
     {
         public int Index;
@@ -1734,29 +1702,26 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         public RectVector4 PreviousSize;
 
         public SpannableAnimator? PreviousAnimation;
-        public int PreviousSpannableType;
-        public ISpannable? PreviousSpannable;
-        public ISpannableMeasurement? PreviousMeasurement;
-        public int PreviousSpannableSlot;
-        public int PreviousSpannableInnerId;
+        public int PreviousType;
+        public Spannable? Previous;
+        public int PreviousSlot;
+        public int PreviousInnerId;
 
         public SpannableAnimator? Animation;
         public int SpannableType;
-        public ISpannable? Spannable;
-        public ISpannableMeasurement? Measurement;
+        public Spannable? Spannable;
         public int SpannableSlot;
         public int SpannableInnerId;
 
-        public int CellDecorationType;
-        public ISpannable? CellDecorationSpannable;
-        public ISpannableMeasurement? CellDecorationMeasurement;
-        public int CellDecorationSlot;
-        public int CellDecorationInnerId;
+        public int DecorationType;
+        public Spannable? Decoration;
+        public int DecorationSlot;
+        public int DecorationInnerId;
 
         public VisibleEntry(int index)
         {
             this.Index = index;
-            this.PreviousSpannableType = this.SpannableType = RecyclerViewControl.InvalidSpannableType;
+            this.PreviousType = this.SpannableType = RecyclerViewControl.InvalidSpannableType;
             this.PreviousSize = RectVector4.InvertedExtrema;
         }
 
@@ -1771,9 +1736,9 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
             if (this.PreviousAnimation is not null)
             {
-                if (this.PreviousMeasurement is not null)
+                if (this.Previous is not null)
                 {
-                    this.PreviousAnimation.Update(this.PreviousMeasurement);
+                    this.PreviousAnimation.Update(this.Previous);
                     if (this.PreviousAnimation.IsDone)
                         this.PreviousAnimation = null;
                 }
@@ -1781,9 +1746,9 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
             if (this.Animation is not null)
             {
-                if (this.Measurement is not null)
+                if (this.Spannable is not null)
                 {
-                    this.Animation.Update(this.Measurement);
+                    this.Animation.Update(this.Spannable);
                     if (this.Animation.IsDone)
                         this.Animation = null;
                 }

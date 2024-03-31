@@ -35,8 +35,8 @@ public readonly struct RenderContext
     /// <remarks>Defaults to <see cref="Matrix4x4.Identity"/>.</remarks>
     public readonly Matrix4x4 Transformation;
 
-    /// <summary>Options for the root <see cref="ISpannable"/> being rendered.</summary>
-    public readonly ISpannableMeasurementOptions? RootOptions;
+    /// <summary>Options for the root <see cref="ISpannableTemplate"/> being rendered.</summary>
+    public readonly SpannableOptions? RootOptions;
 
     /// <summary>Whether to put a dummy after rendering.</summary>
     public readonly bool PutDummyAfterRender;
@@ -151,6 +151,6 @@ public readonly struct RenderContext
         public Matrix4x4? Transformation { get; set; }
 
         /// <inheritdoc cref="RenderContext.RootOptions"/>
-        public ISpannableMeasurementOptions? RootOptions { get; set; }
+        public SpannableOptions? RootOptions { get; set; }
     }
 }

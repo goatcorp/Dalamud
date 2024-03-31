@@ -14,15 +14,17 @@ public static class SpannableExtensions
     /// <param name="innerId">The inner ID.</param>
     /// <returns>The global ID.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe uint GetGlobalIdFromInnerId(this ISpannableMeasurement measurement, int innerId) =>
-        ImGuiNative.igGetID_Ptr((void*)(((ulong)measurement.ImGuiGlobalId << 32) | (uint)innerId));
+    public static unsafe uint GetGlobalIdFromInnerId(this Spannable measurement, int innerId) =>
+        measurement.ImGuiGlobalId == 0
+            ? 0
+            : ImGuiNative.igGetID_Ptr((void*)(((ulong)measurement.ImGuiGlobalId << 32) | (uint)innerId));
 
     /// <summary>Transforms spannable-local coordiantes to screen coordinates.</summary>
     /// <param name="measurement">The spannable measurement.</param>
     /// <param name="p">The point to transform.</param>
     /// <returns>The transformed coordinates.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 PointToScreen(this ISpannableMeasurement measurement, Vector2 p) =>
+    public static Vector2 PointToScreen(this Spannable measurement, Vector2 p) =>
         Vector2.Transform(p, measurement.FullTransformation);
 
     /// <summary>Transforms screen coordiantes to spannable-local coordinates.</summary>
@@ -30,7 +32,7 @@ public static class SpannableExtensions
     /// <param name="p">The point to transform.</param>
     /// <returns>The transformed coordinates.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 PointToClient(this ISpannableMeasurement measurement, Vector2 p) =>
+    public static Vector2 PointToClient(this Spannable measurement, Vector2 p) =>
         Vector2.Transform(
             p,
             Matrix4x4.Invert(measurement.FullTransformation, out var inverted)
@@ -45,12 +47,12 @@ public static class SpannableExtensions
     /// <returns>The same <paramref name="value"/> for method chaining.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T GetAsOut<T>(this T value, out T outValue)
-        where T : ISpannable => outValue = value;
+        where T : Spannable => outValue = value;
 
     /// <summary>Enumerates all items in the hierarchy under a spannable, including itself.</summary>
     /// <param name="root">The root item to enumerate.</param>
     /// <returns>An enumerable that enumerates through all spannables under the root, including itself.</returns>
-    public static IEnumerable<ISpannable> EnumerateHierarchy(this ISpannable root)
+    public static IEnumerable<Spannable> EnumerateHierarchy(this Spannable root)
     {
         yield return root;
         foreach (var s in root.GetAllChildSpannables())
@@ -67,7 +69,7 @@ public static class SpannableExtensions
     /// <param name="root">The root item to enumerate.</param>
     /// <typeparam name="T">The type of spannable interested.</typeparam>
     /// <returns>An enumerable that enumerates through all spannables under the root, including itself.</returns>
-    public static IEnumerable<T> EnumerateHierarchy<T>(this ISpannable root) where T : ISpannable
+    public static IEnumerable<T> EnumerateHierarchy<T>(this Spannable root) where T : Spannable
     {
         if (root is T roott)
             yield return roott;

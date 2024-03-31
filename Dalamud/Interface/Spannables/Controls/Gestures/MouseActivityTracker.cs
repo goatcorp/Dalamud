@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Numerics;
 
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Utility.Numerics;
 
@@ -39,7 +39,7 @@ public sealed class MouseActivityTracker : IDisposable
         this.Control.MouseMove += this.OnMouseMove;
         this.Control.MouseUp += this.OnMouseUp;
         this.Control.MouseWheel += this.OnMouseWheel;
-        this.Control.HandleInteraction += this.OnHandleInteraction;
+        this.Control.PreDispatchEvents += this.OnPreDispatchEvents;
     }
 
     /// <summary>Delegate for callbacks on panning.</summary>
@@ -283,7 +283,7 @@ public sealed class MouseActivityTracker : IDisposable
         this.Control.MouseMove -= this.OnMouseMove;
         this.Control.MouseUp -= this.OnMouseUp;
         this.Control.MouseWheel -= this.OnMouseWheel;
-        this.Control.HandleInteraction -= this.OnHandleInteraction;
+        this.Control.PreDispatchEvents -= this.OnPreDispatchEvents;
     }
 
     /// <summary>Cancels all ongoing operations.</summary>
@@ -348,7 +348,7 @@ public sealed class MouseActivityTracker : IDisposable
         if (startDrag && this.DragOrigin is null)
         {
             this.DragOrigin = e.LocalLocation;
-            e.Handled = true;
+            e.SuppressHandling = true;
         }
     }
 
@@ -389,7 +389,7 @@ public sealed class MouseActivityTracker : IDisposable
 
         if (this.IsDragging && delta != default)
         {
-            e.Handled = true;
+            e.SuppressHandling = true;
 
             var controlAbs = this.Control.PointToScreen(Vector2.Zero);
 
@@ -553,7 +553,7 @@ public sealed class MouseActivityTracker : IDisposable
                 _ => false,
             })
         {
-            e.Handled = true;
+            e.SuppressHandling = true;
             this.ExitDragState();
         }
 
@@ -577,11 +577,11 @@ public sealed class MouseActivityTracker : IDisposable
             (this.UseWheelZoom is WheelZoomMode.RequireControlKey && ImGui.GetIO().KeyCtrl))
         {
             this.WheelZoom?.Invoke(e.LocalLocation, e.WheelDelta.Y);
-            e.Handled = true;
+            e.SuppressHandling = true;
         }
     }
 
-    private void OnHandleInteraction(SpannableEventArgs args)
+    private void OnPreDispatchEvents(SpannableEventArgs args)
     {
         if (this.IsDragging)
             ImGui.SetMouseCursor(ImGuiMouseCursor.None);

@@ -20,6 +20,7 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Spannables;
 using Dalamud.Interface.Spannables.Controls;
 using Dalamud.Interface.Spannables.Controls.RecyclerViews;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering.Internal;
 using Dalamud.Interface.Spannables.Styles;
@@ -67,10 +68,10 @@ internal partial class ConsoleWindow : Window, IDisposable
 
     private readonly DalamudConfiguration activeConfiguration;
 
-    private readonly ISpannable ellipsisSpannable;
-    private readonly ISpannable wrapMarkerSpannable;
+    private readonly ISpannableTemplate ellipsisSpannableTemplate;
+    private readonly ISpannableTemplate wrapMarkerSpannableTemplate;
 
-    private TextSpannableBase.Options textOptions = new();
+    private AbstractStyledText.Options textOptions = new();
 
     private ObservingRecyclerViewControl<RollingList<LogEntry>> rvc = null!;
 
@@ -134,19 +135,19 @@ internal partial class ConsoleWindow : Window, IDisposable
 
         Service<Framework>.GetAsync().ContinueWith(r => r.Result.RunOnFrameworkThread(this.SetupMainThread));
 
-        this.ellipsisSpannable = new TextSpannableBuilder().PushForeColor(0x80FFFFFF).Append("…");
-        this.wrapMarkerSpannable = new TextSpannableBuilder()
-                                   .PushFontSet(
-                                       new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
-                                       out _)
-                                   .PushEdgeColor(0xFF000044)
-                                   .PushEdgeWidth(1)
-                                   .PushForeColor(0xFFCCCCFF)
-                                   .PushItalic(true)
-                                   .PushFontSize(-0.4f)
-                                   .PushLineHeight(2.5f)
-                                   .PushVerticalAlignment(VerticalAlignment.Middle)
-                                   .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
+        this.ellipsisSpannableTemplate = new StyledTextBuilder().PushForeColor(0x80FFFFFF).Append("…");
+        this.wrapMarkerSpannableTemplate = new StyledTextBuilder()
+                                           .PushFontSet(
+                                               new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
+                                               out _)
+                                           .PushEdgeColor(0xFF000044)
+                                           .PushEdgeWidth(1)
+                                           .PushForeColor(0xFFCCCCFF)
+                                           .PushItalic(true)
+                                           .PushFontSize(-0.4f)
+                                           .PushLineHeight(2.5f)
+                                           .PushVerticalAlignment(VerticalAlignment.Middle)
+                                           .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
 
@@ -221,7 +222,7 @@ internal partial class ConsoleWindow : Window, IDisposable
 
         ImGui.BeginChild("scrolling", new(0, scrollingHeight), false);
         this.rvc.Size = new(ControlSpannable.MatchParent);
-        Renderer.DrawSpannable(
+        Renderer.Draw(
             this.rvc,
             new(
                 "##list",
@@ -310,8 +311,8 @@ internal partial class ConsoleWindow : Window, IDisposable
             },
             WrapMarker =
                 this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
-                    ? this.ellipsisSpannable
-                    : this.wrapMarkerSpannable,
+                    ? this.ellipsisSpannableTemplate
+                    : this.wrapMarkerSpannableTemplate,
         };
         var llm = (LinearLayoutManager)this.rvc.LayoutManager!;
         llm.Direction =
@@ -361,39 +362,55 @@ internal partial class ConsoleWindow : Window, IDisposable
             e.SpannableType switch
             {
                 0 => new LogEntryControl(),
-                1 => new BorderPattern { Color = 0xFF444444, DrawBottom = true },
-                2 => new LayeredPattern // selected
-                {
-                    ChildrenList =
+                1 => new BorderPattern(new() { Color = 0xFF444444, DrawBottom = true }),
+
+                // selected
+                2 => new LayeredPattern(
+                    new()
                     {
-                        new ShapePattern { Color = ImGuiColors.ParsedGrey, Type = ShapePattern.Shape.RectFilled },
-                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
-                    },
-                },
-                3 => new LayeredPattern // error
-                {
-                    ChildrenList =
+                        Children =
+                        {
+                            new ShapePattern.Template(
+                                new() { Color = ImGuiColors.ParsedGrey, Shape = ShapePattern.Shape.RectFilled }),
+                            new BorderPattern.Template(new() { Color = 0xFF444444, DrawBottom = true }),
+                        },
+                    }),
+
+                // error
+                3 => new LayeredPattern(
+                    new()
                     {
-                        new ShapePattern { Color = 0x800000EE, Type = ShapePattern.Shape.RectFilled },
-                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
-                    },
-                },
-                4 => new LayeredPattern // warning
-                {
-                    ChildrenList =
+                        Children =
+                        {
+                            new ShapePattern.Template(
+                                new() { Color = 0x800000EE, Shape = ShapePattern.Shape.RectFilled }),
+                            new BorderPattern.Template(new() { Color = 0xFF444444, DrawBottom = true }),
+                        },
+                    }),
+
+                // warning
+                4 => new LayeredPattern(
+                    new()
                     {
-                        new ShapePattern { Color = 0x8A0070EE, Type = ShapePattern.Shape.RectFilled },
-                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
-                    },
-                },
-                5 => new LayeredPattern // fatal
-                {
-                    ChildrenList =
+                        Children =
+                        {
+                            new ShapePattern.Template(
+                                new() { Color = 0x8A0070EE, Shape = ShapePattern.Shape.RectFilled }),
+                            new BorderPattern.Template(new() { Color = 0xFF444444, DrawBottom = true }),
+                        },
+                    }),
+
+                // fatal
+                5 => new LayeredPattern(
+                    new()
                     {
-                        new ShapePattern { Color = 0xFF00000A, Type = ShapePattern.Shape.RectFilled },
-                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
-                    },
-                },
+                        Children =
+                        {
+                            new ShapePattern.Template(
+                                new() { Color = 0xFF00000A, Shape = ShapePattern.Shape.RectFilled }),
+                            new BorderPattern.Template(new() { Color = 0xFF444444, DrawBottom = true }),
+                        },
+                    }),
                 _ => throw new InvalidOperationException(),
             });
         this.rvc.PopulateSpannable += e =>
@@ -402,7 +419,7 @@ internal partial class ConsoleWindow : Window, IDisposable
                 return;
             lec.Entry = this.filteredLogEntries[e.Index];
             lec.HighlightRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
-            lec.TextSpannableMeasurementOptions = this.textOptions;
+            lec.TextSpannableOptions = this.textOptions;
         };
         this.rvc.ClearSpannable += e =>
         {
@@ -413,21 +430,23 @@ internal partial class ConsoleWindow : Window, IDisposable
         };
         this.rvc.MouseDown += e =>
         {
+            if (e.Step == SpannableEventStep.BeforeChildren || e.SuppressHandling)
+                return;
+
             switch (e.Button)
             {
                 case ImGuiMouseButton.Left when this.mmbScrollOrigin.X is float.NaN:
                 {
-                    if (this.rvc.FindChildMeasurementAt(ImGui.GetMousePos()) is not { } cm)
+                    if (this.rvc.FindChildAtPos(ImGui.GetMousePos()) is not { } cm)
                         return;
 
-                    var index = llm.FindItemIndexFromSpannable(cm.Spannable);
+                    var index = llm.FindItemIndexFromSpannable(cm);
                     if (index < 0)
                         return;
 
                     if (this.copyMode)
                     {
                         this.copyStart = index;
-                        e.Handled = true;
                         this.rvc.MouseCursor = ImGuiMouseCursor.ResizeNS;
                         HandleRvcDrag();
                     }
@@ -445,6 +464,9 @@ internal partial class ConsoleWindow : Window, IDisposable
         };
         this.rvc.MouseMove += e =>
         {
+            if (e.Step == SpannableEventStep.BeforeChildren || e.SuppressHandling)
+                return;
+
             if (this.mmbScrollOrigin.X is not float.NaN)
             {
                 this.rvc.AutoScrollPerSecond = (e.LocalLocation - this.mmbScrollOrigin) / 4f;
@@ -520,9 +542,9 @@ internal partial class ConsoleWindow : Window, IDisposable
 
         void HandleRvcDrag()
         {
-            var cm = llm.FindChildMeasurementAt(ImGui.GetMousePos());
+            var cm = llm.FindChildAtPos(ImGui.GetMousePos());
             cm ??= llm.FindClosestChildMeasurementAt(ImGui.GetMousePos());
-            var index = llm.FindItemIndexFromSpannable(cm?.Spannable);
+            var index = llm.FindItemIndexFromSpannable(cm);
             if (index < 0 || this.copyEnd == index)
                 return;
 

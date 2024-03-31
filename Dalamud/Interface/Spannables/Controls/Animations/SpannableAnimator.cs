@@ -6,8 +6,8 @@ using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls.Animations;
 
-/// <summary>Animator for <see cref="ISpannable"/>.</summary>
-public class SpannableAnimator
+/// <summary>Animator for <see cref="ISpannableTemplate"/>.</summary>
+public class SpannableAnimator : ICloneable
 {
     private Matrix4x4 beforeMatrix = Matrix4x4.Identity;
     private Matrix4x4 afterMatrix = Matrix4x4.Identity;
@@ -125,9 +125,9 @@ public class SpannableAnimator
     }
 
     /// <summary>Updates the animation.</summary>
-    /// <param name="renderPass">Render pass of the spannable being animated.</param>
+    /// <param name="spannable">Instance of spannable being animated.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Update(ISpannableMeasurement renderPass) => this.Update(renderPass.Boundary);
+    public void Update(Spannable spannable) => this.Update(spannable.Boundary);
 
     /// <summary>Updates the animation.</summary>
     /// <param name="boundary">Boundary to animate.</param>
@@ -158,6 +158,15 @@ public class SpannableAnimator
                         Math.Clamp((float)this.OpacityEasing.Value, 0f, 1f));
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public virtual object Clone()
+    {
+        var c = (SpannableAnimator)this.MemberwiseClone();
+        c.TransformationEasing = (Easing)this.TransformationEasing?.Clone();
+        c.OpacityEasing = (Easing)this.OpacityEasing?.Clone();
+        return c;
     }
 
     /// <summary>Calculates the transformation matrix, given a progress value during animation.</summary>

@@ -5,10 +5,9 @@ using System.Text.RegularExpressions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Spannables;
-using Dalamud.Interface.Spannables.Controls;
 using Dalamud.Interface.Spannables.Controls.Containers;
-using Dalamud.Interface.Spannables.Controls.EventHandlers;
 using Dalamud.Interface.Spannables.Controls.Labels;
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Spannables.Text;
 using Dalamud.Utility.Numerics;
@@ -58,13 +57,13 @@ internal partial class ConsoleWindow
             this.ChildrenList.Add(
                 this.lblTime = new()
                 {
-                    SpannableTextOptions = new TextSpannableBase.Options { WordBreak = WordBreakType.BreakWord },
+                    SpannableTextOptions = new AbstractStyledText.Options { WordBreak = WordBreakType.BreakWord },
                 });
 
             this.ChildrenList.Add(
                 this.lblLevel = new()
                 {
-                    SpannableTextOptions = new TextSpannableBase.Options { WordBreak = WordBreakType.BreakWord },
+                    SpannableTextOptions = new AbstractStyledText.Options { WordBreak = WordBreakType.BreakWord },
                 });
 
             this.ChildrenList.Add(this.lblText = new());
@@ -77,8 +76,8 @@ internal partial class ConsoleWindow
 
         public event PropertyChangeEventHandler<Regex>? HighlightRegexChange;
 
-        public event PropertyChangeEventHandler<TextSpannableBase.Options>?
-            TextSpannableMeasurementOptionsChange;
+        public event PropertyChangeEventHandler<AbstractStyledText.Options>?
+            TextSpannableOptionsChange;
 
         private enum RowMode
         {
@@ -95,7 +94,7 @@ internal partial class ConsoleWindow
         public LogEntry? Entry
         {
             get => this.entry;
-            set => this.HandlePropertyChange(nameof(this.Entry), ref this.entry, value, this.OnEntryChange);
+            set => this.HandlePropertyChange(nameof(this.Entry), ref this.entry, value, this.entry == value, this.OnEntryChange);
         }
 
         public Regex? HighlightRegex
@@ -104,20 +103,20 @@ internal partial class ConsoleWindow
             set => this.HandlePropertyChange(
                 nameof(this.HighlightRegex),
                 ref this.highlightRegex,
-                value,
-                this.OnHighlightRegexChange);
+                value, this.highlightRegex == value, this.OnHighlightRegexChange);
         }
 
-        public TextSpannableBase.Options? TextSpannableMeasurementOptions
+        public AbstractStyledText.Options? TextSpannableOptions
         {
-            get => this.lblText.SpannableTextOptions as TextSpannableBase.Options;
+            get => this.lblText.SpannableTextOptions as AbstractStyledText.Options;
             set
             {
-                var storage = this.lblText.SpannableTextOptions as TextSpannableBase.Options;
+                var storage = this.lblText.SpannableTextOptions as AbstractStyledText.Options;
                 this.HandlePropertyChange(
-                    nameof(this.TextSpannableMeasurementOptions),
+                    nameof(this.TextSpannableOptions),
                     ref storage,
                     value,
+                    ReferenceEquals(storage, value),
                     this.OnWordBreakChange);
                 this.lblText.SpannableTextOptions = storage;
             }
@@ -125,21 +124,30 @@ internal partial class ConsoleWindow
 
         protected override RectVector4 MeasureChildren(
             Vector2 suggestedSize,
-            ReadOnlySpan<ISpannableMeasurement> childMeasurements)
+            ReadOnlySpan<Spannable> children)
         {
+            if (this.Renderer is null)
+                return RectVector4.InvertedExtrema;
+            
             // This value is not scaled.
-            this.rowMode = this.MeasurementOptions.VisibleSize.X switch
+            this.rowMode = this.Options.VisibleSize.X switch
             {
                 >= 640 => RowMode.OneLine,
                 >= 120 => RowMode.TwoLines,
                 _ => RowMode.ThreeLines,
             };
 
-            this.lblTime.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
-            this.lblLevel.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
-            this.lblText.MeasurementOptions.VisibleSize = this.MeasurementOptions.VisibleSize;
+            this.lblTime.Renderer = this.Renderer;
+            this.lblLevel.Renderer = this.Renderer;
+            this.lblText.Renderer = this.Renderer;
+            this.lblTime.Options.RenderScale = this.EffectiveRenderScale;
+            this.lblLevel.Options.RenderScale = this.EffectiveRenderScale;
+            this.lblText.Options.RenderScale = this.EffectiveRenderScale;
+            this.lblTime.Options.VisibleSize = this.Options.VisibleSize;
+            this.lblLevel.Options.VisibleSize = this.Options.VisibleSize;
+            this.lblText.Options.VisibleSize = this.Options.VisibleSize;
 
-            var isKeepAll = this.TextSpannableMeasurementOptions?.WordBreak == WordBreakType.KeepAll;
+            var isKeepAll = this.TextSpannableOptions?.WordBreak == WordBreakType.KeepAll;
             switch (this.rowMode)
             {
                 case RowMode.OneLine:
@@ -163,28 +171,28 @@ internal partial class ConsoleWindow
                     this.lblLevel.TextStyle = MetaLabelStyleFull;
                     this.lblLevel.Alignment = new(0f);
 
-                    this.lblTime.MeasurementOptions.Size = new(float.PositiveInfinity);
-                    this.lblLevel.MeasurementOptions.Size = new(float.PositiveInfinity);
+                    this.lblTime.Options.PreferredSize = new(float.PositiveInfinity);
+                    this.lblLevel.Options.PreferredSize = new(float.PositiveInfinity);
 
-                    this.lblTime.ExplicitMeasure();
-                    this.lblLevel.ExplicitMeasure();
+                    this.lblTime.RenderPassMeasure();
+                    this.lblLevel.RenderPassMeasure();
 
                     this.lblText.TextStyle = LogTextStyle;
                     if (isKeepAll)
                     {
                         this.lblText.Size = new(WrapContent);
-                        this.lblText.MeasurementOptions.Size = new(float.PositiveInfinity);
+                        this.lblText.Options.PreferredSize = new(float.PositiveInfinity);
                     }
                     else
                     {
-                        var w = this.lblText.MeasurementOptions.VisibleSize.X
+                        var w = this.lblText.Options.VisibleSize.X
                                 - this.lblTime.Boundary.Right
                                 - this.lblLevel.Boundary.Right;
                         this.lblText.Size = new(MatchParent, WrapContent);
-                        this.lblText.MeasurementOptions.Size = new(w, float.MaxValue);
+                        this.lblText.Options.PreferredSize = new(w, float.MaxValue);
                     }
 
-                    this.lblText.ExplicitMeasure();
+                    this.lblText.RenderPassMeasure();
                     break;
 
                 case RowMode.TwoLines:
@@ -199,13 +207,13 @@ internal partial class ConsoleWindow
                     this.lblText.TextStyle = LogTextStyle;
                     this.lblText.Size = new(MatchParent, WrapContent);
 
-                    this.lblTime.MeasurementOptions.Size = suggestedSize;
-                    this.lblLevel.MeasurementOptions.Size = suggestedSize;
-                    this.lblText.MeasurementOptions.Size = suggestedSize with { Y = float.PositiveInfinity };
+                    this.lblTime.Options.PreferredSize = suggestedSize;
+                    this.lblLevel.Options.PreferredSize = suggestedSize;
+                    this.lblText.Options.PreferredSize = suggestedSize with { Y = float.PositiveInfinity };
 
-                    this.lblTime.ExplicitMeasure();
-                    this.lblLevel.ExplicitMeasure();
-                    this.lblText.ExplicitMeasure();
+                    this.lblTime.RenderPassMeasure();
+                    this.lblLevel.RenderPassMeasure();
+                    this.lblText.RenderPassMeasure();
                     break;
             }
 
@@ -231,22 +239,22 @@ internal partial class ConsoleWindow
             }
         }
 
-        protected override void UpdateTransformationChildren(
+        protected override void PlaceChildren(
             SpannableEventArgs args,
-            ReadOnlySpan<ISpannableMeasurement> childMeasurements)
+            ReadOnlySpan<Spannable> children)
         {
             var mcblt = new Vector3(this.MeasuredContentBox.LeftTop, 0);
             switch (this.rowMode)
             {
                 case RowMode.OneLine:
                 default:
-                    this.lblTime.ExplicitUpdateTransformation(
+                    this.lblTime.RenderPassPlace(
                         Matrix4x4.CreateTranslation(mcblt),
                         this.FullTransformation);
-                    this.lblLevel.ExplicitUpdateTransformation(
+                    this.lblLevel.RenderPassPlace(
                         Matrix4x4.CreateTranslation(mcblt + new Vector3(this.lblTime.MeasuredBoundaryBox.Right, 0, 0)),
                         this.FullTransformation);
-                    this.lblText.ExplicitUpdateTransformation(
+                    this.lblText.RenderPassPlace(
                         Matrix4x4.CreateTranslation(
                             mcblt + new Vector3(
                                 this.lblTime.MeasuredBoundaryBox.Right + this.lblLevel.MeasuredBoundaryBox.Right,
@@ -256,45 +264,45 @@ internal partial class ConsoleWindow
                     break;
 
                 case RowMode.TwoLines:
-                    this.lblTime.ExplicitUpdateTransformation(
+                    this.lblTime.RenderPassPlace(
                         Matrix4x4.CreateTranslation(mcblt),
                         this.FullTransformation);
-                    this.lblLevel.ExplicitUpdateTransformation(
+                    this.lblLevel.RenderPassPlace(
                         Matrix4x4.CreateTranslation(mcblt),
                         this.FullTransformation);
-                    this.lblText.ExplicitUpdateTransformation(
+                    this.lblText.RenderPassPlace(
                         Matrix4x4.CreateTranslation(
                             mcblt + new Vector3(
                                 0,
                                 MathF.Round(
                                     Math.Max(
                                         this.lblTime.MeasuredBoundaryBox.Bottom,
-                                        this.lblLevel.MeasuredBoundaryBox.Bottom) * this.RenderScale) /
-                                this.RenderScale,
+                                        this.lblLevel.MeasuredBoundaryBox.Bottom) * this.Options.RenderScale) /
+                                this.Options.RenderScale,
                                 0)),
                         this.FullTransformation);
                     break;
 
                 case RowMode.ThreeLines:
-                    this.lblTime.ExplicitUpdateTransformation(
+                    this.lblTime.RenderPassPlace(
                         Matrix4x4.CreateTranslation(mcblt),
                         this.FullTransformation);
-                    this.lblLevel.ExplicitUpdateTransformation(
+                    this.lblLevel.RenderPassPlace(
                         Matrix4x4.CreateTranslation(
                             mcblt + new Vector3(
                                 0,
-                                MathF.Round(this.lblTime.MeasuredBoundaryBox.Bottom * this.RenderScale) /
-                                this.RenderScale,
+                                MathF.Round(this.lblTime.MeasuredBoundaryBox.Bottom * this.Options.RenderScale) /
+                                this.Options.RenderScale,
                                 0)),
                         this.FullTransformation);
-                    this.lblText.ExplicitUpdateTransformation(
+                    this.lblText.RenderPassPlace(
                         Matrix4x4.CreateTranslation(
                             mcblt + new Vector3(
                                 0,
                                 MathF.Round(
                                     (this.lblTime.MeasuredBoundaryBox.Bottom +
                                      this.lblLevel.MeasuredBoundaryBox.Bottom) *
-                                    this.RenderScale) / this.RenderScale,
+                                    this.Options.RenderScale) / this.Options.RenderScale,
                                 0)),
                         this.FullTransformation);
                     break;
@@ -324,9 +332,9 @@ internal partial class ConsoleWindow
             this.UpdateMatches();
         }
 
-        protected virtual void OnWordBreakChange(PropertyChangeEventArgs<TextSpannableBase.Options> args)
+        protected virtual void OnWordBreakChange(PropertyChangeEventArgs<AbstractStyledText.Options> args)
         {
-            this.TextSpannableMeasurementOptionsChange?.Invoke(args);
+            this.TextSpannableOptionsChange?.Invoke(args);
             this.lblText.SpannableTextOptions = args.NewValue;
         }
 
@@ -373,7 +381,7 @@ internal partial class ConsoleWindow
             var line = this.entry.Line.AsSpan();
             charOffsets[charOffsetsIndex++] = line.Length;
 
-            var ssb = this.Renderer.RentBuilder();
+            var ssb = this.Renderer?.RentBuilder() ?? new();
             for (var i = 0; i < charOffsetsIndex - 1; i++)
             {
                 var begin = charOffsets[i];
@@ -393,7 +401,7 @@ internal partial class ConsoleWindow
             }
 
             this.lblText.SpannableText = ssb.Build();
-            this.Renderer.ReturnBuilder(ssb);
+            this.Renderer?.ReturnBuilder(ssb);
         }
     }
 }
