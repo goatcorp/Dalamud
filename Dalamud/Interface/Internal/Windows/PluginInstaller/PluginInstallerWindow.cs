@@ -598,6 +598,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         using (ImRaii.Disabled(isProfileManager))
         {
             var searchTextChanged = false;
+            var prevSearchText = this.searchText;
             ImGui.SetNextItemWidth(searchInputWidth);
             searchTextChanged |= ImGui.InputTextWithHint(
                 "###XlPluginInstaller_Search",
@@ -617,7 +618,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             if (searchTextChanged)
-                this.UpdateCategoriesOnSearchChange();
+                this.UpdateCategoriesOnSearchChange(prevSearchText);
         }
 
         // Disable sort if changelogs or profile editor
@@ -3443,15 +3444,27 @@ internal class PluginInstallerWindow : Window, IDisposable
         return this.updateModalTaskCompletionSource.Task;
     }
 
-    private void UpdateCategoriesOnSearchChange()
+    private void UpdateCategoriesOnSearchChange(string? previousSearchText)
     {
         if (string.IsNullOrEmpty(this.searchText))
         {
             this.categoryManager.SetCategoryHighlightsForPlugins(null);
+            
+            // Reset here for good measure, as we're returning from a search
+            this.openPluginCollapsibles.Clear();
         }
         else
         {
-            var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm));
+            var pluginsMatchingSearch = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
+            
+            // Check if the search results are different, and clear the open collapsibles if they are
+            if (previousSearchText != null)
+            {
+                var previousSearchResults = this.pluginListAvailable.Where(rm => !this.IsManifestFiltered(rm)).ToArray();
+                if (!previousSearchResults.SequenceEqual(pluginsMatchingSearch))
+                    this.openPluginCollapsibles.Clear();
+            }
+            
             this.categoryManager.SetCategoryHighlightsForPlugins(pluginsMatchingSearch);
         }
     }
@@ -3459,7 +3472,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void UpdateCategoriesOnPluginsChange()
     {
         this.categoryManager.BuildCategories(this.pluginListAvailable);
-        this.UpdateCategoriesOnSearchChange();
+        this.UpdateCategoriesOnSearchChange(null);
     }
 
     private void DrawFontawesomeIconOutlined(FontAwesomeIcon icon, Vector4 outline, Vector4 iconColor)
