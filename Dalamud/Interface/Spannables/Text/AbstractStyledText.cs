@@ -159,11 +159,4 @@ public abstract partial class AbstractStyledText : ISpannableTemplate
             this.Boundary = boundary;
         }
     }
-
-    /// <summary>Struct for storing link interaction data.</summary>
-    private struct LinkInteractionData
-    {
-        public bool IsMouseButtonDownHandled;
-        public ImGuiMouseButton FirstMouseButton;
-    }
 }

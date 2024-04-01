@@ -29,7 +29,7 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
     /// <summary>Uses the dimensions that will wrap the content.</summary>
     public const float WrapContent = -2f;
 
-    private static readonly bool DrawDebugControlBorder = true;
+    private static readonly bool DrawDebugControlBorder = false;
 
     private readonly int backgroundInnerId;
 
@@ -555,21 +555,25 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
         var myMaxSize = this.Options.PreferredSize * this.scale;
         var boundaryContentGap = this.margin + this.padding;
 
-        var contentBox = this.MeasureContentBox(
-            new(
-                this.IsWidthWrapContent
-                    ? float.PositiveInfinity
-                    : Math.Max(0, (this.IsWidthMatchParent ? myMaxSize.X : this.size.X) - boundaryContentGap.Size.X),
-                this.IsHeightWrapContent
-                    ? float.PositiveInfinity
-                    : Math.Max(0, (this.IsHeightMatchParent ? myMaxSize.Y : this.size.Y) - boundaryContentGap.Size.Y)));
-
-        contentBox = RectVector4.Normalize(contentBox);
-        contentBox = RectVector4.Translate(contentBox, boundaryContentGap.LeftTop);
-
-        var interactiveBox = RectVector4.Expand(contentBox, this.padding);
-        var boundaryBox = RectVector4.Expand(interactiveBox, this.margin);
-        var outsideBox = RectVector4.Expand(boundaryBox, this.extendOutside);
+        this.MeasuredContentBox = RectVector4.Translate(
+            RectVector4.Normalize(
+                this.MeasureContentBox(
+                    new(
+                        this.IsWidthWrapContent
+                            ? float.PositiveInfinity
+                            : Math.Max(
+                                0,
+                                (this.IsWidthMatchParent ? myMaxSize.X : this.size.X) - boundaryContentGap.Size.X),
+                        this.IsHeightWrapContent
+                            ? float.PositiveInfinity
+                            : Math.Max(
+                                0,
+                                (this.IsHeightMatchParent ? myMaxSize.Y : this.size.Y) - boundaryContentGap.Size.Y)))),
+            boundaryContentGap.LeftTop);
+        this.MeasuredInteractiveBox = RectVector4.Expand(this.MeasuredContentBox, this.padding);
+        this.MeasuredBoundaryBox = RectVector4.Expand(this.MeasuredInteractiveBox, this.margin);
+        this.MeasuredOutsideBox = RectVector4.Expand(this.MeasuredBoundaryBox, this.extendOutside);
+        this.Boundary = this.MeasuredBoundaryBox * this.scale;
 
         if (this.wasVisible != this.Visible)
         {
@@ -580,21 +584,16 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
         if (this.VisibilityAnimation is { IsRunning: true } visibilityAnimation)
         {
             visibilityAnimation.Update(this);
-            contentBox = RectVector4.Normalize(
-                RectVector4.Expand(contentBox, visibilityAnimation.AnimatedBoundaryAdjustment));
-            interactiveBox = RectVector4.Normalize(
-                RectVector4.Expand(interactiveBox, visibilityAnimation.AnimatedBoundaryAdjustment));
-            boundaryBox = RectVector4.Normalize(
-                RectVector4.Expand(boundaryBox, visibilityAnimation.AnimatedBoundaryAdjustment));
-            outsideBox = RectVector4.Normalize(
-                RectVector4.Expand(outsideBox, visibilityAnimation.AnimatedBoundaryAdjustment));
+            this.MeasuredContentBox = RectVector4.Normalize(
+                RectVector4.Expand(this.MeasuredContentBox, visibilityAnimation.AnimatedBoundaryAdjustment));
+            this.MeasuredInteractiveBox = RectVector4.Normalize(
+                RectVector4.Expand(this.MeasuredInteractiveBox, visibilityAnimation.AnimatedBoundaryAdjustment));
+            this.MeasuredBoundaryBox = RectVector4.Normalize(
+                RectVector4.Expand(this.MeasuredBoundaryBox, visibilityAnimation.AnimatedBoundaryAdjustment));
+            this.MeasuredOutsideBox = RectVector4.Normalize(
+                RectVector4.Expand(this.MeasuredOutsideBox, visibilityAnimation.AnimatedBoundaryAdjustment));
+            this.Boundary = this.MeasuredBoundaryBox * this.scale;
         }
-
-        this.MeasuredContentBox = contentBox;
-        this.MeasuredInteractiveBox = interactiveBox;
-        this.MeasuredBoundaryBox = boundaryBox;
-        this.MeasuredOutsideBox = outsideBox;
-        this.Boundary = boundaryBox * this.scale;
 
         var newBackground = this.DecideBackground();
         if (!ReferenceEquals(this.CurrentBackground?.SourceTemplate, newBackground))
@@ -751,9 +750,9 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
             return this.normalBackground;
         if (!this.Enabled)
             return this.disabledBackground ?? this.normalBackground;
-        if (this.IsMouseHovered && this.IsAnyMouseButtonDown && this.activeBackground is not null)
+        if (this.IsMouseHoveredInsideBoundary && this.IsAnyMouseButtonDown && this.activeBackground is not null)
             return this.activeBackground;
-        if (this.IsMouseHovered && this.hoveredBackground is not null)
+        if (this.IsMouseHoveredInsideBoundary && this.hoveredBackground is not null)
             return this.hoveredBackground;
         return this.normalBackground;
     }

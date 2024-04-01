@@ -114,6 +114,11 @@ public abstract partial class RecyclerViewControl
         /// <inheritdoc/>
         public int LastVisibleItem { get; protected set; } = -1;
 
+        /// <summary>Gets or sets the number of visible spannables.</summary>
+        /// <remarks>This may exceed the difference between <see cref="FirstVisibleItem"/> and
+        /// <see cref="LastVisibleItem"/>, especially in case an animation is playing from collection change.</remarks>
+        public int VisibleItemCount { get; protected set; }
+
         /// <summary>Gets or sets the scroll range.</summary>
         /// <remarks>This does not have to immediately correspond to the screen offsets.</remarks>
         public Vector2 ScrollRange { get; protected set; }
@@ -371,13 +376,13 @@ public abstract partial class RecyclerViewControl
 
         /// <summary>Enumerates the spannable measurements and its corresponding item indices.</summary>
         /// <returns>The enumerable.</returns>
-        public abstract IEnumerable<(int Index, Spannable Spannable)>
-            EnumerateItemSpannableMeasurements();
+        public abstract IEnumerable<(int Index, Spannable Spannable)> EnumerateItemSpannableMeasurements();
 
         /// <summary>Called before detaching parent.</summary>
         protected virtual void BeforeParentDetach()
         {
             this.FirstVisibleItem = this.LastVisibleItem = -1;
+            this.VisibleItemCount = 0;
             this.ScrollRange = Vector2.Zero;
         }
 
@@ -479,6 +484,7 @@ public abstract partial class RecyclerViewControl
             var t = plist[^1];
             plist.RemoveAt(plist.Count - 1);
             this.Parent.AllSpannables[slotIndex] = t;
+            this.Parent.activeChildrenChanged = true;
             this.Parent.RequestMeasure();
             return t;
         }
@@ -499,6 +505,7 @@ public abstract partial class RecyclerViewControl
             this.Parent.availablePlaceholderInnerIdIndices.Add(innerId);
             plist.Add(placeholder);
             this.Parent.AllSpannables[slotIndex] = null;
+            this.Parent.activeChildrenChanged = true;
             this.Parent.RequestMeasure();
         }
 

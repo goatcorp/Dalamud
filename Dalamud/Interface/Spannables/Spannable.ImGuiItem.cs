@@ -142,7 +142,7 @@ public abstract partial class Spannable
                             ImGuiKey.GamepadLStickLeft or ImGuiKey.GamepadLStickRight or
                             ImGuiKey.GamepadLStickUp or ImGuiKey.GamepadLStickDown)
                         {
-                            if (this.ProcessCmdKey(trailedEvent.Key.Key))
+                            if (this.TakeOverNavKey(trailedEvent.Key.Key))
                                 ImGuiInternals.ImGuiNavMoveRequestCancel();
                             else
                                 break;

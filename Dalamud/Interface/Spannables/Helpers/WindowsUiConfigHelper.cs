@@ -1,3 +1,5 @@
+using System.Numerics;
+
 using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
@@ -20,6 +22,12 @@ public static class WindowsUiConfigHelper
 
         return res;
     }
+
+    /// <summary>Gets the minimum drag distance.</summary>
+    /// <returns>The minimum drag distance per dimension.</returns>
+    public static Vector2 GetMinDragDistance() => new(
+        Math.Abs(GetSystemMetrics(SM.SM_CXDRAG)),
+        Math.Abs(GetSystemMetrics(SM.SM_CYDRAG)));
 
     /// <summary>Gets the time between clicks to count as a double click.</summary>
     /// <returns>The time in milliseconds.</returns>

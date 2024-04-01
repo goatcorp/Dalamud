@@ -213,9 +213,9 @@ public class BooleanControl : LabelControl
         bool? state = this.indeterminate ? null : this.@checked;
 
         var stateIcon =
-            this.IsMouseHovered && this.IsLeftMouseButtonDown
+            this.IsMouseHoveredInsideBoundary && this.IsAnyMouseButtonDown
                 ? this.activeIcon?.WithState(state)
-                : this.IsMouseHovered
+                : this.IsMouseHoveredInsideBoundary
                     ? this.hoveredIcon?.WithState(state)
                     : this.normalIcon?.WithState(state);
 
@@ -223,5 +223,6 @@ public class BooleanControl : LabelControl
         this.TopIcon = this.side == IconSide.Top ? stateIcon : null;
         this.RightIcon = this.side == IconSide.Right ? stateIcon : null;
         this.BottomIcon = this.side == IconSide.Bottom ? stateIcon : null;
+        this.RequestMeasure();
     }
 }

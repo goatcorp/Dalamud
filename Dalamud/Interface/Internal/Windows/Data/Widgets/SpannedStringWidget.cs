@@ -59,7 +59,6 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
     private bool showTransformationTest;
     private bool showParseTest;
     private WordBreakType wordBreakType;
-    private long catchMeBegin;
 
     private ContainerControl rootContainer = null!;
     private LabelControl lblStopwatch = null!;
@@ -85,22 +84,23 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         this.vertOffset = 0;
         this.useImages = false;
         this.showComplicatedTextTest = this.showDynamicOffsetTest = this.showTransformationTest = false;
+        this.showParseTest = false;
         this.parseAttempt = default;
         this.setupControlNeeded = true;
 
         this.ellipsisSpannableTemplate = new StyledTextBuilder().PushForeColor(0x80FFFFFF).Append("…");
         this.wrapMarkerSpannableTemplate = new StyledTextBuilder()
-                                   .PushFontSet(
-                                       new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
-                                       out _)
-                                   .PushEdgeColor(0xFF000044)
-                                   .PushEdgeWidth(1)
-                                   .PushForeColor(0xFFCCCCFF)
-                                   .PushItalic(true)
-                                   .PushFontSize(-0.4f)
-                                   .PushLineHeight(2.5f)
-                                   .PushVerticalAlignment(VerticalAlignment.Middle)
-                                   .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
+                                           .PushFontSet(
+                                               new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
+                                               out _)
+                                           .PushEdgeColor(0xFF000044)
+                                           .PushEdgeWidth(1)
+                                           .PushForeColor(0xFFCCCCFF)
+                                           .PushItalic(true)
+                                           .PushFontSize(-0.4f)
+                                           .PushLineHeight(2.5f)
+                                           .PushVerticalAlignment(VerticalAlignment.Middle)
+                                           .Append(FontAwesomeIcon.ArrowTurnDown.ToIconString());
 
         this.testStringBuffer.Dispose();
         this.testStringBuffer = new(65536);
@@ -151,7 +151,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                  (ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin()) / 64);
 
         var myopt = (AbstractStyledText.Options)(this.renderContextOptions.RootOptions ??=
-                                                    new AbstractStyledText.Options());
+                                                     new AbstractStyledText.Options());
 
         myopt.Style = TextStyle.FromContext;
         myopt.WordBreak = this.wordBreakType;
@@ -174,8 +174,8 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 : default;
 
         renderer.Draw(
-                    this.rootContainer,
-                    new("LinearContainerTest", this.renderContextOptions with { Size = ImGui.GetContentRegionAvail() }));
+            this.rootContainer,
+            new("LinearContainerTest", this.renderContextOptions with { Size = ImGui.GetContentRegionAvail() }));
 
         var dynamicOffsetTestOffset = ImGui.GetCursorScreenPos();
         var pad = MathF.Round(8 * ImGuiHelpers.GlobalScale);
@@ -634,34 +634,34 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         }
 
         // TODO
-        // var mat = new MouseActivityTracker(this.rootContainer);
-        // var pzt = new PanZoomTracker(mat);
-        // mat.UseLeftDrag = true;
-        // mat.UseMiddleDrag = true;
-        // mat.UseRightDrag = true;
-        // mat.UseLeftDouble = true;
-        // mat.UseWheelZoom = MouseActivityTracker.WheelZoomMode.RequireControlKey;
-        // mat.UseDoubleClickDragZoom = true;
-        // mat.UseInfiniteLeftDrag = true;
-        // mat.UseInfiniteRightDrag = true;
-        // mat.UseInfiniteMiddleDrag = true;
-        // pzt.PanExtraRange = new(64);
-        // pzt.ViewportChanged += () =>
-        // {
-        //     this.rootContainer.ScrollBoundary = new(new Vector2(-float.PositiveInfinity), new(float.PositiveInfinity));
-        //     // this.rootContainer.Scroll = linearContainer.MeasuredContentBox.Center -
-        //     //                             this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
-        //     this.rootContainer.Scroll =
-        //         linearContainer.MeasuredContentBox.Center -
-        //         this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
-        //     linearContainer.Scale = pzt.EffectiveZoom;
-        //     linearContainer.Transformation = Matrix4x4.CreateRotationZ(pzt.Rotation);
-        // };
-        // this.rootContainer.MeasuredBoundaryBoxChange += _ =>
-        // {
-        //     pzt.Size = linearContainer.MeasuredBoundaryBox.Size * ImGuiHelpers.GlobalScale;
-        // };
-        // cmdRotate.Click += _ => pzt.Rotation += MathF.PI / 16f;
+        var mat = new MouseActivityTracker(this.rootContainer);
+        var pzt = new PanZoomTracker(mat);
+        mat.UseLeftDrag = true;
+        mat.UseMiddleDrag = true;
+        mat.UseRightDrag = true;
+        mat.UseLeftDouble = true;
+        mat.UseWheelZoom = MouseActivityTracker.WheelZoomMode.RequireControlKey;
+        mat.UseDoubleClickDragZoom = true;
+        mat.UseInfiniteLeftDrag = true;
+        mat.UseInfiniteRightDrag = true;
+        mat.UseInfiniteMiddleDrag = true;
+        pzt.PanExtraRange = new(64);
+        pzt.ViewportChanged += () =>
+        {
+            this.rootContainer.ScrollBoundary = new(new Vector2(-float.PositiveInfinity), new(float.PositiveInfinity));
+            // this.rootContainer.Scroll = linearContainer.MeasuredContentBox.Center -
+            //                             this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
+            this.rootContainer.Scroll =
+                linearContainer.MeasuredContentBox.Center -
+                this.rootContainer.MeasuredContentBox.Center - pzt.Pan;
+            linearContainer.Scale = pzt.EffectiveZoom;
+            linearContainer.Transformation = Matrix4x4.CreateRotationZ(pzt.Rotation);
+        };
+        this.rootContainer.MeasuredBoundaryBoxChange += _ =>
+        {
+            pzt.Size = linearContainer.MeasuredBoundaryBox.Size * ImGuiHelpers.GlobalScale;
+        };
+        cmdRotate.Click += _ => pzt.Rotation += MathF.PI / 16f;
 
         optLinearContainerLtr.CheckedChange += e =>
             linearContainer.Direction = e.NewValue
@@ -772,6 +772,11 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
                 this.wordBreakType = WordBreakType.BreakWord;
             }
         };
+
+        lblOptions.LinkMouseDown += e => Log.Information($"LinkMouseDown: {Encoding.UTF8.GetString(e.Link.Span)}");
+        lblOptions.LinkMouseUp += e => Log.Information($"LinkMouseUp: {Encoding.UTF8.GetString(e.Link.Span)}");
+        lblOptions.LinkMouseEnter += e => Log.Information($"LinkMouseEnter: {Encoding.UTF8.GetString(e.Link.Span)}");
+        lblOptions.LinkMouseLeave += e => Log.Information($"LinkMouseLeave: {Encoding.UTF8.GetString(e.Link.Span)}");
 
         UpdateLblOptions(null);
         return;
@@ -1253,29 +1258,27 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         }
         else if (this.parseAttempt.Exception is { } e)
         {
-            var t = ssb.Clear()
+            ssb.RecycleSpannable(
+                Service<SpannableRenderer>.Get().Draw(
+                    ssb.Clear()
                        .PushEdgeColor(new Rgba32(ImGuiColors.DalamudRed).MultiplyOpacity(0.5f))
                        .Append(e.ToString())
-                       .CreateSpannable();
-            Service<SpannableRenderer>.Get().Draw(
-                t,
-                new(nameof(this.DrawParseTest), this.renderContextOptions));
-            ssb.RecycleSpannable(t);
+                       .CreateSpannable(),
+                    new(nameof(this.DrawParseTest), this.renderContextOptions)));
         }
         else
         {
-            var t = ssb.Clear().Append("Try writing something to the above text box.").CreateSpannable();
-            Service<SpannableRenderer>.Get().Draw(
-                t,
-                new(nameof(this.DrawParseTest), this.renderContextOptions));
-            ssb.RecycleSpannable(t);
+            ssb.RecycleSpannable(
+                Service<SpannableRenderer>.Get().Draw(
+                    ssb.Clear().Append("Try writing something to the above text box.").CreateSpannable(),
+                    new(nameof(this.DrawParseTest), this.renderContextOptions)));
         }
     }
 
     private void DrawDynamicOffsetTest(StyledTextBuilder ssb)
     {
         const float interval = 2000;
-        var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
+        var v = (Environment.TickCount64 / interval) % (2 * MathF.PI);
         var size = ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin();
 
         ssb.Clear()
@@ -1290,27 +1293,24 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
         var o2 = (AbstractStyledText.Options)this.renderContextOptions.RootOptions!;
         o2.VerticalAlignment = 0.5f;
         o2.Style = TextStyle.FromContext with { HorizontalAlignment = 0.5f };
-        var t = ssb.CreateSpannable();
-        var rm = (AbstractStyledText.TextSpannable)Service<SpannableRenderer>.Get().Draw(
-            t,
-            new(
-                nameof(this.DrawDynamicOffsetTest),
-                this.renderContextOptions with
-                {
-                    Size = size,
-                    ScreenOffset = ImGui.GetWindowPos(),
-                    RootOptions = o2,
-                }));
-        if (rm.GetInteractedLink(out _) is not AbstractStyledText.LinkState.Clear)
-            this.catchMeBegin += 50;
-        ssb.RecycleSpannable(t);
+        ssb.RecycleSpannable(
+            Service<SpannableRenderer>.Get().Draw(
+                ssb.CreateSpannable(),
+                new(
+                    nameof(this.DrawDynamicOffsetTest),
+                    this.renderContextOptions with
+                    {
+                        Size = size,
+                        ScreenOffset = ImGui.GetWindowPos(),
+                        RootOptions = o2,
+                    })));
         ImGui.SetCursorScreenPos(prevPos);
     }
 
     private void DrawTransformationTest(StyledTextBuilder ssb)
     {
         const float interval = 2000;
-        var v = ((this.catchMeBegin + Environment.TickCount64) / interval) % (2 * MathF.PI);
+        var v = (Environment.TickCount64 / interval) % (2 * MathF.PI);
         var size = ImGui.GetWindowContentRegionMax() - ImGui.GetWindowContentRegionMin();
         var minDim = Math.Min(size.X, size.Y);
 
@@ -1338,21 +1338,18 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             EdgeColor = new Vector4(0.3f, 0.3f, 1f, 0.5f + (MathF.Sin(v) * 0.5f)),
             HorizontalAlignment = 0.5f,
         };
-        var t = ssb.CreateSpannable();
-        var rm = (AbstractStyledText.TextSpannable)Service<SpannableRenderer>.Get().Draw(
-            t,
-            new(
-                nameof(this.DrawDynamicOffsetTest),
-                this.renderContextOptions with
-                {
-                    ScreenOffset = ImGui.GetWindowPos(),
-                    Transformation = mtx,
-                    Size = size with { X = 0 },
-                    RootOptions = o2,
-                }));
-        if (rm.GetInteractedLink(out _) is not AbstractStyledText.LinkState.Clear)
-            this.catchMeBegin += 50;
-        ssb.RecycleSpannable(t);
+        ssb.RecycleSpannable(
+            Service<SpannableRenderer>.Get().Draw(
+                ssb.CreateSpannable(),
+                new(
+                    nameof(this.DrawDynamicOffsetTest),
+                    this.renderContextOptions with
+                    {
+                        ScreenOffset = ImGui.GetWindowPos(),
+                        Transformation = mtx,
+                        Size = size with { X = 0 },
+                        RootOptions = o2,
+                    })));
         ImGui.SetCursorScreenPos(prevPos);
     }
 

@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Spannables.Controls.Animations;
-using Dalamud.Interface.Spannables.Controls.TODO;
 using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Styles;
@@ -212,6 +211,9 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     /// <inheritdoc/>
     public override void ScrollBy(Vector2 delta)
     {
+        if (delta == Vector2.Zero)
+            return;
+
         this.accumulatedScrollDelta += delta;
 
         this.Parent?.RequestMeasure();
@@ -220,6 +222,9 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     /// <inheritdoc/>
     public override void SmoothScrollBy(Vector2 delta)
     {
+        if (delta == Vector2.Zero)
+            return;
+
         if (this.ScrollEasing.IsRunning)
         {
             var prev = Math.Clamp((float)this.ScrollEasing.Value, 0f, 1f);
@@ -353,6 +358,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             this.ReturnVisibleEntry(ref x);
         this.visibleEntries.Clear();
         this.Parent!.VerticalScrollBar.Scroll -= this.VerticalScrollBarOnScroll;
+        this.Parent!.HorizontalScrollBar.Scroll -= this.HorizontalScrollBarOnScroll;
         base.BeforeParentDetach();
     }
 
@@ -367,6 +373,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         this.AnchoredItem = -1;
         this.scrollRequestedPosition = float.NaN;
         this.Parent!.VerticalScrollBar.Scroll += VerticalScrollBarOnScroll;
+        this.Parent!.HorizontalScrollBar.Scroll += this.HorizontalScrollBarOnScroll;
     }
 
     /// <inheritdoc/>
@@ -717,6 +724,8 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             return new(Vector2.Zero, suggestedSize);
         }
 
+        this.VisibleItemCount = this.visibleEntries.Count;
+
         // If everything is contained in the viewport, apply gravity.
         if (true)
         {
@@ -868,60 +877,56 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         else
         {
             // Estimate the scroll range from what's currently visible.
-            switch (this.direction)
+            if (this.direction.IsDirectionConsistentWithIndex())
             {
-                case LinearDirection.LeftToRight:
-                    // TODO branch
-                    this.ScrollPosition = new(
-                        this.AnchoredItem + this.AnchoredItemScrollOffsetRatio,
+                this.ScrollPosition =
+                    this.direction.CreateMainOff(
+                        this.FirstVisibleItem + this.FirstVisibleItemScrollOffsetRatio,
                         this.nonLimDimScroll);
-                    break;
-
-                case LinearDirection.RightToLeft:
-                    // TODO branch
-                    this.ScrollPosition = new(
-                        (this.AnchoredItem + 1) - this.AnchoredItemScrollOffsetRatio,
+                this.ScrollRange = this.ScrollRange.UpdateMainDirection(
+                    this.direction,
+                    itemCount - (numVisible * ((float)(this.LastVisibleItem + 1) / itemCount)));
+            }
+            else
+            {
+                this.ScrollPosition =
+                    this.direction.CreateMainOff(
+                        (this.FirstVisibleItem + 1) - this.FirstVisibleItemScrollOffsetRatio,
                         this.nonLimDimScroll);
-                    break;
-
-                case LinearDirection.TopToBottom:
-                    this.ScrollPosition = new(
-                        this.nonLimDimScroll,
-                        this.FirstVisibleItem + this.FirstVisibleItemScrollOffsetRatio);
-                    this.ScrollRange = this.ScrollRange with
-                    {
-                        Y = itemCount - (numVisible * ((float)(this.LastVisibleItem + 1) / itemCount)),
-                    };
-                    break;
-
-                case LinearDirection.BottomToTop:
-                    this.ScrollPosition = new(
-                        this.nonLimDimScroll,
-                        (1 + this.FirstVisibleItem) - this.FirstVisibleItemScrollOffsetRatio);
-                    this.ScrollRange = this.ScrollRange with
-                    {
-                        Y = itemCount - (numVisible * ((float)(this.LastVisibleItem + 1) / itemCount)),
-                    };
-                    break;
+                this.ScrollRange = this.ScrollRange.UpdateMainDirection(
+                    this.direction,
+                    itemCount - (numVisible * ((float)(this.LastVisibleItem + 1) / itemCount)));
             }
         }
 
         if (this.direction.IsVertical())
         {
+            this.Parent.VerticalScrollBar.Direction = this.direction;
+            this.Parent.HorizontalScrollBar.Direction = LinearDirection.LeftToRight;
             if (numVisible > 0)
-            {
-                this.Parent.VerticalScrollBar.Direction = this.direction;
                 this.Parent.VerticalScrollBar.PageSizeProportion = numVisible / (itemCount + 1);
-                // TODO: this.Parent.HorizontalScrollBar.Direction = LinearDirection.LeftToRight;
+            if (this.ScrollRange.X > 0)
+            {
+                this.Parent.HorizontalScrollBar.PageSizeProportion =
+                    nonExpandingDimension / (nonExpandingDimension + this.ScrollRange.X);
+            }
+        }
+        else
+        {
+            this.Parent.HorizontalScrollBar.Direction = this.direction;
+            this.Parent.VerticalScrollBar.Direction = LinearDirection.TopToBottom;
+            if (numVisible > 0)
+                this.Parent.HorizontalScrollBar.PageSizeProportion = numVisible / (itemCount + 1);
+            if (this.ScrollRange.Y > 0)
+            {
+                this.Parent.VerticalScrollBar.PageSizeProportion =
+                    nonExpandingDimension / (nonExpandingDimension + this.ScrollRange.Y);
             }
         }
 
         this.useResetAnimationOnVisibleEntryPopulationOnce = false;
 
-        return
-            this.direction.IsVertical()
-                ? new(Vector2.Zero, new(nonExpandingDimension, expandingDimension))
-                : new(Vector2.Zero, new(expandingDimension, nonExpandingDimension));
+        return new(Vector2.Zero, this.direction.CreateMainOff(expandingDimension, nonExpandingDimension));
     }
 
     /// <inheritdoc/>
@@ -1317,6 +1322,9 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             case ScrollBarControl.ScrollAction.LineIncrement:
                 this.SmoothScrollByLines(new(0, mult * +1f));
                 break;
+            case ScrollBarControl.ScrollAction.MiddleButtonAutoScroll:
+                this.ScrollByLines(new(0, (mult * args.RepeatCount) / 16f));
+                break;
 
             case ScrollBarControl.ScrollAction.PageDecrement:
                 this.SmoothScrollBy(new(0, mult * -this.Parent.MeasuredContentBox.Height));
@@ -1325,10 +1333,61 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 this.SmoothScrollBy(new(0, mult * +this.Parent.MeasuredContentBox.Height));
                 break;
 
-            case ScrollBarControl.ScrollAction.ThumbTrack:
+            case ScrollBarControl.ScrollAction.ThumbTrack when this.direction.IsVertical():
                 this.scrollRequestedPosition = args.NewValue / ((ScrollBarControl)args.Sender).MaxValue;
-                this.accumulatedScrollDelta = Vector2.Zero;
-                this.smoothScrollAmount = Vector2.Zero;
+                this.accumulatedScrollDelta.Y = 0;
+                this.smoothScrollAmount.Y = 0;
+                this.ScrollEasing.Reset();
+                this.Parent.RequestMeasure();
+                break;
+
+            case ScrollBarControl.ScrollAction.ThumbTrack when this.direction.IsHorizontal():
+                this.accumulatedScrollDelta.Y = 0;
+                this.smoothScrollAmount.Y = 0;
+                this.nonLimDimScroll = args.NewValue;
+                this.ScrollEasing.Reset();
+                this.Parent.RequestMeasure();
+                break;
+        }
+    }
+
+    private void HorizontalScrollBarOnScroll(ScrollBarControl.ScrollEventArgs args)
+    {
+        if (this.Collection?.Count is not > 0 || this.Parent is null)
+            return;
+
+        var mult = this.direction.IsDirectionConsistentWithIndex() ? 1f : -1f;
+        switch (args.Action)
+        {
+            case ScrollBarControl.ScrollAction.LineDecrement:
+                this.SmoothScrollByLines(new(mult * -1f, 0));
+                break;
+            case ScrollBarControl.ScrollAction.LineIncrement:
+                this.SmoothScrollByLines(new(mult * +1f, 0));
+                break;
+            case ScrollBarControl.ScrollAction.MiddleButtonAutoScroll:
+                this.ScrollByLines(new((mult * args.RepeatCount) / 16f, 0f));
+                break;
+
+            case ScrollBarControl.ScrollAction.PageDecrement:
+                this.SmoothScrollBy(new(mult * -this.Parent.MeasuredContentBox.Width, 0));
+                break;
+            case ScrollBarControl.ScrollAction.PageIncrement:
+                this.SmoothScrollBy(new(mult * +this.Parent.MeasuredContentBox.Width, 0));
+                break;
+
+            case ScrollBarControl.ScrollAction.ThumbTrack when this.direction.IsHorizontal():
+                this.scrollRequestedPosition = args.NewValue / ((ScrollBarControl)args.Sender).MaxValue;
+                this.accumulatedScrollDelta.X = 0;
+                this.smoothScrollAmount.X = 0;
+                this.ScrollEasing.Reset();
+                this.Parent.RequestMeasure();
+                break;
+
+            case ScrollBarControl.ScrollAction.ThumbTrack when this.direction.IsVertical():
+                this.accumulatedScrollDelta.X = 0;
+                this.smoothScrollAmount.X = 0;
+                this.nonLimDimScroll = args.NewValue;
                 this.ScrollEasing.Reset();
                 this.Parent.RequestMeasure();
                 break;
@@ -1587,6 +1646,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
         this.visibleEntries.Clear();
         this.FirstVisibleItem = this.LastVisibleItem = this.AnchoredItem = -1;
+        this.VisibleItemCount = 0;
         this.nonLimDimScroll = 0;
         this.accumulatedScrollDelta = this.smoothScrollAmount = Vector2.Zero;
         this.wasBeginningVisible = this.wasEndVisible = true;

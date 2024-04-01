@@ -94,7 +94,12 @@ internal partial class ConsoleWindow
         public LogEntry? Entry
         {
             get => this.entry;
-            set => this.HandlePropertyChange(nameof(this.Entry), ref this.entry, value, this.entry == value, this.OnEntryChange);
+            set => this.HandlePropertyChange(
+                nameof(this.Entry),
+                ref this.entry,
+                value,
+                this.entry == value,
+                this.OnEntryChange);
         }
 
         public Regex? HighlightRegex
@@ -103,7 +108,9 @@ internal partial class ConsoleWindow
             set => this.HandlePropertyChange(
                 nameof(this.HighlightRegex),
                 ref this.highlightRegex,
-                value, this.highlightRegex == value, this.OnHighlightRegexChange);
+                value,
+                this.highlightRegex == value,
+                this.OnHighlightRegexChange);
         }
 
         public AbstractStyledText.Options? TextSpannableOptions
@@ -128,7 +135,7 @@ internal partial class ConsoleWindow
         {
             if (this.Renderer is null)
                 return RectVector4.InvertedExtrema;
-            
+
             // This value is not scaled.
             this.rowMode = this.Options.VisibleSize.X switch
             {
@@ -148,10 +155,11 @@ internal partial class ConsoleWindow
             this.lblText.Options.VisibleSize = this.Options.VisibleSize;
 
             var isKeepAll = this.TextSpannableOptions?.WordBreak == WordBreakType.KeepAll;
+            this.Size = new(isKeepAll ? WrapContent : MatchParent, WrapContent);
+
             switch (this.rowMode)
             {
                 case RowMode.OneLine:
-                    this.Size = new(isKeepAll ? WrapContent : MatchParent, WrapContent);
                     if (this.Renderer.TryGetFontData(this.EffectiveRenderScale, MetaLabelStyleFull, out var fontData))
                     {
                         this.lblTime.Size = new(
@@ -189,7 +197,7 @@ internal partial class ConsoleWindow
                                 - this.lblTime.Boundary.Right
                                 - this.lblLevel.Boundary.Right;
                         this.lblText.Size = new(MatchParent, WrapContent);
-                        this.lblText.Options.PreferredSize = new(w, float.MaxValue);
+                        this.lblText.Options.PreferredSize = new(w, float.PositiveInfinity);
                     }
 
                     this.lblText.RenderPassMeasure();
@@ -197,19 +205,28 @@ internal partial class ConsoleWindow
 
                 case RowMode.TwoLines:
                 case RowMode.ThreeLines:
-                    this.Size = new(MatchParent, WrapContent);
+                    var wt = this.Margin.Width + this.Padding.Width;
                     this.lblTime.TextStyle = MetaLabelStyleTiny;
-                    this.lblTime.Size = new(MatchParent, WrapContent);
+                    this.lblTime.Size = new(this.Options.VisibleSize.X - wt, WrapContent);
                     this.lblLevel.TextStyle = MetaLabelStyleTiny;
-                    this.lblLevel.Size = new(MatchParent, WrapContent);
+                    this.lblLevel.Size = new(this.Options.VisibleSize.X - wt, WrapContent);
                     this.lblLevel.Margin = BorderVector4.Zero;
                     this.lblLevel.Alignment = new(1, 0);
-                    this.lblText.TextStyle = LogTextStyle;
-                    this.lblText.Size = new(MatchParent, WrapContent);
 
                     this.lblTime.Options.PreferredSize = suggestedSize;
                     this.lblLevel.Options.PreferredSize = suggestedSize;
-                    this.lblText.Options.PreferredSize = suggestedSize with { Y = float.PositiveInfinity };
+
+                    this.lblText.TextStyle = LogTextStyle;
+                    if (isKeepAll)
+                    {
+                        this.lblText.Size = new(WrapContent);
+                        this.lblText.Options.PreferredSize = new(float.PositiveInfinity);
+                    }
+                    else
+                    {
+                        this.lblText.Size = new(MatchParent, WrapContent);
+                        this.lblText.Options.PreferredSize = suggestedSize with { Y = float.PositiveInfinity };
+                    }
 
                     this.lblTime.RenderPassMeasure();
                     this.lblLevel.RenderPassMeasure();
@@ -231,11 +248,15 @@ internal partial class ConsoleWindow
                 case RowMode.TwoLines:
                     return new(
                         Vector2.Zero,
-                        suggestedSize with { Y = Math.Max(timeSize.Bottom, levelSize.Bottom) + textSize.Bottom });
+                        new(
+                            Math.Max(timeSize.Width, textSize.Width),
+                            Math.Max(timeSize.Bottom, levelSize.Bottom) + textSize.Bottom));
                 case RowMode.ThreeLines:
                     return new(
                         Vector2.Zero,
-                        suggestedSize with { Y = timeSize.Bottom + levelSize.Bottom + textSize.Bottom });
+                        new(
+                            Math.Max(timeSize.Width, textSize.Width),
+                            timeSize.Bottom + levelSize.Bottom + textSize.Bottom));
             }
         }
 

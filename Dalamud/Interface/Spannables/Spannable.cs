@@ -156,6 +156,9 @@ public abstract partial class Spannable : IDisposable
     /// <summary>Called before dispatching events.</summary>
     public void RenderPassPreDispatchEvents()
     {
+        if (!this.visible || !this.enabled)
+            return;
+        
         var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
         e.Initialize(this, SpannableEventStep.DirectTarget);
         this.OnPreDispatchEvents(e);
@@ -173,6 +176,9 @@ public abstract partial class Spannable : IDisposable
     /// <summary>Called before dispatching events.</summary>
     public void RenderPassPostDispatchEvents()
     {
+        if (!this.visible || !this.enabled)
+            return;
+
         var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
         e.Initialize(this, SpannableEventStep.DirectTarget);
         this.OnPostDispatchEvents(e);
@@ -213,7 +219,7 @@ public abstract partial class Spannable : IDisposable
     public void RenderPassPlace(scoped in Matrix4x4 local, scoped in Matrix4x4 ancestral)
     {
         this.localTransformation = this.TransformLocalTransformation(local);
-        this.fullTransformation = Matrix4x4.Multiply(local, ancestral);
+        this.fullTransformation = Matrix4x4.Multiply(this.localTransformation, ancestral);
 
         var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
         e.Initialize(this, SpannableEventStep.DirectTarget);

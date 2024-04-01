@@ -304,16 +304,14 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseDown(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !this.Control.IsMouseHovered)
+        if (!this.enabled || !this.Control.IsMouseHovered
+            || e.SuppressHandling || e.Step == SpannableEventStep.BeforeChildren)
             return;
 
         this.RecordActivity(new(ActivityType.Down, e.Button, e.LocalLocation));
 
         if (this.FirstHeldButton == ImGuiMouseButton.COUNT)
-        {
             this.FirstHeldButton = e.Button;
-            this.Control.CaptureMouse = true;
-        }
 
         var startDrag = false;
         switch (e.Button)
@@ -346,19 +344,22 @@ public sealed class MouseActivityTracker : IDisposable
         this.ProcessClickTimers(Environment.TickCount64);
 
         if (startDrag && this.DragOrigin is null)
-        {
             this.DragOrigin = e.LocalLocation;
-            e.SuppressHandling = true;
-        }
     }
 
     private void OnMouseMove(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !this.Control.IsMouseHovered)
+        if (!this.enabled || !this.Control.IsMouseHovered || e.Step == SpannableEventStep.BeforeChildren)
             return;
 
         if (this.DragOrigin is not { } dragOrigin)
             return;
+
+        if (e.SuppressHandling)
+        {
+            this.CancelAllOperations();
+            return;
+        }
 
         Vector2 delta;
         if (this.DragBase is { } dragBase)
@@ -370,17 +371,29 @@ public sealed class MouseActivityTracker : IDisposable
             else
                 this.DragBase = pos;
         }
-        else if ((this.useLeftDrag && this.IsLeftHeld) ||
-                 (this.useRightDrag && this.IsRightHeld) ||
-                 (this.useMiddleDrag && this.IsMiddleHeld))
+        else if (
+            this.DragOrigin is not null &&
+            ((this.useLeftDrag && this.IsLeftHeld) ||
+             (this.useRightDrag && this.IsRightHeld) ||
+             (this.useMiddleDrag && this.IsMiddleHeld)))
         {
+            if ((e.LocalLocation - this.DragOrigin.Value).LengthSquared() <
+                WindowsUiConfigHelper.GetMinDragDistance().LengthSquared())
+            {
+                return;
+            }
+
+            this.Control.CaptureMouse = true;
+            this.Control.MouseCursor = ImGuiMouseCursor.None;
             var doubleClickRect = RectVector4.Expand(new(dragOrigin), DoubleClickSize / 2f);
             delta = new(e.LocalLocation.X - dragOrigin.X, e.LocalLocation.Y - dragOrigin.Y);
             if ((this.FirstHeldButton == ImGuiMouseButton.Left && !this.UseLeftDouble) ||
                 (this.FirstHeldButton == ImGuiMouseButton.Right && !this.UseRightDouble) ||
                 (this.FirstHeldButton == ImGuiMouseButton.Middle && !this.UseMiddleDouble) ||
                 !doubleClickRect.Contains(e.LocalLocation))
+            {
                 this.EnterDragState(e.LocalLocation);
+            }
         }
         else
         {
@@ -423,8 +436,14 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseUp(SpannableMouseEventArgs e)
     {
-        if (!this.enabled)
+        if (!this.enabled || e.Step == SpannableEventStep.BeforeChildren)
             return;
+
+        if (e.SuppressHandling)
+        {
+            this.CancelAllOperations();
+            return;
+        }
 
         this.RecordActivity(new(ActivityType.Up, e.Button, e.LocalLocation));
 
@@ -553,7 +572,8 @@ public sealed class MouseActivityTracker : IDisposable
                 _ => false,
             })
         {
-            e.SuppressHandling = true;
+            if (this.DragBase is not null)
+                e.SuppressHandling = true;
             this.ExitDragState();
         }
 
@@ -567,7 +587,8 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseWheel(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !this.Control.IsMouseHovered)
+        if (!this.enabled || !this.Control.IsMouseHovered
+            || e.Step == SpannableEventStep.BeforeChildren || e.SuppressHandling)
             return;
 
         if (e.WheelDelta == Vector2.Zero)
@@ -607,7 +628,11 @@ public sealed class MouseActivityTracker : IDisposable
             (this.UseInfiniteMiddleDrag && this.FirstHeldButton == ImGuiMouseButton.Middle))
         {
             this.IsInfiniteDragging = true;
-            this.SetMousePos(dragBase);
+            this.DragOrigin = dragBase;
+            this.DragBase =
+                ImGui.GetPlatformIO().Monitors[0].MainPos
+                + (ImGui.GetPlatformIO().Monitors[0].MainSize / 2);
+            this.SetMousePos(this.DragBase.Value);
         }
 
         this.DragStart?.Invoke();
@@ -620,10 +645,11 @@ public sealed class MouseActivityTracker : IDisposable
 
         if (this.DragBase is { } dragBase)
         {
+            this.Control.MouseCursor = ImGuiMouseCursor.Arrow;
             this.RecordActivity(new(ActivityType.DragEnd, ImGuiMouseButton.COUNT, dragBase));
             if (this.IsInfiniteDragging)
             {
-                this.SetMousePos(dragBase);
+                this.SetMousePos(this.DragOrigin.Value);
                 this.IsInfiniteDragging = false;
             }
         }

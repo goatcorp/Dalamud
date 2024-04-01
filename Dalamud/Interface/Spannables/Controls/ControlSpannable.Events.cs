@@ -89,15 +89,35 @@ public partial class ControlSpannable
     protected override void OnMouseClick(SpannableMouseEventArgs args)
     {
         base.OnMouseClick(args);
-        if (!args.SuppressHandling)
+        if (!args.SuppressHandling && args.Step != SpannableEventStep.BeforeChildren)
             this.OnClick(args);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMouseEnter(SpannableMouseEventArgs args)
+    {
+        base.OnMouseEnter(args);
+        if (this.hoveredBackground is not null
+            || this.activeBackground is not null
+            || this.normalBackground is not null)
+            this.RequestMeasure();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMouseLeave(SpannableMouseEventArgs args)
+    {
+        base.OnMouseLeave(args);
+        if (this.hoveredBackground is not null
+            || this.activeBackground is not null
+            || this.normalBackground is not null)
+            this.RequestMeasure();
     }
 
     /// <inheritdoc/>
     protected override void OnKeyPress(SpannableKeyPressEventArgs args)
     {
         base.OnKeyPress(args);
-        if (!args.SuppressHandling && args.KeyChar is '\r' or '\n')
+        if (!args.SuppressHandling && args.KeyChar is '\r' or '\n' && args.Step != SpannableEventStep.BeforeChildren)
             this.OnClick(args);
     }
 

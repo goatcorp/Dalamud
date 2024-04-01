@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Dalamud.Interface.Spannables.Controls;
 using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
+using Dalamud.Interface.Spannables.Internal;
 
 using ImGuiNET;
 
@@ -18,6 +19,7 @@ public abstract partial class Spannable
     private readonly long[] mousePressNextTick = new long[(int)ImGuiMouseButton.COUNT];
     private readonly int[] mousePressCumulativeCount = new int[(int)ImGuiMouseButton.COUNT];
     private int mouseCapturedButtonFlags;
+    private bool mouseWasEffectivelyCapturing;
 
     private ImGuiMouseCursor mouseCursor = ImGuiMouseCursor.Arrow;
     private bool captureMouseOnMouseDown;
@@ -184,6 +186,9 @@ public abstract partial class Spannable
     public bool IsAnyMouseButtonDown =>
         this.IsLeftMouseButtonDown || this.IsRightMouseButtonDown || this.IsMiddleMouseButtonDown;
 
+    /// <summary>Gets a value indicating whether the mouse pointer is hovering inside <see cref="Boundary"/>.</summary>
+    protected bool IsMouseHoveredInsideBoundary { get; private set; }
+
     private bool ShouldCapture =>
         this.ImGuiGlobalId != 0
         && (this.captureMouse || (this.captureMouseOnMouseDown && this.mouseCapturedButtonFlags != 0));
@@ -242,23 +247,26 @@ public abstract partial class Spannable
 
     private bool DispatchMouseMove(Vector2 screenLocation, Vector2 screenLocationDelta, bool alreadyHandled)
     {
+        var mouseHoveredInsideBoundary =
+            this.HitTest(this.PointToClient(screenLocation))
+            && (ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem) || this.ShouldCapture);
+
         var shouldCapture = this.ShouldCapture;
+        var mouseHovered = this.ImGuiIsHoverable && (shouldCapture || mouseHoveredInsideBoundary);
 
-        var mouseHovered =
-            this.ImGuiIsHoverable
-            && (shouldCapture || this.HitTest(this.PointToClient(screenLocation)));
-
-        var mouseMovedWhileHovered = mouseHovered && screenLocationDelta != Vector2.Zero;
+        var dispatchMouseMove = mouseHovered && screenLocationDelta != Vector2.Zero && this.visible && this.enabled;
 
         SpannableMouseEventArgs? args = null;
 
-        if (mouseMovedWhileHovered)
+        var thisIsHandling = false;
+        if (dispatchMouseMove)
         {
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta);
 
             args.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
             this.OnMouseMove(args);
+            thisIsHandling = args.SuppressHandling && !alreadyHandled;
             alreadyHandled |= args.SuppressHandling;
         }
 
@@ -269,25 +277,27 @@ public abstract partial class Spannable
                 children[i]?.DispatchMouseMove(screenLocation, screenLocationDelta, alreadyHandled) is true;
         }
 
-        if (mouseMovedWhileHovered)
+        if (dispatchMouseMove)
         {
             args.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
             this.OnMouseMove(args);
+            thisIsHandling |= args.SuppressHandling && !alreadyHandled;
             alreadyHandled |= args.SuppressHandling;
         }
 
-        if (alreadyHandled)
+        if (alreadyHandled && !thisIsHandling)
             shouldCapture = mouseHovered = false;
         else if (mouseHovered && shouldCapture)
             alreadyHandled = true;
 
-        if (this.IsMouseHovered != mouseHovered)
+        this.IsMouseHovered = mouseHovered;
+        if (this.IsMouseHoveredInsideBoundary != mouseHoveredInsideBoundary)
         {
-            this.IsMouseHovered = mouseHovered;
+            this.IsMouseHoveredInsideBoundary = mouseHoveredInsideBoundary;
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta);
             args.Initialize(this, SpannableEventStep.DirectTarget);
-            if (mouseHovered)
+            if (mouseHoveredInsideBoundary)
             {
                 this.OnMouseEnter(args);
             }
@@ -299,7 +309,11 @@ public abstract partial class Spannable
 
         mouseHovered &= this.ImGuiIsHoverable;
         if (mouseHovered)
+        {
             SpannableImGuiItem.SetHovered(this, this.selfInnerId);
+            if (!shouldCapture)
+                ImGuiInternals.ImGuiContext.Instance.HoveredIdAllowOverlap = 1;
+        }
 
         this.ImGuiUpdateCapturingMouse(shouldCapture);
 
@@ -313,11 +327,11 @@ public abstract partial class Spannable
         Vector2 delta,
         bool alreadyHandled)
     {
-        var mouseHovered = this.ImGuiIsHovered || this.IsMouseHovered;
+        var dispatchMouseWheel = (this.ImGuiIsHovered || this.IsMouseHovered) && this.visible && this.enabled;
 
         SpannableMouseEventArgs? args = null;
 
-        if (mouseHovered)
+        if (dispatchMouseWheel)
         {
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta, wheelDelta: delta);
@@ -337,7 +351,7 @@ public abstract partial class Spannable
                                   alreadyHandled) is true;
         }
 
-        if (mouseHovered)
+        if (dispatchMouseWheel)
         {
             args.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
             this.OnMouseWheel(args);
@@ -354,16 +368,20 @@ public abstract partial class Spannable
         ImGuiMouseButton button,
         bool alreadyHandled)
     {
-        var mouseHovered = this.ImGuiIsHovered || this.IsMouseHovered;
+        var dispatchMouseDown = (this.ImGuiIsHovered || this.IsMouseHovered) && this.visible && this.enabled;
+        
+        this.clickTrackingIsHeldDown[(int)button] = Environment.TickCount64;
 
         SpannableMouseEventArgs? args = null;
-        if (mouseHovered)
+        var thisIsHandling = false;
+        if (dispatchMouseDown)
         {
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta, button: button);
 
             args.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
             this.OnMouseDown(args);
+            thisIsHandling = args.SuppressHandling && !alreadyHandled;
             alreadyHandled |= args.SuppressHandling;
         }
 
@@ -377,29 +395,52 @@ public abstract partial class Spannable
                                   alreadyHandled) is true;
         }
 
-        if (mouseHovered)
+        if (dispatchMouseDown)
         {
             args.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
             this.OnMouseDown(args);
+            thisIsHandling = args.SuppressHandling && !alreadyHandled;
             alreadyHandled |= args.SuppressHandling;
+        }
 
-            if (!alreadyHandled)
+        var effectivelyCaptureMouse = false;
+        thisIsHandling |= !alreadyHandled && this.captureMouseOnMouseDown && dispatchMouseDown;
+        if (thisIsHandling)
+        {
+            // Start tracking clicks and presses, if nobody marked MouseDown as handled so far.
+
+            this.mousePressNextTick[(int)button] =
+                Environment.TickCount64 + WindowsUiConfigHelper.GetKeyboardRepeatInitialDelay();
+
+            var prev = this.mouseCapturedButtonFlags;
+            this.mouseCapturedButtonFlags |= 1 << (int)button;
+            if (prev == 0 && this.captureMouseOnMouseDown)
             {
-                // Start tracking clicks and presses, if nobody marked MouseDown as handled so far.
+                alreadyHandled = true;
+                effectivelyCaptureMouse = true;
+            }
+        }
+        else
+        {
+            this.clickTrackingIsHeldDown[(int)button] = 0;
+        }
 
-                this.clickTrackingIsHeldDown[(int)button] = Environment.TickCount64;
-                this.mousePressNextTick[(int)button] =
-                    Environment.TickCount64 + WindowsUiConfigHelper.GetKeyboardRepeatInitialDelay();
+        effectivelyCaptureMouse |= this.captureMouse;
+        
+        effectivelyCaptureMouse &= this.visible && this.enabled;
 
-                var prev = this.mouseCapturedButtonFlags;
-                this.mouseCapturedButtonFlags |= 1 << (int)button;
-                if (prev == 0 && this.captureMouseOnMouseDown)
-                {
-                    alreadyHandled = true;
-
-                    SpannableImGuiItem.SetActive(this, this.selfInnerId, true);
-                    ImGui.SetNextFrameWantCaptureMouse(true);
-                }
+        if (this.mouseWasEffectivelyCapturing != effectivelyCaptureMouse)
+        {
+            this.mouseWasEffectivelyCapturing = effectivelyCaptureMouse;
+            if (effectivelyCaptureMouse)
+            {
+                SpannableImGuiItem.SetActive(this, this.selfInnerId, true);
+                ImGui.SetNextFrameWantCaptureMouse(true);
+            }
+            else
+            {
+                SpannableImGuiItem.ClearActive();
+                ImGui.SetNextFrameWantCaptureMouse(false);
             }
         }
 
@@ -413,10 +454,10 @@ public abstract partial class Spannable
         ImGuiMouseButton button,
         bool alreadyHandled)
     {
-        var mouseHovered = this.ImGuiIsHovered || this.IsMouseHovered;
+        var dispatchMouseUp = (this.ImGuiIsHovered || this.IsMouseHovered) && this.visible && this.enabled;
 
         SpannableMouseEventArgs? args = null;
-        if (mouseHovered)
+        if (dispatchMouseUp)
         {
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta, button: button);
@@ -434,13 +475,13 @@ public abstract partial class Spannable
         }
 
         var shouldClearClickTracking = true;
-        if (mouseHovered)
+        if (dispatchMouseUp)
         {
             args.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
             this.OnMouseUp(args);
             alreadyHandled |= args.SuppressHandling;
 
-            if (!alreadyHandled && this.clickTrackingIsHeldDown[(int)button] != 0)
+            if (!alreadyHandled && this.clickTrackingIsHeldDown[(int)button] != 0 && this.IsMouseHoveredInsideBoundary)
             {
                 // Dispatch click to self, if nobody marked MouseUp as handled so far.
 
@@ -460,20 +501,30 @@ public abstract partial class Spannable
                 this.OnMouseClick(args);
 
                 if (!args.SuppressHandling)
-                {
                     shouldClearClickTracking = false;
-                }
 
                 alreadyHandled = true;
             }
         }
 
-        var prev = this.mouseCapturedButtonFlags;
         this.mouseCapturedButtonFlags &= ~(1 << (int)button);
-        if (prev != 0 && this.mouseCapturedButtonFlags == 0)
+
+        var effectivelyCaptureMouse =
+            (this.mouseCapturedButtonFlags != 0 || this.captureMouse) && this.visible && this.enabled;
+
+        if (this.mouseWasEffectivelyCapturing != effectivelyCaptureMouse)
         {
-            SpannableImGuiItem.ClearActive();
-            ImGui.SetNextFrameWantCaptureMouse(false);
+            this.mouseWasEffectivelyCapturing = effectivelyCaptureMouse;
+            if (effectivelyCaptureMouse)
+            {
+                SpannableImGuiItem.SetActive(this, this.selfInnerId, true);
+                ImGui.SetNextFrameWantCaptureMouse(true);
+            }
+            else
+            {
+                SpannableImGuiItem.ClearActive();
+                ImGui.SetNextFrameWantCaptureMouse(false);
+            }
         }
 
         this.mousePressNextTick[(int)button] = 0;
@@ -492,50 +543,53 @@ public abstract partial class Spannable
 
     private void DispatchMiscEvents(Vector2 screenLocation, Vector2 screenLocationDelta)
     {
-        var tc64 = Environment.TickCount64;
-        var repeatInterval = WindowsUiConfigHelper.GetKeyboardRepeatInterval();
-
-        SpannableMouseEventArgs? margs = null;
-        for (var i = 0; i < (int)ImGuiMouseButton.COUNT; i++)
+        if (this.visible && this.enabled)
         {
-            if (this.clickTrackingIsHeldDown[i] == 0)
-                continue;
+            var tc64 = Environment.TickCount64;
+            var repeatInterval = WindowsUiConfigHelper.GetKeyboardRepeatInterval();
 
-            ref var nextRepeatTime = ref this.mousePressNextTick[i];
-            ref var cumulativePressCount = ref this.mousePressCumulativeCount[i];
+            SpannableMouseEventArgs? margs = null;
+            for (var i = 0; i < (int)ImGuiMouseButton.COUNT; i++)
+            {
+                if (this.clickTrackingIsHeldDown[i] == 0)
+                    continue;
 
-            if (nextRepeatTime == long.MaxValue)
-                continue; // suppressed
+                ref var nextRepeatTime = ref this.mousePressNextTick[i];
+                ref var cumulativePressCount = ref this.mousePressCumulativeCount[i];
 
-            var d = tc64 - nextRepeatTime;
-            if (d < 0)
-                continue; // not yet
+                if (nextRepeatTime == long.MaxValue)
+                    continue; // suppressed
 
-            var repeatCount = 1 + (int)(d / repeatInterval);
-            cumulativePressCount += repeatCount;
-            nextRepeatTime += repeatInterval * repeatCount;
+                var d = tc64 - nextRepeatTime;
+                if (d < 0)
+                    continue; // not yet
 
-            margs ??= SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
-            margs.InitializeMouseEvent(
-                screenLocation,
-                screenLocationDelta,
-                button: (ImGuiMouseButton)i,
-                clicks: cumulativePressCount,
-                immediateRepeats: repeatCount);
-            margs.Initialize(this, SpannableEventStep.BeforeChildren);
-            this.OnMousePress(margs);
+                var repeatCount = 1 + (int)(d / repeatInterval);
+                cumulativePressCount += repeatCount;
+                nextRepeatTime += repeatInterval * repeatCount;
 
-            if (margs.SuppressHandling)
-                nextRepeatTime = long.MaxValue; // suppress
+                margs ??= SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
+                margs.InitializeMouseEvent(
+                    screenLocation,
+                    screenLocationDelta,
+                    button: (ImGuiMouseButton)i,
+                    clicks: cumulativePressCount,
+                    immediateRepeats: repeatCount);
+                margs.Initialize(this, SpannableEventStep.BeforeChildren);
+                this.OnMousePress(margs);
+
+                if (margs.SuppressHandling)
+                    nextRepeatTime = long.MaxValue; // suppress
+            }
+
+            SpannableEventArgsPool.Return(margs);
         }
-
-        SpannableEventArgsPool.Return(margs);
 
         var children = this.GetAllChildSpannables();
         for (var i = children.Count - 1; i >= 0; i--)
             children[i]?.DispatchMiscEvents(screenLocation, screenLocationDelta);
 
-        if (this.IsMouseHovered)
+        if (this.visible && this.enabled && this.IsMouseHovered)
             ImGui.SetMouseCursor(this.mouseCursor);
     }
 }

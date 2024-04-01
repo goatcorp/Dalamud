@@ -54,7 +54,11 @@ public class ScrollBarControl : ControlSpannable
 
     private ScrollAction currentMouseDownScrollAction;
     private Vector2 currentMouseDownRange;
+    private Vector2 currentMouseThumbLocation;
     private long repeatNext;
+
+    private Vector2 mmbScrollOrigin = new(float.NaN);
+    private float mmbAutoScrollPerSecond;
 
     /// <summary>Initializes a new instance of the <see cref="ScrollBarControl"/> class.</summary>
     public ScrollBarControl()
@@ -184,6 +188,9 @@ public class ScrollBarControl : ControlSpannable
 
         /// <summary>The user dragged the thumb.</summary>
         ThumbTrack,
+        
+        /// <summary>The user dragged after holding the mouse middle button down.</summary>
+        MiddleButtonAutoScroll,
     }
 
     /// <summary>Gets or sets a value indicating whether to update <see cref="Value"/> automatically according to user
@@ -352,6 +359,24 @@ public class ScrollBarControl : ControlSpannable
     {
         base.OnPreDispatchEvents(args);
         this.HandleScrollActionTick(false);
+
+        if (this.mmbAutoScrollPerSecond != 0f)
+        {
+            var unboundDelta = this.lineSizeProportion * this.EffectiveRange;
+
+            var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.InitializeScrollEvent(
+                ScrollAction.MiddleButtonAutoScroll,
+                this.value,
+                Math.Clamp(this.value + (unboundDelta * this.mmbAutoScrollPerSecond), this.minValue, this.maxValue),
+                unboundDelta,
+                this.mmbAutoScrollPerSecond);
+            this.OnScroll(e);
+            if (this.autoValueUpdate && !e.SuppressHandling)
+                this.Value = e.NewValue;
+            SpannableEventArgsPool.Return(e);
+        }
     }
 
     /// <inheritdoc/>
@@ -367,55 +392,53 @@ public class ScrollBarControl : ControlSpannable
             m.Options.RenderScale = this.EffectiveRenderScale;
         }
 
-        if (this.direction.IsVertical())
+        if (suggestedSize.GetOffDirection(this.direction) >= float.PositiveInfinity)
+            suggestedSize = suggestedSize.UpdateOffDirection(this.direction, DefaultThickness);
+        if (suggestedSize.GetMainDirection(this.direction) >= float.PositiveInfinity)
+            suggestedSize.UpdateMainDirection(this.direction, DefaultLength);
+
+        this.barSize = suggestedSize.GetMainDirection(this.direction);
+
+        if (children[MeasurementIndexDecreaseButton] is { } decbut)
         {
-            if (suggestedSize.X >= float.PositiveInfinity)
-                suggestedSize.X = DefaultThickness;
-            if (suggestedSize.Y >= float.PositiveInfinity)
-                suggestedSize.Y = DefaultLength;
+            decbut.Options.PreferredSize = suggestedSize.UpdateMainDirection(
+                this.direction,
+                suggestedSize.GetOffDirection(this.direction));
+            decbut.Options.VisibleSize = decbut.Options.PreferredSize;
+            decbut.RenderPassMeasure();
+            this.barSize -= decbut.Boundary.Bottom;
+        }
 
-            this.barSize = suggestedSize.Y;
-            if (children[MeasurementIndexDecreaseButton] is { } decbut)
-            {
-                decbut.Options.VisibleSize = decbut.Options.PreferredSize = suggestedSize with { Y = suggestedSize.X };
-                decbut.RenderPassMeasure();
-                this.barSize -= decbut.Boundary.Bottom;
-            }
+        if (children[MeasurementIndexIncreaseButton] is { } incbut)
+        {
+            incbut.Options.PreferredSize = suggestedSize.UpdateMainDirection(
+                this.direction,
+                suggestedSize.GetOffDirection(this.direction));
+            incbut.Options.VisibleSize = incbut.Options.PreferredSize;
+            incbut.RenderPassMeasure();
+            this.barSize -= incbut.Boundary.Bottom;
+        }
 
-            if (children[MeasurementIndexIncreaseButton] is { } incbut)
-            {
-                incbut.Options.VisibleSize = incbut.Options.PreferredSize = suggestedSize with { Y = suggestedSize.X };
-                incbut.RenderPassMeasure();
-                this.barSize -= incbut.Boundary.Bottom;
-            }
-
-            if (this.EffectiveRange > 0)
-            {
-                this.thumbSize = this.barSize * Math.Clamp(this.pageSizeProportion, 0, 1);
-                this.thumbSize = Math.Max(
-                    this.barSize * Math.Clamp(this.pageSizeProportion, 0, 1),
-                    Math.Min(this.minThumbSize, this.barSize / 2f));
-                this.thumbOffset = (this.barSize - this.thumbSize) * this.NormalizedValue;
-                this.thumbOffset =
-                    this.direction == LinearDirection.TopToBottom
-                        ? this.NormalizedValue
-                        : 1 - this.NormalizedValue;
-                this.thumbOffset *= this.barSize - this.thumbSize;
-            }
-            else
-            {
-                this.thumbOffset = this.thumbSize = 0f;
-            }
-
-            if (children[MeasurementIndexThumb] is { } thumb && this.EffectiveRange > 0)
-            {
-                thumb.Options.VisibleSize = thumb.Options.PreferredSize = suggestedSize with { Y = this.thumbSize };
-                thumb.RenderPassMeasure();
-            }
+        if (this.EffectiveRange > 0)
+        {
+            this.thumbSize = this.barSize * Math.Clamp(this.pageSizeProportion, 0, 1);
+            this.thumbSize = Math.Max(
+                this.barSize * Math.Clamp(this.pageSizeProportion, 0, 1),
+                Math.Min(this.minThumbSize, this.barSize / 2f));
+            this.thumbOffset = (this.barSize - this.thumbSize) * this.NormalizedValue;
+            this.thumbOffset = this.direction.ConvertGravity(this.NormalizedValue);
+            this.thumbOffset *= this.barSize - this.thumbSize;
         }
         else
         {
-            throw new NotImplementedException();
+            this.thumbOffset = this.thumbSize = 0f;
+        }
+
+        if (children[MeasurementIndexThumb] is { } thumb && this.EffectiveRange > 0)
+        {
+            thumb.Options.PreferredSize = suggestedSize.UpdateMainDirection(this.direction, this.thumbSize);
+            thumb.Options.VisibleSize = thumb.Options.PreferredSize;
+            thumb.RenderPassMeasure();
         }
 
         return new(Vector2.Zero, suggestedSize);
@@ -426,50 +449,57 @@ public class ScrollBarControl : ControlSpannable
     {
         var children = this.ChildSpannables;
 
-        if (this.direction.IsVertical())
+        this.barOffset = 0f;
+        if (children[MeasurementIndexDecreaseButton] is { } decbut)
         {
-            this.barOffset = 0f;
-            if (children[MeasurementIndexDecreaseButton] is { } decbut)
+            var translation = this.direction switch
             {
-                decbut.RenderPassPlace(
-                    Matrix4x4.CreateTranslation(
-                        this.MeasuredContentBox.Left,
-                        this.direction == LinearDirection.TopToBottom
-                            ? this.MeasuredContentBox.Top
-                            : this.MeasuredContentBox.Bottom - decbut.Boundary.Bottom,
-                        0),
-                    this.FullTransformation);
-                if (this.direction == LinearDirection.TopToBottom)
-                    this.barOffset = decbut.Boundary.Bottom;
-            }
-
-            if (children[MeasurementIndexIncreaseButton] is { } incbut)
-            {
-                incbut.RenderPassPlace(
-                    Matrix4x4.CreateTranslation(
-                        this.MeasuredContentBox.Left,
-                        this.direction == LinearDirection.TopToBottom
-                            ? this.MeasuredContentBox.Bottom - incbut.Boundary.Bottom
-                            : this.MeasuredContentBox.Top,
-                        0),
-                    this.FullTransformation);
-                if (this.direction == LinearDirection.BottomToTop)
-                    this.barOffset = incbut.Boundary.Bottom;
-            }
-
-            if (children[MeasurementIndexThumb] is { } thumb && this.EffectiveRange > 0)
-            {
-                thumb.RenderPassPlace(
-                    Matrix4x4.CreateTranslation(
-                        this.MeasuredContentBox.Left,
-                        this.MeasuredContentBox.Top + this.barOffset + this.thumbOffset,
-                        0),
-                    this.FullTransformation);
-            }
+                LinearDirection.LeftToRight => this.MeasuredContentBox.LeftTop,
+                LinearDirection.RightToLeft => new(
+                    this.MeasuredContentBox.Right - decbut.Boundary.Right,
+                    this.MeasuredContentBox.Top),
+                LinearDirection.TopToBottom => this.MeasuredContentBox.LeftTop,
+                LinearDirection.BottomToTop => new(
+                    this.MeasuredContentBox.Left,
+                    this.MeasuredContentBox.Bottom - decbut.Boundary.Bottom),
+                _ => Vector2.Zero,
+            };
+            decbut.RenderPassPlace(Matrix4x4.CreateTranslation(new(translation, 0)), this.FullTransformation);
+            if (this.direction == LinearDirection.TopToBottom)
+                this.barOffset = decbut.Boundary.Bottom;
+            else if (this.direction == LinearDirection.LeftToRight)
+                this.barOffset = decbut.Boundary.Right;
         }
-        else
+
+        if (children[MeasurementIndexIncreaseButton] is { } incbut)
         {
-            throw new NotImplementedException();
+            var translation = this.direction switch
+            {
+                LinearDirection.LeftToRight => new(
+                    this.MeasuredContentBox.Right - incbut.Boundary.Right,
+                    this.MeasuredContentBox.Top),
+                LinearDirection.RightToLeft => this.MeasuredContentBox.LeftTop,
+                LinearDirection.TopToBottom => new(
+                    this.MeasuredContentBox.Left,
+                    this.MeasuredContentBox.Bottom - incbut.Boundary.Bottom),
+                LinearDirection.BottomToTop => this.MeasuredContentBox.LeftTop,
+                _ => Vector2.Zero,
+            };
+            incbut.RenderPassPlace(Matrix4x4.CreateTranslation(new(translation, 0)), this.FullTransformation);
+            if (this.direction == LinearDirection.BottomToTop)
+                this.barOffset = incbut.Boundary.Bottom;
+            else if (this.direction == LinearDirection.RightToLeft)
+                this.barOffset = incbut.Boundary.Right;
+        }
+
+        if (children[MeasurementIndexThumb] is { } thumb && this.EffectiveRange > 0)
+        {
+            var translation = this.MeasuredContentBox.LeftTop;
+            if (this.direction.IsVertical())
+                translation.Y += this.barOffset + this.thumbOffset;
+            else
+                translation.X += this.barOffset + this.thumbOffset;
+            thumb.RenderPassPlace(Matrix4x4.CreateTranslation(new(translation, 0)), this.FullTransformation);
         }
 
         base.OnPlace(args);
@@ -489,66 +519,82 @@ public class ScrollBarControl : ControlSpannable
     /// <inheritdoc/>
     protected override void OnMouseDown(SpannableMouseEventArgs args)
     {
+        this.currentMouseThumbLocation = args.LocalLocation;
+
         base.OnMouseDown(args);
         if (args.SuppressHandling
             || this.EffectiveRange <= 0f
             || args.Step == SpannableEventStep.BeforeChildren)
             return;
 
-        var sp = this.FindChildAtPos(ImGui.GetMousePos());
-        if (ReferenceEquals(this.DecreaseButton, sp))
+        switch (args.Button)
         {
-            this.currentMouseDownScrollAction = ScrollAction.LineDecrement;
-            this.HandleScrollActionTick(true);
-            args.SuppressHandling = true;
-        }
-        else if (ReferenceEquals(this.IncreaseButton, sp))
-        {
-            this.currentMouseDownScrollAction = ScrollAction.LineIncrement;
-            this.HandleScrollActionTick(true);
-            args.SuppressHandling = true;
-        }
-        else if (ReferenceEquals(this.Thumb, sp))
-        {
-            this.currentMouseDownScrollAction = ScrollAction.ThumbTrack;
-            if (this.direction.IsHorizontal())
+            case ImGuiMouseButton.Left:
             {
-                this.currentMouseDownRange =
-                    new(
-                        this.barOffset + (args.LocalLocation.X - this.thumbOffset),
-                        (this.barOffset + this.barSize + (args.LocalLocation.X - this.thumbOffset)) - this.thumbSize);
-            }
-            else
-            {
-                var r = this.barSize - this.thumbSize;
-                var nv = this.NormalizedValue;
-                if (!this.direction.IsDirectionConsistentWithIndex())
-                    nv = 1 - nv;
-                var start = args.LocalLocation.Y - (r * nv);
-                var end = args.LocalLocation.Y + (r * (1 - nv));
-                this.currentMouseDownRange = new(start, end);
-            }
-        }
-        else if (this.IsMouseHoveredIncludingChildren)
-        {
-            var downOffsetV2 = (args.LocalLocation / this.Scale) - this.MeasuredContentBox.LeftTop;
-            var downOffset = this.direction.IsVertical() ? downOffsetV2.Y : downOffsetV2.X;
+                var sp = this.FindChildAtPos(ImGui.GetMousePos());
+                if (ReferenceEquals(this.DecreaseButton, sp))
+                {
+                    this.currentMouseDownScrollAction = ScrollAction.LineDecrement;
+                    this.HandleScrollActionTick(true);
+                    args.SuppressHandling = true;
+                }
+                else if (ReferenceEquals(this.IncreaseButton, sp))
+                {
+                    this.currentMouseDownScrollAction = ScrollAction.LineIncrement;
+                    this.HandleScrollActionTick(true);
+                    args.SuppressHandling = true;
+                }
+                else if (ReferenceEquals(this.Thumb, sp))
+                {
+                    // Calculate the range of thumb movement, based on the current value.
+                    var r = this.barSize - this.thumbSize;
+                    var nv = this.direction.ConvertGravity(this.NormalizedValue);
+                    var start = args.LocalLocation.GetMainDirection(this.direction) - (r * nv);
+                    var end = start + r;
+                    this.currentMouseDownRange = new(start, end);
 
-            if (downOffset < this.thumbOffset)
-            {
-                this.currentMouseDownScrollAction =
-                    this.direction.IsDirectionConsistentWithIndex()
-                        ? ScrollAction.PageDecrement
-                        : ScrollAction.PageIncrement;
-                this.HandleScrollActionTick(true);
+                    this.currentMouseDownScrollAction = ScrollAction.ThumbTrack;
+                    args.SuppressHandling = true;
+                }
+                else if (this.IsMouseHoveredIncludingChildren)
+                {
+                    var downOffsetV2 = (args.LocalLocation / this.Scale) - this.MeasuredContentBox.LeftTop;
+                    var downOffset = downOffsetV2.GetMainDirection(this.direction);
+
+                    // Calculate the range of thumb movement, based on the value that the pointer is on.
+                    var start = this.barOffset;
+                    var end = this.barOffset + this.barSize;
+                    this.currentMouseDownRange = new(start, end);
+
+                    if (downOffset < this.thumbOffset)
+                    {
+                        this.currentMouseDownScrollAction =
+                            this.direction.IsDirectionConsistentWithIndex()
+                                ? ScrollAction.PageDecrement
+                                : ScrollAction.PageIncrement;
+                        this.HandleScrollActionTick(true);
+                        args.SuppressHandling = true;
+                    }
+                    else if (downOffset >= this.thumbOffset + this.thumbSize)
+                    {
+                        this.currentMouseDownScrollAction =
+                            this.direction.IsDirectionConsistentWithIndex()
+                                ? ScrollAction.PageIncrement
+                                : ScrollAction.PageDecrement;
+                        this.HandleScrollActionTick(true);
+                        args.SuppressHandling = true;
+                    }
+                }
+
+                break;
             }
-            else if (downOffset >= this.thumbOffset + this.thumbSize)
+
+            case ImGuiMouseButton.Middle:
             {
-                this.currentMouseDownScrollAction =
-                    this.direction.IsDirectionConsistentWithIndex()
-                        ? ScrollAction.PageIncrement
-                        : ScrollAction.PageDecrement;
-                this.HandleScrollActionTick(true);
+                this.MouseCursor = this.direction.IsVertical() ? ImGuiMouseCursor.ResizeNS : ImGuiMouseCursor.ResizeEW;
+                this.mmbScrollOrigin = args.LocalLocation;
+                args.SuppressHandling = true;
+                break;
             }
         }
     }
@@ -556,33 +602,26 @@ public class ScrollBarControl : ControlSpannable
     /// <inheritdoc/>
     protected override void OnMouseMove(SpannableMouseEventArgs args)
     {
+        this.currentMouseThumbLocation = args.LocalLocation;
         base.OnMouseMove(args);
+
+        if (this.mmbScrollOrigin.X is not float.NaN)
+        {
+            this.mmbAutoScrollPerSecond =
+                (args.LocalLocation - this.mmbScrollOrigin).GetMainDirection(this.direction) / 4f;
+            return;
+        }
 
         if (this.currentMouseDownScrollAction == ScrollAction.ThumbTrack)
         {
-            float unboundDelta;
-            if (this.direction.IsVertical())
-            {
-                var t = this.PointToClient(ImGui.GetMousePos()).Y;
-                t = (t - this.currentMouseDownRange.X) /
-                    (this.currentMouseDownRange.Y - this.currentMouseDownRange.X);
-                if (!this.direction.IsDirectionConsistentWithIndex())
-                    t = 1 - t;
-                t *= this.maxValue - this.minValue;
-                t += this.minValue;
-                unboundDelta = t - this.value;
-                if (MathF.Abs(unboundDelta) < 0.000001f)
-                    return;
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            var unboundDelta = this.PointerInRangeToValue() - this.value;
+            if (MathF.Abs(unboundDelta) < 0.000001f)
+                return;
 
             var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
             e.Initialize(this, SpannableEventStep.DirectTarget);
             e.InitializeScrollEvent(
-                this.currentMouseDownScrollAction,
+                ScrollAction.ThumbTrack,
                 this.value,
                 Math.Clamp(this.value + unboundDelta, this.minValue, this.maxValue),
                 unboundDelta,
@@ -598,19 +637,57 @@ public class ScrollBarControl : ControlSpannable
     protected override void OnMouseWheel(SpannableMouseEventArgs args)
     {
         base.OnMouseWheel(args);
+        
         if (args.SuppressHandling
             || !this.IsMouseHoveredIncludingChildren
             || this.EffectiveRange <= 0f
+            || this.lineSizeProportion <= 0f
             || args.Step == SpannableEventStep.BeforeChildren)
             return;
+        
         args.SuppressHandling = true;
+
+        var repeats = -(args.WheelDelta.X + args.WheelDelta.Y);
+        var scrollAction = repeats switch
+        {
+            > 0 => ScrollAction.LineIncrement,
+            < 0 => ScrollAction.LineDecrement,
+            _ => ScrollAction.None,
+        };
+        if (scrollAction == ScrollAction.None)
+            return;
+        
+        var unboundDelta = this.lineSizeProportion * this.EffectiveRange;
+
+        var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
+        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.InitializeScrollEvent(
+            scrollAction,
+            this.value,
+            Math.Clamp(this.value + (unboundDelta * repeats), this.minValue, this.maxValue),
+            unboundDelta,
+            MathF.Abs(repeats));
+        this.OnScroll(e);
+        if (this.autoValueUpdate && !e.SuppressHandling)
+            this.Value = e.NewValue;
+        SpannableEventArgsPool.Return(e);
     }
 
     /// <inheritdoc/>
     protected override void OnMouseUp(SpannableMouseEventArgs args)
     {
         base.OnMouseUp(args);
-        this.currentMouseDownScrollAction = ScrollAction.None;
+        switch (args.Button)
+        {
+            case ImGuiMouseButton.Left:
+                this.currentMouseDownScrollAction = ScrollAction.None;
+                break;
+            case ImGuiMouseButton.Middle:
+                this.mmbScrollOrigin = new(float.NaN);
+                this.MouseCursor = ImGuiMouseCursor.Arrow;
+                this.mmbAutoScrollPerSecond = 0;
+                break;
+        }
     }
 
     /// <summary>Raises the <see cref="AutoValueUpdateChange"/> event.</summary>
@@ -706,6 +783,19 @@ public class ScrollBarControl : ControlSpannable
     /// <param name="args">A <see cref="ScrollEventArgs"/> that contains the event data.</param>
     protected virtual void OnScroll(ScrollEventArgs args) => this.Scroll?.Invoke(args);
 
+    private float PointerInRangeToValue()
+    {
+        var t = this.currentMouseThumbLocation.GetMainDirection(this.direction);
+        t = (t - this.currentMouseDownRange.X) /
+            (this.currentMouseDownRange.Y - this.currentMouseDownRange.X);
+        t = Math.Clamp(t, 0, 1);
+        if (!this.direction.IsDirectionConsistentWithIndex())
+            t = 1 - t;
+        t *= this.maxValue - this.minValue;
+        t += this.minValue;
+        return t;
+    }
+
     private void IncDecMousePressLongAndRepeat(SpannableMouseEventArgs args)
     {
         if (args.Button != ImGuiMouseButton.Left || this.EffectiveRange <= 0f)
@@ -775,14 +865,32 @@ public class ScrollBarControl : ControlSpannable
                 unboundDelta = +this.lineSizeProportion * this.EffectiveRange;
                 break;
 
-            // Following two cases will be called when the bar is being held down.
+            // Stop when scrolling by page goes past the thumb.
             case ScrollAction.PageDecrement:
                 unboundDelta = -this.pageSizeProportion * this.EffectiveRange;
-                // TODO: prevent going past the mouse
+
+                // Prevent going past the mouse.
+                while (repeatCount > 0)
+                {
+                    if (this.value + (unboundDelta * repeatCount) <= this.PointerInRangeToValue())
+                        repeatCount--;
+                    else
+                        break;
+                }
+
                 break;
             case ScrollAction.PageIncrement:
                 unboundDelta = +this.pageSizeProportion * this.EffectiveRange;
-                // TODO: prevent going past the mouse
+
+                // Stop when scrolling by page goes past the thumb.
+                while (repeatCount > 0)
+                {
+                    if (this.value + (unboundDelta * repeatCount) >= this.PointerInRangeToValue())
+                        repeatCount--;
+                    else
+                        break;
+                }
+
                 break;
 
             case ScrollAction.ThumbTrack:
@@ -790,6 +898,9 @@ public class ScrollBarControl : ControlSpannable
             default:
                 return;
         }
+
+        if (repeatCount == 0)
+            return;
 
         var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
         e.Initialize(this, SpannableEventStep.DirectTarget);
@@ -826,7 +937,7 @@ public class ScrollBarControl : ControlSpannable
         public float UnboundDelta { get; private set; }
 
         /// <summary>Gets the number of repeats that must be multiplied to <see cref="UnboundDelta"/>.</summary>
-        public int RepeatCount { get; private set; }
+        public float RepeatCount { get; private set; }
 
         /// <summary>Initializes the scroll related properties.</summary>
         /// <param name="action">Action.</param>
@@ -835,7 +946,7 @@ public class ScrollBarControl : ControlSpannable
         /// <param name="unboundDelta">Unbound delta.</param>
         /// <param name="repeatCount">Repeat count.</param>
         public void InitializeScrollEvent(
-            ScrollAction action, float oldValue, float newValue, float unboundDelta, int repeatCount)
+            ScrollAction action, float oldValue, float newValue, float unboundDelta, float repeatCount)
         {
             this.Action = action;
             this.OldValue = oldValue;

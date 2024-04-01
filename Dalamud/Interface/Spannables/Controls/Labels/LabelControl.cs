@@ -48,13 +48,19 @@ public class LabelControl : ControlSpannable
     }
 
     /// <summary>Occurs when the mouse pointer enters a link in the control.</summary>
-    public event ControlMouseLinkEventHandler? LinkMouseEnter;
+    public event SpannableMouseLinkEventHandler? LinkMouseEnter;
 
     /// <summary>Occurs when the mouse pointer leaves a link in the control.</summary>
-    public event ControlMouseLinkEventHandler? LinkMouseLeave;
+    public event SpannableMouseLinkEventHandler? LinkMouseLeave;
+
+    /// <summary>Occurs when a link in the control just got held down.</summary>
+    public event SpannableMouseLinkEventHandler? LinkMouseDown;
+
+    /// <summary>Occurs when a link in the control just got released.</summary>
+    public event SpannableMouseLinkEventHandler? LinkMouseUp;
 
     /// <summary>Occurs when a link in the control is clicked by the mouse.</summary>
-    public event ControlMouseLinkEventHandler? LinkMouseClick;
+    public event SpannableMouseLinkEventHandler? LinkMouseClick;
 
     /// <summary>Occurs when the property <see cref="SpannableText"/> is changing.</summary>
     public event PropertyChangeEventHandler<ISpannableTemplate?>? SpannableTextChange;
@@ -204,7 +210,26 @@ public class LabelControl : ControlSpannable
             if (value?.Options is AbstractStyledText.Options mo)
                 mo.Style = this.TextStyle;
 
+            if (this.AllSpannables[this.childrenSlotText] is AbstractStyledText.TextSpannable prev)
+            {
+                prev.LinkMouseEnter -= this.PrevOnLinkMouseEnter;
+                prev.LinkMouseLeave -= this.PrevOnLinkMouseLeave;
+                prev.LinkMouseUp -= this.PrevOnLinkMouseUp;
+                prev.LinkMouseDown -= this.PrevOnLinkMouseDown;
+                prev.LinkMouseClick -= this.PrevOnLinkMouseClick;
+            }
+
             this.AllSpannables[this.childrenSlotText] = value;
+            
+            if (value is AbstractStyledText.TextSpannable curr)
+            {
+                curr.LinkMouseEnter += this.PrevOnLinkMouseEnter;
+                curr.LinkMouseLeave += this.PrevOnLinkMouseLeave;
+                curr.LinkMouseUp += this.PrevOnLinkMouseUp;
+                curr.LinkMouseDown += this.PrevOnLinkMouseDown;
+                curr.LinkMouseClick += this.PrevOnLinkMouseClick;
+            }
+
             this.RequestMeasure();
         }
     }
@@ -367,115 +392,6 @@ public class LabelControl : ControlSpannable
         this.ActiveSpannable?.RenderPassDraw(args.DrawListPtr);
     }
 
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // /// <inheritdoc/>
-    // protected override void OnHandleInteraction(SpannableEventArgs args)
-    // {
-    //     base.OnHandleInteraction(args);
-    //
-    //     if (this.IsDisposed)
-    //         return;
-    //
-    //     this.activeSpannableMeasurement?.___HandleInteraction();
-    //
-    //     for (var i = 0; i < IconSlotCount; i++)
-    //         this.iconMeasurements[i]?.___HandleInteraction();
-    //
-    //     Debug.Assert(this.lastLink is not null, "LastLink must not be null if not disposed");
-    //
-    //     SpannableMouseLinkEventArgs? e = null;
-    //     if (this.activeSpannableMeasurement is not AbstractStyledText.Spannable tsmm)
-    //     {
-    //         if (this.lastLink.Length != 0)
-    //         {
-    //             e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
-    //             e.Sender = this;
-    //             e.Link = this.lastLink.GetDataMemory();
-    //             this.OnLinkMouseLeave(e);
-    //             this.lastLink.Clear();
-    //             SpannableEventArgsPool.Return(e);
-    //         }
-    //
-    //         return;
-    //     }
-    //
-    //     var issueClickEvent = false;
-    //     switch (tsmm.GetInteractedLink(out var link))
-    //     {
-    //         case AbstractStyledText.LinkState.Clear:
-    //         default:
-    //             link = default;
-    //             break;
-    //
-    //         case AbstractStyledText.LinkState.Hovered:
-    //         case AbstractStyledText.LinkState.Active:
-    //             break;
-    //
-    //         case AbstractStyledText.LinkState.Clicked:
-    //             issueClickEvent = true;
-    //             break;
-    //     }
-    //
-    //     if (!this.lastLink!.GetDataSpan().SequenceEqual(link))
-    //     {
-    //         e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
-    //         e.Sender = this;
-    //         e.Link = this.lastLink.GetDataMemory();
-    //
-    //         if (this.lastLink.Length != 0)
-    //         {
-    //             this.OnLinkMouseLeave(e);
-    //             this.lastLink.Clear();
-    //         }
-    //
-    //         this.lastLink.Write(link);
-    //         e.Link = this.lastLink.GetDataMemory();
-    //         this.OnLinkMouseEnter(e);
-    //     }
-    //
-    //     if (issueClickEvent)
-    //     {
-    //         e ??= SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
-    //         e.Sender = this;
-    //         e.Link = this.lastLink.GetDataMemory();
-    //         this.OnLinkMouseClick(e);
-    //     }
-    //
-    //     SpannableEventArgsPool.Return(e);
-    // }
-
     /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
     protected virtual void OnLinkMouseEnter(SpannableMouseLinkEventArgs args) =>
@@ -485,6 +401,16 @@ public class LabelControl : ControlSpannable
     /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
     protected virtual void OnLinkMouseLeave(SpannableMouseLinkEventArgs args) =>
         this.LinkMouseLeave?.Invoke(args);
+
+    /// <summary>Raises the <see cref="LinkMouseDown"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseDown(SpannableMouseLinkEventArgs args) =>
+        this.LinkMouseDown?.Invoke(args);
+
+    /// <summary>Raises the <see cref="LinkMouseUp"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+    protected virtual void OnLinkMouseUp(SpannableMouseLinkEventArgs args) =>
+        this.LinkMouseUp?.Invoke(args);
 
     /// <summary>Raises the <see cref="LinkMouseClick"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
@@ -523,7 +449,7 @@ public class LabelControl : ControlSpannable
         if (args.State == PropertyChangeState.After)
         {
             var old = this.ActiveSpannable;
-            this.ActiveSpannable = args.NewValue.CreateSpannable();
+            this.ActiveSpannable = args.NewValue?.CreateSpannable();
             if (old?.SourceTemplate is { } st)
                 st.RecycleSpannable(old);
             else
@@ -580,4 +506,34 @@ public class LabelControl : ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
     protected virtual void OnBottomIconChange(PropertyChangeEventArgs<ISpannableTemplate?> args) =>
         this.BottomIconChange?.Invoke(args);
+
+    private void PrevOnLinkMouseLeave(SpannableMouseLinkEventArgs args)
+    {
+        args.Initialize(this, SpannableEventStep.DirectTarget);
+        this.OnLinkMouseLeave(args);
+    }
+
+    private void PrevOnLinkMouseUp(SpannableMouseLinkEventArgs args)
+    {
+        args.Initialize(this, SpannableEventStep.DirectTarget);
+        this.OnLinkMouseUp(args);
+    }
+
+    private void PrevOnLinkMouseEnter(SpannableMouseLinkEventArgs args)
+    {
+        args.Initialize(this, SpannableEventStep.DirectTarget);
+        this.OnLinkMouseEnter(args);
+    }
+
+    private void PrevOnLinkMouseDown(SpannableMouseLinkEventArgs args)
+    {
+        args.Initialize(this, SpannableEventStep.DirectTarget);
+        this.OnLinkMouseDown(args);
+    }
+
+    private void PrevOnLinkMouseClick(SpannableMouseLinkEventArgs args)
+    {
+        args.Initialize(this, SpannableEventStep.DirectTarget);
+        this.OnLinkMouseClick(args);
+    }
 }

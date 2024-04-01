@@ -42,7 +42,7 @@ public abstract partial class AbstractStyledText
         Active,
 
         /// <summary>The link has been clicked.</summary>
-        Clicked,
+        ActiveNotHovered,
     }
 
     /// <inheritdoc cref="ISpannableTemplate.CreateSpannable"/>
@@ -237,7 +237,6 @@ public abstract partial class AbstractStyledText
     {
         private readonly List<BoundaryToRecord> linkBoundaries = [];
         private readonly List<MeasuredLine> lines = [];
-        private readonly List<LinkInteractionData> linkInteractions = [];
         private readonly List<ISpannableTemplate?> childrenTemplate = [];
         private readonly List<Spannable?> children = [];
         private readonly List<Vector2> childOffsets = [];
@@ -256,6 +255,21 @@ public abstract partial class AbstractStyledText
         {
             this.TryReset();
         }
+
+        /// <summary>Occurs when the mouse pointer enters a link in the control.</summary>
+        public event SpannableMouseLinkEventHandler? LinkMouseEnter;
+
+        /// <summary>Occurs when the mouse pointer leaves a link in the control.</summary>
+        public event SpannableMouseLinkEventHandler? LinkMouseLeave;
+
+        /// <summary>Occurs when a link in the control just got held down.</summary>
+        public event SpannableMouseLinkEventHandler? LinkMouseDown;
+
+        /// <summary>Occurs when a link in the control just got released.</summary>
+        public event SpannableMouseLinkEventHandler? LinkMouseUp;
+
+        /// <summary>Occurs when a link in the control is clicked by the mouse.</summary>
+        public event SpannableMouseLinkEventHandler? LinkMouseClick;
 
         /// <summary>Gets the source instance of <see cref="AbstractStyledText"/>.</summary>
         public new AbstractStyledText? SourceTemplate
@@ -287,9 +301,6 @@ public abstract partial class AbstractStyledText
         /// <summary>Gets the span of mapping between link range to render coordinates.</summary>
         private Span<BoundaryToRecord> LinkBoundaries => CollectionsMarshal.AsSpan(this.linkBoundaries);
 
-        /// <summary>Gets the span of link interaction states.</summary>
-        private Span<LinkInteractionData> LinkInteractions => CollectionsMarshal.AsSpan(this.linkInteractions);
-
         /// <inheritdoc/>
         public bool TryReset()
         {
@@ -306,8 +317,13 @@ public abstract partial class AbstractStyledText
             this.childCount = 0;
             this.interactedLinkIndex = -1;
             this.interactedLinkState = LinkState.Clear;
-            this.linkInteractions.Clear();
+            this.LinkMouseEnter = null;
+            this.LinkMouseLeave = null;
+            this.LinkMouseDown = null;
+            this.LinkMouseUp = null;
+            this.LinkMouseClick = null;
             this.ClearMeasurement();
+            this.RequestMeasure();
             return true;
         }
 
@@ -347,156 +363,155 @@ public abstract partial class AbstractStyledText
                 cs.Renderer = this.Renderer;
                 this.children[i] = cs;
             }
-
-            this.linkInteractions.EnsureCapacity(data.Records.Length);
-            for (var i = 0; i < data.Records.Length; i++)
-                this.linkInteractions.Add(default);
         }
 
-        /// <summary>Gets the interacted link.</summary>
-        /// <param name="linkData">The link data.</param>
-        /// <returns>The link state.</returns>
-        public LinkState GetInteractedLink(out ReadOnlySpan<byte> linkData)
+        /// <inheritdoc/>
+        protected override void OnMouseDown(SpannableMouseEventArgs args)
         {
-            if (this.SourceTemplate is not { } tsb)
+            base.OnMouseDown(args);
+            if (args.SuppressHandling
+                || args.Step == SpannableEventStep.BeforeChildren
+                || this.SourceTemplate is null
+                || this.interactedLinkIndex == -1
+                || this.interactedLinkState is LinkState.Clear)
+                return;
+
+            if (!this.SourceTemplate.GetData().TryGetLinkAt(this.interactedLinkIndex, out var linkData))
+                return;
+
+            var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.InitializeMouseLinkEvent(linkData.ToArray(), args.Button);
+            this.OnLinkMouseDown(e);
+            if (e.SuppressHandling)
             {
-                linkData = default;
-                return LinkState.Clear;
+                SpannableEventArgsPool.Return(e);
+                return;
             }
 
-            return
-                tsb.GetData().TryGetLinkAt(this.interactedLinkIndex, out linkData)
-                    ? this.interactedLinkState
-                    : LinkState.Clear;
+            SpannableEventArgsPool.Return(e);
+            this.interactedLinkState = LinkState.Active;
+            this.CaptureMouse = true;
+            args.SuppressHandling = true;
         }
 
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // /// <inheritdoc/>
-        // public bool ___HandleInteraction()
-        // {
-        //     if (this.Spannable is not { } tsb || !this.boundary.IsValid)
-        //         return false;
-        //
-        //     var data = tsb.GetData();
-        //
-        //     foreach (var m in ((IInternalMeasurement)this).ChildMeasurements)
-        //         m?.___HandleInteraction();
-        //
-        //     this.interactedLinkIndex = -1;
-        //     if (this.interactedLinkState == LinkState.Clicked)
-        //         this.interactedLinkState = LinkState.Clear;
-        //     // TODO: setup links
-        //
-        //     var mouseRel = this.PointToClient(ImGui.GetMousePos());
-        //     foreach (ref var entry in this.LinkBoundaries)
-        //     {
-        //         if (entry.Boundary.Contains(mouseRel)
-        //             && SpannableImGuiItem.IsItemHoverable(this, mouseRel, entry.Boundary, entry.RecordIndex))
-        //         {
-        //             if (data.TryGetLinkAt(entry.RecordIndex, out _))
-        //                 this.interactedLinkIndex = entry.RecordIndex;
-        //             break;
-        //         }
-        //     }
-        //
-        //     var prevLinkRecordIndex = -1;
-        //     foreach (ref var linkBoundary in this.LinkBoundaries)
-        //     {
-        //         if (prevLinkRecordIndex == linkBoundary.RecordIndex)
-        //             continue;
-        //         prevLinkRecordIndex = linkBoundary.RecordIndex;
-        //
-        //         ref var linkState = ref this.LinkInteractions[linkBoundary.RecordIndex];
-        //
-        //         if (linkState.IsMouseButtonDownHandled)
-        //         {
-        //             switch (linkState.FirstMouseButton)
-        //             {
-        //                 case var _ when linkBoundary.RecordIndex != this.interactedLinkIndex:
-        //                     this.interactedLinkIndex = -1;
-        //                     break;
-        //                 case ImGuiMouseButton.Left when !ImGui.IsMouseDown(ImGuiMouseButton.Left):
-        //                 case ImGuiMouseButton.Right when !ImGui.IsMouseDown(ImGuiMouseButton.Right):
-        //                 case ImGuiMouseButton.Middle when !ImGui.IsMouseDown(ImGuiMouseButton.Middle):
-        //                     this.interactedLinkState = LinkState.Clicked;
-        //                     linkState.IsMouseButtonDownHandled = false;
-        //                     break;
-        //             }
-        //
-        //             if (!ImGui.GetIO().MouseDown[0] && !ImGui.GetIO().MouseDown[1] && !ImGui.GetIO().MouseDown[2])
-        //             {
-        //                 linkState.IsMouseButtonDownHandled = false;
-        //                 SpannableImGuiItem.ClearActive();
-        //             }
-        //         }
-        //
-        //         if (this.interactedLinkIndex == linkBoundary.RecordIndex)
-        //         {
-        //             SpannableImGuiItem.SetHovered(this, linkBoundary.RecordIndex);
-        //             if (!linkState.IsMouseButtonDownHandled)
-        //             {
-        //                 if (ImGui.IsMouseDown(linkState.FirstMouseButton = ImGuiMouseButton.Left))
-        //                     linkState.IsMouseButtonDownHandled = true;
-        //                 else if (ImGui.IsMouseDown(linkState.FirstMouseButton = ImGuiMouseButton.Right))
-        //                     linkState.IsMouseButtonDownHandled = true;
-        //                 else if (ImGui.IsMouseDown(linkState.FirstMouseButton = ImGuiMouseButton.Middle))
-        //                     linkState.IsMouseButtonDownHandled = true;
-        //             }
-        //
-        //             if (this.interactedLinkState != LinkState.Clicked)
-        //             {
-        //                 this.interactedLinkState =
-        //                     linkState.IsMouseButtonDownHandled
-        //                         ? LinkState.Active
-        //                         : LinkState.Hovered;
-        //             }
-        //         }
-        //
-        //         if (linkState.IsMouseButtonDownHandled)
-        //         {
-        //             SpannableImGuiItem.SetHovered(this, linkBoundary.RecordIndex);
-        //             SpannableImGuiItem.SetActive(this, linkBoundary.RecordIndex);
-        //         }
-        //     }
-        //
-        //     if (this.interactedLinkIndex == -1)
-        //         this.interactedLinkState = LinkState.Clear;
-        //     return true;
-        // }
+        /// <inheritdoc/>
+        protected override void OnMouseMove(SpannableMouseEventArgs args)
+        {
+            base.OnMouseMove(args);
+            if (args.SuppressHandling
+                || args.Step == SpannableEventStep.BeforeChildren
+                || this.SourceTemplate is null)
+                return;
+
+            var data = this.SourceTemplate.GetData();
+            var linkIndex = -1;
+
+            if (this.IsMouseHovered)
+            {
+                foreach (ref var entry in this.LinkBoundaries)
+                {
+                    if (entry.Boundary.Contains(args.LocalLocation))
+                    {
+                        if (data.TryGetLinkAt(entry.RecordIndex, out _))
+                            linkIndex = entry.RecordIndex;
+
+                        break;
+                    }
+                }
+            }
+
+            if (!this.SourceTemplate.GetData().TryGetLinkAt(this.interactedLinkIndex, out var prevData))
+                prevData = default;
+            if (!this.SourceTemplate.GetData().TryGetLinkAt(linkIndex, out var currData))
+                currData = default;
+
+            var prev = (this.interactedLinkIndex, this.interactedLinkState);
+            if (this.interactedLinkState is LinkState.Clear or LinkState.Hovered)
+            {
+                this.interactedLinkIndex = linkIndex;
+                this.interactedLinkState = linkIndex == -1 ? LinkState.Clear : LinkState.Hovered;
+            }
+            else
+            {
+                this.interactedLinkState =
+                    this.interactedLinkIndex == linkIndex ? LinkState.Active : LinkState.ActiveNotHovered;
+            }
+
+            if (prev != (this.interactedLinkIndex, this.interactedLinkState))
+            {
+                var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
+                e.Initialize(this, SpannableEventStep.DirectTarget);
+                switch (this.interactedLinkState)
+                {
+                    case LinkState.Active when currData != default:
+                        e.InitializeMouseLinkEvent(currData.ToArray(), args.Button);
+                        this.OnLinkMouseEnter(e);
+                        break;
+                    case LinkState.ActiveNotHovered when currData != default:
+                        e.InitializeMouseLinkEvent(currData.ToArray(), args.Button);
+                        this.OnLinkMouseLeave(e);
+                        break;
+                    case LinkState.Clear when prevData != default:
+                        e.InitializeMouseLinkEvent(prevData.ToArray(), args.Button);
+                        this.OnLinkMouseLeave(e);
+                        break;
+                    case LinkState.Hovered:
+                        if (prevData != default)
+                        {
+                            e.InitializeMouseLinkEvent(prevData.ToArray(), args.Button);
+                            this.OnLinkMouseLeave(e);
+                            
+                            e.Initialize(this, SpannableEventStep.DirectTarget);
+                        }
+
+                        if (currData != default)
+                        {
+                            e.InitializeMouseLinkEvent(currData.ToArray(), args.Button);
+                            this.OnLinkMouseEnter(e);
+                        }
+
+                        break;
+                }
+                
+                SpannableEventArgsPool.Return(e);
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void OnMouseUp(SpannableMouseEventArgs args)
+        {
+            base.OnMouseUp(args);
+            if (args.Step == SpannableEventStep.BeforeChildren)
+                return;
+
+            if (this.interactedLinkIndex != -1 && this.SourceTemplate is not null && !args.SuppressHandling)
+            {
+                if (!this.SourceTemplate.GetData().TryGetLinkAt(this.interactedLinkIndex, out var currData))
+                    currData = default;
+                
+                var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
+                e.Initialize(this, SpannableEventStep.DirectTarget);
+                e.InitializeMouseLinkEvent(currData.ToArray(), args.Button);
+                this.OnLinkMouseUp(e);
+
+                if (!e.SuppressHandling && this.interactedLinkState is LinkState.Active)
+                {
+                    e.Initialize(this, SpannableEventStep.DirectTarget);
+                    this.OnLinkMouseClick(e);
+                }
+                    
+                SpannableEventArgsPool.Return(e);
+                
+                if (this.interactedLinkState is LinkState.ActiveNotHovered or LinkState.Clear)
+                    this.interactedLinkIndex = -1;
+                this.interactedLinkState =
+                    this.interactedLinkState is LinkState.Active ? LinkState.Hovered : LinkState.Clear;
+                args.SuppressHandling = true;
+            }
+
+            this.CaptureMouse = false;
+        }
 
         /// <inheritdoc/>
         protected override void OnMeasure(SpannableEventArgs args)
@@ -921,6 +936,31 @@ public abstract partial class AbstractStyledText
                 charRenderer.AppendAndReturnChannels(this.LocalTransformation);
             }
         }
+
+        /// <summary>Raises the <see cref="LinkMouseEnter"/> event.</summary>
+        /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+        private void OnLinkMouseEnter(SpannableMouseLinkEventArgs args) =>
+            this.LinkMouseEnter?.Invoke(args);
+
+        /// <summary>Raises the <see cref="LinkMouseLeave"/> event.</summary>
+        /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+        private void OnLinkMouseLeave(SpannableMouseLinkEventArgs args) =>
+            this.LinkMouseLeave?.Invoke(args);
+
+        /// <summary>Raises the <see cref="LinkMouseDown"/> event.</summary>
+        /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+        private void OnLinkMouseDown(SpannableMouseLinkEventArgs args) =>
+            this.LinkMouseDown?.Invoke(args);
+
+        /// <summary>Raises the <see cref="LinkMouseUp"/> event.</summary>
+        /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+        private void OnLinkMouseUp(SpannableMouseLinkEventArgs args) =>
+            this.LinkMouseUp?.Invoke(args);
+
+        /// <summary>Raises the <see cref="LinkMouseClick"/> event.</summary>
+        /// <param name="args">A <see cref="SpannableMouseLinkEventArgs"/> that contains the event data.</param>
+        private void OnLinkMouseClick(SpannableMouseLinkEventArgs args) =>
+            this.LinkMouseClick?.Invoke(args);
 
         /// <summary>Extends the bottom boundary by given amount.</summary>
         /// <param name="boundary">Mutable reference to the boundary accumulator.</param>

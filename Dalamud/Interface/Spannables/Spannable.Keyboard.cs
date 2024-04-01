@@ -59,10 +59,10 @@ public abstract partial class Spannable
             this.OnTakeKeyboardInputsAlwaysChange);
     }
 
-    /// <summary>Processes a command key.</summary>
+    /// <summary>Takes over a key that usually results in a navigation from ImGui.</summary>
     /// <param name="key">One of the <see cref="ImGuiKey"/> values that represents the key to process.</param>
-    /// <returns><c>true</c> if the character was processed by the control; otherwise, <c>false</c>.</returns>
-    protected virtual bool ProcessCmdKey(ImGuiKey key) => false;
+    /// <returns><c>true</c> if the character will be overtaken by the spannable; otherwise, <c>false</c>.</returns>
+    protected virtual bool TakeOverNavKey(ImGuiKey key) => false;
 
     /// <summary>Raises the <see cref="KeyDown"/> event.</summary>
     /// <param name="args">A <see cref="SpannableKeyEventArgs"/> that contains the event data.</param>
@@ -88,67 +88,91 @@ public abstract partial class Spannable
 
     private bool DispatchKeyDown(ImGuiModFlags modifiers, ImGuiKey key, bool alreadyHandled)
     {
-        var kpe = SpannableEventArgsPool.Rent<SpannableKeyEventArgs>();
+        var dispatchEventToSelf = this.enabled && this.visible && this.ImGuiIsFocused;
+        SpannableKeyEventArgs? e = null;
 
-        kpe.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
-        kpe.InitializeKeyEvent(modifiers, key);
-        this.OnKeyDown(kpe);
-        alreadyHandled |= kpe.SuppressHandling;
+        if (dispatchEventToSelf)
+        {
+            e = SpannableEventArgsPool.Rent<SpannableKeyEventArgs>();
+            e.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
+            e.InitializeKeyEvent(modifiers, key);
+            this.OnKeyDown(e);
+            alreadyHandled |= e.SuppressHandling;
+        }
 
         var children = this.GetAllChildSpannables();
         for (var i = children.Count - 1; i >= 0; i--)
             alreadyHandled |= children[i]?.DispatchKeyDown(modifiers, key, alreadyHandled) is true;
 
-        kpe.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
-        kpe.InitializeKeyEvent(modifiers, key);
-        this.OnKeyDown(kpe);
-        alreadyHandled |= kpe.SuppressHandling;
+        if (dispatchEventToSelf)
+        {
+            e.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            e.InitializeKeyEvent(modifiers, key);
+            this.OnKeyDown(e);
+            alreadyHandled |= e.SuppressHandling;
+        }
 
-        SpannableEventArgsPool.Return(kpe);
+        SpannableEventArgsPool.Return(e);
         return alreadyHandled;
     }
 
     private bool DispatchKeyUp(ImGuiModFlags modifiers, ImGuiKey key, bool alreadyHandled)
     {
-        var kpe = SpannableEventArgsPool.Rent<SpannableKeyEventArgs>();
+        var dispatchEventToSelf = this.enabled && this.visible && this.ImGuiIsFocused;
+        SpannableKeyEventArgs? e = null;
 
-        kpe.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
-        kpe.InitializeKeyEvent(modifiers, key);
-        this.OnKeyUp(kpe);
-        alreadyHandled |= kpe.SuppressHandling;
+        if (dispatchEventToSelf)
+        {
+            e = SpannableEventArgsPool.Rent<SpannableKeyEventArgs>();
+            e.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
+            e.InitializeKeyEvent(modifiers, key);
+            this.OnKeyUp(e);
+            alreadyHandled |= e.SuppressHandling;
+        }
 
         var children = this.GetAllChildSpannables();
         for (var i = children.Count - 1; i >= 0; i--)
             alreadyHandled |= children[i]?.DispatchKeyUp(modifiers, key, alreadyHandled) is true;
 
-        kpe.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
-        kpe.InitializeKeyEvent(modifiers, key);
-        this.OnKeyUp(kpe);
-        alreadyHandled |= kpe.SuppressHandling;
+        if (dispatchEventToSelf)
+        {
+            e.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            e.InitializeKeyEvent(modifiers, key);
+            this.OnKeyUp(e);
+            alreadyHandled |= e.SuppressHandling;
+        }
 
-        SpannableEventArgsPool.Return(kpe);
+        SpannableEventArgsPool.Return(e);
         return alreadyHandled;
     }
 
     private bool DispatchKeyPress(Rune rune, bool alreadyHandled)
     {
-        var kpe = SpannableEventArgsPool.Rent<SpannableKeyPressEventArgs>();
+        var dispatchEventToSelf = this.enabled && this.visible && this.ImGuiIsFocused;
+        SpannableKeyPressEventArgs? e = null;
 
-        kpe.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
-        kpe.InitializeKeyEvent(rune);
-        this.OnKeyPress(kpe);
-        alreadyHandled |= kpe.SuppressHandling;
+        if (dispatchEventToSelf)
+        {
+            e = SpannableEventArgsPool.Rent<SpannableKeyPressEventArgs>();
+            e.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
+            e.InitializeKeyEvent(rune);
+            this.OnKeyPress(e);
+            alreadyHandled |= e.SuppressHandling;
+        }
 
         var children = this.GetAllChildSpannables();
         for (var i = children.Count - 1; i >= 0; i--)
             alreadyHandled |= children[i]?.DispatchKeyPress(rune, alreadyHandled) is true;
 
-        kpe.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
-        kpe.InitializeKeyEvent(rune);
-        this.OnKeyPress(kpe);
-        alreadyHandled |= kpe.SuppressHandling;
+        if (dispatchEventToSelf)
+        {
+            e.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            e.InitializeKeyEvent(rune);
+            this.OnKeyPress(e);
+            alreadyHandled |= e.SuppressHandling;
+        }
 
-        SpannableEventArgsPool.Return(kpe);
+        SpannableEventArgsPool.Return(e);
         return alreadyHandled;
     }
 }

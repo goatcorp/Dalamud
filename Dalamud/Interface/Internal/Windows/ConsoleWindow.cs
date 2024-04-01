@@ -314,6 +314,11 @@ internal partial class ConsoleWindow : Window, IDisposable
                     ? this.ellipsisSpannableTemplate
                     : this.wrapMarkerSpannableTemplate,
         };
+
+        this.rvc.HorizontalScrollBarMode =
+            this.textOptions.WordBreak == WordBreakType.KeepAll ? ScrollBarMode.Always : ScrollBarMode.Never;
+        this.rvc.VerticalScrollBarMode = ScrollBarMode.Always;
+
         var llm = (LinearLayoutManager)this.rvc.LayoutManager!;
         llm.Direction =
             this.activeConfiguration.LogNewestOnTop
@@ -335,8 +340,6 @@ internal partial class ConsoleWindow : Window, IDisposable
         };
         this.rvc = new();
         this.rvc.LayoutManager = llm;
-        this.rvc.HorizontalScrollBarMode = ScrollBarMode.Never;
-        this.rvc.VerticalScrollBarMode = ScrollBarMode.Always;
         this.rvc.DecideSpannableType += e =>
         {
             e.SpannableType = 0;
@@ -557,7 +560,7 @@ internal partial class ConsoleWindow : Window, IDisposable
                 changeStart = this.copyStart;
             if (changeEnd < changeStart)
                 (changeEnd, changeStart) = (changeStart, changeEnd);
-            Debug.WriteLine($"{changeStart}..{changeEnd}");
+
             llm.NotifyCollectionReplace(changeStart, (changeEnd - changeStart) + 1);
         }
     }

@@ -21,4 +21,13 @@ public record SpannableMouseLinkEventArgs : SpannableEventArgs
         this.Button = default;
         return base.TryReset();
     }
+
+    /// <summary>Initializes link related properties.</summary>
+    /// <param name="link">Link.</param>
+    /// <param name="button">Mouse button.</param>
+    public void InitializeMouseLinkEvent(ReadOnlyMemory<byte> link, ImGuiMouseButton button)
+    {
+        this.Link = link;
+        this.Button = button;
+    }
 }

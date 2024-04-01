@@ -83,4 +83,13 @@ public static class LinearDirectionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector2 UpdateOffDirection(this Vector2 v2, LinearDirection direction, float newValue) =>
         direction.IsVertical() ? v2 with { X = newValue } : v2 with { Y = newValue };
+
+    /// <summary>Creates a new instance of <see cref="Vector2"/> from the given values.</summary>
+    /// <param name="direction">Direction to refer to.</param>
+    /// <param name="mainValue">Main value.</param>
+    /// <param name="offValue">Off value.</param>
+    /// <returns>New vector.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2 CreateMainOff(this LinearDirection direction, float mainValue, float offValue) =>
+        direction.IsVertical() ? new(offValue, mainValue) : new(mainValue, offValue);
 }
