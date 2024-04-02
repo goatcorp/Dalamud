@@ -1,4 +1,6 @@
-﻿using Dalamud.Hooking;
+﻿using System.Threading.Tasks;
+
+using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -13,8 +15,13 @@ namespace Dalamud.Game.Config;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
+internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 {
+    private readonly TaskCompletionSource tcsInitialization = new();
+    private readonly TaskCompletionSource<GameConfigSection> tcsSystem = new();
+    private readonly TaskCompletionSource<GameConfigSection> tcsUiConfig = new();
+    private readonly TaskCompletionSource<GameConfigSection> tcsUiControl = new(); 
+
     private readonly GameConfigAddressResolver address = new();
     private Hook<ConfigChangeDelegate>? configChangeHook;
 
@@ -23,16 +30,32 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     {
         framework.RunOnTick(() =>
         {
-            Log.Verbose("[GameConfig] Initializing");
-            var csFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-            var commonConfig = &csFramework->SystemConfig.CommonSystemConfig;
-            this.System = new GameConfigSection("System", framework, &commonConfig->ConfigBase);
-            this.UiConfig = new GameConfigSection("UiConfig", framework, &commonConfig->UiConfig);
-            this.UiControl = new GameConfigSection("UiControl", framework, () => this.UiConfig.TryGetBool("PadMode", out var padMode) && padMode ? &commonConfig->UiControlGamepadConfig : &commonConfig->UiControlConfig);
-        
-            this.address.Setup(sigScanner);
-            this.configChangeHook = Hook<ConfigChangeDelegate>.FromAddress(this.address.ConfigChangeAddress, this.OnConfigChanged);
-            this.configChangeHook.Enable();
+            try
+            {
+                Log.Verbose("[GameConfig] Initializing");
+                var csFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
+                var commonConfig = &csFramework->SystemConfig.CommonSystemConfig;
+                this.tcsSystem.SetResult(new("System", framework, &commonConfig->ConfigBase));
+                this.tcsUiConfig.SetResult(new("UiConfig", framework, &commonConfig->UiConfig));
+                this.tcsUiControl.SetResult(
+                    new(
+                        "UiControl",
+                        framework,
+                        () => this.UiConfig.TryGetBool("PadMode", out var padMode) && padMode
+                                  ? &commonConfig->UiControlGamepadConfig
+                                  : &commonConfig->UiControlConfig));
+
+                this.address.Setup(sigScanner);
+                this.configChangeHook = Hook<ConfigChangeDelegate>.FromAddress(
+                    this.address.ConfigChangeAddress,
+                    this.OnConfigChanged);
+                this.configChangeHook.Enable();
+                this.tcsInitialization.SetResult();
+            }
+            catch (Exception ex)
+            {
+                this.tcsInitialization.SetExceptionIfIncomplete(ex);
+            }
         });
     }
 
@@ -58,14 +81,19 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     public event EventHandler<ConfigChangeEvent>? UiControlChanged;
 #pragma warning restore 67
 
-    /// <inheritdoc/>
-    public GameConfigSection System { get; private set; }
+    /// <summary>
+    /// Gets a task representing the initialization state of this class.
+    /// </summary>
+    public Task InitializationTask => this.tcsInitialization.Task;
 
     /// <inheritdoc/>
-    public GameConfigSection UiConfig { get; private set; }
+    public GameConfigSection System => this.tcsSystem.Task.Result;
 
     /// <inheritdoc/>
-    public GameConfigSection UiControl { get; private set; }
+    public GameConfigSection UiConfig => this.tcsUiConfig.Task.Result;
+
+    /// <inheritdoc/>
+    public GameConfigSection UiControl => this.tcsUiControl.Task.Result;
 
     /// <inheritdoc/>
     public bool TryGet(SystemConfigOption option, out bool value) => this.System.TryGet(option.GetName(), out value);
@@ -167,8 +195,13 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     public void Set(UiControlOption option, string value) => this.UiControl.Set(option.GetName(), value);
     
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
+        var ode = new ObjectDisposedException(nameof(GameConfig));
+        this.tcsInitialization.SetExceptionIfIncomplete(ode);
+        this.tcsSystem.SetExceptionIfIncomplete(ode);
+        this.tcsUiConfig.SetExceptionIfIncomplete(ode);
+        this.tcsUiControl.SetExceptionIfIncomplete(ode);
         this.configChangeHook?.Disable();
         this.configChangeHook?.Dispose();
     }
@@ -215,10 +248,12 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
 #pragma warning disable SA1015
 [ResolveVia<IGameConfig>]
 #pragma warning restore SA1015
-internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
+internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
 {
     [ServiceManager.ServiceDependency]
     private readonly GameConfig gameConfigService = Service<GameConfig>.Get();
+
+    private readonly Task initializationTask;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigPluginScoped"/> class.
@@ -226,9 +261,16 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
     internal GameConfigPluginScoped()
     {
         this.gameConfigService.Changed += this.ConfigChangedForward;
-        this.gameConfigService.System.Changed += this.SystemConfigChangedForward;
-        this.gameConfigService.UiConfig.Changed += this.UiConfigConfigChangedForward;
-        this.gameConfigService.UiControl.Changed += this.UiControlConfigChangedForward;
+        this.initializationTask = this.gameConfigService.InitializationTask.ContinueWith(
+            r =>
+            {
+                if (!r.IsCompletedSuccessfully)
+                    return r;
+                this.gameConfigService.System.Changed += this.SystemConfigChangedForward;
+                this.gameConfigService.UiConfig.Changed += this.UiConfigConfigChangedForward;
+                this.gameConfigService.UiControl.Changed += this.UiControlConfigChangedForward;
+                return Task.CompletedTask;
+            }).Unwrap();
     }
     
     /// <inheritdoc/>
@@ -253,12 +295,18 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
     public GameConfigSection UiControl => this.gameConfigService.UiControl;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.gameConfigService.Changed -= this.ConfigChangedForward;
-        this.gameConfigService.System.Changed -= this.SystemConfigChangedForward;
-        this.gameConfigService.UiConfig.Changed -= this.UiConfigConfigChangedForward;
-        this.gameConfigService.UiControl.Changed -= this.UiControlConfigChangedForward;
+        this.initializationTask.ContinueWith(
+            r =>
+            {
+                if (!r.IsCompletedSuccessfully)
+                    return;
+                this.gameConfigService.System.Changed -= this.SystemConfigChangedForward;
+                this.gameConfigService.UiConfig.Changed -= this.UiConfigConfigChangedForward;
+                this.gameConfigService.UiControl.Changed -= this.UiControlConfigChangedForward;
+            });
 
         this.Changed = null;
         this.SystemChanged = null;

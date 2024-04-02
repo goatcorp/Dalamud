@@ -1,8 +1,11 @@
+// #define IMEDEBUG
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,6 +20,10 @@ using Dalamud.Interface.Utility;
 
 using ImGuiNET;
 
+#if IMEDEBUG
+using Serilog;
+#endif
+
 using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
@@ -26,11 +33,20 @@ namespace Dalamud.Interface.Internal;
 /// <summary>
 /// This class handles CJK IME.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed unsafe class DalamudIme : IDisposable, IServiceType
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class DalamudIme : IInternalDisposableService
 {
     private const int CImGuiStbTextCreateUndoOffset = 0xB57A0;
     private const int CImGuiStbTextUndoOffset = 0xB59C0;
+
+    private const int ImePageSize = 9;
+
+    private static readonly Dictionary<int, string> WmNames =
+        typeof(WM).GetFields(BindingFlags.Public | BindingFlags.Static)
+                  .Where(x => x.IsLiteral && !x.IsInitOnly && x.FieldType == typeof(int))
+                  .Select(x => ((int)x.GetRawConstantValue()!, x.Name))
+                  .DistinctBy(x => x.Item1)
+                  .ToDictionary(x => x.Item1, x => x.Name);
 
     private static readonly UnicodeRange[] HanRange =
     {
@@ -57,9 +73,45 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 
     private static readonly delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, void> StbTextUndo;
 
+    [ServiceManager.ServiceDependency]
+    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
+
+    private readonly InterfaceManager interfaceManager;
+
     private readonly ImGuiSetPlatformImeDataDelegate setPlatformImeDataDelegate;
 
+    /// <summary>The candidates.</summary>
+    private readonly List<string> candidateStrings = new();
+
+    /// <summary>The selected imm component.</summary>
+    private string compositionString = string.Empty;
+
+    /// <summary>The cursor position in screen coordinates.</summary>
+    private Vector2 cursorScreenPos;
+
+    /// <summary>The associated viewport.</summary>
+    private ImGuiViewportPtr associatedViewport;
+
+    /// <summary>The index of the first imm candidate in relation to the full list.</summary>
+    private CANDIDATELIST immCandNative;
+
+    /// <summary>The partial conversion from-range.</summary>
+    private int partialConversionFrom;
+
+    /// <summary>The partial conversion to-range.</summary>
+    private int partialConversionTo;
+
+    /// <summary>The cursor offset in the composition string.</summary>
+    private int compositionCursorOffset;
+
+    /// <summary>The input mode icon from <see cref="SeIconChar"/>.</summary>
+    private char inputModeIcon;
+
+    /// <summary>Undo range for modifying the buffer while composition is in progress.</summary>
     private (int Start, int End, int Cursor)? temporaryUndoSelection;
+
+    private bool updateInputLanguage = true;
+    private bool updateImeStatusAgain;
 
     [SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1003:Symbols should be spaced correctly", Justification = ".")]
     static DalamudIme()
@@ -87,7 +139,17 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     }
 
     [ServiceManager.ServiceConstructor]
-    private DalamudIme() => this.setPlatformImeDataDelegate = this.ImGuiSetPlatformImeData;
+    private DalamudIme(InterfaceManager.InterfaceManagerWithScene imws)
+    {
+        Debug.Assert(ImGuiHelpers.IsImGuiInitialized, "IMWS initialized but IsImGuiInitialized is false?");
+
+        this.interfaceManager = imws.Manager;
+        this.setPlatformImeDataDelegate = this.ImGuiSetPlatformImeData;
+
+        ImGui.GetIO().SetPlatformImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate);
+        this.interfaceManager.Draw += this.Draw;
+        this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
+    }
 
     /// <summary>
     /// Finalizes an instance of the <see cref="DalamudIme"/> class.
@@ -109,7 +171,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     /// <summary>
     /// Gets a value indicating whether to display the cursor in input text. This also deals with blinking.
     /// </summary>
-    internal static bool ShowCursorInInputText
+    private static bool ShowCursorInInputText
     {
         get
         {
@@ -126,63 +188,21 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Gets the cursor position, in screen coordinates.
-    /// </summary>
-    internal Vector2 CursorPos { get; private set; }
-
-    /// <summary>
-    /// Gets the associated viewport.
-    /// </summary>
-    internal ImGuiViewportPtr AssociatedViewport { get; private set; }
-
-    /// <summary>
-    /// Gets the index of the first imm candidate in relation to the full list.
-    /// </summary>
-    internal CANDIDATELIST ImmCandNative { get; private set; }
-
-    /// <summary>
-    /// Gets the imm candidates.
-    /// </summary>
-    internal List<string> ImmCand { get; private set; } = new();
-
-    /// <summary>
-    /// Gets the selected imm component.
-    /// </summary>
-    internal string ImmComp { get; private set; } = string.Empty;
-
-    /// <summary>
-    /// Gets the partial conversion from-range.
-    /// </summary>
-    internal int PartialConversionFrom { get; private set; }
-
-    /// <summary>
-    /// Gets the partial conversion to-range.
-    /// </summary>
-    internal int PartialConversionTo { get; private set; }
-
-    /// <summary>
-    /// Gets the cursor offset in the composition string.
-    /// </summary>
-    internal int CompositionCursorOffset { get; private set; }
-
-    /// <summary>
-    /// Gets a value indicating whether to display partial conversion status.
-    /// </summary>
-    internal bool ShowPartialConversion => this.PartialConversionFrom != 0 ||
-                                           this.PartialConversionTo != this.ImmComp.Length;
-
-    /// <summary>
-    /// Gets the input mode icon from <see cref="SeIconChar"/>.
-    /// </summary>
-    internal char InputModeIcon { get; private set; }
-
     private static ImGuiInputTextState* TextState =>
         (ImGuiInputTextState*)(ImGui.GetCurrentContext() + ImGuiContextOffsets.TextStateOffset);
 
+    /// <summary>Gets a value indicating whether to display partial conversion status.</summary>
+    private bool ShowPartialConversion => this.partialConversionFrom != 0 ||
+                                          this.partialConversionTo != this.compositionString.Length;
+
+    /// <summary>Gets a value indicating whether to draw.</summary>
+    private bool ShouldDraw =>
+        this.candidateStrings.Count != 0 || this.ShowPartialConversion || this.inputModeIcon != default;
+
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
+        this.interfaceManager.Draw -= this.Draw;
         this.ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);
     }
@@ -195,13 +215,13 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
     {
         foreach (var chr in str)
         {
-            if (HanRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
+            if (!this.EncounteredHan)
             {
-                if (Service<FontAtlasFactory>.Get()
-                                            ?.GetFdtReader(GameFontFamilyAndSize.Axis12)
-                                            .FindGlyph(chr) is null)
+                if (HanRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
                 {
-                    if (!this.EncounteredHan)
+                    if (Service<FontAtlasFactory>.Get()
+                                                 ?.GetFdtReader(GameFontFamilyAndSize.Axis12)
+                                                 .FindGlyph(chr) is null)
                     {
                         this.EncounteredHan = true;
                         Service<InterfaceManager>.Get().RebuildFonts();
@@ -209,120 +229,14 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                 }
             }
 
-            if (HangulRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
+            if (!this.EncounteredHangul)
             {
-                if (!this.EncounteredHangul)
+                if (HangulRange.Any(x => x.FirstCodePoint <= chr && chr < x.FirstCodePoint + x.Length))
                 {
                     this.EncounteredHangul = true;
                     Service<InterfaceManager>.Get().RebuildFonts();
                 }
             }
-        }
-    }
-
-    /// <summary>
-    /// Processes window messages.
-    /// </summary>
-    /// <param name="args">The arguments.</param>
-    public void ProcessImeMessage(WndProcEventArgs args)
-    {
-        if (!ImGuiHelpers.IsImGuiInitialized)
-            return;
-
-        // Are we not the target of text input?
-        if (!ImGui.GetIO().WantTextInput)
-            return;
-
-        var hImc = ImmGetContext(args.Hwnd);
-        if (hImc == nint.Zero)
-            return;
-
-        try
-        {
-            var invalidTarget = TextState->Id == 0 || (TextState->Flags & ImGuiInputTextFlags.ReadOnly) != 0;
-
-            switch (args.Message)
-            {
-                case WM.WM_IME_NOTIFY
-                    when (nint)args.WParam is IMN.IMN_OPENCANDIDATE or IMN.IMN_CLOSECANDIDATE
-                         or IMN.IMN_CHANGECANDIDATE:
-                    this.UpdateImeWindowStatus(hImc);
-                    args.SuppressWithValue(0);
-                    break;
-
-                case WM.WM_IME_STARTCOMPOSITION:
-                    args.SuppressWithValue(0);
-                    break;
-
-                case WM.WM_IME_COMPOSITION:
-                    if (invalidTarget)
-                        ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
-                    else
-                        this.ReplaceCompositionString(hImc, (uint)args.LParam);
-
-                    // Log.Verbose($"{nameof(WM.WM_IME_COMPOSITION)}({(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressWithValue(0);
-                    break;
-
-                case WM.WM_IME_ENDCOMPOSITION:
-                    // Log.Verbose($"{nameof(WM.WM_IME_ENDCOMPOSITION)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressWithValue(0);
-                    break;
-
-                case WM.WM_IME_CONTROL:
-                    // Log.Verbose($"{nameof(WM.WM_IME_CONTROL)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressWithValue(0);
-                    break;
-
-                case WM.WM_IME_REQUEST:
-                    // Log.Verbose($"{nameof(WM.WM_IME_REQUEST)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressWithValue(0);
-                    break;
-
-                case WM.WM_IME_SETCONTEXT:
-                    // Hide candidate and composition windows.
-                    args.LParam = (LPARAM)((nint)args.LParam & ~(ISC_SHOWUICOMPOSITIONWINDOW | 0xF));
-
-                    // Log.Verbose($"{nameof(WM.WM_IME_SETCONTEXT)}({(nint)args.WParam:X}, {(nint)args.LParam:X}): {this.ImmComp}");
-                    args.SuppressWithDefault();
-                    break;
-
-                case WM.WM_IME_NOTIFY:
-                    // Log.Verbose($"{nameof(WM.WM_IME_NOTIFY)}({(nint)args.WParam:X}): {this.ImmComp}");
-                    break;
-
-                case WM.WM_KEYDOWN when (int)args.WParam is
-                                        VK.VK_TAB
-                                        or VK.VK_PRIOR
-                                        or VK.VK_NEXT
-                                        or VK.VK_END
-                                        or VK.VK_HOME
-                                        or VK.VK_LEFT
-                                        or VK.VK_UP
-                                        or VK.VK_RIGHT
-                                        or VK.VK_DOWN
-                                        or VK.VK_RETURN:
-                    if (this.ImmCand.Count != 0)
-                    {
-                        this.ClearState(hImc);
-                        args.WParam = VK.VK_PROCESSKEY;
-                    }
-
-                    break;
-
-                case WM.WM_LBUTTONDOWN:
-                case WM.WM_RBUTTONDOWN:
-                case WM.WM_MBUTTONDOWN:
-                case WM.WM_XBUTTONDOWN:
-                    ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
-                    break;
-            }
-
-            this.UpdateInputLanguage(hImc);
-        }
-        finally
-        {
-            ImmReleaseContext(args.Hwnd, hImc);
         }
     }
 
@@ -343,14 +257,193 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
             ImGui.GetIO().SetPlatformImeDataFn = nint.Zero;
     }
 
+    private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
+    {
+        if (!ImGuiHelpers.IsImGuiInitialized)
+        {
+            this.updateInputLanguage = true;
+            return;
+        }
+
+        // Are we not the target of text input?
+        if (!ImGui.GetIO().WantTextInput)
+        {
+            this.updateInputLanguage = true;
+            return;
+        }
+
+        var hImc = ImmGetContext(args.Hwnd);
+        if (hImc == nint.Zero)
+        {
+            this.updateInputLanguage = true;
+            return;
+        }
+
+        try
+        {
+            var invalidTarget = TextState->Id == 0 || (TextState->Flags & ImGuiInputTextFlags.ReadOnly) != 0;
+
+#if IMEDEBUG
+            switch (args.Message)
+            {
+                case WM.WM_IME_NOTIFY:
+                    Log.Verbose($"{nameof(WM.WM_IME_NOTIFY)}({ImeDebug.ImnName((int)args.WParam)}, 0x{args.LParam:X})");
+                    break;
+                case WM.WM_IME_CONTROL:
+                    Log.Verbose(
+                        $"{nameof(WM.WM_IME_CONTROL)}({ImeDebug.ImcName((int)args.WParam)}, 0x{args.LParam:X})");
+                    break;
+                case WM.WM_IME_REQUEST:
+                    Log.Verbose(
+                        $"{nameof(WM.WM_IME_REQUEST)}({ImeDebug.ImrName((int)args.WParam)}, 0x{args.LParam:X})");
+                    break;
+                case WM.WM_IME_SELECT:
+                    Log.Verbose($"{nameof(WM.WM_IME_SELECT)}({(int)args.WParam != 0}, 0x{args.LParam:X})");
+                    break;
+                case WM.WM_IME_STARTCOMPOSITION:
+                    Log.Verbose($"{nameof(WM.WM_IME_STARTCOMPOSITION)}()");
+                    break;
+                case WM.WM_IME_COMPOSITION:
+                    Log.Verbose(
+                        $"{nameof(WM.WM_IME_COMPOSITION)}({(char)args.WParam}, {ImeDebug.GcsName((int)args.LParam)})");
+                    break;
+                case WM.WM_IME_COMPOSITIONFULL:
+                    Log.Verbose($"{nameof(WM.WM_IME_COMPOSITIONFULL)}()");
+                    break;
+                case WM.WM_IME_ENDCOMPOSITION:
+                    Log.Verbose($"{nameof(WM.WM_IME_ENDCOMPOSITION)}()");
+                    break;
+                case WM.WM_IME_CHAR:
+                    Log.Verbose($"{nameof(WM.WM_IME_CHAR)}({(char)args.WParam}, 0x{args.LParam:X})");
+                    break;
+                case WM.WM_IME_KEYDOWN:
+                    Log.Verbose($"{nameof(WM.WM_IME_KEYDOWN)}({(char)args.WParam}, 0x{args.LParam:X})");
+                    break;
+                case WM.WM_IME_KEYUP:
+                    Log.Verbose($"{nameof(WM.WM_IME_KEYUP)}({(char)args.WParam}, 0x{args.LParam:X})");
+                    break;
+                case WM.WM_IME_SETCONTEXT:
+                    Log.Verbose($"{nameof(WM.WM_IME_SETCONTEXT)}({(int)args.WParam != 0}, 0x{args.LParam:X})");
+                    break;
+            }
+#endif
+            if (this.updateInputLanguage
+                || (args.Message == WM.WM_IME_NOTIFY
+                    && (int)args.WParam
+                    is IMN.IMN_SETCONVERSIONMODE
+                    or IMN.IMN_OPENSTATUSWINDOW
+                    or IMN.IMN_CLOSESTATUSWINDOW))
+            {
+                this.UpdateInputLanguage(hImc);
+                this.updateInputLanguage = false;
+            }
+
+            if (this.updateImeStatusAgain)
+            {
+                this.ReplaceCompositionString(hImc, false);
+                this.UpdateCandidates(hImc);
+                this.updateImeStatusAgain = false;
+            }
+
+            switch (args.Message)
+            {
+                case WM.WM_IME_NOTIFY
+                    when (nint)args.WParam is IMN.IMN_OPENCANDIDATE or IMN.IMN_CLOSECANDIDATE
+                         or IMN.IMN_CHANGECANDIDATE:
+                    this.UpdateCandidates(hImc);
+                    this.updateImeStatusAgain = true;
+                    args.SuppressWithValue(0);
+                    break;
+
+                case WM.WM_IME_STARTCOMPOSITION:
+                    this.updateImeStatusAgain = true;
+                    args.SuppressWithValue(0);
+                    break;
+
+                case WM.WM_IME_COMPOSITION:
+                    if (invalidTarget)
+                        ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
+                    else
+                        this.ReplaceCompositionString(hImc, ((int)args.LParam & GCS.GCS_RESULTSTR) != 0);
+
+                    this.updateImeStatusAgain = true;
+                    args.SuppressWithValue(0);
+                    break;
+
+                case WM.WM_IME_ENDCOMPOSITION:
+                    this.ClearState(hImc, false);
+                    this.updateImeStatusAgain = true;
+                    args.SuppressWithValue(0);
+                    break;
+
+                case WM.WM_IME_CHAR:
+                case WM.WM_IME_KEYDOWN:
+                case WM.WM_IME_KEYUP:
+                case WM.WM_IME_CONTROL:
+                case WM.WM_IME_REQUEST:
+                    this.updateImeStatusAgain = true;
+                    args.SuppressWithValue(0);
+                    break;
+
+                case WM.WM_IME_SETCONTEXT:
+                    // Hide candidate and composition windows.
+                    args.LParam = (LPARAM)((nint)args.LParam & ~(ISC_SHOWUICOMPOSITIONWINDOW | 0xF));
+
+                    this.updateImeStatusAgain = true;
+                    args.SuppressWithDefault();
+                    break;
+
+                case WM.WM_IME_NOTIFY:
+                case WM.WM_IME_COMPOSITIONFULL:
+                case WM.WM_IME_SELECT:
+                    this.updateImeStatusAgain = true;
+                    break;
+
+                case WM.WM_KEYDOWN when (int)args.WParam is
+                                        VK.VK_TAB
+                                        or VK.VK_PRIOR
+                                        or VK.VK_NEXT
+                                        or VK.VK_END
+                                        or VK.VK_HOME
+                                        or VK.VK_LEFT
+                                        or VK.VK_UP
+                                        or VK.VK_RIGHT
+                                        or VK.VK_DOWN
+                                        or VK.VK_RETURN:
+                    if (this.candidateStrings.Count != 0)
+                    {
+                        this.ClearState(hImc);
+                        args.WParam = VK.VK_PROCESSKEY;
+                    }
+
+                    this.UpdateCandidates(hImc);
+                    break;
+
+                case WM.WM_KEYDOWN when (int)args.WParam is VK.VK_ESCAPE && this.candidateStrings.Count != 0:
+                    this.ClearState(hImc);
+                    args.SuppressWithDefault();
+                    break;
+
+                case WM.WM_LBUTTONDOWN:
+                case WM.WM_RBUTTONDOWN:
+                case WM.WM_MBUTTONDOWN:
+                case WM.WM_XBUTTONDOWN:
+                    ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
+                    break;
+            }
+        }
+        finally
+        {
+            ImmReleaseContext(args.Hwnd, hImc);
+        }
+    }
+
     private void UpdateInputLanguage(HIMC hImc)
     {
         uint conv, sent;
         ImmGetConversionStatus(hImc, &conv, &sent);
         var lang = GetKeyboardLayout(0);
         var open = ImmGetOpenStatus(hImc) != false;
-
-        // Log.Verbose($"{nameof(this.UpdateInputLanguage)}: conv={conv:X} sent={sent:X} open={open} lang={lang:X}");
 
         var native = (conv & 1) != 0;
         var katakana = (conv & 2) != 0;
@@ -359,49 +452,50 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
         {
             case LANG.LANG_KOREAN:
                 if (native)
-                    this.InputModeIcon = (char)SeIconChar.ImeKoreanHangul;
+                    this.inputModeIcon = (char)SeIconChar.ImeKoreanHangul;
                 else if (fullwidth)
-                    this.InputModeIcon = (char)SeIconChar.ImeAlphanumeric;
+                    this.inputModeIcon = (char)SeIconChar.ImeAlphanumeric;
                 else
-                    this.InputModeIcon = (char)SeIconChar.ImeAlphanumericHalfWidth;
+                    this.inputModeIcon = (char)SeIconChar.ImeAlphanumericHalfWidth;
                 break;
 
             case LANG.LANG_JAPANESE:
                 // wtf
                 // see the function called from: 48 8b 0d ?? ?? ?? ?? e8 ?? ?? ?? ?? 8b d8 e9 ?? 00 00 0
                 if (open && native && katakana && fullwidth)
-                    this.InputModeIcon = (char)SeIconChar.ImeKatakana;
+                    this.inputModeIcon = (char)SeIconChar.ImeKatakana;
                 else if (open && native && katakana)
-                    this.InputModeIcon = (char)SeIconChar.ImeKatakanaHalfWidth;
+                    this.inputModeIcon = (char)SeIconChar.ImeKatakanaHalfWidth;
                 else if (open && native)
-                    this.InputModeIcon = (char)SeIconChar.ImeHiragana;
+                    this.inputModeIcon = (char)SeIconChar.ImeHiragana;
                 else if (open && fullwidth)
-                    this.InputModeIcon = (char)SeIconChar.ImeAlphanumeric;
+                    this.inputModeIcon = (char)SeIconChar.ImeAlphanumeric;
                 else
-                    this.InputModeIcon = (char)SeIconChar.ImeAlphanumericHalfWidth;
+                    this.inputModeIcon = (char)SeIconChar.ImeAlphanumericHalfWidth;
                 break;
 
             case LANG.LANG_CHINESE:
                 if (native)
-                    this.InputModeIcon = (char)SeIconChar.ImeChineseHan;
+                    this.inputModeIcon = (char)SeIconChar.ImeChineseHan;
                 else
-                    this.InputModeIcon = (char)SeIconChar.ImeChineseLatin;
+                    this.inputModeIcon = (char)SeIconChar.ImeChineseLatin;
                 break;
 
             default:
-                this.InputModeIcon = default;
+                this.inputModeIcon = default;
                 break;
         }
-
-        this.UpdateImeWindowStatus(hImc);
     }
 
-    private void ReplaceCompositionString(HIMC hImc, uint comp)
+    private void ReplaceCompositionString(HIMC hImc, bool finalCommit)
     {
-        var finalCommit = (comp & GCS.GCS_RESULTSTR) != 0;
         var newString = finalCommit
                             ? ImmGetCompositionString(hImc, GCS.GCS_RESULTSTR)
                             : ImmGetCompositionString(hImc, GCS.GCS_COMPSTR);
+
+#if IMEDEBUG
+        Log.Verbose($"{nameof(this.ReplaceCompositionString)}({newString})");
+#endif
 
         this.ReflectCharacterEncounters(newString);
 
@@ -421,18 +515,18 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
 
         if (finalCommit)
         {
-            this.ClearState(hImc);
-            return;
+            this.ClearState(hImc, false);
+            newString = string.Empty;
         }
 
-        this.ImmComp = newString;
-        this.CompositionCursorOffset = ImmGetCompositionStringW(hImc, GCS.GCS_CURSORPOS, null, 0);
+        this.compositionString = newString;
+        this.compositionCursorOffset = ImmGetCompositionStringW(hImc, GCS.GCS_CURSORPOS, null, 0);
 
-        if ((comp & GCS.GCS_COMPATTR) != 0)
+        var attrLength = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, null, 0);
+        if (attrLength > 0)
         {
-            var attrLength = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, null, 0);
             var attrPtr = stackalloc byte[attrLength];
-            var attr = new Span<byte>(attrPtr, Math.Min(this.ImmComp.Length, attrLength));
+            var attr = new Span<byte>(attrPtr, Math.Min(this.compositionString.Length, attrLength));
             _ = ImmGetCompositionStringW(hImc, GCS.GCS_COMPATTR, attrPtr, (uint)attrLength);
             var l = 0;
             while (l < attr.Length && attr[l] is not ATTR_TARGET_CONVERTED and not ATTR_TARGET_NOTCONVERTED)
@@ -442,37 +536,41 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
             while (r < attr.Length && attr[r] is ATTR_TARGET_CONVERTED or ATTR_TARGET_NOTCONVERTED)
                 r++;
 
-            if (r == 0 || l == this.ImmComp.Length)
-                (l, r) = (0, this.ImmComp.Length);
+            if (r == 0 || l == this.compositionString.Length)
+                (l, r) = (0, this.compositionString.Length);
 
-            (this.PartialConversionFrom, this.PartialConversionTo) = (l, r);
+            (this.partialConversionFrom, this.partialConversionTo) = (l, r);
         }
         else
         {
-            this.PartialConversionFrom = 0;
-            this.PartialConversionTo = this.ImmComp.Length;
+            this.partialConversionFrom = 0;
+            this.partialConversionTo = this.compositionString.Length;
         }
 
-        this.UpdateImeWindowStatus(hImc);
+        this.UpdateCandidates(hImc);
     }
 
-    private void ClearState(HIMC hImc)
+    private void ClearState(HIMC hImc, bool invokeCancel = true)
     {
-        this.ImmComp = string.Empty;
-        this.PartialConversionFrom = this.PartialConversionTo = 0;
-        this.CompositionCursorOffset = 0;
+        this.compositionString = string.Empty;
+        this.partialConversionFrom = this.partialConversionTo = 0;
+        this.compositionCursorOffset = 0;
         this.temporaryUndoSelection = null;
         TextState->Stb.SelectStart = TextState->Stb.Cursor = TextState->Stb.SelectEnd;
-        ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
-        this.UpdateImeWindowStatus(default);
+        this.candidateStrings.Clear();
+        this.immCandNative = default;
+        if (invokeCancel)
+            ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_CANCEL, 0);
 
-        // Log.Information($"{nameof(this.ClearState)}");
+#if IMEDEBUG
+        Log.Information($"{nameof(this.ClearState)}({invokeCancel})");
+#endif
     }
 
-    private void LoadCand(HIMC hImc)
+    private void UpdateCandidates(HIMC hImc)
     {
-        this.ImmCand.Clear();
-        this.ImmCandNative = default;
+        this.candidateStrings.Clear();
+        this.immCandNative = default;
 
         if (hImc == default)
             return;
@@ -486,7 +584,7 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
             return;
 
         ref var candlist = ref *(CANDIDATELIST*)pStorage;
-        this.ImmCandNative = candlist;
+        this.immCandNative = candlist;
 
         if (candlist.dwPageSize == 0 || candlist.dwCount == 0)
             return;
@@ -495,39 +593,250 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
                      (int)candlist.dwPageStart,
                      (int)Math.Min(candlist.dwCount - candlist.dwPageStart, candlist.dwPageSize)))
         {
-            this.ImmCand.Add(new((char*)(pStorage + candlist.dwOffset[i])));
-            this.ReflectCharacterEncounters(this.ImmCand[^1]);
+            this.candidateStrings.Add(new((char*)(pStorage + candlist.dwOffset[i])));
+            this.ReflectCharacterEncounters(this.candidateStrings[^1]);
         }
-    }
-
-    private void UpdateImeWindowStatus(HIMC hImc)
-    {
-        if (Service<DalamudInterface>.GetNullable() is not { } di)
-            return;
-
-        this.LoadCand(hImc);
-        if (this.ImmCand.Count != 0 || this.ShowPartialConversion || this.InputModeIcon != default)
-            di.OpenImeWindow();
-        else
-            di.CloseImeWindow();
     }
 
     private void ImGuiSetPlatformImeData(ImGuiViewportPtr viewport, ImGuiPlatformImeDataPtr data)
     {
-        this.CursorPos = data.InputPos;
-        this.AssociatedViewport = data.WantVisible ? viewport : default;
+        this.cursorScreenPos = data.InputPos;
+        this.associatedViewport = data.WantVisible ? viewport : default;
     }
 
-    [ServiceManager.CallWhenServicesReady("Effectively waiting for cimgui context initialization.")]
-    private void ContinueConstruction(InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene)
+    private void Draw()
     {
-        if (!ImGuiHelpers.IsImGuiInitialized)
+        if (!this.ShouldDraw)
+            return;
+
+        if (Service<DalamudIme>.GetNullable() is not { } ime)
+            return;
+
+        var viewport = ime.associatedViewport;
+        if (viewport.NativePtr is null)
+            return;
+
+        var drawCand = ime.candidateStrings.Count != 0;
+        var drawConv = drawCand || ime.ShowPartialConversion;
+        var drawIme = ime.inputModeIcon != 0;
+        var imeIconFont = InterfaceManager.DefaultFont;
+
+        var pad = ImGui.GetStyle().WindowPadding;
+        var candTextSize = ImGui.CalcTextSize(ime.compositionString == string.Empty ? " " : ime.compositionString);
+
+        var native = ime.immCandNative;
+        var totalIndex = native.dwSelection + 1;
+        var totalSize = native.dwCount;
+
+        var pageStart = native.dwPageStart;
+        var pageIndex = (pageStart / ImePageSize) + 1;
+        var pageCount = (totalSize / ImePageSize) + 1;
+        var pageInfo = $"{totalIndex}/{totalSize} ({pageIndex}/{pageCount})";
+
+        // Calc the window size.
+        var maxTextWidth = 0f;
+        for (var i = 0; i < ime.candidateStrings.Count; i++)
         {
-            throw new InvalidOperationException(
-                $"Expected {nameof(InterfaceManager.InterfaceManagerWithScene)} to have initialized ImGui.");
+            var textSize = ImGui.CalcTextSize($"{i + 1}. {ime.candidateStrings[i]}");
+            maxTextWidth = maxTextWidth > textSize.X ? maxTextWidth : textSize.X;
         }
 
-        ImGui.GetIO().SetPlatformImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate);
+        maxTextWidth = maxTextWidth > ImGui.CalcTextSize(pageInfo).X ? maxTextWidth : ImGui.CalcTextSize(pageInfo).X;
+        maxTextWidth = maxTextWidth > ImGui.CalcTextSize(ime.compositionString).X
+                           ? maxTextWidth
+                           : ImGui.CalcTextSize(ime.compositionString).X;
+
+        var numEntries = (drawCand ? ime.candidateStrings.Count + 1 : 0) + 1 + (drawIme ? 1 : 0);
+        var spaceY = ImGui.GetStyle().ItemSpacing.Y;
+        var imeWindowHeight = (spaceY * (numEntries - 1)) + (candTextSize.Y * numEntries);
+        var windowSize = new Vector2(maxTextWidth, imeWindowHeight) + (pad * 2);
+
+        // 1. Figure out the expanding direction.
+        var expandUpward = ime.cursorScreenPos.Y + windowSize.Y > viewport.WorkPos.Y + viewport.WorkSize.Y;
+        var windowPos = ime.cursorScreenPos - pad;
+        if (expandUpward)
+        {
+            windowPos.Y -= windowSize.Y - candTextSize.Y - (pad.Y * 2);
+            if (drawIme)
+                windowPos.Y += candTextSize.Y + spaceY;
+        }
+        else
+        {
+            if (drawIme)
+                windowPos.Y -= candTextSize.Y + spaceY;
+        }
+
+        // 2. Contain within the viewport. Do not use clamp, as the target window might be too small.
+        if (windowPos.X < viewport.WorkPos.X)
+            windowPos.X = viewport.WorkPos.X;
+        else if (windowPos.X + windowSize.X > viewport.WorkPos.X + viewport.WorkSize.X)
+            windowPos.X = (viewport.WorkPos.X + viewport.WorkSize.X) - windowSize.X;
+        if (windowPos.Y < viewport.WorkPos.Y)
+            windowPos.Y = viewport.WorkPos.Y;
+        else if (windowPos.Y + windowSize.Y > viewport.WorkPos.Y + viewport.WorkSize.Y)
+            windowPos.Y = (viewport.WorkPos.Y + viewport.WorkSize.Y) - windowSize.Y;
+
+        var cursor = windowPos + pad;
+
+        // Draw the ime window.
+        var drawList = ImGui.GetForegroundDrawList(viewport);
+
+        // Draw the background rect for candidates.
+        if (drawCand)
+        {
+            Vector2 candRectLt, candRectRb;
+            if (!expandUpward)
+            {
+                candRectLt = windowPos + candTextSize with { X = 0 } + pad with { X = 0 };
+                candRectRb = windowPos + windowSize;
+                if (drawIme)
+                    candRectLt.Y += spaceY + candTextSize.Y;
+            }
+            else
+            {
+                candRectLt = windowPos;
+                candRectRb = windowPos + (windowSize - candTextSize with { X = 0 } - pad with { X = 0 });
+                if (drawIme)
+                    candRectRb.Y -= spaceY + candTextSize.Y;
+            }
+
+            drawList.AddRectFilled(
+                candRectLt,
+                candRectRb,
+                ImGui.GetColorU32(ImGuiCol.WindowBg),
+                ImGui.GetStyle().WindowRounding);
+        }
+
+        if (!expandUpward && drawIme)
+        {
+            for (var dx = -2; dx <= 2; dx++)
+            {
+                for (var dy = -2; dy <= 2; dy++)
+                {
+                    if (dx != 0 || dy != 0)
+                    {
+                        imeIconFont.RenderChar(
+                            drawList,
+                            imeIconFont.FontSize,
+                            cursor + new Vector2(dx, dy),
+                            ImGui.GetColorU32(ImGuiCol.WindowBg),
+                            ime.inputModeIcon);
+                    }
+                }
+            }
+
+            imeIconFont.RenderChar(
+                drawList,
+                imeIconFont.FontSize,
+                cursor,
+                ImGui.GetColorU32(ImGuiCol.Text),
+                ime.inputModeIcon);
+            cursor.Y += candTextSize.Y + spaceY;
+        }
+
+        if (!expandUpward && drawConv)
+        {
+            DrawTextBeingConverted();
+            cursor.Y += candTextSize.Y + spaceY;
+
+            // Add a separator.
+            drawList.AddLine(cursor, cursor + new Vector2(maxTextWidth, 0), ImGui.GetColorU32(ImGuiCol.Separator));
+        }
+
+        if (drawCand)
+        {
+            // Add the candidate words.
+            for (var i = 0; i < ime.candidateStrings.Count; i++)
+            {
+                var selected = i == (native.dwSelection % ImePageSize);
+                var color = ImGui.GetColorU32(ImGuiCol.Text);
+                if (selected)
+                    color = ImGui.GetColorU32(ImGuiCol.NavHighlight);
+
+                drawList.AddText(cursor, color, $"{i + 1}. {ime.candidateStrings[i]}");
+                cursor.Y += candTextSize.Y + spaceY;
+            }
+
+            // Add a separator
+            drawList.AddLine(cursor, cursor + new Vector2(maxTextWidth, 0), ImGui.GetColorU32(ImGuiCol.Separator));
+
+            // Add the pages infomation.
+            drawList.AddText(cursor, ImGui.GetColorU32(ImGuiCol.Text), pageInfo);
+            cursor.Y += candTextSize.Y + spaceY;
+        }
+
+        if (expandUpward && drawConv)
+        {
+            // Add a separator.
+            drawList.AddLine(cursor, cursor + new Vector2(maxTextWidth, 0), ImGui.GetColorU32(ImGuiCol.Separator));
+
+            DrawTextBeingConverted();
+            cursor.Y += candTextSize.Y + spaceY;
+        }
+
+        if (expandUpward && drawIme)
+        {
+            for (var dx = -2; dx <= 2; dx++)
+            {
+                for (var dy = -2; dy <= 2; dy++)
+                {
+                    if (dx != 0 || dy != 0)
+                    {
+                        imeIconFont.RenderChar(
+                            drawList,
+                            imeIconFont.FontSize,
+                            cursor + new Vector2(dx, dy),
+                            ImGui.GetColorU32(ImGuiCol.WindowBg),
+                            ime.inputModeIcon);
+                    }
+                }
+            }
+
+            imeIconFont.RenderChar(
+                drawList,
+                imeIconFont.FontSize,
+                cursor,
+                ImGui.GetColorU32(ImGuiCol.Text),
+                ime.inputModeIcon);
+        }
+
+        return;
+
+        void DrawTextBeingConverted()
+        {
+            // Draw the text background.
+            drawList.AddRectFilled(
+                cursor - (pad / 2),
+                cursor + candTextSize + (pad / 2),
+                ImGui.GetColorU32(ImGuiCol.WindowBg));
+
+            // If only a part of the full text is marked for conversion, then draw background for the part being edited.
+            if (ime.partialConversionFrom != 0 || ime.partialConversionTo != ime.compositionString.Length)
+            {
+                var part1 = ime.compositionString[..ime.partialConversionFrom];
+                var part2 = ime.compositionString[..ime.partialConversionTo];
+                var size1 = ImGui.CalcTextSize(part1);
+                var size2 = ImGui.CalcTextSize(part2);
+                drawList.AddRectFilled(
+                    cursor + size1 with { Y = 0 },
+                    cursor + size2,
+                    ImGui.GetColorU32(ImGuiCol.TextSelectedBg));
+            }
+
+            // Add the text being converted.
+            drawList.AddText(cursor, ImGui.GetColorU32(ImGuiCol.Text), ime.compositionString);
+
+            // Draw the caret inside the composition string.
+            if (DalamudIme.ShowCursorInInputText)
+            {
+                var partBeforeCaret = ime.compositionString[..ime.compositionCursorOffset];
+                var sizeBeforeCaret = ImGui.CalcTextSize(partBeforeCaret);
+                drawList.AddLine(
+                    cursor + sizeBeforeCaret with { Y = 0 },
+                    cursor + sizeBeforeCaret,
+                    ImGui.GetColorU32(ImGuiCol.Text));
+            }
+        }
     }
 
     /// <summary>
@@ -706,4 +1015,71 @@ internal sealed unsafe class DalamudIme : IDisposable, IServiceType
             return true;
         }
     }
+
+#if IMEDEBUG
+    private static class ImeDebug
+    {
+        private static readonly (int Value, string Name)[] GcsFields =
+        {
+            (GCS.GCS_COMPREADSTR, nameof(GCS.GCS_COMPREADSTR)),
+            (GCS.GCS_COMPREADATTR, nameof(GCS.GCS_COMPREADATTR)),
+            (GCS.GCS_COMPREADCLAUSE, nameof(GCS.GCS_COMPREADCLAUSE)),
+            (GCS.GCS_COMPSTR, nameof(GCS.GCS_COMPSTR)),
+            (GCS.GCS_COMPATTR, nameof(GCS.GCS_COMPATTR)),
+            (GCS.GCS_COMPCLAUSE, nameof(GCS.GCS_COMPCLAUSE)),
+            (GCS.GCS_CURSORPOS, nameof(GCS.GCS_CURSORPOS)),
+            (GCS.GCS_DELTASTART, nameof(GCS.GCS_DELTASTART)),
+            (GCS.GCS_RESULTREADSTR, nameof(GCS.GCS_RESULTREADSTR)),
+            (GCS.GCS_RESULTREADCLAUSE, nameof(GCS.GCS_RESULTREADCLAUSE)),
+            (GCS.GCS_RESULTSTR, nameof(GCS.GCS_RESULTSTR)),
+            (GCS.GCS_RESULTCLAUSE, nameof(GCS.GCS_RESULTCLAUSE)),
+        };
+
+        private static readonly IReadOnlyDictionary<int, string> ImnFields =
+            typeof(IMN)
+                .GetFields(BindingFlags.Static | BindingFlags.Public)
+                .Where(x => x.IsLiteral)
+                .ToDictionary(x => (int)x.GetRawConstantValue()!, x => x.Name);
+
+        public static string GcsName(int val)
+        {
+            var sb = new StringBuilder();
+            foreach (var (value, name) in GcsFields)
+            {
+                if ((val & value) != 0)
+                {
+                    if (sb.Length != 0)
+                        sb.Append(" | ");
+                    sb.Append(name);
+                    val &= ~value;
+                }
+            }
+
+            if (val != 0)
+            {
+                if (sb.Length != 0)
+                    sb.Append(" | ");
+                sb.Append($"0x{val:X}");
+            }
+
+            return sb.ToString();
+        }
+
+        public static string ImcName(int val) => ImnFields.TryGetValue(val, out var name) ? name : $"0x{val:X}";
+
+        public static string ImnName(int val) => ImnFields.TryGetValue(val, out var name) ? name : $"0x{val:X}";
+
+        public static string ImrName(int val) => val switch
+        {
+            IMR_CANDIDATEWINDOW => nameof(IMR_CANDIDATEWINDOW),
+            IMR_COMPOSITIONFONT => nameof(IMR_COMPOSITIONFONT),
+            IMR_COMPOSITIONWINDOW => nameof(IMR_COMPOSITIONWINDOW),
+            IMR_CONFIRMRECONVERTSTRING => nameof(IMR_CONFIRMRECONVERTSTRING),
+            IMR_DOCUMENTFEED => nameof(IMR_DOCUMENTFEED),
+            IMR_QUERYCHARPOSITION => nameof(IMR_QUERYCHARPOSITION),
+            IMR_RECONVERTSTRING => nameof(IMR_RECONVERTSTRING),
+            _ => $"0x{val:X}",
+        };
+    }
+#endif
 }

@@ -1,38 +1,12 @@
-﻿using System.Numerics;
+﻿using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal;
-
-/// <summary>
-/// Base interface for all Dalamud-owned texture wraps.
-/// </summary>
-public interface IDalamudTextureWrap : IDisposable
-{
-    /// <summary>
-    /// Gets a texture handle suitable for direct use with ImGui functions.
-    /// </summary>
-    IntPtr ImGuiHandle { get; }
-
-    /// <summary>
-    /// Gets the width of the texture.
-    /// </summary>
-    int Width { get; }
-
-    /// <summary>
-    /// Gets the height of the texture.
-    /// </summary>
-    int Height { get; }
-
-    /// <summary>
-    /// Gets the size vector of the texture using Width, Height.
-    /// </summary>
-    Vector2 Size => new(this.Width, this.Height);
-}
 
 /// <summary>
 /// Safety harness for ImGuiScene textures that will defer destruction until
 /// the end of the frame.
 /// </summary>
-public class DalamudTextureWrap : IDalamudTextureWrap
+public class DalamudTextureWrap : IDalamudTextureWrap, IDeferredDisposable
 {
     private readonly IDalamudTextureWrap inner;
 
@@ -56,18 +30,23 @@ public class DalamudTextureWrap : IDalamudTextureWrap
     /// </summary>
     public void Dispose()
     {
-        Service<InterfaceManager>.GetNullable()?.EnqueueDeferredDispose(this);
+        this.Dispose(true);
         GC.SuppressFinalize(this);
     }
 
     /// <summary>
     /// Actually dispose the wrapped texture.
     /// </summary>
-    internal void RealDispose() => this.inner.Dispose();
+    void IDeferredDisposable.RealDispose()
+    {
+        this.inner.Dispose();
+    }
 
-    /// <inheritdoc cref="ICloneable.Clone"/>
-    internal DalamudTextureWrap Clone() =>
-        this.inner is ICloneable cloneable
-            ? new DalamudTextureWrap((IDalamudTextureWrap)cloneable.Clone())
-            : throw new NotSupportedException();
+    private void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            Service<InterfaceManager>.GetNullable()?.EnqueueDeferredDispose(this);
+        }
+    }
 }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -9,7 +7,6 @@ using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
@@ -27,7 +24,7 @@ namespace Dalamud.Data;
 #pragma warning disable SA1015
 [ResolveVia<IDataManager>]
 #pragma warning restore SA1015
-internal sealed class DataManager : IDisposable, IServiceType, IDataManager
+internal sealed class DataManager : IInternalDisposableService, IDataManager
 {
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;
@@ -76,6 +73,9 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
                                 dalamud.StartInfo.TroubleshootingPackData);
                         this.HasModifiedGameDataFiles =
                             tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
+                        
+                        if (this.HasModifiedGameDataFiles)
+                            Log.Verbose("Game data integrity check failed!\n{TsData}", dalamud.StartInfo.TroubleshootingPackData);
                     }
                     catch
                     {
@@ -158,7 +158,7 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     #endregion
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.luminaCancellationTokenSource.Cancel();
     }
@@ -175,6 +175,6 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
             Success,
         }
 
-        public IndexIntegrityResult IndexIntegrity { get; set; }
+        public IndexIntegrityResult? IndexIntegrity { get; set; }
     }
 }

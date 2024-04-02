@@ -10,7 +10,7 @@ namespace Dalamud.Game.ClientState.Conditions;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed partial class Condition : IServiceType, ICondition
+internal sealed partial class Condition : IInternalDisposableService, ICondition
 {
     /// <summary>
     /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
@@ -21,6 +21,8 @@ internal sealed partial class Condition : IServiceType, ICondition
     private readonly Framework framework = Service<Framework>.Get();
     
     private readonly bool[] cache = new bool[MaxConditionEntries];
+
+    private bool isDisposed;
 
     [ServiceManager.ServiceConstructor]
     private Condition(ClientState clientState)
@@ -35,6 +37,9 @@ internal sealed partial class Condition : IServiceType, ICondition
         this.framework.Update += this.FrameworkUpdate;
     }
     
+    /// <summary>Finalizes an instance of the <see cref="Condition" /> class.</summary>
+    ~Condition() => this.Dispose(false);
+
     /// <inheritdoc/>
     public event ICondition.ConditionChangeDelegate? ConditionChange;
 
@@ -59,6 +64,9 @@ internal sealed partial class Condition : IServiceType, ICondition
     /// <inheritdoc/>
     public bool this[ConditionFlag flag]
         => this[(int)flag];
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService() => this.Dispose(true);
 
     /// <inheritdoc/>
     public bool Any()
@@ -89,6 +97,19 @@ internal sealed partial class Condition : IServiceType, ICondition
         return false;
     }
 
+    private void Dispose(bool disposing)
+    {
+        if (this.isDisposed)
+            return;
+
+        if (disposing)
+        {
+            this.framework.Update -= this.FrameworkUpdate;
+        }
+
+        this.isDisposed = true;
+    }
+
     private void FrameworkUpdate(IFramework unused)
     {
         for (var i = 0; i < MaxConditionEntries; i++)
@@ -113,44 +134,6 @@ internal sealed partial class Condition : IServiceType, ICondition
 }
 
 /// <summary>
-/// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
-/// </summary>
-internal sealed partial class Condition : IDisposable
-{
-    private bool isDisposed;
-
-    /// <summary>
-    /// Finalizes an instance of the <see cref="Condition" /> class.
-    /// </summary>
-    ~Condition()
-    {
-        this.Dispose(false);
-    }
-
-    /// <summary>
-    /// Disposes this instance, alongside its hooks.
-    /// </summary>
-    void IDisposable.Dispose()
-    {
-        GC.SuppressFinalize(this);
-        this.Dispose(true);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (this.isDisposed)
-            return;
-
-        if (disposing)
-        {
-            this.framework.Update -= this.FrameworkUpdate;
-        }
-
-        this.isDisposed = true;
-    }
-}
-
-/// <summary>
 /// Plugin-scoped version of a Condition service.
 /// </summary>
 [PluginInterface]
@@ -159,7 +142,7 @@ internal sealed partial class Condition : IDisposable
 #pragma warning disable SA1015
 [ResolveVia<ICondition>]
 #pragma warning restore SA1015
-internal class ConditionPluginScoped : IDisposable, IServiceType, ICondition
+internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 {
     [ServiceManager.ServiceDependency]
     private readonly Condition conditionService = Service<Condition>.Get();
@@ -185,7 +168,7 @@ internal class ConditionPluginScoped : IDisposable, IServiceType, ICondition
     public bool this[int flag] => this.conditionService[flag];
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.conditionService.ConditionChange -= this.ConditionChangedForward;
 

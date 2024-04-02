@@ -46,7 +46,7 @@ namespace Dalamud.Interface.Internal;
 /// This plugin implements all of the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class DalamudInterface : IDisposable, IServiceType
+internal class DalamudInterface : IInternalDisposableService
 {
     private const float CreditsDarkeningMaxAlpha = 0.8f;
 
@@ -61,7 +61,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     private readonly ComponentDemoWindow componentDemoWindow;
     private readonly DataWindow dataWindow;
     private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
-    private readonly DalamudImeWindow imeWindow;
     private readonly ConsoleWindow consoleWindow;
     private readonly PluginStatWindow pluginStatWindow;
     private readonly PluginInstallerWindow pluginWindow;
@@ -114,7 +113,6 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
         this.dataWindow = new DataWindow() { IsOpen = false };
         this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow() { IsOpen = false };
-        this.imeWindow = new DalamudImeWindow() { IsOpen = false };
         this.consoleWindow = new ConsoleWindow(configuration) { IsOpen = configuration.LogOpenAtStartup };
         this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
         this.pluginWindow = new PluginInstallerWindow(pluginImageCache, configuration) { IsOpen = false };
@@ -142,7 +140,6 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.AddWindow(this.componentDemoWindow);
         this.WindowSystem.AddWindow(this.dataWindow);
         this.WindowSystem.AddWindow(this.gamepadModeNotifierWindow);
-        this.WindowSystem.AddWindow(this.imeWindow);
         this.WindowSystem.AddWindow(this.consoleWindow);
         this.WindowSystem.AddWindow(this.pluginStatWindow);
         this.WindowSystem.AddWindow(this.pluginWindow);
@@ -212,7 +209,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.interfaceManager.Draw -= this.OnDraw;
 
@@ -264,11 +261,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// Opens the <see cref="GamepadModeNotifierWindow"/>.
     /// </summary>
     public void OpenGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = true;
-
-    /// <summary>
-    /// Opens the <see cref="DalamudImeWindow"/>.
-    /// </summary>
-    public void OpenImeWindow() => this.imeWindow.IsOpen = true;
 
     /// <summary>
     /// Opens the <see cref="ConsoleWindow"/>.
@@ -366,11 +358,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     #region Close
 
     /// <summary>
-    /// Closes the <see cref="DalamudImeWindow"/>.
-    /// </summary>
-    public void CloseImeWindow() => this.imeWindow.IsOpen = false;
-
-    /// <summary>
     /// Closes the <see cref="GamepadModeNotifierWindow"/>.
     /// </summary>
     public void CloseGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = false;
@@ -416,11 +403,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// Toggles the <see cref="GamepadModeNotifierWindow"/>.
     /// </summary>
     public void ToggleGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.Toggle();
-
-    /// <summary>
-    /// Toggles the <see cref="DalamudImeWindow"/>.
-    /// </summary>
-    public void ToggleImeWindow() => this.imeWindow.Toggle();
 
     /// <summary>
     /// Toggles the <see cref="ConsoleWindow"/>.

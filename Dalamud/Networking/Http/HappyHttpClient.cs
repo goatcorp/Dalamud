@@ -12,7 +12,7 @@ namespace Dalamud.Networking.Http;
 /// awareness.
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService]
-internal class HappyHttpClient : IDisposable, IServiceType
+internal class HappyHttpClient : IInternalDisposableService
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="HappyHttpClient"/> class.
@@ -58,7 +58,7 @@ internal class HappyHttpClient : IDisposable, IServiceType
     public HappyEyeballsCallback SharedHappyEyeballsCallback { get; }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.SharedHttpClient.Dispose();
         this.SharedHappyEyeballsCallback.Dispose();

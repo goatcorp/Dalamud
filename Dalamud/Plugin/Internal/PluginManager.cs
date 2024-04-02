@@ -55,7 +55,7 @@ namespace Dalamud.Plugin.Internal;
 [InherentDependency<DataShare>]
 
 #pragma warning restore SA1015
-internal partial class PluginManager : IDisposable, IServiceType
+internal partial class PluginManager : IInternalDisposableService
 {
     /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
@@ -145,7 +145,8 @@ internal partial class PluginManager : IDisposable, IServiceType
         this.configuration.PluginTestingOptIns ??= new();
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
-        this.ApplyPatches();
+        // NET8 CHORE
+        // this.ApplyPatches();
 
         registerStartupBlocker(
             Task.Run(this.LoadAndStartLoadSyncPlugins),
@@ -370,7 +371,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         var disposablePlugins =
             this.installedPluginsList.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
@@ -410,11 +411,21 @@ internal partial class PluginManager : IDisposable, IServiceType
             // Now that we've waited enough, dispose the whole plugin.
             // Since plugins should have been unloaded above, this should be done quickly.
             foreach (var plugin in disposablePlugins)
-                plugin.ExplicitDisposeIgnoreExceptions($"Error disposing {plugin.Name}", Log);
+            {
+                try
+                {
+                    plugin.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, $"Error disposing {plugin.Name}");
+                }
+            }
         }
 
-        this.assemblyLocationMonoHook?.Dispose();
-        this.assemblyCodeBaseMonoHook?.Dispose();
+        // NET8 CHORE
+        // this.assemblyLocationMonoHook?.Dispose();
+        // this.assemblyCodeBaseMonoHook?.Dispose();
     }
 
     /// <summary>
@@ -459,10 +470,18 @@ internal partial class PluginManager : IDisposable, IServiceType
                 try
                 {
                     var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
-                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-
-                    if (!manifestFile.Exists)
+                    if (!dllFile.Exists)
+                    {
+                        Log.Error("No DLL found for plugin at {Path}", versionDir.FullName);
                         continue;
+                    }
+                    
+                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+                    if (!manifestFile.Exists)
+                    {
+                        Log.Error("No manifest for plugin at {Path}", dllFile.FullName);
+                        continue;
+                    }
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
                     if (manifest == null)
@@ -483,6 +502,12 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
 
             this.configuration.QueueSave();
+            
+            if (versionsDefs.Count == 0)
+            {
+                Log.Verbose("No versions found for plugin: {Name}", pluginDir.Name);
+                continue;
+            }
 
             try
             {
@@ -833,7 +858,8 @@ internal partial class PluginManager : IDisposable, IServiceType
             this.installedPluginsList.Remove(plugin);
         }
 
-        PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+        // NET8 CHORE
+        // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
 
         this.NotifyinstalledPluginsListChanged();
         this.NotifyAvailablePluginsChanged();
@@ -1329,12 +1355,25 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             try
             {
-                // We don't need to apply, it doesn't matter
-                await this.profileManager.DefaultProfile.RemoveByInternalNameAsync(repoManifest.InternalName, false);
+                // Only remove entries from the default profile that are NOT currently tied to an active LocalPlugin
+                var guidsToRemove = this.profileManager.DefaultProfile.Plugins
+                                        .Where(x => this.InstalledPlugins.All(y => y.Manifest.WorkingPluginId != x.WorkingPluginId))
+                                        .Select(x => x.WorkingPluginId)
+                                        .ToArray();
+
+                if (guidsToRemove.Length != 0)
+                {
+                    Log.Verbose("Removing {Cnt} orphaned entries from default profile", guidsToRemove.Length);
+                    foreach (var guid in guidsToRemove)
+                    {
+                        // We don't need to apply, it doesn't matter
+                        await this.profileManager.DefaultProfile.RemoveAsync(guid, false, false);
+                    }
+                }
             }
-            catch (ProfileOperationException)
+            catch (ProfileOperationException ex)
             {
-                // ignored
+                Log.Error(ex, "Error during default profile cleanup");
             }
         }
         else
@@ -1574,7 +1613,8 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
             catch (InvalidPluginException)
             {
-                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                // NET8 CHORE
+                // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                 throw;
             }
             catch (BannedPluginException)
@@ -1620,7 +1660,8 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else
                 {
-                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                    // NET8 CHORE
+                    // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                     throw;
                 }
             }
@@ -1747,6 +1788,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 }
 
+// NET8 CHORE
+/*
 /// <summary>
 /// Class responsible for loading and unloading plugins.
 /// This contains the assembly patching functionality to resolve assembly locations.
@@ -1854,3 +1897,4 @@ internal partial class PluginManager
         this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
     }
 }
+*/

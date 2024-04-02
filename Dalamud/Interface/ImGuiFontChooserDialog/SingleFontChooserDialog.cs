@@ -9,6 +9,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -84,11 +85,22 @@ public sealed class SingleFontChooserDialog : IDisposable
     private IFontHandle? fontHandle;
     private SingleFontSpec selectedFont;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.
-    /// </summary>
+    private bool popupPositionChanged;
+    private bool popupSizeChanged;
+    private Vector2 popupPosition = new(float.NaN);
+    private Vector2 popupSize = new(float.NaN);
+
+    /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
     /// <param name="newAsyncAtlas">A new instance of <see cref="IFontAtlas"/> created using
     /// <see cref="FontAtlasAutoRebuildMode.Async"/> as its auto-rebuild mode.</param>
+    /// <remarks>The passed instance of <paramref see="newAsyncAtlas"/> will be disposed after use. If you pass an atlas
+    /// that is already being used, then all the font handles under the passed atlas will be invalidated upon disposing
+    /// this font chooser. Consider using <see cref="SingleFontChooserDialog(UiBuilder, bool, string?)"/> for automatic
+    /// handling of font atlas derived from a <see cref="UiBuilder"/>, or even <see cref="CreateAuto"/> for automatic
+    /// registration and unregistration of <see cref="Draw"/> event handler in addition to automatic disposal of this
+    /// class and the temporary font atlas for this font chooser dialog.</remarks>
+    [Obsolete("See remarks, and use the other constructor.", false)]
+    [Api10ToDo("Make private.")]
     public SingleFontChooserDialog(IFontAtlas newAsyncAtlas)
     {
         this.counter = Interlocked.Increment(ref counterStatic);
@@ -98,6 +110,39 @@ public sealed class SingleFontChooserDialog : IDisposable
         this.selectedFont = new() { FontId = DalamudDefaultFontAndFamilyId.Instance };
         Encoding.UTF8.GetBytes("Font preview.\n0123456789!", this.fontPreviewText);
     }
+
+#pragma warning disable CS0618 // Type or member is obsolete
+    // TODO: Api10ToDo; Remove this pragma warning disable line
+    
+    /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
+    /// <param name="uiBuilder">The relevant instance of UiBuilder.</param>
+    /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
+    /// <param name="debugAtlasName">Atlas name for debugging purposes.</param>
+    /// <remarks>
+    /// <para>The passed <see cref="UiBuilder"/> is only used for creating a temporary font atlas. It will not
+    /// automatically register a hander for <see cref="UiBuilder.Draw"/>.</para>
+    /// <para>Consider using <see cref="CreateAuto"/> for automatic registration and unregistration of
+    /// <see cref="Draw"/> event handler in addition to automatic disposal of this class and the temporary font atlas
+    /// for this font chooser dialog.</para>
+    /// </remarks>
+    public SingleFontChooserDialog(UiBuilder uiBuilder, bool isGlobalScaled = true, string? debugAtlasName = null)
+        : this(uiBuilder.CreateFontAtlas(FontAtlasAutoRebuildMode.Async, isGlobalScaled, debugAtlasName))
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
+    /// <param name="factory">An instance of <see cref="FontAtlasFactory"/>.</param>
+    /// <param name="debugAtlasName">The temporary atlas name.</param>
+    internal SingleFontChooserDialog(FontAtlasFactory factory, string debugAtlasName)
+        : this(factory.CreateFontAtlas(debugAtlasName, FontAtlasAutoRebuildMode.Async))
+    {
+    }
+    
+#pragma warning restore CS0618 // Type or member is obsolete
+    // TODO: Api10ToDo; Remove this pragma warning restore line
+
+    /// <summary>Called when the selected font spec has changed.</summary>
+    public event Action<SingleFontSpec>? SelectedFontSpecChanged;
 
     /// <summary>
     /// Gets or sets the title of this font chooser dialog popup.
@@ -153,6 +198,8 @@ public sealed class SingleFontChooserDialog : IDisposable
             this.useAdvancedOptions |= Math.Abs(value.LineHeight - 1f) > 0.000001;
             this.useAdvancedOptions |= value.GlyphOffset != default;
             this.useAdvancedOptions |= value.LetterSpacing != 0f;
+
+            this.SelectedFontSpecChanged?.Invoke(this.selectedFont);
         }
     }
 
@@ -166,15 +213,55 @@ public sealed class SingleFontChooserDialog : IDisposable
     /// </summary>
     public bool IgnorePreviewGlobalScale { get; set; }
 
-    /// <summary>
-    /// Creates a new instance of <see cref="SingleFontChooserDialog"/> that will automatically draw and dispose itself as
-    /// needed.
+    /// <summary>Gets or sets a value indicating whether this popup should be modal, blocking everything behind from
+    /// being interacted.</summary>
+    /// <remarks>If <c>true</c>, then <see cref="ImGui.BeginPopupModal(string, ref bool, ImGuiWindowFlags)"/> will be
+    /// used. Otherwise, <see cref="ImGui.Begin(string, ref bool, ImGuiWindowFlags)"/> will be used.</remarks>
+    public bool IsModal { get; set; } = true;
+
+    /// <summary>Gets or sets the window flags.</summary>
+    public ImGuiWindowFlags WindowFlags { get; set; }
+
+    /// <summary>Gets or sets the popup window position.</summary>
+    /// <remarks>
+    /// <para>Setting the position only works before the first call to <see cref="Draw"/>.</para>
+    /// <para>If any of the coordinates are <see cref="float.NaN"/>, default position will be used.</para>
+    /// <para>The position will be clamped into the work area of the selected monitor.</para>
+    /// </remarks>
+    public Vector2 PopupPosition
+    {
+        get => this.popupPosition;
+        set
+        {
+            this.popupPositionChanged = true;
+            this.popupPosition = value;
+        }
+    }
+
+    /// <summary>Gets or sets the popup window size.</summary>
+    /// <remarks>
+    /// <para>Setting the size only works before the first call to <see cref="Draw"/>.</para>
+    /// <para>If any of the coordinates are <see cref="float.NaN"/>, default size will be used.</para>
+    /// <para>The size will be clamped into the work area of the selected monitor.</para>
+    /// </remarks>
+    public Vector2 PopupSize
+    {
+        get => this.popupSize;
+        set
+        {
+            this.popupSizeChanged = true;
+            this.popupSize = value;
+        }
+    }
+
+    /// <summary>Creates a new instance of <see cref="SingleFontChooserDialog"/> that will automatically draw and
+    /// dispose itself as needed; calling <see cref="Draw"/> and <see cref="Dispose"/> are handled automatically.
     /// </summary>
     /// <param name="uiBuilder">An instance of <see cref="UiBuilder"/>.</param>
     /// <returns>The new instance of <see cref="SingleFontChooserDialog"/>.</returns>
     public static SingleFontChooserDialog CreateAuto(UiBuilder uiBuilder)
     {
-        var fcd = new SingleFontChooserDialog(uiBuilder.CreateFontAtlas(FontAtlasAutoRebuildMode.Async));
+        var fcd = new SingleFontChooserDialog(uiBuilder);
         uiBuilder.Draw += fcd.Draw;
         fcd.tcs.Task.ContinueWith(
             r =>
@@ -185,6 +272,14 @@ public sealed class SingleFontChooserDialog : IDisposable
             });
 
         return fcd;
+    }
+
+    /// <summary>Gets the default popup size before clamping to monitor work area.</summary>
+    /// <returns>The default popup size.</returns>
+    public static Vector2 GetDefaultPopupSizeNonClamped()
+    {
+        ThreadSafety.AssertMainThread();
+        return new Vector2(40, 30) * ImGui.GetTextLineHeight();
     }
 
     /// <inheritdoc/> 
@@ -204,13 +299,28 @@ public sealed class SingleFontChooserDialog : IDisposable
         ImGui.GetIO().WantTextInput = false;
     }
 
+    /// <summary>Sets <see cref="PopupSize"/> and <see cref="PopupPosition"/> to be at the center of the current window
+    /// being drawn.</summary>
+    /// <param name="preferredPopupSize">The preferred popup size.</param>
+    public void SetPopupPositionAndSizeToCurrentWindowCenter(Vector2 preferredPopupSize)
+    {
+        ThreadSafety.AssertMainThread();
+        this.PopupSize = preferredPopupSize;
+        this.PopupPosition = ImGui.GetWindowPos() + ((ImGui.GetWindowSize() - preferredPopupSize) / 2);
+    }
+
+    /// <summary>Sets <see cref="PopupSize"/> and <see cref="PopupPosition"/> to be at the center of the current window
+    /// being drawn.</summary>
+    public void SetPopupPositionAndSizeToCurrentWindowCenter() =>
+        this.SetPopupPositionAndSizeToCurrentWindowCenter(GetDefaultPopupSizeNonClamped());
+
     /// <summary>
     /// Draws this dialog.
     /// </summary>
     public void Draw()
     {
-        if (this.firstDraw)
-            ImGui.OpenPopup(this.popupImGuiName);
+        const float popupMinWidth = 320;
+        const float popupMinHeight = 240;
 
         ImGui.GetIO().WantCaptureKeyboard = true;
         ImGui.GetIO().WantTextInput = true;
@@ -220,12 +330,70 @@ public sealed class SingleFontChooserDialog : IDisposable
             return;
         }
 
-        var open = true;
-        ImGui.SetNextWindowSize(new(640, 480), ImGuiCond.Appearing);
-        if (!ImGui.BeginPopupModal(this.popupImGuiName, ref open) || !open)
+        if (this.firstDraw)
         {
-            this.Cancel();
-            return;
+            if (this.IsModal)
+                ImGui.OpenPopup(this.popupImGuiName);
+        }
+
+        if (this.firstDraw || this.popupPositionChanged || this.popupSizeChanged)
+        {
+            var preferProvidedSize = !float.IsNaN(this.popupSize.X) && !float.IsNaN(this.popupSize.Y);
+            var size = preferProvidedSize ? this.popupSize : GetDefaultPopupSizeNonClamped();
+            size.X = Math.Max(size.X, popupMinWidth);
+            size.Y = Math.Max(size.Y, popupMinHeight);
+
+            var preferProvidedPos = !float.IsNaN(this.popupPosition.X) && !float.IsNaN(this.popupPosition.Y);
+            var monitorLocatorPos = preferProvidedPos ? this.popupPosition + (size / 2) : ImGui.GetMousePos();
+
+            var monitors = ImGui.GetPlatformIO().Monitors;
+            var preferredMonitor = 0;
+            var preferredDistance = GetDistanceFromMonitor(monitorLocatorPos, monitors[0]);
+            for (var i = 1; i < monitors.Size; i++)
+            {
+                var distance = GetDistanceFromMonitor(monitorLocatorPos, monitors[i]);
+                if (distance < preferredDistance)
+                {
+                    preferredMonitor = i;
+                    preferredDistance = distance;
+                }
+            }
+
+            var lt = monitors[preferredMonitor].WorkPos;
+            var workSize = monitors[preferredMonitor].WorkSize;
+            size.X = Math.Min(size.X, workSize.X);
+            size.Y = Math.Min(size.Y, workSize.Y);
+            var rb = (lt + workSize) - size;
+
+            var pos =
+                preferProvidedPos
+                    ? new(Math.Clamp(this.PopupPosition.X, lt.X, rb.X), Math.Clamp(this.PopupPosition.Y, lt.Y, rb.Y))
+                    : (lt + rb) / 2;
+
+            ImGui.SetNextWindowSize(size, ImGuiCond.Always);
+            ImGui.SetNextWindowPos(pos, ImGuiCond.Always);
+            this.popupPositionChanged = this.popupSizeChanged = false;
+        }
+
+        ImGui.SetNextWindowSizeConstraints(new(popupMinWidth, popupMinHeight), new(float.MaxValue));
+        if (this.IsModal)
+        {
+            var open = true;
+            if (!ImGui.BeginPopupModal(this.popupImGuiName, ref open, this.WindowFlags) || !open)
+            {
+                this.Cancel();
+                return;
+            }
+        }
+        else
+        {
+            var open = true;
+            if (!ImGui.Begin(this.popupImGuiName, ref open, this.WindowFlags) || !open)
+            {
+                ImGui.End();
+                this.Cancel();
+                return;
+            }
         }
 
         var framePad = ImGui.GetStyle().FramePadding;
@@ -261,10 +429,34 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         ImGui.EndChild();
 
-        ImGui.EndPopup();
+        this.popupPosition = ImGui.GetWindowPos();
+        this.popupSize = ImGui.GetWindowSize();
+        if (this.IsModal)
+            ImGui.EndPopup();
+        else
+            ImGui.End();
 
         this.firstDraw = false;
         this.firstDrawAfterRefresh = false;
+    }
+
+    private static float GetDistanceFromMonitor(Vector2 point, ImGuiPlatformMonitorPtr monitor)
+    {
+        var lt = monitor.MainPos;
+        var rb = monitor.MainPos + monitor.MainSize;
+        var xoff =
+            point.X < lt.X
+                ? lt.X - point.X
+                : point.X > rb.X
+                    ? point.X - rb.X
+                    : 0;
+        var yoff =
+            point.Y < lt.Y
+                ? lt.Y - point.Y
+                : point.Y > rb.Y
+                    ? point.Y - rb.Y
+                    : 0;
+        return MathF.Sqrt((xoff * xoff) + (yoff * yoff));
     }
 
     private void DrawChoices()
@@ -338,15 +530,20 @@ public sealed class SingleFontChooserDialog : IDisposable
             }
         }
 
-        if (this.IgnorePreviewGlobalScale)
+        if (this.fontHandle is null)
         {
-            this.fontHandle ??= this.selectedFont.CreateFontHandle(
-                this.atlas,
-                tk => tk.OnPreBuild(e => e.SetFontScaleMode(e.Font, FontScaleMode.UndoGlobalScale)));
-        }
-        else
-        {
-            this.fontHandle ??= this.selectedFont.CreateFontHandle(this.atlas);
+            if (this.IgnorePreviewGlobalScale)
+            {
+                this.fontHandle = this.selectedFont.CreateFontHandle(
+                    this.atlas,
+                    tk => tk.OnPreBuild(e => e.SetFontScaleMode(e.Font, FontScaleMode.UndoGlobalScale)));
+            }
+            else
+            {
+                this.fontHandle = this.selectedFont.CreateFontHandle(this.atlas);
+            }
+
+            this.SelectedFontSpecChanged?.InvokeSafely(this.selectedFont);
         }
 
         if (this.fontHandle is null)

@@ -27,7 +27,7 @@ namespace Dalamud.Storage.Assets;
 #pragma warning disable SA1015
 [ResolveVia<IDalamudAssetManager>]
 #pragma warning restore SA1015
-internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudAssetManager
+internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamudAssetManager
 {
     private const int DownloadAttemptCount = 10;
     private const int RenameAttemptCount = 10;
@@ -67,7 +67,13 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                         .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
                         .Select(this.CreateStreamAsync)
                         .Select(x => x.ToContentDisposedTask()))
-                .ContinueWith(_ => loadTimings.Dispose()),
+                .ContinueWith(
+                    r =>
+                    {
+                        loadTimings.Dispose();
+                        return r;
+                    })
+                .Unwrap(),
             "Prevent Dalamud from loading more stuff, until we've ensured that all required assets are available.");
 
         Task.WhenAll(
@@ -75,7 +81,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                 .Where(x => x is not DalamudAsset.Empty4X4)
                 .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
                 .Select(this.CreateStreamAsync)
-                .Select(x => x.ToContentDisposedTask()))
+                .Select(x => x.ToContentDisposedTask(true)))
             .ContinueWith(r => Log.Verbose($"Optional assets load state: {r}"));
     }
 
@@ -83,7 +89,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
     public IDalamudTextureWrap Empty4X4 => this.GetDalamudTextureWrap(DalamudAsset.Empty4X4);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         lock (this.syncRoot)
         {
@@ -99,6 +105,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                  .Concat(this.fileStreams.Values)
                  .Concat(this.textureWraps.Values)
                  .Where(x => x is not null)
+                 .Select(x => x.ContinueWith(r => { _ = r.Exception; }))
                  .ToArray());
         this.scopedFinalizer.Dispose();
     }
@@ -194,12 +201,14 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
 
                         try
                         {
-                            await using var tempPathStream = File.Open(tempPath, FileMode.Create, FileAccess.Write);
-                            await url.DownloadAsync(
-                                this.httpClient.SharedHttpClient,
-                                tempPathStream,
-                                this.cancellationTokenSource.Token);
-                            tempPathStream.Dispose();
+                            await using (var tempPathStream = File.Open(tempPath, FileMode.Create, FileAccess.Write))
+                            {
+                                await url.DownloadAsync(
+                                    this.httpClient.SharedHttpClient,
+                                    tempPathStream,
+                                    this.cancellationTokenSource.Token);
+                            }
+
                             for (var j = RenameAttemptCount; ; j--)
                             {
                                 try
@@ -265,7 +274,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
     /// <inheritdoc/>
     [Pure]
     public IDalamudTextureWrap GetDalamudTextureWrap(DalamudAsset asset) =>
-        ExtractResult(this.GetDalamudTextureWrapAsync(asset));
+        this.GetDalamudTextureWrapAsync(asset).Result;
 
     /// <inheritdoc/>
     [Pure]
@@ -332,8 +341,6 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
             }
         }
     }
-
-    private static T ExtractResult<T>(Task<T> t) => t.IsCompleted ? t.Result : t.GetAwaiter().GetResult();
 
     private Task<TOut> TransformImmediate<TIn, TOut>(Task<TIn> task, Func<TIn, TOut> transformer)
     {

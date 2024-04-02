@@ -29,7 +29,7 @@ namespace Dalamud.Interface.Internal;
 [ResolveVia<ITextureProvider>]
 [ResolveVia<ITextureSubstitutionProvider>]
 #pragma warning restore SA1015
-internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITextureSubstitutionProvider
+internal class TextureManager : IInternalDisposableService, ITextureProvider, ITextureSubstitutionProvider
 {
     private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
     private const string HighResolutionIconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}_hr1.tex";
@@ -272,7 +272,7 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
     }
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.framework.Update -= this.FrameworkOnUpdate;
         

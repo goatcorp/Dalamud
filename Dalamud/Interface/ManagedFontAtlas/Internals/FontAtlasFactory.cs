@@ -28,7 +28,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 /// </summary>
 [ServiceManager.BlockingEarlyLoadedService]
 internal sealed partial class FontAtlasFactory
-    : IServiceType, GamePrebakedFontHandle.IGameFontTextureProvider, IDisposable
+    : IInternalDisposableService, GamePrebakedFontHandle.IGameFontTextureProvider
 {
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -158,7 +158,7 @@ internal sealed partial class FontAtlasFactory
         this.dalamudAssetManager.IsStreamImmediatelyAvailable(DalamudAsset.LodestoneGameSymbol);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.cancellationTokenSource.Cancel();
         this.scopedFinalizer.Dispose();
@@ -246,7 +246,7 @@ internal sealed partial class FontAtlasFactory
         wrap switch
         {
             ICloneable cloneable => (IDalamudTextureWrap)cloneable.Clone(),
-            DalamudTextureWrap dalamudTextureWrap => dalamudTextureWrap.Clone(),
+            not null => wrap.CreateWrapSharingLowLevelResource(),
             _ => throw new NotSupportedException(),
         };
 

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface.FontIdentifier;
@@ -26,7 +28,7 @@ namespace Dalamud.Configuration.Internal;
 #pragma warning disable SA1015
 [InherentDependency<ReliableFileStorage>] // We must still have this when unloading
 #pragma warning restore SA1015
-internal sealed class DalamudConfiguration : IServiceType, IDisposable
+internal sealed class DalamudConfiguration : IInternalDisposableService
 {
     private static readonly JsonSerializerSettings SerializerSettings = new()
     {
@@ -216,6 +218,11 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public bool LogOpenAtStartup { get; set; }
 
     /// <summary>
+    /// Gets or sets the number of lines to keep for the Dalamud Console window.
+    /// </summary>
+    public int LogLinesLimit { get; set; } = 10000;
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not the dev bar should open at startup.
     /// </summary>
     public bool DevBarOpenAtStartup { get; set; }
@@ -363,6 +370,11 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public bool ShowTsm { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether to reduce motions (animations).
+    /// </summary>
+    public bool? ReduceMotions { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not market board data should be uploaded.
     /// </summary>
     public bool IsMbCollect { get; set; } = true;
@@ -481,6 +493,15 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
 
         deserialized ??= new DalamudConfiguration();
         deserialized.configPath = path;
+
+        try
+        {
+            deserialized.SetDefaults();
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to set defaults for DalamudConfiguration");
+        }
         
         return deserialized;
     }
@@ -502,7 +523,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     }
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         // Make sure that we save, if a save is queued while we are shutting down
         this.Update();
@@ -522,6 +543,31 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
         }
     }
 
+    private void SetDefaults()
+    {
+        // "Reduced motion"
+        if (!this.ReduceMotions.HasValue)
+        {
+            // https://source.chromium.org/chromium/chromium/src/+/main:ui/gfx/animation/animation_win.cc;l=29?q=ReducedMotion&ss=chromium
+            var winAnimEnabled = 0;
+            var success = NativeFunctions.SystemParametersInfo(
+                (uint)NativeFunctions.AccessibilityParameter.SPI_GETCLIENTAREAANIMATION,
+                0,
+                ref winAnimEnabled,
+                0);
+
+            if (!success)
+            {
+                Log.Warning("Failed to get Windows animation setting, assuming reduced motion is off (GetLastError: {GetLastError:X})", Marshal.GetLastPInvokeError());
+                this.ReduceMotions = false;
+            }
+            else
+            {
+                this.ReduceMotions = winAnimEnabled == 0;
+            }
+        }
+    }
+    
     private void Save()
     {
         ThreadSafety.AssertMainThread();

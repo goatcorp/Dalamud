@@ -13,7 +13,7 @@ If you are just trying to **use** Dalamud, you don't need to do anything on this
 
 ## Plugin development
 Dalamud features a growing API for in-game plugin development with game data and chat access and overlays.
-Please see our [Developer FAQ](https://goatcorp.github.io/faq/development) and the [API documentation](https://goatcorp.github.io/Dalamud/api/index.html) for more details.
+Please see our [Developer FAQ](https://goatcorp.github.io/faq/development) and the [API documentation](https://dalamud.dev) for more details.
 
 If you need any support regarding the API or usage of Dalamud, please [join our discord server](https://discord.gg/3NMcUV5).
 
@@ -40,8 +40,8 @@ We are currently working from the following branches.
 
 | Name     | API Level | Purpose                                                    | .NET Version               | Track             |
 |----------|-----------|------------------------------------------------------------|----------------------------|-------------------|
-| *master* | **8**     | Current release branch                                     | .NET 7.0.0 (November 2022) | Release & Staging |
-| *v9*     | **9**     | Next major version, slated for release alongside Patch 6.5 | .NET 7.0.0 (November 2022) | v9                |
+| *master* | **9**     | Current release branch                                     | .NET 8.0.0 (November 2023) | Release & Staging |
+| *api10*  | **10**    | Next major version, slated for release alongside Patch 7.0 | .NET 8.0.0 (November 2023) | api10             |
 
 <br>
 

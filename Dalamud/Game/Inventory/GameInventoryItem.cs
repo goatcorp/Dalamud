@@ -1,6 +1,9 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 
@@ -103,8 +106,10 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the array of materia grades.
     /// </summary>
+    // TODO: Replace with MateriaGradeBytes
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public ReadOnlySpan<ushort> MateriaGrade =>
-        new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
+        this.MateriaGradeBytes.ToArray().Select(g => (ushort)g).ToArray().AsSpan();
 
     /// <summary>
     /// Gets the address of native inventory item in the game.<br />
@@ -145,6 +150,9 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// NOTE: I'm not sure if this is a good idea to include or not in the dalamud api. Marked internal for now.
     /// </summary>
     internal ulong CrafterContentId => this.InternalItem.CrafterContentID;
+
+    private ReadOnlySpan<byte> MateriaGradeBytes =>
+        new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
 
     public static bool operator ==(in GameInventoryItem l, in GameInventoryItem r) => l.Equals(r);
 

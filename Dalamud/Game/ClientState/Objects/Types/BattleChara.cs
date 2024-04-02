@@ -1,6 +1,7 @@
 using System;
 
 using Dalamud.Game.ClientState.Statuses;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 
@@ -57,7 +58,21 @@ public unsafe class BattleChara : Character
     /// <summary>
     /// Gets the total casting time of the spell being cast by the chara.
     /// </summary>
+    /// <remarks>
+    /// This can only be a portion of the total cast for some actions.
+    /// Use AdjustedTotalCastTime if you always need the total cast time.
+    /// </remarks>
+    [Api10ToDo("Rename so it is not confused with AdjustedTotalCastTime")]
     public float TotalCastTime => this.Struct->GetCastInfo->TotalCastTime;
+
+    /// <summary>
+    /// Gets the <see cref="TotalCastTime"/> plus any adjustments from the game, such as Action offset 2B. Used for display purposes.
+    /// </summary>
+    /// <remarks>
+    /// This is the actual total cast time for all actions.
+    /// </remarks>
+    [Api10ToDo("Rename so it is not confused with TotalCastTime")]
+    public float AdjustedTotalCastTime => this.Struct->GetCastInfo->AdjustedTotalCastTime;
 
     /// <summary>
     /// Gets the underlying structure.

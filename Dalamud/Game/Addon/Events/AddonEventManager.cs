@@ -18,8 +18,8 @@ namespace Dalamud.Game.Addon.Events;
 /// Service provider for addon event management.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal unsafe class AddonEventManager : IDisposable, IServiceType
+[ServiceManager.EarlyLoadedService]
+internal unsafe class AddonEventManager : IInternalDisposableService
 {
     /// <summary>
     /// PluginName for Dalamud Internal use.
@@ -62,7 +62,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
     private delegate nint UpdateCursorDelegate(RaptureAtkModule* module);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.onUpdateCursor.Dispose();
 
@@ -204,7 +204,7 @@ internal unsafe class AddonEventManager : IDisposable, IServiceType
 #pragma warning disable SA1015
 [ResolveVia<IAddonEventManager>]
 #pragma warning restore SA1015
-internal class AddonEventManagerPluginScoped : IDisposable, IServiceType, IAddonEventManager
+internal class AddonEventManagerPluginScoped : IInternalDisposableService, IAddonEventManager
 {
     [ServiceManager.ServiceDependency]
     private readonly AddonEventManager eventManagerService = Service<AddonEventManager>.Get();
@@ -225,7 +225,7 @@ internal class AddonEventManagerPluginScoped : IDisposable, IServiceType, IAddon
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         // if multiple plugins force cursors and dispose without un-forcing them then all forces will be cleared.
         if (this.isForcingCursor)

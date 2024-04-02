@@ -23,7 +23,7 @@ namespace Dalamud.Game.ClientState;
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.BlockingEarlyLoadedService]
-internal sealed class ClientState : IDisposable, IServiceType, IClientState
+internal sealed class ClientState : IInternalDisposableService, IClientState
 {
     private static readonly ModuleLog Log = new("ClientState");
     
@@ -115,7 +115,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.setupTerritoryTypeHook.Dispose();
         this.framework.Update -= this.FrameworkOnOnUpdateEvent;
@@ -196,7 +196,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
 #pragma warning disable SA1015
 [ResolveVia<IClientState>]
 #pragma warning restore SA1015
-internal class ClientStatePluginScoped : IDisposable, IServiceType, IClientState
+internal class ClientStatePluginScoped : IInternalDisposableService, IClientState
 {
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientStateService = Service<ClientState>.Get();
@@ -257,7 +257,7 @@ internal class ClientStatePluginScoped : IDisposable, IServiceType, IClientState
     public bool IsGPosing => this.clientStateService.IsGPosing;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.clientStateService.TerritoryChanged -= this.TerritoryChangedForward;
         this.clientStateService.Login -= this.LoginForward;

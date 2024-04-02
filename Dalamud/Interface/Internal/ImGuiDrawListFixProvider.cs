@@ -24,7 +24,7 @@ namespace Dalamud.Interface.Internal;
 ///   Change push_texture_id to only have one condition.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe class ImGuiDrawListFixProvider : IServiceType, IDisposable
+internal sealed unsafe class ImGuiDrawListFixProvider : IInternalDisposableService
 {
     private const int CImGuiImDrawListAddPolyLineOffset = 0x589B0;
     private const int CImGuiImDrawListAddRectFilled = 0x59FD0;
@@ -69,7 +69,7 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IServiceType, IDisposabl
         ImDrawFlags flags);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.hookImDrawListAddPolyline.Dispose();
         this.hookImDrawListAddRectFilled.Dispose();
