@@ -348,6 +348,12 @@ public sealed class UiBuilder : IDisposable
     public IFontAtlas FontAtlas { get; }
 
     /// <summary>
+    /// Gets a value indicating whether or not to use "reduced motion". This usually means that you should use less
+    /// intrusive animations, or disable them entirely.
+    /// </summary>
+    public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
+
+    /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
     /// </summary>
 #if DEBUG

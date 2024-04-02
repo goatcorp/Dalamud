@@ -133,7 +133,7 @@ public class SettingsTabLook : SettingsTab
         
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingReducedMotion", "Reduce motions"),
-            Loc.Localize("DalamudSettingReducedMotion", "This will suppress certain animations from Dalamud, such as the notification popup."),
+            Loc.Localize("DalamudSettingReducedMotionHint", "This will suppress certain animations from Dalamud, such as the notification popup."),
             c => c.ReduceMotions ?? false,
             (v, c) => c.ReduceMotions = v),
     };
