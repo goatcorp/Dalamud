@@ -461,7 +461,7 @@ public abstract partial class AbstractStyledText
                         {
                             e.InitializeMouseLinkEvent(prevData.ToArray(), args.Button);
                             this.OnLinkMouseLeave(e);
-                            
+
                             e.Initialize(this, SpannableEventStep.DirectTarget);
                         }
 
@@ -473,7 +473,7 @@ public abstract partial class AbstractStyledText
 
                         break;
                 }
-                
+
                 SpannableEventArgsPool.Return(e);
             }
         }
@@ -489,7 +489,7 @@ public abstract partial class AbstractStyledText
             {
                 if (!this.SourceTemplate.GetData().TryGetLinkAt(this.interactedLinkIndex, out var currData))
                     currData = default;
-                
+
                 var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
                 e.Initialize(this, SpannableEventStep.DirectTarget);
                 e.InitializeMouseLinkEvent(currData.ToArray(), args.Button);
@@ -500,9 +500,9 @@ public abstract partial class AbstractStyledText
                     e.Initialize(this, SpannableEventStep.DirectTarget);
                     this.OnLinkMouseClick(e);
                 }
-                    
+
                 SpannableEventArgsPool.Return(e);
-                
+
                 if (this.interactedLinkState is LinkState.ActiveNotHovered or LinkState.Clear)
                     this.interactedLinkIndex = -1;
                 this.interactedLinkState =

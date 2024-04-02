@@ -220,7 +220,7 @@ public class LabelControl : ControlSpannable
             }
 
             this.AllSpannables[this.childrenSlotText] = value;
-            
+
             if (value is AbstractStyledText.TextSpannable curr)
             {
                 curr.LinkMouseEnter += this.PrevOnLinkMouseEnter;

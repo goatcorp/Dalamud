@@ -19,11 +19,9 @@ public abstract partial class Spannable
     private readonly long[] mousePressNextTick = new long[(int)ImGuiMouseButton.COUNT];
     private readonly int[] mousePressCumulativeCount = new int[(int)ImGuiMouseButton.COUNT];
     private int mouseCapturedButtonFlags;
-    private bool mouseWasEffectivelyCapturing;
 
     private ImGuiMouseCursor mouseCursor = ImGuiMouseCursor.Arrow;
     private bool captureMouseOnMouseDown;
-    private bool captureMouseWheel;
     private bool captureMouse;
 
     /// <summary>Occurs when the mouse pointer is moved over the control.</summary>
@@ -57,9 +55,6 @@ public abstract partial class Spannable
     /// <summary>Occurs when the property <see cref="CaptureMouseOnMouseDown"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? CaptureMouseOnMouseDownChange;
 
-    /// <summary>Occurs when the property <see cref="CaptureMouseWheel"/> is changing.</summary>
-    public event PropertyChangeEventHandler<bool>? CaptureMouseWheelChange;
-
     /// <summary>Occurs when the property <see cref="CaptureMouse"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? CaptureMouseChange;
 
@@ -88,18 +83,6 @@ public abstract partial class Spannable
             value,
             this.captureMouseOnMouseDown == value,
             this.OnCaptureMouseOnMouseDownChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether to capture mouse wheel events at all times.</summary>
-    public bool CaptureMouseWheel
-    {
-        get => this.captureMouseWheel;
-        set => this.HandlePropertyChange(
-            nameof(this.CaptureMouseWheel),
-            ref this.captureMouseWheel,
-            value,
-            this.captureMouseWheel == value,
-            this.OnCaptureMouseWheelChange);
     }
 
     /// <summary>Gets or sets a value indicating whether to capture mouse events, regardless of whether the control is
@@ -191,7 +174,8 @@ public abstract partial class Spannable
 
     private bool ShouldCapture =>
         this.ImGuiGlobalId != 0
-        && (this.captureMouse || (this.captureMouseOnMouseDown && this.mouseCapturedButtonFlags != 0));
+        && (this.captureMouse || (this.captureMouseOnMouseDown && this.mouseCapturedButtonFlags != 0))
+        && this.enabled && this.visible;
 
     /// <summary>Raises the <see cref="MouseMove"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
@@ -234,11 +218,6 @@ public abstract partial class Spannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
     protected virtual void OnCaptureMouseOnMouseDownChange(PropertyChangeEventArgs<bool> args) =>
         this.CaptureMouseOnMouseDownChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="CaptureMouseWheelChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnCaptureMouseWheelChange(PropertyChangeEventArgs<bool> args) =>
-        this.CaptureMouseWheelChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="CaptureMouseChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
@@ -290,32 +269,28 @@ public abstract partial class Spannable
         else if (mouseHovered && shouldCapture)
             alreadyHandled = true;
 
-        this.IsMouseHovered = mouseHovered;
-        if (this.IsMouseHoveredInsideBoundary != mouseHoveredInsideBoundary)
+        this.IsMouseHoveredInsideBoundary = mouseHoveredInsideBoundary;
+        if (this.IsMouseHovered != mouseHovered)
         {
-            this.IsMouseHoveredInsideBoundary = mouseHoveredInsideBoundary;
+            this.IsMouseHovered = mouseHovered;
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta);
             args.Initialize(this, SpannableEventStep.DirectTarget);
-            if (mouseHoveredInsideBoundary)
-            {
+            if (mouseHovered)
                 this.OnMouseEnter(args);
-            }
             else
-            {
                 this.OnMouseLeave(args);
-            }
         }
 
         mouseHovered &= this.ImGuiIsHoverable;
         if (mouseHovered)
         {
-            SpannableImGuiItem.SetHovered(this, this.selfInnerId);
+            SpannableImGuiItem.SetHovered(this, this.selfInnerId, true);
             if (!shouldCapture)
                 ImGuiInternals.ImGuiContext.Instance.HoveredIdAllowOverlap = 1;
         }
 
-        this.ImGuiUpdateCapturingMouse(shouldCapture);
+        this.UpdateMouseCapture(shouldCapture);
 
         SpannableEventArgsPool.Return(args);
         return alreadyHandled;
@@ -369,7 +344,7 @@ public abstract partial class Spannable
         bool alreadyHandled)
     {
         var dispatchMouseDown = (this.ImGuiIsHovered || this.IsMouseHovered) && this.visible && this.enabled;
-        
+
         this.clickTrackingIsHeldDown[(int)button] = Environment.TickCount64;
 
         SpannableMouseEventArgs? args = null;
@@ -403,7 +378,7 @@ public abstract partial class Spannable
             alreadyHandled |= args.SuppressHandling;
         }
 
-        var effectivelyCaptureMouse = false;
+        var shouldCapture = false;
         thisIsHandling |= !alreadyHandled && this.captureMouseOnMouseDown && dispatchMouseDown;
         if (thisIsHandling)
         {
@@ -417,7 +392,7 @@ public abstract partial class Spannable
             if (prev == 0 && this.captureMouseOnMouseDown)
             {
                 alreadyHandled = true;
-                effectivelyCaptureMouse = true;
+                shouldCapture = true;
             }
         }
         else
@@ -425,24 +400,10 @@ public abstract partial class Spannable
             this.clickTrackingIsHeldDown[(int)button] = 0;
         }
 
-        effectivelyCaptureMouse |= this.captureMouse;
-        
-        effectivelyCaptureMouse &= this.visible && this.enabled;
+        shouldCapture |= this.captureMouse;
+        shouldCapture &= this.visible && this.enabled;
 
-        if (this.mouseWasEffectivelyCapturing != effectivelyCaptureMouse)
-        {
-            this.mouseWasEffectivelyCapturing = effectivelyCaptureMouse;
-            if (effectivelyCaptureMouse)
-            {
-                SpannableImGuiItem.SetActive(this, this.selfInnerId, true);
-                ImGui.SetNextFrameWantCaptureMouse(true);
-            }
-            else
-            {
-                SpannableImGuiItem.ClearActive();
-                ImGui.SetNextFrameWantCaptureMouse(false);
-            }
-        }
+        this.UpdateMouseCapture(shouldCapture);
 
         SpannableEventArgsPool.Return(args);
         return alreadyHandled;
@@ -455,6 +416,16 @@ public abstract partial class Spannable
         bool alreadyHandled)
     {
         var dispatchMouseUp = (this.ImGuiIsHovered || this.IsMouseHovered) && this.visible && this.enabled;
+
+        this.mouseCapturedButtonFlags &= ~(1 << (int)button);
+        this.mousePressNextTick[(int)button] = 0;
+        this.mousePressCumulativeCount[(int)button] = 0;
+
+        var clickTrackingIsHeldDownPrev = this.clickTrackingIsHeldDown[(int)button];
+        this.clickTrackingIsHeldDown[(int)button] = 0;
+
+        var shouldCapture =
+            (this.mouseCapturedButtonFlags != 0 || this.captureMouse) && this.visible && this.enabled;
 
         SpannableMouseEventArgs? args = null;
         if (dispatchMouseUp)
@@ -481,7 +452,7 @@ public abstract partial class Spannable
             this.OnMouseUp(args);
             alreadyHandled |= args.SuppressHandling;
 
-            if (!alreadyHandled && this.clickTrackingIsHeldDown[(int)button] != 0 && this.IsMouseHoveredInsideBoundary)
+            if (!alreadyHandled && clickTrackingIsHeldDownPrev != 0 && this.IsMouseHoveredInsideBoundary)
             {
                 // Dispatch click to self, if nobody marked MouseUp as handled so far.
 
@@ -507,29 +478,7 @@ public abstract partial class Spannable
             }
         }
 
-        this.mouseCapturedButtonFlags &= ~(1 << (int)button);
-
-        var effectivelyCaptureMouse =
-            (this.mouseCapturedButtonFlags != 0 || this.captureMouse) && this.visible && this.enabled;
-
-        if (this.mouseWasEffectivelyCapturing != effectivelyCaptureMouse)
-        {
-            this.mouseWasEffectivelyCapturing = effectivelyCaptureMouse;
-            if (effectivelyCaptureMouse)
-            {
-                SpannableImGuiItem.SetActive(this, this.selfInnerId, true);
-                ImGui.SetNextFrameWantCaptureMouse(true);
-            }
-            else
-            {
-                SpannableImGuiItem.ClearActive();
-                ImGui.SetNextFrameWantCaptureMouse(false);
-            }
-        }
-
-        this.mousePressNextTick[(int)button] = 0;
-        this.mousePressCumulativeCount[(int)button] = 0;
-        this.clickTrackingIsHeldDown[(int)button] = 0;
+        this.UpdateMouseCapture(shouldCapture);
 
         if (shouldClearClickTracking)
         {

@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Utility;
@@ -14,7 +15,8 @@ namespace Dalamud.Interface.Spannables;
 /// <summary>Base class for <see cref="Spannable"/>s.</summary>
 public abstract partial class Spannable
 {
-    private bool mouseWasCapturing;
+    private bool wasCapturingMouse;
+    private bool wasFocused;
 
     /// <summary>Gets or sets the available slot index for inner ID, for use with
     /// <see cref="SpannableExtensions.GetGlobalIdFromInnerId"/>.</summary>
@@ -97,12 +99,37 @@ public abstract partial class Spannable
     {
         ImGuiItemAddRecursive(this);
 
+        var prevActive = ImGuiInternals.ImGuiContext.Instance.ActiveId;
+
         var io = ImGui.GetIO().NativePtr;
+
+        // Always dispatch this event, for handling hovers.
+        // Maybe it's a good idea to have a separate handler for setting which item is hovered, but anyway.
         this.DispatchMouseMove(io->MousePos, io->MouseDelta, false);
 
         var wheelDelta = new Vector2(io->MouseWheelH, io->MouseWheel);
-        if (this.DispatchMouseWheel(io->MousePos, io->MouseDelta, wheelDelta, false))
-            io->MouseWheelH = io->MouseWheel = 0;
+        if (wheelDelta != Vector2.Zero)
+        {
+            if (this.DispatchMouseWheel(io->MousePos, io->MouseDelta, wheelDelta, false))
+            {
+                io->MouseWheelH = io->MouseWheel = 0;
+            }
+            else if (this.IsMouseHoveredIncludingChildren
+                     && (
+                            ImGuiInternals.ImGuiContext.Instance.HoveredIdPreviousFrameUsingMouseWheel == 1
+                            || ImGuiInternals.ImGuiContext.Instance.ActiveIdUsingMouseWheel == 1))
+            {
+                var oldh = ImGuiInternals.ImGuiContext.Instance.HoveredIdPreviousFrameUsingMouseWheel;
+                var olda = ImGuiInternals.ImGuiContext.Instance.ActiveIdUsingMouseWheel;
+                ImGuiInternals.ImGuiContext.Instance.HoveredIdPreviousFrameUsingMouseWheel = 0;
+                ImGuiInternals.ImGuiContext.Instance.ActiveIdUsingMouseWheel = 0;
+
+                ImGuiInternals.ImGuiUpdateMouseWheel();
+
+                ImGuiInternals.ImGuiContext.Instance.HoveredIdPreviousFrameUsingMouseWheel = oldh;
+                ImGuiInternals.ImGuiContext.Instance.ActiveIdUsingMouseWheel = olda;
+            }
+        }
 
         for (var i = 0; i < (int)ImGuiMouseButton.COUNT; i++)
         {
@@ -172,10 +199,17 @@ public abstract partial class Spannable
 
         this.DispatchMiscEvents(io->MousePos, io->MouseDelta);
 
+        // If mouse capturing has been changed, let the new recipient(s) get a mouse move message.
+        var newActive = ImGuiInternals.ImGuiContext.Instance.ActiveId;
+        if (prevActive != 0 && newActive == prevActive)
+            this.DispatchMouseMove(ImGui.GetIO().MousePos, Vector2.Zero, false);
+
         return;
 
         static void ImGuiItemAddRecursive(Spannable what)
         {
+            what.ImGuiItemAdd();
+
             var children = what.GetAllChildSpannables();
             for (var i = children.Count - 1; i >= 0; i--)
             {
@@ -183,6 +217,39 @@ public abstract partial class Spannable
                     ImGuiItemAddRecursive(c);
             }
         }
+    }
+
+    private void DispatchEffectivelyDisabled()
+    {
+        if (this.wasFocused && !this.ImGuiIsFocused)
+        {
+            this.wasFocused = false;
+            var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            this.OnLostFocus(e);
+            SpannableEventArgsPool.Return(e);
+        }
+
+        if (this.wasCapturingMouse)
+        {
+            this.wasCapturingMouse = false;
+            SpannableImGuiItem.ClearActive();
+            ImGui.SetNextFrameWantCaptureMouse(false);
+        }
+
+        if (this.mouseCapturedButtonFlags != 0)
+        {
+            this.mouseCapturedButtonFlags = 0;
+            this.clickTrackingLastClickTick.AsSpan().Clear();
+            this.clickTrackingCumulativeCount.AsSpan().Clear();
+            this.clickTrackingIsHeldDown.AsSpan().Clear();
+            this.mousePressNextTick.AsSpan().Clear();
+            this.mousePressCumulativeCount.AsSpan().Clear();
+        }
+
+        var children = this.GetAllChildSpannables();
+        for (var i = children.Count - 1; i >= 0; i--)
+            children[i]?.DispatchEffectivelyDisabled();
     }
 
     /// <summary>Places an ImGui item corresponding to this spannable.</summary>
@@ -198,21 +265,21 @@ public abstract partial class Spannable
             this.ImGuiItemNoNavDefaultFocus,
             this.ImGuiItemDisabled);
 
-    private unsafe void ImGuiUpdateCapturingMouse(bool shouldCapture)
+    private void UpdateMouseCapture(bool shouldCapture)
     {
-        if (shouldCapture)
-        {
-            ImGuiInternals.ImGuiSetActiveId(
-                this.GetGlobalIdFromInnerId(this.selfInnerId),
-                ImGuiInternals.ImGuiContext.Instance.CurrentWindow);
-        }
-
-        if (this.mouseWasCapturing == shouldCapture)
+        if (this.wasCapturingMouse == shouldCapture)
             return;
 
-        this.mouseWasCapturing = shouldCapture;
-
-        if (!shouldCapture)
-            ImGuiInternals.ImGuiSetActiveId(0, ImGuiInternals.ImGuiContext.Instance.CurrentWindow);
+        this.wasCapturingMouse = shouldCapture;
+        if (shouldCapture)
+        {
+            SpannableImGuiItem.SetActive(this, this.selfInnerId, true);
+            ImGui.SetNextFrameWantCaptureMouse(true);
+        }
+        else
+        {
+            SpannableImGuiItem.ClearActive();
+            ImGui.SetNextFrameWantCaptureMouse(false);
+        }
     }
 }

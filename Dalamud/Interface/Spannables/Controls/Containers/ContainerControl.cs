@@ -227,7 +227,6 @@ public class ContainerControl : ControlSpannable
     /// <remarks>Called whenever <see cref="Scroll"/> or <see cref="ScrollBoundary"/> changes.</remarks>
     protected virtual void UpdateInterceptMouseWheel()
     {
-        this.CaptureMouseWheel = this.scrollBoundary.LeftTop != this.scrollBoundary.RightBottom;
         this.CaptureMouseOnMouseDown = this.scrollBoundary.LeftTop != this.scrollBoundary.RightBottom;
     }
 

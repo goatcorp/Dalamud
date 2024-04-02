@@ -752,7 +752,7 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
             return this.disabledBackground ?? this.normalBackground;
         if (this.IsMouseHoveredInsideBoundary && this.IsAnyMouseButtonDown && this.activeBackground is not null)
             return this.activeBackground;
-        if (this.IsMouseHoveredInsideBoundary && this.hoveredBackground is not null)
+        if (this.IsMouseHoveredInsideBoundary && this.ImGuiIsHoverable && this.hoveredBackground is not null)
             return this.hoveredBackground;
         return this.normalBackground;
     }

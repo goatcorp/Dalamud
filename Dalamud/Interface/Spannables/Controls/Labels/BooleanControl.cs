@@ -132,6 +132,13 @@ public class BooleanControl : LabelControl
         this.UpdateIcon();
     }
 
+    /// <inheritdoc/> 
+    protected override void OnMouseMove(SpannableMouseEventArgs args)
+    {
+        base.OnMouseMove(args);
+        this.UpdateIcon();
+    }
+
     /// <inheritdoc/>
     protected override void OnMouseLeave(SpannableMouseEventArgs args)
     {
@@ -215,7 +222,7 @@ public class BooleanControl : LabelControl
         var stateIcon =
             this.IsMouseHoveredInsideBoundary && this.IsAnyMouseButtonDown
                 ? this.activeIcon?.WithState(state)
-                : this.IsMouseHoveredInsideBoundary
+                : this.IsMouseHoveredInsideBoundary && this.ImGuiIsHoverable
                     ? this.hoveredIcon?.WithState(state)
                     : this.normalIcon?.WithState(state);
 

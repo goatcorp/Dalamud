@@ -367,7 +367,7 @@ public sealed class MouseActivityTracker : IDisposable
             var pos = e.LocalLocation;
             delta = new(pos.X - dragBase.X, pos.Y - dragBase.Y);
             if (this.IsInfiniteDragging)
-                this.SetMousePos(dragBase);
+                this.UpdateMousePosImmediately(dragBase);
             else
                 this.DragBase = pos;
         }
@@ -630,9 +630,10 @@ public sealed class MouseActivityTracker : IDisposable
             this.IsInfiniteDragging = true;
             this.DragOrigin = dragBase;
             this.DragBase =
-                ImGui.GetPlatformIO().Monitors[0].MainPos
-                + (ImGui.GetPlatformIO().Monitors[0].MainSize / 2);
-            this.SetMousePos(this.DragBase.Value);
+                this.Control.PointToClient(
+                    ImGui.GetPlatformIO().Monitors[0].MainPos
+                    + (ImGui.GetPlatformIO().Monitors[0].MainSize / 2));
+            this.UpdateMousePosImmediately(this.DragBase.Value);
         }
 
         this.DragStart?.Invoke();
@@ -649,7 +650,7 @@ public sealed class MouseActivityTracker : IDisposable
             this.RecordActivity(new(ActivityType.DragEnd, ImGuiMouseButton.COUNT, dragBase));
             if (this.IsInfiniteDragging)
             {
-                this.SetMousePos(this.DragOrigin.Value);
+                this.UpdateMousePosImmediately(this.DragOrigin.Value);
                 this.IsInfiniteDragging = false;
             }
         }
@@ -722,10 +723,27 @@ public sealed class MouseActivityTracker : IDisposable
             this.clickTimerNext = next;
     }
 
-    private void SetMousePos(Vector2 localCoordinates)
+    private unsafe void UpdateMousePosImmediately(Vector2 localCoordinates)
     {
-        ImGui.GetIO().WantSetMousePos = true;
-        ImGui.GetIO().MousePos = this.Control.PointToScreen(localCoordinates);
+        var c = this.Control.MouseCursor switch
+        {
+            ImGuiMouseCursor.Arrow => IDC.IDC_ARROW,
+            ImGuiMouseCursor.TextInput => IDC.IDC_IBEAM,
+            ImGuiMouseCursor.ResizeAll => IDC.IDC_SIZEALL,
+            ImGuiMouseCursor.ResizeEW => IDC.IDC_SIZEWE,
+            ImGuiMouseCursor.ResizeNS => IDC.IDC_SIZENS,
+            ImGuiMouseCursor.ResizeNESW => IDC.IDC_SIZENESW,
+            ImGuiMouseCursor.ResizeNWSE => IDC.IDC_SIZENWSE,
+            ImGuiMouseCursor.Hand => IDC.IDC_HAND,
+            ImGuiMouseCursor.NotAllowed => IDC.IDC_NO,
+            _ => null,
+        };
+
+        SetCursor(c is null ? default : LoadCursorW(default, c));
+
+        var pos = this.Control.PointToScreen(localCoordinates);
+        ImGui.GetIO().MousePos = pos;
+        SetCursorPos((int)pos.X, (int)pos.Y);
     }
 
     private readonly struct Activity

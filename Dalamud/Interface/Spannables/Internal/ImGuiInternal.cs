@@ -31,12 +31,16 @@ internal static class ImGuiInternals
     /// <summary>Sets the hovered item. Params: (uint id).</summary>
     public static readonly unsafe delegate* unmanaged<uint, void> ImGuiSetHoveredId;
 
+    /// <summary>Handles normal scrolling on window procedure.</summary>
+    public static readonly unsafe delegate* unmanaged<void> ImGuiUpdateMouseWheel;
+
     private const int CImGuiItemAddOffset = 0x3c0a0;
     private const int CImGuiItemHoverable = 0x3c200;
     private const int CImGuiNavMoveRequestCancel = 0x3dc80;
     private const int CImGuiSetActiveIdOffset = 0x483f0;
     private const int CImGuiSetFocusIdOffset = 0x48D40;
     private const int CImGuiSetHoverIdOffset = 0x48e80;
+    private const int CImGuiUpdateMouseWheel = 0x50CA0;
 
     static unsafe ImGuiInternals()
     {
@@ -52,6 +56,7 @@ internal static class ImGuiInternals
         ImGuiSetActiveId = (delegate* unmanaged<uint, nint, void>)(cimgui + CImGuiSetActiveIdOffset);
         ImGuiSetFocusedId = (delegate* unmanaged<uint, nint, void>)(cimgui + CImGuiSetFocusIdOffset);
         ImGuiSetHoveredId = (delegate* unmanaged<uint, void>)(cimgui + CImGuiSetHoverIdOffset);
+        ImGuiUpdateMouseWheel = (delegate* unmanaged<void>)(cimgui + CImGuiUpdateMouseWheel);
     }
 
     /// <summary>Transient per-window flags, reset at the beginning of the frame. For child window, inherited from
@@ -218,6 +223,11 @@ internal static class ImGuiInternals
         /// <summary>Whether the item specified by <see cref="HoveredId"/> is using the mouse wheel.</summary>
         [FieldOffset(0x4039)]
         public byte HoveredIdUsingMouseWheel;
+
+        /// <summary>Whether the item specified by <see cref="HoveredId"/> from the last frame is using the mouse wheel.
+        /// </summary>
+        [FieldOffset(0x403A)]
+        public byte HoveredIdPreviousFrameUsingMouseWheel;
 
         /// <summary>Whether the item specified by <see cref="HoveredId"/> is disabled.</summary>
         [FieldOffset(0x403b)]

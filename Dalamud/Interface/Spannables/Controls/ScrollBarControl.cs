@@ -188,7 +188,7 @@ public class ScrollBarControl : ControlSpannable
 
         /// <summary>The user dragged the thumb.</summary>
         ThumbTrack,
-        
+
         /// <summary>The user dragged after holding the mouse middle button down.</summary>
         MiddleButtonAutoScroll,
     }
@@ -637,14 +637,14 @@ public class ScrollBarControl : ControlSpannable
     protected override void OnMouseWheel(SpannableMouseEventArgs args)
     {
         base.OnMouseWheel(args);
-        
+
         if (args.SuppressHandling
             || !this.IsMouseHoveredIncludingChildren
             || this.EffectiveRange <= 0f
             || this.lineSizeProportion <= 0f
             || args.Step == SpannableEventStep.BeforeChildren)
             return;
-        
+
         args.SuppressHandling = true;
 
         var repeats = -(args.WheelDelta.X + args.WheelDelta.Y);
@@ -656,7 +656,7 @@ public class ScrollBarControl : ControlSpannable
         };
         if (scrollAction == ScrollAction.None)
             return;
-        
+
         var unboundDelta = this.lineSizeProportion * this.EffectiveRange;
 
         var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();

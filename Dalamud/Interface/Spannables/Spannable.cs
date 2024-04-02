@@ -158,7 +158,7 @@ public abstract partial class Spannable : IDisposable
     {
         if (!this.visible || !this.enabled)
             return;
-        
+
         var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
         e.Initialize(this, SpannableEventStep.DirectTarget);
         this.OnPreDispatchEvents(e);
@@ -177,9 +177,19 @@ public abstract partial class Spannable : IDisposable
     public void RenderPassPostDispatchEvents()
     {
         if (!this.visible || !this.enabled)
+        {
+            this.DispatchEffectivelyDisabled();
             return;
+        }
 
         var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
+        if (!this.wasFocused && this.ImGuiIsFocused)
+        {
+            this.wasFocused = true;
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            this.OnLostFocus(e);
+        }
+
         e.Initialize(this, SpannableEventStep.DirectTarget);
         this.OnPostDispatchEvents(e);
 
@@ -303,10 +313,12 @@ public abstract partial class Spannable : IDisposable
     /// <summary>Raises the <see cref="GotFocus"/> event.</summary>
     /// <param name="args">A <see cref="SpannableEventArgs"/> that contains the event data.</param>
     protected virtual void OnGotFocus(SpannableEventArgs args) => this.GotFocus?.Invoke(args);
+    // ^ TODO: implement this
 
     /// <summary>Raises the <see cref="LostFocus"/> event.</summary>
     /// <param name="args">A <see cref="SpannableEventArgs"/> that contains the event data.</param>
     protected virtual void OnLostFocus(SpannableEventArgs args) => this.LostFocus?.Invoke(args);
+    // ^ TODO: implement this
 
     /// <summary>Raises the <see cref="EnabledChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
