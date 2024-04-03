@@ -197,7 +197,7 @@ public abstract partial class Spannable
             }
         }
 
-        this.DispatchMiscEvents(io->MousePos, io->MouseDelta);
+        this.DispatchMiscMouseEvents(io->MousePos, io->MouseDelta);
 
         // If mouse capturing has been changed, let the new recipient(s) get a mouse move message.
         var newActive = ImGuiInternals.ImGuiContext.Instance.ActiveId;
@@ -227,6 +227,16 @@ public abstract partial class Spannable
             var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
             e.Initialize(this, SpannableEventStep.DirectTarget);
             this.OnLostFocus(e);
+            SpannableEventArgsPool.Return(e);
+        }
+
+        if (this.IsMouseHovered)
+        {
+            this.IsMouseHovered = false;
+            var e = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
+            e.InitializeMouseEvent(new(float.PositiveInfinity), Vector2.Zero);
+            e.Initialize(this, SpannableEventStep.DirectTarget);
+            this.OnMouseLeave(e);
             SpannableEventArgsPool.Return(e);
         }
 

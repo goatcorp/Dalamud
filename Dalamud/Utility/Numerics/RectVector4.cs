@@ -84,6 +84,13 @@ public struct RectVector4 : IEquatable<RectVector4>
         get => new(new Vector2(float.PositiveInfinity), new(float.NegativeInfinity));
     }
 
+    /// <summary>Gets an instance of <see cref="RectVector4"/> containing all zeroes.</summary>
+    public static RectVector4 Zero
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => new(0f);
+    }
+
     /// <summary>Gets or sets the left bottom coordinates.</summary>
     public Vector2 LeftBottom
     {

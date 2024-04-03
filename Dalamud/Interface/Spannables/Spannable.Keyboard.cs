@@ -88,7 +88,10 @@ public abstract partial class Spannable
 
     private bool DispatchKeyDown(ImGuiModFlags modifiers, ImGuiKey key, bool alreadyHandled)
     {
-        var dispatchEventToSelf = this.enabled && this.visible && this.ImGuiIsFocused;
+        if (this.InputEventDispatchShouldSuppressAll)
+            return true;
+
+        var dispatchEventToSelf = this.InputEventDispatchShouldDispatchKeyboardToSelf;
         SpannableKeyEventArgs? e = null;
 
         if (dispatchEventToSelf)
@@ -118,7 +121,10 @@ public abstract partial class Spannable
 
     private bool DispatchKeyUp(ImGuiModFlags modifiers, ImGuiKey key, bool alreadyHandled)
     {
-        var dispatchEventToSelf = this.enabled && this.visible && this.ImGuiIsFocused;
+        if (this.InputEventDispatchShouldSuppressAll)
+            return true;
+
+        var dispatchEventToSelf = this.InputEventDispatchShouldDispatchKeyboardToSelf;
         SpannableKeyEventArgs? e = null;
 
         if (dispatchEventToSelf)
@@ -148,7 +154,10 @@ public abstract partial class Spannable
 
     private bool DispatchKeyPress(Rune rune, bool alreadyHandled)
     {
-        var dispatchEventToSelf = this.enabled && this.visible && this.ImGuiIsFocused;
+        if (this.InputEventDispatchShouldSuppressAll)
+            return true;
+
+        var dispatchEventToSelf = this.InputEventDispatchShouldDispatchKeyboardToSelf;
         SpannableKeyPressEventArgs? e = null;
 
         if (dispatchEventToSelf)

@@ -17,10 +17,6 @@ public abstract partial class Spannable : IDisposable
 {
     private readonly int selfInnerId;
 
-    private bool enabled = true;
-    private bool focusable;
-    private bool visible = true;
-
     private bool measureRequested = true;
     private Matrix4x4 fullTransformation = Matrix4x4.Identity;
     private Matrix4x4 localTransformation = Matrix4x4.Identity;
@@ -34,30 +30,9 @@ public abstract partial class Spannable : IDisposable
         this.selfInnerId = this.InnerIdAvailableSlot++;
     }
 
-    /// <summary>Occurs when the control receives focus.</summary>
-    public event SpannableEventHandler? GotFocus;
-
-    /// <summary>Occurs when the control loses focus.</summary>
-    public event SpannableEventHandler? LostFocus;
-
-    /// <summary>Occurs when the property <see cref="Enabled"/> is changing.</summary>
-    public event PropertyChangeEventHandler<bool>? EnabledChange;
-
-    /// <summary>Occurs when the property <see cref="Focusable"/> is changing.</summary>
-    public event PropertyChangeEventHandler<bool>? FocusableChange;
-
-    /// <summary>Occurs when the property <see cref="Visible"/> is changing.</summary>
-    public event PropertyChangeEventHandler<bool>? VisibleChange;
-
     /// <summary>Occurs when anything about the spannable changes.</summary>
     /// <remarks>Used to determine when to measure again.</remarks>
     public event PropertyChangeEventHandler? PropertyChange;
-
-    /// <summary>Occurs when the spannable will be receiving events shortly for the frame.</summary>
-    public event SpannableEventHandler? PreDispatchEvents;
-
-    /// <summary>Occurs when the spannable is done receiving events for the frame.</summary>
-    public event SpannableEventHandler? PostDispatchEvents;
 
     /// <summary>Occurs when the spannable needs to be measured.</summary>
     public event SpannableEventHandler? Measure;
@@ -71,43 +46,6 @@ public abstract partial class Spannable : IDisposable
     /// <summary>Gets the guaranteed starting value of <see cref="InnerIdAvailableSlot"/> when extending directly from
     /// this class.</summary>
     public static int InnerIdAvailableSlotStart => 1;
-
-    /// <summary>Gets or sets a value indicating whether this control is enabled.</summary>
-    public bool Enabled
-    {
-        get => this.enabled;
-        set => this.HandlePropertyChange(
-            nameof(this.Enabled),
-            ref this.enabled,
-            value,
-            this.enabled == value,
-            this.OnEnabledChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether this control is focusable.</summary>
-    public bool Focusable
-    {
-        get => this.focusable;
-        set => this.HandlePropertyChange(
-            nameof(this.Focusable),
-            ref this.focusable,
-            value,
-            this.focusable == value,
-            this.OnFocusableChange);
-    }
-
-    /// <summary>Gets or sets a value indicating whether this control is visible.</summary>
-    // TODO: a property indicating whether to assume zero size when invisible, so that it can skip measure pass
-    public bool Visible
-    {
-        get => this.visible;
-        set => this.HandlePropertyChange(
-            nameof(this.Visible),
-            ref this.visible,
-            value,
-            this.visible == value,
-            this.OnVisibleChange);
-    }
 
     /// <summary>Gets or sets the renderer being used.</summary>
     public ISpannableRenderer? Renderer { get; set; }
@@ -153,74 +91,27 @@ public abstract partial class Spannable : IDisposable
     /// <summary>Requests the spannable to process next <see cref="RenderPassMeasure"/> again.</summary>
     public void RequestMeasure() => this.measureRequested = true;
 
-    /// <summary>Called before dispatching events.</summary>
-    public void RenderPassPreDispatchEvents()
-    {
-        if (!this.visible || !this.enabled)
-            return;
-
-        var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
-        this.OnPreDispatchEvents(e);
-
-        if (!e.SuppressHandling)
-        {
-            var children = this.GetAllChildSpannables();
-            for (var i = children.Count - 1; i >= 0; i--)
-                children[i]?.RenderPassPreDispatchEvents();
-        }
-
-        SpannableEventArgsPool.Return(e);
-    }
-
-    /// <summary>Called before dispatching events.</summary>
-    public void RenderPassPostDispatchEvents()
-    {
-        if (!this.visible || !this.enabled)
-        {
-            this.DispatchEffectivelyDisabled();
-            return;
-        }
-
-        var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-        if (!this.wasFocused && this.ImGuiIsFocused)
-        {
-            this.wasFocused = true;
-            e.Initialize(this, SpannableEventStep.DirectTarget);
-            this.OnLostFocus(e);
-        }
-
-        e.Initialize(this, SpannableEventStep.DirectTarget);
-        this.OnPostDispatchEvents(e);
-
-        if (!e.SuppressHandling)
-        {
-            var children = this.GetAllChildSpannables();
-            for (var i = children.Count - 1; i >= 0; i--)
-                children[i]?.RenderPassPostDispatchEvents();
-        }
-
-        SpannableEventArgsPool.Return(e);
-    }
-
     /// <summary>Measures the spannable according to the parameters specified, and updates the result properties.
     /// </summary>
-    /// <returns><c>true</c> if the spannable has just been measured; <c>false</c> if no measurement has happened
-    /// because nothing changed.</returns>
-    public bool RenderPassMeasure()
+    public void RenderPassMeasure()
     {
         if (!this.ShouldMeasureAgain())
-            return false;
+            return;
 
         this.measureRequested = false;
+
+        if (!this.occupySpaceWhenHidden && !this.visible)
+        {
+            this.Boundary = RectVector4.Zero;
+            return;
+        }
+
         this.Boundary = RectVector4.InvertedExtrema;
 
         var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
         e.Initialize(this, SpannableEventStep.DirectTarget);
         this.OnMeasure(e);
         SpannableEventArgsPool.Return(e);
-
-        return true;
     }
 
     /// <summary>Updates the transformation for the measured data.</summary>
@@ -228,6 +119,9 @@ public abstract partial class Spannable : IDisposable
     /// <param name="ancestral">The ancestral transformation matrix.</param>
     public void RenderPassPlace(scoped in Matrix4x4 local, scoped in Matrix4x4 ancestral)
     {
+        if (!this.occupySpaceWhenHidden && !this.visible)
+            return;
+
         this.localTransformation = this.TransformLocalTransformation(local);
         this.fullTransformation = Matrix4x4.Multiply(this.localTransformation, ancestral);
 
@@ -241,6 +135,9 @@ public abstract partial class Spannable : IDisposable
     /// <param name="drawListPtr">The target draw list.</param>
     public void RenderPassDraw(ImDrawListPtr drawListPtr)
     {
+        if (!this.visible)
+            return;
+
         var e = SpannableEventArgsPool.Rent<SpannableDrawEventArgs>();
         e.Initialize(this, SpannableEventStep.DirectTarget);
         e.InitializeDrawEvent(drawListPtr);
@@ -310,45 +207,6 @@ public abstract partial class Spannable : IDisposable
     /// <returns>Transformed local transformation matrix.</returns>
     protected virtual Matrix4x4 TransformLocalTransformation(scoped in Matrix4x4 local) => local;
 
-    /// <summary>Raises the <see cref="GotFocus"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableEventArgs"/> that contains the event data.</param>
-    protected virtual void OnGotFocus(SpannableEventArgs args) => this.GotFocus?.Invoke(args);
-    // ^ TODO: implement this
-
-    /// <summary>Raises the <see cref="LostFocus"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableEventArgs"/> that contains the event data.</param>
-    protected virtual void OnLostFocus(SpannableEventArgs args) => this.LostFocus?.Invoke(args);
-    // ^ TODO: implement this
-
-    /// <summary>Raises the <see cref="EnabledChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnEnabledChange(PropertyChangeEventArgs<bool> args) => this.EnabledChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="FocusableChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnFocusableChange(PropertyChangeEventArgs<bool> args) => this.FocusableChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="VisibleChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnVisibleChange(PropertyChangeEventArgs<bool> args) => this.VisibleChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="PropertyChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs"/> that contains the event data.</param>
-    protected virtual void OnPropertyChange(PropertyChangeEventArgs args)
-    {
-        if (args.State == PropertyChangeState.After)
-            this.RequestMeasure();
-        this.PropertyChange?.Invoke(args);
-    }
-
-    /// <summary>Raises the <see cref="PreDispatchEvents"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableEventArgs"/> that contains the event data.</param>
-    protected virtual void OnPreDispatchEvents(SpannableEventArgs args) => this.PreDispatchEvents?.Invoke(args);
-
-    /// <summary>Raises the <see cref="PostDispatchEvents"/> event.</summary>
-    /// <param name="args">A <see cref="SpannableEventArgs"/> that contains the event data.</param>
-    protected virtual void OnPostDispatchEvents(SpannableEventArgs args) => this.PostDispatchEvents?.Invoke(args);
-
     /// <summary>Raises the <see cref="Measure"/> event.</summary>
     /// <param name="args">A <see cref="SpannableEventArgs"/> that contains the event data.</param>
     protected virtual void OnMeasure(SpannableEventArgs args) => this.Measure?.Invoke(args);
@@ -360,53 +218,6 @@ public abstract partial class Spannable : IDisposable
     /// <summary>Raises the <see cref="Draw"/> event.</summary>
     /// <param name="args">A <see cref="SpannableDrawEventArgs"/> that contains the event data.</param>
     protected virtual void OnDraw(SpannableDrawEventArgs args) => this.Draw?.Invoke(args);
-
-    /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
-    /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
-    /// <param name="storage">The reference of the stored value.</param>
-    /// <param name="newValue">The new value.</param>
-    /// <param name="eq">Whether the values are equal.</param>
-    /// <param name="eh">The event handler.</param>
-    /// <typeparam name="T">Type of the changed value.</typeparam>
-    /// <returns><c>true</c> if changed.</returns>
-    protected bool HandlePropertyChange<T>(
-        string propName,
-        ref T storage,
-        T newValue,
-        bool eq,
-        PropertyChangeEventHandler<T> eh)
-    {
-        if (eq)
-            return false;
-
-        var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
-        e.InitializePropertyChangeEvent(propName, PropertyChangeState.Before, storage, newValue);
-
-        this.OnPropertyChange(e);
-        eh(e);
-
-        if (e.SuppressHandling)
-        {
-            e.Initialize(this, SpannableEventStep.DirectTarget);
-            e.InitializePropertyChangeEvent(propName, PropertyChangeState.Cancelled, storage, newValue);
-            this.OnPropertyChange(e);
-            eh(e);
-
-            SpannableEventArgsPool.Return(e);
-            return false;
-        }
-
-        e.Initialize(this, SpannableEventStep.DirectTarget);
-        e.InitializePropertyChangeEvent(propName, PropertyChangeState.After, storage, newValue);
-        storage = e.NewValue;
-
-        this.OnPropertyChange(e);
-        eh(e);
-
-        SpannableEventArgsPool.Return(e);
-        return true;
-    }
 
     /// <summary>Called when <see cref="Options"/> has a changed property.</summary>
     /// <param name="args">Change details.</param>

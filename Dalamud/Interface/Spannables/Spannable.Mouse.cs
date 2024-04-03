@@ -226,6 +226,9 @@ public abstract partial class Spannable
 
     private bool DispatchMouseMove(Vector2 screenLocation, Vector2 screenLocationDelta, bool alreadyHandled)
     {
+        if (this.InputEventDispatchShouldSuppressAll)
+            return true;
+
         var mouseHoveredInsideBoundary =
             this.HitTest(this.PointToClient(screenLocation))
             && (ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem) || this.ShouldCapture);
@@ -233,7 +236,8 @@ public abstract partial class Spannable
         var shouldCapture = this.ShouldCapture;
         var mouseHovered = this.ImGuiIsHoverable && (shouldCapture || mouseHoveredInsideBoundary);
 
-        var dispatchMouseMove = mouseHovered && screenLocationDelta != Vector2.Zero && this.visible && this.enabled;
+        var dispatchMouseMove =
+            mouseHovered && screenLocationDelta != Vector2.Zero && this.InputEventDispatchShouldDispatchToSelf;
 
         SpannableMouseEventArgs? args = null;
 
@@ -249,11 +253,14 @@ public abstract partial class Spannable
             alreadyHandled |= args.SuppressHandling;
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
+        if (this.InputEventDispatchShouldDispatchToChildren)
         {
-            alreadyHandled |=
-                children[i]?.DispatchMouseMove(screenLocation, screenLocationDelta, alreadyHandled) is true;
+            var children = this.GetAllChildSpannables();
+            for (var i = children.Count - 1; i >= 0; i--)
+            {
+                alreadyHandled |=
+                    children[i]?.DispatchMouseMove(screenLocation, screenLocationDelta, alreadyHandled) is true;
+            }
         }
 
         if (dispatchMouseMove)
@@ -302,7 +309,11 @@ public abstract partial class Spannable
         Vector2 delta,
         bool alreadyHandled)
     {
-        var dispatchMouseWheel = (this.ImGuiIsHovered || this.IsMouseHovered) && this.visible && this.enabled;
+        if (this.InputEventDispatchShouldSuppressAll)
+            return true;
+
+        var dispatchMouseWheel =
+            (this.ImGuiIsHovered || this.IsMouseHovered) && this.InputEventDispatchShouldDispatchToSelf;
 
         SpannableMouseEventArgs? args = null;
 
@@ -316,14 +327,17 @@ public abstract partial class Spannable
             alreadyHandled |= args.SuppressHandling;
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
+        if (this.InputEventDispatchShouldDispatchToChildren)
         {
-            alreadyHandled |= children[i]?.DispatchMouseWheel(
-                                  screenLocation,
-                                  screenLocationDelta,
-                                  delta,
-                                  alreadyHandled) is true;
+            var children = this.GetAllChildSpannables();
+            for (var i = children.Count - 1; i >= 0; i--)
+            {
+                alreadyHandled |= children[i]?.DispatchMouseWheel(
+                                      screenLocation,
+                                      screenLocationDelta,
+                                      delta,
+                                      alreadyHandled) is true;
+            }
         }
 
         if (dispatchMouseWheel)
@@ -343,7 +357,11 @@ public abstract partial class Spannable
         ImGuiMouseButton button,
         bool alreadyHandled)
     {
-        var dispatchMouseDown = (this.ImGuiIsHovered || this.IsMouseHovered) && this.visible && this.enabled;
+        if (this.InputEventDispatchShouldSuppressAll)
+            return true;
+
+        var dispatchMouseDown = 
+            (this.ImGuiIsHovered || this.IsMouseHovered) && this.InputEventDispatchShouldDispatchToSelf;
 
         this.clickTrackingIsHeldDown[(int)button] = Environment.TickCount64;
 
@@ -360,14 +378,17 @@ public abstract partial class Spannable
             alreadyHandled |= args.SuppressHandling;
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
+        if (this.InputEventDispatchShouldDispatchToChildren)
         {
-            alreadyHandled |= children[i]?.DispatchMouseDown(
-                                  screenLocation,
-                                  screenLocationDelta,
-                                  button,
-                                  alreadyHandled) is true;
+            var children = this.GetAllChildSpannables();
+            for (var i = children.Count - 1; i >= 0; i--)
+            {
+                alreadyHandled |= children[i]?.DispatchMouseDown(
+                                      screenLocation,
+                                      screenLocationDelta,
+                                      button,
+                                      alreadyHandled) is true;
+            }
         }
 
         if (dispatchMouseDown)
@@ -415,7 +436,11 @@ public abstract partial class Spannable
         ImGuiMouseButton button,
         bool alreadyHandled)
     {
-        var dispatchMouseUp = (this.ImGuiIsHovered || this.IsMouseHovered) && this.visible && this.enabled;
+        if (this.InputEventDispatchShouldSuppressAll)
+            return true;
+
+        var dispatchMouseUp = 
+            (this.ImGuiIsHovered || this.IsMouseHovered) && this.InputEventDispatchShouldDispatchToSelf;
 
         this.mouseCapturedButtonFlags &= ~(1 << (int)button);
         this.mousePressNextTick[(int)button] = 0;
@@ -438,11 +463,14 @@ public abstract partial class Spannable
             alreadyHandled |= args.SuppressHandling;
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
+        if (this.InputEventDispatchShouldDispatchToChildren)
         {
-            alreadyHandled |=
-                children[i]?.DispatchMouseUp(screenLocation, screenLocationDelta, button, alreadyHandled) is true;
+            var children = this.GetAllChildSpannables();
+            for (var i = children.Count - 1; i >= 0; i--)
+            {
+                alreadyHandled |=
+                    children[i]?.DispatchMouseUp(screenLocation, screenLocationDelta, button, alreadyHandled) is true;
+            }
         }
 
         var shouldClearClickTracking = true;
@@ -490,9 +518,12 @@ public abstract partial class Spannable
         return alreadyHandled;
     }
 
-    private void DispatchMiscEvents(Vector2 screenLocation, Vector2 screenLocationDelta)
+    private void DispatchMiscMouseEvents(Vector2 screenLocation, Vector2 screenLocationDelta)
     {
-        if (this.visible && this.enabled)
+        if (this.InputEventDispatchShouldSuppressAll)
+            return;
+
+        if (this.InputEventDispatchShouldDispatchToSelf)
         {
             var tc64 = Environment.TickCount64;
             var repeatInterval = WindowsUiConfigHelper.GetKeyboardRepeatInterval();
@@ -534,11 +565,14 @@ public abstract partial class Spannable
             SpannableEventArgsPool.Return(margs);
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
-            children[i]?.DispatchMiscEvents(screenLocation, screenLocationDelta);
+        if (this.InputEventDispatchShouldDispatchToChildren)
+        {
+            var children = this.GetAllChildSpannables();
+            for (var i = children.Count - 1; i >= 0; i--)
+                children[i]?.DispatchMiscMouseEvents(screenLocation, screenLocationDelta);
+        }
 
-        if (this.visible && this.enabled && this.IsMouseHovered)
+        if (this.IsMouseHovered && this.InputEventDispatchShouldDispatchToSelf)
             ImGui.SetMouseCursor(this.mouseCursor);
     }
 }
