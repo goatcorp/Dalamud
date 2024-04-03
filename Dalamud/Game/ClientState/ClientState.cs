@@ -12,6 +12,8 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+
 using Lumina.Excel.GeneratedSheets;
 
 using Action = System.Action;
@@ -88,6 +90,16 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
     /// <inheritdoc/>
     public ushort TerritoryType { get; private set; }
+
+    /// <inheritdoc/>
+    public unsafe uint MapId
+    {
+        get
+        {
+            var agentMap = AgentMap.Instance();
+            return agentMap != null ? AgentMap.Instance()->CurrentMapId : 0;
+        }
+    }
 
     /// <inheritdoc/>
     public PlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as PlayerCharacter;
@@ -237,6 +249,9 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
     /// <inheritdoc/>
     public ushort TerritoryType => this.clientStateService.TerritoryType;
+    
+    /// <inheritdoc/>
+    public uint MapId => this.clientStateService.MapId;
 
     /// <inheritdoc/>
     public PlayerCharacter? LocalPlayer => this.clientStateService.LocalPlayer;
