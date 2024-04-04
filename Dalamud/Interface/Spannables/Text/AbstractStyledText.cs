@@ -8,8 +8,6 @@ using System.Text.Unicode;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Utility.Numerics;
 
-using ImGuiNET;
-
 namespace Dalamud.Interface.Spannables.Text;
 
 /// <summary>Base class for <see cref="StyledText"/> and <see cref="StyledTextBuilder"/>.</summary>
@@ -67,7 +65,7 @@ public abstract partial class AbstractStyledText : ISpannableTemplate
 
     /// <summary>Gets the data required for rendering.</summary>
     /// <returns>The data.</returns>
-    private protected abstract DataRef GetData();
+    private protected abstract DataMemory AsMemory();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsEffectivelyInfinity(float f) => f >= float.PositiveInfinity;
@@ -78,13 +76,15 @@ public abstract partial class AbstractStyledText : ISpannableTemplate
         public float VerticalOffsetWrtLine;
 
         private readonly TextSpannable ts;
+        private readonly Vector2 preferredSize;
         private readonly Vector2 lineBBoxVertical;
         private readonly float lineWidth;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StateInfo(TextSpannable ts, scoped in MeasuredLine lineMeasurement)
+        public StateInfo(TextSpannable ts, scoped in MeasuredLine lineMeasurement, Vector2 preferredSize)
         {
             this.ts = ts;
+            this.preferredSize = preferredSize;
             this.lineBBoxVertical = lineMeasurement.BBoxVertical;
             this.lineWidth = lineMeasurement.Width;
         }
@@ -111,7 +111,7 @@ public abstract partial class AbstractStyledText : ISpannableTemplate
 
             this.VerticalOffsetWrtLine = MathF.Round(this.VerticalOffsetWrtLine * fontInfo.Scale) / fontInfo.Scale;
 
-            var alignWidth = this.ts.Options.PreferredSize.X;
+            var alignWidth = this.preferredSize.X;
             var alignLeft = 0f;
             if (IsEffectivelyInfinity(alignWidth))
             {

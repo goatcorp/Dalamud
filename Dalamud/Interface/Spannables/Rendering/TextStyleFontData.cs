@@ -159,7 +159,7 @@ public readonly ref struct TextStyleFontData
     /// <summary>Calculates tab size.</summary>
     /// <param name="tabWidthValue">The TabWidth value.</param>
     /// <returns>The calculated tab size.</returns>
-    /// <remarks>AbstractStyledTextref="StyledText.Options.TabWidth"/>.</remarks>
+    /// <remarks>AbstractStyledTextref="StyledText.TabWidth"/>.</remarks>
     public float CalculateTabSize(float tabWidthValue) => tabWidthValue switch
     {
         0 => this.GetEffectiveGlyph(' ').AdvanceX,

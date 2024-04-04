@@ -19,7 +19,6 @@ public class HintSettingsEntry : SettingsEntry
 {
     private readonly AbstractStyledText.TextSpannable text;
     private readonly Vector4 color;
-    private readonly AbstractStyledText.Options options;
 
     public HintSettingsEntry(string text, Vector4? color = null)
     {
@@ -34,13 +33,10 @@ public class HintSettingsEntry : SettingsEntry
         }
 
         this.color = color ?? ImGuiColors.DalamudGrey;
-        this.options = new()
+        this.text.Style = new()
         {
-            Style = new()
-            {
-                ForeColor = this.color,
-                TextDecorationColor = this.color,
-            },
+            ForeColor = this.color,
+            TextDecorationColor = this.color,
         };
     }
 
@@ -56,8 +52,6 @@ public class HintSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        Service<SpannableRenderer>.Get().Draw(
-            this.text,
-            new(false, new() { RootOptions = this.options }));
+        Service<SpannableRenderer>.Get().Draw(this.text, new(false));
     }
 }

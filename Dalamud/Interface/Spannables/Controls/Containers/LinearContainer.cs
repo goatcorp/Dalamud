@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Spannables.EventHandlers;
@@ -8,11 +10,13 @@ using Dalamud.Utility.Numerics;
 
 namespace Dalamud.Interface.Spannables.Controls.Containers;
 
+#pragma warning disable SA1010
+
 /// <summary>A container that lays out controls in a single line.</summary>
 public class LinearContainer : ContainerControl
 {
-    private readonly List<ChildLayout> childLayouts = new();
-    private readonly List<Vector2> childOffsets = new();
+    private readonly List<ChildLayout> childLayouts = [];
+    private readonly List<Vector2> childOffsets = [];
     private LinearDirection direction = LinearDirection.LeftToRight;
     private float contentBias;
     private float totalWeight = 1f;
@@ -21,6 +25,7 @@ public class LinearContainer : ContainerControl
     public LinearContainer()
     {
         this.UseDefaultScrollHandling = true;
+        this.Children.CollectionChanged += this.ChildrenOnCollectionChanged;
     }
 
     /// <summary>Occurs when the property <see cref="Direction"/> is changing.</summary>
@@ -55,7 +60,7 @@ public class LinearContainer : ContainerControl
             nameof(this.ContentBias),
             ref this.contentBias,
             value,
-            this.contentBias == value,
+            this.contentBias - value == 0f,
             this.OnContentBiasChange);
     }
 
@@ -69,7 +74,7 @@ public class LinearContainer : ContainerControl
             nameof(this.TotalWeight),
             ref this.totalWeight,
             value,
-            this.totalWeight == value,
+            this.totalWeight - value == 0f,
             this.OnTotalWeightChange);
     }
 
@@ -95,13 +100,11 @@ public class LinearContainer : ContainerControl
     }
 
     /// <inheritdoc/>
-    protected override RectVector4 MeasureChildren(
-        Vector2 suggestedSize,
-        ReadOnlySpan<Spannable> children)
+    protected override RectVector4 MeasureChildren(Vector2 suggestedSize)
     {
         Debug.Assert(
-            children.Length == this.childLayouts.Count,
-            $"{nameof(children)} and {nameof(this.childLayouts)} got out of synchronization.");
+            this.Children.Count == this.childLayouts.Count,
+            $"{nameof(this.Children)} and {nameof(this.childLayouts)} got out of synchronization.");
 
         var weightSum = this.totalWeight;
         if (weightSum <= 0)
@@ -135,9 +138,9 @@ public class LinearContainer : ContainerControl
             var childOffset = Vector2.Zero;
             var childSizeSum = Vector2.Zero;
 
-            for (var i = 0; i < children.Length; i++)
+            for (var i = 0; i < this.Children.Count; i++)
             {
-                var cm = children[i];
+                var cm = this.Children[i];
                 var layout = this.childLayouts[i];
 
                 var useHorizontalWeight =
@@ -157,15 +160,7 @@ public class LinearContainer : ContainerControl
                 else
                     maxChildSize = new(float.PositiveInfinity);
 
-                cm.Options.PreferredSize = maxChildSize;
-                cm.Options.VisibleSize = new(
-                    this.direction.IsHorizontal()
-                        ? this.Options.VisibleSize.X - childSizeSum.X
-                        : this.Options.VisibleSize.X,
-                    this.direction.IsVertical()
-                        ? this.Options.VisibleSize.Y - childSizeSum.Y
-                        : this.Options.VisibleSize.Y);
-                cm.RenderPassMeasure();
+                cm.RenderPassMeasure(maxChildSize);
 
                 var b = Vector2.Max(cm.Boundary.RightBottom, cm.Boundary.Size);
                 childSizeSum += b;
@@ -203,7 +198,7 @@ public class LinearContainer : ContainerControl
         }
 
         if (!contentBox.IsValid)
-            contentBox = base.MeasureChildren(suggestedSize, children);
+            contentBox = base.MeasureChildren(suggestedSize);
 
         var rb = contentBox.Size;
         if (suggestedSize.X < float.PositiveInfinity)
@@ -216,13 +211,11 @@ public class LinearContainer : ContainerControl
     }
 
     /// <inheritdoc/>
-    protected override void PlaceChildren(
-        SpannableEventArgs args,
-        ReadOnlySpan<Spannable> children)
+    protected override void PlaceChildren(SpannableEventArgs args)
     {
         var childSizeSum = Vector2.Zero;
         var childSizeMax = Vector2.Zero;
-        foreach (var x in children)
+        foreach (var x in this.Children)
         {
             childSizeSum += x.Boundary.RightBottom;
             childSizeMax = Vector2.Max(childSizeMax, x.Boundary.RightBottom);
@@ -260,9 +253,9 @@ public class LinearContainer : ContainerControl
         baseOffset += Vector2.Max(Vector2.Zero, myFullBoxSize - myBoxSize) * bias;
         baseOffset -= this.Scroll;
 
-        for (var i = 0; i < children.Length; i++)
+        for (var i = 0; i < this.Children.Count; i++)
         {
-            var cm = children[i];
+            var cm = this.Children[i];
             var layout = this.childLayouts[i];
             var offset = this.childOffsets[i];
             switch (this.direction)
@@ -282,22 +275,6 @@ public class LinearContainer : ContainerControl
         }
     }
 
-    /// <inheritdoc/>
-    protected override void OnChildAdd(SpannableChildEventArgs args)
-    {
-        this.childLayouts.Insert(args.Index, new());
-        this.childOffsets.Insert(args.Index, default);
-        base.OnChildAdd(args);
-    }
-
-    /// <inheritdoc/>
-    protected override void OnChildRemove(SpannableChildEventArgs args)
-    {
-        this.childLayouts.RemoveAt(args.Index);
-        this.childOffsets.RemoveAt(args.Index);
-        base.OnChildRemove(args);
-    }
-
     /// <summary>Raises the <see cref="DirectionChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
     protected virtual void OnDirectionChange(PropertyChangeEventArgs<LinearDirection> args) =>
@@ -312,6 +289,51 @@ public class LinearContainer : ContainerControl
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
     protected virtual void OnTotalWeightChange(PropertyChangeEventArgs<float> args) =>
         this.TotalWeightChange?.Invoke(args);
+
+    private void ChildrenOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        switch (e.Action)
+        {
+            case NotifyCollectionChangedAction.Add when e.NewItems is { } items:
+                this.childLayouts.InsertRange(
+                    e.NewStartingIndex,
+                    Enumerable.Range(0, items.Count).Select(_ => new ChildLayout()));
+                this.childOffsets.InsertRange(
+                    e.NewStartingIndex,
+                    Enumerable.Range(0, items.Count).Select(_ => Vector2.Zero));
+                break;
+
+            case NotifyCollectionChangedAction.Remove when e.OldItems is { } items:
+                this.childLayouts.RemoveRange(e.OldStartingIndex, items.Count);
+                this.childOffsets.RemoveRange(e.OldStartingIndex, items.Count);
+                break;
+
+            case NotifyCollectionChangedAction.Replace:
+                break;
+
+            case NotifyCollectionChangedAction.Move:
+                this.childLayouts.InsertRange(
+                    e.NewStartingIndex,
+                    this.childLayouts.Slice(e.OldStartingIndex, e.OldItems!.Count));
+                this.childOffsets.InsertRange(
+                    e.NewStartingIndex,
+                    this.childOffsets.Slice(e.OldStartingIndex, e.OldItems!.Count));
+                break;
+
+            case NotifyCollectionChangedAction.Reset:
+                this.childLayouts.Clear();
+                this.childOffsets.Clear();
+                this.childLayouts.EnsureCapacity(this.Children.Count);
+                this.childOffsets.EnsureCapacity(this.Children.Count);
+                for (var i = 0; i < this.Children.Count; i++)
+                {
+                    this.childLayouts.Add(new());
+                    this.childOffsets.Add(default);
+                }
+
+                break;
+        }
+    }
 
     /// <summary>Declares a child layout.</summary>
     public record ChildLayout

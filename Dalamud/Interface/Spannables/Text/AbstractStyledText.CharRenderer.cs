@@ -94,9 +94,9 @@ public abstract partial class AbstractStyledText
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetLine(in MeasuredLine measuredLine)
+        public void SetLine(in MeasuredLine measuredLine, Vector2 preferredSize)
         {
-            this.stateInfo = new(this.ts, in measuredLine);
+            this.stateInfo = new(this.ts, in measuredLine, preferredSize);
             this.RenderStateUpdated();
         }
 
@@ -105,7 +105,7 @@ public abstract partial class AbstractStyledText
             this.ts.LastStyle.UpdateFrom(
                 record,
                 recordData,
-                this.ts.Options.Style,
+                this.ts.Style,
                 this.data.FontSets,
                 out var fontUpdated,
                 out var drawOptionsUpdated);
@@ -178,7 +178,7 @@ public abstract partial class AbstractStyledText
                         case SpannedRecordType.ObjectIcon
                             when SpannedRecordCodec.TryDecodeObjectIcon(recordData, out var gfdIcon)
                                  && this.renderer.TryGetIcon(
-                                     this.ts.Options.GfdIconMode,
+                                     this.ts.GfdIconMode,
                                      (uint)gfdIcon,
                                      new(0, this.fontInfo.ScaledFontSize),
                                      out var tex,
@@ -249,7 +249,7 @@ public abstract partial class AbstractStyledText
 
                 case '\t':
                 {
-                    var tabWidth = this.fontInfo.CalculateTabSize(this.ts.Options.TabWidth);
+                    var tabWidth = this.fontInfo.CalculateTabSize(this.ts.TabWidth);
                     var next = MathF.Floor((this.ts.LastOffset.X + tabWidth) / tabWidth) * tabWidth;
                     advX = next - this.ts.LastOffset.X;
                     xy0 = Vector2.Zero;
@@ -270,7 +270,7 @@ public abstract partial class AbstractStyledText
 
             xy0 += this.StyleTranslation;
             xy1 += this.StyleTranslation;
-            advX = MathF.Round(advX * this.ts.Options.RenderScale) / this.ts.Options.RenderScale;
+            advX = MathF.Round(advX * this.ts.EffectiveRenderScale) / this.ts.EffectiveRenderScale;
 
             var topSkewDistance = this.fontInfo.GetScaledTopSkew(xy0);
             var bounds = RectVector4.Translate(new(xy0, xy1), this.ts.LastOffset);
@@ -473,7 +473,7 @@ public abstract partial class AbstractStyledText
                 if (this.drawListPtr.NativePtr is null)
                 {
                     // Measure pass
-                    spannableState.Options.RenderScale = this.ts.Options.RenderScale;
+                    spannableState.RenderScale = this.ts.EffectiveRenderScale;
                     this.ts.ChildOffsets[nonNullSpannableStateIndex] =
                         this.ts.LastOffset + this.StyleTranslation + xySpannableBase;
                 }
@@ -487,13 +487,8 @@ public abstract partial class AbstractStyledText
             return bounds;
         }
 
-        public void SpanFontOptionsUpdated()
-        {
-            this.renderer.TryGetFontData(
-                this.ts.Options.RenderScale,
-                in this.ts.LastStyle,
-                out this.fontInfo);
-        }
+        public void SpanFontOptionsUpdated() =>
+            this.renderer.TryGetFontData(this.ts.EffectiveRenderScale, in this.ts.LastStyle, out this.fontInfo);
 
         private static bool IsColorVisible(uint color) => color >= 0x1000000;
 

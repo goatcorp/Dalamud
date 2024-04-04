@@ -18,14 +18,17 @@ public abstract partial class Spannable
     /// <summary>Occurs when the spannable is done receiving events for the frame.</summary>
     public event SpannableEventHandler? PostDispatchEvents;
 
+    /// <summary>Gets a value indicating whether this control is currently effectively visible.</summary>
+    protected virtual bool EffectivelyVisible => this.visible;
+
     /// <summary>Gets a value indicating whether to suppress all input events to self or children.</summary>
     private bool InputEventDispatchShouldSuppressAll =>
         this.visible && !this.enabled && this.eventEnabled;
-    
+
     /// <summary>Gets a value indicating whether to dispatch input events to self.</summary>
     private bool InputEventDispatchShouldDispatchToSelf =>
         this.visible && this.enabled && this.eventEnabled;
-    
+
     /// <summary>Gets a value indicating whether to dispatch keyboard input events to self.</summary>
     private bool InputEventDispatchShouldDispatchKeyboardToSelf =>
         this.InputEventDispatchShouldDispatchToSelf && this.ImGuiIsFocused;
@@ -45,9 +48,8 @@ public abstract partial class Spannable
         this.OnPreDispatchEvents(e);
         SpannableEventArgsPool.Return(e);
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
-            children[i]?.RenderPassPreDispatchEvents();
+        foreach (var child in this.EnumerateChildren(false))
+            child.RenderPassPreDispatchEvents();
     }
 
     /// <summary>Called before dispatching events.</summary>
@@ -70,9 +72,8 @@ public abstract partial class Spannable
                 this.OnLostFocus(e);
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
-            children[i]?.RenderPassPostDispatchEvents();
+        foreach (var child in this.EnumerateChildren(false))
+            child.RenderPassPostDispatchEvents();
 
         e.Initialize(this, SpannableEventStep.DirectTarget);
         this.OnPostDispatchEvents(e);

@@ -1,10 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Spannables.EventHandlers;
-using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Utility.Numerics;
@@ -23,59 +21,44 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     public const int InvalidSpannableType = -1;
 
     private readonly Dictionary<int, List<Spannable>> placeholders = new();
-    private readonly List<int> availablePlaceholderSlotIndices = [];
-    private readonly List<int> availablePlaceholderInnerIdIndices = [];
-
-    private readonly List<Spannable> orderedActiveChildren = [];
-
-    private readonly int innerIdVerticalScrollBar;
-    private readonly int innerIdHorizontalScrollBar;
-    private readonly int innerIdScrollBarIntersectionDummy;
-
-    private readonly int slotIdItems;
 
     private BaseLayoutManager? layoutManager;
     private Vector2 autoScrollPerSecond;
     private ScrollBarMode verticalScrollBarMode;
     private ScrollBarMode horizontalScrollBarMode;
-    private bool activeChildrenChanged = true;
 
     /// <summary>Initializes a new instance of the <see cref="RecyclerViewControl"/> class.</summary>
     protected RecyclerViewControl()
     {
         this.ClipChildren = true;
-        this.innerIdVerticalScrollBar = this.InnerIdAvailableSlot++;
-        this.innerIdHorizontalScrollBar = this.InnerIdAvailableSlot++;
-        this.innerIdScrollBarIntersectionDummy = this.InnerIdAvailableSlot++;
-        this.AllSpannablesAvailableSlot++;
-        this.AllSpannablesAvailableSlot++;
-        this.AllSpannablesAvailableSlot++;
-        this.slotIdItems = this.AllSpannablesAvailableSlot;
-        this.AllSpannables.Add(
+        this.AddChild(
             this.VerticalScrollBar = new()
             {
                 Name = nameof(this.VerticalScrollBar),
                 Direction = LinearDirection.TopToBottom,
                 Size = new(WrapContent, MatchParent),
                 AutoValueUpdate = false,
+                OccupySpaceWhenHidden = false,
+                ZOrder = 100,
             });
-        this.AllSpannables.Add(
+        this.AddChild(
             this.HorizontalScrollBar = new()
             {
                 Name = nameof(this.HorizontalScrollBar),
                 Direction = LinearDirection.LeftToRight,
                 Size = new(MatchParent, WrapContent),
                 AutoValueUpdate = false,
+                OccupySpaceWhenHidden = false,
+                ZOrder = 100,
             });
-        this.AllSpannables.Add(
-            this.ScrollBarIntersectionDummy = new(
-                new()
-                {
-                    Shape = ShapePattern.Shape.RectFilled,
-                    ImGuiColor = ImGuiCol.WindowBg,
-                })
+        this.AddChild(
+            this.ScrollBarIntersectionDummy = new()
             {
+                Type = ShapePattern.Shape.RectFilled,
+                ImGuiColor = ImGuiCol.WindowBg,
                 CaptureMouseOnMouseDown = true,
+                OccupySpaceWhenHidden = false,
+                ZOrder = 100,
             });
         this.VerticalScrollBar.PropertyChange += this.ChildOnPropertyChange;
         this.HorizontalScrollBar.PropertyChange += this.ChildOnPropertyChange;
@@ -185,14 +168,8 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     /// <summary>Gets the horizontal scroll bar.</summary>
     public ScrollBarControl HorizontalScrollBar { get; }
 
-    /// <summary>Gets the dummy for covering up the rectangle between scrollbars if they're both visible..</summary>
+    /// <summary>Gets the dummy for covering up the rectangle between scrollbars if they're both visible.</summary>
     public ShapePattern ScrollBarIntersectionDummy { get; }
-
-    /// <summary>Gets or sets a value indicating whether to show the vertical scroll bar.</summary>
-    protected bool ShowVerticalScrollBar { get; set; }
-
-    /// <summary>Gets or sets a value indicating whether to show the vertical scroll bar.</summary>
-    protected bool ShowHorizontalScrollBar { get; set; }
 
     /// <summary>Adds a placeholder for use.</summary>
     /// <param name="spannableType">Spannable type of the placeholder.</param>
@@ -206,61 +183,13 @@ public abstract partial class RecyclerViewControl : ControlSpannable
             this.placeholders.Add(spannableType, plist = []);
         plist.Add(spannable);
         spannable.PropertyChange += this.ChildOnPropertyChange;
-
-        this.availablePlaceholderSlotIndices.Add(this.AllSpannablesAvailableSlot++);
-        this.availablePlaceholderInnerIdIndices.Add(this.InnerIdAvailableSlot++);
-        this.AllSpannables.Add(null);
-    }
-
-    /// <inheritdoc/>
-    public override Spannable? FindChildAtPos(Vector2 screenOffset)
-    {
-        if (this.layoutManager?.FindChildAtPos(screenOffset) is { } r)
-            return r;
-        return base.FindChildAtPos(screenOffset);
-    }
-
-    /// <inheritdoc/>
-    public override IReadOnlyList<Spannable?> GetAllChildSpannables()
-    {
-        if (this.activeChildrenChanged)
-        {
-            this.orderedActiveChildren.Clear();
-
-            if (this.layoutManager is not null)
-            {
-                this.orderedActiveChildren.EnsureCapacity(
-                    this.slotIdItems + (this.layoutManager?.VisibleItemCount ?? 0));
-            }
-
-            this.orderedActiveChildren.AddRange(
-                CollectionsMarshal.AsSpan(this.AllSpannables)[..(this.slotIdItems - 2)]);
-
-            if (this.layoutManager is not null)
-            {
-                foreach (var (_, spannable) in this.layoutManager.EnumerateItemSpannableMeasurements())
-                    this.orderedActiveChildren.Add(spannable);
-            }
-
-            this.orderedActiveChildren.AddRange(
-                CollectionsMarshal.AsSpan(this.AllSpannables).Slice(this.slotIdItems - 2, 2));
-        }
-
-        return this.orderedActiveChildren;
     }
 
     /// <inheritdoc/>
     protected override void OnPreDispatchEvents(SpannableEventArgs args)
     {
+        this.layoutManager?.PreDispatchEvents();
         base.OnPreDispatchEvents(args);
-        if (!args.SuppressHandling)
-        {
-            if (this.ShowVerticalScrollBar)
-                this.VerticalScrollBar.RenderPassPreDispatchEvents();
-            if (this.ShowHorizontalScrollBar)
-                this.HorizontalScrollBar.RenderPassPreDispatchEvents();
-            this.layoutManager?.PreDispatchEvents();
-        }
     }
 
     /// <summary>Gets the underlying list.</summary>
@@ -286,51 +215,16 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     /// <inheritdoc/>
     protected override RectVector4 MeasureContentBox(Vector2 suggestedSize)
     {
-        if (this.ShowHorizontalScrollBar)
-        {
-            this.HorizontalScrollBar.Options.VisibleSize = this.Options.VisibleSize;
-            this.HorizontalScrollBar.Options.PreferredSize = suggestedSize with { Y = float.PositiveInfinity };
-            this.Padding = this.Padding with { Bottom = this.HorizontalScrollBar.Boundary.Bottom };
-        }
-        else
-        {
-            this.HorizontalScrollBar.Options.VisibleSize = Vector2.Zero;
-            this.HorizontalScrollBar.Options.PreferredSize = Vector2.Zero;
-            this.Padding = this.Padding with { Bottom = 0 };
-        }
+        this.Padding = this.Padding with { Bottom = this.HorizontalScrollBar.Boundary.Bottom };
+        this.HorizontalScrollBar.RenderPassMeasure(suggestedSize with { Y = float.PositiveInfinity });
 
-        this.HorizontalScrollBar.Options.RenderScale = this.EffectiveRenderScale;
-        this.HorizontalScrollBar.Renderer = this.Renderer;
-        this.HorizontalScrollBar.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.innerIdHorizontalScrollBar);
-        this.HorizontalScrollBar.RenderPassMeasure();
+        this.Padding = this.Padding with { Right = this.VerticalScrollBar.Boundary.Right };
+        this.VerticalScrollBar.RenderPassMeasure(suggestedSize with { X = float.PositiveInfinity, });
 
-        if (this.ShowVerticalScrollBar)
-        {
-            this.VerticalScrollBar.Options.VisibleSize = this.Options.VisibleSize;
-            this.VerticalScrollBar.Options.PreferredSize = suggestedSize with { X = float.PositiveInfinity, };
-            this.Padding = this.Padding with { Right = this.VerticalScrollBar.Boundary.Right };
-        }
-        else
-        {
-            this.VerticalScrollBar.Options.VisibleSize = Vector2.Zero;
-            this.VerticalScrollBar.Options.PreferredSize = Vector2.Zero;
-            this.Padding = this.Padding with { Right = 0 };
-        }
-
-        this.VerticalScrollBar.Options.RenderScale = this.EffectiveRenderScale;
-        this.VerticalScrollBar.Renderer = this.Renderer;
-        this.VerticalScrollBar.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.innerIdVerticalScrollBar);
-        this.VerticalScrollBar.RenderPassMeasure();
-
-        this.ScrollBarIntersectionDummy.Options.VisibleSize = this.Options.VisibleSize;
-        this.ScrollBarIntersectionDummy.Options.PreferredSize = new(
-            this.ShowVerticalScrollBar ? this.VerticalScrollBar.Boundary.Width : 0,
-            this.ShowHorizontalScrollBar ? this.HorizontalScrollBar.Boundary.Height : 0);
-        this.ScrollBarIntersectionDummy.Options.RenderScale = this.EffectiveRenderScale;
-        this.ScrollBarIntersectionDummy.Renderer = this.Renderer;
-        this.ScrollBarIntersectionDummy.ImGuiGlobalId =
-            this.GetGlobalIdFromInnerId(this.innerIdScrollBarIntersectionDummy);
-        this.ScrollBarIntersectionDummy.RenderPassMeasure();
+        this.ScrollBarIntersectionDummy.RenderPassMeasure(
+            new(
+                this.VerticalScrollBar.Boundary.Width,
+                this.HorizontalScrollBar.Boundary.Height));
 
         return this.layoutManager?.MeasureContentBox(suggestedSize) ?? base.MeasureContentBox(suggestedSize);
     }
@@ -340,7 +234,6 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     {
         this.layoutManager?.UpdateTransformation();
 
-        // Always place those; they still hold place.
         this.HorizontalScrollBar.RenderPassPlace(
             Matrix4x4.CreateTranslation(new(this.MeasuredContentBox.LeftBottom, 0)),
             this.FullTransformation);
@@ -359,14 +252,9 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     {
         this.layoutManager?.Draw(args);
 
-        if (this.ShowHorizontalScrollBar)
-            this.HorizontalScrollBar.RenderPassDraw(args.DrawListPtr);
-
-        if (this.ShowVerticalScrollBar)
-            this.VerticalScrollBar.RenderPassDraw(args.DrawListPtr);
-
-        if (this.ShowHorizontalScrollBar && this.ShowVerticalScrollBar)
-            this.ScrollBarIntersectionDummy.RenderPassDraw(args.DrawListPtr);
+        this.HorizontalScrollBar.RenderPassDraw(args.DrawListPtr);
+        this.VerticalScrollBar.RenderPassDraw(args.DrawListPtr);
+        this.ScrollBarIntersectionDummy.RenderPassDraw(args.DrawListPtr);
 
         base.OnDrawInside(args);
     }
@@ -418,7 +306,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
     protected override void OnMouseWheel(SpannableMouseEventArgs args)
     {
         base.OnMouseWheel(args);
-        if ((!this.ShowVerticalScrollBar && !this.ShowHorizontalScrollBar)
+        if ((!this.VerticalScrollBar.Visible && !this.HorizontalScrollBar.Visible)
             || args.SuppressHandling
             || !this.IsMouseHoveredIncludingChildren
             || this.layoutManager is null

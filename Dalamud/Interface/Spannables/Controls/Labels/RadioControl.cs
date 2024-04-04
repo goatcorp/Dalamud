@@ -34,7 +34,6 @@ public class RadioControl : BooleanControl
             OpacityEasing = new InCubic(animationDuration),
         };
 
-        const float checkSize = 22;
         const float checkmarkMargin = 4;
         const float circleMargin = 6;
         this.CaptureMouseOnMouseDown = true;
@@ -42,102 +41,81 @@ public class RadioControl : BooleanControl
         this.TextMargin = new(4);
         this.Alignment = new(0, 0.5f);
         this.Padding = new(4);
-        this.NormalIcon = new(
-            new()
+        this.NormalIcon = new()
+        {
+            ShowAnimation = showAnimation,
+            HideAnimation = hideAnimation,
+            BackgroundSpannable = new ShapePattern
             {
-                Size = new(checkSize, checkSize),
-                MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
-                MaxSize = new(checkSize, checkSize),
-                ShowIconAnimation = showAnimation,
-                HideIconAnimation = hideAnimation,
-                Background = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.FrameBg,
-                        Rounding = 4,
-                        Margin = new(0, 0, 0, 0),
-                    }),
-                TrueIcon = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.CheckMark,
-                        Margin = new(checkmarkMargin),
-                    }),
-                NullIcon = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.CheckMark,
-                        ColorMultiplier = new(1, 1, 1, 0.6f),
-                        Margin = new(circleMargin),
-                    }),
-            });
-        this.HoveredIcon = new(
-            new()
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.FrameBg,
+                Rounding = 4,
+                Margin = new(0, 0, 0, 0),
+            },
+            TrueSpannable = new ShapePattern
             {
-                Size = new(checkSize, checkSize),
-                MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
-                MaxSize = new(checkSize, checkSize),
-                ShowIconAnimation = showAnimation,
-                HideIconAnimation = hideAnimation,
-                Background = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.FrameBgHovered,
-                        Rounding = 4,
-                        Margin = new(0, 0, 0, 0),
-                    }),
-                TrueIcon = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.CheckMark,
-                        Margin = new(checkmarkMargin),
-                    }),
-                NullIcon = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.CheckMark,
-                        ColorMultiplier = new(1, 1, 1, 0.6f),
-                        Margin = new(circleMargin),
-                    }),
-            });
-        this.ActiveIcon = new(
-            new()
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.CheckMark,
+                Margin = new(checkmarkMargin),
+            },
+            NullSpannable = new ShapePattern
             {
-                Size = new(checkSize, checkSize),
-                MinSize = new(checkSize / 1.5f, checkSize / 1.5f),
-                MaxSize = new(checkSize, checkSize),
-                ShowIconAnimation = showAnimation,
-                HideIconAnimation = hideAnimation,
-                Background = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.FrameBgActive,
-                        Rounding = 4,
-                        Margin = new(0, 0, 0, 0),
-                    }),
-                TrueIcon = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.CheckMark,
-                        Margin = new(checkmarkMargin),
-                    }),
-                NullIcon = new ShapePattern.Template(
-                    new()
-                    {
-                        Shape = ShapePattern.Shape.CircleFilled,
-                        ImGuiColor = ImGuiCol.CheckMark,
-                        ColorMultiplier = new(1, 1, 1, 0.6f),
-                        Margin = new(circleMargin),
-                    }),
-            });
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.CheckMark,
+                ColorMultiplier = new(1, 1, 1, 0.6f),
+                Margin = new(circleMargin),
+            },
+        };
+        this.HoveredIcon = new()
+        {
+            ShowAnimation = showAnimation,
+            HideAnimation = hideAnimation,
+            BackgroundSpannable = new ShapePattern
+            {
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.FrameBgHovered,
+                Rounding = 4,
+                Margin = new(0, 0, 0, 0),
+            },
+            TrueSpannable = new ShapePattern
+            {
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.CheckMark,
+                Margin = new(checkmarkMargin),
+            },
+            NullSpannable = new ShapePattern
+            {
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.CheckMark,
+                ColorMultiplier = new(1, 1, 1, 0.6f),
+                Margin = new(circleMargin),
+            },
+        };
+        this.ActiveIcon = new()
+        {
+            ShowAnimation = showAnimation,
+            HideAnimation = hideAnimation,
+            BackgroundSpannable = new ShapePattern
+            {
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.FrameBgActive,
+                Rounding = 4,
+                Margin = new(0, 0, 0, 0),
+            },
+            TrueSpannable = new ShapePattern
+            {
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.CheckMark,
+                Margin = new(checkmarkMargin),
+            },
+            NullSpannable = new ShapePattern
+            {
+                Type = ShapePattern.Shape.CircleFilled,
+                ImGuiColor = ImGuiCol.CheckMark,
+                ColorMultiplier = new(1, 1, 1, 0.6f),
+                Margin = new(circleMargin),
+            },
+        };
     }
 
     /// <summary>Binds this radio control with <paramref name="other"/>.</summary>

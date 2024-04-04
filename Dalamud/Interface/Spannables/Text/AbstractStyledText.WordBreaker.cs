@@ -1,6 +1,6 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
-using Dalamud.Interface.Spannables.Helpers;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
@@ -17,6 +17,7 @@ public abstract partial class AbstractStyledText
         private readonly TextSpannable mm;
         private readonly ISpannableRenderer renderer;
         private readonly DataRef data;
+        private readonly Vector2 preferredSize;
 
         private TextStyle currentStyle;
         private TextStyleFontData fontInfo;
@@ -30,11 +31,12 @@ public abstract partial class AbstractStyledText
         private MeasuredLine normalBreak;
         private MeasuredLine wrapMarkerBreak;
 
-        public WordBreaker(TextSpannable mm, in DataRef data)
+        public WordBreaker(TextSpannable mm, in DataRef data, Vector2 preferredSize)
         {
             this.mm = mm;
             this.renderer = mm.Renderer!;
             this.data = data;
+            this.preferredSize = preferredSize;
             this.currentStyle = mm.LastStyle;
             this.prev = MeasuredLine.Empty;
             this.first = MeasuredLine.Empty;
@@ -42,7 +44,7 @@ public abstract partial class AbstractStyledText
             this.wrapMarkerBreak = MeasuredLine.Empty;
 
             this.SpanFontOptionsUpdated();
-            if (mm.Options.WrapMarker is not null)
+            if (mm.WrapMarker is not null)
                 this.UpdateWrapMarker();
         }
 
@@ -67,7 +69,7 @@ public abstract partial class AbstractStyledText
             this.currentStyle.UpdateFrom(
                 record,
                 recordData,
-                this.mm.Options.Style,
+                this.mm.Style,
                 this.data.FontSets,
                 out var fontUpdated,
                 out _);
@@ -81,7 +83,7 @@ public abstract partial class AbstractStyledText
                 case SpannedRecordType.ObjectSpannable:
                     return this.AddCodepointAndMeasure(offsetBefore, offsetAfter, -1, record, recordData);
                 case SpannedRecordType.ObjectNewLine
-                    when (this.mm.Options.AcceptedNewLines & NewLineType.Manual) != 0:
+                    when (this.mm.AcceptedNewLines & NewLineType.Manual) != 0:
                     this.prev.LastThing.SetRecord(offsetBefore.Record);
                     this.prev.SetOffset(offsetAfter, this.fontInfo.RenderScale, 0);
                     this.UnionLineBBoxVertical(ref this.prev);
@@ -112,7 +114,7 @@ public abstract partial class AbstractStyledText
                         case SpannedRecordType.ObjectIcon
                             when SpannedRecordCodec.TryDecodeObjectIcon(recordData, out var gfdIcon)
                                  && this.renderer.TryGetIcon(
-                                     this.mm.Options.GfdIconMode,
+                                     this.mm.GfdIconMode,
                                      (uint)gfdIcon,
                                      new(0, this.fontInfo.ScaledFontSize),
                                      out var tex,
@@ -153,15 +155,13 @@ public abstract partial class AbstractStyledText
                                      out var index)
                                  && this.mm.Children[index] is { } smm:
                         {
-                            smm.ImGuiGlobalId = this.mm.GetGlobalIdFromInnerId(offset.Record);
-                            smm.Options.RenderScale = this.mm.Options.RenderScale;
-                            smm.Options.PreferredSize = new(
-                                float.PositiveInfinity,
-                                Math.Min(
-                                    this.mm.Options.PreferredSize.Y - this.mm.LastOffset.Y,
-                                    this.fontInfo.ScaledFontSize));
-                            smm.Options.VisibleSize = smm.Options.PreferredSize;
-                            smm.RenderPassMeasure();
+                            smm.RenderScale = this.mm.EffectiveRenderScale;
+                            smm.RenderPassMeasure(
+                                new(
+                                    float.PositiveInfinity,
+                                    Math.Min(
+                                        this.preferredSize.Y - this.mm.LastOffset.Y,
+                                        this.fontInfo.ScaledFontSize)));
                             boundary = smm.Boundary;
                             break;
                         }
@@ -185,7 +185,7 @@ public abstract partial class AbstractStyledText
 
                 case '\t':
                     current.SetOffset(offsetAfter, this.fontInfo.RenderScale, pad);
-                    current.AddTabCharacter(this.fontInfo, this.mm.Options.TabWidth);
+                    current.AddTabCharacter(this.fontInfo, this.mm.TabWidth);
                     break;
 
                 // Soft hyphen; only determine if this offset can be used as a word break point.
@@ -195,7 +195,7 @@ public abstract partial class AbstractStyledText
                     if (current.ContainedInBoundsWithObject(
                             this.fontInfo,
                             this.wrapMarkerWidth,
-                            this.mm.Options.PreferredSize.X))
+                            this.preferredSize.X))
                     {
                         this.wrapMarkerBreak = this.normalBreak = current;
                     }
@@ -220,10 +220,10 @@ public abstract partial class AbstractStyledText
             if (this.first.IsEmpty)
                 this.first = current;
 
-            var wrapWidth = this.mm.Options.PreferredSize.X;
+            var wrapWidth = this.preferredSize.X;
             if (current.ContainedInBounds(wrapWidth, this.fontInfo.RenderScale))
             {
-                if (this.mm.Options.WrapMarker is not null)
+                if (this.mm.WrapMarker is not null)
                 {
                     if (current.ContainedInBoundsWithObject(this.fontInfo, this.wrapMarkerWidth, wrapWidth))
                         this.wrapMarkerBreak = current;
@@ -234,15 +234,15 @@ public abstract partial class AbstractStyledText
             else
             {
                 var resolved = MeasuredLine.Empty;
-                switch (this.mm.Options.WordBreak)
+                switch (this.mm.WordBreak)
                 {
                     case WordBreakType.Normal:
                         this.breakOnFirstNormalBreakableOffset = true;
                         resolved = MeasuredLine.FirstNonEmpty(this.normalBreak);
                         break;
 
-                    case WordBreakType.BreakAll when this.mm.Options.WrapMarker is not null:
-                    case WordBreakType.KeepAll when this.mm.Options.WrapMarker is not null:
+                    case WordBreakType.BreakAll when this.mm.WrapMarker is not null:
+                    case WordBreakType.KeepAll when this.mm.WrapMarker is not null:
                         resolved = MeasuredLine.FirstNonEmpty(this.wrapMarkerBreak, this.first);
                         break;
 
@@ -250,7 +250,7 @@ public abstract partial class AbstractStyledText
                         resolved = MeasuredLine.FirstNonEmpty(this.prev, this.first);
                         break;
 
-                    case WordBreakType.BreakWord when this.mm.Options.WrapMarker is not null:
+                    case WordBreakType.BreakWord when this.mm.WrapMarker is not null:
                         resolved = MeasuredLine.FirstNonEmpty(this.normalBreak, this.wrapMarkerBreak, this.first);
                         break;
 
@@ -276,22 +276,20 @@ public abstract partial class AbstractStyledText
 
         private void SpanFontOptionsUpdated()
         {
-            this.renderer.TryGetFontData(this.mm.Options.RenderScale, in this.currentStyle, out this.fontInfo);
-            if (this.mm.Options.WrapMarker is not null)
+            this.renderer.TryGetFontData(this.mm.EffectiveRenderScale, in this.currentStyle, out this.fontInfo);
+            if (this.mm.WrapMarker is not null)
                 this.UpdateWrapMarker();
         }
 
         private void UpdateWrapMarker()
         {
-            if (this.mm.Options.WrapMarker is not { } wm)
+            if (this.mm.WrapMarker is not { } wm)
                 return;
 
             var wmm = wm.CreateSpannable();
-            wmm.Options.RenderScale = this.mm.Options.RenderScale;
-            wmm.Renderer = this.renderer;
-            wmm.RenderPassMeasure();
+            wmm.RenderScale = this.mm.EffectiveRenderScale;
+            wmm.RenderPassMeasure(new(float.PositiveInfinity));
             this.wrapMarkerWidth = wmm.Boundary.IsValid ? wmm.Boundary.Right : 0;
-            wm.RecycleSpannable(wmm);
         }
     }
 }

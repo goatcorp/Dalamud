@@ -1,7 +1,5 @@
 using System.Numerics;
-using System.Runtime.InteropServices;
 
-using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Spannables.Controls.Labels;
 using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
@@ -32,13 +30,9 @@ public class ScrollBarControl : ControlSpannable
     private const int MeasurementIndexIncreaseButton = 1;
     private const int MeasurementIndexThumb = 2;
 
-    private readonly int slotIndexDecreaseButton;
-    private readonly int slotIndexIncreaseButton;
-    private readonly int slotIndexThumb;
+    private readonly Spannable?[] children = new Spannable?[ChildSpannableCount];
 
-    private readonly int[] childInnerIds = new int[ChildSpannableCount];
-
-    private bool autoValueUpdate;
+    private bool autoValueUpdate = true;
     private float value;
     private float minValue;
     private float maxValue = 1f;
@@ -46,6 +40,7 @@ public class ScrollBarControl : ControlSpannable
     private float pageSizeProportion = 1 / 8f;
     private float minThumbSize = DefaultButtonLength;
     private LinearDirection direction;
+    private bool autoButtonContent = true;
 
     private float barOffset;
     private float barSize;
@@ -63,69 +58,100 @@ public class ScrollBarControl : ControlSpannable
     /// <summary>Initializes a new instance of the <see cref="ScrollBarControl"/> class.</summary>
     public ScrollBarControl()
     {
-        this.slotIndexDecreaseButton = this.AllSpannablesAvailableSlot++;
-        this.slotIndexIncreaseButton = this.AllSpannablesAvailableSlot++;
-        this.slotIndexThumb = this.AllSpannablesAvailableSlot++;
-
-        for (var i = 0; i < ChildSpannableCount; i++)
-        {
-            this.AllSpannables.Add(null);
-            this.childInnerIds[i] = this.InnerIdAvailableSlot++;
-        }
-
         this.CaptureMouseOnMouseDown = true;
 
-        this.NormalBackground = new ShapePattern.Template(
-            new()
-            {
-                Color = 0xFF2C2C2C,
-                Shape = ShapePattern.Shape.RectFilled,
-            });
+        this.Background = new ShapePattern
+        {
+            Color = 0xFF2C2C2C,
+            Type = ShapePattern.Shape.RectFilled,
+        };
 
         this.DecreaseButton = new ButtonControl
         {
-            Text = FontAwesomeIcon.CaretUp.ToIconString(),
-            TextStyle = new()
+            Text = "-",
+            SpannableText = new DisplayedStatePattern
             {
-                Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
-                FontSize = 12f,
-                ForeColor = 0xFF9F9F9F,
+                NormalSpannable = new ShapePattern
+                {
+                    Type = ShapePattern.Shape.EquilateralTriangleFilled,
+                    Color = 0xFF9F9F9F,
+                    Margin = new(4f),
+                },
+                HoveredSpannable = new ShapePattern
+                {
+                    Type = ShapePattern.Shape.EquilateralTriangleFilled,
+                    Color = 0xFFD1D1D1,
+                    Margin = new(4f),
+                },
+                ActiveSpannable = new ShapePattern
+                {
+                    Type = ShapePattern.Shape.EquilateralTriangleFilled,
+                    Color = 0xFF6D6D6D,
+                    Margin = new(4f),
+                },
             },
-            NormalBackground = null,
             Size = new(MatchParent, MatchParent),
             Padding = BorderVector4.Zero,
-            Alignment = new(0.6f, 0.5f),
+            Alignment = new(0.5f, 0.5f),
             Focusable = false,
         };
 
         this.IncreaseButton = new ButtonControl
         {
-            Text = FontAwesomeIcon.CaretDown.ToIconString(),
-            TextStyle = new()
+            Text = "+",
+            SpannableText = new DisplayedStatePattern
             {
-                Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.FontAwesomeFreeSolid)),
-                FontSize = 12f,
-                ForeColor = 0xFF9F9F9F,
+                NormalSpannable = new ShapePattern
+                {
+                    Type = ShapePattern.Shape.EquilateralTriangleFilled,
+                    Color = 0xFF9F9F9F,
+                    Margin = new(4f),
+                },
+                HoveredSpannable = new ShapePattern
+                {
+                    Type = ShapePattern.Shape.EquilateralTriangleFilled,
+                    Color = 0xFFD1D1D1,
+                    Margin = new(4f),
+                },
+                ActiveSpannable = new ShapePattern
+                {
+                    Type = ShapePattern.Shape.EquilateralTriangleFilled,
+                    Color = 0xFF6D6D6D,
+                    Margin = new(4f),
+                },
             },
-            NormalBackground = null,
             Size = new(MatchParent, MatchParent),
             Padding = BorderVector4.Zero,
-            Alignment = new(0.6f, 0.5f),
+            Alignment = new(0.5f, 0.5f),
             Focusable = false,
         };
 
-        this.Thumb = new ShapePattern(
-            new()
+        this.Thumb = new DisplayedStatePattern
+        {
+            NormalSpannable = new ShapePattern
             {
                 Color = 0xFF9F9F9F,
-                Shape = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.RectFilled,
                 Rounding = (DefaultThickness / 2f) - 1f,
-                Margin = new(2f),
-            });
+                Margin = new(4f),
+            },
+            HoveredSpannable = new ShapePattern
+            {
+                Color = 0xFFD1D1D1,
+                Type = ShapePattern.Shape.RectFilled,
+                Rounding = (DefaultThickness / 2f) - 1f,
+                Margin = new(4f),
+            },
+            ActiveSpannable = new ShapePattern
+            {
+                Color = 0xFF6D6D6D,
+                Type = ShapePattern.Shape.RectFilled,
+                Rounding = (DefaultThickness / 2f) - 1f,
+                Margin = new(4f),
+            },
+        };
 
-        this.DecreaseButton.PropertyChange += this.ChildOnPropertyChange;
-        this.IncreaseButton.PropertyChange += this.ChildOnPropertyChange;
-        this.Thumb.PropertyChange += this.ChildOnPropertyChange;
+        this.UpdateButtonContent();
     }
 
     /// <summary>Delegate for <see cref="Scroll"/>.</summary>
@@ -155,6 +181,9 @@ public class ScrollBarControl : ControlSpannable
 
     /// <summary>Occurs when the property <see cref="Direction"/> is changing.</summary>
     public event PropertyChangeEventHandler<LinearDirection>? DirectionChange;
+
+    /// <summary>Occurs when the property <see cref="AutoButtonContent"/> is changing.</summary>
+    public event PropertyChangeEventHandler<bool>? AutoButtonContentChanged;
 
     /// <summary>Occurs when the property <see cref="DecreaseButton"/> is changing.</summary>
     public event PropertyChangeEventHandler<Spannable?>? DecreaseButtonChange;
@@ -296,56 +325,53 @@ public class ScrollBarControl : ControlSpannable
             this.OnDirectionChanged);
     }
 
+    /// <summary>Gets or sets a value indicating whether to set button content automatically.</summary>
+    public bool AutoButtonContent
+    {
+        get => this.autoButtonContent;
+        set => this.HandlePropertyChange(
+            nameof(this.AutoButtonContent),
+            ref this.autoButtonContent,
+            value,
+            this.autoButtonContent == value,
+            this.OnAutoButtonContentChanged);
+    }
+
     /// <summary>Gets or sets the decrease button.</summary>
     public Spannable? DecreaseButton
     {
-        get => this.AllSpannables[this.slotIndexDecreaseButton];
-        set
-        {
-            ref var storage = ref CollectionsMarshal.AsSpan(this.AllSpannables)[this.slotIndexDecreaseButton];
-            this.HandlePropertyChange(
-                nameof(this.DecreaseButton),
-                ref storage,
-                value,
-                ReferenceEquals(storage, value),
-                this.OnDecreaseButtonChanged);
-        }
+        get => this.children[MeasurementIndexDecreaseButton];
+        set => this.HandlePropertyChange(
+            nameof(this.DecreaseButton),
+            ref this.children[MeasurementIndexDecreaseButton],
+            value,
+            ReferenceEquals(this.children[MeasurementIndexDecreaseButton], value),
+            this.OnDecreaseButtonChanged);
     }
 
     /// <summary>Gets or sets the increase button.</summary>
     public Spannable? IncreaseButton
     {
-        get => this.AllSpannables[this.slotIndexIncreaseButton];
-        set
-        {
-            ref var storage = ref CollectionsMarshal.AsSpan(this.AllSpannables)[this.slotIndexIncreaseButton];
-            this.HandlePropertyChange(
-                nameof(this.IncreaseButton),
-                ref storage,
-                value,
-                ReferenceEquals(storage, value),
-                this.OnIncreaseButtonChanged);
-        }
+        get => this.children[MeasurementIndexIncreaseButton];
+        set => this.HandlePropertyChange(
+            nameof(this.IncreaseButton),
+            ref this.children[MeasurementIndexIncreaseButton],
+            value,
+            ReferenceEquals(this.children[MeasurementIndexIncreaseButton], value),
+            this.OnIncreaseButtonChanged);
     }
 
     /// <summary>Gets or sets the thumb.</summary>
     public Spannable? Thumb
     {
-        get => this.AllSpannables[this.slotIndexThumb];
-        set
-        {
-            ref var storage = ref CollectionsMarshal.AsSpan(this.AllSpannables)[this.slotIndexThumb];
-            this.HandlePropertyChange(
-                nameof(this.Thumb),
-                ref storage,
-                value,
-                ReferenceEquals(storage, value),
-                this.OnThumbChanged);
-        }
+        get => this.children[MeasurementIndexThumb];
+        set => this.HandlePropertyChange(
+            nameof(this.Thumb),
+            ref this.children[MeasurementIndexThumb],
+            value,
+            ReferenceEquals(this.children[MeasurementIndexThumb], value),
+            this.OnThumbChanged);
     }
-
-    private Span<Spannable?> ChildSpannables =>
-        CollectionsMarshal.AsSpan(this.AllSpannables).Slice(this.slotIndexDecreaseButton, ChildSpannableCount);
 
     private float EffectiveRange => Math.Max(this.maxValue - this.MinValue, 0f);
 
@@ -382,16 +408,6 @@ public class ScrollBarControl : ControlSpannable
     /// <inheritdoc/>
     protected override RectVector4 MeasureContentBox(Vector2 suggestedSize)
     {
-        var children = this.ChildSpannables;
-        for (var i = 0; i < ChildSpannableCount; i++)
-        {
-            if (children[i] is not { } m)
-                continue;
-            m.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.childInnerIds[i]);
-            m.Renderer = this.Renderer;
-            m.Options.RenderScale = this.EffectiveRenderScale;
-        }
-
         if (suggestedSize.GetOffDirection(this.direction) >= float.PositiveInfinity)
             suggestedSize = suggestedSize.UpdateOffDirection(this.direction, DefaultThickness);
         if (suggestedSize.GetMainDirection(this.direction) >= float.PositiveInfinity)
@@ -399,23 +415,21 @@ public class ScrollBarControl : ControlSpannable
 
         this.barSize = suggestedSize.GetMainDirection(this.direction);
 
-        if (children[MeasurementIndexDecreaseButton] is { } decbut)
+        if (this.children[MeasurementIndexDecreaseButton] is { } decbut)
         {
-            decbut.Options.PreferredSize = suggestedSize.UpdateMainDirection(
-                this.direction,
-                suggestedSize.GetOffDirection(this.direction));
-            decbut.Options.VisibleSize = decbut.Options.PreferredSize;
-            decbut.RenderPassMeasure();
+            decbut.RenderPassMeasure(
+                suggestedSize.UpdateMainDirection(
+                    this.direction,
+                    suggestedSize.GetOffDirection(this.direction)));
             this.barSize -= decbut.Boundary.Bottom;
         }
 
-        if (children[MeasurementIndexIncreaseButton] is { } incbut)
+        if (this.children[MeasurementIndexIncreaseButton] is { } incbut)
         {
-            incbut.Options.PreferredSize = suggestedSize.UpdateMainDirection(
-                this.direction,
-                suggestedSize.GetOffDirection(this.direction));
-            incbut.Options.VisibleSize = incbut.Options.PreferredSize;
-            incbut.RenderPassMeasure();
+            incbut.RenderPassMeasure(
+                suggestedSize.UpdateMainDirection(
+                    this.direction,
+                    suggestedSize.GetOffDirection(this.direction)));
             this.barSize -= incbut.Boundary.Bottom;
         }
 
@@ -434,11 +448,10 @@ public class ScrollBarControl : ControlSpannable
             this.thumbOffset = this.thumbSize = 0f;
         }
 
-        if (children[MeasurementIndexThumb] is { } thumb && this.EffectiveRange > 0)
+        if (this.children[MeasurementIndexThumb] is { } thumb)
         {
-            thumb.Options.PreferredSize = suggestedSize.UpdateMainDirection(this.direction, this.thumbSize);
-            thumb.Options.VisibleSize = thumb.Options.PreferredSize;
-            thumb.RenderPassMeasure();
+            thumb.Visible = this.EffectiveRange > 0;
+            thumb.RenderPassMeasure(suggestedSize.UpdateMainDirection(this.direction, this.thumbSize));
         }
 
         return new(Vector2.Zero, suggestedSize);
@@ -447,10 +460,8 @@ public class ScrollBarControl : ControlSpannable
     /// <inheritdoc/>
     protected override void OnPlace(SpannableEventArgs args)
     {
-        var children = this.ChildSpannables;
-
         this.barOffset = 0f;
-        if (children[MeasurementIndexDecreaseButton] is { } decbut)
+        if (this.children[MeasurementIndexDecreaseButton] is { } decbut)
         {
             var translation = this.direction switch
             {
@@ -471,7 +482,7 @@ public class ScrollBarControl : ControlSpannable
                 this.barOffset = decbut.Boundary.Right;
         }
 
-        if (children[MeasurementIndexIncreaseButton] is { } incbut)
+        if (this.children[MeasurementIndexIncreaseButton] is { } incbut)
         {
             var translation = this.direction switch
             {
@@ -492,7 +503,7 @@ public class ScrollBarControl : ControlSpannable
                 this.barOffset = incbut.Boundary.Right;
         }
 
-        if (children[MeasurementIndexThumb] is { } thumb && this.EffectiveRange > 0)
+        if (this.children[MeasurementIndexThumb] is { } thumb)
         {
             var translation = this.MeasuredContentBox.LeftTop;
             if (this.direction.IsVertical())
@@ -509,11 +520,25 @@ public class ScrollBarControl : ControlSpannable
     protected override void OnDrawInside(SpannableDrawEventArgs args)
     {
         base.OnDrawInside(args);
-        var children = this.ChildSpannables;
-        children[MeasurementIndexIncreaseButton]?.RenderPassDraw(args.DrawListPtr);
-        children[MeasurementIndexDecreaseButton]?.RenderPassDraw(args.DrawListPtr);
-        if (this.EffectiveRange > 0f)
-            children[MeasurementIndexThumb]?.RenderPassDraw(args.DrawListPtr);
+        this.children[MeasurementIndexIncreaseButton]?.RenderPassDraw(args.DrawListPtr);
+        this.children[MeasurementIndexDecreaseButton]?.RenderPassDraw(args.DrawListPtr);
+        this.children[MeasurementIndexThumb]?.RenderPassDraw(args.DrawListPtr);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMouseEnter(SpannableMouseEventArgs args)
+    {
+        base.OnMouseEnter(args);
+        if (args.Step != SpannableEventStep.BeforeChildren && !args.SuppressHandling)
+            this.UpdateChildrenDisplayedState();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMouseLeave(SpannableMouseEventArgs args)
+    {
+        base.OnMouseLeave(args);
+        if (args.Step != SpannableEventStep.BeforeChildren && !args.SuppressHandling)
+            this.UpdateChildrenDisplayedState();
     }
 
     /// <inheritdoc/>
@@ -527,6 +552,7 @@ public class ScrollBarControl : ControlSpannable
             || args.Step == SpannableEventStep.BeforeChildren)
             return;
 
+        this.UpdateChildrenDisplayedState();
         switch (args.Button)
         {
             case ImGuiMouseButton.Left:
@@ -677,6 +703,7 @@ public class ScrollBarControl : ControlSpannable
     protected override void OnMouseUp(SpannableMouseEventArgs args)
     {
         base.OnMouseUp(args);
+        this.UpdateChildrenDisplayedState();
         switch (args.Button)
         {
             case ImGuiMouseButton.Left:
@@ -688,6 +715,14 @@ public class ScrollBarControl : ControlSpannable
                 this.mmbAutoScrollPerSecond = 0;
                 break;
         }
+    }
+
+    /// <inheritdoc/>
+    protected override void OnEnabledChange(PropertyChangeEventArgs<bool> args)
+    {
+        base.OnEnabledChange(args);
+        if (args.State == PropertyChangeState.After && !args.SuppressHandling)
+            this.UpdateChildrenDisplayedState();
     }
 
     /// <summary>Raises the <see cref="AutoValueUpdateChange"/> event.</summary>
@@ -727,8 +762,21 @@ public class ScrollBarControl : ControlSpannable
 
     /// <summary>Raises the <see cref="DirectionChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnDirectionChanged(PropertyChangeEventArgs<LinearDirection> args) =>
+    protected virtual void OnDirectionChanged(PropertyChangeEventArgs<LinearDirection> args)
+    {
         this.DirectionChange?.Invoke(args);
+        if (args.State == PropertyChangeState.After && !args.SuppressHandling)
+            this.UpdateButtonContent();
+    }
+
+    /// <summary>Raises the <see cref="AutoButtonContentChanged"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnAutoButtonContentChanged(PropertyChangeEventArgs<bool> args)
+    {
+        this.AutoButtonContentChanged?.Invoke(args);
+        if (args.State == PropertyChangeState.After && !args.SuppressHandling)
+            this.UpdateButtonContent();
+    }
 
     /// <summary>Raises the <see cref="DecreaseButtonChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
@@ -741,6 +789,8 @@ public class ScrollBarControl : ControlSpannable
                 pcs.MousePress -= this.IncDecMousePressLongAndRepeat;
                 pcs.MouseDown -= this.IncDecMousePressLongAndRepeat;
             }
+
+            this.ReplaceChild(args.PreviousValue, args.NewValue);
 
             if (args.NewValue is ControlSpannable ncs)
             {
@@ -764,6 +814,8 @@ public class ScrollBarControl : ControlSpannable
                 pcs.MouseDown -= this.IncDecMousePressLongAndRepeat;
             }
 
+            this.ReplaceChild(args.PreviousValue, args.NewValue);
+
             if (args.NewValue is ControlSpannable ncs)
             {
                 ncs.MousePress += this.IncDecMousePressLongAndRepeat;
@@ -776,8 +828,12 @@ public class ScrollBarControl : ControlSpannable
 
     /// <summary>Raises the <see cref="ThumbChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnThumbChanged(PropertyChangeEventArgs<Spannable?> args) =>
+    protected virtual void OnThumbChanged(PropertyChangeEventArgs<Spannable?> args)
+    {
+        if (args.State == PropertyChangeState.After)
+            this.ReplaceChild(args.PreviousValue, args.NewValue);
         this.ThumbChange?.Invoke(args);
+    }
 
     /// <summary>Raises the <see cref="Scroll"/> event.</summary>
     /// <param name="args">A <see cref="ScrollEventArgs"/> that contains the event data.</param>
@@ -916,7 +972,50 @@ public class ScrollBarControl : ControlSpannable
         SpannableEventArgsPool.Return(e);
     }
 
-    private void ChildOnPropertyChange(PropertyChangeEventArgs args) => this.RequestMeasure();
+    private void UpdateButtonContent()
+    {
+        if (!this.autoButtonContent)
+            return;
+
+        if (this.DecreaseButton is not null)
+        {
+            foreach (var x in this.DecreaseButton.EnumerateHierarchy<ShapePattern>())
+            {
+                x.Rotation = (MathF.PI / 2f) * this.direction switch
+                {
+                    LinearDirection.LeftToRight => 3,
+                    LinearDirection.RightToLeft => 1,
+                    LinearDirection.TopToBottom => 0,
+                    LinearDirection.BottomToTop => 2,
+                    _ => 0f,
+                };
+            }
+        }
+
+        if (this.IncreaseButton is not null)
+        {
+            foreach (var x in this.IncreaseButton.EnumerateHierarchy<ShapePattern>())
+            {
+                x.Rotation = (MathF.PI / 2f) * this.direction switch
+                {
+                    LinearDirection.LeftToRight => 1,
+                    LinearDirection.RightToLeft => 3,
+                    LinearDirection.TopToBottom => 2,
+                    LinearDirection.BottomToTop => 0,
+                    _ => 0f,
+                };
+            }
+        }
+    }
+
+    private void UpdateChildrenDisplayedState()
+    {
+        foreach (var c in this.EnumerateChildren(true))
+        {
+            if (c is DisplayedStatePattern dsp)
+                dsp.State = this.GetDisplayedState();
+        }
+    }
 
     /// <summary>Event arguments for <see cref="Scroll"/> event.</summary>
     public record ScrollEventArgs : SpannableEventArgs

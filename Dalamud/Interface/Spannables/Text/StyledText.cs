@@ -177,6 +177,6 @@ public sealed partial class StyledText : AbstractStyledText, ISpanParsable<Style
     public override int GetHashCode() => this.hashCode.Value;
 
     /// <inheritdoc/>
-    private protected override DataRef GetData() =>
+    private protected override DataMemory AsMemory() =>
         new(this.textStream, this.dataStream, this.records, this.fontSets, this.textures, this.spannables);
 }

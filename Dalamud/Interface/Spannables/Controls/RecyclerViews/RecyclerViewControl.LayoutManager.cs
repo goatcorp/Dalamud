@@ -211,7 +211,7 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is null)
                 return RectVector4.InvertedExtrema;
             var res = this.MeasureChildren(suggestedSize);
-            this.Parent.ShowHorizontalScrollBar =
+            this.Parent.HorizontalScrollBar.Visible =
                 this.Parent.horizontalScrollBarMode switch
                 {
                     ScrollBarMode.Automatic => this.ScrollRange.X > 0,
@@ -219,7 +219,7 @@ public abstract partial class RecyclerViewControl
                     ScrollBarMode.Always => true,
                     _ => false,
                 };
-            this.Parent.ShowVerticalScrollBar =
+            this.Parent.VerticalScrollBar.Visible =
                 this.Parent.verticalScrollBarMode switch
                 {
                     ScrollBarMode.Automatic => this.ScrollRange.Y > 0,
@@ -228,13 +228,13 @@ public abstract partial class RecyclerViewControl
                     _ => false,
                 };
 
-            if (this.Parent.ShowHorizontalScrollBar)
+            if (this.Parent.HorizontalScrollBar.Visible)
             {
                 this.Parent.HorizontalScrollBar.Value = this.ScrollPosition.X;
                 this.Parent.HorizontalScrollBar.MaxValue = this.ScrollRange.X;
             }
 
-            if (this.Parent.ShowVerticalScrollBar)
+            if (this.Parent.VerticalScrollBar.Visible)
             {
                 this.Parent.VerticalScrollBar.Value = this.ScrollPosition.Y;
                 this.Parent.VerticalScrollBar.MaxValue = this.ScrollRange.Y;
@@ -365,9 +365,6 @@ public abstract partial class RecyclerViewControl
         /// <returns>The corresponding spannable, or <c>null</c> if none was available.</returns>
         public abstract Spannable? FindMeasurementFromItemIndex(int index);
 
-        /// <inheritdoc cref="Spannable.FindChildAtPos"/>
-        public abstract Spannable? FindChildAtPos(Vector2 screenOffset);
-
         /// <summary><see cref="Spannable.FindChildAtPos"/>, but also looks for children closest
         /// to the given point, if the offset does not match any children.</summary>
         /// <param name="screenOffset">The screen offset.</param>
@@ -451,12 +448,9 @@ public abstract partial class RecyclerViewControl
 
         /// <summary>Takes a placeholder, creating new ones as necessary.</summary>
         /// <param name="spannableType">Spannable type of the placeholders in need.</param>
-        /// <param name="slotIndex">The slot index in <see cref="ControlSpannable.AllSpannables"/>.</param>
-        /// <param name="innerId">The inner ID for this placeholder.</param>
         /// <returns>The placeholder available for use, or <c>null</c> if none could be provided.</returns>
-        protected Spannable? TakePlaceholder(int spannableType, out int slotIndex, out int innerId)
+        protected Spannable? TakePlaceholder(int spannableType)
         {
-            slotIndex = innerId = -1;
             if (this.Parent is null)
                 return null;
 
@@ -473,39 +467,24 @@ public abstract partial class RecyclerViewControl
                     return null;
             }
 
-            slotIndex = this.Parent.availablePlaceholderSlotIndices[^1];
-            this.Parent.availablePlaceholderSlotIndices.RemoveAt(
-                this.Parent.availablePlaceholderSlotIndices.Count - 1);
-
-            innerId = this.Parent.availablePlaceholderInnerIdIndices[^1];
-            this.Parent.availablePlaceholderInnerIdIndices.RemoveAt(
-                this.Parent.availablePlaceholderInnerIdIndices.Count - 1);
-
             var t = plist[^1];
             plist.RemoveAt(plist.Count - 1);
-            this.Parent.AllSpannables[slotIndex] = t;
-            this.Parent.activeChildrenChanged = true;
-            this.Parent.RequestMeasure();
+            this.Parent.AddChild(t);
             return t;
         }
 
         /// <summary>Returns a placeholder that is no longer in use.</summary>
         /// <param name="spannableType">Spannable type of the placeholder.</param>
         /// <param name="placeholder">The placeholder to return. Can be null, in which case nothing will happen.</param>
-        /// <param name="slotIndex">The slot index in <see cref="ControlSpannable.AllSpannables"/>.</param>
-        /// <param name="innerId">The inner ID for this placeholder.</param>
-        protected void ReturnPlaceholder(int spannableType, Spannable? placeholder, int slotIndex, int innerId)
+        protected void ReturnPlaceholder(int spannableType, Spannable? placeholder)
         {
             if (placeholder is null || this.Parent is null)
                 return;
 
             if (!this.Parent.placeholders.TryGetValue(spannableType, out var plist))
                 this.Parent.placeholders.Add(spannableType, plist = []);
-            this.Parent.availablePlaceholderSlotIndices.Add(slotIndex);
-            this.Parent.availablePlaceholderInnerIdIndices.Add(innerId);
             plist.Add(placeholder);
-            this.Parent.AllSpannables[slotIndex] = null;
-            this.Parent.activeChildrenChanged = true;
+            this.Parent.RemoveChild(placeholder);
             this.Parent.RequestMeasure();
         }
 

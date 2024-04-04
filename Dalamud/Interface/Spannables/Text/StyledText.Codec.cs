@@ -141,7 +141,7 @@ public sealed partial class StyledText
     {
         var sb = new StringBuilder();
         Span<bool> typeNeedsReverting = stackalloc bool[1 + Enum.GetValues<SpannedRecordType>().Length];
-        foreach (var segment in this.GetData())
+        foreach (var segment in this.AsMemory().AsSpan())
         {
             if (segment.TryGetRawText(out var text))
             {

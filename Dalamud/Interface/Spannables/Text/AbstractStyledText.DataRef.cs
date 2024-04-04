@@ -13,6 +13,61 @@ namespace Dalamud.Interface.Spannables.Text;
 /// <summary>Base class for <see cref="StyledText"/> and <see cref="StyledTextBuilder"/>.</summary>
 public abstract partial class AbstractStyledText
 {
+    /// <summary>Memory references to the underlying data.</summary>
+    private protected readonly struct DataMemory
+    {
+        /// <summary>The text data.</summary>
+        public readonly ReadOnlyMemory<byte> TextStream;
+
+        /// <summary>The link data.</summary>
+        public readonly ReadOnlyMemory<byte> DataStream;
+
+        /// <summary>The Memory entity data.</summary>
+        public readonly ReadOnlyMemory<SpannedRecord> Records;
+
+        /// <summary>The used font sets.</summary>
+        public readonly ReadOnlyMemory<FontHandleVariantSet> FontSets;
+
+        /// <summary>The textures used.</summary>
+        public readonly ReadOnlyMemory<IDalamudTextureWrap?> Textures;
+
+        /// <summary>The callbacks used.</summary>
+        public readonly ReadOnlyMemory<ISpannableTemplate?> Children;
+
+        /// <summary>Initializes a new instance of the <see cref="DataMemory"/> struct.</summary>
+        /// <param name="textStream">The text data.</param>
+        /// <param name="dataStream">The link data.</param>
+        /// <param name="records">The Memory records.</param>
+        /// <param name="fontSets">The font sets.</param>
+        /// <param name="textures">The textures.</param>
+        /// <param name="children">The callbacks.</param>
+        public DataMemory(
+            ReadOnlyMemory<byte> textStream,
+            ReadOnlyMemory<byte> dataStream,
+            ReadOnlyMemory<SpannedRecord> records,
+            ReadOnlyMemory<FontHandleVariantSet> fontSets,
+            ReadOnlyMemory<IDalamudTextureWrap?> textures,
+            ReadOnlyMemory<ISpannableTemplate?> children)
+        {
+            this.TextStream = textStream;
+            this.DataStream = dataStream;
+            this.Records = records;
+            this.FontSets = fontSets;
+            this.Textures = textures;
+            this.Children = children;
+        }
+
+        /// <summary>Gets <see cref="DataRef"/> from this <see cref="DataMemory"/>.</summary>
+        /// <returns>A <see cref="DataRef"/> corresponding to this <see cref="DataMemory"/>.</returns>
+        public DataRef AsSpan() => new(
+            this.TextStream.Span,
+            this.DataStream.Span,
+            this.Records.Span,
+            this.FontSets.Span,
+            this.Textures.Span,
+            this.Children.Span);
+    }
+
     /// <summary>A reference of data contained within a spannable.</summary>
     private protected readonly ref struct DataRef
     {

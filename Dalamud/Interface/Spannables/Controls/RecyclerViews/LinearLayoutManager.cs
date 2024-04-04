@@ -271,20 +271,6 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     }
 
     /// <inheritdoc/>
-    public override Spannable? FindChildAtPos(Vector2 screenOffset)
-    {
-        foreach (var vi in this.visibleEntries)
-        {
-            if (vi.Spannable is not { } m)
-                continue;
-            if (m.Boundary.Contains(m.PointToClient(screenOffset)))
-                return m;
-        }
-
-        return null;
-    }
-
-    /// <inheritdoc/>
     public override Spannable? FindClosestChildMeasurementAt(Vector2 screenOffset)
     {
         var minDist = float.PositiveInfinity;
@@ -323,9 +309,6 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
         if (this.Parent is null)
             return;
-
-        foreach (var vi in this.visibleEntries)
-            vi.Spannable?.RenderPassPreDispatchEvents();
 
         if (this.needDispatchScrollEvent)
         {
@@ -518,7 +501,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             }
 
             ref var veAnchor = ref this.VisibleEntries[veAnchorIndex];
-            this.MeasureVisibleEntry(ref veAnchor, nonExpandingDimension, expandingDimension);
+            this.MeasureVisibleEntry(ref veAnchor, nonExpandingDimension);
 
             // Navigate to the offset that the anchor specifies.
             if (expandingDimension >= float.PositiveInfinity)
@@ -762,7 +745,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 nonExpandingDimension = Math.Max(nonExpandingDimension, this.GetNonExpandingDimensionLerped(v));
 
             foreach (ref var v in this.VisibleEntries)
-                this.MeasureVisibleEntry(ref v, nonExpandingDimension, expandingDimension);
+                this.MeasureVisibleEntry(ref v, nonExpandingDimension);
         }
 
         // Round the offsets so that things do not look blurry due to being not pixel perfect.
@@ -1313,7 +1296,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         if (this.Collection?.Count is not > 0 || this.Parent is null)
             return;
 
-        var mult = this.direction.IsDirectionConsistentWithIndex() ? 1f : -1f;
+        var mult = this.direction.IsDirectionConsistentWithIndex() || !this.direction.IsVertical() ? 1f : -1f;
         switch (args.Action)
         {
             case ScrollBarControl.ScrollAction.LineDecrement:
@@ -1356,7 +1339,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         if (this.Collection?.Count is not > 0 || this.Parent is null)
             return;
 
-        var mult = this.direction.IsDirectionConsistentWithIndex() ? 1f : -1f;
+        var mult = this.direction.IsDirectionConsistentWithIndex() || !this.direction.IsHorizontal() ? 1f : -1f;
         switch (args.Action)
         {
             case ScrollBarControl.ScrollAction.LineDecrement:
@@ -1425,7 +1408,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             }
 
             ref var veItem = ref this.VisibleEntries[veMinItemIndex];
-            this.MeasureVisibleEntry(ref veItem, nonLimDim, limDim);
+            this.MeasureVisibleEntry(ref veItem, nonLimDim);
             var veSize = this.GetExpandingDimensionLerped(veItem);
 
             if (ilibs)
@@ -1466,7 +1449,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             }
 
             ref var veItem = ref this.VisibleEntries[veMaxItemIndex];
-            this.MeasureVisibleEntry(ref veItem, nonLimDim, limDim);
+            this.MeasureVisibleEntry(ref veItem, nonLimDim);
             var veSize = this.GetExpandingDimensionLerped(veItem);
 
             if (!ilibs)
@@ -1501,7 +1484,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             this.VisibleEntries[i].OutsideViewport = true;
     }
 
-    private void MeasureVisibleEntry(ref VisibleEntry vi, float nonLimDim, float limDim)
+    private void MeasureVisibleEntry(ref VisibleEntry vi, float nonLimDim)
     {
         if (this.Parent is null || vi.Measured)
             return;
@@ -1519,21 +1502,20 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
             this.ResolveSpannableType(vi.Index, out var st, out var dt);
             vi.SpannableType = st;
             vi.DecorationType = dt;
-            vi.Spannable = this.TakePlaceholder(vi.SpannableType, out vi.SpannableSlot, out vi.SpannableInnerId);
+            vi.Spannable = this.TakePlaceholder(vi.SpannableType);
             if (vi.Spannable is not null)
+            {
+                vi.Spannable.ZOrder = 3;
                 this.PopulateSpannable(vi.Index, vi.SpannableType, vi.Spannable);
+            }
+
             if (dt != RecyclerViewControl.InvalidSpannableType)
             {
-                vi.Decoration = this.TakePlaceholder(
-                    vi.DecorationType,
-                    out vi.DecorationSlot,
-                    out vi.DecorationInnerId);
+                vi.Decoration = this.TakePlaceholder(vi.DecorationType);
                 if (vi.Decoration is not null)
                 {
-                    this.PopulateSpannable(
-                        vi.Index,
-                        vi.DecorationType,
-                        vi.Decoration);
+                    vi.Decoration.ZOrder = 1;
+                    this.PopulateSpannable(vi.Index, vi.DecorationType, vi.Decoration);
                 }
             }
         }
@@ -1541,20 +1523,9 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         if (vi.Spannable is { } m)
         {
             if (this.direction.IsVertical())
-            {
-                m.Options.PreferredSize = new(nonLimDim, float.PositiveInfinity);
-                m.Options.VisibleSize = new(nonLimDim, limDim);
-            }
+                m.RenderPassMeasure(new(nonLimDim, float.PositiveInfinity));
             else
-            {
-                m.Options.PreferredSize = new(float.PositiveInfinity, nonLimDim);
-                m.Options.VisibleSize = new(limDim, nonLimDim);
-            }
-
-            m.Options.RenderScale = this.Parent.Options.RenderScale;
-            m.Renderer = this.Parent.Renderer;
-            m.ImGuiGlobalId = this.Parent.GetGlobalIdFromInnerId(vi.SpannableInnerId);
-            m.RenderPassMeasure();
+                m.RenderPassMeasure(new(float.PositiveInfinity, nonLimDim));
         }
         else
         {
@@ -1564,20 +1535,9 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         if (vi.Previous is { } pm)
         {
             if (this.direction.IsVertical())
-            {
-                pm.Options.PreferredSize = new(nonLimDim, float.PositiveInfinity);
-                pm.Options.VisibleSize = new(nonLimDim, limDim);
-            }
+                pm.RenderPassMeasure(new(nonLimDim, float.PositiveInfinity));
             else
-            {
-                pm.Options.PreferredSize = new(float.PositiveInfinity, nonLimDim);
-                pm.Options.VisibleSize = new(limDim, nonLimDim);
-            }
-
-            pm.Options.RenderScale = this.Parent.Options.RenderScale;
-            pm.Renderer = this.Parent.Renderer;
-            pm.ImGuiGlobalId = this.Parent.GetGlobalIdFromInnerId(vi.SpannableInnerId);
-            pm.RenderPassMeasure();
+                pm.RenderPassMeasure(new(float.PositiveInfinity, nonLimDim));
         }
         else
         {
@@ -1621,21 +1581,11 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 vi.SizeEasing?.IsRunning is true
                     ? RectVector4.Lerp(vi.SizeEasingFrom, any.Boundary, (float)vi.SizeEasing.Value)
                     : any.Boundary;
-            if (this.direction.IsVertical())
-            {
-                cdm.Options.PreferredSize = new(nonLimDim, lerpedBoundary.Height);
-                cdm.Options.VisibleSize = new(nonLimDim, lerpedBoundary.Height);
-            }
-            else
-            {
-                cdm.Options.PreferredSize = new(lerpedBoundary.Width, nonLimDim);
-                cdm.Options.VisibleSize = new(lerpedBoundary.Width, nonLimDim);
-            }
 
-            cdm.Options.RenderScale = this.Parent.Options.RenderScale;
-            cdm.Renderer = this.Parent.Renderer;
-            cdm.ImGuiGlobalId = this.Parent.GetGlobalIdFromInnerId(vi.DecorationInnerId);
-            cdm.RenderPassMeasure();
+            if (this.direction.IsVertical())
+                cdm.RenderPassMeasure(new(nonLimDim, lerpedBoundary.Height));
+            else
+                cdm.RenderPassMeasure(new(lerpedBoundary.Width, nonLimDim));
         }
     }
 
@@ -1706,30 +1656,27 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     {
         if (v.Decoration is not null)
             this.ClearSpannable(v.DecorationType, v.Decoration);
-        this.ReturnPlaceholder(v.DecorationType, v.Decoration, v.DecorationSlot, v.DecorationInnerId);
+        this.ReturnPlaceholder(v.DecorationType, v.Decoration);
         v.Decoration = null;
         v.DecorationType = -1;
-        v.DecorationSlot = v.DecorationInnerId = -1;
     }
 
     private void ReturnCurrentVisibleEntry(ref VisibleEntry v)
     {
         if (v.Spannable is not null)
             this.ClearSpannable(v.SpannableType, v.Spannable);
-        this.ReturnPlaceholder(v.SpannableType, v.Spannable, v.SpannableSlot, v.SpannableInnerId);
+        this.ReturnPlaceholder(v.SpannableType, v.Spannable);
         v.Spannable = null;
         v.Animation = null;
-        v.SpannableSlot = v.SpannableInnerId = -1;
     }
 
     private void ReturnPreviousVisibleEntry(ref VisibleEntry v)
     {
         if (v.Previous is not null)
             this.ClearSpannable(v.PreviousType, v.Previous);
-        this.ReturnPlaceholder(v.PreviousType, v.Previous, v.PreviousSlot, v.PreviousInnerId);
+        this.ReturnPlaceholder(v.PreviousType, v.Previous);
         v.Previous = null;
         v.PreviousAnimation = null;
-        v.PreviousSlot = v.PreviousInnerId = -1;
     }
 
     private void CurrentToPreviousVisibleEntry(ref VisibleEntry v)
@@ -1739,13 +1686,13 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         v.Previous = v.Spannable;
         v.PreviousType = v.SpannableType;
         v.PreviousAnimation = null;
-        v.PreviousSlot = v.SpannableSlot;
-        v.PreviousInnerId = v.SpannableInnerId;
+
+        if (v.Previous != null)
+            v.Previous.ZOrder = 3;
 
         v.Spannable = null;
         v.SpannableType = RecyclerViewControl.InvalidSpannableType;
         v.Animation = null;
-        v.SpannableSlot = v.SpannableInnerId = -1;
     }
 
     [DebuggerDisplay("#{Index} ({Spannable}): {Offset} / {Spannable}")]
@@ -1764,19 +1711,13 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         public SpannableAnimator? PreviousAnimation;
         public int PreviousType;
         public Spannable? Previous;
-        public int PreviousSlot;
-        public int PreviousInnerId;
 
         public SpannableAnimator? Animation;
         public int SpannableType;
         public Spannable? Spannable;
-        public int SpannableSlot;
-        public int SpannableInnerId;
 
         public int DecorationType;
         public Spannable? Decoration;
-        public int DecorationSlot;
-        public int DecorationInnerId;
 
         public VisibleEntry(int index)
         {

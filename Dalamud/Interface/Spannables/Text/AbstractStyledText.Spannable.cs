@@ -15,8 +15,6 @@ using Dalamud.Utility.Text;
 
 using ImGuiNET;
 
-using Microsoft.Extensions.ObjectPool;
-
 namespace Dalamud.Interface.Spannables.Text;
 
 /// <summary>Base class for <see cref="StyledText"/> and <see cref="StyledTextBuilder"/>.</summary>
@@ -26,9 +24,6 @@ namespace Dalamud.Interface.Spannables.Text;
     Justification = "Stfu")]
 public abstract partial class AbstractStyledText
 {
-    private static readonly ObjectPool<TextSpannable> MyMeasurementPool =
-        new DefaultObjectPool<TextSpannable>(new DefaultPooledObjectPolicy<TextSpannable>());
-
     /// <summary>Describes states of links.</summary>
     public enum LinkState
     {
@@ -46,194 +41,15 @@ public abstract partial class AbstractStyledText
     }
 
     /// <inheritdoc cref="ISpannableTemplate.CreateSpannable"/>
-    public TextSpannable CreateSpannable()
-    {
-        var t = MyMeasurementPool.Get();
-        t.TryReset();
-        t.BindTo(this);
-        return t;
-    }
+    public TextSpannable CreateSpannable() => new(this);
 
     /// <inheritdoc/>
     Spannable ISpannableTemplate.CreateSpannable() => this.CreateSpannable();
 
-    /// <inheritdoc/>
-    public void RecycleSpannable(Spannable? spannable)
-    {
-        if (spannable is TextSpannable mm)
-            MyMeasurementPool.Return(mm);
-    }
-
-    /// <summary>Options for <see cref="TextSpannable"/>.</summary>
-    public sealed class Options : SpannableOptions
-    {
-        private bool displayControlCharacters;
-        private WordBreakType wordBreak;
-        private NewLineType acceptedNewLines;
-        private float tabWidth;
-        private float verticalAlignment;
-        private int gfdIconMode;
-        private TextStyle controlCharactersStyle;
-        private TextStyle style;
-        private ISpannableTemplate? wrapMarker;
-
-        /// <summary>Initializes a new instance of the <see cref="Options"/> class.</summary>
-        public Options() => this.TryReset();
-
-        /// <summary>Gets or sets a value indicating whether to display representations of control characters, such as
-        /// CR, LF, NBSP, and SHY.</summary>
-        public bool DisplayControlCharacters
-        {
-            get => this.displayControlCharacters;
-            set => this.UpdateProperty(
-                nameof(this.DisplayControlCharacters),
-                ref this.displayControlCharacters,
-                value,
-                this.displayControlCharacters == value);
-        }
-
-        /// <summary>Gets or sets how to handle word break mode.</summary>
-        public WordBreakType WordBreak
-        {
-            get => this.wordBreak;
-            set => this.UpdateProperty(nameof(this.WordBreak), ref this.wordBreak, value, this.wordBreak == value);
-        }
-
-        /// <summary>Gets or sets the type of new line sequences to handle.</summary>
-        public NewLineType AcceptedNewLines
-        {
-            get => this.acceptedNewLines;
-            set => this.UpdateProperty(
-                nameof(this.AcceptedNewLines),
-                ref this.acceptedNewLines,
-                value,
-                this.acceptedNewLines == value);
-        }
-
-        /// <summary>Gets or sets the tab size.</summary>
-        /// <value><ul>
-        /// <li><c>0</c> will treat tab characters as a whitespace character.</li>
-        /// <li><b>Positive values</b> indicate the width in pixels.</li>
-        /// <li><b>Negative values</b> indicate the width in the number of whitespace characters, multiplied by -1.</li>
-        /// </ul></value>
-        public float TabWidth
-        {
-            get => this.tabWidth;
-            set => this.UpdateProperty(nameof(this.TabWidth), ref this.tabWidth, value, this.tabWidth - value == 0f);
-        }
-
-        /// <summary>Gets or sets the vertical alignment, with respect to the measured vertical boundary.</summary>
-        /// <value><ul>
-        /// <li><c>0.0</c> will align to top.</li>
-        /// <li><c>0.5</c> will align to center.</li>
-        /// <li><c>1.0</c> will align to right.</li>
-        /// <li>Values outside the range of [0, 1] will be clamped.</li>
-        /// </ul></value>
-        /// <remarks>Does nothing if no (infinite) vertical boundary is set.</remarks>
-        public float VerticalAlignment
-        {
-            get => this.verticalAlignment;
-            set => this.UpdateProperty(
-                nameof(this.VerticalAlignment),
-                ref this.verticalAlignment,
-                value,
-                this.verticalAlignment - value == 0f);
-        }
-
-        /// <summary>Gets or sets the graphic font icon mode.</summary>
-        /// <remarks>A value outside the suported range will use the one configured from the game configuration via
-        /// game controller configuration.</remarks>
-        public int GfdIconMode
-        {
-            get => this.gfdIconMode;
-            set => this.UpdateProperty(
-                nameof(this.GfdIconMode),
-                ref this.gfdIconMode,
-                value,
-                this.gfdIconMode == value);
-        }
-
-        /// <summary>Gets or sets the text style for the control characters.</summary>
-        /// <remarks>Does nothing if <see cref="DisplayControlCharacters"/> is <c>false</c>.</remarks>
-        public TextStyle ControlCharactersStyle
-        {
-            get => this.controlCharactersStyle;
-            set => this.UpdateProperty(
-                nameof(this.ControlCharactersStyle),
-                ref this.controlCharactersStyle,
-                value,
-                TextStyle.PropertyReferenceEquals(this.controlCharactersStyle, value));
-        }
-
-        /// <summary>Gets or sets the initial text style.</summary>
-        /// <remarks>Text styles may be altered in middle of the text, but this property will not change.
-        /// Use <see cref="TextSpannable.LastStyle"/> for that information.</remarks>
-        public TextStyle Style
-        {
-            get => this.style;
-            set => this.UpdateProperty(
-                nameof(this.Style),
-                ref this.style,
-                value,
-                TextStyle.PropertyReferenceEquals(this.style, value));
-        }
-
-        /// <summary>Gets or sets the ellipsis or line break indicator string to display.</summary>
-        /// <value><c>null</c> indicates that wrap markers are disabled.</value>
-        public ISpannableTemplate? WrapMarker
-        {
-            get => this.wrapMarker;
-            set => this.UpdateProperty(
-                nameof(this.WrapMarker),
-                ref this.wrapMarker,
-                value,
-                ReferenceEquals(this.wrapMarker, value));
-        }
-
-        /// <inheritdoc/>
-        public override void CopyFrom(SpannableOptions source)
-        {
-            if (source is Options mo)
-                this.CopyFrom(mo);
-            else
-                base.CopyFrom(source);
-        }
-
-        /// <inheritdoc cref="SpannableOptions.CopyFrom"/>
-        public void CopyFrom(Options source)
-        {
-            this.DisplayControlCharacters = source.DisplayControlCharacters;
-            this.WordBreak = source.WordBreak;
-            this.AcceptedNewLines = source.AcceptedNewLines;
-            this.TabWidth = source.TabWidth;
-            this.VerticalAlignment = source.VerticalAlignment;
-            this.GfdIconMode = source.GfdIconMode;
-            this.ControlCharactersStyle = source.ControlCharactersStyle;
-            this.Style = source.Style;
-            this.WrapMarker = source.WrapMarker;
-            base.CopyFrom(source);
-        }
-
-        /// <inheritdoc/>
-        public override bool TryReset()
-        {
-            this.DisplayControlCharacters = false;
-            this.WordBreak = WordBreakType.Normal;
-            this.AcceptedNewLines = NewLineType.All;
-            this.TabWidth = -4;
-            this.VerticalAlignment = 0f;
-            this.GfdIconMode = -1;
-            this.ControlCharactersStyle = default;
-            this.Style = default;
-            this.WrapMarker = null;
-            return base.TryReset();
-        }
-    }
-
     /// <summary>Measurement for <see cref="StyledText"/> and <see cref="StyledTextBuilder"/>.</summary>
     [SuppressMessage("ReSharper", "ConvertToAutoProperty", Justification = "WIP")]
     [SuppressMessage("ReSharper", "ConvertToAutoPropertyWithPrivateSetter", Justification = "WIP")]
-    public sealed class TextSpannable : Spannable<Options>, IResettable
+    public sealed class TextSpannable : Spannable
     {
         private readonly List<BoundaryToRecord> linkBoundaries = [];
         private readonly List<MeasuredLine> lines = [];
@@ -241,19 +57,54 @@ public abstract partial class AbstractStyledText
         private readonly List<Spannable?> children = [];
         private readonly List<Vector2> childOffsets = [];
 
+        private readonly DataMemory dataMemory;
+
+        private bool displayControlCharacters;
+        private WordBreakType wordBreak = WordBreakType.Normal;
+        private NewLineType acceptedNewLines = NewLineType.All;
+        private float tabWidth = -4;
+        private float verticalAlignment;
+        private int gfdIconMode = -1;
+        private TextStyle controlCharactersStyle;
+        private TextStyle style;
+        private ISpannableTemplate? wrapMarker;
+
         private int childCount;
         private TextStyle lastStyle;
         private Vector2 lastOffset;
+        private Vector2 preferredSize;
 
         private float shiftFromVerticalAlignment;
 
-        private int interactedLinkIndex;
-        private LinkState interactedLinkState;
+        private int interactedLinkIndex = -1;
+        private LinkState interactedLinkState = LinkState.Clear;
 
         /// <summary>Initializes a new instance of the <see cref="TextSpannable"/> class.</summary>
-        public TextSpannable()
+        /// <param name="styledText">Styled text.</param>
+        public TextSpannable(AbstractStyledText styledText)
         {
-            this.TryReset();
+            this.dataMemory = styledText.AsMemory();
+
+            var data = this.dataMemory.AsSpan();
+            this.childCount = data.Children.Length;
+            this.children.EnsureCapacity(this.childCount);
+            this.childrenTemplate.EnsureCapacity(this.childCount);
+            this.childOffsets.EnsureCapacity(this.childCount);
+            while (this.children.Count < this.childCount)
+            {
+                this.children.Add(null);
+                this.childrenTemplate.Add(null);
+                this.childOffsets.Add(default);
+            }
+
+            for (var i = 0; i < this.childCount; i++)
+            {
+                if (data.Children[i]?.CreateSpannable() is not { } cs)
+                    continue;
+
+                this.children[i] = cs;
+                this.AddChild(cs);
+            }
         }
 
         /// <summary>Occurs when the mouse pointer enters a link in the control.</summary>
@@ -271,11 +122,158 @@ public abstract partial class AbstractStyledText
         /// <summary>Occurs when a link in the control is clicked by the mouse.</summary>
         public event SpannableMouseLinkEventHandler? LinkMouseClick;
 
-        /// <summary>Gets the source instance of <see cref="AbstractStyledText"/>.</summary>
-        public new AbstractStyledText? SourceTemplate
+        /// <summary>Occurs when the property <see cref="DisplayControlCharacters"/> is changing.</summary>
+        public event PropertyChangeEventHandler<bool>? DisplayControlCharactersChange;
+
+        /// <summary>Occurs when the property <see cref="WordBreak"/> is changing.</summary>
+        public event PropertyChangeEventHandler<WordBreakType>? WordBreakChange;
+
+        /// <summary>Occurs when the property <see cref="AcceptedNewLines"/> is changing.</summary>
+        public event PropertyChangeEventHandler<NewLineType>? AcceptedNewLinesChange;
+
+        /// <summary>Occurs when the property <see cref="TabWidth"/> is changing.</summary>
+        public event PropertyChangeEventHandler<float>? TabWidthChange;
+
+        /// <summary>Occurs when the property <see cref="VerticalAlignment"/> is changing.</summary>
+        public event PropertyChangeEventHandler<float>? VerticalAlignmentChange;
+
+        /// <summary>Occurs when the property <see cref="GfdIconMode"/> is changing.</summary>
+        public event PropertyChangeEventHandler<int>? GfdIconModeChange;
+
+        /// <summary>Occurs when the property <see cref="ControlCharactersStyle"/> is changing.</summary>
+        public event PropertyChangeEventHandler<TextStyle>? ControlCharactersStyleChange;
+
+        /// <summary>Occurs when the property <see cref="Style"/> is changing.</summary>
+        public event PropertyChangeEventHandler<TextStyle>? StyleChange;
+
+        /// <summary>Occurs when the property <see cref="WrapMarker"/> is changing.</summary>
+        public event PropertyChangeEventHandler<ISpannableTemplate>? WrapMarkerChange;
+
+        /// <summary>Gets or sets a value indicating whether to display representations of control characters, such as
+        /// CR, LF, NBSP, and SHY.</summary>
+        public bool DisplayControlCharacters
         {
-            get => (AbstractStyledText?)base.SourceTemplate;
-            private set => base.SourceTemplate = value;
+            get => this.displayControlCharacters;
+            set => this.HandlePropertyChange(
+                nameof(this.DisplayControlCharacters),
+                ref this.displayControlCharacters,
+                value,
+                this.displayControlCharacters == value,
+                this.OnDisplayControlCharactersChange);
+        }
+
+        /// <summary>Gets or sets how to handle word break mode.</summary>
+        public WordBreakType WordBreak
+        {
+            get => this.wordBreak;
+            set => this.HandlePropertyChange(
+                nameof(this.WordBreak),
+                ref this.wordBreak,
+                value,
+                this.wordBreak == value,
+                this.OnWordBreakChange);
+        }
+
+        /// <summary>Gets or sets the type of new line sequences to handle.</summary>
+        public NewLineType AcceptedNewLines
+        {
+            get => this.acceptedNewLines;
+            set => this.HandlePropertyChange(
+                nameof(this.AcceptedNewLines),
+                ref this.acceptedNewLines,
+                value,
+                this.acceptedNewLines == value,
+                this.OnAcceptedNewLinesChange);
+        }
+
+        /// <summary>Gets or sets the tab size.</summary>
+        /// <value><ul>
+        /// <li><c>0</c> will treat tab characters as a whitespace character.</li>
+        /// <li><b>Positive values</b> indicate the width in pixels.</li>
+        /// <li><b>Negative values</b> indicate the width in the number of whitespace characters, multiplied by -1.</li>
+        /// </ul></value>
+        public float TabWidth
+        {
+            get => this.tabWidth;
+            set => this.HandlePropertyChange(
+                nameof(this.TabWidth),
+                ref this.tabWidth,
+                value,
+                this.tabWidth - value == 0f,
+                this.OnTabWidthChange);
+        }
+
+        /// <summary>Gets or sets the vertical alignment, with respect to the measured vertical boundary.</summary>
+        /// <value><ul>
+        /// <li><c>0.0</c> will align to top.</li>
+        /// <li><c>0.5</c> will align to center.</li>
+        /// <li><c>1.0</c> will align to right.</li>
+        /// <li>Values outside the range of [0, 1] will be clamped.</li>
+        /// </ul></value>
+        /// <remarks>Does nothing if no (infinite) vertical boundary is set.</remarks>
+        public float VerticalAlignment
+        {
+            get => this.verticalAlignment;
+            set => this.HandlePropertyChange(
+                nameof(this.VerticalAlignment),
+                ref this.verticalAlignment,
+                value,
+                this.verticalAlignment - value == 0f,
+                this.OnVerticalAlignmentChange);
+        }
+
+        /// <summary>Gets or sets the graphic font icon mode.</summary>
+        /// <remarks>A value outside the suported range will use the one configured from the game configuration via
+        /// game controller configuration.</remarks>
+        public int GfdIconMode
+        {
+            get => this.gfdIconMode;
+            set => this.HandlePropertyChange(
+                nameof(this.GfdIconMode),
+                ref this.gfdIconMode,
+                value,
+                this.gfdIconMode == value,
+                this.OnGfdIconModeChange);
+        }
+
+        /// <summary>Gets or sets the text style for the control characters.</summary>
+        /// <remarks>Does nothing if <see cref="DisplayControlCharacters"/> is <c>false</c>.</remarks>
+        public TextStyle ControlCharactersStyle
+        {
+            get => this.controlCharactersStyle;
+            set => this.HandlePropertyChange(
+                nameof(this.ControlCharactersStyle),
+                ref this.controlCharactersStyle,
+                value,
+                TextStyle.PropertyReferenceEquals(this.controlCharactersStyle, value),
+                this.OnControlCharactersStyleChange);
+        }
+
+        /// <summary>Gets or sets the initial text style.</summary>
+        /// <remarks>Text styles may be altered in middle of the text, but this property will not change.
+        /// Use <see cref="TextSpannable.LastStyle"/> for that information.</remarks>
+        public TextStyle Style
+        {
+            get => this.style;
+            set => this.HandlePropertyChange(
+                nameof(this.Style),
+                ref this.style,
+                value,
+                TextStyle.PropertyReferenceEquals(this.style, value),
+                this.OnStyleChange);
+        }
+
+        /// <summary>Gets or sets the ellipsis or line break indicator string to display.</summary>
+        /// <value><c>null</c> indicates that wrap markers are disabled.</value>
+        public ISpannableTemplate? WrapMarker
+        {
+            get => this.wrapMarker;
+            set => this.HandlePropertyChange(
+                nameof(this.WrapMarker),
+                ref this.wrapMarker,
+                value,
+                ReferenceEquals(this.wrapMarker, value),
+                this.OnWrapMarkerChange);
         }
 
         /// <summary>Gets a reference to the last text style used.</summary>
@@ -301,68 +299,14 @@ public abstract partial class AbstractStyledText
         /// <summary>Gets the span of mapping between link range to render coordinates.</summary>
         private Span<BoundaryToRecord> LinkBoundaries => CollectionsMarshal.AsSpan(this.linkBoundaries);
 
-        /// <inheritdoc/>
-        public bool TryReset()
-        {
-            for (var i = 0; i < this.childCount; i++)
-            {
-                this.childrenTemplate[i]?.RecycleSpannable(this.children[i]);
-                this.childrenTemplate[i] = null;
-                this.children[i] = null;
-            }
-
-            this.ImGuiGlobalId = 0u;
-            this.Options.TryReset();
-            this.SourceTemplate = null;
-            this.childCount = 0;
-            this.interactedLinkIndex = -1;
-            this.interactedLinkState = LinkState.Clear;
-            this.LinkMouseEnter = null;
-            this.LinkMouseLeave = null;
-            this.LinkMouseDown = null;
-            this.LinkMouseUp = null;
-            this.LinkMouseClick = null;
-            this.ClearMeasurement();
-            this.RequestMeasure();
-            return true;
-        }
-
         /// <summary>Clears measured data.</summary>
         public void ClearMeasurement()
         {
             this.Boundary = RectVector4.InvertedExtrema;
             this.linkBoundaries.Clear();
             this.lines.Clear();
-            this.lastStyle = this.Options.Style;
+            this.lastStyle = this.Style;
             this.lastOffset = Vector2.Zero;
-        }
-
-        /// <summary>Binds this spannable to the specified styled text.</summary>
-        /// <param name="text">The text to attach.</param>
-        public void BindTo(AbstractStyledText text)
-        {
-            this.SourceTemplate = text;
-
-            var data = text.GetData();
-            this.childCount = data.Children.Length;
-            this.children.EnsureCapacity(this.childCount);
-            this.childrenTemplate.EnsureCapacity(this.childCount);
-            this.childOffsets.EnsureCapacity(this.childCount);
-            while (this.children.Count < this.childCount)
-            {
-                this.children.Add(null);
-                this.childrenTemplate.Add(null);
-                this.childOffsets.Add(default);
-            }
-
-            for (var i = 0; i < this.childCount; i++)
-            {
-                if (data.Children[i]?.CreateSpannable() is not { } cs)
-                    continue;
-
-                cs.Renderer = this.Renderer;
-                this.children[i] = cs;
-            }
         }
 
         /// <inheritdoc/>
@@ -371,12 +315,11 @@ public abstract partial class AbstractStyledText
             base.OnMouseDown(args);
             if (args.SuppressHandling
                 || args.Step == SpannableEventStep.BeforeChildren
-                || this.SourceTemplate is null
                 || this.interactedLinkIndex == -1
                 || this.interactedLinkState is LinkState.Clear)
                 return;
 
-            if (!this.SourceTemplate.GetData().TryGetLinkAt(this.interactedLinkIndex, out var linkData))
+            if (!this.dataMemory.AsSpan().TryGetLinkAt(this.interactedLinkIndex, out var linkData))
                 return;
 
             var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
@@ -400,11 +343,10 @@ public abstract partial class AbstractStyledText
         {
             base.OnMouseMove(args);
             if (args.SuppressHandling
-                || args.Step == SpannableEventStep.BeforeChildren
-                || this.SourceTemplate is null)
+                || args.Step == SpannableEventStep.BeforeChildren)
                 return;
 
-            var data = this.SourceTemplate.GetData();
+            var data = this.dataMemory.AsSpan();
             var linkIndex = -1;
 
             if (this.IsMouseHovered)
@@ -421,9 +363,9 @@ public abstract partial class AbstractStyledText
                 }
             }
 
-            if (!this.SourceTemplate.GetData().TryGetLinkAt(this.interactedLinkIndex, out var prevData))
+            if (!this.dataMemory.AsSpan().TryGetLinkAt(this.interactedLinkIndex, out var prevData))
                 prevData = default;
-            if (!this.SourceTemplate.GetData().TryGetLinkAt(linkIndex, out var currData))
+            if (!this.dataMemory.AsSpan().TryGetLinkAt(linkIndex, out var currData))
                 currData = default;
 
             var prev = (this.interactedLinkIndex, this.interactedLinkState);
@@ -485,9 +427,9 @@ public abstract partial class AbstractStyledText
             if (args.Step == SpannableEventStep.BeforeChildren)
                 return;
 
-            if (this.interactedLinkIndex != -1 && this.SourceTemplate is not null && !args.SuppressHandling)
+            if (this.interactedLinkIndex != -1 && !args.SuppressHandling)
             {
-                if (!this.SourceTemplate.GetData().TryGetLinkAt(this.interactedLinkIndex, out var currData))
+                if (!this.dataMemory.AsSpan().TryGetLinkAt(this.interactedLinkIndex, out var currData))
                     currData = default;
 
                 var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
@@ -514,18 +456,16 @@ public abstract partial class AbstractStyledText
         }
 
         /// <inheritdoc/>
-        protected override void OnMeasure(SpannableEventArgs args)
+        protected override void OnMeasure(SpannableMeasureEventArgs args)
         {
             base.OnMeasure(args);
 
-            if (this.SourceTemplate is not { } tsb)
-                return;
-
+            this.preferredSize = args.PreferredSize;
             this.ClearMeasurement();
 
             var boundary = RectVector4.InvertedExtrema;
 
-            var data = tsb.GetData();
+            var data = this.dataMemory.AsSpan();
             var segment = new DataRef.Segment(data, 0, 0);
             var linkRecordIndex = -1;
 
@@ -538,7 +478,7 @@ public abstract partial class AbstractStyledText
                 var line = MeasuredLine.Empty;
                 {
                     var testSegment = segment;
-                    var wordBreaker = new WordBreaker(this, data);
+                    var wordBreaker = new WordBreaker(this, data, args.PreferredSize);
                     var startOffset = new CompositeOffset(testSegment);
                     do
                     {
@@ -553,26 +493,24 @@ public abstract partial class AbstractStyledText
                                 var nextOffset = currentOffset.AddTextOffset(c.ByteLength);
 
                                 var pad = 0f;
-                                if (this.Options.DisplayControlCharacters &&
+                                if (this.DisplayControlCharacters &&
                                     c.Value.ShortName is { IsEmpty: false } name)
                                 {
                                     var ssb = this.Renderer.RentBuilder();
                                     ssb.Clear().Append(name);
 
                                     var ccm = ssb.CreateSpannable();
-                                    ccm.Renderer = this.Renderer;
-                                    ccm.Options.RenderScale = this.Options.RenderScale;
-                                    ccm.Options.ControlCharactersStyle = this.Options.ControlCharactersStyle;
-                                    ccm.RenderPassMeasure();
+                                    ccm.RenderScale = this.EffectiveRenderScale;
+                                    ccm.ControlCharactersStyle = this.ControlCharactersStyle;
+                                    ccm.RenderPassMeasure(new(float.PositiveInfinity));
 
                                     if (ccm.Boundary.IsValid)
                                     {
-                                        pad = MathF.Ceiling(ccm.Boundary.Width * this.Options.RenderScale) /
-                                              this.Options.RenderScale;
+                                        pad = MathF.Ceiling(ccm.Boundary.Width * this.EffectiveRenderScale) /
+                                              this.EffectiveRenderScale;
                                         wordBreaker.ResetLastChar();
                                     }
 
-                                    ssb.RecycleSpannable(ccm);
                                     this.Renderer.ReturnBuilder(ssb);
                                 }
 
@@ -584,17 +522,17 @@ public abstract partial class AbstractStyledText
                                                  0,
                                                  out var nextCodepoint)
                                              && nextCodepoint == '\n'
-                                             && (this.Options.AcceptedNewLines & NewLineType.CrLf) != 0:
+                                             && (this.AcceptedNewLines & NewLineType.CrLf) != 0:
                                         line = wordBreaker.Last;
-                                        line.SetOffset(nextOffset.AddTextOffset(1), this.Options.RenderScale, pad);
+                                        line.SetOffset(nextOffset.AddTextOffset(1), this.EffectiveRenderScale, pad);
                                         line.HasNewLineAtEnd = true;
                                         wordBreaker.UnionLineBBoxVertical(ref line);
                                         break;
 
-                                    case '\r' when (this.Options.AcceptedNewLines & NewLineType.Cr) != 0:
-                                    case '\n' when (this.Options.AcceptedNewLines & NewLineType.Lf) != 0:
+                                    case '\r' when (this.AcceptedNewLines & NewLineType.Cr) != 0:
+                                    case '\n' when (this.AcceptedNewLines & NewLineType.Lf) != 0:
                                         line = wordBreaker.Last;
-                                        line.SetOffset(nextOffset, this.Options.RenderScale, pad);
+                                        line.SetOffset(nextOffset, this.EffectiveRenderScale, pad);
                                         line.HasNewLineAtEnd = true;
                                         wordBreaker.UnionLineBBoxVertical(ref line);
                                         break;
@@ -634,7 +572,7 @@ public abstract partial class AbstractStyledText
                         line = wordBreaker.Last;
                         line.SetOffset(
                             new(testSegment.Offset.Text, testSegment.Offset.Record),
-                            this.Options.RenderScale,
+                            this.EffectiveRenderScale,
                             0f);
                     }
                 }
@@ -684,7 +622,7 @@ public abstract partial class AbstractStyledText
                 if (!skipNextLine)
                 {
                     this.lines.Add(line);
-                    charRenderer.SetLine(line);
+                    charRenderer.SetLine(line, this.preferredSize);
 
                     var accumulatedBoundary = RectVector4.InvertedExtrema;
 
@@ -700,14 +638,14 @@ public abstract partial class AbstractStyledText
                                 if (absOffset.Text >= line.OmitOffset.Text)
                                     break;
 
-                                if (this.Options.DisplayControlCharacters)
+                                if (this.DisplayControlCharacters)
                                 {
                                     var name = c.Value.ShortName;
                                     if (!name.IsEmpty)
                                     {
                                         var offset = charRenderer.StyleTranslation;
                                         this.lastOffset += offset;
-                                        var old = charRenderer.UpdateSpanParams(this.Options.ControlCharactersStyle);
+                                        var old = charRenderer.UpdateSpanParams(this.ControlCharactersStyle);
                                         charRenderer.LastRendered.Clear();
                                         foreach (var c2 in name)
                                             charRenderer.RenderOne(c2);
@@ -769,14 +707,14 @@ public abstract partial class AbstractStyledText
                     }
 
                     if (line.HasNewLineAtEnd ||
-                        (line.IsWrapped && this.Options.WordBreak != WordBreakType.KeepAll))
+                        (line.IsWrapped && this.WordBreak != WordBreakType.KeepAll))
                         this.AddLineBreak(line);
                 }
 
                 if (lineSegment.Offset == data.EndOffset)
                     break;
                 segment = lineSegment;
-                if (this.Options.WordBreak == WordBreakType.KeepAll)
+                if (this.WordBreak == WordBreakType.KeepAll)
                 {
                     if (skipNextLine && !line.IsWrapped)
                         this.MeasuredLines[^1].HasNewLineAtEnd = true;
@@ -791,19 +729,19 @@ public abstract partial class AbstractStyledText
             else
                 boundary.Right += 1;
 
-            // if (this.Options.Size.X < float.PositiveInfinity)
-            //     this.boundary.Right = this.Options.Size.X;
-            // if (this.Options.Size.Y < float.PositiveInfinity)
-            //     this.boundary.Bottom = this.Options.Size.Y;
+            // if (this.Size.X < float.PositiveInfinity)
+            //     this.boundary.Right = this.Size.X;
+            // if (this.Size.Y < float.PositiveInfinity)
+            //     this.boundary.Bottom = this.Size.Y;
 
-            if (this.Options.VerticalAlignment > 0f && this.Options.PreferredSize.Y < float.PositiveInfinity)
+            if (this.VerticalAlignment > 0f && args.PreferredSize.Y < float.PositiveInfinity)
             {
                 var offset =
                     MathF.Round(
-                        (this.Options.PreferredSize.Y - boundary.Height) *
-                        Math.Clamp(this.Options.VerticalAlignment, 0f, 1f) *
-                        this.Options.RenderScale) /
-                    this.Options.RenderScale;
+                        (args.PreferredSize.Y - boundary.Height) *
+                        Math.Clamp(this.VerticalAlignment, 0f, 1f) *
+                        this.EffectiveRenderScale) /
+                    this.EffectiveRenderScale;
                 this.TranslateSubBoundaries(ref boundary, new(0, offset), data);
                 this.shiftFromVerticalAlignment = offset;
             }
@@ -830,13 +768,11 @@ public abstract partial class AbstractStyledText
         protected override unsafe void OnDraw(SpannableDrawEventArgs args)
         {
             base.OnDraw(args);
-            if (this.SourceTemplate is not { } tsb)
-                return;
 
-            var data = tsb.GetData();
+            var data = this.dataMemory.AsSpan();
 
             this.lastOffset = new(0, this.shiftFromVerticalAlignment);
-            this.lastStyle = this.Options.Style;
+            this.lastStyle = this.Style;
 
             var charRenderer = new CharRenderer(this, data, args.DrawListPtr);
             try
@@ -844,7 +780,7 @@ public abstract partial class AbstractStyledText
                 var segment = new DataRef.Segment(data, 0, 0);
                 foreach (ref readonly var line in this.MeasuredLines)
                 {
-                    charRenderer.SetLine(line);
+                    charRenderer.SetLine(line, this.preferredSize);
 
                     while (segment.Offset < line.Offset)
                     {
@@ -864,7 +800,7 @@ public abstract partial class AbstractStyledText
 
                                 if (absOffset < line.OmitOffset)
                                 {
-                                    if (this.Options.DisplayControlCharacters)
+                                    if (this.DisplayControlCharacters)
                                     {
                                         var name = c.Value.ShortName;
                                         if (!name.IsEmpty)
@@ -872,7 +808,7 @@ public abstract partial class AbstractStyledText
                                             var offset = charRenderer.StyleTranslation;
                                             this.lastOffset += offset;
                                             var old = charRenderer.UpdateSpanParams(
-                                                this.Options.ControlCharactersStyle);
+                                                this.ControlCharactersStyle);
                                             charRenderer.LastRendered.Clear();
                                             foreach (var c2 in name)
                                                 charRenderer.RenderOne(c2);
@@ -976,8 +912,8 @@ public abstract partial class AbstractStyledText
         private void AddLineBreak(in MeasuredLine lineBefore) =>
             this.lastOffset = new(
                 0,
-                MathF.Round((this.lastOffset.Y + lineBefore.Height) * this.Options.RenderScale) /
-                this.Options.RenderScale);
+                MathF.Round((this.lastOffset.Y + lineBefore.Height) * this.EffectiveRenderScale) /
+                this.EffectiveRenderScale);
 
         /// <summary>Add decorations and breaks line once a line ends.</summary>
         /// <param name="line">The line that came right before this.</param>
@@ -992,23 +928,22 @@ public abstract partial class AbstractStyledText
             var accumulatedBoundary = RectVector4.InvertedExtrema;
             if (line.IsWrapped)
             {
-                if (line.LastThing.IsCodepoint(0x00AD) && this.Options.WordBreak != WordBreakType.KeepAll)
+                if (line.LastThing.IsCodepoint(0x00AD) && this.WordBreak != WordBreakType.KeepAll)
                 {
                     accumulatedBoundary = RectVector4.Union(
                         accumulatedBoundary,
                         charRenderer.RenderOne(SoftHyphenReplacementChar));
                 }
 
-                if (this.Options.WrapMarker is { } wm)
+                if (this.WrapMarker is { } wm)
                 {
                     var wmm = wm.CreateSpannable();
-                    wmm.Renderer = this.Renderer;
-                    wmm.Options.RenderScale = this.Options.RenderScale;
-                    wmm.RenderPassMeasure();
+                    wmm.RenderScale = this.EffectiveRenderScale;
+                    wmm.RenderPassMeasure(new(float.PositiveInfinity));
 
                     if (wmm.Boundary.IsValid)
                     {
-                        if (drawListPtr.NativePtr is not null && this.Renderer is not null)
+                        if (drawListPtr.NativePtr is not null)
                         {
                             var wmLocalTransformation = Matrix4x4.CreateTranslation(
                                 new(this.lastOffset + charRenderer.StyleTranslation, 0));
@@ -1042,12 +977,10 @@ public abstract partial class AbstractStyledText
                         this.lastOffset.X += wmm.Boundary.Right;
                         charRenderer.LastRendered.Clear();
                     }
-
-                    wm.RecycleSpannable(wmm);
                 }
             }
 
-            if (line.HasNewLineAtEnd || (line.IsWrapped && this.Options.WordBreak != WordBreakType.KeepAll))
+            if (line.HasNewLineAtEnd || (line.IsWrapped && this.WordBreak != WordBreakType.KeepAll))
                 this.AddLineBreak(line);
             return accumulatedBoundary;
         }
@@ -1080,6 +1013,51 @@ public abstract partial class AbstractStyledText
             foreach (ref var v in this.ChildOffsets[..data.Children.Length])
                 v += translation;
             boundary = RectVector4.Translate(boundary, translation);
+        }
+
+        private void OnDisplayControlCharactersChange(PropertyChangeEventArgs<bool> args)
+        {
+            this.DisplayControlCharactersChange?.Invoke(args);
+        }
+
+        private void OnWordBreakChange(PropertyChangeEventArgs<WordBreakType> args)
+        {
+            this.WordBreakChange?.Invoke(args);
+        }
+
+        private void OnAcceptedNewLinesChange(PropertyChangeEventArgs<NewLineType> args)
+        {
+            this.AcceptedNewLinesChange?.Invoke(args);
+        }
+
+        private void OnTabWidthChange(PropertyChangeEventArgs<float> args)
+        {
+            this.TabWidthChange?.Invoke(args);
+        }
+
+        private void OnVerticalAlignmentChange(PropertyChangeEventArgs<float> args)
+        {
+            this.VerticalAlignmentChange?.Invoke(args);
+        }
+
+        private void OnGfdIconModeChange(PropertyChangeEventArgs<int> args)
+        {
+            this.GfdIconModeChange?.Invoke(args);
+        }
+
+        private void OnControlCharactersStyleChange(PropertyChangeEventArgs<TextStyle> args)
+        {
+            this.ControlCharactersStyleChange?.Invoke(args);
+        }
+
+        private void OnStyleChange(PropertyChangeEventArgs<TextStyle> args)
+        {
+            this.StyleChange?.Invoke(args);
+        }
+
+        private void OnWrapMarkerChange(PropertyChangeEventArgs<ISpannableTemplate> args)
+        {
+            this.WrapMarkerChange?.Invoke(args);
         }
     }
 }

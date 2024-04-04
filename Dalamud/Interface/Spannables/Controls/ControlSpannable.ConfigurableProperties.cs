@@ -28,10 +28,7 @@ public partial class ControlSpannable
     private BorderVector4 margin = BorderVector4.Zero;
     private BorderVector4 padding = BorderVector4.Zero;
     private Matrix4x4 transformation = Matrix4x4.Identity;
-    private ISpannableTemplate? normalBackground;
-    private ISpannableTemplate? hoveredBackground;
-    private ISpannableTemplate? activeBackground;
-    private ISpannableTemplate? disabledBackground;
+    private Spannable? background;
     private SpannableAnimator? showAnimation;
     private SpannableAnimator? hideAnimation;
     private SpannableAnimator? moveAnimation;
@@ -94,8 +91,8 @@ public partial class ControlSpannable
     }
 
     /// <summary>Gets or sets the scale, applicable for this and all the descendant spannables.</summary>
-    /// <remarks>Effective scale is <see cref="EffectiveRenderScale"/>, which takes this and the render scale specified from
-    /// <see cref="RenderContext.RenderScale"/> into consideration.</remarks>
+    /// <remarks>Effective scale is <see cref="EffectiveRenderScale"/>, which takes this and the render scale specified
+    /// from <see cref="RenderContext.RenderScale"/> into consideration.</remarks>
     public float Scale
     {
         get => this.scale;
@@ -176,52 +173,16 @@ public partial class ControlSpannable
             this.OnTransformationChange);
     }
 
-    /// <summary>Gets or sets the normal background spannable.</summary>
-    public ISpannableTemplate? NormalBackground
+    /// <summary>Gets or sets the background spannable.</summary>
+    public Spannable? Background
     {
-        get => this.normalBackground;
+        get => this.background;
         set => this.HandlePropertyChange(
-            nameof(this.NormalBackground),
-            ref this.normalBackground,
+            nameof(this.Background),
+            ref this.background,
             value,
-            ReferenceEquals(this.normalBackground, value),
-            this.OnNormalBackgroundChange);
-    }
-
-    /// <summary>Gets or sets the hovered background spannable.</summary>
-    public ISpannableTemplate? HoveredBackground
-    {
-        get => this.hoveredBackground;
-        set => this.HandlePropertyChange(
-            nameof(this.HoveredBackground),
-            ref this.hoveredBackground,
-            value,
-            ReferenceEquals(this.hoveredBackground, value),
-            this.OnHoveredBackgroundChange);
-    }
-
-    /// <summary>Gets or sets the active background spannable.</summary>
-    public ISpannableTemplate? ActiveBackground
-    {
-        get => this.activeBackground;
-        set => this.HandlePropertyChange(
-            nameof(this.ActiveBackground),
-            ref this.activeBackground,
-            value,
-            ReferenceEquals(this.activeBackground, value),
-            this.OnActiveBackgroundChange);
-    }
-
-    /// <summary>Gets or sets the disabled background spannable.</summary>
-    public ISpannableTemplate? DisabledBackground
-    {
-        get => this.disabledBackground;
-        set => this.HandlePropertyChange(
-            nameof(this.DisabledBackground),
-            ref this.disabledBackground,
-            value,
-            ReferenceEquals(this.disabledBackground, value),
-            this.OnDisabledBackgroundChange);
+            ReferenceEquals(this.background, value),
+            this.OnBackgroundChange);
     }
 
     /// <summary>Gets or sets the animation to play when <see cref="Spannable.Visible"/> changes to

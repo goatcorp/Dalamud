@@ -35,9 +35,6 @@ public readonly struct RenderContext
     /// <remarks>Defaults to <see cref="Matrix4x4.Identity"/>.</remarks>
     public readonly Matrix4x4 Transformation;
 
-    /// <summary>Options for the root <see cref="ISpannableTemplate"/> being rendered.</summary>
-    public readonly SpannableOptions? RootOptions;
-
     /// <summary>Whether to put a dummy after rendering.</summary>
     public readonly bool PutDummyAfterRender;
 
@@ -120,7 +117,6 @@ public readonly struct RenderContext
         this.PutDummyAfterRender = putDummyAfterRender;
         this.ScreenOffset = options.ScreenOffset ?? ImGui.GetCursorScreenPos();
         this.Transformation = options.Transformation ?? Matrix4x4.Identity;
-        this.RootOptions = options.RootOptions;
 
         this.UseInteraction &= this.UseDrawing;
     }
@@ -149,8 +145,5 @@ public readonly struct RenderContext
 
         /// <inheritdoc cref="RenderContext.Transformation"/>
         public Matrix4x4? Transformation { get; set; }
-
-        /// <inheritdoc cref="RenderContext.RootOptions"/>
-        public SpannableOptions? RootOptions { get; set; }
     }
 }

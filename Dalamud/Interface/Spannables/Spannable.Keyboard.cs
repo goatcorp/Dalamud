@@ -103,9 +103,8 @@ public abstract partial class Spannable
             alreadyHandled |= e.SuppressHandling;
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
-            alreadyHandled |= children[i]?.DispatchKeyDown(modifiers, key, alreadyHandled) is true;
+        foreach (var child in this.EnumerateChildren(false))
+            alreadyHandled |= child.DispatchKeyDown(modifiers, key, alreadyHandled);
 
         if (dispatchEventToSelf)
         {
@@ -136,9 +135,8 @@ public abstract partial class Spannable
             alreadyHandled |= e.SuppressHandling;
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
-            alreadyHandled |= children[i]?.DispatchKeyUp(modifiers, key, alreadyHandled) is true;
+        foreach (var child in this.EnumerateChildren(false))
+            alreadyHandled |= child.DispatchKeyUp(modifiers, key, alreadyHandled);
 
         if (dispatchEventToSelf)
         {
@@ -169,9 +167,8 @@ public abstract partial class Spannable
             alreadyHandled |= e.SuppressHandling;
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
-            alreadyHandled |= children[i]?.DispatchKeyPress(rune, alreadyHandled) is true;
+        foreach (var child in this.EnumerateChildren(false))
+            alreadyHandled |= child.DispatchKeyPress(rune, alreadyHandled);
 
         if (dispatchEventToSelf)
         {

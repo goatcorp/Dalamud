@@ -71,8 +71,6 @@ internal partial class ConsoleWindow : Window, IDisposable
     private readonly ISpannableTemplate ellipsisSpannableTemplate;
     private readonly ISpannableTemplate wrapMarkerSpannableTemplate;
 
-    private AbstractStyledText.Options textOptions = new();
-
     private ObservingRecyclerViewControl<RollingList<LogEntry>> rvc = null!;
 
     private bool pendingRefilter;
@@ -222,6 +220,12 @@ internal partial class ConsoleWindow : Window, IDisposable
 
         ImGui.BeginChild("scrolling", new(0, scrollingHeight), false);
         this.rvc.Size = new(ControlSpannable.MatchParent);
+        foreach (var c in this.rvc.EnumerateChildren(true))
+        {
+            if (c is LogEntryControl lec)
+                lec.OuterWidth = ImGui.GetWindowWidth() - 4;
+        }
+
         Renderer.Draw(
             this.rvc,
             new(
@@ -295,28 +299,10 @@ internal partial class ConsoleWindow : Window, IDisposable
 
     private void SetupFromConfig()
     {
-        this.textOptions = new()
-        {
-            WordBreak = this.activeConfiguration.LogLineBreakMode,
-            Style = new() { EdgeWidth = 1f },
-            DisplayControlCharacters = true,
-            ControlCharactersStyle = new()
-            {
-                Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
-                BackColor = 0xFF333333,
-                EdgeWidth = 1,
-                ForeColor = 0xFFFFFFFF,
-                FontSize = -0.6f,
-                VerticalAlignment = 0.5f,
-            },
-            WrapMarker =
-                this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
-                    ? this.ellipsisSpannableTemplate
-                    : this.wrapMarkerSpannableTemplate,
-        };
-
         this.rvc.HorizontalScrollBarMode =
-            this.textOptions.WordBreak == WordBreakType.KeepAll ? ScrollBarMode.Always : ScrollBarMode.Never;
+            this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
+                ? ScrollBarMode.Always
+                : ScrollBarMode.Never;
         this.rvc.VerticalScrollBarMode = ScrollBarMode.Always;
 
         var llm = (LinearLayoutManager)this.rvc.LayoutManager!;
@@ -365,55 +351,47 @@ internal partial class ConsoleWindow : Window, IDisposable
             e.SpannableType switch
             {
                 0 => new LogEntryControl(),
-                1 => new BorderPattern(new() { Color = 0xFF444444, DrawBottom = true }),
+                1 => new BorderPattern { Color = 0xFF444444, DrawBottom = true },
 
                 // selected
-                2 => new LayeredPattern(
-                    new()
+                2 => new LayeredPattern
+                {
+                    Children =
                     {
-                        Children =
-                        {
-                            new ShapePattern.Template(
-                                new() { Color = ImGuiColors.ParsedGrey, Shape = ShapePattern.Shape.RectFilled }),
-                            new BorderPattern.Template(new() { Color = 0xFF444444, DrawBottom = true }),
-                        },
-                    }),
+                        new ShapePattern { Color = ImGuiColors.ParsedGrey, Type = ShapePattern.Shape.RectFilled },
+                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                    },
+                },
 
                 // error
-                3 => new LayeredPattern(
-                    new()
+                3 => new LayeredPattern
+                {
+                    Children =
                     {
-                        Children =
-                        {
-                            new ShapePattern.Template(
-                                new() { Color = 0x800000EE, Shape = ShapePattern.Shape.RectFilled }),
-                            new BorderPattern.Template(new() { Color = 0xFF444444, DrawBottom = true }),
-                        },
-                    }),
+                        new ShapePattern { Color = 0x800000EE, Type = ShapePattern.Shape.RectFilled },
+                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                    },
+                },
 
                 // warning
-                4 => new LayeredPattern(
-                    new()
+                4 => new LayeredPattern
+                {
+                    Children =
                     {
-                        Children =
-                        {
-                            new ShapePattern.Template(
-                                new() { Color = 0x8A0070EE, Shape = ShapePattern.Shape.RectFilled }),
-                            new BorderPattern.Template(new() { Color = 0xFF444444, DrawBottom = true }),
-                        },
-                    }),
+                        new ShapePattern { Color = 0x8A0070EE, Type = ShapePattern.Shape.RectFilled },
+                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                    },
+                },
 
                 // fatal
-                5 => new LayeredPattern(
-                    new()
+                5 => new LayeredPattern
+                {
+                    Children =
                     {
-                        Children =
-                        {
-                            new ShapePattern.Template(
-                                new() { Color = 0xFF00000A, Shape = ShapePattern.Shape.RectFilled }),
-                            new BorderPattern.Template(new() { Color = 0xFF444444, DrawBottom = true }),
-                        },
-                    }),
+                        new ShapePattern { Color = 0xFF00000A, Type = ShapePattern.Shape.RectFilled },
+                        new BorderPattern { Color = 0xFF444444, DrawBottom = true },
+                    },
+                },
                 _ => throw new InvalidOperationException(),
             });
         this.rvc.PopulateSpannable += e =>
@@ -422,7 +400,12 @@ internal partial class ConsoleWindow : Window, IDisposable
                 return;
             lec.Entry = this.filteredLogEntries[e.Index];
             lec.HighlightRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
-            lec.TextSpannableOptions = this.textOptions;
+            lec.OuterWidth = ImGui.GetWindowWidth() - 4;
+            lec.WordBreak = this.activeConfiguration.LogLineBreakMode;
+            lec.WrapMarker =
+                this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
+                    ? this.ellipsisSpannableTemplate
+                    : this.wrapMarkerSpannableTemplate;
         };
         this.rvc.ClearSpannable += e =>
         {
@@ -545,7 +528,7 @@ internal partial class ConsoleWindow : Window, IDisposable
 
         void HandleRvcDrag()
         {
-            var cm = llm.FindChildAtPos(ImGui.GetMousePos());
+            var cm = this.rvc.FindChildAtPos(ImGui.GetMousePos());
             cm ??= llm.FindClosestChildMeasurementAt(ImGui.GetMousePos());
             var index = llm.FindItemIndexFromSpannable(cm);
             if (index < 0 || this.copyEnd == index)

@@ -49,24 +49,17 @@ internal partial class ConsoleWindow
         private LogEntry? entry;
         private RowMode rowMode;
         private Regex? highlightRegex;
+        private float outerWidth;
+        private WordBreakType wordBreak;
+        private ISpannableTemplate? wrapMarker;
 
         private MatchCollection? matches;
 
         public LogEntryControl()
         {
-            this.ChildrenList.Add(
-                this.lblTime = new()
-                {
-                    SpannableTextOptions = new AbstractStyledText.Options { WordBreak = WordBreakType.BreakWord },
-                });
-
-            this.ChildrenList.Add(
-                this.lblLevel = new()
-                {
-                    SpannableTextOptions = new AbstractStyledText.Options { WordBreak = WordBreakType.BreakWord },
-                });
-
-            this.ChildrenList.Add(this.lblText = new());
+            this.Children.Add(this.lblTime = new());
+            this.Children.Add(this.lblLevel = new());
+            this.Children.Add(this.lblText = new());
 
             this.Size = new(MatchParent, WrapContent);
             this.Padding = new(2);
@@ -76,8 +69,11 @@ internal partial class ConsoleWindow
 
         public event PropertyChangeEventHandler<Regex>? HighlightRegexChange;
 
-        public event PropertyChangeEventHandler<AbstractStyledText.Options>?
-            TextSpannableOptionsChange;
+        public event PropertyChangeEventHandler<float>? OuterWidthChange;
+
+        public event PropertyChangeEventHandler<WordBreakType>? WordBreakChange;
+
+        public event PropertyChangeEventHandler<ISpannableTemplate>? WrapMarkerChange;
 
         private enum RowMode
         {
@@ -113,48 +109,48 @@ internal partial class ConsoleWindow
                 this.OnHighlightRegexChange);
         }
 
-        public AbstractStyledText.Options? TextSpannableOptions
+        public float OuterWidth
         {
-            get => this.lblText.SpannableTextOptions as AbstractStyledText.Options;
-            set
-            {
-                var storage = this.lblText.SpannableTextOptions as AbstractStyledText.Options;
-                this.HandlePropertyChange(
-                    nameof(this.TextSpannableOptions),
-                    ref storage,
-                    value,
-                    ReferenceEquals(storage, value),
-                    this.OnWordBreakChange);
-                this.lblText.SpannableTextOptions = storage;
-            }
+            get => this.outerWidth;
+            set => this.HandlePropertyChange(
+                nameof(this.OuterWidth),
+                ref this.outerWidth,
+                value,
+                this.outerWidth - value == 0f,
+                this.OnOuterWidthChange);
         }
 
-        protected override RectVector4 MeasureChildren(
-            Vector2 suggestedSize,
-            ReadOnlySpan<Spannable> children)
+        public WordBreakType WordBreak
+        {
+            get => this.wordBreak;
+            set => this.HandlePropertyChange(
+                nameof(this.WordBreak),
+                ref this.wordBreak,
+                value,
+                this.wordBreak == value,
+                this.OnWordBreakChange);
+        }
+
+        public ISpannableTemplate? WrapMarker
+        {
+            get => this.wrapMarker;
+            set => this.wrapMarker = value;
+        }
+
+        protected override RectVector4 MeasureChildren(Vector2 suggestedSize)
         {
             if (this.Renderer is null)
                 return RectVector4.InvertedExtrema;
 
             // This value is not scaled.
-            this.rowMode = this.Options.VisibleSize.X switch
+            this.rowMode = this.outerWidth switch
             {
                 >= 640 => RowMode.OneLine,
                 >= 120 => RowMode.TwoLines,
                 _ => RowMode.ThreeLines,
             };
 
-            this.lblTime.Renderer = this.Renderer;
-            this.lblLevel.Renderer = this.Renderer;
-            this.lblText.Renderer = this.Renderer;
-            this.lblTime.Options.RenderScale = this.EffectiveRenderScale;
-            this.lblLevel.Options.RenderScale = this.EffectiveRenderScale;
-            this.lblText.Options.RenderScale = this.EffectiveRenderScale;
-            this.lblTime.Options.VisibleSize = this.Options.VisibleSize;
-            this.lblLevel.Options.VisibleSize = this.Options.VisibleSize;
-            this.lblText.Options.VisibleSize = this.Options.VisibleSize;
-
-            var isKeepAll = this.TextSpannableOptions?.WordBreak == WordBreakType.KeepAll;
+            var isKeepAll = this.WordBreak == WordBreakType.KeepAll;
             this.Size = new(isKeepAll ? WrapContent : MatchParent, WrapContent);
 
             switch (this.rowMode)
@@ -179,58 +175,51 @@ internal partial class ConsoleWindow
                     this.lblLevel.TextStyle = MetaLabelStyleFull;
                     this.lblLevel.Alignment = new(0f);
 
-                    this.lblTime.Options.PreferredSize = new(float.PositiveInfinity);
-                    this.lblLevel.Options.PreferredSize = new(float.PositiveInfinity);
-
-                    this.lblTime.RenderPassMeasure();
-                    this.lblLevel.RenderPassMeasure();
+                    this.lblTime.RenderPassMeasure(new(float.PositiveInfinity));
+                    this.lblLevel.RenderPassMeasure(new(float.PositiveInfinity));
 
                     this.lblText.TextStyle = LogTextStyle;
                     if (isKeepAll)
                     {
                         this.lblText.Size = new(WrapContent);
-                        this.lblText.Options.PreferredSize = new(float.PositiveInfinity);
+                        this.lblText.RenderPassMeasure(new(float.PositiveInfinity));
                     }
                     else
                     {
-                        var w = this.lblText.Options.VisibleSize.X
+                        var w = this.outerWidth
                                 - this.lblTime.Boundary.Right
                                 - this.lblLevel.Boundary.Right;
                         this.lblText.Size = new(MatchParent, WrapContent);
-                        this.lblText.Options.PreferredSize = new(w, float.PositiveInfinity);
+                        this.lblText.RenderPassMeasure(new(w, float.PositiveInfinity));
                     }
 
-                    this.lblText.RenderPassMeasure();
                     break;
 
                 case RowMode.TwoLines:
                 case RowMode.ThreeLines:
                     var wt = this.Margin.Width + this.Padding.Width;
                     this.lblTime.TextStyle = MetaLabelStyleTiny;
-                    this.lblTime.Size = new(this.Options.VisibleSize.X - wt, WrapContent);
+                    this.lblTime.Size = new(this.outerWidth - wt, WrapContent);
                     this.lblLevel.TextStyle = MetaLabelStyleTiny;
-                    this.lblLevel.Size = new(this.Options.VisibleSize.X - wt, WrapContent);
+                    this.lblLevel.Size = new(this.outerWidth - wt, WrapContent);
                     this.lblLevel.Margin = BorderVector4.Zero;
                     this.lblLevel.Alignment = new(1, 0);
 
-                    this.lblTime.Options.PreferredSize = suggestedSize;
-                    this.lblLevel.Options.PreferredSize = suggestedSize;
+                    this.lblTime.RenderPassMeasure(suggestedSize);
+                    this.lblLevel.RenderPassMeasure(suggestedSize);
 
                     this.lblText.TextStyle = LogTextStyle;
                     if (isKeepAll)
                     {
                         this.lblText.Size = new(WrapContent);
-                        this.lblText.Options.PreferredSize = new(float.PositiveInfinity);
+                        this.lblText.RenderPassMeasure(new(float.PositiveInfinity));
                     }
                     else
                     {
                         this.lblText.Size = new(MatchParent, WrapContent);
-                        this.lblText.Options.PreferredSize = suggestedSize with { Y = float.PositiveInfinity };
+                        this.lblText.RenderPassMeasure(suggestedSize with { Y = float.PositiveInfinity });
                     }
 
-                    this.lblTime.RenderPassMeasure();
-                    this.lblLevel.RenderPassMeasure();
-                    this.lblText.RenderPassMeasure();
                     break;
             }
 
@@ -260,9 +249,7 @@ internal partial class ConsoleWindow
             }
         }
 
-        protected override void PlaceChildren(
-            SpannableEventArgs args,
-            ReadOnlySpan<Spannable> children)
+        protected override void PlaceChildren(SpannableEventArgs args)
         {
             var mcblt = new Vector3(this.MeasuredContentBox.LeftTop, 0);
             switch (this.rowMode)
@@ -298,8 +285,8 @@ internal partial class ConsoleWindow
                                 MathF.Round(
                                     Math.Max(
                                         this.lblTime.MeasuredBoundaryBox.Bottom,
-                                        this.lblLevel.MeasuredBoundaryBox.Bottom) * this.Options.RenderScale) /
-                                this.Options.RenderScale,
+                                        this.lblLevel.MeasuredBoundaryBox.Bottom) * this.EffectiveRenderScale) /
+                                this.EffectiveRenderScale,
                                 0)),
                         this.FullTransformation);
                     break;
@@ -312,8 +299,8 @@ internal partial class ConsoleWindow
                         Matrix4x4.CreateTranslation(
                             mcblt + new Vector3(
                                 0,
-                                MathF.Round(this.lblTime.MeasuredBoundaryBox.Bottom * this.Options.RenderScale) /
-                                this.Options.RenderScale,
+                                MathF.Round(this.lblTime.MeasuredBoundaryBox.Bottom * this.EffectiveRenderScale) /
+                                this.EffectiveRenderScale,
                                 0)),
                         this.FullTransformation);
                     this.lblText.RenderPassPlace(
@@ -323,7 +310,7 @@ internal partial class ConsoleWindow
                                 MathF.Round(
                                     (this.lblTime.MeasuredBoundaryBox.Bottom +
                                      this.lblLevel.MeasuredBoundaryBox.Bottom) *
-                                    this.Options.RenderScale) / this.Options.RenderScale,
+                                    this.EffectiveRenderScale) / this.EffectiveRenderScale,
                                 0)),
                         this.FullTransformation);
                     break;
@@ -338,12 +325,17 @@ internal partial class ConsoleWindow
             if (args.NewValue is null)
             {
                 this.lblTime.Text = this.lblLevel.Text = this.lblText.Text = string.Empty;
-                this.lblText.SpannableText = null;
+                this.lblTime.SpannableText = this.lblLevel.SpannableText = this.lblText.SpannableText = null;
                 return;
             }
 
-            this.lblTime.Text = args.NewValue.TimestampString;
-            this.lblLevel.Text = GetTextForLogEventLevel(args.NewValue.Level);
+            var s = new StyledText(args.NewValue.TimestampString).CreateSpannable();
+            s.WordBreak = WordBreakType.BreakWord;
+            this.lblTime.SpannableText = s;
+
+            s = new StyledText(GetTextForLogEventLevel(args.NewValue.Level)).CreateSpannable();
+            s.WordBreak = WordBreakType.BreakWord;
+            this.lblLevel.SpannableText = s;
             this.UpdateMatches();
         }
 
@@ -353,10 +345,21 @@ internal partial class ConsoleWindow
             this.UpdateMatches();
         }
 
-        protected virtual void OnWordBreakChange(PropertyChangeEventArgs<AbstractStyledText.Options> args)
+        protected virtual void OnOuterWidthChange(PropertyChangeEventArgs<float> args) =>
+            this.OuterWidthChange?.Invoke(args);
+
+        protected virtual void OnWordBreakChange(PropertyChangeEventArgs<WordBreakType> args)
         {
-            this.TextSpannableOptionsChange?.Invoke(args);
-            this.lblText.SpannableTextOptions = args.NewValue;
+            this.WordBreakChange?.Invoke(args);
+            if (this.lblText.SpannableText is AbstractStyledText.TextSpannable ts)
+                ts.WordBreak = args.NewValue;
+        }
+
+        protected virtual void OnWrapMarkerChange(PropertyChangeEventArgs<ISpannableTemplate> args)
+        {
+            this.WrapMarkerChange?.Invoke(args);
+            if (this.lblText.SpannableText is AbstractStyledText.TextSpannable ts)
+                ts.WrapMarker = args.NewValue;
         }
 
         private void UpdateMatches()
@@ -421,7 +424,21 @@ internal partial class ConsoleWindow
                 }
             }
 
-            this.lblText.SpannableText = ssb.Build();
+            var s = ssb.Build().CreateSpannable();
+            s.WordBreak = this.wordBreak;
+            s.WrapMarker = this.wrapMarker;
+            s.Style = s.Style with { EdgeWidth = 1f };
+            s.DisplayControlCharacters = true;
+            s.ControlCharactersStyle = new()
+            {
+                Font = new(DalamudAssetFontAndFamilyId.From(DalamudAsset.InconsolataRegular)),
+                BackColor = 0xFF333333,
+                EdgeWidth = 1,
+                ForeColor = 0xFFFFFFFF,
+                FontSize = -0.6f,
+                VerticalAlignment = 0.5f,
+            };
+            this.lblText.SpannableText = s;
             this.Renderer?.ReturnBuilder(ssb);
         }
     }

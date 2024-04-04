@@ -58,17 +58,8 @@ public partial class ControlSpannable
     /// <summary>Occurs when the property <see cref="Transformation"/> is changing.</summary>
     public event PropertyChangeEventHandler<Matrix4x4>? TransformationChange;
 
-    /// <summary>Occurs when the property <see cref="NormalBackground"/> is changing.</summary>
-    public event PropertyChangeEventHandler<ISpannableTemplate?>? NormalBackgroundChange;
-
-    /// <summary>Occurs when the property <see cref="HoveredBackground"/> is changing.</summary>
-    public event PropertyChangeEventHandler<ISpannableTemplate?>? HoveredBackgroundChange;
-
-    /// <summary>Occurs when the property <see cref="ActiveBackground"/> is changing.</summary>
-    public event PropertyChangeEventHandler<ISpannableTemplate?>? ActiveBackgroundChange;
-
-    /// <summary>Occurs when the property <see cref="DisabledBackground"/> is changing.</summary>
-    public event PropertyChangeEventHandler<ISpannableTemplate?>? DisabledBackgroundChange;
+    /// <summary>Occurs when the property <see cref="Background"/> is changing.</summary>
+    public event PropertyChangeEventHandler<Spannable?>? BackgroundChange;
 
     /// <summary>Occurs when the property <see cref="ShowAnimation"/> is changing.</summary>
     public event PropertyChangeEventHandler<SpannableAnimator?>? ShowAnimationChange;
@@ -97,9 +88,7 @@ public partial class ControlSpannable
     protected override void OnMouseEnter(SpannableMouseEventArgs args)
     {
         base.OnMouseEnter(args);
-        if (this.hoveredBackground is not null
-            || this.activeBackground is not null
-            || this.normalBackground is not null)
+        if (this.background is not null)
             this.RequestMeasure();
     }
 
@@ -107,9 +96,7 @@ public partial class ControlSpannable
     protected override void OnMouseLeave(SpannableMouseEventArgs args)
     {
         base.OnMouseLeave(args);
-        if (this.hoveredBackground is not null
-            || this.activeBackground is not null
-            || this.normalBackground is not null)
+        if (this.background is not null)
             this.RequestMeasure();
     }
 
@@ -231,25 +218,19 @@ public partial class ControlSpannable
             this.transformationChangeAnimation?.Restart();
     }
 
-    /// <summary>Raises the <see cref="NormalBackgroundChange"/> event.</summary>
+    /// <summary>Raises the <see cref="BackgroundChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnNormalBackgroundChange(PropertyChangeEventArgs<ISpannableTemplate?> args) =>
-        this.NormalBackgroundChange?.Invoke(args);
+    protected virtual void OnBackgroundChange(PropertyChangeEventArgs<Spannable?> args)
+    {
+        if (args.State != PropertyChangeState.Before)
+        {
+            if (args.NewValue is not null)
+                args.NewValue.ZOrder = int.MinValue;
+            this.ReplaceChild(args.PreviousValue, args.NewValue);
+        }
 
-    /// <summary>Raises the <see cref="HoveredBackgroundChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnHoveredBackgroundChange(PropertyChangeEventArgs<ISpannableTemplate?> args) =>
-        this.HoveredBackgroundChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="ActiveBackgroundChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnActiveBackgroundChange(PropertyChangeEventArgs<ISpannableTemplate?> args) =>
-        this.ActiveBackgroundChange?.Invoke(args);
-
-    /// <summary>Raises the <see cref="DisabledBackgroundChange"/> event.</summary>
-    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
-    protected virtual void OnDisabledBackgroundChange(PropertyChangeEventArgs<ISpannableTemplate?> args) =>
-        this.DisabledBackgroundChange?.Invoke(args);
+        this.BackgroundChange?.Invoke(args);
+    }
 
     /// <summary>Raises the <see cref="ShowAnimationChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>

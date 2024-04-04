@@ -14,7 +14,7 @@ public static class SpannableImGuiItem
     /// available surface declare their minimum size requirement to ItemSize() and provide a larger region to ItemAdd()
     /// which is used drawing/interaction.</summary>
     /// <param name="measurement">The spannable measurement.</param>
-    /// <param name="innerId">The inner ID.</param>
+    /// <param name="imGuiGlobalId">The ImGui global Id.</param>
     /// <param name="rcHover">The hit-test boundary.</param>
     /// <param name="rcNav">The nav-test boundary.</param>
     /// <param name="rcDisplay">The display boundary.</param>
@@ -24,7 +24,7 @@ public static class SpannableImGuiItem
     /// <param name="disabled">Whether the item is disabled.</param>
     public static unsafe void ItemAdd(
         Spannable measurement,
-        int innerId,
+        uint imGuiGlobalId,
         RectVector4 rcHover,
         RectVector4 rcNav,
         RectVector4 rcDisplay,
@@ -33,7 +33,7 @@ public static class SpannableImGuiItem
         bool noNavDefaultFocus,
         bool disabled)
     {
-        if (innerId == -1)
+        if (imGuiGlobalId == 0)
             return;
         ref var context = ref ImGuiInternals.ImGuiContext.Instance;
         rcHover = RectVector4.TransformLossy(rcHover, measurement.FullTransformation);
@@ -41,7 +41,7 @@ public static class SpannableImGuiItem
         rcDisplay = RectVector4.TransformLossy(rcDisplay, measurement.FullTransformation);
         ImGuiInternals.ImGuiItemAdd(
             &rcHover,
-            measurement.GetGlobalIdFromInnerId(innerId),
+            imGuiGlobalId,
             &rcNav,
             ImGuiInternals.ImGuiItemFlags.Inputable
             | (noNav
@@ -58,18 +58,13 @@ public static class SpannableImGuiItem
 
     /// <summary>Marks the specified inner ID as active (pressed).</summary>
     /// <param name="measurement">The spannable measurement.</param>
-    /// <param name="innerId">The inner ID.</param>
+    /// <param name="imGuiGlobalId">The ImGui global Id.</param>
     /// <param name="useWheel">Whether to take wheel inputs, preventing window from handling wheel events.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void SetActive(
-        Spannable measurement, int innerId, bool useWheel = false)
+    public static unsafe void SetActive(Spannable measurement, uint imGuiGlobalId, bool useWheel = false)
     {
-        if (innerId != -1)
-        {
-            ImGuiInternals.ImGuiSetActiveId(
-                measurement.GetGlobalIdFromInnerId(innerId),
-                ImGuiInternals.ImGuiContext.Instance.CurrentWindow);
-        }
+        if (imGuiGlobalId != 0)
+            ImGuiInternals.ImGuiSetActiveId(imGuiGlobalId, ImGuiInternals.ImGuiContext.Instance.CurrentWindow);
 
         if (useWheel)
             ImGuiInternals.ImGuiContext.Instance.ActiveIdUsingMouseWheel = 1;
@@ -77,29 +72,23 @@ public static class SpannableImGuiItem
 
     /// <summary>Marks the specified inner ID as focused.</summary>
     /// <param name="measurement">The spannable measurement.</param>
-    /// <param name="innerId">The inner ID.</param>
+    /// <param name="imGuiGlobalId">The ImGui global Id.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void SetFocused(
-        Spannable measurement, int innerId)
+    public static unsafe void SetFocused(Spannable measurement, uint imGuiGlobalId)
     {
-        if (innerId != -1)
-        {
-            ImGuiInternals.ImGuiSetFocusedId(
-                measurement.GetGlobalIdFromInnerId(innerId),
-                ImGuiInternals.ImGuiContext.Instance.CurrentWindow);
-        }
+        if (imGuiGlobalId != 0)
+            ImGuiInternals.ImGuiSetFocusedId(imGuiGlobalId, ImGuiInternals.ImGuiContext.Instance.CurrentWindow);
     }
 
     /// <summary>Marks the specified inner ID as hovered.</summary>
     /// <param name="measurement">The spannable measurement.</param>
-    /// <param name="innerId">The inner ID.</param>
+    /// <param name="imGuiGlobalId">The ImGui global Id.</param>
     /// <param name="useWheel">Whether to take wheel inputs, preventing window from handling wheel events.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void SetHovered(
-        Spannable measurement, int innerId, bool useWheel = false)
+    public static unsafe void SetHovered(Spannable measurement, uint imGuiGlobalId, bool useWheel = false)
     {
-        if (innerId != -1)
-            ImGuiInternals.ImGuiSetHoveredId(measurement.GetGlobalIdFromInnerId(innerId));
+        if (imGuiGlobalId != 0)
+            ImGuiInternals.ImGuiSetHoveredId(imGuiGlobalId);
         if (useWheel)
             ImGuiInternals.ImGuiContext.Instance.HoveredIdUsingMouseWheel = 1;
     }
@@ -113,20 +102,14 @@ public static class SpannableImGuiItem
     /// <param name="measurement">The spannable measurement.</param>
     /// <param name="mouseLocalLocation">Local mouse location.</param>
     /// <param name="rc">The rect in local coordinates.</param>
-    /// <param name="innerId">The inner ID.</param>
     /// <returns><c>true</c> if something else is active.</returns>
-    public static unsafe bool IsItemHoverable(
-        Spannable measurement,
-        Vector2 mouseLocalLocation,
-        in RectVector4 rc,
-        int innerId)
+    public static unsafe bool IsItemHoverable(Spannable measurement, Vector2 mouseLocalLocation, in RectVector4 rc)
     {
         ref var g = ref ImGuiInternals.ImGuiContext.Instance;
-        var innerIdGlobal = innerId == -1 ? 0 : measurement.GetGlobalIdFromInnerId(innerId);
         var rcGlobal = RectVector4.TransformLossy(rc, measurement.FullTransformation);
         var prevHover = g.HoveredId;
         var prevHoverDisabled = g.HoveredIdDisabled;
-        if (ImGuiInternals.ImGuiItemHoverable(&rcGlobal, innerIdGlobal) == 0)
+        if (ImGuiInternals.ImGuiItemHoverable(&rcGlobal, measurement.ImGuiGlobalId) == 0)
             return false;
         if (!rc.Contains(mouseLocalLocation))
         {

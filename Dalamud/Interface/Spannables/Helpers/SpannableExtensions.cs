@@ -2,23 +2,11 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-using ImGuiNET;
-
 namespace Dalamud.Interface.Spannables.Helpers;
 
 /// <summary>Extension methods for everything under <see cref="Spannables"/>.</summary>
 public static class SpannableExtensions
 {
-    /// <summary>Gets a global ID from an inner ID.</summary>
-    /// <param name="measurement">The spannable measurement.</param>
-    /// <param name="innerId">The inner ID.</param>
-    /// <returns>The global ID.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe uint GetGlobalIdFromInnerId(this Spannable measurement, int innerId) =>
-        measurement.ImGuiGlobalId == 0
-            ? 0
-            : ImGuiNative.igGetID_Ptr((void*)(((ulong)measurement.ImGuiGlobalId << 32) | (uint)innerId));
-
     /// <summary>Transforms spannable-local coordiantes to screen coordinates.</summary>
     /// <param name="measurement">The spannable measurement.</param>
     /// <param name="p">The point to transform.</param>
@@ -55,11 +43,8 @@ public static class SpannableExtensions
     public static IEnumerable<Spannable> EnumerateHierarchy(this Spannable root)
     {
         yield return root;
-        foreach (var s in root.GetAllChildSpannables())
+        foreach (var s in root.EnumerateChildren(true))
         {
-            if (s is null)
-                continue;
-
             foreach (var child in s.EnumerateHierarchy())
                 yield return child;
         }
@@ -73,11 +58,8 @@ public static class SpannableExtensions
     {
         if (root is T roott)
             yield return roott;
-        foreach (var s in root.GetAllChildSpannables())
+        foreach (var s in root.EnumerateChildren(true))
         {
-            if (s is null)
-                continue;
-
             foreach (var child in s.EnumerateHierarchy<T>())
                 yield return child;
         }

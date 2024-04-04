@@ -107,29 +107,14 @@ internal sealed partial class SpannableRenderer : ISpannableRenderer, IInternalD
     {
         ThreadSafety.AssertMainThread();
 
-        if (renderContext.RootOptions is not null)
-        {
-            renderContext.RootOptions.RenderScale = renderContext.RenderScale;
-            renderContext.RootOptions.PreferredSize = renderContext.Size / renderContext.RenderScale;
-            renderContext.RootOptions.VisibleSize = renderContext.RootOptions.PreferredSize;
-            spannable.Options.CopyFrom(renderContext.RootOptions);
-        }
-        else
-        {
-            spannable.Options.RenderScale = renderContext.RenderScale;
-            spannable.Options.PreferredSize = renderContext.Size / renderContext.RenderScale;
-            spannable.Options.VisibleSize = spannable.Options.PreferredSize;
-        }
-
-        spannable.Renderer = this;
-        spannable.ImGuiGlobalId = renderContext.ImGuiGlobalId;
+        spannable.RenderScale = renderContext.RenderScale;
 
         spannable.RenderPassPreDispatchEvents();
 
         if (renderContext.UseInteraction)
             spannable.RenderPassDispatchEventsAsRoot();
 
-        spannable.RenderPassMeasure();
+        spannable.RenderPassMeasure(renderContext.Size / renderContext.RenderScale);
 
         var mtx = Matrix4x4.Multiply(
             renderContext.Transformation,

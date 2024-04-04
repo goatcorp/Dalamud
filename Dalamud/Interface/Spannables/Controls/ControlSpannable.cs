@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -7,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Dalamud.Interface.Spannables.Controls.Animations;
 using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Helpers;
+using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
@@ -21,7 +21,7 @@ namespace Dalamud.Interface.Spannables.Controls;
     "SA1010:Opening square brackets should be spaced correctly",
     Justification = "No")]
 [DebuggerDisplay("#{Name}: {text}")]
-public partial class ControlSpannable : Spannable<SpannableOptions>
+public partial class ControlSpannable : Spannable
 {
     /// <summary>Uses the dimensions provided from the parent.</summary>
     public const float MatchParent = -1f;
@@ -29,11 +29,7 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
     /// <summary>Uses the dimensions that will wrap the content.</summary>
     public const float WrapContent = -2f;
 
-    private static readonly bool DrawDebugControlBorder = false;
-
-    private readonly int backgroundInnerId;
-
-    private readonly int backgroundChildIndex;
+    private static readonly bool DrawDebugControlBorder = true;
 
     private RectVector4 measuredOutsideBox;
     private RectVector4 measuredBoundaryBox;
@@ -44,16 +40,6 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
     private bool suppressNextMoveAnimation;
 
     private bool wasVisible;
-
-    /// <summary>Initializes a new instance of the <see cref="ControlSpannable"/> class.</summary>
-    /// <param name="options">Options.</param>
-    public ControlSpannable(SpannableOptions? options = default)
-        : base(options)
-    {
-        this.backgroundInnerId = this.InnerIdAvailableSlot++;
-        this.backgroundChildIndex = this.AllSpannablesAvailableSlot++;
-        this.AllSpannables.Add(null);
-    }
 
     /// <summary>Gets or sets the inner transform origin.</summary>
     public Vector2 InnerOrigin { get; set; } = new(0.5f);
@@ -121,7 +107,7 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
     }
 
     /// <summary>Gets the effective scale from the current (or last, if outside) render cycle.</summary>
-    public float EffectiveRenderScale => this.scale * this.Options.RenderScale;
+    public override float EffectiveRenderScale => this.scale * base.EffectiveRenderScale;
 
     /// <summary>Gets a value indicating whether any animation is running.</summary>
     public virtual bool IsAnyAnimationRunning =>
@@ -146,31 +132,9 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
     [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator", Justification = "Sentinel value")]
     protected bool IsHeightMatchParent => this.size.Y == MatchParent;
 
-    /// <summary>Gets the list of all children contained within this control, including decorative ones.</summary>
-    protected List<Spannable?> AllSpannables { get; } = [];
-
-    /// <summary>Gets or sets the available slot index in <see cref="AllSpannables"/> for use by inheritors.</summary>
-    protected int AllSpannablesAvailableSlot { get; set; }
-
     /// <summary>Gets either <see cref="showAnimation"/> or <see cref="hideAnimation"/> according to
     /// <see cref="Spannable.Visible"/>.</summary>
     private SpannableAnimator? VisibilityAnimation => this.Visible ? this.showAnimation : this.hideAnimation;
-
-    private Spannable? CurrentBackground
-    {
-        get => this.AllSpannables[this.backgroundChildIndex];
-        set
-        {
-            if (this.AllSpannables[this.backgroundChildIndex] is { } oldValue)
-                oldValue.PropertyChange -= this.PropertyOnPropertyChanged;
-            this.AllSpannables[this.backgroundChildIndex] = value;
-            if (this.AllSpannables[this.backgroundChildIndex] is { } newValue)
-                newValue.PropertyChange += this.PropertyOnPropertyChanged;
-        }
-    }
-
-    /// <inheritdoc />
-    public override IReadOnlyList<Spannable?> GetAllChildSpannables() => this.AllSpannables;
 
     /// <summary>Tests if this control can be interacted with mouse cursor at the given local coordinates.</summary>
     /// <param name="localLocation">The local coordinates.</param>
@@ -194,365 +158,12 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
             ? $"{this.GetType().Name}#{this.Name}"
             : $"{this.GetType().Name}#{this.Name}: {this.text}";
 
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // TODO
-    // /// <inheritdoc/>
-    // unsafe bool Spannable.___HandleInteraction()
-    // {
-    //     if (!this.Boundary.IsValid)
-    //         return false;
-    //
-    //     var io = ImGui.GetIO().NativePtr;
-    //
-    //     // This is, in fact, not a new vector
-    //     // ReSharper disable once CollectionNeverUpdated.Local
-    //     var inputQueueCharacters = new ImVectorWrapper<char>(&io->InputQueueCharacters);
-    //     var inputEventsTrail = new ImVectorWrapper<ImGuiInternals.ImGuiInputEvent>(
-    //         (ImVector*)Unsafe.AsPointer(ref ImGuiInternals.ImGuiContext.Instance.InputEventsTrail));
-    //
-    //     var chiea = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-    //     chiea.Sender = this;
-    //     this.OnHandleInteraction(chiea);
-    //     SpannableEventArgsPool.Return(chiea);
-    //
-    //     var cmea = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
-    //     cmea.SuppressHandling = false;
-    //     cmea.Sender = this;
-    //     cmea.LocalLocation = this.PointToClient(ImGui.GetMousePos());
-    //     cmea.LocalLocationDelta = cmea.LocalLocation - this.lastMouseLocation;
-    //     cmea.WheelDelta = new(io->MouseWheelH, io->MouseWheel);
-    //     var hoveredOnRect = this.HitTest(cmea.LocalLocation);
-    //
-    //     SpannableImGuiItem.ItemAdd(
-    //         this,
-    //         this.selfInnerId,
-    //         this.measuredInteractiveBox,
-    //         this.measuredInteractiveBox,
-    //         this.measuredOutsideBox,
-    //         hoveredOnRect,
-    //         !this.focusable,
-    //         false,
-    //         !this.enabled);
-    //
-    //     var hovered = SpannableImGuiItem.IsItemHoverable(
-    //         this,
-    //         cmea.LocalLocation,
-    //         this.measuredInteractiveBox * this.scale,
-    //         this.captureMouseOnMouseDown ? this.selfInnerId : -1);
-    //     var focused = ImGui.IsItemFocused();
-    //
-    //     if (!this.visible && this.hideAnimation?.IsRunning is not true)
-    //     {
-    //         this.IsMouseHovered = false;
-    //         focused = false;
-    //     }
-    //     else if (!this.enabled)
-    //     {
-    //         this.IsMouseHovered = false;
-    //         focused = false;
-    //     }
-    //     else
-    //     {
-    //         var prevCapturiongMouseButtons = this.capturingMouseButtons;
-    //
-    //         if (hovered || prevCapturiongMouseButtons != 0)
-    //             ImGui.SetMouseCursor(this.mouseCursor);
-    //
-    //         if (hovered != this.IsMouseHovered)
-    //         {
-    //             this.IsMouseHovered = hovered;
-    //
-    //             if (hovered)
-    //             {
-    //                 SpannableImGuiItem.SetHovered(this, this.selfInnerId, this.captureMouseWheel);
-    //
-    //                 cmea.SuppressHandling = false;
-    //                 cmea.Clicks = 0;
-    //                 this.OnMouseEnter(cmea);
-    //             }
-    //             else
-    //             {
-    //                 cmea.SuppressHandling = false;
-    //                 cmea.Clicks = 0;
-    //                 this.OnMouseLeave(cmea);
-    //             }
-    //         }
-    //
-    //         if (cmea.WheelDelta != Vector2.Zero)
-    //         {
-    //             cmea.SuppressHandling = false;
-    //             cmea.Clicks = 0;
-    //             this.OnMouseWheel(cmea);
-    //             if (cmea.SuppressHandling)
-    //                 io->MouseWheel = io->MouseWheelH = 0f;
-    //         }
-    //
-    //         if (this.lastMouseLocation != cmea.LocalLocation)
-    //         {
-    //             this.lastMouseLocation = cmea.LocalLocation;
-    //             cmea.SuppressHandling = false;
-    //             cmea.Clicks = 0;
-    //             this.OnMouseMove(cmea);
-    //         }
-    //
-    //         for (var i = 0; i < MouseButtonsWeCare.Length; i++)
-    //         {
-    //             cmea.Button = MouseButtonsWeCare[i];
-    //
-    //             if (ImGui.IsMouseClicked(MouseButtonsWeCare[i]) && hovered)
-    //             {
-    //                 this.lastMouseHeldDownTime[i] = DateTime.Now;
-    //                 this.capturingMouseButtons |= 1 << i;
-    //                 cmea.SuppressHandling = false;
-    //                 cmea.Clicks = 1;
-    //                 this.OnMouseDown(cmea);
-    //
-    //                 if (this.focusable)
-    //                     focused = true;
-    //             }
-    //
-    //             if (ImGui.IsMouseReleased(MouseButtonsWeCare[i]))
-    //             {
-    //                 this.capturingMouseButtons &= ~(1 << i);
-    //
-    //                 if (this.lastMouseHeldDownTime[i] == DateTime.MinValue)
-    //                     continue;
-    //
-    //                 this.lastMouseHeldDownTime[i] = DateTime.MinValue;
-    //
-    //                 cmea.SuppressHandling = false;
-    //                 cmea.Clicks = 1;
-    //                 this.OnMouseUp(cmea);
-    //
-    //                 if (!cmea.SuppressHandling && hovered)
-    //                 {
-    //                     if (this.lastMouseClickTick[i] < Environment.TickCount64)
-    //                         this.lastMouseClickCount[i] = 1;
-    //                     else
-    //                         this.lastMouseClickCount[i] += 1;
-    //                     this.lastMouseClickTick[i] = Environment.TickCount64 + GetDoubleClickTime();
-    //                     cmea.Clicks = this.lastMouseClickCount[i];
-    //                     cmea.SuppressHandling = false;
-    //                     this.OnMouseClick(cmea);
-    //                 }
-    //                 else
-    //                 {
-    //                     this.lastMouseClickTick[i] = 0;
-    //                 }
-    //             }
-    //
-    //             ref var nextRepeatTime = ref this.nextMousePressRepeatTime[i];
-    //             ref var nextRepeatFirst = ref this.nextMousePressRepeatIsFirst[i];
-    //             if (this.lastMouseHeldDownTime[i] != DateTime.MinValue && hovered)
-    //             {
-    //                 var d = DateTime.Now - nextRepeatTime;
-    //                 if (nextRepeatTime == DateTime.MaxValue)
-    //                 {
-    //                     // suppressed
-    //                 }
-    //                 else if (nextRepeatTime == DateTime.MinValue)
-    //                 {
-    //                     nextRepeatTime = DateTime.Now + WindowsUiConfigHelper.GetKeyboardRepeatInitialDelay();
-    //                     nextRepeatFirst = true;
-    //                 }
-    //                 else if (nextRepeatFirst && d >= TimeSpan.Zero)
-    //                 {
-    //                     cmea.SuppressHandling = false;
-    //                     cmea.Clicks = 1;
-    //                     this.OnMousePressLong(cmea);
-    //                     nextRepeatFirst = false;
-    //                     if (cmea.SuppressHandling)
-    //                         nextRepeatTime = DateTime.MaxValue;
-    //                     else
-    //                         nextRepeatTime = DateTime.Now + WindowsUiConfigHelper.GetKeyboardRepeatInterval();
-    //                 }
-    //                 else if (!nextRepeatFirst && d >= TimeSpan.Zero)
-    //                 {
-    //                     var repeatInterval = WindowsUiConfigHelper.GetKeyboardRepeatInterval();
-    //                     var repeatCount = 1 + (int)MathF.Floor((float)(d / repeatInterval));
-    //                     nextRepeatTime += repeatInterval * repeatCount;
-    //                     cmea.SuppressHandling = false;
-    //                     cmea.Clicks = repeatCount;
-    //                     this.OnMousePressRepeat(cmea);
-    //                 }
-    //             }
-    //             else
-    //             {
-    //                 nextRepeatTime = DateTime.MinValue;
-    //             }
-    //         }
-    //
-    //         var effectivelyWantCaptureMouse = false;
-    //         var effectivelyWantReleaseMouse = false;
-    //         if (this.captureMouseOnMouseDown)
-    //         {
-    //             if (this.capturingMouseButtons != 0)
-    //             {
-    //                 effectivelyWantCaptureMouse = true;
-    //             }
-    //             else if (this.capturingMouseButtons == 0 && prevCapturiongMouseButtons != 0)
-    //             {
-    //                 effectivelyWantReleaseMouse = true;
-    //             }
-    //         }
-    //
-    //         if (this.captureMouse != this.wasCapturingMouseViaProperty)
-    //         {
-    //             this.wasCapturingMouseViaProperty = this.captureMouse;
-    //             if (this.captureMouse)
-    //             {
-    //                 effectivelyWantCaptureMouse = true;
-    //             }
-    //             else
-    //             {
-    //                 effectivelyWantReleaseMouse = true;
-    //             }
-    //         }
-    //
-    //         if (effectivelyWantCaptureMouse)
-    //         {
-    //             ImGui.SetNextFrameWantCaptureMouse(true);
-    //             SpannableImGuiItem.SetActive(this, this.selfInnerId, this.captureMouseWheel);
-    //         }
-    //         else if (effectivelyWantReleaseMouse)
-    //         {
-    //             SpannableImGuiItem.ClearActive();
-    //             ImGui.SetNextFrameWantCaptureMouse(false);
-    //         }
-    //
-    //         if (hoveredOnRect && this.captureMouseWheel)
-    //             SpannableImGuiItem.SetHovered(this, -1, true);
-    //     }
-    //
-    //     if (!this.focusable && focused)
-    //         focused = false;
-    //     if (focused)
-    //     {
-    //         if (this.takeKeyboardInputsOnFocus)
-    //         {
-    //             inputQueueCharacters.Clear();
-    //             io->WantTextInput = 1;
-    //
-    //             foreach (ref var trailedEvent in inputEventsTrail.DataSpan)
-    //             {
-    //                 switch (trailedEvent.Type)
-    //                 {
-    //                     case ImGuiInternals.ImGuiInputEventType.Key:
-    //                     {
-    //                         if (this.ProcessCmdKey(trailedEvent.Key.Key))
-    //                             ImGuiInternals.ImGuiNavMoveRequestCancel();
-    //
-    //                         var kpe = SpannableEventArgsPool.Rent<SpannableKeyEventArgs>();
-    //                         kpe.Sender = this;
-    //                         kpe.Handled = false;
-    //                         kpe.KeyCode = trailedEvent.Key.Key;
-    //                         kpe.Control = io->KeyCtrl != 0;
-    //                         kpe.Alt = io->KeyAlt != 0;
-    //                         kpe.Shift = io->KeyShift != 0;
-    //                         kpe.Modifiers = io->KeyMods;
-    //                         if (trailedEvent.Key.Down != 0)
-    //                             this.OnKeyDown(kpe);
-    //                         else
-    //                             this.OnKeyUp(kpe);
-    //                         SpannableEventArgsPool.Return(kpe);
-    //                         break;
-    //                     }
-    //
-    //                     case ImGuiInternals.ImGuiInputEventType.Text:
-    //                     {
-    //                         var kpe = SpannableEventArgsPool.Rent<SpannableKeyPressEventArgs>();
-    //                         kpe.Sender = this;
-    //                         kpe.Handled = false;
-    //                         kpe.Rune =
-    //                             Rune.TryCreate(trailedEvent.Text.Char, out var rune)
-    //                                 ? rune
-    //                                 : Rune.ReplacementChar;
-    //                         kpe.KeyChar = unchecked((char)rune.Value);
-    //                         this.OnKeyPress(kpe);
-    //                         SpannableEventArgsPool.Return(kpe);
-    //                         break;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //
-    //     if (focused != this.wasFocused)
-    //     {
-    //         this.wasFocused = focused;
-    //
-    //         var cea = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-    //         cea.Sender = this;
-    //         if (focused)
-    //         {
-    //             SpannableImGuiItem.SetFocused(this, this.selfInnerId);
-    //             this.OnGotFocus(cea);
-    //         }
-    //         else
-    //         {
-    //             this.OnLostFocus(cea);
-    //         }
-    //
-    //         SpannableEventArgsPool.Return(cea);
-    //     }
-    //
-    //     SpannableEventArgsPool.Return(cmea);
-    //
-    //     var newBackground = this.DecideBackground();
-    //     if (!ReferenceEquals(this.currentBackground, newBackground))
-    //     {
-    //         this.currentBackground?.ReturnMeasurement(this.currentBackground);
-    //         this.currentBackground = null;
-    //         this.currentBackground = newBackground;
-    //         this.OnPropertyChange(this);
-    //     }
-    //
-    //     this.currentBackground?.___HandleInteraction();
-    //     return true;
-    // }
-
     /// <inheritdoc/>
-    protected override void OnMeasure(SpannableEventArgs args)
+    protected override void OnMeasure(SpannableMeasureEventArgs args)
     {
-        if (this.Renderer is null)
-            return;
-
         // Note: EffectiveScale is for preparing the source resources.
         // We deal only with our own scale here, as the outer scale is dealt by the caller.
-        var myMaxSize = this.Options.PreferredSize * this.scale;
+        var myMaxSize = args.PreferredSize * this.scale;
         var boundaryContentGap = this.margin + this.padding;
 
         this.MeasuredContentBox = RectVector4.Translate(
@@ -595,23 +206,11 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
             this.Boundary = this.MeasuredBoundaryBox * this.scale;
         }
 
-        var newBackground = this.DecideBackground();
-        if (!ReferenceEquals(this.CurrentBackground?.SourceTemplate, newBackground))
+        if (this.background is not null)
         {
-            var recycling = this.CurrentBackground;
-            this.CurrentBackground = null;
-
-            this.CurrentBackground?.SourceTemplate?.RecycleSpannable(recycling);
-            this.CurrentBackground = newBackground?.CreateSpannable();
-        }
-
-        if (this.CurrentBackground is not null)
-        {
-            this.CurrentBackground.Options.PreferredSize = this.Boundary.Size;
-            this.CurrentBackground.Options.RenderScale = this.EffectiveRenderScale;
-            this.CurrentBackground.Options.VisibleSize = this.Options.VisibleSize;
-            this.CurrentBackground.ImGuiGlobalId = this.GetGlobalIdFromInnerId(this.backgroundInnerId);
-            this.CurrentBackground.RenderPassMeasure();
+            if (this.background is DisplayedStatePattern dsbp)
+                dsbp.State = this.GetDisplayedState();
+            this.background.RenderPassMeasure(this.Boundary.Size);
         }
 
         if (this.IsAnyAnimationRunning)
@@ -623,7 +222,7 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
     /// <inheritdoc/>
     protected override void OnPlace(SpannableEventArgs args)
     {
-        this.CurrentBackground?.RenderPassPlace(Matrix4x4.Identity, this.FullTransformation);
+        this.background?.RenderPassPlace(Matrix4x4.Identity, this.FullTransformation);
         base.OnPlace(args);
     }
 
@@ -632,7 +231,7 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
     {
         base.OnDraw(args);
 
-        if ((!this.Visible && this.HideAnimation?.IsRunning is not true) || this.Renderer is null)
+        if (!this.Visible && this.HideAnimation?.IsRunning is not true)
             return;
 
         // Note: our temporary draw list uses EffectiveScale, because that's the scale that'll actualy be displayed on
@@ -644,7 +243,7 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
         tmpDrawList.CmdBuffer[0].ClipRect = tmpDrawList._CmdHeader.ClipRect;
         try
         {
-            this.CurrentBackground?.RenderPassDraw(tmpDrawList);
+            this.background?.RenderPassDraw(tmpDrawList);
 
             using (new ScopedTransformer(
                        tmpDrawList,
@@ -722,11 +321,6 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
         }
     }
 
-    /// <summary>Determines if <see cref="MeasureContentBox"/> should be called from
-    /// <see cref="Spannable.RenderPassMeasure"/>.</summary>
-    /// <returns><c>true</c> if it is.</returns>
-    protected override bool ShouldMeasureAgain() => base.ShouldMeasureAgain() || this.IsAnyAnimationRunning;
-
     /// <summary>Measures the content box, given the available content box excluding the margin and padding.</summary>
     /// <param name="suggestedSize">Suggested size of the content box.</param>
     /// <returns>The resolved content box, relative to the content box origin.</returns>
@@ -737,25 +331,6 @@ public partial class ControlSpannable : Spannable<SpannableOptions>
             new(
                 suggestedSize.X >= float.PositiveInfinity ? 0 : suggestedSize.X,
                 suggestedSize.Y >= float.PositiveInfinity ? 0 : suggestedSize.Y));
-
-    /// <summary>Decides the background to use, judging from properties such as
-    /// <see cref="Spannable.Enabled"/>, <see cref="Spannable.IsMouseHovered"/>, and
-    /// <see cref="Spannable.IsAnyMouseButtonDown"/>.</summary>
-    /// <returns>The decided background.</returns>
-    /// <remarks>The background should be one of <see cref="NormalBackground"/>, <see cref="HoveredBackground"/>,
-    /// <see cref="ActiveBackground"/>, or <see cref="DisabledBackground"/>.</remarks>
-    protected virtual ISpannableTemplate? DecideBackground()
-    {
-        if (!this.Visible && this.hideAnimation?.IsRunning is not true)
-            return this.normalBackground;
-        if (!this.Enabled)
-            return this.disabledBackground ?? this.normalBackground;
-        if (this.IsMouseHoveredInsideBoundary && this.IsAnyMouseButtonDown && this.activeBackground is not null)
-            return this.activeBackground;
-        if (this.IsMouseHoveredInsideBoundary && this.ImGuiIsHoverable && this.hoveredBackground is not null)
-            return this.hoveredBackground;
-        return this.normalBackground;
-    }
 
     /// <inheritdoc/>
     protected override Matrix4x4 TransformLocalTransformation(scoped in Matrix4x4 local)

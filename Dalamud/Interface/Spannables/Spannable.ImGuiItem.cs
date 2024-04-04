@@ -18,10 +18,6 @@ public abstract partial class Spannable
     private bool wasCapturingMouse;
     private bool wasFocused;
 
-    /// <summary>Gets or sets the available slot index for inner ID, for use with
-    /// <see cref="SpannableExtensions.GetGlobalIdFromInnerId"/>.</summary>
-    protected int InnerIdAvailableSlot { get; set; }
-
     /// <summary>Gets a value indicating whether this item does not support navigation(focus).</summary>
     protected virtual bool ImGuiItemNoNav => false;
 
@@ -43,7 +39,7 @@ public abstract partial class Spannable
 
     /// <summary>Gets a value indicating whether this ImGui item is focused.</summary>
     protected bool ImGuiIsFocused =>
-        ImGuiInternals.ImGuiContext.Instance.NavId == this.GetGlobalIdFromInnerId(this.selfInnerId);
+        ImGuiInternals.ImGuiContext.Instance.NavId == this.imGuiGlobalId;
 
     /// <summary>Gets a value indicating whether this ImGui item can be hovered, regardless of the mouse pointer
     /// location.</summary>
@@ -52,14 +48,13 @@ public abstract partial class Spannable
         get
         {
             ref var ctx = ref ImGuiInternals.ImGuiContext.Instance;
-            var gid = this.GetGlobalIdFromInnerId(this.selfInnerId);
             return (ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem) || this.ShouldCapture)
-                   && gid != 0
+                   && this.imGuiGlobalId != 0
                    && (ctx.HoveredId == 0
-                       || ctx.HoveredId == gid
+                       || ctx.HoveredId == this.imGuiGlobalId
                        || ctx.HoveredIdAllowOverlap != 0)
                    && (ctx.ActiveId == 0
-                       || ctx.ActiveId == gid
+                       || ctx.ActiveId == this.imGuiGlobalId
                        || ctx.ActiveIdAllowOverlap != 0);
         }
     }
@@ -67,12 +62,12 @@ public abstract partial class Spannable
     /// <summary>Gets a value indicating whether this ImGui item is currently being considered as hovered.</summary>
     protected bool ImGuiIsHovered =>
         this.ImGuiGlobalId != 0
-        && ImGuiInternals.ImGuiContext.Instance.HoveredId == this.GetGlobalIdFromInnerId(this.selfInnerId);
+        && ImGuiInternals.ImGuiContext.Instance.HoveredId == this.imGuiGlobalId;
 
     /// <summary>Gets a value indicating whether this ImGui item is currently being considered as active.</summary>
     protected bool ImGuiIsActive =>
         this.ImGuiGlobalId != 0
-        && ImGuiInternals.ImGuiContext.Instance.ActiveId == this.GetGlobalIdFromInnerId(this.selfInnerId);
+        && ImGuiInternals.ImGuiContext.Instance.ActiveId == this.imGuiGlobalId;
 
     private bool ImGuiWantRootKeyboardProcessing
     {
@@ -83,10 +78,9 @@ public abstract partial class Spannable
             if (this.takeKeyboardInputsOnFocus && this.ImGuiIsFocused)
                 return true;
 
-            var children = this.GetAllChildSpannables();
-            for (var i = children.Count - 1; i >= 0; i--)
+            foreach (var child in this.EnumerateChildren(false))
             {
-                if (children[i]?.ImGuiWantRootKeyboardProcessing is true)
+                if (child.ImGuiWantRootKeyboardProcessing)
                     return true;
             }
 
@@ -210,12 +204,8 @@ public abstract partial class Spannable
         {
             what.ImGuiItemAdd();
 
-            var children = what.GetAllChildSpannables();
-            for (var i = children.Count - 1; i >= 0; i--)
-            {
-                if (children[i] is { } c)
-                    ImGuiItemAddRecursive(c);
-            }
+            foreach (var child in what.EnumerateChildren(false))
+                ImGuiItemAddRecursive(child);
         }
     }
 
@@ -257,16 +247,15 @@ public abstract partial class Spannable
             this.mousePressCumulativeCount.AsSpan().Clear();
         }
 
-        var children = this.GetAllChildSpannables();
-        for (var i = children.Count - 1; i >= 0; i--)
-            children[i]?.DispatchEffectivelyDisabled();
+        foreach (var child in this.EnumerateChildren(false))
+            child.DispatchEffectivelyDisabled();
     }
 
     /// <summary>Places an ImGui item corresponding to this spannable.</summary>
     private void ImGuiItemAdd() =>
         SpannableImGuiItem.ItemAdd(
             this,
-            this.selfInnerId,
+            this.imGuiGlobalId,
             this.ImGuiHoverRect,
             this.ImGuiNavRect,
             this.ImGuiDisplayRect,
@@ -283,7 +272,7 @@ public abstract partial class Spannable
         this.wasCapturingMouse = shouldCapture;
         if (shouldCapture)
         {
-            SpannableImGuiItem.SetActive(this, this.selfInnerId, true);
+            SpannableImGuiItem.SetActive(this, this.imGuiGlobalId, true);
             ImGui.SetNextFrameWantCaptureMouse(true);
         }
         else

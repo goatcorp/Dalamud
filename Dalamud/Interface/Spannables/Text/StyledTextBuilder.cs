@@ -103,14 +103,14 @@ public sealed partial class StyledTextBuilder
     public override string ToString() => this.Build().ToString();
 
     /// <inheritdoc/>
-    private protected override DataRef GetData() =>
+    private protected override DataMemory AsMemory() =>
         new(
-            this.textStream.GetDataSpan(),
-            this.dataStream.GetDataSpan(),
-            CollectionsMarshal.AsSpan(this.records),
-            CollectionsMarshal.AsSpan(this.fontSets),
-            CollectionsMarshal.AsSpan(this.textures),
-            CollectionsMarshal.AsSpan(this.spannables));
+            this.textStream.ToArray(),
+            this.dataStream.ToArray(),
+            this.records.ToArray(),
+            this.fontSets.ToArray(),
+            this.textures.ToArray(),
+            this.spannables.ToArray());
 
     /// <summary>Reserves an area of bytes at the end of <see cref="textStream"/>.</summary>
     /// <param name="numBytes">The number of bytes.</param>

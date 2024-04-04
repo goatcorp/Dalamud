@@ -1,22 +1,37 @@
 using Dalamud.Interface.Spannables.EventHandlers;
+using Dalamud.Interface.Spannables.Patterns;
+using Dalamud.Interface.Spannables.Rendering.Internal;
+using Dalamud.Plugin.Services;
 
 namespace Dalamud.Interface.Spannables;
 
 /// <summary>Base class for <see cref="Spannable"/>s.</summary>
 public abstract partial class Spannable
 {
+    private uint imGuiGlobalId;
+    private float renderScale = 1f;
+    private int zOrder;
     private bool enabled = true;
     private bool focusable;
     private bool eventEnabled = true;
     private bool occupySpaceWhenHidden = true;
     private bool visible = true;
 
+    /// <summary>Occurs when the property <see cref="ImGuiGlobalId"/> is changing.</summary>
+    public event PropertyChangeEventHandler<uint>? ImGuiGlobalIdChange;
+
+    /// <summary>Occurs when the property <see cref="RenderScale"/> is changing.</summary>
+    public event PropertyChangeEventHandler<float>? RenderScaleChange;
+
+    /// <summary>Occurs when the property <see cref="ZOrder"/> is changing.</summary>
+    public event PropertyChangeEventHandler<int>? ZOrderChange;
+
     /// <summary>Occurs when the property <see cref="Enabled"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? EnabledChange;
 
     /// <summary>Occurs when the property <see cref="Focusable"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? FocusableChange;
-    
+
     /// <summary>Occurs when the property <see cref="EventEnabled"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? EventEnabledChange;
 
@@ -25,6 +40,47 @@ public abstract partial class Spannable
 
     /// <summary>Occurs when the property <see cref="Visible"/> is changing.</summary>
     public event PropertyChangeEventHandler<bool>? VisibleChange;
+
+    /// <summary>Gets the renderer being used.</summary>
+    public ISpannableRenderer Renderer => Service<SpannableRenderer>.Get();
+
+    /// <summary>Gets or sets the ImGui global ID.</summary>
+    public uint ImGuiGlobalId
+    {
+        get => this.imGuiGlobalId;
+        set => this.HandlePropertyChange(
+            nameof(this.ImGuiGlobalId),
+            ref this.imGuiGlobalId,
+            value,
+            this.imGuiGlobalId == value,
+            this.OnImGuiGlobalIdChange);
+    }
+
+    /// <summary>Gets or sets the render scale.</summary>
+    /// <remarks>Used only for loading underlying resources that will accommodate drawing without being blurry.
+    /// Setting this property alone does not mean scaling the result.</remarks>
+    public float RenderScale
+    {
+        get => this.renderScale;
+        set => this.HandlePropertyChange(
+            nameof(this.RenderScale),
+            ref this.renderScale,
+            value,
+            this.renderScale - value == 0f,
+            this.OnRenderScaleChange);
+    }
+
+    /// <summary>Gets or sets the z-order.</summary>
+    public int ZOrder
+    {
+        get => this.zOrder;
+        set => this.HandlePropertyChange(
+            nameof(this.ZOrder),
+            ref this.zOrder,
+            value,
+            this.zOrder == value,
+            this.OnZOrderChange);
+    }
 
     /// <summary>Gets or sets a value indicating whether this spannable is enabled.</summary>
     public bool Enabled
@@ -78,7 +134,6 @@ public abstract partial class Spannable
     }
 
     /// <summary>Gets or sets a value indicating whether this spannable is visible.</summary>
-    // TODO: a property indicating whether to assume zero size when invisible, so that it can skip measure pass
     public bool Visible
     {
         get => this.visible;
@@ -89,6 +144,20 @@ public abstract partial class Spannable
             this.visible == value,
             this.OnVisibleChange);
     }
+
+    /// <summary>Raises the <see cref="ImGuiGlobalIdChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnImGuiGlobalIdChange(PropertyChangeEventArgs<uint> args) =>
+        this.ImGuiGlobalIdChange?.Invoke(args);
+
+    /// <summary>Raises the <see cref="RenderScaleChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnRenderScaleChange(PropertyChangeEventArgs<float> args) =>
+        this.RenderScaleChange?.Invoke(args);
+
+    /// <summary>Raises the <see cref="ZOrderChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnZOrderChange(PropertyChangeEventArgs<int> args) => this.ZOrderChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="EnabledChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
@@ -114,12 +183,7 @@ public abstract partial class Spannable
 
     /// <summary>Raises the <see cref="PropertyChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs"/> that contains the event data.</param>
-    protected virtual void OnPropertyChange(PropertyChangeEventArgs args)
-    {
-        if (args.State == PropertyChangeState.After)
-            this.RequestMeasure();
-        this.PropertyChange?.Invoke(args);
-    }
+    protected virtual void OnPropertyChange(PropertyChangeEventArgs args) => this.PropertyChange?.Invoke(args);
 
     /// <summary>Compares a new value with the old value, and invokes event handler accordingly.</summary>
     /// <param name="propName">The property name. Use <c>nameof(...)</c>.</param>
@@ -128,7 +192,7 @@ public abstract partial class Spannable
     /// <param name="eq">Whether the values are equal.</param>
     /// <param name="eh">The event handler.</param>
     /// <typeparam name="T">Type of the changed value.</typeparam>
-    /// <returns><c>true</c> if changed.</returns>
+    /// <returns><c>true</c> if any further handling should be suppressed..</returns>
     protected bool HandlePropertyChange<T>(
         string propName,
         ref T storage,
@@ -137,7 +201,7 @@ public abstract partial class Spannable
         PropertyChangeEventHandler<T> eh)
     {
         if (eq)
-            return false;
+            return true;
 
         var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
         e.Initialize(this, SpannableEventStep.DirectTarget);
@@ -155,7 +219,7 @@ public abstract partial class Spannable
             eh(e);
 
             SpannableEventArgsPool.Return(e);
-            return false;
+            return true;
         }
 
         e.Initialize(this, SpannableEventStep.DirectTarget);
@@ -166,6 +230,8 @@ public abstract partial class Spannable
         eh(e);
 
         SpannableEventArgsPool.Return(e);
-        return true;
+
+        this.RequestMeasure();
+        return e.SuppressHandling;
     }
 }

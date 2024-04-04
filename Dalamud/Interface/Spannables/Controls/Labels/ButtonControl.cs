@@ -13,30 +13,29 @@ public class ButtonControl : LabelControl
         this.CaptureMouseOnMouseDown = true;
         this.Focusable = true;
         this.Padding = new(8);
-        this.NormalBackground = new ShapePattern.Template(
-            new()
+        this.Background = new DisplayedStatePattern
+        {
+            NormalSpannable = new ShapePattern
             {
-                Shape = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.RectFilled,
                 ImGuiColor = ImGuiCol.Button,
-            });
-        this.HoveredBackground = new ShapePattern.Template(
-            new()
+            },
+            HoveredSpannable = new ShapePattern
             {
-                Shape = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.RectFilled,
                 ImGuiColor = ImGuiCol.ButtonHovered,
-            });
-        this.ActiveBackground = new ShapePattern.Template(
-            new()
+            },
+            ActiveSpannable = new ShapePattern
             {
-                Shape = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.RectFilled,
                 ImGuiColor = ImGuiCol.ButtonActive,
-            });
-        this.DisabledBackground = new ShapePattern.Template(
-            new()
+            },
+            DisabledSpannable = new ShapePattern
             {
-                Shape = ShapePattern.Shape.RectFilled,
+                Type = ShapePattern.Shape.RectFilled,
                 ImGuiColor = ImGuiCol.Button,
                 ColorMultiplier = new(1.4f, 1.4f, 1.4f, 0.6f),
-            });
+            },
+        };
     }
 }
