@@ -64,10 +64,10 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
 
     private LabelControl? lblComplicated;
 
-    private (AbstractStyledText.TextSpannable? Parsed, Exception? Exception) parseAttempt;
+    private (StyledTextSpannable? Parsed, Exception? Exception) parseAttempt;
 
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "TextSpannable" };
+    public string[]? CommandShortcuts { get; init; } = { "StyledTextSpannable" };
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Spanned Strings";
@@ -1281,7 +1281,7 @@ internal class TextSpannableWidget : IDataWindowWidget, IDisposable
             NotificationType.Info);
     }
 
-    private AbstractStyledText.TextSpannable UpdateTextSpannableConfig(AbstractStyledText.TextSpannable ts)
+    private StyledTextSpannable UpdateTextSpannableConfig(StyledTextSpannable ts)
     {
         ts.Style = TextStyle.FromContext;
         ts.WordBreak = this.wordBreakType;

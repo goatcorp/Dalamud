@@ -348,7 +348,7 @@ public class LabelControl : ControlSpannable
     protected override void OnTextStyleChange(PropertyChangeEventArgs<TextStyle> args)
     {
         if (args.State == PropertyChangeState.After
-            && this.activeSpannable is AbstractStyledText.TextSpannable mo)
+            && this.activeSpannable is StyledTextSpannable mo)
             mo.Style = args.NewValue;
         base.OnTextStyleChange(args);
     }
@@ -471,7 +471,7 @@ public class LabelControl : ControlSpannable
         if (oldValue == newValue)
             return;
 
-        if (this.activeSpannable is AbstractStyledText.TextSpannable prev)
+        if (this.activeSpannable is StyledTextSpannable prev)
         {
             prev.LinkMouseEnter -= this.PrevOnLinkMouseEnter;
             prev.LinkMouseLeave -= this.PrevOnLinkMouseLeave;
@@ -482,7 +482,7 @@ public class LabelControl : ControlSpannable
 
         this.activeSpannable = newValue;
 
-        if (newValue is AbstractStyledText.TextSpannable curr)
+        if (newValue is StyledTextSpannable curr)
         {
             curr.LinkMouseEnter += this.PrevOnLinkMouseEnter;
             curr.LinkMouseLeave += this.PrevOnLinkMouseLeave;
@@ -491,7 +491,7 @@ public class LabelControl : ControlSpannable
             curr.LinkMouseClick += this.PrevOnLinkMouseClick;
         }
 
-        if (newValue is AbstractStyledText.TextSpannable ts)
+        if (newValue is StyledTextSpannable ts)
             ts.Style = this.TextStyle;
 
         this.ReplaceChild(oldValue, newValue);

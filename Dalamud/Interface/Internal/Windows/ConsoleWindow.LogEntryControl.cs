@@ -360,14 +360,14 @@ internal partial class ConsoleWindow
         protected virtual void OnWordBreakChange(PropertyChangeEventArgs<WordBreakType> args)
         {
             this.WordBreakChange?.Invoke(args);
-            if (this.lblText.SpannableText is AbstractStyledText.TextSpannable ts)
+            if (this.lblText.SpannableText is StyledTextSpannable ts)
                 ts.WordBreak = args.NewValue;
         }
 
         protected virtual void OnWrapMarkerChange(PropertyChangeEventArgs<ISpannableTemplate> args)
         {
             this.WrapMarkerChange?.Invoke(args);
-            if (this.lblText.SpannableText is AbstractStyledText.TextSpannable ts)
+            if (this.lblText.SpannableText is StyledTextSpannable ts)
                 ts.WrapMarker = args.NewValue;
         }
 

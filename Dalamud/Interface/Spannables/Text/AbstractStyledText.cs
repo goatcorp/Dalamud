@@ -1,19 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text.Unicode;
 
-using Dalamud.Interface.Spannables.Rendering;
-using Dalamud.Utility.Numerics;
+using Dalamud.Interface.Spannables.Text.Internal;
 
 namespace Dalamud.Interface.Spannables.Text;
 
 /// <summary>Base class for <see cref="StyledText"/> and <see cref="StyledTextBuilder"/>.</summary>
-public abstract partial class AbstractStyledText : ISpannableTemplate
+public abstract class AbstractStyledText : ISpannableTemplate
 {
-    private static readonly BitArray WordBreakNormalBreakChars;
+    /// <summary>The display character in place of a soft hyphen character.</summary>
+    public const char SoftHyphenReplacementChar = '-';
+
+    /// <summary>Characters that should be considered as word break points.</summary>
+    internal static readonly BitArray WordBreakNormalBreakChars;
 
     static AbstractStyledText()
     {
@@ -51,6 +51,28 @@ public abstract partial class AbstractStyledText : ISpannableTemplate
         }
     }
 
+    /// <summary>Describes states of links.</summary>
+    public enum LinkState
+    {
+        /// <summary>The link is in normal state.</summary>
+        Clear,
+
+        /// <summary>The link is hovered.</summary>
+        Hovered,
+
+        /// <summary>The link is active.</summary>
+        Active,
+
+        /// <summary>The link has been clicked.</summary>
+        ActiveNotHovered,
+    }
+
+    /// <inheritdoc cref="ISpannableTemplate.CreateSpannable"/>
+    public StyledTextSpannable CreateSpannable() => new(this);
+
+    /// <inheritdoc/>
+    Spannable ISpannableTemplate.CreateSpannable() => this.CreateSpannable();
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -65,98 +87,5 @@ public abstract partial class AbstractStyledText : ISpannableTemplate
 
     /// <summary>Gets the data required for rendering.</summary>
     /// <returns>The data.</returns>
-    private protected abstract DataMemory AsMemory();
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsEffectivelyInfinity(float f) => f >= float.PositiveInfinity;
-
-    private ref struct StateInfo
-    {
-        public float HorizontalOffsetWrtLine;
-        public float VerticalOffsetWrtLine;
-
-        private readonly TextSpannable ts;
-        private readonly Vector2 preferredSize;
-        private readonly Vector2 lineBBoxVertical;
-        private readonly float lineWidth;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StateInfo(TextSpannable ts, scoped in MeasuredLine lineMeasurement, Vector2 preferredSize)
-        {
-            this.ts = ts;
-            this.preferredSize = preferredSize;
-            this.lineBBoxVertical = lineMeasurement.BBoxVertical;
-            this.lineWidth = lineMeasurement.Width;
-        }
-
-        public void Update(in TextStyleFontData fontInfo)
-        {
-            var lineAscentDescent = this.lineBBoxVertical;
-            this.VerticalOffsetWrtLine = (fontInfo.BBoxVertical.Y - fontInfo.BBoxVertical.X) *
-                                         this.ts.LastStyle.VerticalOffset;
-            switch (this.ts.LastStyle.VerticalAlignment)
-            {
-                case < 0:
-                    this.VerticalOffsetWrtLine -= lineAscentDescent.X + (fontInfo.Font.Ascent * fontInfo.Scale);
-                    break;
-                case >= 1f:
-                    this.VerticalOffsetWrtLine += lineAscentDescent.Y - lineAscentDescent.X - fontInfo.ScaledFontSize;
-                    break;
-                default:
-                    this.VerticalOffsetWrtLine +=
-                        (lineAscentDescent.Y - lineAscentDescent.X - fontInfo.ScaledFontSize) *
-                        this.ts.LastStyle.VerticalAlignment;
-                    break;
-            }
-
-            this.VerticalOffsetWrtLine = MathF.Round(this.VerticalOffsetWrtLine * fontInfo.Scale) / fontInfo.Scale;
-
-            var alignWidth = this.preferredSize.X;
-            var alignLeft = 0f;
-            if (IsEffectivelyInfinity(alignWidth))
-            {
-                if (!this.ts.Boundary.IsValid)
-                {
-                    this.HorizontalOffsetWrtLine = 0;
-                    return;
-                }
-
-                alignWidth = this.ts.Boundary.Width;
-                alignLeft = this.ts.Boundary.Left;
-            }
-
-            switch (this.ts.LastStyle.HorizontalAlignment)
-            {
-                case <= 0f:
-                    this.HorizontalOffsetWrtLine = 0;
-                    break;
-
-                case >= 1f:
-                    this.HorizontalOffsetWrtLine = alignLeft + (alignWidth - this.lineWidth);
-                    break;
-
-                default:
-                    this.HorizontalOffsetWrtLine =
-                        MathF.Round(
-                            (alignLeft + (alignWidth - this.lineWidth)) *
-                            this.ts.LastStyle.HorizontalAlignment *
-                            fontInfo.Scale)
-                        / fontInfo.Scale;
-                    break;
-            }
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct BoundaryToRecord
-    {
-        public RectVector4 Boundary;
-        public int RecordIndex;
-
-        public BoundaryToRecord(int recordIndex, RectVector4 boundary)
-        {
-            this.RecordIndex = recordIndex;
-            this.Boundary = boundary;
-        }
-    }
+    internal abstract TsDataMemory AsMemory();
 }

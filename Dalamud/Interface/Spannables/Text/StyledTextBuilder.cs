@@ -103,7 +103,7 @@ public sealed partial class StyledTextBuilder
     public override string ToString() => this.Build().ToString();
 
     /// <inheritdoc/>
-    private protected override DataMemory AsMemory() =>
+    internal override TsDataMemory AsMemory() =>
         new(
             this.textStream.ToArray(),
             this.dataStream.ToArray(),

@@ -17,7 +17,7 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
     Justification = "Internals")]
 public class HintSettingsEntry : SettingsEntry
 {
-    private readonly AbstractStyledText.TextSpannable text;
+    private readonly StyledTextSpannable text;
     private readonly Vector4 color;
 
     public HintSettingsEntry(string text, Vector4? color = null)
