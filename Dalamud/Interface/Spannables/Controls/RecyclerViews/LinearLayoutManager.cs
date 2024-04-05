@@ -36,6 +36,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
     private bool needDispatchScrollEvent;
     private bool useOffDirectionScroll;
 
+    private int scrollRequestedIndex = -1;
     private float scrollRequestedPosition;
 
     private bool wasBeginningVisible = true;
@@ -200,13 +201,16 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         get => this.direction.IsVertical() ? this.Gravity.X : this.Gravity.Y;
     }
 
-    public void ScrollTo(int firstItemIndex) => this.ScrollTo(firstItemIndex, 0);
-
-    public void ScrollTo(int firstItemIndex, float delta) => throw new NotImplementedException();
-
-    public void SmoothScrollTo(int firstItemIndex) => this.ScrollTo(firstItemIndex, 0);
-
-    public void SmoothScrollTo(int firstItemIndex, float delta) => throw new NotImplementedException();
+    /// <summary>Scrolls to the given index.</summary>
+    /// <param name="itemIndex">Index of the item to display after scrolling.</param>
+    public void ScrollTo(int itemIndex)
+    {
+        this.scrollRequestedIndex = itemIndex;
+        if (this.direction.IsVertical())
+            this.accumulatedScrollDelta.Y = this.smoothScrollAmount.Y = 0;
+        else
+            this.accumulatedScrollDelta.X = this.smoothScrollAmount.X = 0;
+    }
 
     /// <inheritdoc/>
     public override void ScrollBy(Vector2 delta)
@@ -355,6 +359,7 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
         this.accumulatedScrollDelta = Vector2.Zero;
         this.AnchoredItem = -1;
         this.scrollRequestedPosition = float.NaN;
+        this.scrollRequestedIndex = -1;
         this.Parent!.VerticalScrollBar.Scroll += VerticalScrollBarOnScroll;
         this.Parent!.HorizontalScrollBar.Scroll += this.HorizontalScrollBarOnScroll;
     }
@@ -482,6 +487,13 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
                 itemCount - 1);
             this.AnchoredItemScrollOffsetRatio = this.direction.ConvertGravity(this.anchorOffsetRatio);
             this.scrollRequestedPosition = float.NaN;
+        }
+
+        if (this.scrollRequestedIndex != -1)
+        {
+            this.AnchoredItem = this.scrollRequestedIndex;
+            this.AnchoredItemScrollOffsetRatio = 0;
+            this.scrollRequestedIndex = -1;
         }
 
         var veAnchorIndex = -1;
@@ -1318,17 +1330,13 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
             case ScrollBarControl.ScrollAction.ThumbTrack when this.direction.IsVertical():
                 this.scrollRequestedPosition = args.NewValue / ((ScrollBarControl)args.Sender).MaxValue;
-                this.accumulatedScrollDelta.Y = 0;
-                this.smoothScrollAmount.Y = 0;
-                this.ScrollEasing.Reset();
+                this.accumulatedScrollDelta.Y = this.smoothScrollAmount.Y = 0;
                 this.Parent.RequestMeasure();
                 break;
 
             case ScrollBarControl.ScrollAction.ThumbTrack when this.direction.IsHorizontal():
-                this.accumulatedScrollDelta.Y = 0;
-                this.smoothScrollAmount.Y = 0;
+                this.accumulatedScrollDelta.Y = this.smoothScrollAmount.Y = 0;
                 this.nonLimDimScroll = args.NewValue;
-                this.ScrollEasing.Reset();
                 this.Parent.RequestMeasure();
                 break;
         }
@@ -1361,17 +1369,13 @@ public class LinearLayoutManager : RecyclerViewControl.BaseLayoutManager
 
             case ScrollBarControl.ScrollAction.ThumbTrack when this.direction.IsHorizontal():
                 this.scrollRequestedPosition = args.NewValue / ((ScrollBarControl)args.Sender).MaxValue;
-                this.accumulatedScrollDelta.X = 0;
-                this.smoothScrollAmount.X = 0;
-                this.ScrollEasing.Reset();
+                this.accumulatedScrollDelta.X = this.smoothScrollAmount.X = 0;
                 this.Parent.RequestMeasure();
                 break;
 
             case ScrollBarControl.ScrollAction.ThumbTrack when this.direction.IsVertical():
-                this.accumulatedScrollDelta.X = 0;
-                this.smoothScrollAmount.X = 0;
+                this.accumulatedScrollDelta.X = this.smoothScrollAmount.X = 0;
                 this.nonLimDimScroll = args.NewValue;
-                this.ScrollEasing.Reset();
                 this.Parent.RequestMeasure();
                 break;
         }

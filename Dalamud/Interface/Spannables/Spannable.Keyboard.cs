@@ -12,13 +12,24 @@ public abstract partial class Spannable
     private bool takeKeyboardInputsOnFocus = true;
     private bool takeKeyboardInputsAlways = true;
 
-    /// <summary>Occurs when a key is pressed while the control has focus.</summary>
+    /// <summary>Occurs when a key is pressed while the control has focus, before dispatching to children.</summary>
+    public event SpannableKeyEventHandler? PreKeyDown;
+
+    /// <summary>Occurs when a key is pressed while the control has focus, after dispatching to children.</summary>
     public event SpannableKeyEventHandler? KeyDown;
 
-    /// <summary>Occurs when a character, space or backspace key is pressed while the control has focus.</summary>
+    /// <summary>Occurs when a character, space or backspace key is pressed while the control has focus, before
+    /// dispatching to children.</summary>
+    public event SpannableKeyPressEventHandler? PreKeyPress;
+
+    /// <summary>Occurs when a character, space or backspace key is pressed while the control has focus, after
+    /// dispatching to children.</summary>
     public event SpannableKeyPressEventHandler? KeyPress;
 
-    /// <summary>Occurs when a key is released while the control has focus.</summary>
+    /// <summary>Occurs when a key is released while the control has focus, before dispatching to children.</summary>
+    public event SpannableKeyEventHandler? PreKeyUp;
+
+    /// <summary>Occurs when a key is released while the control has focus, after dispatching to children.</summary>
     public event SpannableKeyEventHandler? KeyUp;
 
     /// <summary>Occurs when the property <see cref="TakeKeyboardInputsOnFocus"/> is changing.</summary>
@@ -64,13 +75,25 @@ public abstract partial class Spannable
     /// <returns><c>true</c> if the character will be overtaken by the spannable; otherwise, <c>false</c>.</returns>
     protected virtual bool TakeOverNavKey(ImGuiKey key) => false;
 
+    /// <summary>Raises the <see cref="PreKeyDown"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableKeyEventArgs"/> that contains the event data.</param>
+    protected virtual void OnPreKeyDown(SpannableKeyEventArgs args) => this.PreKeyDown?.Invoke(args);
+
     /// <summary>Raises the <see cref="KeyDown"/> event.</summary>
     /// <param name="args">A <see cref="SpannableKeyEventArgs"/> that contains the event data.</param>
     protected virtual void OnKeyDown(SpannableKeyEventArgs args) => this.KeyDown?.Invoke(args);
 
+    /// <summary>Raises the <see cref="PreKeyPress"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableKeyPressEventArgs"/> that contains the event data.</param>
+    protected virtual void OnPreKeyPress(SpannableKeyPressEventArgs args) => this.PreKeyPress?.Invoke(args);
+
     /// <summary>Raises the <see cref="KeyPress"/> event.</summary>
     /// <param name="args">A <see cref="SpannableKeyPressEventArgs"/> that contains the event data.</param>
     protected virtual void OnKeyPress(SpannableKeyPressEventArgs args) => this.KeyPress?.Invoke(args);
+
+    /// <summary>Raises the <see cref="PreKeyUp"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableKeyEventArgs"/> that contains the event data.</param>
+    protected virtual void OnPreKeyUp(SpannableKeyEventArgs args) => this.PreKeyUp?.Invoke(args);
 
     /// <summary>Raises the <see cref="KeyUp"/> event.</summary>
     /// <param name="args">A <see cref="SpannableKeyEventArgs"/> that contains the event data.</param>
@@ -97,9 +120,9 @@ public abstract partial class Spannable
         if (dispatchEventToSelf)
         {
             e = SpannableEventArgsPool.Rent<SpannableKeyEventArgs>();
-            e.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
+            e.Initialize(this, alreadyHandled);
             e.InitializeKeyEvent(modifiers, key);
-            this.OnKeyDown(e);
+            this.OnPreKeyDown(e);
             alreadyHandled |= e.SuppressHandling;
         }
 
@@ -108,7 +131,7 @@ public abstract partial class Spannable
 
         if (dispatchEventToSelf)
         {
-            e.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            e.Initialize(this, alreadyHandled);
             e.InitializeKeyEvent(modifiers, key);
             this.OnKeyDown(e);
             alreadyHandled |= e.SuppressHandling;
@@ -129,9 +152,9 @@ public abstract partial class Spannable
         if (dispatchEventToSelf)
         {
             e = SpannableEventArgsPool.Rent<SpannableKeyEventArgs>();
-            e.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
+            e.Initialize(this, alreadyHandled);
             e.InitializeKeyEvent(modifiers, key);
-            this.OnKeyUp(e);
+            this.OnPreKeyUp(e);
             alreadyHandled |= e.SuppressHandling;
         }
 
@@ -140,7 +163,7 @@ public abstract partial class Spannable
 
         if (dispatchEventToSelf)
         {
-            e.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            e.Initialize(this, alreadyHandled);
             e.InitializeKeyEvent(modifiers, key);
             this.OnKeyUp(e);
             alreadyHandled |= e.SuppressHandling;
@@ -161,9 +184,9 @@ public abstract partial class Spannable
         if (dispatchEventToSelf)
         {
             e = SpannableEventArgsPool.Rent<SpannableKeyPressEventArgs>();
-            e.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
+            e.Initialize(this, alreadyHandled);
             e.InitializeKeyEvent(rune);
-            this.OnKeyPress(e);
+            this.OnPreKeyPress(e);
             alreadyHandled |= e.SuppressHandling;
         }
 
@@ -172,7 +195,7 @@ public abstract partial class Spannable
 
         if (dispatchEventToSelf)
         {
-            e.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            e.Initialize(this, alreadyHandled);
             e.InitializeKeyEvent(rune);
             this.OnKeyPress(e);
             alreadyHandled |= e.SuppressHandling;

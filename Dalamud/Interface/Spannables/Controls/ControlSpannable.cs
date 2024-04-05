@@ -252,7 +252,7 @@ public partial class ControlSpannable : Spannable
                        this.Enabled ? 1f : this.disabledTextOpacity))
             {
                 var e = SpannableEventArgsPool.Rent<SpannableDrawEventArgs>();
-                e.Initialize(this, SpannableEventStep.DirectTarget);
+                e.Initialize(this);
                 e.InitializeDrawEvent(tmpDrawList);
                 this.OnDrawInside(e);
                 SpannableEventArgsPool.Return(e);

@@ -304,8 +304,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseDown(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !this.Control.IsMouseHovered
-            || e.SuppressHandling || e.Step == SpannableEventStep.BeforeChildren)
+        if (!this.enabled || !this.Control.IsMouseHovered || e.SuppressHandling)
             return;
 
         this.RecordActivity(new(ActivityType.Down, e.Button, e.LocalLocation));
@@ -349,7 +348,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseMove(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !this.Control.IsMouseHovered || e.Step == SpannableEventStep.BeforeChildren)
+        if (!this.enabled || !this.Control.IsMouseHovered)
             return;
 
         if (this.DragOrigin is not { } dragOrigin)
@@ -436,7 +435,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseUp(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || e.Step == SpannableEventStep.BeforeChildren)
+        if (!this.enabled)
             return;
 
         if (e.SuppressHandling)
@@ -587,8 +586,7 @@ public sealed class MouseActivityTracker : IDisposable
 
     private void OnMouseWheel(SpannableMouseEventArgs e)
     {
-        if (!this.enabled || !this.Control.IsMouseHovered
-            || e.Step == SpannableEventStep.BeforeChildren || e.SuppressHandling)
+        if (!this.enabled || !this.Control.IsMouseHovered || e.SuppressHandling)
             return;
 
         if (e.WheelDelta == Vector2.Zero)
@@ -725,6 +723,10 @@ public sealed class MouseActivityTracker : IDisposable
 
     private unsafe void UpdateMousePosImmediately(Vector2 localCoordinates)
     {
+        var pos = this.Control.PointToScreen(localCoordinates);
+        ImGui.GetIO().MousePos = pos;
+        SetCursorPos((int)pos.X, (int)pos.Y);
+    
         var c = this.Control.MouseCursor switch
         {
             ImGuiMouseCursor.Arrow => IDC.IDC_ARROW,
@@ -740,10 +742,6 @@ public sealed class MouseActivityTracker : IDisposable
         };
 
         SetCursor(c is null ? default : LoadCursorW(default, c));
-
-        var pos = this.Control.PointToScreen(localCoordinates);
-        ImGui.GetIO().MousePos = pos;
-        SetCursorPos((int)pos.X, (int)pos.Y);
     }
 
     private readonly struct Activity

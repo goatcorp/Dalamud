@@ -20,7 +20,6 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Spannables;
 using Dalamud.Interface.Spannables.Controls;
 using Dalamud.Interface.Spannables.Controls.RecyclerViews;
-using Dalamud.Interface.Spannables.EventHandlers;
 using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering.Internal;
 using Dalamud.Interface.Spannables.Styles;
@@ -223,7 +222,7 @@ internal partial class ConsoleWindow : Window, IDisposable
         foreach (var c in this.rvc.EnumerateChildren(true))
         {
             if (c is LogEntryControl lec)
-                lec.OuterWidth = ImGui.GetWindowWidth() - 4;
+                lec.OuterWidth = ImGui.GetContentRegionMax().X;
         }
 
         Renderer.Draw(
@@ -400,7 +399,7 @@ internal partial class ConsoleWindow : Window, IDisposable
                 return;
             lec.Entry = this.filteredLogEntries[e.Index];
             lec.HighlightRegex = this.compiledLogHighlight ?? this.compiledLogFilter;
-            lec.OuterWidth = ImGui.GetWindowWidth() - 4;
+            lec.OuterWidth = ImGui.GetContentRegionMax().X;
             lec.WordBreak = this.activeConfiguration.LogLineBreakMode;
             lec.WrapMarker =
                 this.activeConfiguration.LogLineBreakMode == WordBreakType.KeepAll
@@ -416,7 +415,7 @@ internal partial class ConsoleWindow : Window, IDisposable
         };
         this.rvc.MouseDown += e =>
         {
-            if (e.Step == SpannableEventStep.BeforeChildren || e.SuppressHandling)
+            if (e.SuppressHandling)
                 return;
 
             switch (e.Button)
@@ -450,7 +449,7 @@ internal partial class ConsoleWindow : Window, IDisposable
         };
         this.rvc.MouseMove += e =>
         {
-            if (e.Step == SpannableEventStep.BeforeChildren || e.SuppressHandling)
+            if (e.SuppressHandling)
                 return;
 
             if (this.mmbScrollOrigin.X is not float.NaN)

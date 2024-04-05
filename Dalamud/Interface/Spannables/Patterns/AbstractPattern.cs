@@ -87,7 +87,7 @@ public abstract class AbstractPattern : Spannable
     {
         using var st = new ScopedTransformer(args.DrawListPtr, this.LocalTransformation, Vector2.One, 1f);
         var e = SpannableEventArgsPool.Rent<SpannableDrawEventArgs>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         e.InitializeDrawEvent(args.DrawListPtr);
         this.OnDrawInside(e);
         SpannableEventArgsPool.Return(e);

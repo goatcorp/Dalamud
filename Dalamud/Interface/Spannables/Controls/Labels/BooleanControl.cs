@@ -299,7 +299,7 @@ public class BooleanControl : LabelControl
     private void DsbpOnSizeChange(PropertyChangeEventArgs<Vector2> args)
     {
         var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<Vector2>>();
-        e.Initialize(this, args.Step);
+        e.Initialize(this);
         e.InitializePropertyChangeEvent(e.PropertyName, e.State, e.PreviousValue, e.NewValue);
         this.OnIconSizeChange(e);
         args.SuppressHandling = e.SuppressHandling;
@@ -309,7 +309,7 @@ public class BooleanControl : LabelControl
     private void DsbpOnMaxSizeChange(PropertyChangeEventArgs<Vector2> args)
     {
         var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<Vector2>>();
-        e.Initialize(this, args.Step);
+        e.Initialize(this);
         e.InitializePropertyChangeEvent(e.PropertyName, e.State, e.PreviousValue, e.NewValue);
         this.OnIconMaxSizeChange(e);
         args.SuppressHandling = e.SuppressHandling;
@@ -319,7 +319,7 @@ public class BooleanControl : LabelControl
     private void DsbpOnMinSizeChange(PropertyChangeEventArgs<Vector2> args)
     {
         var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<Vector2>>();
-        e.Initialize(this, args.Step);
+        e.Initialize(this);
         e.InitializePropertyChangeEvent(e.PropertyName, e.State, e.PreviousValue, e.NewValue);
         this.OnIconMinSizeChange(e);
         args.SuppressHandling = e.SuppressHandling;

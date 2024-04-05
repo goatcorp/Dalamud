@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Spannables;
+using Dalamud.Interface.Spannables.Controls;
 using Dalamud.Interface.Spannables.Controls.Containers;
 using Dalamud.Interface.Spannables.Controls.Labels;
 using Dalamud.Interface.Spannables.EventHandlers;
@@ -63,6 +64,7 @@ internal partial class ConsoleWindow
 
             this.Size = new(MatchParent, WrapContent);
             this.Padding = new(2);
+            this.ClipChildren = false;
         }
 
         public event PropertyChangeEventHandler<LogEntry?>? EntryChange;
@@ -134,16 +136,24 @@ internal partial class ConsoleWindow
         public ISpannableTemplate? WrapMarker
         {
             get => this.wrapMarker;
-            set => this.wrapMarker = value;
+            set => this.HandlePropertyChange(
+                nameof(this.WrapMarker),
+                ref this.wrapMarker,
+                value,
+                ReferenceEquals(this.wrapMarker, value),
+                this.OnWrapMarkerChange);
         }
+
+        private float EffectiveOuterWidth =>
+            this.Parent is ControlSpannable control
+                ? (this.outerWidth / this.EffectiveRenderScale)
+                  - control.Padding.Width - control.Margin.Width
+                  - this.Margin.Width - this.Padding.Width
+                : (this.outerWidth / this.EffectiveRenderScale) - this.Margin.Width - this.Padding.Width;
 
         protected override RectVector4 MeasureChildren(Vector2 suggestedSize)
         {
-            if (this.Renderer is null)
-                return RectVector4.InvertedExtrema;
-
-            // This value is not scaled.
-            this.rowMode = this.outerWidth switch
+            this.rowMode = this.EffectiveOuterWidth switch
             {
                 >= 640 => RowMode.OneLine,
                 >= 120 => RowMode.TwoLines,
@@ -186,10 +196,10 @@ internal partial class ConsoleWindow
                     }
                     else
                     {
-                        var w = this.outerWidth
-                                - this.lblTime.Boundary.Right
-                                - this.lblLevel.Boundary.Right;
-                        this.lblText.Size = new(MatchParent, WrapContent);
+                        var w = this.EffectiveOuterWidth
+                                - this.lblTime.MeasuredBoundaryBox.Right
+                                - this.lblLevel.MeasuredBoundaryBox.Right;
+                        this.lblText.Size = new(w, WrapContent);
                         this.lblText.RenderPassMeasure(new(w, float.PositiveInfinity));
                     }
 
@@ -197,11 +207,10 @@ internal partial class ConsoleWindow
 
                 case RowMode.TwoLines:
                 case RowMode.ThreeLines:
-                    var wt = this.Margin.Width + this.Padding.Width;
                     this.lblTime.TextStyle = MetaLabelStyleTiny;
-                    this.lblTime.Size = new(this.outerWidth - wt, WrapContent);
+                    this.lblTime.Size = new(this.EffectiveOuterWidth, WrapContent);
                     this.lblLevel.TextStyle = MetaLabelStyleTiny;
-                    this.lblLevel.Size = new(this.outerWidth - wt, WrapContent);
+                    this.lblLevel.Size = new(this.EffectiveOuterWidth, WrapContent);
                     this.lblLevel.Margin = BorderVector4.Zero;
                     this.lblLevel.Alignment = new(1, 0);
 
@@ -386,41 +395,41 @@ internal partial class ConsoleWindow
                 return;
             }
 
+            var ssb = this.Renderer.RentBuilder();
             if (this.matches is null)
             {
-                this.lblText.Text = this.entry.Line;
-                this.lblText.SpannableText = null;
-                return;
+                ssb.Append(this.entry.Line);
             }
-
-            Span<int> charOffsets = stackalloc int[(this.matches.Count * 2) + 2];
-            var charOffsetsIndex = 1;
-            for (var j = 0; j < this.matches.Count; j++)
+            else
             {
-                var g = this.matches[j].Groups[0];
-                charOffsets[charOffsetsIndex++] = g.Index;
-                charOffsets[charOffsetsIndex++] = g.Index + g.Length;
-            }
-
-            var line = this.entry.Line.AsSpan();
-            charOffsets[charOffsetsIndex++] = line.Length;
-
-            var ssb = this.Renderer?.RentBuilder() ?? new();
-            for (var i = 0; i < charOffsetsIndex - 1; i++)
-            {
-                var begin = charOffsets[i];
-                var end = charOffsets[i + 1];
-                if (i % 2 == 1)
+                Span<int> charOffsets = stackalloc int[(this.matches.Count * 2) + 2];
+                var charOffsetsIndex = 1;
+                for (var j = 0; j < this.matches.Count; j++)
                 {
-                    ssb.PushForeColor(ImGuiColors.HealerGreen)
-                       .PushItalic(i % 2 == 1)
-                       .Append(line[begin..end])
-                       .PopItalic()
-                       .PopForeColor();
+                    var g = this.matches[j].Groups[0];
+                    charOffsets[charOffsetsIndex++] = g.Index;
+                    charOffsets[charOffsetsIndex++] = g.Index + g.Length;
                 }
-                else
+
+                var line = this.entry.Line.AsSpan();
+                charOffsets[charOffsetsIndex++] = line.Length;
+
+                for (var i = 0; i < charOffsetsIndex - 1; i++)
                 {
-                    ssb.Append(line[begin..end]);
+                    var begin = charOffsets[i];
+                    var end = charOffsets[i + 1];
+                    if (i % 2 == 1)
+                    {
+                        ssb.PushForeColor(ImGuiColors.HealerGreen)
+                           .PushItalic(i % 2 == 1)
+                           .Append(line[begin..end])
+                           .PopItalic()
+                           .PopForeColor();
+                    }
+                    else
+                    {
+                        ssb.Append(line[begin..end]);
+                    }
                 }
             }
 
@@ -439,7 +448,7 @@ internal partial class ConsoleWindow
                 VerticalAlignment = 0.5f,
             };
             this.lblText.SpannableText = s;
-            this.Renderer?.ReturnBuilder(ssb);
+            this.Renderer.ReturnBuilder(ssb);
         }
     }
 }

@@ -28,6 +28,7 @@ public class ContainerControl : ControlSpannable
     public ContainerControl()
     {
         this.Children.CollectionChanged += this.ChildrenOnCollectionChanged;
+        this.ClipChildren = true;
     }
 
     /// <summary>Occurs when the scroll position changes.</summary>

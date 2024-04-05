@@ -72,7 +72,7 @@ public class NullableBooleanStatePattern : StateTransitioningPattern
         base.OnStateChange(args);
 
         var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<bool?>>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         e.InitializePropertyChangeEvent(
             args.PropertyName,
             args.State,

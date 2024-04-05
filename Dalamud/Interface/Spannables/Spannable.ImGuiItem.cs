@@ -215,7 +215,7 @@ public abstract partial class Spannable
         {
             this.wasFocused = false;
             var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             this.OnLostFocus(e);
             SpannableEventArgsPool.Return(e);
         }
@@ -225,7 +225,7 @@ public abstract partial class Spannable
             this.IsMouseHovered = false;
             var e = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             e.InitializeMouseEvent(new(float.PositiveInfinity), Vector2.Zero);
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             this.OnMouseLeave(e);
             SpannableEventArgsPool.Return(e);
         }

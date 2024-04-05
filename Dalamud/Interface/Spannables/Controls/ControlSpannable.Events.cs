@@ -80,7 +80,7 @@ public partial class ControlSpannable
     protected override void OnMouseClick(SpannableMouseEventArgs args)
     {
         base.OnMouseClick(args);
-        if (!args.SuppressHandling && args.Step != SpannableEventStep.BeforeChildren)
+        if (!args.SuppressHandling)
             this.OnClick(args);
     }
 
@@ -104,7 +104,7 @@ public partial class ControlSpannable
     protected override void OnKeyPress(SpannableKeyPressEventArgs args)
     {
         base.OnKeyPress(args);
-        if (!args.SuppressHandling && args.KeyChar is '\r' or '\n' && args.Step != SpannableEventStep.BeforeChildren)
+        if (!args.SuppressHandling && args.KeyChar is '\r' or '\n')
             this.OnClick(args);
     }
 

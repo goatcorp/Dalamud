@@ -24,7 +24,10 @@ public abstract partial class Spannable
     private bool captureMouseOnMouseDown;
     private bool captureMouse;
 
-    /// <summary>Occurs when the mouse pointer is moved over the control.</summary>
+    /// <summary>Occurs when the mouse pointer is moved over the control, before dispatching to children.</summary>
+    public event SpannableMouseEventHandler? PreMouseMove;
+
+    /// <summary>Occurs when the mouse pointer is moved over the control, after dispatching to children.</summary>
     public event SpannableMouseEventHandler? MouseMove;
 
     /// <summary>Occurs when the mouse pointer enters the control.</summary>
@@ -33,13 +36,28 @@ public abstract partial class Spannable
     /// <summary>Occurs when the mouse pointer leaves the control.</summary>
     public event SpannableMouseEventHandler? MouseLeave;
 
-    /// <summary>Occurs when the mouse wheel moves while the control is hovered.</summary>
+    /// <summary>Occurs when the mouse wheel moves while the control is hovered, before dispatching to children.
+    /// </summary>
+    public event SpannableMouseEventHandler? PreMouseWheel;
+
+    /// <summary>Occurs when the mouse wheel moves while the control is hovered, after dispatching to children.
+    /// </summary>
     public event SpannableMouseEventHandler? MouseWheel;
 
-    /// <summary>Occurs when the mouse pointer is over the control and a mouse button is pressed.</summary>
+    /// <summary>Occurs when the mouse pointer is over the control and a mouse button is pressed, before dispatching to
+    /// children.</summary>
+    public event SpannableMouseEventHandler? PreMouseDown;
+
+    /// <summary>Occurs when the mouse pointer is over the control and a mouse button is pressed, after dispatching to
+    /// children.</summary>
     public event SpannableMouseEventHandler? MouseDown;
 
-    /// <summary>Occurs when the mouse pointer is over the control and a mouse button is released.</summary>
+    /// <summary>Occurs when the mouse pointer is over the control and a mouse button is released, before dispatching to
+    /// children.</summary>
+    public event SpannableMouseEventHandler? PreMouseUp;
+
+    /// <summary>Occurs when the mouse pointer is over the control and a mouse button is released, after dispatching to
+    /// children.</summary>
     public event SpannableMouseEventHandler? MouseUp;
 
     /// <summary>Occurs when the control is clicked by the mouse.</summary>
@@ -177,6 +195,10 @@ public abstract partial class Spannable
         && (this.captureMouse || (this.captureMouseOnMouseDown && this.mouseCapturedButtonFlags != 0))
         && this.InputEventDispatchShouldDispatchToSelf;
 
+    /// <summary>Raises the <see cref="PreMouseMove"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
+    protected virtual void OnPreMouseMove(SpannableMouseEventArgs args) => this.PreMouseMove?.Invoke(args);
+
     /// <summary>Raises the <see cref="MouseMove"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
     protected virtual void OnMouseMove(SpannableMouseEventArgs args) => this.MouseMove?.Invoke(args);
@@ -188,6 +210,10 @@ public abstract partial class Spannable
     /// <summary>Raises the <see cref="MouseLeave"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
     protected virtual void OnMouseLeave(SpannableMouseEventArgs args) => this.MouseLeave?.Invoke(args);
+
+    /// <summary>Raises the <see cref="PreMouseWheel"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
+    protected virtual void OnPreMouseWheel(SpannableMouseEventArgs args) => this.PreMouseWheel?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseWheel"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
@@ -201,9 +227,17 @@ public abstract partial class Spannable
     /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
     protected virtual void OnMousePress(SpannableMouseEventArgs args) => this.MousePress?.Invoke(args);
 
+    /// <summary>Raises the <see cref="PreMouseDown"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
+    protected virtual void OnPreMouseDown(SpannableMouseEventArgs args) => this.PreMouseDown?.Invoke(args);
+
     /// <summary>Raises the <see cref="MouseDown"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
     protected virtual void OnMouseDown(SpannableMouseEventArgs args) => this.MouseDown?.Invoke(args);
+
+    /// <summary>Raises the <see cref="PreMouseUp"/> event.</summary>
+    /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
+    protected virtual void OnPreMouseUp(SpannableMouseEventArgs args) => this.PreMouseUp?.Invoke(args);
 
     /// <summary>Raises the <see cref="MouseUp"/> event.</summary>
     /// <param name="args">A <see cref="SpannableMouseEventArgs"/> that contains the event data.</param>
@@ -247,8 +281,8 @@ public abstract partial class Spannable
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta);
 
-            args.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
-            this.OnMouseMove(args);
+            args.Initialize(this, alreadyHandled);
+            this.OnPreMouseMove(args);
             thisIsHandling = args.SuppressHandling && !alreadyHandled;
             alreadyHandled |= args.SuppressHandling;
         }
@@ -261,7 +295,7 @@ public abstract partial class Spannable
 
         if (dispatchMouseMove)
         {
-            args.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            args.Initialize(this, alreadyHandled);
             this.OnMouseMove(args);
             thisIsHandling |= args.SuppressHandling && !alreadyHandled;
             alreadyHandled |= args.SuppressHandling;
@@ -278,7 +312,7 @@ public abstract partial class Spannable
             this.IsMouseHovered = mouseHovered;
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta);
-            args.Initialize(this, SpannableEventStep.DirectTarget);
+            args.Initialize(this);
             if (mouseHovered)
                 this.OnMouseEnter(args);
             else
@@ -318,8 +352,8 @@ public abstract partial class Spannable
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta, wheelDelta: delta);
 
-            args.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
-            this.OnMouseWheel(args);
+            args.Initialize(this, alreadyHandled);
+            this.OnPreMouseWheel(args);
             alreadyHandled |= args.SuppressHandling;
         }
 
@@ -331,7 +365,7 @@ public abstract partial class Spannable
 
         if (dispatchMouseWheel)
         {
-            args.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            args.Initialize(this, alreadyHandled);
             this.OnMouseWheel(args);
             alreadyHandled |= args.SuppressHandling;
         }
@@ -361,8 +395,8 @@ public abstract partial class Spannable
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta, button: button);
 
-            args.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
-            this.OnMouseDown(args);
+            args.Initialize(this, alreadyHandled);
+            this.OnPreMouseDown(args);
             thisIsHandling = args.SuppressHandling && !alreadyHandled;
             alreadyHandled |= args.SuppressHandling;
         }
@@ -375,7 +409,7 @@ public abstract partial class Spannable
 
         if (dispatchMouseDown)
         {
-            args.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            args.Initialize(this, alreadyHandled);
             this.OnMouseDown(args);
             thisIsHandling = args.SuppressHandling && !alreadyHandled;
             alreadyHandled |= args.SuppressHandling;
@@ -440,8 +474,8 @@ public abstract partial class Spannable
             args = SpannableEventArgsPool.Rent<SpannableMouseEventArgs>();
             args.InitializeMouseEvent(screenLocation, screenLocationDelta, button: button);
 
-            args.Initialize(this, SpannableEventStep.BeforeChildren, alreadyHandled);
-            this.OnMouseUp(args);
+            args.Initialize(this, alreadyHandled);
+            this.OnPreMouseUp(args);
             alreadyHandled |= args.SuppressHandling;
         }
 
@@ -454,7 +488,7 @@ public abstract partial class Spannable
         var shouldClearClickTracking = true;
         if (dispatchMouseUp)
         {
-            args.Initialize(this, SpannableEventStep.AfterChildren, alreadyHandled);
+            args.Initialize(this, alreadyHandled);
             this.OnMouseUp(args);
             alreadyHandled |= args.SuppressHandling;
 
@@ -474,7 +508,7 @@ public abstract partial class Spannable
                     screenLocation,
                     screenLocationDelta,
                     clicks: this.clickTrackingCumulativeCount[(int)button]);
-                args.Initialize(this, SpannableEventStep.DirectTarget);
+                args.Initialize(this);
                 this.OnMouseClick(args);
 
                 if (!args.SuppressHandling)
@@ -518,6 +552,13 @@ public abstract partial class Spannable
                 if (nextRepeatTime == long.MaxValue)
                     continue; // suppressed
 
+                if (!this.IsMouseHoveredInsideBoundary)
+                {
+                    nextRepeatTime = tc64 + WindowsUiConfigHelper.GetKeyboardRepeatInitialDelay();
+                    cumulativePressCount = 0;
+                    continue;
+                }
+
                 var d = tc64 - nextRepeatTime;
                 if (d < 0)
                     continue; // not yet
@@ -533,7 +574,7 @@ public abstract partial class Spannable
                     button: (ImGuiMouseButton)i,
                     clicks: cumulativePressCount,
                     immediateRepeats: repeatCount);
-                margs.Initialize(this, SpannableEventStep.BeforeChildren);
+                margs.Initialize(this);
                 this.OnMousePress(margs);
 
                 if (margs.SuppressHandling)

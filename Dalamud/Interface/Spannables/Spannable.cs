@@ -105,7 +105,7 @@ public abstract partial class Spannable : IDisposable
         this.Boundary = RectVector4.InvertedExtrema;
 
         var e = SpannableEventArgsPool.Rent<SpannableMeasureEventArgs>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         e.InitializeMeasureEvent(preferredSize);
         this.OnMeasure(e);
         SpannableEventArgsPool.Return(e);
@@ -123,7 +123,7 @@ public abstract partial class Spannable : IDisposable
         this.fullTransformation = Matrix4x4.Multiply(this.localTransformation, ancestral);
 
         var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         this.OnPlace(e);
         SpannableEventArgsPool.Return(e);
     }
@@ -136,7 +136,7 @@ public abstract partial class Spannable : IDisposable
             return;
 
         var e = SpannableEventArgsPool.Rent<SpannableDrawEventArgs>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         e.InitializeDrawEvent(drawListPtr);
         this.OnDraw(e);
         SpannableEventArgsPool.Return(e);

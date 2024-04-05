@@ -309,8 +309,7 @@ public abstract partial class RecyclerViewControl : ControlSpannable
         if ((!this.VerticalScrollBar.Visible && !this.HorizontalScrollBar.Visible)
             || args.SuppressHandling
             || !this.IsMouseHoveredIncludingChildren
-            || this.layoutManager is null
-            || args.Step == SpannableEventStep.BeforeChildren)
+            || this.layoutManager is null)
             return;
 
         args.SuppressHandling = true;

@@ -292,7 +292,7 @@ public class LabelControl : ControlSpannable
     protected override void OnMouseEnter(SpannableMouseEventArgs args)
     {
         base.OnMouseEnter(args);
-        if (args.Step != SpannableEventStep.BeforeChildren && !args.SuppressHandling)
+        if (!args.SuppressHandling)
             this.UpdateChildrenDisplayedState();
     }
 
@@ -300,7 +300,15 @@ public class LabelControl : ControlSpannable
     protected override void OnMouseLeave(SpannableMouseEventArgs args)
     {
         base.OnMouseLeave(args);
-        if (args.Step != SpannableEventStep.BeforeChildren && !args.SuppressHandling)
+        if (!args.SuppressHandling)
+            this.UpdateChildrenDisplayedState();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMouseMove(SpannableMouseEventArgs args)
+    {
+        base.OnMouseMove(args);
+        if (!args.SuppressHandling)
             this.UpdateChildrenDisplayedState();
     }
 
@@ -308,7 +316,7 @@ public class LabelControl : ControlSpannable
     protected override void OnMouseDown(SpannableMouseEventArgs args)
     {
         base.OnMouseDown(args);
-        if (args.Step != SpannableEventStep.BeforeChildren && !args.SuppressHandling)
+        if (!args.SuppressHandling)
             this.UpdateChildrenDisplayedState();
     }
 
@@ -316,7 +324,7 @@ public class LabelControl : ControlSpannable
     protected override void OnMouseUp(SpannableMouseEventArgs args)
     {
         base.OnMouseUp(args);
-        if (args.Step != SpannableEventStep.BeforeChildren && !args.SuppressHandling)
+        if (!args.SuppressHandling)
             this.UpdateChildrenDisplayedState();
     }
 
@@ -428,31 +436,31 @@ public class LabelControl : ControlSpannable
 
     private void PrevOnLinkMouseLeave(SpannableMouseLinkEventArgs args)
     {
-        args.Initialize(this, SpannableEventStep.DirectTarget);
+        args.Initialize(this);
         this.OnLinkMouseLeave(args);
     }
 
     private void PrevOnLinkMouseUp(SpannableMouseLinkEventArgs args)
     {
-        args.Initialize(this, SpannableEventStep.DirectTarget);
+        args.Initialize(this);
         this.OnLinkMouseUp(args);
     }
 
     private void PrevOnLinkMouseEnter(SpannableMouseLinkEventArgs args)
     {
-        args.Initialize(this, SpannableEventStep.DirectTarget);
+        args.Initialize(this);
         this.OnLinkMouseEnter(args);
     }
 
     private void PrevOnLinkMouseDown(SpannableMouseLinkEventArgs args)
     {
-        args.Initialize(this, SpannableEventStep.DirectTarget);
+        args.Initialize(this);
         this.OnLinkMouseDown(args);
     }
 
     private void PrevOnLinkMouseClick(SpannableMouseLinkEventArgs args)
     {
-        args.Initialize(this, SpannableEventStep.DirectTarget);
+        args.Initialize(this);
         this.OnLinkMouseClick(args);
     }
 

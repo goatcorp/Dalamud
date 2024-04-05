@@ -204,7 +204,7 @@ public abstract partial class Spannable
             return true;
 
         var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         e.InitializePropertyChangeEvent(propName, PropertyChangeState.Before, storage, newValue);
 
         this.OnPropertyChange(e);
@@ -212,7 +212,7 @@ public abstract partial class Spannable
 
         if (e.SuppressHandling)
         {
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializePropertyChangeEvent(propName, PropertyChangeState.Cancelled, storage, newValue);
 
             this.OnPropertyChange(e);
@@ -222,7 +222,7 @@ public abstract partial class Spannable
             return true;
         }
 
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         e.InitializePropertyChangeEvent(propName, PropertyChangeState.After, storage, newValue);
         storage = e.NewValue;
 

@@ -314,7 +314,6 @@ public abstract partial class AbstractStyledText
         {
             base.OnMouseDown(args);
             if (args.SuppressHandling
-                || args.Step == SpannableEventStep.BeforeChildren
                 || this.interactedLinkIndex == -1
                 || this.interactedLinkState is LinkState.Clear)
                 return;
@@ -323,7 +322,7 @@ public abstract partial class AbstractStyledText
                 return;
 
             var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializeMouseLinkEvent(linkData.ToArray(), args.Button);
             this.OnLinkMouseDown(e);
             if (e.SuppressHandling)
@@ -342,8 +341,7 @@ public abstract partial class AbstractStyledText
         protected override void OnMouseMove(SpannableMouseEventArgs args)
         {
             base.OnMouseMove(args);
-            if (args.SuppressHandling
-                || args.Step == SpannableEventStep.BeforeChildren)
+            if (args.SuppressHandling)
                 return;
 
             var data = this.dataMemory.AsSpan();
@@ -383,7 +381,7 @@ public abstract partial class AbstractStyledText
             if (prev != (this.interactedLinkIndex, this.interactedLinkState))
             {
                 var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
-                e.Initialize(this, SpannableEventStep.DirectTarget);
+                e.Initialize(this);
                 switch (this.interactedLinkState)
                 {
                     case LinkState.Active when currData != default:
@@ -404,7 +402,7 @@ public abstract partial class AbstractStyledText
                             e.InitializeMouseLinkEvent(prevData.ToArray(), args.Button);
                             this.OnLinkMouseLeave(e);
 
-                            e.Initialize(this, SpannableEventStep.DirectTarget);
+                            e.Initialize(this);
                         }
 
                         if (currData != default)
@@ -424,8 +422,6 @@ public abstract partial class AbstractStyledText
         protected override void OnMouseUp(SpannableMouseEventArgs args)
         {
             base.OnMouseUp(args);
-            if (args.Step == SpannableEventStep.BeforeChildren)
-                return;
 
             if (this.interactedLinkIndex != -1 && !args.SuppressHandling)
             {
@@ -433,13 +429,13 @@ public abstract partial class AbstractStyledText
                     currData = default;
 
                 var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
-                e.Initialize(this, SpannableEventStep.DirectTarget);
+                e.Initialize(this, args.SuppressHandling);
                 e.InitializeMouseLinkEvent(currData.ToArray(), args.Button);
                 this.OnLinkMouseUp(e);
 
                 if (!e.SuppressHandling && this.interactedLinkState is LinkState.Active)
                 {
-                    e.Initialize(this, SpannableEventStep.DirectTarget);
+                    e.Initialize(this);
                     this.OnLinkMouseClick(e);
                 }
 

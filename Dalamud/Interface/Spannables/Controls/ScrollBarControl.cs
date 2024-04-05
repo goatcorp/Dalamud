@@ -12,7 +12,6 @@ using ImGuiNET;
 namespace Dalamud.Interface.Spannables.Controls;
 
 /// <summary>A scrollbar that may either be scrolled vertically or horizontally.</summary>
-// TODO: can this also do Slider?
 public class ScrollBarControl : ControlSpannable
 {
     /// <summary>The default thickness of a scroll bar.</summary>
@@ -36,6 +35,7 @@ public class ScrollBarControl : ControlSpannable
     private float value;
     private float minValue;
     private float maxValue = 1f;
+    private float alignValue;
     private float lineSizeProportion = 1 / 32f;
     private float pageSizeProportion = 1 / 8f;
     private float minThumbSize = DefaultButtonLength;
@@ -170,6 +170,9 @@ public class ScrollBarControl : ControlSpannable
     /// <summary>Occurs when the property <see cref="MaxValue"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? MaxValueChange;
 
+    /// <summary>Occurs when the property <see cref="AlignValue"/> is changing.</summary>
+    public event PropertyChangeEventHandler<float>? AlignValueChange;
+
     /// <summary>Occurs when the property <see cref="LineSizeProportion"/> is changing.</summary>
     public event PropertyChangeEventHandler<float>? LineSizeProportionChange;
 
@@ -269,6 +272,19 @@ public class ScrollBarControl : ControlSpannable
             value,
             this.maxValue - value == 0f,
             this.OnMaxValueChange);
+    }
+
+    /// <summary>Gets or sets the value alignment.</summary>
+    /// <value>Set to <c>0</c> to not round values.</value>
+    public float AlignValue
+    {
+        get => this.alignValue;
+        set => this.HandlePropertyChange(
+            nameof(this.AlignValue),
+            ref this.alignValue,
+            value,
+            this.alignValue - value == 0f,
+            this.OnAlignValueChange);
     }
 
     /// <summary>Gets or sets the line size, proportional to the available range.</summary>
@@ -389,13 +405,17 @@ public class ScrollBarControl : ControlSpannable
         if (this.mmbAutoScrollPerSecond != 0f)
         {
             var unboundDelta = this.lineSizeProportion * this.EffectiveRange;
+            var newValue = this.value + (unboundDelta * this.mmbAutoScrollPerSecond);
+            if (this.alignValue != 0f)
+                newValue = MathF.Round(newValue / this.alignValue) * this.alignValue;
+            newValue = this.NormalizeValue(newValue);
 
             var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializeScrollEvent(
                 ScrollAction.MiddleButtonAutoScroll,
                 this.value,
-                Math.Clamp(this.value + (unboundDelta * this.mmbAutoScrollPerSecond), this.minValue, this.maxValue),
+                newValue,
                 unboundDelta,
                 this.mmbAutoScrollPerSecond);
             this.OnScroll(e);
@@ -411,7 +431,7 @@ public class ScrollBarControl : ControlSpannable
         if (suggestedSize.GetOffDirection(this.direction) >= float.PositiveInfinity)
             suggestedSize = suggestedSize.UpdateOffDirection(this.direction, DefaultThickness);
         if (suggestedSize.GetMainDirection(this.direction) >= float.PositiveInfinity)
-            suggestedSize.UpdateMainDirection(this.direction, DefaultLength);
+            suggestedSize = suggestedSize.UpdateMainDirection(this.direction, DefaultLength);
 
         this.barSize = suggestedSize.GetMainDirection(this.direction);
 
@@ -529,7 +549,7 @@ public class ScrollBarControl : ControlSpannable
     protected override void OnMouseEnter(SpannableMouseEventArgs args)
     {
         base.OnMouseEnter(args);
-        if (args.Step != SpannableEventStep.BeforeChildren && !args.SuppressHandling)
+        if (!args.SuppressHandling)
             this.UpdateChildrenDisplayedState();
     }
 
@@ -537,7 +557,7 @@ public class ScrollBarControl : ControlSpannable
     protected override void OnMouseLeave(SpannableMouseEventArgs args)
     {
         base.OnMouseLeave(args);
-        if (args.Step != SpannableEventStep.BeforeChildren && !args.SuppressHandling)
+        if (!args.SuppressHandling)
             this.UpdateChildrenDisplayedState();
     }
 
@@ -547,9 +567,7 @@ public class ScrollBarControl : ControlSpannable
         this.currentMouseThumbLocation = args.LocalLocation;
 
         base.OnMouseDown(args);
-        if (args.SuppressHandling
-            || this.EffectiveRange <= 0f
-            || args.Step == SpannableEventStep.BeforeChildren)
+        if (args.SuppressHandling || this.EffectiveRange <= 0f)
             return;
 
         this.UpdateChildrenDisplayedState();
@@ -638,18 +656,23 @@ public class ScrollBarControl : ControlSpannable
             return;
         }
 
+        if (!args.SuppressHandling)
+            this.UpdateChildrenDisplayedState();
+
         if (this.currentMouseDownScrollAction == ScrollAction.ThumbTrack)
         {
             var unboundDelta = this.PointerInRangeToValue() - this.value;
-            if (MathF.Abs(unboundDelta) < 0.000001f)
-                return;
+            var newValue = this.value + unboundDelta;
+            if (this.alignValue != 0f)
+                newValue = MathF.Round(newValue / this.alignValue) * this.alignValue;
+            newValue = this.NormalizeValue(newValue);
 
             var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializeScrollEvent(
                 ScrollAction.ThumbTrack,
                 this.value,
-                Math.Clamp(this.value + unboundDelta, this.minValue, this.maxValue),
+                newValue,
                 unboundDelta,
                 1);
             this.OnScroll(e);
@@ -667,8 +690,7 @@ public class ScrollBarControl : ControlSpannable
         if (args.SuppressHandling
             || !this.IsMouseHoveredIncludingChildren
             || this.EffectiveRange <= 0f
-            || this.lineSizeProportion <= 0f
-            || args.Step == SpannableEventStep.BeforeChildren)
+            || this.lineSizeProportion <= 0f)
             return;
 
         args.SuppressHandling = true;
@@ -684,13 +706,17 @@ public class ScrollBarControl : ControlSpannable
             return;
 
         var unboundDelta = this.lineSizeProportion * this.EffectiveRange;
+        var newValue = this.value + (unboundDelta * repeats);
+        if (this.alignValue != 0f)
+            newValue = MathF.Round(newValue / this.alignValue) * this.alignValue;
+        newValue = this.NormalizeValue(newValue);
 
         var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         e.InitializeScrollEvent(
             scrollAction,
             this.value,
-            Math.Clamp(this.value + (unboundDelta * repeats), this.minValue, this.maxValue),
+            newValue,
             unboundDelta,
             MathF.Abs(repeats));
         this.OnScroll(e);
@@ -744,6 +770,11 @@ public class ScrollBarControl : ControlSpannable
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
     protected virtual void OnMaxValueChange(PropertyChangeEventArgs<float> args) =>
         this.MaxValueChange?.Invoke(args);
+
+    /// <summary>Raises the <see cref="AlignValueChange"/> event.</summary>
+    /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
+    protected virtual void OnAlignValueChange(PropertyChangeEventArgs<float> args) =>
+        this.AlignValueChange?.Invoke(args);
 
     /// <summary>Raises the <see cref="LineSizeProportionChange"/> event.</summary>
     /// <param name="args">A <see cref="PropertyChangeEventArgs{T}"/> that contains the event data.</param>
@@ -858,28 +889,33 @@ public class ScrollBarControl : ControlSpannable
             return;
 
         var sa = ScrollAction.None;
-        var ubd = 0f;
+        var unboundDelta = 0f;
 
         if (ReferenceEquals(args.Sender, this.DecreaseButton))
         {
-            ubd = -this.lineSizeProportion * this.EffectiveRange;
+            unboundDelta = -this.lineSizeProportion * this.EffectiveRange;
             sa = ScrollAction.LineDecrement;
         }
         else if (ReferenceEquals(args.Sender, this.IncreaseButton))
         {
-            ubd = +this.lineSizeProportion * this.EffectiveRange;
+            unboundDelta = +this.lineSizeProportion * this.EffectiveRange;
             sa = ScrollAction.LineIncrement;
         }
 
         if (sa != ScrollAction.None)
         {
+            var newValue = this.value + (unboundDelta * args.ImmediateRepeats);
+            if (this.alignValue != 0f)
+                newValue = MathF.Round(newValue / this.alignValue) * this.alignValue;
+            newValue = this.NormalizeValue(newValue);
+            
             var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializeScrollEvent(
                 sa,
                 this.value,
-                Math.Clamp(this.value + (args.ImmediateRepeats * ubd), this.minValue, this.maxValue),
-                ubd,
+                newValue,
+                unboundDelta,
                 args.ImmediateRepeats);
             this.OnScroll(e);
             if (this.autoValueUpdate && !e.SuppressHandling)
@@ -928,7 +964,10 @@ public class ScrollBarControl : ControlSpannable
                 // Prevent going past the mouse.
                 while (repeatCount > 0)
                 {
-                    if (this.value + (unboundDelta * repeatCount) <= this.PointerInRangeToValue())
+                    if (this.value <= this.PointerInRangeToValue())
+                        repeatCount = 0;
+                    else if (repeatCount >= 2 &&
+                             this.value + (unboundDelta * repeatCount) <= this.PointerInRangeToValue())
                         repeatCount--;
                     else
                         break;
@@ -941,7 +980,10 @@ public class ScrollBarControl : ControlSpannable
                 // Stop when scrolling by page goes past the thumb.
                 while (repeatCount > 0)
                 {
-                    if (this.value + (unboundDelta * repeatCount) >= this.PointerInRangeToValue())
+                    if (this.value >= this.PointerInRangeToValue())
+                        repeatCount = 0;
+                    else if (repeatCount >= 2 &&
+                             this.value + (unboundDelta * repeatCount) >= this.PointerInRangeToValue())
                         repeatCount--;
                     else
                         break;
@@ -958,12 +1000,17 @@ public class ScrollBarControl : ControlSpannable
         if (repeatCount == 0)
             return;
 
+        var newValue = this.value + (unboundDelta * repeatCount);
+        if (this.alignValue != 0f)
+            newValue = MathF.Round(newValue / this.alignValue) * this.alignValue;
+        newValue = this.NormalizeValue(newValue);
+
         var e = SpannableEventArgsPool.Rent<ScrollEventArgs>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         e.InitializeScrollEvent(
             this.currentMouseDownScrollAction,
             this.value,
-            Math.Clamp(this.value + (unboundDelta * repeatCount), this.minValue, this.maxValue),
+            newValue,
             unboundDelta,
             repeatCount);
         this.OnScroll(e);
@@ -1015,6 +1062,13 @@ public class ScrollBarControl : ControlSpannable
             if (c is DisplayedStatePattern dsp)
                 dsp.State = this.GetDisplayedState();
         }
+    }
+
+    private float NormalizeValue(float v)
+    {
+        if (v is 0f or float.NaN)
+            v = 0f;
+        return Math.Clamp(v, this.minValue, this.maxValue);
     }
 
     /// <summary>Event arguments for <see cref="Scroll"/> event.</summary>

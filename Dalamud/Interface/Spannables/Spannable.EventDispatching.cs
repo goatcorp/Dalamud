@@ -19,7 +19,7 @@ public abstract partial class Spannable
     public event SpannableEventHandler? PostDispatchEvents;
 
     /// <summary>Gets a value indicating whether this control is currently effectively visible.</summary>
-    protected virtual bool EffectivelyVisible => this.visible;
+    protected virtual bool EffectivelyVisible => this.visible && this.EffectiveRenderScale > 0f;
 
     /// <summary>Gets a value indicating whether to suppress all input events to self or children.</summary>
     private bool InputEventDispatchShouldSuppressAll =>
@@ -44,7 +44,7 @@ public abstract partial class Spannable
             return;
 
         var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         this.OnPreDispatchEvents(e);
         SpannableEventArgsPool.Return(e);
 
@@ -65,7 +65,7 @@ public abstract partial class Spannable
         if (this.wasFocused != this.ImGuiIsFocused)
         {
             this.wasFocused = this.ImGuiIsFocused;
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             if (this.wasFocused)
                 this.OnGotFocus(e);
             else
@@ -75,7 +75,7 @@ public abstract partial class Spannable
         foreach (var child in this.EnumerateChildren(false))
             child.RenderPassPostDispatchEvents();
 
-        e.Initialize(this, SpannableEventStep.DirectTarget);
+        e.Initialize(this);
         this.OnPostDispatchEvents(e);
         SpannableEventArgsPool.Return(e);
     }

@@ -441,7 +441,7 @@ public abstract partial class RecyclerViewControl
                 return;
 
             var e = SpannableEventArgsPool.Rent<SpannableEventArgs>();
-            e.Initialize(this.Parent, SpannableEventStep.DirectTarget);
+            e.Initialize(this.Parent);
             this.Parent.OnScroll(e);
             SpannableEventArgsPool.Return(e);
         }
@@ -458,7 +458,7 @@ public abstract partial class RecyclerViewControl
             if (plist?.Count is not > 0)
             {
                 var e = SpannableEventArgsPool.Rent<AddMoreSpannablesEventArg>();
-                e.Initialize(this, SpannableEventStep.DirectTarget);
+                e.Initialize(this);
                 e.InitializeAddMoreSpannables(spannableType);
                 this.Parent.OnAddMoreSpannables(e);
                 SpannableEventArgsPool.Return(e);
@@ -501,7 +501,7 @@ public abstract partial class RecyclerViewControl
             }
 
             var e = SpannableEventArgsPool.Rent<DecideSpannableTypeEventArg>();
-            e.Initialize(this.Parent, SpannableEventStep.DirectTarget);
+            e.Initialize(this.Parent);
             e.InitializeDecideSpannableType(index);
             this.Parent.OnDecideSpannableType(e);
             spannableType = e.SpannableType;
@@ -519,7 +519,7 @@ public abstract partial class RecyclerViewControl
                 return;
 
             var e = SpannableEventArgsPool.Rent<PopulateSpannableEventArg>();
-            e.Initialize(this.Parent, SpannableEventStep.DirectTarget);
+            e.Initialize(this.Parent);
             e.InitializePopulateSpannable(index, spannableType, spannable);
             this.Parent.OnPopulateSpannable(e);
             SpannableEventArgsPool.Return(e);
@@ -535,7 +535,7 @@ public abstract partial class RecyclerViewControl
             if (this.Parent is null)
                 return;
             var e = SpannableEventArgsPool.Rent<ClearSpannableEventArg>();
-            e.Initialize(this.Parent, SpannableEventStep.DirectTarget);
+            e.Initialize(this.Parent);
             e.InitializeClearSpannable(spannableType, spannable);
             this.Parent.OnClearSpannable(e);
             SpannableEventArgsPool.Return(e);
@@ -563,7 +563,7 @@ public abstract partial class RecyclerViewControl
             }
 
             var e = SpannableEventArgsPool.Rent<SetupChangeAnimationEventArg>();
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializeSetupChangeAnimation(action, wantPreviousAnimation, wantAnimation);
             this.OnSetupChangeAnimation(e);
             previousAnimation = e.PreviousAnimation;
@@ -585,7 +585,7 @@ public abstract partial class RecyclerViewControl
             }
 
             var e = SpannableEventArgsPool.Rent<SetupItemResizeAnimationEventArg>();
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializeSetupItemResizeAnimation();
             this.OnSetupItemResizeAnimation(e);
             easing = e.Easing;
@@ -613,14 +613,14 @@ public abstract partial class RecyclerViewControl
                 return false;
 
             var e = SpannableEventArgsPool.Rent<PropertyChangeEventArgs<T>>();
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializePropertyChangeEvent(propName, PropertyChangeState.Before, storage, newValue);
 
             eh(e);
 
             if (e.SuppressHandling)
             {
-                e.Initialize(this, SpannableEventStep.DirectTarget);
+                e.Initialize(this);
                 e.InitializePropertyChangeEvent(propName, PropertyChangeState.Cancelled, storage, newValue);
                 eh(e);
 
@@ -628,7 +628,7 @@ public abstract partial class RecyclerViewControl
                 return false;
             }
 
-            e.Initialize(this, SpannableEventStep.DirectTarget);
+            e.Initialize(this);
             e.InitializePropertyChangeEvent(propName, PropertyChangeState.After, storage, newValue);
             storage = e.NewValue;
 
