@@ -133,6 +133,7 @@ public abstract partial class Spannable
                 this.DispatchMouseUp(io->MousePos, io->MouseDelta, (ImGuiMouseButton)i, false);
         }
 
+        io->WantTextInput = this.ImGuiWantRootKeyboardProcessing ? (byte)1 : (byte)0;
         if (this.ImGuiWantRootKeyboardProcessing)
         {
             // This is, in fact, not a new vector
@@ -142,7 +143,6 @@ public abstract partial class Spannable
                 (ImVector*)Unsafe.AsPointer(ref ImGuiInternals.ImGuiContext.Instance.InputEventsTrail));
 
             inputQueueCharacters.Clear();
-            io->WantTextInput = 1;
 
             foreach (ref var trailedEvent in inputEventsTrail.DataSpan)
             {

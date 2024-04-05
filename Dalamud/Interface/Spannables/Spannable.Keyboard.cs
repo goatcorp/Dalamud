@@ -10,7 +10,7 @@ namespace Dalamud.Interface.Spannables;
 public abstract partial class Spannable
 {
     private bool takeKeyboardInputsOnFocus = true;
-    private bool takeKeyboardInputsAlways = true;
+    private bool takeKeyboardInputsAlways = false;
 
     /// <summary>Occurs when a key is pressed while the control has focus, before dispatching to children.</summary>
     public event SpannableKeyEventHandler? PreKeyDown;
