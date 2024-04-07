@@ -15,7 +15,7 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// <summary>
 /// Class responsible for managing plugin profiles.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService($"Data provider for {nameof(PluginManager)}.")]
 internal class ProfileManager : IServiceType
 {
     private static readonly ModuleLog Log = new("PROFMAN");

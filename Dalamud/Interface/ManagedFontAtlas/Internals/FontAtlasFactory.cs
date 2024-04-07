@@ -29,7 +29,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 /// <summary>
 /// Factory for the implementation of <see cref="IFontAtlas"/>.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed partial class FontAtlasFactory
     : IInternalDisposableService, GamePrebakedFontHandle.IGameFontTextureProvider
 {

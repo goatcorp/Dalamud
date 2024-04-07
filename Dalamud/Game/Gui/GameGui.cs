@@ -26,7 +26,7 @@ namespace Dalamud.Game.Gui;
 /// A class handling many aspects of the in-game UI.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 {
     private static readonly ModuleLog Log = new("GameGui");

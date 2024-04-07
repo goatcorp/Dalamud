@@ -14,7 +14,7 @@ namespace Dalamud.Hooking.WndProcHook;
 /// <summary>
 /// Manages WndProc hooks for game main window and extra ImGui viewport windows.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class WndProcHookManager : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new(nameof(WndProcHookManager));

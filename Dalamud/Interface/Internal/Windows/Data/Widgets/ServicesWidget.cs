@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
@@ -96,7 +97,7 @@ internal class ServicesWidget : IDataWindowWidget
                     
                     var rowWidth = 0f;
                     foreach (var node in levelNodes)
-                        rowWidth += ImGui.CalcTextSize(node.TypeName).X + cellPad.X + margin.X;
+                        rowWidth += node.DisplayedNameSize.X + cellPad.X + margin.X;
 
                     var off = cellPad / 2;
                     if (rowWidth < width)
@@ -107,7 +108,7 @@ internal class ServicesWidget : IDataWindowWidget
 
                     foreach (var node in levelNodes)
                     {
-                        var textSize = ImGui.CalcTextSize(node.TypeName);
+                        var textSize = node.DisplayedNameSize;
                         var cellSize = textSize + cellPad;
 
                         var rc = new Vector4(pos + off, pos.X + off.X + cellSize.X, pos.Y + off.Y + cellSize.Y);
@@ -174,7 +175,7 @@ internal class ServicesWidget : IDataWindowWidget
                 {
                     foreach (var node in levelNodes)
                     {
-                        var textSize = ImGui.CalcTextSize(node.TypeName);
+                        var textSize = node.DisplayedNameSize;
                         var cellSize = textSize + cellPad;
 
                         var rc = this.nodeRects[node];
@@ -188,8 +189,19 @@ internal class ServicesWidget : IDataWindowWidget
                             dl.AddRectFilled(new(rc.X, rc.Y), new(rc.Z, rc.W), rectHoverRelatedFillColor);
 
                         dl.AddRect(new(rc.X, rc.Y), new(rc.Z, rc.W), rectBaseBorderColor);
+                        ImGui.SetCursorScreenPos(new(rc.X, rc.Y));
+                        ImGui.InvisibleButton(node.DisplayedName, new(rc.Z - rc.X, rc.W - rc.Y));
+                        if (ImGui.IsItemHovered() && node.BlockingReason is not null)
+                            ImGui.SetTooltip(node.BlockingReason);
+
                         ImGui.SetCursorPos((new Vector2(rc.X, rc.Y) - pos) + ((cellSize - textSize) / 2));
-                        ImGui.TextUnformatted(node.TypeName);
+                        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
+                        ImGui.TextUnformatted(node.DisplayedName);
+                        ImGui.SameLine();
+                        ImGui.PushStyleColor(ImGuiCol.Text, node.TypeSuffixColor);
+                        ImGui.TextUnformatted(node.TypeSuffix);
+                        ImGui.PopStyleVar();
+                        ImGui.PopStyleColor();
                     }
                 }
 
@@ -259,11 +271,44 @@ internal class ServicesWidget : IDataWindowWidget
         private readonly List<ServiceDependencyNode> children = new();
         private readonly List<ServiceDependencyNode> invalidParents = new();
 
-        private ServiceDependencyNode(Type t) => this.Type = t;
+        private ServiceDependencyNode(Type t)
+        {
+            this.Type = t;
+            this.BlockingReason =
+                t.GetCustomAttribute<ServiceManager.BlockingEarlyLoadedServiceAttribute>()?.BlockReason;
+            this.Kind = t.GetCustomAttribute<ServiceManager.ServiceAttribute>()?.Kind ??
+                        ServiceManager.ServiceKind.None;
+            this.DisplayedName = this.Type.Name;
+            this.TypeSuffix = this.Kind switch {
+                ServiceManager.ServiceKind.ProvidedService => " (P)",
+                ServiceManager.ServiceKind.EarlyLoadedService => " (E)",
+                ServiceManager.ServiceKind.BlockingEarlyLoadedService => " (B)",
+                ServiceManager.ServiceKind.ScopedService => " (S)",
+                var x => $" (? {x})",
+            };
+            this.TypeSuffixColor = this.Kind switch {
+                ServiceManager.ServiceKind.ProvidedService => ImGui.GetColorU32(ImGuiColors.DalamudGrey),
+                ServiceManager.ServiceKind.EarlyLoadedService => ImGui.GetColorU32(ImGuiColors.DalamudWhite),
+                ServiceManager.ServiceKind.BlockingEarlyLoadedService => ImGui.GetColorU32(ImGuiColors.ParsedPink),
+                ServiceManager.ServiceKind.ScopedService => ImGui.GetColorU32(ImGuiColors.ParsedGreen),
+                _ => ImGui.GetColorU32(ImGuiColors.DalamudRed),
+            };
+        }
 
         public Type Type { get; }
 
-        public string TypeName => this.Type.Name;
+        public string DisplayedName { get; }
+
+        public string TypeSuffix { get; }
+        
+        public uint TypeSuffixColor { get; }
+
+        public Vector2 DisplayedNameSize =>
+            ImGui.CalcTextSize(this.DisplayedName) + ImGui.CalcTextSize(this.TypeSuffix);
+
+        public ServiceManager.ServiceKind Kind { get; }
+
+        public string? BlockingReason { get; }
 
         public IReadOnlyList<ServiceDependencyNode> Parents => this.parents;
 

@@ -22,7 +22,7 @@ namespace Dalamud.Game.ClientState;
 /// This class represents the state of the game client at the time of access.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class ClientState : IInternalDisposableService, IClientState
 {
     private static readonly ModuleLog Log = new("ClientState");

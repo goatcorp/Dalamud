@@ -39,22 +39,10 @@ namespace Dalamud.Plugin.Internal;
 
 /// <summary>
 /// Class responsible for loading and unloading plugins.
-/// NOTE: ALL plugin exposed services are marked as dependencies for PluginManager in Service{T}.
+/// NOTE: ALL plugin exposed services are marked as dependencies for <see cref="PluginManager"/>
+/// from <see cref="ResolvePossiblePluginDependencyServices"/>.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-
-// DalamudTextureWrap registers textures to dispose with IM
-[InherentDependency<InterfaceManager>]
-
-// LocalPlugin uses ServiceContainer to create scopes
-[InherentDependency<ServiceContainer>]
-
-// DalamudPluginInterface hands out a reference to this, so we have to keep it around
-// TODO api9: make it a service 
-[InherentDependency<DataShare>]
-
-#pragma warning restore SA1015
+[ServiceManager.BlockingEarlyLoadedService("Accomodation of plugins that blocks the game startup.")]
 internal partial class PluginManager : IInternalDisposableService
 {
     /// <summary>
@@ -1257,6 +1245,16 @@ internal partial class PluginManager : IInternalDisposableService
     /// <returns>The dependency services.</returns>
     private static IEnumerable<Type> ResolvePossiblePluginDependencyServices()
     {
+        // DalamudPluginInterface hands out a reference to this, so we have to keep it around.
+        // TODO api9: make it a service
+        yield return typeof(DataShare);
+
+        // DalamudTextureWrap registers textures to dispose with IM.
+        yield return typeof(InterfaceManager);
+
+        // Note: LocalPlugin uses ServiceContainer to create scopes, but it is done outside PM ctor.
+        // This is not required: yield return typeof(ServiceContainer);
+
         foreach (var serviceType in ServiceManager.GetConcreteServiceTypes())
         {
             if (serviceType == typeof(PluginManager))
