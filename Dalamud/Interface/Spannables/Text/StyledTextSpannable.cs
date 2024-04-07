@@ -33,6 +33,8 @@ public sealed partial class StyledTextSpannable : Spannable
     private Vector2 lastOffset;
     private Vector2 preferredSize;
 
+    private Vector2 lastCursorLocation;
+
     private float shiftFromVerticalAlignment;
 
     private int interactedLinkIndex = -1;
@@ -56,6 +58,15 @@ public sealed partial class StyledTextSpannable : Spannable
             this.children[i] = cs;
             this.AddChild(cs);
         }
+
+        foreach (ref readonly var r in data.Records)
+        {
+            if (r.Type == SpannedRecordType.Link)
+                this.EventEnabled = true;
+        }
+
+        this.MouseCursor = ImGuiMouseCursor.TextInput;
+        this.CaptureMouseOnMouseDown = true;
     }
 
     /// <summary>Gets a reference to the last text style used.</summary>
@@ -73,6 +84,18 @@ public sealed partial class StyledTextSpannable : Spannable
     /// <summary>Gets the span of offsets of inner spannables.</summary>
     public Span<Vector2> ChildOffsets => this.childOffsets;
 
+    /// <summary>Gets the selection ranges.</summary>
+    public ReadOnlySpan<(int Begin, int End, int Caret)> Selections => CollectionsMarshal.AsSpan(this.selections);
+
+    /// <summary>Gets or sets the drag selection range begin.</summary>
+    public int DragSelectionBegin { get; set; } = -1;
+
+    /// <summary>Gets or sets the drag selection range end.</summary>
+    public int DragSelectionEnd { get; set; } = -1;
+
+    /// <summary>Gets the text offset under the mouse cursor.</summary>
+    public int OffsetUnderMouseCursor { get; private set; }
+
     /// <summary>Gets the measured lines so far.</summary>
     private Span<TsMeasuredLine> MeasuredLines => CollectionsMarshal.AsSpan(this.lines);
 
@@ -89,37 +112,51 @@ public sealed partial class StyledTextSpannable : Spannable
         this.lastOffset = Vector2.Zero;
     }
 
+    /// <summary>Gets the text offset range of a line.</summary>
+    /// <param name="lineIndex">Index of the line.</param>
+    /// <returns>The range.</returns>
+    public (int Begin, int End) GetLineRange(int lineIndex)
+    {
+        if (lineIndex < 0 || lineIndex >= this.MeasuredLines.Length)
+            return (0, 0);
+        return (this.MeasuredLines[lineIndex].FirstOffset.Text, this.MeasuredLines[lineIndex].Offset.Text);
+    }
+
     /// <inheritdoc/>
     protected override void OnMouseDown(SpannableMouseEventArgs args)
     {
         base.OnMouseDown(args);
-        if (args.SuppressHandling
-            || this.interactedLinkIndex == -1
-            || this.interactedLinkState is AbstractStyledText.LinkState.Clear)
+        if (args.SuppressHandling)
             return;
 
-        if (!this.dataMemory.AsSpan().TryGetLinkAt(this.interactedLinkIndex, out var linkData))
-            return;
-
-        var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
-        e.Initialize(this);
-        e.InitializeMouseLinkEvent(linkData.ToArray(), args.Button);
-        this.OnLinkMouseDown(e);
-        if (e.SuppressHandling)
+        if (this.interactedLinkIndex != -1
+            && this.interactedLinkState is not AbstractStyledText.LinkState.Clear)
         {
-            SpannableEventArgsPool.Return(e);
-            return;
-        }
+            if (!this.dataMemory.AsSpan().TryGetLinkAt(this.interactedLinkIndex, out var linkData))
+                return;
 
-        SpannableEventArgsPool.Return(e);
-        this.interactedLinkState = AbstractStyledText.LinkState.Active;
-        this.CaptureMouse = true;
-        args.SuppressHandling = true;
+            var e = SpannableEventArgsPool.Rent<SpannableMouseLinkEventArgs>();
+            e.Initialize(this);
+            e.InitializeMouseLinkEvent(linkData.ToArray(), args.Button);
+            this.OnLinkMouseDown(e);
+            if (e.SuppressHandling)
+            {
+                SpannableEventArgsPool.Return(e);
+                return;
+            }
+
+            SpannableEventArgsPool.Return(e);
+            this.interactedLinkState = AbstractStyledText.LinkState.Active;
+            this.CaptureMouse = true;
+            args.SuppressHandling = true;
+        }
     }
 
     /// <inheritdoc/>
     protected override void OnMouseMove(SpannableMouseEventArgs args)
     {
+        this.lastCursorLocation = args.LocalLocation;
+
         base.OnMouseMove(args);
         if (args.SuppressHandling)
             return;
@@ -430,7 +467,7 @@ public sealed partial class StyledTextSpannable : Spannable
                                     var old = charRenderer.UpdateTextStyle(this.ControlCharactersStyle);
                                     charRenderer.LastRendered.Clear();
                                     foreach (var c2 in name)
-                                        charRenderer.RenderOne(c2);
+                                        charRenderer.RenderOne(-1, c2);
                                     charRenderer.LastRendered.Clear();
                                     _ = charRenderer.UpdateTextStyle(old);
                                     this.lastOffset -= offset;
@@ -439,7 +476,7 @@ public sealed partial class StyledTextSpannable : Spannable
 
                             accumulatedBoundary = RectVector4.Union(
                                 accumulatedBoundary,
-                                charRenderer.RenderOne(c.EffectiveChar));
+                                charRenderer.RenderOne(absOffset.Text, c.EffectiveChar));
                             charRenderer.LastRendered.SetCodepoint(c.Value);
                         }
                     }
@@ -556,6 +593,8 @@ public sealed partial class StyledTextSpannable : Spannable
         this.lastOffset = new(0, this.shiftFromVerticalAlignment);
         this.lastStyle = this.Style;
 
+        this.OffsetUnderMouseCursor = -1;
+
         var charRenderer = new TsCharRenderer(this, data, args.DrawListPtr);
         try
         {
@@ -593,14 +632,18 @@ public sealed partial class StyledTextSpannable : Spannable
                                             this.ControlCharactersStyle);
                                         charRenderer.LastRendered.Clear();
                                         foreach (var c2 in name)
-                                            charRenderer.RenderOne(c2);
+                                            charRenderer.RenderOne(-1, c2);
                                         charRenderer.LastRendered.Clear();
                                         _ = charRenderer.UpdateTextStyle(old);
                                         this.lastOffset -= offset;
                                     }
                                 }
 
-                                charRenderer.RenderOne(c.EffectiveChar);
+                                var bounds = charRenderer.RenderOne(absOffset.Text, c.EffectiveChar);
+                                if (this.OffsetUnderMouseCursor == -1
+                                    && this.lastCursorLocation.Y <= this.lastOffset.Y - line.BBoxVertical.X
+                                    && this.lastCursorLocation.X <= bounds.Center.X)
+                                    this.OffsetUnderMouseCursor = absOffset.Text;
                             }
 
                             charRenderer.LastRendered.SetCodepoint(c.Value);
@@ -653,6 +696,9 @@ public sealed partial class StyledTextSpannable : Spannable
         {
             charRenderer.AppendAndReturnChannels(this.LocalTransformation);
         }
+
+        if (this.lastCursorLocation.Y >= this.lastOffset.Y)
+            this.OffsetUnderMouseCursor = data.TextStream.Length;
     }
 
     /// <summary>Extends the bottom boundary by given amount.</summary>
@@ -666,11 +712,16 @@ public sealed partial class StyledTextSpannable : Spannable
 
     /// <summary>Adds a line break.</summary>
     /// <param name="lineBefore">The line that came right before this line break.</param>
-    private void AddLineBreak(in TsMeasuredLine lineBefore) =>
+    private void AddLineBreak(in TsMeasuredLine lineBefore)
+    {
+        if (this.OffsetUnderMouseCursor == -1
+            && this.lastCursorLocation.Y <= this.lastOffset.Y - lineBefore.BBoxVertical.X)
+            this.OffsetUnderMouseCursor = lineBefore.OmitOffset.Text;
         this.lastOffset = new(
             0,
             MathF.Round((this.lastOffset.Y + lineBefore.Height) * this.EffectiveRenderScale) /
             this.EffectiveRenderScale);
+    }
 
     /// <summary>Add decorations and breaks line once a line ends.</summary>
     /// <param name="line">The line that came right before this.</param>
@@ -689,7 +740,7 @@ public sealed partial class StyledTextSpannable : Spannable
             {
                 accumulatedBoundary = RectVector4.Union(
                     accumulatedBoundary,
-                    charRenderer.RenderOne(AbstractStyledText.SoftHyphenReplacementChar));
+                    charRenderer.RenderOne(-1, AbstractStyledText.SoftHyphenReplacementChar));
             }
 
             if (this.WrapMarker is { } wm)

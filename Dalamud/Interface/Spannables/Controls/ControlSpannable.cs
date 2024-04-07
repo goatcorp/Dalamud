@@ -41,6 +41,9 @@ public partial class ControlSpannable : Spannable
 
     private bool wasVisible;
 
+    /// <summary>Initializes a new instance of the <see cref="ControlSpannable"/> class.</summary>
+    public ControlSpannable() => this.EventEnabled = true;
+
     /// <summary>Gets or sets the inner transform origin.</summary>
     public Vector2 InnerOrigin { get; set; } = new(0.5f);
 

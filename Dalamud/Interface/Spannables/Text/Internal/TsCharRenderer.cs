@@ -1,11 +1,13 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Spannables.Internal;
 using Dalamud.Interface.Spannables.Rendering;
 using Dalamud.Interface.Spannables.Styles;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 
 using ImGuiNET;
@@ -24,6 +26,9 @@ internal unsafe ref struct TsCharRenderer
     /// <summary>The border draw channel.</summary>
     public readonly ImDrawListPtr BorderChannel;
 
+    /// <summary>The selection draw channel.</summary>
+    public readonly ImDrawListPtr SelectionChannel;
+    
     /// <summary>The text decoration under foreground draw channel.</summary>
     public readonly ImDrawListPtr TextDecorationOverUnderChannel;
 
@@ -43,6 +48,8 @@ internal unsafe ref struct TsCharRenderer
     private readonly ImDrawListPtr drawListPtr;
     private readonly ISpannableRenderer renderer;
     private readonly TsDataSpan data;
+
+    private ReadOnlySpan<(int Begin, int End, int Caret)> selections;
 
     private TextStyleFontData fontInfo;
     private TsCharRendererState state;
@@ -66,12 +73,14 @@ internal unsafe ref struct TsCharRenderer
         this.renderer = ts.Renderer!;
         this.data = data;
         this.drawListPtr = drawListPtr;
+        this.selections = ts.Selections;
 
         if (drawListPtr.NativePtr is not null)
         {
             this.BackChannel = this.renderer.RentDrawList(drawListPtr);
             this.ShadowChannel = this.renderer.RentDrawList(drawListPtr);
             this.BorderChannel = this.renderer.RentDrawList(drawListPtr);
+            this.SelectionChannel = this.renderer.RentDrawList(drawListPtr);
             this.TextDecorationOverUnderChannel = this.renderer.RentDrawList(drawListPtr);
             this.ForeChannel = this.renderer.RentDrawList(drawListPtr);
             this.TextDecorationThroughChannel = this.renderer.RentDrawList(drawListPtr);
@@ -97,12 +106,14 @@ internal unsafe ref struct TsCharRenderer
         this.BackChannel.CopyDrawListDataTo(this.drawListPtr, transformation, Vector4.One);
         this.ShadowChannel.CopyDrawListDataTo(this.drawListPtr, transformation, Vector4.One);
         this.BorderChannel.CopyDrawListDataTo(this.drawListPtr, transformation, Vector4.One);
+        this.SelectionChannel.CopyDrawListDataTo(this.drawListPtr, transformation, Vector4.One);
         this.TextDecorationOverUnderChannel.CopyDrawListDataTo(this.drawListPtr, transformation, Vector4.One);
         this.ForeChannel.CopyDrawListDataTo(this.drawListPtr, transformation, Vector4.One);
         this.TextDecorationThroughChannel.CopyDrawListDataTo(this.drawListPtr, transformation, Vector4.One);
         this.renderer.ReturnDrawList(this.BackChannel);
         this.renderer.ReturnDrawList(this.ShadowChannel);
         this.renderer.ReturnDrawList(this.BorderChannel);
+        this.renderer.ReturnDrawList(this.SelectionChannel);
         this.renderer.ReturnDrawList(this.TextDecorationOverUnderChannel);
         this.renderer.ReturnDrawList(this.ForeChannel);
         this.renderer.ReturnDrawList(this.TextDecorationThroughChannel);
@@ -145,7 +156,7 @@ internal unsafe ref struct TsCharRenderer
             case SpannedRecordType.ObjectIcon:
             case SpannedRecordType.ObjectTexture:
             case SpannedRecordType.ObjectSpannable:
-                return this.RenderOne(-1, record, recordData);
+                return this.RenderOne(record.TextStart, -1, record, recordData);
             default:
                 return RectVector4.InvertedExtrema;
         }
@@ -165,11 +176,16 @@ internal unsafe ref struct TsCharRenderer
     }
 
     /// <summary>Advances the internal cursor and renders the glyph.</summary>
+    /// <param name="textOffset">The text offset.</param>
     /// <param name="c">The character to render.</param>
     /// <param name="record">The span to render instead.</param>
     /// <param name="recordData">The span record data.</param>
     /// <returns>The boundary of the rendered thing.</returns>
-    public RectVector4 RenderOne(int c, in SpannedRecord record = default, ReadOnlySpan<byte> recordData = default)
+    public RectVector4 RenderOne(
+        int textOffset,
+        int c,
+        SpannedRecord record = default,
+        ReadOnlySpan<byte> recordData = default)
     {
         // TODO: deal with LineHeight and y offset/fill height adjustment
 
@@ -180,6 +196,28 @@ internal unsafe ref struct TsCharRenderer
                 return RectVector4.FromCoordAndSize(
                     this.ts.LastOffset + this.StyleTranslation,
                     new(0, this.fontInfo.ScaledFontSize));
+        }
+
+        var selected = false;
+        if (textOffset != -1)
+        {
+            selected = this.ts.DragSelectionBegin <= textOffset && textOffset < this.ts.DragSelectionEnd;
+
+            if (!selected)
+            {
+                while (!this.selections.IsEmpty)
+                {
+                    if (this.selections[0].Begin > textOffset)
+                        break;
+                    if (this.selections[0].End > textOffset)
+                    {
+                        selected = true;
+                        break;
+                    }
+
+                    this.selections = this.selections[1..];
+                }
+            }
         }
 
         ref readonly var glyph = ref this.fontInfo.GetEffectiveGlyph(c);
@@ -400,6 +438,19 @@ internal unsafe ref struct TsCharRenderer
 
             if (push)
                 ImGuiNative.ImDrawList_PopTextureID(this.BorderChannel);
+        }
+
+        if (selected && this.drawListPtr.NativePtr is not null)
+        {
+            var lt = this.ts.LastOffset + this.StyleTranslation;
+            var rb = lt + new Vector2(advX + this.fontInfo.BoldExtraWidth, this.fontInfo.ScaledFontSize);
+            ImGuiNative.ImDrawList_AddRectFilled(
+                this.SelectionChannel,
+                lt,
+                rb,
+                new Rgba32(ImGuiColors.ParsedBlue),
+                0,
+                ImDrawFlags.None);
         }
 
         if (this.useTextDecoration)

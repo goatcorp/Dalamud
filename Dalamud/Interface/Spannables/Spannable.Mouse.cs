@@ -189,6 +189,8 @@ public abstract partial class Spannable
 
     /// <summary>Gets a value indicating whether the mouse pointer is hovering inside <see cref="Boundary"/>.</summary>
     protected bool IsMouseHoveredInsideBoundary { get; private set; }
+    
+    private bool IsMouseHoveredDirectly { get; set; }
 
     private bool ShouldCapture =>
         this.ImGuiGlobalId != 0
@@ -320,6 +322,10 @@ public abstract partial class Spannable
         }
 
         mouseHovered &= this.ImGuiIsHoverable;
+        this.IsMouseHoveredDirectly =
+            mouseHovered
+            && (ImGuiInternals.ImGuiContext.Instance.HoveredId == 0
+                || ImGuiInternals.ImGuiContext.Instance.HoveredId == this.imGuiGlobalId);
         if (mouseHovered)
         {
             SpannableImGuiItem.SetHovered(this, this.imGuiGlobalId, true);
@@ -590,7 +596,7 @@ public abstract partial class Spannable
                 child.DispatchMiscMouseEvents(screenLocation, screenLocationDelta);
         }
 
-        if (this.IsMouseHovered && this.InputEventDispatchShouldDispatchToSelf)
+        if (this.IsMouseHoveredDirectly && this.EventEnabled)
             ImGui.SetMouseCursor(this.mouseCursor);
     }
 }

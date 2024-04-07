@@ -1,5 +1,4 @@
 using Dalamud.Interface.Spannables.EventHandlers;
-using Dalamud.Interface.Spannables.Patterns;
 using Dalamud.Interface.Spannables.Rendering.Internal;
 using Dalamud.Plugin.Services;
 
@@ -13,7 +12,7 @@ public abstract partial class Spannable
     private int zOrder;
     private bool enabled = true;
     private bool focusable;
-    private bool eventEnabled = true;
+    private bool eventEnabled;
     private bool occupySpaceWhenHidden = true;
     private bool visible = true;
 
@@ -191,6 +190,7 @@ public abstract partial class Spannable
     /// <param name="newValue">The new value.</param>
     /// <param name="eq">Whether the values are equal.</param>
     /// <param name="eh">The event handler.</param>
+    /// <param name="wantMeasure">Whether to measure again.</param>
     /// <typeparam name="T">Type of the changed value.</typeparam>
     /// <returns><c>true</c> if any further handling should be suppressed..</returns>
     protected bool HandlePropertyChange<T>(
@@ -198,7 +198,8 @@ public abstract partial class Spannable
         ref T storage,
         T newValue,
         bool eq,
-        PropertyChangeEventHandler<T> eh)
+        PropertyChangeEventHandler<T> eh,
+        bool wantMeasure = true)
     {
         if (eq)
             return true;
@@ -231,7 +232,8 @@ public abstract partial class Spannable
 
         SpannableEventArgsPool.Return(e);
 
-        this.RequestMeasure();
+        if (wantMeasure)
+            this.RequestMeasure();
         return e.SuppressHandling;
     }
 }
