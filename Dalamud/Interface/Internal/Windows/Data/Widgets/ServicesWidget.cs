@@ -304,7 +304,7 @@ internal class ServicesWidget : IDataWindowWidget
         public uint TypeSuffixColor { get; }
 
         public Vector2 DisplayedNameSize =>
-            ImGui.CalcTextSize(this.DisplayedName) + ImGui.CalcTextSize(this.TypeSuffix);
+            ImGui.CalcTextSize(this.DisplayedName) + ImGui.CalcTextSize(this.TypeSuffix) with { Y = 0 };
 
         public ServiceManager.ServiceKind Kind { get; }
 
