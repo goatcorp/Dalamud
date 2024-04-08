@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using System.Runtime.CompilerServices;
+
+using ImGuiNET;
 
 using TerraFX.Interop.Windows;
 
@@ -16,6 +18,7 @@ internal sealed partial class Win32InputHandler
     /// </summary>
     /// <param name="key">The virtual key.</param>
     /// <returns>The corresponding <see cref="ImGuiKey"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ImGuiKey VirtualKeyToImGuiKey(int key) => key switch
     {
         VK.VK_TAB => ImGuiKey.Tab,
@@ -130,6 +133,7 @@ internal sealed partial class Win32InputHandler
     /// </summary>
     /// <param name="key">The ImGui key.</param>
     /// <returns>The corresponding <see cref="VK"/>.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ImGuiKeyToVirtualKey(ImGuiKey key) => key switch
     {
         ImGuiKey.Tab => VK.VK_TAB,
@@ -239,8 +243,10 @@ internal sealed partial class Win32InputHandler
         _ => 0,
     };
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsGamepadKey(ImGuiKey key) => (int)key is >= 617 and <= 640;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsModKey(ImGuiKey key) =>
         key is ImGuiKey.LeftShift
             or ImGuiKey.RightShift

@@ -528,12 +528,15 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
         var io = ImGui.GetIO();
         if (!io.WantTextInput)
         {
+            // See: https://github.com/goatcorp/ImGuiScene/pull/13
+            // > GetForegroundWindow from winuser.h is a surprisingly expensive function.
+            var isForeground = Win32.GetForegroundWindow() == this.hWnd;
             for (var i = (int)ImGuiKey.NamedKey_BEGIN; i < (int)ImGuiKey.NamedKey_END; i++)
             {
                 // Skip raising modifier keys if the game is focused.
                 // This allows us to raise the keys when one is held and the window becomes unfocused,
                 // but if we do not skip them, they will only be held down every 4th frame or so.
-                if (Win32.GetForegroundWindow() == this.hWnd && (IsGamepadKey((ImGuiKey)i) || IsModKey((ImGuiKey)i)))
+                if (isForeground && (IsGamepadKey((ImGuiKey)i) || IsModKey((ImGuiKey)i)))
                     continue;
                 io.AddKeyEvent((ImGuiKey)i, false);
             }
