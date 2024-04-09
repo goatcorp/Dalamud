@@ -12,6 +12,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
@@ -28,7 +29,7 @@ namespace Dalamud.Game.Gui;
 /// This class handles interacting with the native chat UI.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
     private static readonly ModuleLog Log = new("ChatGui");
@@ -61,7 +62,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         this.populateItemLinkHook.Enable();
         this.interactableLinkClickedHook.Enable();
     }
-    
+
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent);
 
@@ -121,31 +122,31 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     {
         this.chatQueue.Enqueue(chat);
     }
-    
+
     /// <inheritdoc/>
     public void Print(string message, string? messageTag = null, ushort? tagColor = null)
     {
         this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
     }
-    
+
     /// <inheritdoc/>
     public void Print(SeString message, string? messageTag = null, ushort? tagColor = null)
     {
         this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
     }
-    
+
     /// <inheritdoc/>
     public void PrintError(string message, string? messageTag = null, ushort? tagColor = null)
     {
         this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
     }
-    
+
     /// <inheritdoc/>
     public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
     {
         this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
     }
-    
+
     /// <summary>
     /// Process a chat queue.
     /// </summary>
@@ -154,9 +155,29 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         while (this.chatQueue.Count > 0)
         {
             var chat = this.chatQueue.Dequeue();
+            var replacedMessage = new SeStringBuilder();
+
+            // Normalize Unicode NBSP to the built-in one, as the former won't renderl
+            foreach (var payload in chat.Message.Payloads)
+            {
+                if (payload is TextPayload { Text: not null } textPayload)
+                {
+                    var split = textPayload.Text.Split("\u202f"); // NARROW NO-BREAK SPACE
+                    for (var i = 0; i < split.Length; i++)
+                    {
+                        replacedMessage.AddText(split[i]);
+                        if (i + 1 < split.Length)
+                            replacedMessage.Add(new RawPayload([0x02, (byte)Lumina.Text.Payloads.PayloadType.Indent, 0x01, 0x03]));
+                    }
+                }
+                else
+                {
+                    replacedMessage.Add(payload);
+                }
+            }
 
             var sender = Utf8String.FromSequence(chat.Name.Encode());
-            var message = Utf8String.FromSequence(chat.Message.Encode());
+            var message = Utf8String.FromSequence(replacedMessage.BuiltString.Encode());
 
             this.HandlePrintMessageDetour(RaptureLogModule.Instance(), chat.Type, sender, message, (int)chat.SenderId, (byte)(chat.Parameters != 0 ? 1 : 0));
 
@@ -193,7 +214,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         lock (this.dalamudLinkHandlers)
         {
             var changed = false;
-            
+
             foreach (var handler in this.RegisteredLinkHandlers.Keys.Where(k => k.PluginName == pluginName))
                 changed |= this.dalamudLinkHandlers.Remove(handler);
             if (changed)
@@ -230,18 +251,18 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 builder.AddText($"[{tag}] ");
             }
         }
-        
+
         this.Print(new XivChatEntry
         {
             Message = builder.AddText(message).Build(),
             Type = channel,
         });
     }
-    
+
     private void PrintTagged(SeString message, XivChatType channel, string? tag, ushort? color)
     {
         var builder = new SeStringBuilder();
-        
+
         if (!tag.IsNullOrEmpty())
         {
             if (color is not null)
@@ -253,7 +274,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 builder.AddText($"[{tag}] ");
             }
         }
-        
+
         this.Print(new XivChatEntry
         {
             Message = builder.Build().Append(message),
@@ -424,16 +445,16 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
         this.chatGuiService.ChatMessageHandled += this.OnMessageHandledForward;
         this.chatGuiService.ChatMessageUnhandled += this.OnMessageUnhandledForward;
     }
-    
+
     /// <inheritdoc/>
     public event IChatGui.OnMessageDelegate? ChatMessage;
-    
+
     /// <inheritdoc/>
     public event IChatGui.OnCheckMessageHandledDelegate? CheckMessageHandled;
-    
+
     /// <inheritdoc/>
     public event IChatGui.OnMessageHandledDelegate? ChatMessageHandled;
-    
+
     /// <inheritdoc/>
     public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
 
@@ -459,23 +480,23 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
         this.ChatMessageHandled = null;
         this.ChatMessageUnhandled = null;
     }
-    
+
     /// <inheritdoc/>
     public void Print(XivChatEntry chat)
         => this.chatGuiService.Print(chat);
-    
+
     /// <inheritdoc/>
-    public void Print(string message, string? messageTag = null, ushort? tagColor = null) 
+    public void Print(string message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.Print(message, messageTag, tagColor);
 
     /// <inheritdoc/>
     public void Print(SeString message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.Print(message, messageTag, tagColor);
-    
+
     /// <inheritdoc/>
     public void PrintError(string message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.PrintError(message, messageTag, tagColor);
-    
+
     /// <inheritdoc/>
     public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.PrintError(message, messageTag, tagColor);

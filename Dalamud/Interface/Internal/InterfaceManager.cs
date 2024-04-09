@@ -54,7 +54,7 @@ namespace Dalamud.Interface.Internal;
 /// <summary>
 /// This class manages interaction with the ImGui interface.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class InterfaceManager : IInternalDisposableService
 {
     /// <summary>
