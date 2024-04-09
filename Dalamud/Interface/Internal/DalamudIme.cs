@@ -14,6 +14,7 @@ using System.Text.Unicode;
 using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -82,7 +83,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
     private readonly ImGuiSetPlatformImeDataDelegate setPlatformImeDataDelegate;
 
     /// <summary>The candidates.</summary>
-    private readonly List<string> candidateStrings = new();
+    private readonly List<(string String, bool Supported)> candidateStrings = new();
 
     /// <summary>The selected imm component.</summary>
     private string compositionString = string.Empty;
@@ -242,6 +243,42 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         }
     }
 
+    private static (string String, bool Supported) ToUcs2(char* data, int nc = -1)
+    {
+        if (nc == -1)
+        {
+            nc = 0;
+            while (data[nc] != 0)
+                nc++;
+        }
+
+        var supported = true;
+        var sb = new StringBuilder();
+        sb.EnsureCapacity(nc);
+        for (var i = 0; i < nc; i++)
+        {
+            if (char.IsHighSurrogate(data[i]) && i + 1 < nc && char.IsLowSurrogate(data[i + 1]))
+            {
+                // Surrogate pair is found, but only UCS-2 characters are supported. Skip the next low surrogate.
+                sb.Append('\xFFFD');
+                supported = false;
+                i++;
+            }
+            else if (char.IsSurrogate(data[i]) || !Rune.IsValid(data[i]))
+            {
+                // Lone surrogate pair, or an invalid codepoint.
+                sb.Append('\xFFFD');
+                supported = false;
+            }
+            else
+            {
+                sb.Append(data[i]);
+            }
+        }
+
+        return (sb.ToString(), supported);
+    }
+
     private static string ImmGetCompositionString(HIMC hImc, uint comp)
     {
         var numBytes = ImmGetCompositionStringW(hImc, comp, null, 0);
@@ -250,7 +287,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         var data = stackalloc char[numBytes / 2];
         _ = ImmGetCompositionStringW(hImc, comp, data, (uint)numBytes);
-        return new(data, 0, numBytes / 2);
+
+        return ToUcs2(data, numBytes / 2).String;
     }
 
     private void ReleaseUnmanagedResources()
@@ -623,8 +661,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                      (int)candlist.dwPageStart,
                      (int)Math.Min(candlist.dwCount - candlist.dwPageStart, candlist.dwPageSize)))
         {
-            this.candidateStrings.Add(new((char*)(pStorage + candlist.dwOffset[i])));
-            this.ReflectCharacterEncounters(this.candidateStrings[^1]);
+            this.candidateStrings.Add(ToUcs2((char*)(pStorage + candlist.dwOffset[i])));
+            this.ReflectCharacterEncounters(this.candidateStrings[^1].String);
         }
     }
 
@@ -783,7 +821,15 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 if (selected)
                     color = ImGui.GetColorU32(ImGuiCol.NavHighlight);
 
-                drawList.AddText(cursor, color, $"{i + 1}. {ime.candidateStrings[i]}");
+                var s = $"{i + 1}. {ime.candidateStrings[i].String}";
+                drawList.AddText(cursor, color, s);
+                if (!ime.candidateStrings[i].Supported)
+                {
+                    var pos = cursor + ImGui.CalcTextSize(s) with { Y = 0 } +
+                              new Vector2(4 * ImGuiHelpers.GlobalScale, 0);
+                    drawList.AddText(pos, ImGui.GetColorU32(ImGuiColors.DalamudRed), " (x)");
+                }
+
                 cursor.Y += candTextSize.Y + spaceY;
             }
 
