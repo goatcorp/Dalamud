@@ -48,6 +48,11 @@ public interface IClientState
     /// Gets the current Territory the player resides in.
     /// </summary>
     public ushort TerritoryType { get; }
+    
+    /// <summary>
+    /// Gets the current Map the player resides in.
+    /// </summary>
+    public uint MapId { get; }
 
     /// <summary>
     /// Gets the local player character, if one is present.
