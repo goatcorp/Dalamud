@@ -26,7 +26,7 @@ namespace Dalamud.Game;
 /// <summary>
 /// Chat events and public helper functions.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class ChatHandlers : IServiceType
 {
     // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()

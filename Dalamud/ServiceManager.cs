@@ -638,10 +638,15 @@ internal static class ServiceManager
         /// <summary>
         /// Initializes a new instance of the <see cref="BlockingEarlyLoadedServiceAttribute"/> class.
         /// </summary>
-        public BlockingEarlyLoadedServiceAttribute()
+        /// <param name="blockReason">Reason of blocking the game startup.</param>
+        public BlockingEarlyLoadedServiceAttribute(string blockReason)
             : base(ServiceKind.BlockingEarlyLoadedService)
         {
+            this.BlockReason = blockReason;
         }
+
+        /// <summary>Gets the reason of blocking the startup of the game.</summary>
+        public string BlockReason { get; }
     }
 
     /// <summary>

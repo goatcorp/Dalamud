@@ -20,7 +20,7 @@ namespace Dalamud.Data;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IDataManager>]
 #pragma warning restore SA1015

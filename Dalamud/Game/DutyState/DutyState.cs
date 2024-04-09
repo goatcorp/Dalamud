@@ -12,7 +12,7 @@ namespace Dalamud.Game.DutyState;
 /// This class represents the state of the currently occupied duty.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal unsafe class DutyState : IInternalDisposableService, IDutyState
 {
     private readonly DutyStateAddressResolver address;
