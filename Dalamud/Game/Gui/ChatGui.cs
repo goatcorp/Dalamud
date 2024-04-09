@@ -155,22 +155,25 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         {
             var chat = this.chatQueue.Dequeue();
 
-            var replacedMessage = new SeStringBuilder();
-            foreach (var payload in chat.Message.Payloads)
+            // Normalize Unicode NBSP to the built-in one, as the former won't render
             {
-                if (payload is TextPayload { Text: not null } textPayload)
+                var replacedMessage = new SeStringBuilder();
+                foreach (var payload in chat.Message.Payloads)
                 {
-                    var split = textPayload.Text.Split("\u202f"); // french NBSP
-                    for (var i = 0; i < split.Length; i++)
+                    if (payload is TextPayload { Text: not null } textPayload)
                     {
-                        replacedMessage.AddText(split[i]);
-                        if (i + 1 < split.Length)
-                            replacedMessage.Add(new RawPayload([0x02, (byte)Lumina.Text.Payloads.PayloadType.Indent, 0x01, 0x03]));
+                        var split = textPayload.Text.Split("\u202f"); // NARROW NO-BREAK SPACE
+                        for (var i = 0; i < split.Length; i++)
+                        {
+                            replacedMessage.AddText(split[i]);
+                            if (i + 1 < split.Length)
+                                replacedMessage.Add(new RawPayload([0x02, (byte)Lumina.Text.Payloads.PayloadType.Indent, 0x01, 0x03]));
+                        }
                     }
-                }
-                else
-                {
-                    replacedMessage.Add(payload);
+                    else
+                    {
+                        replacedMessage.Add(payload);
+                    }
                 }
             }
 
