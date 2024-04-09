@@ -129,7 +129,7 @@ public sealed class DalamudPluginInterface : IDisposable
     public string InternalName => this.plugin.InternalName;
 
     /// <summary>
-    /// Gets the plugin manifest to expose values like author and version without plugins having to look up there own assembly.
+    /// Gets the plugin's manifest.
     /// </summary>
     public IPluginManifest Manifest => this.plugin.Manifest;
 
