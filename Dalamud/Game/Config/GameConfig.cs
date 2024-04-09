@@ -14,7 +14,7 @@ namespace Dalamud.Game.Config;
 /// This class represents the game's configuration.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 {
     private readonly TaskCompletionSource tcsInitialization = new();

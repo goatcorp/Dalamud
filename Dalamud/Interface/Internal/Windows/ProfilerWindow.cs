@@ -25,7 +25,7 @@ public class ProfilerWindow : Window
     /// Initializes a new instance of the <see cref="ProfilerWindow"/> class.
     /// </summary>
     public ProfilerWindow()
-        : base("Profiler", forceMainWindow: true)
+        : base("Profiler")
     {
     }
 

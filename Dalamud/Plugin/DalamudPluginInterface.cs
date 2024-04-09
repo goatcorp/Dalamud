@@ -129,6 +129,11 @@ public sealed class DalamudPluginInterface : IDisposable
     public string InternalName => this.plugin.InternalName;
 
     /// <summary>
+    /// Gets the plugin's manifest.
+    /// </summary>
+    public IPluginManifest Manifest => this.plugin.Manifest;
+
+    /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
     /// </summary>
     public bool IsDev => this.plugin.IsDev;

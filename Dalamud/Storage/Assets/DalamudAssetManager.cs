@@ -23,7 +23,8 @@ namespace Dalamud.Storage.Assets;
 /// A concrete class for <see cref="IDalamudAssetManager"/>.
 /// </summary>
 [PluginInterface]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService(
+    "Ensuring that it is worth continuing loading Dalamud, by checking if all required assets are properly available.")]
 #pragma warning disable SA1015
 [ResolveVia<IDalamudAssetManager>]
 #pragma warning restore SA1015

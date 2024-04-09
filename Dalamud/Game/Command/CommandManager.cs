@@ -18,7 +18,7 @@ namespace Dalamud.Game.Command;
 /// This class manages registered in-game slash commands.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class CommandManager : IInternalDisposableService, ICommandManager
 {
     private static readonly ModuleLog Log = new("Command");

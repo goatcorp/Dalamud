@@ -18,7 +18,7 @@ namespace Dalamud.Game.Inventory;
 /// This class provides events for the players in-game inventory.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class GameInventory : IInternalDisposableService
 {
     private readonly List<GameInventoryPluginScoped> subscribersPendingChange = new();

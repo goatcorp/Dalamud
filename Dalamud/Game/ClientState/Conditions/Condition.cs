@@ -9,8 +9,8 @@ namespace Dalamud.Game.ClientState.Conditions;
 /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed partial class Condition : IInternalDisposableService, ICondition
+[ServiceManager.EarlyLoadedService]
+internal sealed class Condition : IInternalDisposableService, ICondition
 {
     /// <summary>
     /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
