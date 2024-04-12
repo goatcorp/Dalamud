@@ -270,7 +270,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         {
             if (!item.Prefix.HasValue && !item.UseDefaultPrefix)
             {
-                item.PrefixChar = MenuItem.DalamudDefaultPrefix.ToIconChar();
+                item.Prefix = MenuItem.DalamudDefaultPrefix;
                 item.PrefixColor = MenuItem.DalamudDefaultPrefixColor;
                 Log.Warning($"Menu item \"{item.Name}\" has no prefix, defaulting to Dalamud's. Menu items outside of a submenu must have a prefix.");
             }
