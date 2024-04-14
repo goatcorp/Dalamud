@@ -690,8 +690,8 @@ internal class InterfaceManager : IInternalDisposableService
             if (this.dalamudAtlas.BuildTask.Exception != null)
             {
                 // TODO: Can we do something more user-friendly here? Unload instead?
-                Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
                 Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
+                Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
             }
 
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
