@@ -18,6 +18,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     private int selectedIconCategory;
     private string iconSearchInput = string.Empty;
     private bool iconSearchChanged = true;
+    private bool useFixedWidth = false;
     
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "fa", "fatest", "fontawesome" };
@@ -80,6 +81,8 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
         {
             this.iconSearchChanged = true;
         }
+        
+        ImGui.Checkbox("Use fixed width font", ref this.useFixedWidth);
 
         ImGuiHelpers.ScaledDummy(10f);
         for (var i = 0; i < this.icons?.Count; i++)
@@ -88,7 +91,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
             ImGuiHelpers.ScaledRelativeSameLine(50f);
             ImGui.Text($"{this.iconNames?[i]}");
             ImGuiHelpers.ScaledRelativeSameLine(280f);
-            ImGui.PushFont(UiBuilder.IconFont);
+            ImGui.PushFont(this.useFixedWidth ? InterfaceManager.IconFontFixedWidth : InterfaceManager.IconFont);
             ImGui.Text(this.icons[i].ToIconString());
             ImGui.PopFont();
             ImGuiHelpers.ScaledDummy(2f);
