@@ -344,7 +344,10 @@ public static class Util
         _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
 
         if (exit)
+        {
+            Log.CloseAndFlush();
             Environment.Exit(-1);
+        }
     }
 
     /// <summary>
