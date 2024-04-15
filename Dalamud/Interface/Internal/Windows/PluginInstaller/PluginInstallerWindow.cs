@@ -2183,17 +2183,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGuiHelpers.ScaledDummy(10);
             ImGui.SameLine();
 
-            this.DrawVisitRepoUrlButton(manifest.RepoUrl, true);
+            if (this.DrawVisitRepoUrlButton(manifest.RepoUrl, true))
+            {
+                ImGui.SameLine();
+                ImGuiHelpers.ScaledDummy(3);
+            }
             
-            ImGui.SameLine();
-            ImGuiHelpers.ScaledDummy(3);
-            ImGui.SameLine();
-
             if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback)
             {
+                ImGui.SameLine();
                 this.DrawSendFeedbackButton(manifest, false, true);
             }
-
+            
             ImGuiHelpers.ScaledDummy(5);
 
             if (this.DrawPluginImages(null, manifest, isThirdParty, index))
@@ -2485,11 +2486,15 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (canFeedback)
             {
+                ImGui.SameLine();
                 this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting, false);
             }
 
             if (availablePluginUpdate != default && !plugin.IsDev)
+            {
+                ImGui.SameLine();
                 this.DrawUpdateSinglePluginButton(availablePluginUpdate);
+            }
 
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.EffectiveVersion}");
@@ -2501,7 +2506,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             ImGui.Unindent();
 
-            if (!applicableChangelog.IsNullOrWhitespace())
+            if (hasChangelog)
             {
                 if (ImGui.TreeNode(Locs.PluginBody_CurrentChangeLog(plugin.EffectiveVersion)))
                 {
@@ -2891,8 +2896,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawUpdateSinglePluginButton(AvailablePluginUpdate update)
     {
-        ImGui.SameLine();
-
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
         {
             Task.Run(() => this.UpdateSinglePlugin(update));
@@ -2962,8 +2965,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawSendFeedbackButton(IPluginManifest manifest, bool isTesting, bool big)
     {
-        ImGui.SameLine();
-
         var clicked = big ? 
                           ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Comment, Locs.FeedbackModal_Title) :
                           ImGuiComponents.IconButton(FontAwesomeIcon.Comment);
@@ -3208,7 +3209,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawVisitRepoUrlButton(string? repoUrl, bool big)
+    private bool DrawVisitRepoUrlButton(string? repoUrl, bool big)
     {
         if (!string.IsNullOrEmpty(repoUrl) && repoUrl.StartsWith("https://"))
         {
@@ -3235,7 +3236,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_VisitPluginUrl);
+
+            return true;
         }
+
+        return false;
     }
 
     private bool DrawPluginImages(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, int index)
