@@ -747,7 +747,6 @@ internal class InterfaceManager : IInternalDisposableService
             .CreateFontAtlas(nameof(InterfaceManager), FontAtlasAutoRebuildMode.Disable);
         using (this.dalamudAtlas.SuppressAutoRebuild())
         {
-            var defaultSizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx;
             this.DefaultFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(-1)));
             this.IconFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
@@ -755,7 +754,7 @@ internal class InterfaceManager : IInternalDisposableService
                     tk => tk.AddFontAwesomeIconFont(
                         new()
                         {
-                            SizePx = defaultSizePx,
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
                             GlyphMinAdvanceX = DefaultFontSizePx,
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
@@ -764,7 +763,7 @@ internal class InterfaceManager : IInternalDisposableService
                     DalamudAsset.FontAwesomeFreeSolid,
                     new()
                     {
-                        SizePx = defaultSizePx,
+                        SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
                         GlyphRanges = new ushort[] { 0x20, 0x20, 0x00 },
                     })));
             this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
@@ -773,7 +772,7 @@ internal class InterfaceManager : IInternalDisposableService
                         DalamudAsset.InconsolataRegular,
                         new()
                         {
-                            SizePx = defaultSizePx,
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
                         })));
             this.dalamudAtlas.BuildStepChange += e => e.OnPostBuild(
                 tk =>
