@@ -43,6 +43,7 @@ internal static class ServiceManager
 #endif
 
     private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource = new();
+    private static readonly CancellationTokenSource UnloadCancellationTokenSource = new();
 
     private static ManualResetEvent unloadResetEvent = new(false);
 
@@ -107,6 +108,12 @@ internal static class ServiceManager
     /// Gets task that gets completed when all blocking early loading services are done loading.
     /// </summary>
     public static Task BlockingResolved { get; } = BlockingServicesLoadedTaskCompletionSource.Task;
+    
+    /// <summary>
+    /// Gets a cancellation token that will be cancelled once Dalamud needs to unload, be it due to a failure state
+    /// during initialization or during regular operation.
+    /// </summary>
+    public static CancellationToken UnloadCancellationToken => UnloadCancellationTokenSource.Token;
 
     /// <summary>
     /// Initializes Provided Services and FFXIVClientStructs.
@@ -374,6 +381,8 @@ internal static class ServiceManager
         }
         catch (Exception e)
         {
+            UnloadCancellationTokenSource.Cancel();
+
             Log.Error(e, "Failed resolving services");
             try
             {
@@ -401,6 +410,8 @@ internal static class ServiceManager
     /// </summary>
     public static void UnloadAllServices()
     {
+        UnloadCancellationTokenSource.Cancel();
+        
         var framework = Service<Framework>.GetNullable(Service<Framework>.ExceptionPropagationMode.None);
         if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
         {
