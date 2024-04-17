@@ -3,7 +3,7 @@
 	url = https://github.com/goatcorp/ImGuiScene
 [submodule "lib/FFXIVClientStructs"]
 	path = lib/FFXIVClientStructs
-	url = https://github.com/aers/FFXIVClientStructs.git
+	url = https://github.com/aers/FFXIVClientStructs
 [submodule "lib/Nomade040-nmd"]
 	path = lib/Nomade040-nmd
 	url = https://github.com/Nomade040/nmd.git
