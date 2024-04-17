@@ -9,12 +9,12 @@
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
-HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
+HRESULT WINAPI InitializeImpl(char* pLoadInfo, HANDLE hMainThread) {
     g_startInfo.from_envvars();
     
     std::string jsonParseError;
     try {
-        from_json(nlohmann::json::parse(std::string_view(static_cast<char*>(lpParam))), g_startInfo);
+        from_json(nlohmann::json::parse(std::string_view(pLoadInfo)), g_startInfo);
     } catch (const std::exception& e) {
         jsonParseError = e.what();
     }
@@ -153,14 +153,20 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     // utils::wait_for_game_window();
 
     logging::I("Initializing Dalamud...");
-    entrypoint_fn(lpParam, hMainThreadContinue);
+    entrypoint_fn(pLoadInfo, hMainThread);
     logging::I("Done!");
 
     return S_OK;
 }
 
+struct InitializeParams {
+    char* pLoadInfo;
+    HANDLE hMainThread;
+};
+
 extern "C" DWORD WINAPI Initialize(LPVOID lpParam) {
-    return InitializeImpl(lpParam, CreateEvent(nullptr, TRUE, FALSE, nullptr));
+    InitializeParams* params = static_cast<InitializeParams*>(lpParam);
+    return InitializeImpl(params->pLoadInfo, params->hMainThread);
 }
 
 BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpReserved) {
