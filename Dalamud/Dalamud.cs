@@ -68,10 +68,16 @@ internal sealed class Dalamud : IServiceType
         
         // Set up FFXIVClientStructs
         this.SetupClientStructsResolver(cacheDir);
+        
+        void KickoffGameThread()
+        {
+            Log.Verbose("=============== GAME THREAD KICKOFF ===============");
+            Timings.Event("Game thread kickoff");
+            NativeFunctions.SetEvent(mainThreadContinueEvent);
+        }
 
         if (!configuration.IsResumeGameAfterPluginLoad)
         {
-            NativeFunctions.SetEvent(mainThreadContinueEvent);
             ServiceManager.InitializeEarlyLoadableServices()
                           .ContinueWith(t =>
                           {
@@ -83,6 +89,8 @@ internal sealed class Dalamud : IServiceType
                                   "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
                                   "Dalamud", false);
                           });
+
+            ServiceManager.BlockingResolved.ContinueWith(_ => KickoffGameThread());
         }
         else
         {
@@ -101,7 +109,7 @@ internal sealed class Dalamud : IServiceType
                     if (faultedTasks.Any())
                         throw new AggregateException(faultedTasks);
 
-                    NativeFunctions.SetEvent(mainThreadContinueEvent);
+                    KickoffGameThread();
 
                     await Task.WhenAll(tasks);
                 }
@@ -112,7 +120,7 @@ internal sealed class Dalamud : IServiceType
                 }
                 finally
                 {
-                    NativeFunctions.SetEvent(mainThreadContinueEvent);
+                    KickoffGameThread();
                 }
             });
         }
