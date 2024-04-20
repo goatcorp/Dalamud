@@ -19,7 +19,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
-using Dalamud.Service;
+
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;

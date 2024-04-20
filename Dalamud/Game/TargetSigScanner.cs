@@ -3,7 +3,6 @@ using System.IO;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Service;
 
 namespace Dalamud.Game;
 

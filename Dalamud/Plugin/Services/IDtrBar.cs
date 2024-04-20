@@ -1,6 +1,4 @@
-﻿using System;
-
-using Dalamud.Game.Gui.Dtr;
+﻿using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Plugin.Services;

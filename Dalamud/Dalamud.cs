@@ -10,7 +10,6 @@ using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Plugin.Internal;
-using Dalamud.Service;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;

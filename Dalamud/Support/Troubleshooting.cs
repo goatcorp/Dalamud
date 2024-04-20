@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +7,6 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
-using Dalamud.Service;
 using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;

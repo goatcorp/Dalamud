@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Threading.Tasks;
 
 using Dalamud.Game.Config;
 using Dalamud.Plugin.Internal.Types;

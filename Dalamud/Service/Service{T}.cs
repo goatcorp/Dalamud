@@ -11,7 +11,7 @@ using Dalamud.Utility.Timing;
 
 using JetBrains.Annotations;
 
-namespace Dalamud.Service;
+namespace Dalamud;
 
 /// <summary>
 /// Basic service locator.

@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
-using Dalamud.Service;
 
 using TerraFX.Interop.Windows;
 

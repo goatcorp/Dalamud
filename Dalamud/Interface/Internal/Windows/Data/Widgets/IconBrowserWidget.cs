@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Numerics;
 
 using Dalamud.Data;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
-using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 

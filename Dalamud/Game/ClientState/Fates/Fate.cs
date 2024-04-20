@@ -1,11 +1,9 @@
-using System;
 using System.Numerics;
 
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using Dalamud.Service;
 
 namespace Dalamud.Game.ClientState.Fates;
 

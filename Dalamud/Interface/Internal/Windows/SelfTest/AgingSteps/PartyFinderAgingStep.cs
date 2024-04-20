@@ -1,6 +1,5 @@
 using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Gui.PartyFinder.Types;
-using Dalamud.Service;
 
 using ImGuiNET;
 

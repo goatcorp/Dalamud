@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -12,7 +11,6 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;

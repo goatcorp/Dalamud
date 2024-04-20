@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -14,7 +13,6 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;

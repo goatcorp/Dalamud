@@ -2,11 +2,9 @@
 
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Service;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
-using Lumina;
 using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Utility;

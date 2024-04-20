@@ -5,11 +5,10 @@ using System.Threading;
 using System.Windows.Forms;
 
 using Dalamud.Utility;
-using Serilog;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-namespace Dalamud.Service;
+namespace Dalamud;
 
 /// <summary>
 /// Class providing an early-loading dialog.

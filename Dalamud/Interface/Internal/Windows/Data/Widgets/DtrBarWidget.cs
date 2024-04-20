@@ -1,6 +1,5 @@
 ﻿using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui.Dtr;
-using Dalamud.Service;
 
 using ImGuiNET;
 

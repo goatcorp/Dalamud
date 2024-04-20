@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Serilog;

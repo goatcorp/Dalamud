@@ -11,7 +11,6 @@ using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
-using Dalamud.Service;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using Serilog;

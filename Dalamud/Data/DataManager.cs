@@ -5,7 +5,6 @@ using System.Threading;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using Lumina;

@@ -1,7 +1,6 @@
 ﻿using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.JobGauge.Types;
-using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 

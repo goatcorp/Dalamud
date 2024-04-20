@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,8 +6,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
 using Iced.Intel;
 using Newtonsoft.Json;
 using Serilog;

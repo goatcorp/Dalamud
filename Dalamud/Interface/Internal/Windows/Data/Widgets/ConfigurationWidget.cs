@@ -1,5 +1,4 @@
 ﻿using Dalamud.Configuration.Internal;
-using Dalamud.Service;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

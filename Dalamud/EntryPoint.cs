@@ -10,7 +10,6 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
 using Dalamud.Plugin.Internal;
-using Dalamud.Service;
 using Dalamud.Storage;
 using Dalamud.Support;
 using Dalamud.Utility;

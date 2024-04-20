@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Game.ClientState.Objects.Enums;
 
 /// <summary>

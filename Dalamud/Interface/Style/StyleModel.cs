@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
-using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 using Newtonsoft.Json;

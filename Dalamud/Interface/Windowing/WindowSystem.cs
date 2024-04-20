@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
-using Dalamud.Service;
 
 using ImGuiNET;
 using Serilog;

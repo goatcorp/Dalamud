@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 
 using Dalamud.Game.Gui.FlyText;
-using Dalamud.Service;
 
 using ImGuiNET;
 

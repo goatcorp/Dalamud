@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.Config;
-using Dalamud.Service;
 
 using ImGuiNET;
 

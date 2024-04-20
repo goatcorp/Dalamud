@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
@@ -8,7 +7,6 @@ using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
-using Dalamud.Service;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;

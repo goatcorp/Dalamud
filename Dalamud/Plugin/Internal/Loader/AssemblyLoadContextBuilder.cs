@@ -1,7 +1,6 @@
 // Copyright (c) Nate McMaster, Dalamud contributors.
 // Licensed under the Apache License, Version 2.0. See License.txt in the Loader root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;

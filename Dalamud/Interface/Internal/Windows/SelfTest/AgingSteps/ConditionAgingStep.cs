@@ -1,5 +1,4 @@
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Service;
 
 using ImGuiNET;
 using Serilog;

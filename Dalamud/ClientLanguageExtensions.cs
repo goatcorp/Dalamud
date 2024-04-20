@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Utility;
 
 namespace Dalamud;

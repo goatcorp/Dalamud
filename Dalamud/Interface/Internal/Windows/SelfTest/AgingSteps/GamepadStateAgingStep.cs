@@ -1,5 +1,4 @@
 using Dalamud.Game.ClientState.GamePad;
-using Dalamud.Service;
 
 using ImGuiNET;
 

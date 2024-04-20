@@ -7,7 +7,6 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 
 using Serilog;
 

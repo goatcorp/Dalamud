@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Aetherytes;
-using Dalamud.Service;
 
 using ImGuiNET;
 

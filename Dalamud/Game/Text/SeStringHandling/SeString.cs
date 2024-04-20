@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +5,6 @@ using System.Text;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Service;
 using Dalamud.Utility;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;

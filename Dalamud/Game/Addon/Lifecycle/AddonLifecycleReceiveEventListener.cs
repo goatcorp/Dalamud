@@ -4,7 +4,6 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
-using Dalamud.Service;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 

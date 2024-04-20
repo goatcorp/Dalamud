@@ -1,5 +1,4 @@
 using Dalamud.Plugin.Ipc.Exceptions;
-using Dalamud.Service;
 
 namespace Dalamud.Plugin.Ipc.Internal;
 

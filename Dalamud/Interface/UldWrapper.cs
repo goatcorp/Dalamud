@@ -4,7 +4,6 @@ using System.Linq;
 
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
-using Dalamud.Service;
 using Dalamud.Utility;
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Uld;

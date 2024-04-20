@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,8 +6,6 @@ using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Logging;
-using Dalamud.Plugin.Services;
-using Dalamud.Service;
 using Dalamud.Utility.Signatures.Wrappers;
 using Serilog;
 

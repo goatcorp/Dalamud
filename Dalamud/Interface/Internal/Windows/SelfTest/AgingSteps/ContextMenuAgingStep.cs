@@ -7,7 +7,6 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel;

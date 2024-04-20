@@ -2,7 +2,6 @@
 using System.Text;
 
 using Dalamud.Logging.Internal;
-using Dalamud.Service;
 using Dalamud.Utility;
 using SQLite;
 

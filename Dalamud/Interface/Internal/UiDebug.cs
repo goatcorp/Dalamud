@@ -1,13 +1,9 @@
-using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
-using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Utility;
 using Dalamud.Memory;
-using Dalamud.Service;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;

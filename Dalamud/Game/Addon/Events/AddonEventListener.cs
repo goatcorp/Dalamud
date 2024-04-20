@@ -1,7 +1,5 @@
 using System.Runtime.InteropServices;
 
-using Dalamud.Service;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Events;

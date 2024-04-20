@@ -9,7 +9,6 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 using Dalamud.Utility;
 
 using Microsoft.Extensions.ObjectPool;

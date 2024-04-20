@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 
 namespace Dalamud.Logging.Internal;
 

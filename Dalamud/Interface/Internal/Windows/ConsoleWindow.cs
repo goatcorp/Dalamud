@@ -21,7 +21,6 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 using Dalamud.Utility;
 
 using ImGuiNET;

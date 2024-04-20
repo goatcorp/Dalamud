@@ -23,7 +23,6 @@ using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
-using Dalamud.Service;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 

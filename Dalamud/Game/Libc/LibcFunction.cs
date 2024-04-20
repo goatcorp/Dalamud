@@ -1,11 +1,9 @@
-using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 
 namespace Dalamud.Game.Libc;
 

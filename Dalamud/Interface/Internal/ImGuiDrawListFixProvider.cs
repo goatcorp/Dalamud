@@ -3,7 +3,6 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Hooking;
-using Dalamud.Service;
 
 using ImGuiNET;
 

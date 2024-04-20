@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -6,7 +5,6 @@ using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 
 using Serilog;
 

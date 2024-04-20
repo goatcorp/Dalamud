@@ -3,7 +3,6 @@ using System.Numerics;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
-using Dalamud.Service;
 using Dalamud.Utility;
 
 using ImGuiNET;

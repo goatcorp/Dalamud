@@ -11,7 +11,6 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 
 namespace Dalamud.Game.Command;
 

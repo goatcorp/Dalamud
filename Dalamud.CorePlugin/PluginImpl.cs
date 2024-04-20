@@ -2,12 +2,10 @@ using System;
 using System.IO;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using Dalamud.Service;
 using Dalamud.Utility;
 using Serilog;
 

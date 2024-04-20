@@ -1,6 +1,5 @@
 using System.Threading;
 
-using Dalamud.Service;
 using Dalamud.Utility;
 
 using TerraFX.Interop.Windows;

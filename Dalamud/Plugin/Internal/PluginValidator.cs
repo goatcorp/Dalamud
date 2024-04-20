@@ -3,7 +3,6 @@ using System.Linq;
 
 using Dalamud.Game.Command;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Service;
 
 namespace Dalamud.Plugin.Internal;
 

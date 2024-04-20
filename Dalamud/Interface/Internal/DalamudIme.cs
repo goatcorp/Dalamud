@@ -11,7 +11,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 
-using Dalamud.Game;
 using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.Colors;
@@ -19,7 +18,6 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
-using Dalamud.Service;
 
 using ImGuiNET;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects;
@@ -7,7 +6,6 @@ using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using Dalamud.Service;
 
 namespace Dalamud.Game.ClientState.Party;
 

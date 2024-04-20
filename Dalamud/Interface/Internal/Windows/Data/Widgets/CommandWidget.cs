@@ -2,7 +2,6 @@
 
 using Dalamud.Game.Command;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Service;
 
 using ImGuiNET;
 

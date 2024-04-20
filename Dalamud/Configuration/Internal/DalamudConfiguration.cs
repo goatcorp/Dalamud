@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -12,7 +11,6 @@ using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Profiles;
-using Dalamud.Service;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Newtonsoft.Json;

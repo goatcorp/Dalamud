@@ -10,7 +10,6 @@ using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Networking.Http;
-using Dalamud.Service;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 

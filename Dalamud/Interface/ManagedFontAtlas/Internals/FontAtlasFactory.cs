@@ -11,7 +11,6 @@ using Dalamud.Game;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
-using Dalamud.Service;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 

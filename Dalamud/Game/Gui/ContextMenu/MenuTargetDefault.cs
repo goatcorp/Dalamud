@@ -2,7 +2,6 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Network.Structures.InfoProxy;
-using Dalamud.Service;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
