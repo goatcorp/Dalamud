@@ -190,6 +190,9 @@ public class ProfilerWindow : Window
 
             uint eventTextDepth = maxRectDept + 2;
 
+            var eventsXPos = new List<float>();
+            const float eventsXPosFudge = 5f;
+            
             foreach (var timingEvent in Timings.Events)
             {
                 var startX = (timingEvent.StartTime - this.min) / (this.max - this.min) * width;
@@ -214,11 +217,19 @@ public class ProfilerWindow : Window
                 {
                     textPos.X = pos.X + (uint)startX - textSize.X - padding;
                 }
+                
+                var numClashes = eventsXPos.Count(x => Math.Abs(x - textPos.X) < textSize.X + eventsXPosFudge);
+                if (numClashes > 0)
+                {
+                    textPos.Y -= numClashes * textSize.Y;
+                }
 
                 ImGui.GetWindowDrawList().AddText(
                     textPos,
                     ImGui.GetColorU32(ImGuiColors.DalamudWhite),
                     timingEvent.Name);
+                
+                eventsXPos.Add(textPos.X);
             }
         }
 
