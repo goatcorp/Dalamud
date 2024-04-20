@@ -74,6 +74,9 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     }
 
     /// <inheritdoc/>
+    public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.entries;
+    
+    /// <inheritdoc/>
     public DtrBarEntry Get(string title, SeString? text = null)
     {
         if (this.entries.Any(x => x.Title == title) || this.newEntries.Any(x => x.Title == title))
@@ -499,6 +502,9 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
 
     private readonly Dictionary<string, DtrBarEntry> pluginEntries = new();
+    
+    /// <inheritdoc/>
+    public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.dtrBarService.Entries;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -510,7 +516,7 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
         
         this.pluginEntries.Clear();
     }
-    
+
     /// <inheritdoc/>
     public DtrBarEntry Get(string title, SeString? text = null)
     {
