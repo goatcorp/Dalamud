@@ -34,8 +34,8 @@ internal sealed class Dalamud : IServiceType
 {
     #region Internals
 
+    private static int shownServiceError = 0;
     private readonly ManualResetEvent unloadSignal;
-    static int shownServiceError = 0;
     
     #endregion
 

@@ -283,12 +283,8 @@ internal static class ServiceManager
                 while (await Task.WhenAny(aggregatedTask, Task.Delay(loadingDialogTimeout)) != aggregatedTask)
                 {
                     loadingDialog.Show();
-                    loadingDialog.CanCancel = true;
+                    loadingDialog.CanHide = true;
                     loadingDialog.CurrentState = state;
-                    loadingDialog.Cancelled += (_, _) =>
-                    {
-                        BlockingServicesLoadedTaskCompletionSource.SetException(new Exception("User cancelled loading"));
-                    };
                 }
             }
         }).ConfigureAwait(false);

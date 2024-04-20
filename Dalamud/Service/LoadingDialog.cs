@@ -16,17 +16,13 @@ namespace Dalamud.Service;
 /// </summary>
 internal class LoadingDialog
 {
-    private Thread? thread;
-    private TaskDialogButton? inProgressCloseButton;
-    private TaskDialogPage? page;
-    private bool canCancel;
-    private bool isDismissed;
-    private State currentState = State.LoadingDalamud;
+    private static int wasGloballyHidden = 0;
     
-    /// <summary>
-    /// Event fired when the dialog is cancelled by the user.
-    /// </summary>
-    public event EventHandler? Cancelled;
+    private Thread? thread;
+    private TaskDialogButton? inProgressHideButton;
+    private TaskDialogPage? page;
+    private bool canHide;
+    private State currentState = State.LoadingDalamud;
     
     /// <summary>
     /// Enum representing the state of the dialog.
@@ -63,15 +59,15 @@ internal class LoadingDialog
     }
     
     /// <summary>
-    /// Gets or sets a value indicating whether or not the dialog can be cancelled.
+    /// Gets or sets a value indicating whether or not the dialog can be hidden by the user.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if called before the dialog has been created.</exception>
-    public bool CanCancel
+    public bool CanHide
     {
-        get => this.canCancel;
+        get => this.canHide;
         set
         {
-            this.canCancel = value;
+            this.canHide = value;
             this.UpdatePage();
         }
     }
@@ -81,6 +77,9 @@ internal class LoadingDialog
     /// </summary>
     public void Show()
     {
+        if (Volatile.Read(ref wasGloballyHidden) == 1)
+            return;
+        
         if (this.thread?.IsAlive == true)
             return;
         
@@ -100,9 +99,7 @@ internal class LoadingDialog
         if (this.thread == null || this.thread.IsAlive == false)
             return;
         
-        Log.Information("HideAndJoin called");
-        this.isDismissed = true;
-        this.inProgressCloseButton?.PerformClick();
+        this.inProgressHideButton?.PerformClick();
         this.thread!.Join();
     }
 
@@ -127,15 +124,14 @@ internal class LoadingDialog
             _ => throw new ArgumentOutOfRangeException(),
         };
 
-        this.inProgressCloseButton!.Enabled = this.canCancel;
+        this.inProgressHideButton!.Enabled = this.canHide;
     }
 
     private void ThreadStart()
     {
         Application.EnableVisualStyles();
 
-        this.inProgressCloseButton = TaskDialogButton.Cancel;
-        this.inProgressCloseButton.Enabled = this.canCancel;
+        this.inProgressHideButton = new TaskDialogButton("Hide", this.canHide);
 
         // We don't have access to the asset service here.
         var workingDirectory = Service<Dalamud>.Get().StartInfo.WorkingDirectory;
@@ -155,7 +151,7 @@ internal class LoadingDialog
             ProgressBar = new TaskDialogProgressBar(TaskDialogProgressBarState.Marquee),
             Caption = "Dalamud",
             Icon = dialogIcon,
-            Buttons = { this.inProgressCloseButton },
+            Buttons = { this.inProgressHideButton },
             AllowMinimize = false,
             AllowCancel = false,
         };
@@ -171,7 +167,7 @@ internal class LoadingDialog
 
         var taskDialog = (TaskDialog)ctor!.Invoke(Array.Empty<object>())!;
 
-        this.page.Created += (sender, args) =>
+        this.page.Created += (_, _) =>
         {
             // Bring to front
             var hwnd = new HWND(taskDialog.Handle);
@@ -193,13 +189,10 @@ internal class LoadingDialog
             [typeof(IntPtr), typeof(TaskDialogPage), typeof(TaskDialogStartupLocation)],
             null);
 
-        var result = showDialogInternal!.Invoke(
+        showDialogInternal!.Invoke(
             taskDialog,
             [IntPtr.Zero, this.page, TaskDialogStartupLocation.CenterScreen]);
-
-        if ((TaskDialogButton)result == this.inProgressCloseButton && !this.isDismissed)
-        {
-            this.Cancelled?.Invoke(this, EventArgs.Empty);
-        }
+        
+        Interlocked.Exchange(ref wasGloballyHidden, 1);
     }
 }
