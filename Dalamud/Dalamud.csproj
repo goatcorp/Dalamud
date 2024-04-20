@@ -70,7 +70,7 @@
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
         <PackageReference Include="Lumina" Version="3.17.0" />
         <PackageReference Include="Lumina.Excel" Version="6.5.2" />
-        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
         <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
