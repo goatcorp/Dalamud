@@ -35,7 +35,8 @@ internal sealed class Dalamud : IServiceType
     #region Internals
 
     private readonly ManualResetEvent unloadSignal;
-
+    static int shownServiceError = 0;
+    
     #endregion
 
     /// <summary>
@@ -80,7 +81,10 @@ internal sealed class Dalamud : IServiceType
         void HandleServiceInitFailure(Task t)
         {
             Log.Error(t.Exception!, "Service initialization failure");
-            Service<LoadingDialog>.Get().HideAndJoin();
+            
+            if (Interlocked.CompareExchange(ref shownServiceError, 1, 0) != 0)
+                return;
+
             Util.Fatal(
                 "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
                 "Dalamud", false);

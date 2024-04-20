@@ -12,10 +12,9 @@ using Windows.Win32.UI.WindowsAndMessaging;
 namespace Dalamud.Service;
 
 /// <summary>
-/// Service providing an early-loading dialog.
+/// Class providing an early-loading dialog.
 /// </summary>
-[ServiceManager.ProvidedService]
-internal class LoadingDialog : IServiceType
+internal class LoadingDialog
 {
     private Thread? thread;
     private TaskDialogButton? inProgressCloseButton;
@@ -98,7 +97,7 @@ internal class LoadingDialog : IServiceType
     /// </summary>
     public void HideAndJoin()
     {
-        if (this.thread?.IsAlive == false)
+        if (this.thread == null || this.thread.IsAlive == false)
             return;
         
         Log.Information("HideAndJoin called");

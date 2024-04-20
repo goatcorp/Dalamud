@@ -47,6 +47,8 @@ internal static class ServiceManager
 
     private static ManualResetEvent unloadResetEvent = new(false);
 
+    private static LoadingDialog loadingDialog = new();
+
     /// <summary>
     /// Delegate for registering startup blocker task.<br />
     /// Do not use this delegate outside the constructor.
@@ -128,7 +130,6 @@ internal static class ServiceManager
         lock (LoadedServices)
         {
             ProvideService(dalamud);
-            ProvideService(new LoadingDialog());
             ProvideService(fs);
             ProvideService(configuration);
             ProvideService(new ServiceContainer());
@@ -251,11 +252,19 @@ internal static class ServiceManager
                 Log.Verbose("=============== BLOCKINGSERVICES & TASKS INITIALIZED ===============");
                 Timings.Event("BlockingServices Initialized");
                 BlockingServicesLoadedTaskCompletionSource.SetResult();
-                Service<LoadingDialog>.Get().HideAndJoin();
+                loadingDialog.HideAndJoin();
             }
             catch (Exception e)
             {
-                BlockingServicesLoadedTaskCompletionSource.SetException(e);
+                try
+                {
+                    BlockingServicesLoadedTaskCompletionSource.SetException(e);
+                }
+                catch (InvalidOperationException)
+                {
+                    // ignored, may have been set by the try/catch below
+                }
+
                 Log.Error(e, "Failed resolving blocking services");
             }
 
@@ -266,11 +275,13 @@ internal static class ServiceManager
                 var tasks = tasksEnumerable.AsReadOnlyCollection();
                 if (tasks.Count == 0)
                     return;
+                
+                // Time we wait until showing the loading dialog
+                const int loadingDialogTimeout = 5000;
 
                 var aggregatedTask = Task.WhenAll(tasks);
-                while (await Task.WhenAny(aggregatedTask, Task.Delay(5000)) != aggregatedTask)
+                while (await Task.WhenAny(aggregatedTask, Task.Delay(loadingDialogTimeout)) != aggregatedTask)
                 {
-                    var loadingDialog = Service<LoadingDialog>.Get();
                     loadingDialog.Show();
                     loadingDialog.CanCancel = true;
                     loadingDialog.CurrentState = state;
@@ -390,6 +401,7 @@ internal static class ServiceManager
             try
             {
                 BlockingServicesLoadedTaskCompletionSource.SetException(e);
+                loadingDialog.HideAndJoin();
             }
             catch (Exception)
             {
