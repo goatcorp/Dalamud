@@ -82,7 +82,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         if (this.entries.Any(x => x.Title == title) || this.newEntries.Any(x => x.Title == title))
             throw new ArgumentException("An entry with the same title already exists.");
 
-        var entry = new DtrBarEntry(title, null);
+        var entry = new DtrBarEntry(this.configuration, title, null);
         entry.Text = text;
 
         // Add the entry to the end of the order list, if it's not there already.
@@ -199,7 +199,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         foreach (var data in this.entries)
         {
-            var isHide = this.configuration.DtrIgnore!.Any(x => x == data.Title) || !data.Shown;
+            var isHide = data.UserHidden || !data.Shown;
 
             if (data is { Dirty: true, Added: true, Text: not null, TextNode: not null })
             {

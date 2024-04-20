@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Linq;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Gui.Dtr;
@@ -31,9 +35,14 @@ public interface IReadOnlyDtrBarEntry
     public SeString Tooltip { get; }
     
     /// <summary>
-    /// Gets a value indicating whether this entry is visible.
+    /// Gets a value indicating whether this entry should be shown.
     /// </summary>
     public bool Shown { get; }
+    
+    /// <summary>
+    /// Gets a value indicating whether or not the user has hidden this entry from view through the Dalamud settings.
+    /// </summary>
+    public bool UserHidden { get; }
     
     /// <summary>
     /// Triggers the click action of this entry.
@@ -79,16 +88,20 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
 /// </summary>
 public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
 {
+    private readonly DalamudConfiguration configuration;
+
     private bool shownBacking = true;
     private SeString? textBacking = null;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DtrBarEntry"/> class.
     /// </summary>
+    /// <param name="configuration">Dalamud configuration, used to check if the entry is hidden by the user.</param>
     /// <param name="title">The title of the bar entry.</param>
     /// <param name="textNode">The corresponding text node.</param>
-    internal DtrBarEntry(string title, AtkTextNode* textNode)
+    internal DtrBarEntry(DalamudConfiguration configuration, string title, AtkTextNode* textNode)
     {
+        this.configuration = configuration;
         this.Title = title;
         this.TextNode = textNode;
     }
@@ -128,6 +141,10 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
             this.Dirty = true;
         }
     }
+
+    /// <inheritdoc/>
+    [Api10ToDo("Maybe make this config scoped to internalname?")]
+    public bool UserHidden => this.configuration.DtrIgnore?.Any(x => x == this.Title) ?? false;
 
     /// <summary>
     /// Gets or sets the internal text node of this entry.
