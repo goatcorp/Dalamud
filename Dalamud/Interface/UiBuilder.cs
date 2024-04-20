@@ -587,51 +587,11 @@ public sealed class UiBuilder : IDisposable
                                      isGlobalScaled));
 
     /// <summary>
-    /// Add a notification to the notification queue.
-    /// </summary>
-    /// <param name="content">The content of the notification.</param>
-    /// <param name="title">The title of the notification.</param>
-    /// <param name="type">The type of the notification.</param>
-    /// <param name="msDelay">The time the notification should be displayed for.</param>
-    [Obsolete($"Use {nameof(INotificationManager)}.", false)]
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public async void AddNotification(
-        string content,
-        string? title = null,
-        NotificationType type = NotificationType.None,
-        uint msDelay = 3000)
-    {
-        var nm = await Service<NotificationManager>.GetAsync();
-        var an = nm.AddNotification(
-            new()
-            {
-                Content = content,
-                Title = title,
-                Type = type,
-                InitialDuration = TimeSpan.FromMilliseconds(msDelay),
-            },
-            this.localPlugin);
-        _ = this.notifications.TryAdd(an, 0);
-        an.Dismiss += a => this.notifications.TryRemove(a.Notification, out _);
-    }
-
-    /// <summary>
     /// Unregister the UiBuilder. Do not call this in plugin code.
     /// </summary>
     void IDisposable.Dispose()
     {
         this.scopedFinalizer.Dispose();
-
-        // Taken from NotificationManagerPluginScoped.
-        // TODO: remove on API 10.
-        while (!this.notifications.IsEmpty)
-        {
-            foreach (var n in this.notifications.Keys)
-            {
-                this.notifications.TryRemove(n, out _);
-                ((ActiveNotification)n).RemoveNonDalamudInvocations();
-            }
-        }
     }
 
     /// <summary>Clean up resources allocated by this instance of <see cref="UiBuilder"/>.</summary>
