@@ -5,13 +5,15 @@ using System.Threading;
 using System.Windows.Forms;
 
 using Dalamud.Utility;
+using Serilog;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-using Serilog;
-
 namespace Dalamud.Service;
 
+/// <summary>
+/// Service providing an early-loading dialog.
+/// </summary>
 [ServiceManager.ProvidedService]
 internal class LoadingDialog : IServiceType
 {
@@ -22,15 +24,35 @@ internal class LoadingDialog : IServiceType
     private bool isDismissed;
     private State currentState = State.LoadingDalamud;
     
+    /// <summary>
+    /// Event fired when the dialog is cancelled by the user.
+    /// </summary>
+    public event EventHandler? Cancelled;
+    
+    /// <summary>
+    /// Enum representing the state of the dialog.
+    /// </summary>
     public enum State
     {
+        /// <summary>
+        /// Show a message stating that Dalamud is currently loading.
+        /// </summary>
         LoadingDalamud,
+        
+        /// <summary>
+        /// Show a message stating that Dalamud is currently loading plugins.
+        /// </summary>
         LoadingPlugins,
+        
+        /// <summary>
+        /// Show a message stating that Dalamud is currently updating plugins.
+        /// </summary>
         AutoUpdatePlugins,
     }
     
-    public event EventHandler? Cancelled;
-    
+    /// <summary>
+    /// Gets or sets the current state of the dialog.
+    /// </summary>
     public State CurrentState
     {
         get => this.currentState;
@@ -55,6 +77,9 @@ internal class LoadingDialog : IServiceType
         }
     }
 
+    /// <summary>
+    /// Show the dialog.
+    /// </summary>
     public void Show()
     {
         if (this.thread?.IsAlive == true)
@@ -68,10 +93,13 @@ internal class LoadingDialog : IServiceType
         this.thread.Start();
     }
 
+    /// <summary>
+    /// Hide the dialog.
+    /// </summary>
     public void HideAndJoin()
     {
         if (this.thread?.IsAlive == false)
-            throw new InvalidOperationException("Loading dialog is not running.");
+            return;
         
         Log.Information("HideAndJoin called");
         this.isDismissed = true;
