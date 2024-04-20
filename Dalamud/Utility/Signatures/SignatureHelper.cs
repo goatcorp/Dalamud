@@ -8,6 +8,7 @@ using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using Dalamud.Plugin.Services;
+using Dalamud.Service;
 using Dalamud.Utility.Signatures.Wrappers;
 using Serilog;
 

@@ -10,6 +10,7 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
+using Dalamud.Service;
 
 namespace Dalamud.Plugin.Internal.Types;
 

@@ -27,6 +27,7 @@ using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
+using Dalamud.Service;
 using Dalamud.Support;
 using Dalamud.Utility;
 using ImGuiNET;

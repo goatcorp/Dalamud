@@ -11,6 +11,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;

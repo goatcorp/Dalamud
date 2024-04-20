@@ -7,6 +7,7 @@ using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
+using Dalamud.Service;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 

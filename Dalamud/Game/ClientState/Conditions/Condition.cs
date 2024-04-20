@@ -1,6 +1,8 @@
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Service;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Conditions;

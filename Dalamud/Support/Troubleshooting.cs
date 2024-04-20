@@ -8,6 +8,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
+using Dalamud.Service;
 using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;

@@ -9,6 +9,7 @@ using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Service;
 using Dalamud.Storage.Assets;
 
 using ImGuiNET;

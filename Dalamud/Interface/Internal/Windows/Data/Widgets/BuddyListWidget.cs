@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Buddy;
+using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 

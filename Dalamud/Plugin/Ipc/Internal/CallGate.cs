@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
+using Dalamud.Service;
+
 namespace Dalamud.Plugin.Ipc.Internal;
 
 /// <summary>

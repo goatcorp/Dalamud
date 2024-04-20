@@ -2,6 +2,7 @@ using System.IO;
 using System.Numerics;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Service;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal.NotificationIcon;
 

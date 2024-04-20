@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Profiles;

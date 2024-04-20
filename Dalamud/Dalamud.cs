@@ -10,6 +10,7 @@ using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Plugin.Internal;
+using Dalamud.Service;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
@@ -76,21 +77,38 @@ internal sealed class Dalamud : IServiceType
             NativeFunctions.SetEvent(mainThreadContinueEvent);
         }
 
+        void HandleServiceInitFailure(Task t)
+        {
+            Log.Error(t.Exception!, "Service initialization failure");
+            Service<LoadingDialog>.Get().HideAndJoin();
+            Util.Fatal(
+                "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
+                "Dalamud", false);
+        }
+
         if (!configuration.IsResumeGameAfterPluginLoad)
         {
             ServiceManager.InitializeEarlyLoadableServices()
-                          .ContinueWith(t =>
-                          {
-                              if (t.IsCompletedSuccessfully)
-                                  return;
-                                  
-                              Log.Error(t.Exception!, "Service initialization failure");
-                              Util.Fatal(
-                                  "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
-                                  "Dalamud", false);
-                          });
+                          .ContinueWith(
+                              t =>
+                              {
+                                  if (t.IsCompletedSuccessfully)
+                                      return;
 
-            ServiceManager.BlockingResolved.ContinueWith(_ => KickoffGameThread());
+                                  HandleServiceInitFailure(t);
+                              });
+
+            ServiceManager.BlockingResolved.ContinueWith(
+                t =>
+                {
+                    if (t.IsCompletedSuccessfully)
+                    {
+                        KickoffGameThread();
+                        return;
+                    }
+
+                    HandleServiceInitFailure(t);
+                });
         }
         else
         {

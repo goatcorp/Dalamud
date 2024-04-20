@@ -16,7 +16,7 @@ using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
-namespace Dalamud;
+namespace Dalamud.Service;
 
 // TODO:
 // - Unify dependency walking code(load/unload)
@@ -128,6 +128,7 @@ internal static class ServiceManager
         lock (LoadedServices)
         {
             ProvideService(dalamud);
+            ProvideService(new LoadingDialog());
             ProvideService(fs);
             ProvideService(configuration);
             ProvideService(new ServiceContainer());
@@ -179,7 +180,7 @@ internal static class ServiceManager
         var getAsyncTaskMap = new Dictionary<Type, Task>();
 
         var serviceContainer = Service<ServiceContainer>.Get();
-
+        
         foreach (var serviceType in GetConcreteServiceTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
@@ -238,43 +239,45 @@ internal static class ServiceManager
             try
             {
                 // Wait for all blocking constructors to complete first.
-                await WaitWithTimeoutConsent(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]));
+                await WaitWithTimeoutConsent(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]),
+                    LoadingDialog.State.LoadingDalamud);
 
                 // All the BlockingEarlyLoadedService constructors have been run,
                 // and blockerTasks now will not change. Now wait for them.
                 // Note that ServiceManager.CallWhenServicesReady does not get to register a blocker.
-                await WaitWithTimeoutConsent(blockerTasks);
+                await WaitWithTimeoutConsent(blockerTasks,
+                    LoadingDialog.State.LoadingPlugins);
 
-                BlockingServicesLoadedTaskCompletionSource.SetResult();
+                Log.Verbose("=============== BLOCKINGSERVICES & TASKS INITIALIZED ===============");
                 Timings.Event("BlockingServices Initialized");
+                BlockingServicesLoadedTaskCompletionSource.SetResult();
+                Service<LoadingDialog>.Get().HideAndJoin();
             }
             catch (Exception e)
             {
                 BlockingServicesLoadedTaskCompletionSource.SetException(e);
+                Log.Error(e, "Failed resolving blocking services");
             }
 
             return;
 
-            async Task WaitWithTimeoutConsent(IEnumerable<Task> tasksEnumerable)
+            async Task WaitWithTimeoutConsent(IEnumerable<Task> tasksEnumerable, LoadingDialog.State state)
             {
                 var tasks = tasksEnumerable.AsReadOnlyCollection();
                 if (tasks.Count == 0)
                     return;
 
                 var aggregatedTask = Task.WhenAll(tasks);
-                while (await Task.WhenAny(aggregatedTask, Task.Delay(120000)) != aggregatedTask)
+                while (await Task.WhenAny(aggregatedTask, Task.Delay(5000)) != aggregatedTask)
                 {
-                    if (NativeFunctions.MessageBoxW(
-                            IntPtr.Zero,
-                            "Dalamud is taking a long time to load. Would you like to continue without Dalamud?\n" +
-                            "This can be caused by a faulty plugin, or a bug in Dalamud.",
-                            "Dalamud",
-                            NativeFunctions.MessageBoxType.IconWarning | NativeFunctions.MessageBoxType.YesNo) == 6)
+                    var loadingDialog = Service<LoadingDialog>.Get();
+                    loadingDialog.Show();
+                    loadingDialog.CanCancel = true;
+                    loadingDialog.CurrentState = state;
+                    loadingDialog.Cancelled += (_, _) =>
                     {
-                        throw new TimeoutException(
-                            "Failed to load services in the given time limit, " +
-                            "and the user chose to continue without Dalamud.");                        
-                    }
+                        BlockingServicesLoadedTaskCompletionSource.SetException(new Exception("User cancelled loading"));
+                    };
                 }
             }
         }).ConfigureAwait(false);

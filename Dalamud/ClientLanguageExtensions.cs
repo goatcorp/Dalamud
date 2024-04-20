@@ -1,10 +1,13 @@
 using System;
 
+using Dalamud.Utility;
+
 namespace Dalamud;
 
 /// <summary>
 /// Extension methods for the <see cref="ClientLanguage"/> class.
 /// </summary>
+[Api10ToDo("Delete this, and use Dalamud.Common.ClientLanguage instead for everything.")]
 public static class ClientLanguageExtensions
 {
     /// <summary>

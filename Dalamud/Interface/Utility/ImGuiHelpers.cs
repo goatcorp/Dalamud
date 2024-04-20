@@ -12,6 +12,8 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Service;
+
 using ImGuiNET;
 using ImGuiScene;
 

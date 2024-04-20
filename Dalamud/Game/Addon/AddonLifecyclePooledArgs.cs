@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using Dalamud.Service;
 
 namespace Dalamud.Game.Addon;
 

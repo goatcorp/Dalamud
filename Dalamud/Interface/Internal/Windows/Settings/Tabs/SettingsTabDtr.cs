@@ -9,6 +9,8 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
+using Dalamud.Service;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;

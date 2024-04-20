@@ -19,6 +19,7 @@ using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 namespace Dalamud.Game;

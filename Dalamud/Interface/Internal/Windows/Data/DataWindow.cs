@@ -6,6 +6,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 using ImGuiNET;

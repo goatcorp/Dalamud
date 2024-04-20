@@ -16,6 +16,7 @@ using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types.Manifest;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Types;

@@ -2,6 +2,8 @@
 
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Interface.Utility;
+using Dalamud.Service;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

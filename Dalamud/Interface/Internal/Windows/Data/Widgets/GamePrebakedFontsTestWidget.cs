@@ -12,6 +12,7 @@ using Dalamud.Interface.ImGuiFontChooserDialog;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 using ImGuiNET;

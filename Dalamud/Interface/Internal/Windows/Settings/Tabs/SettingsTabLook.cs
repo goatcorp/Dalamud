@@ -14,6 +14,7 @@ using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
+using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;

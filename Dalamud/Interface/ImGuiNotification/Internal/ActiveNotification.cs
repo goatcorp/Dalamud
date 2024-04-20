@@ -7,6 +7,7 @@ using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 using Serilog;

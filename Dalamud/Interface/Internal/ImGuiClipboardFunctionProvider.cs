@@ -7,6 +7,7 @@ using CheapLoc;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
+using Dalamud.Service;
 
 using ImGuiNET;
 

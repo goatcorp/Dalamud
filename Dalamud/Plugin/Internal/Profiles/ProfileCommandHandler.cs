@@ -7,6 +7,7 @@ using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Plugin.Services;
+using Dalamud.Service;
 using Dalamud.Utility;
 using Serilog;
 

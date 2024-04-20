@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal;
+using Dalamud.Service;
 using Dalamud.Utility;
 using Serilog;
 

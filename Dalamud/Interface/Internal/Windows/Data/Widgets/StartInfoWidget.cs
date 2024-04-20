@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Service;
+
+using ImGuiNET;
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

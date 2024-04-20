@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Dalamud.Service;
+
 namespace Dalamud.IoC.Internal;
 
 /// <summary>

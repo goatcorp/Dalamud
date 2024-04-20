@@ -3,6 +3,7 @@ using System;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Resolvers;
+using Dalamud.Service;
 
 namespace Dalamud.Game.ClientState.Buddy;
 

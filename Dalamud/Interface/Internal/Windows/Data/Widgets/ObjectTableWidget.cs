@@ -3,6 +3,7 @@
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
+using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 

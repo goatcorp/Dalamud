@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
 using Dalamud.Hooking;
+using Dalamud.Service;
 
 namespace Dalamud.Game.Network.Internal;
 

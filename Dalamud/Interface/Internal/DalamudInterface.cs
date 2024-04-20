@@ -29,6 +29,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Service;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 

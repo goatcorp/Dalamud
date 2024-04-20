@@ -5,6 +5,7 @@ using System.Globalization;
 using CheapLoc;
 
 using Dalamud.Logging.Internal;
+using Dalamud.Service;
 
 namespace Dalamud.Utility;
 

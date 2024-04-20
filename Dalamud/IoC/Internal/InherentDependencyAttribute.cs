@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Dalamud.Service;
+
 namespace Dalamud.IoC.Internal;
 
 /// <summary>

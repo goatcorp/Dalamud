@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Service;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

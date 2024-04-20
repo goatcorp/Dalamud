@@ -1,4 +1,6 @@
 using Dalamud.Data;
+using Dalamud.Service;
+
 using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Resolvers;

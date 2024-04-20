@@ -8,6 +8,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 using ImGuiNET;

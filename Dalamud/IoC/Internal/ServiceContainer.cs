@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
+using Dalamud.Service;
 
 namespace Dalamud.IoC.Internal;
 

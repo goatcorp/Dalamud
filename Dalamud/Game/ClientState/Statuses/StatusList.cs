@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using Dalamud.Service;
+
 namespace Dalamud.Game.ClientState.Statuses;
 
 /// <summary>

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 
 using Dalamud.Plugin.Internal;
+using Dalamud.Service;
 using Dalamud.Utility;
 
 namespace Dalamud.Networking.Http;

@@ -1,5 +1,7 @@
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Windowing;
+using Dalamud.Service;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;

@@ -9,6 +9,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Service;
 using Dalamud.Utility;
 using ImGuiNET;
 

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Game;
+using Dalamud.Service;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

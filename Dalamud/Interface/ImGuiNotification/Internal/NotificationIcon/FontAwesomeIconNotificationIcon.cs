@@ -1,5 +1,7 @@
 using System.Numerics;
 
+using Dalamud.Service;
+
 namespace Dalamud.Interface.ImGuiNotification.Internal.NotificationIcon;
 
 /// <summary>Represents the use of <see cref="FontAwesomeIcon"/> as the icon of a notification.</summary>

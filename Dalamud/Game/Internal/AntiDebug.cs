@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using Dalamud.Service;
+
 #if !DEBUG
 using Dalamud.Configuration.Internal;
 #endif
