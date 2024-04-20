@@ -25,7 +25,7 @@ internal static class SignatureHelper
     /// <see cref="SignatureAttribute"/>.
     /// </summary>
     /// <param name="self">The object to initialize.</param>
-    /// <param name="log">If warnings should be logged using <see cref="PluginLog"/>.</param>
+    /// <param name="log">If warnings should be logged.</param>
     /// <returns>Collection of created IDalamudHooks.</returns>
     internal static IEnumerable<IDalamudHook> Initialize(object self, bool log = true)
     {
