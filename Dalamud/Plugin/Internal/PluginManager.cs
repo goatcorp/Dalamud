@@ -1783,7 +1783,16 @@ internal partial class PluginManager : IInternalDisposableService
 
             using (Timings.Start("PM Load Sync Plugins"))
             {
-                this.LoadAllPlugins().Wait();
+                var loadAllPlugins = Task.Run(this.LoadAllPlugins);
+                
+                // We wait for all blocking services and tasks to finish before kicking off the main thread in any mode.
+                // This means that we don't want to block here if this stupid thing isn't enabled.
+                if (this.configuration.IsResumeGameAfterPluginLoad)
+                {
+                    Log.Verbose("Waiting for all plugins to load before resuming game");
+                    loadAllPlugins.Wait();
+                }
+
                 Log.Information("[T3] PML OK!");
             }
 
