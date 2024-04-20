@@ -161,6 +161,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     void IInternalDisposableService.DisposeService()
     {
         this.luminaCancellationTokenSource.Cancel();
+        this.GameData.Dispose();
     }
 
     private class LauncherTroubleshootingInfo
