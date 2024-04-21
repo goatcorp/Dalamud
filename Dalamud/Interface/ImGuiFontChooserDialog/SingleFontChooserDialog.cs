@@ -89,30 +89,6 @@ public sealed class SingleFontChooserDialog : IDisposable
     private bool popupSizeChanged;
     private Vector2 popupPosition = new(float.NaN);
     private Vector2 popupSize = new(float.NaN);
-
-    /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
-    /// <param name="newAsyncAtlas">A new instance of <see cref="IFontAtlas"/> created using
-    /// <see cref="FontAtlasAutoRebuildMode.Async"/> as its auto-rebuild mode.</param>
-    /// <remarks>The passed instance of <paramref see="newAsyncAtlas"/> will be disposed after use. If you pass an atlas
-    /// that is already being used, then all the font handles under the passed atlas will be invalidated upon disposing
-    /// this font chooser. Consider using <see cref="SingleFontChooserDialog(UiBuilder, bool, string?)"/> for automatic
-    /// handling of font atlas derived from a <see cref="UiBuilder"/>, or even <see cref="CreateAuto"/> for automatic
-    /// registration and unregistration of <see cref="Draw"/> event handler in addition to automatic disposal of this
-    /// class and the temporary font atlas for this font chooser dialog.</remarks>
-    [Obsolete("See remarks, and use the other constructor.", false)]
-    [Api10ToDo("Make private.")]
-    public SingleFontChooserDialog(IFontAtlas newAsyncAtlas)
-    {
-        this.counter = Interlocked.Increment(ref counterStatic);
-        this.title = "Choose a font...";
-        this.popupImGuiName = $"{this.title}##{nameof(SingleFontChooserDialog)}[{this.counter}]";
-        this.atlas = newAsyncAtlas;
-        this.selectedFont = new() { FontId = DalamudDefaultFontAndFamilyId.Instance };
-        Encoding.UTF8.GetBytes("Font preview.\n0123456789!", this.fontPreviewText);
-    }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-    // TODO: Api10ToDo; Remove this pragma warning disable line
     
     /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
     /// <param name="uiBuilder">The relevant instance of UiBuilder.</param>
@@ -137,9 +113,25 @@ public sealed class SingleFontChooserDialog : IDisposable
         : this(factory.CreateFontAtlas(debugAtlasName, FontAtlasAutoRebuildMode.Async))
     {
     }
-    
-#pragma warning restore CS0618 // Type or member is obsolete
-    // TODO: Api10ToDo; Remove this pragma warning restore line
+
+    /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
+    /// <param name="newAsyncAtlas">A new instance of <see cref="IFontAtlas"/> created using
+    /// <see cref="FontAtlasAutoRebuildMode.Async"/> as its auto-rebuild mode.</param>
+    /// <remarks>The passed instance of <paramref see="newAsyncAtlas"/> will be disposed after use. If you pass an atlas
+    /// that is already being used, then all the font handles under the passed atlas will be invalidated upon disposing
+    /// this font chooser. Consider using <see cref="SingleFontChooserDialog(UiBuilder, bool, string?)"/> for automatic
+    /// handling of font atlas derived from a <see cref="UiBuilder"/>, or even <see cref="CreateAuto"/> for automatic
+    /// registration and unregistration of <see cref="Draw"/> event handler in addition to automatic disposal of this
+    /// class and the temporary font atlas for this font chooser dialog.</remarks>
+    private SingleFontChooserDialog(IFontAtlas newAsyncAtlas)
+    {
+        this.counter = Interlocked.Increment(ref counterStatic);
+        this.title = "Choose a font...";
+        this.popupImGuiName = $"{this.title}##{nameof(SingleFontChooserDialog)}[{this.counter}]";
+        this.atlas = newAsyncAtlas;
+        this.selectedFont = new() { FontId = DalamudDefaultFontAndFamilyId.Instance };
+        Encoding.UTF8.GetBytes("Font preview.\n0123456789!", this.fontPreviewText);
+    }
 
     /// <summary>Called when the selected font spec has changed.</summary>
     public event Action<SingleFontSpec>? SelectedFontSpecChanged;

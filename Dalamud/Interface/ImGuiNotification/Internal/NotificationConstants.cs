@@ -3,7 +3,6 @@ using System.Numerics;
 using CheapLoc;
 
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;

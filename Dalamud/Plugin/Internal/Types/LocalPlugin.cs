@@ -4,11 +4,9 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Common.Game;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Dtr;
-using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -628,12 +626,6 @@ internal class LocalPlugin : IDisposable
         config.IsUnloadable = true;
         config.LoadInMemory = true;
         config.PreferSharedTypes = false;
-
-        // Pin Lumina and its dependencies recursively (compatibility behavior).
-        // It currently only pulls in System.* anyway.
-        // TODO(api10): Remove this. We don't want to pin Lumina anymore, plugins should be able to provide their own.
-        config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
-        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
 
         // Make sure that plugins do not load their own Dalamud assembly.
         // We do not pin this recursively; if a plugin loads its own assembly of Dalamud, it is always wrong,

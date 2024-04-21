@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
 
