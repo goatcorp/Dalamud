@@ -12,18 +12,12 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
-using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 namespace Dalamud.Game.Gui;
-
-// TODO(api10): Update IChatGui, ChatGui and XivChatEntry to use correct types and names:
-//  "uint SenderId" should be "int Timestamp".
-//  "IntPtr Parameters" should be something like "bool Silent". It suppresses new message sounds in certain channels.
-//    This has to be a 1 byte boolean, so only change it to bool if marshalling is disabled.
 
 /// <summary>
 /// This class handles interacting with the native chat UI.
@@ -179,7 +173,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             var sender = Utf8String.FromSequence(chat.Name.Encode());
             var message = Utf8String.FromSequence(replacedMessage.BuiltString.Encode());
 
-            this.HandlePrintMessageDetour(RaptureLogModule.Instance(), chat.Type, sender, message, (int)chat.SenderId, (byte)(chat.Parameters != 0 ? 1 : 0));
+            this.HandlePrintMessageDetour(RaptureLogModule.Instance(), chat.Type, sender, message, chat.Timestamp, (byte)(chat.Silent ? 1 : 0));
 
             sender->Dtor(true);
             message->Dtor(true);
@@ -321,7 +315,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 try
                 {
                     var messageHandledDelegate = @delegate as IChatGui.OnCheckMessageHandledDelegate;
-                    messageHandledDelegate!.Invoke(chatType, (uint)timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                    messageHandledDelegate!.Invoke(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                 }
                 catch (Exception e)
                 {
@@ -337,7 +331,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                     try
                     {
                         var messageHandledDelegate = @delegate as IChatGui.OnMessageDelegate;
-                        messageHandledDelegate!.Invoke(chatType, (uint)timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                        messageHandledDelegate!.Invoke(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                     }
                     catch (Exception e)
                     {
@@ -364,12 +358,12 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             // Print the original chat if it's handled.
             if (isHandled)
             {
-                this.ChatMessageHandled?.Invoke(chatType, (uint)timestamp, parsedSender, parsedMessage);
+                this.ChatMessageHandled?.Invoke(chatType, timestamp, parsedSender, parsedMessage);
             }
             else
             {
                 messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
-                this.ChatMessageUnhandled?.Invoke(chatType, (uint)timestamp, parsedSender, parsedMessage);
+                this.ChatMessageUnhandled?.Invoke(chatType, timestamp, parsedSender, parsedMessage);
             }
         }
         catch (Exception ex)
@@ -501,15 +495,15 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.PrintError(message, messageTag, tagColor);
 
-    private void OnMessageForward(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
-        => this.ChatMessage?.Invoke(type, senderId, ref sender, ref message, ref isHandled);
+    private void OnMessageForward(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+        => this.ChatMessage?.Invoke(type, timestamp, ref sender, ref message, ref isHandled);
 
-    private void OnCheckMessageForward(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
-        => this.CheckMessageHandled?.Invoke(type, senderId, ref sender, ref message, ref isHandled);
+    private void OnCheckMessageForward(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+        => this.CheckMessageHandled?.Invoke(type, timestamp, ref sender, ref message, ref isHandled);
 
-    private void OnMessageHandledForward(XivChatType type, uint senderId, SeString sender, SeString message)
-        => this.ChatMessageHandled?.Invoke(type, senderId, sender, message);
+    private void OnMessageHandledForward(XivChatType type, int timestamp, SeString sender, SeString message)
+        => this.ChatMessageHandled?.Invoke(type, timestamp, sender, message);
 
-    private void OnMessageUnhandledForward(XivChatType type, uint senderId, SeString sender, SeString message)
-        => this.ChatMessageUnhandled?.Invoke(type, senderId, sender, message);
+    private void OnMessageUnhandledForward(XivChatType type, int timestamp, SeString sender, SeString message)
+        => this.ChatMessageUnhandled?.Invoke(type, timestamp, sender, message);
 }

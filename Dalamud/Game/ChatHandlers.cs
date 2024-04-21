@@ -139,7 +139,7 @@ internal class ChatHandlers : IServiceType
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
 
-    private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         var textVal = message.TextValue;
 
@@ -165,7 +165,7 @@ internal class ChatHandlers : IServiceType
         }
     }
 
-    private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         var clientState = Service<ClientState.ClientState>.GetNullable();
         if (clientState == null)

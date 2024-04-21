@@ -62,7 +62,7 @@ internal class ChatAgingStep : IAgingStep
     }
 
     private void ChatOnOnChatMessage(
-        XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
+        XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool ishandled)
     {
         if (type == XivChatType.Echo && message.TextValue == "DALAMUD")
         {
