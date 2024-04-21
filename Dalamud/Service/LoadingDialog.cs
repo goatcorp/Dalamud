@@ -27,6 +27,7 @@ internal class LoadingDialog
     private TaskDialogPage? page;
     private bool canHide;
     private State currentState = State.LoadingDalamud;
+    private DateTime firstShowTime;
     
     /// <summary>
     /// Enum representing the state of the dialog.
@@ -93,6 +94,8 @@ internal class LoadingDialog
         };
         this.thread.SetApartmentState(ApartmentState.STA);
         this.thread.Start();
+        
+        this.firstShowTime = DateTime.Now;
     }
 
     /// <summary>
@@ -137,6 +140,10 @@ internal class LoadingDialog
                     context = $"\nWaiting for: {nameString[..^2]}";
             }
         }
+        
+        // Add some text if loading takes more than a few minutes
+        if (DateTime.Now - this.firstShowTime > TimeSpan.FromMinutes(3))
+            context += "\nIt's been a while now. Please report this issue on our Discord server.";
 
         this.page.Text = this.currentState switch
         {
