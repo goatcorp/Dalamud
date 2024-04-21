@@ -1,9 +1,12 @@
 ﻿using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -15,6 +18,8 @@ namespace Dalamud;
 /// </summary>
 internal class LoadingDialog
 {
+    // TODO: We can't localize any of what's in here at the moment, because Localization is an EarlyLoadedService.
+    
     private static int wasGloballyHidden = 0;
     
     private Thread? thread;
@@ -95,7 +100,7 @@ internal class LoadingDialog
     /// </summary>
     public void HideAndJoin()
     {
-        if (this.thread == null || this.thread.IsAlive == false)
+        if (this.thread == null || !this.thread.IsAlive)
             return;
         
         this.inProgressHideButton?.PerformClick();
@@ -115,15 +120,45 @@ internal class LoadingDialog
             _ => throw new ArgumentOutOfRangeException(),
         };
 
+        var context = string.Empty;
+        if (this.currentState == State.LoadingPlugins)
+        {
+            context = "\nPreparing...";
+            
+            var tracker = Service<PluginManager>.GetNullable()?.StartupLoadTracking;
+            if (tracker != null)
+            {
+                var nameString = tracker.GetPendingInternalNames()
+                                        .Select(x => tracker.GetPublicName(x))
+                                        .Where(x => x != null)
+                                        .Aggregate(string.Empty, (acc, x) => acc + x + ", ");
+                
+                if (!nameString.IsNullOrEmpty())
+                    context = $"\nWaiting for: {nameString[..^2]}";
+            }
+        }
+
         this.page.Text = this.currentState switch
         {
             State.LoadingDalamud => "Please wait while Dalamud loads...",
             State.LoadingPlugins => "Please wait while Dalamud loads plugins...",
             State.AutoUpdatePlugins => "Please wait while Dalamud updates your plugins...",
             _ => throw new ArgumentOutOfRangeException(),
-        };
+#pragma warning disable SA1513
+        } + context;
+#pragma warning restore SA1513
 
         this.inProgressHideButton!.Enabled = this.canHide;
+    }
+    
+    private async Task DialogStatePeriodicUpdate(CancellationToken token)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+        while (!token.IsCancellationRequested)
+        {
+            await timer.WaitForNextTickAsync(token);
+            this.UpdatePage();
+        }
     }
 
     private void ThreadStart()
@@ -153,6 +188,14 @@ internal class LoadingDialog
             Buttons = { this.inProgressHideButton },
             AllowMinimize = false,
             AllowCancel = false,
+            Expander = new TaskDialogExpander
+            {
+                CollapsedButtonText = "What does this mean?",
+                ExpandedButtonText = "What does this mean?",
+                Text = "Some of the plugins you have installed through Dalamud are taking a long time to load.\n" +
+                       "This is likely normal, please wait a little while longer.",
+            },
+            SizeToContent = true,
         };
         
         this.UpdatePage();
@@ -168,8 +211,9 @@ internal class LoadingDialog
 
         this.page.Created += (_, _) =>
         {
-            // Bring to front
             var hwnd = new HWND(taskDialog.Handle);
+
+            // Bring to front
             Windows.Win32.PInvoke.SetWindowPos(hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, 
                                                SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOMOVE);
             Windows.Win32.PInvoke.SetWindowPos(hwnd, HWND.HWND_NOTOPMOST, 0, 0, 0, 0, 
@@ -188,10 +232,14 @@ internal class LoadingDialog
             [typeof(IntPtr), typeof(TaskDialogPage), typeof(TaskDialogStartupLocation)],
             null);
 
+        var cts = new CancellationTokenSource();
+        _ = this.DialogStatePeriodicUpdate(cts.Token);
+
         showDialogInternal!.Invoke(
             taskDialog,
             [IntPtr.Zero, this.page, TaskDialogStartupLocation.CenterScreen]);
         
         Interlocked.Exchange(ref wasGloballyHidden, 1);
+        cts.Cancel();
     }
 }
