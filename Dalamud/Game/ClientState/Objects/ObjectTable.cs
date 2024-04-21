@@ -217,9 +217,6 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 internal sealed partial class ObjectTable
 {
     /// <inheritdoc/>
-    int IReadOnlyCollection<GameObject>.Count => this.Length;
-
-    /// <inheritdoc/>
     public IEnumerator<GameObject> GetEnumerator()
     {
         // If something's trying to enumerate outside the framework thread, we use the ObjectPool.

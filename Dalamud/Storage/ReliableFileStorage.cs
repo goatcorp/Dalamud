@@ -22,22 +22,18 @@ namespace Dalamud.Storage;
 /// This is not an early-loaded service, as it is needed before they are initialized.
 /// </remarks>
 [ServiceManager.ProvidedService]
-[Api10ToDo("Make internal and IInternalDisposableService, and remove #pragma guard from the caller.")]
-public class ReliableFileStorage : IPublicDisposableService
+internal class ReliableFileStorage : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("VFS");
 
     private readonly object syncRoot = new();
 
     private SQLiteConnection? db;
-    private bool isService;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="ReliableFileStorage"/> class.
     /// </summary>
     /// <param name="vfsDbPath">Path to the VFS.</param>
-    [Obsolete("Dalamud internal use only.", false)]
-    [Api10ToDo("Make internal, and remove #pragma guard from the caller.")]
     public ReliableFileStorage(string vfsDbPath)
     {
         var databasePath = Path.Combine(vfsDbPath, "dalamudVfs.db");
@@ -291,21 +287,10 @@ public class ReliableFileStorage : IPublicDisposableService
     }
 
     /// <inheritdoc/>
-    public void Dispose()
-    {
-        if (!this.isService)
-            this.DisposeCore();
-    }
-
-    /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.isService)
-            this.DisposeCore();
+        this.DisposeCore();
     }
-
-    /// <inheritdoc/>
-    void IPublicDisposableService.MarkDisposeOnlyFromService() => this.isService = true;
 
     /// <summary>
     /// Replace possible non-portable parts of a path with portable versions.
