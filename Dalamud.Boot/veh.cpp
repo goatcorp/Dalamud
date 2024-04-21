@@ -136,6 +136,17 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
         args.emplace_back(L"--msgbox2");
     if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeDalamudConstruct) != DalamudStartInfo::WaitMessageboxFlags::None)
         args.emplace_back(L"--msgbox3");
+    switch (g_startInfo.UnhandledException) {
+        case DalamudStartInfo::UnhandledExceptionHandlingMode::Default:
+            args.emplace_back(L"--unhandled-exception=default");
+            break;
+        case DalamudStartInfo::UnhandledExceptionHandlingMode::StallDebug:
+            args.emplace_back(L"--unhandled-exception=stalldebug");
+            break;
+        case DalamudStartInfo::UnhandledExceptionHandlingMode::None:
+            args.emplace_back(L"--unhandled-exception=none");
+            break;
+    }
 
     args.emplace_back(L"--");
 
@@ -148,6 +159,13 @@ static void append_injector_launch_args(std::vector<std::wstring>& args)
 
 LONG exception_handler(EXCEPTION_POINTERS* ex)
 {
+    if (g_startInfo.UnhandledException == DalamudStartInfo::UnhandledExceptionHandlingMode::StallDebug) {
+        while (!IsDebuggerPresent())
+            Sleep(100);
+
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
     // block any other exceptions hitting the handler while the messagebox is open
     const auto lock = std::lock_guard(g_exception_handler_mutex);
 
