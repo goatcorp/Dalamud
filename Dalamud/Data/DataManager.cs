@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -52,15 +51,12 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                     DefaultExcelLanguage = this.Language.ToLumina(),
                 };
 
-                var processModule = Process.GetCurrentProcess().MainModule;
-                if (processModule != null)
+                this.GameData = new(
+                    Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!, "sqpack"),
+                    luminaOptions)
                 {
-                    this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName)!, "sqpack"), luminaOptions);
-                }
-                else
-                {
-                    throw new Exception("Could not main module.");
-                }
+                    StreamPool = new(),
+                };
 
                 Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
 
