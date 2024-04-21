@@ -23,13 +23,16 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using ImGuiNET;
+
 using ImGuiScene;
 using JetBrains.Annotations;
 using PInvoke;
-using Serilog;
+
 using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
@@ -67,6 +70,8 @@ internal class InterfaceManager : IInternalDisposableService
     /// </summary>
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
+    private static readonly ModuleLog Log = new("INTERFACE");
+    
     private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
     private readonly ConcurrentBag<ILockedImFont> deferredDisposeImFontLockeds = new();
 
@@ -147,6 +152,13 @@ internal class InterfaceManager : IInternalDisposableService
         WhenFontsReady().IconFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
 
     /// <summary>
+    /// Gets an included FontAwesome icon font with fixed width.
+    /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
+    /// </summary>
+    public static ImFontPtr IconFontFixedWidth =>
+        WhenFontsReady().IconFontFixedWidthHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+
+    /// <summary>
     /// Gets an included monospaced font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
@@ -162,6 +174,11 @@ internal class InterfaceManager : IInternalDisposableService
     /// Gets the icon font handle.
     /// </summary>
     public FontHandle? IconFontHandle { get; private set; }
+
+    /// <summary>
+    /// Gets the icon font handle with fixed width.
+    /// </summary>
+    public FontHandle? IconFontFixedWidthHandle { get; private set; }
 
     /// <summary>
     /// Gets the mono font handle.
@@ -396,7 +413,7 @@ internal class InterfaceManager : IInternalDisposableService
                 });
             }
         }
-        
+
         // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
         return new DalamudTextureWrap(new D3DTextureWrap(resView, width, height));
     }
@@ -492,7 +509,7 @@ internal class InterfaceManager : IInternalDisposableService
             atlas.BuildTask.GetAwaiter().GetResult();
         return im;
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void RenderImGui(RawDX11Scene scene)
     {
@@ -806,6 +823,14 @@ internal class InterfaceManager : IInternalDisposableService
                             GlyphMinAdvanceX = DefaultFontSizePx,
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
+            this.IconFontFixedWidthHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(tk => tk.AddDalamudAssetFont(
+                    DalamudAsset.FontAwesomeFreeSolid,
+                    new()
+                    {
+                        SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                        GlyphRanges = new ushort[] { 0x20, 0x20, 0x00 },
+                    })));
             this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(
@@ -822,6 +847,13 @@ internal class InterfaceManager : IInternalDisposableService
                         tk.GetFont(this.DefaultFontHandle),
                         tk.GetFont(this.MonoFontHandle),
                         missingOnly: true);
+
+                    // Fill missing glyphs in IconFontFixedWidth with IconFont and fit ratio
+                    tk.CopyGlyphsAcrossFonts(
+                        tk.GetFont(this.IconFontHandle),
+                        tk.GetFont(this.IconFontFixedWidthHandle),
+                        missingOnly: true);
+                    tk.FitRatio(tk.GetFont(this.IconFontFixedWidthHandle));
                 });
             this.DefaultFontHandle.ImFontChanged += (_, font) =>
             {
@@ -844,7 +876,7 @@ internal class InterfaceManager : IInternalDisposableService
                     });
             };
         }
-
+        
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync();
     }

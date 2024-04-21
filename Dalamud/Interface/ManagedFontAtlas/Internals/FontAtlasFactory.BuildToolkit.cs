@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -166,7 +166,7 @@ internal sealed partial class FontAtlasFactory
         /// <inheritdoc/>
         public int StoreTexture(IDalamudTextureWrap textureWrap, bool disposeOnError) =>
             this.data.AddNewTexture(textureWrap, disposeOnError);
-        
+
         /// <inheritdoc/>
         public void RegisterPostBuild(Action action) => this.registeredPostBuildActions.Add(action);
 
@@ -391,12 +391,10 @@ internal sealed partial class FontAtlasFactory
                         });
 
                 case DalamudAsset.LodestoneGameSymbol when !this.factory.HasGameSymbolsFontFile:
-                {
                     return this.AddGameGlyphs(
                         new(GameFontFamily.Axis, fontConfig.SizePx),
                         fontConfig.GlyphRanges,
                         fontConfig.MergeFont);
-                }
 
                 default:
                     return this.factory.AddFont(
@@ -857,6 +855,31 @@ internal sealed partial class FontAtlasFactory
                     indexedHotData[codepoint].OccupiedWidth = fallbackHotData.OccupiedWidth;
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public void FitRatio(ImFontPtr font, bool rebuildLookupTable = true)
+        {
+            var nsize = font.FontSize;
+            var glyphs = font.GlyphsWrapped();
+            foreach (ref var glyph in glyphs.DataSpan)
+            {
+                var ratio = 1f;
+                if (glyph.X1 - glyph.X0 > nsize)
+                    ratio = Math.Max(ratio, (glyph.X1 - glyph.X0) / nsize);
+                if (glyph.Y1 - glyph.Y0 > nsize)
+                    ratio = Math.Max(ratio, (glyph.Y1 - glyph.Y0) / nsize);
+                var w = MathF.Round((glyph.X1 - glyph.X0) / ratio, MidpointRounding.ToZero);
+                var h = MathF.Round((glyph.Y1 - glyph.Y0) / ratio, MidpointRounding.AwayFromZero);
+                glyph.X0 = MathF.Round((nsize - w) / 2f, MidpointRounding.ToZero);
+                glyph.Y0 = MathF.Round((nsize - h) / 2f, MidpointRounding.AwayFromZero);
+                glyph.X1 = glyph.X0 + w;
+                glyph.Y1 = glyph.Y0 + h;
+                glyph.AdvanceX = nsize;
+            }
+
+            if (rebuildLookupTable)
+                this.BuildLookupTable(font);
         }
     }
 }

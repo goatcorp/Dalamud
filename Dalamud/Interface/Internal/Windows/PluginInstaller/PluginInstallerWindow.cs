@@ -1128,34 +1128,33 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.DrawChangelog(logEntry);
         }
     }
-    
-    private record PluginInstallerAvailablePluginProxy(RemotePluginManifest? RemoteManifest, LocalPlugin? LocalPlugin);
-    
+
 #pragma warning disable SA1201
-    private void DrawAvailablePluginList()
-#pragma warning restore SA1201
+    private record PluginInstallerAvailablePluginProxy(RemotePluginManifest? RemoteManifest, LocalPlugin? LocalPlugin);
+
+    private IEnumerable<PluginInstallerAvailablePluginProxy> GatherProxies()
     {
+        var proxies = new List<PluginInstallerAvailablePluginProxy>();
+        
         var availableManifests = this.pluginListAvailable;
         var installedPlugins = this.pluginListInstalled.ToList(); // Copy intended
 
         if (availableManifests.Count == 0)
         {
             ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoCompatible);
-            return;
+            return proxies;
         }
 
         var filteredAvailableManifests = availableManifests
-                                .Where(rm => !this.IsManifestFiltered(rm))
-                                .ToList();
+                                         .Where(rm => !this.IsManifestFiltered(rm))
+                                         .ToList();
 
         if (filteredAvailableManifests.Count == 0)
         {
             ImGui.TextColored(ImGuiColors.DalamudGrey2, Locs.TabBody_SearchNoMatching);
-            return;
+            return proxies;
         }
 
-        var proxies = new List<PluginInstallerAvailablePluginProxy>();
-        
         // Go through all AVAILABLE manifests, associate them with a NON-DEV local plugin, if one is available, and remove it from the pile
         foreach (var availableManifest in this.categoryManager.GetCurrentCategoryContent(filteredAvailableManifests).Cast<RemotePluginManifest>())
         {
@@ -1168,7 +1167,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (plugin != null)
             {
                 installedPlugins.Remove(plugin);
-                proxies.Add(new PluginInstallerAvailablePluginProxy(null, plugin));
+                proxies.Add(new PluginInstallerAvailablePluginProxy(availableManifest, plugin));
                 
                 continue;
             }
@@ -1187,8 +1186,14 @@ internal class PluginInstallerWindow : Window, IDisposable
             proxies.Add(new PluginInstallerAvailablePluginProxy(null, installedPlugin));
         }
 
+        return proxies;
+    }
+#pragma warning restore SA1201
+
+    private void DrawAvailablePluginList()
+    {
         var i = 0;
-        foreach (var proxy in proxies)
+        foreach (var proxy in this.GatherProxies())
         {
             IPluginManifest applicableManifest = proxy.LocalPlugin != null ? proxy.LocalPlugin.Manifest : proxy.RemoteManifest;
 
@@ -1199,7 +1204,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (proxy.LocalPlugin != null)
             {
-                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, true);
+                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, true);
             }
             else if (proxy.RemoteManifest != null)
             {
@@ -1237,7 +1242,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (filterTesting && !manager.HasTestingOptIn(plugin.Manifest))
                 continue;
 
-            this.DrawInstalledPlugin(plugin, i++);
+            // Find the applicable remote manifest
+            var remoteManifest = this.pluginListAvailable
+                                 .FirstOrDefault(rm => rm.InternalName == plugin.Manifest.InternalName &&
+                                                       rm.RepoUrl == plugin.Manifest.RepoUrl);
+            
+            this.DrawInstalledPlugin(plugin, i++, remoteManifest);
         }
     }
 
@@ -1266,7 +1276,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var i = 0;
         foreach (var plugin in filteredList)
         {
-            this.DrawInstalledPlugin(plugin, i++);
+            this.DrawInstalledPlugin(plugin, i++, null);
         }
     }
 
@@ -2173,17 +2183,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGuiHelpers.ScaledDummy(10);
             ImGui.SameLine();
 
-            this.DrawVisitRepoUrlButton(manifest.RepoUrl, true);
+            if (this.DrawVisitRepoUrlButton(manifest.RepoUrl, true))
+            {
+                ImGui.SameLine();
+                ImGuiHelpers.ScaledDummy(3);
+            }
             
-            ImGui.SameLine();
-            ImGuiHelpers.ScaledDummy(3);
-            ImGui.SameLine();
-
             if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback)
             {
+                ImGui.SameLine();
                 this.DrawSendFeedbackButton(manifest, false, true);
             }
-
+            
             ImGuiHelpers.ScaledDummy(5);
 
             if (this.DrawPluginImages(null, manifest, isThirdParty, index))
@@ -2251,7 +2262,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawInstalledPlugin(LocalPlugin plugin, int index, bool showInstalled = false)
+    private void DrawInstalledPlugin(LocalPlugin plugin, int index, RemotePluginManifest? remoteManifest, bool showInstalled = false)
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var commandManager = Service<CommandManager>.Get();
@@ -2376,7 +2387,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
-        var hasChangelog = !plugin.Manifest.Changelog.IsNullOrEmpty();
+        
+        var applicableChangelog = plugin.IsTesting ? remoteManifest?.Changelog : remoteManifest?.TestingChangelog;
+        var hasChangelog = !applicableChangelog.IsNullOrWhitespace();
         var didDrawChangelogInsideCollapsible = false;
 
         if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.IsThirdParty, trouble, availablePluginUpdate != default, false, false, plugin.IsOrphaned, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
@@ -2473,11 +2486,15 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (canFeedback)
             {
+                ImGui.SameLine();
                 this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting, false);
             }
 
             if (availablePluginUpdate != default && !plugin.IsDev)
+            {
+                ImGui.SameLine();
                 this.DrawUpdateSinglePluginButton(availablePluginUpdate);
+            }
 
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.EffectiveVersion}");
@@ -2494,7 +2511,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 if (ImGui.TreeNode(Locs.PluginBody_CurrentChangeLog(plugin.EffectiveVersion)))
                 {
                     didDrawChangelogInsideCollapsible = true;
-                    this.DrawInstalledPluginChangelog(plugin.Manifest);
+                    this.DrawInstalledPluginChangelog(applicableChangelog);
                     ImGui.TreePop();
                 }
             }
@@ -2502,9 +2519,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (availablePluginUpdate != default && !availablePluginUpdate.UpdateManifest.Changelog.IsNullOrWhitespace())
             {
                 var availablePluginUpdateVersion = availablePluginUpdate.UseTesting ? availablePluginUpdate.UpdateManifest.TestingAssemblyVersion : availablePluginUpdate.UpdateManifest.AssemblyVersion;
-                if (ImGui.TreeNode(Locs.PluginBody_UpdateChangeLog(availablePluginUpdateVersion)))
+                var availableChangelog = availablePluginUpdate.UseTesting ? availablePluginUpdate.UpdateManifest.TestingChangelog : availablePluginUpdate.UpdateManifest.Changelog;
+                if (!availableChangelog.IsNullOrWhitespace() && ImGui.TreeNode(Locs.PluginBody_UpdateChangeLog(availablePluginUpdateVersion)))
                 {
-                    this.DrawInstalledPluginChangelog(availablePluginUpdate.UpdateManifest);
+                    this.DrawInstalledPluginChangelog(availableChangelog);
                     ImGui.TreePop();
                 }
             }
@@ -2512,13 +2530,13 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (thisWasUpdated && hasChangelog && !didDrawChangelogInsideCollapsible)
         {
-            this.DrawInstalledPluginChangelog(plugin.Manifest);
+            this.DrawInstalledPluginChangelog(applicableChangelog);
         }
 
         ImGui.PopID();
     }
 
-    private void DrawInstalledPluginChangelog(IPluginManifest manifest)
+    private void DrawInstalledPluginChangelog(string changelog)
     {
         ImGuiHelpers.ScaledDummy(5);
 
@@ -2531,7 +2549,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             ImGui.Text("Changelog:");
             ImGuiHelpers.ScaledDummy(2);
-            ImGuiHelpers.SafeTextWrapped(manifest.Changelog!);
+            ImGuiHelpers.SafeTextWrapped(changelog!);
         }
 
         ImGui.EndChild();
@@ -2878,8 +2896,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawUpdateSinglePluginButton(AvailablePluginUpdate update)
     {
-        ImGui.SameLine();
-
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Download))
         {
             Task.Run(() => this.UpdateSinglePlugin(update));
@@ -2949,8 +2965,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawSendFeedbackButton(IPluginManifest manifest, bool isTesting, bool big)
     {
-        ImGui.SameLine();
-
         var clicked = big ? 
                           ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Comment, Locs.FeedbackModal_Title) :
                           ImGuiComponents.IconButton(FontAwesomeIcon.Comment);
@@ -3195,7 +3209,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawVisitRepoUrlButton(string? repoUrl, bool big)
+    private bool DrawVisitRepoUrlButton(string? repoUrl, bool big)
     {
         if (!string.IsNullOrEmpty(repoUrl) && repoUrl.StartsWith("https://"))
         {
@@ -3222,7 +3236,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_VisitPluginUrl);
+
+            return true;
         }
+
+        return false;
     }
 
     private bool DrawPluginImages(LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, int index)

@@ -70,8 +70,18 @@ public abstract unsafe class MenuArgs
     /// Almost always an agent pointer. You can use this to find out what type of context menu it is.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the context menu is not a <see cref="ContextMenuType.Default"/>.</exception>
-    public IReadOnlySet<nint> EventInterfaces =>
-        this.MenuType != ContextMenuType.Default ?
-            this.eventInterfaces :
-            throw new InvalidOperationException("Not a default context menu");
+    public IReadOnlySet<nint> EventInterfaces 
+    {
+        get
+        {
+            if (this.MenuType is ContextMenuType.Default)
+            {
+                return this.eventInterfaces ?? new HashSet<nint>();
+            }
+            else
+            {
+                throw new InvalidOperationException("Not a default context menu");
+            }
+        }
+    }
 }
