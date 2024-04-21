@@ -103,7 +103,8 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Could not download data.");
+            Log.Error(ex, "Could not initialize Lumina");
+            throw;
         }
     }
 
