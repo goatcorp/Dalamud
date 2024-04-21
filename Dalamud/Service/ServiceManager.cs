@@ -279,7 +279,7 @@ internal static class ServiceManager
                     return;
                 
                 // Time we wait until showing the loading dialog
-                const int loadingDialogTimeout = 5000;
+                const int loadingDialogTimeout = 10000;
 
                 var aggregatedTask = Task.WhenAll(tasks);
                 while (await Task.WhenAny(aggregatedTask, Task.Delay(loadingDialogTimeout)) != aggregatedTask)
