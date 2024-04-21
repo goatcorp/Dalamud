@@ -9,6 +9,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Tex.Buffers;
 using SharpDX.DXGI;

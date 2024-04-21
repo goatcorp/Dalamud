@@ -1,9 +1,6 @@
-using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
-using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Utility;
 using Dalamud.Memory;

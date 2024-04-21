@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 using Dalamud.Interface.Internal;
 using Lumina.Data.Files;

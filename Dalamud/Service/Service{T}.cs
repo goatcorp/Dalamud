@@ -8,6 +8,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using JetBrains.Annotations;
 
 namespace Dalamud;

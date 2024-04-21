@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Animation.EasingFunctions;
+﻿namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "InCubic" easing animation.

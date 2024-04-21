@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text.SeStringHandling;

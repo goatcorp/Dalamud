@@ -1,6 +1,4 @@
-﻿using System;
-
-using Dalamud.Utility;
+﻿using Dalamud.Utility;
 
 namespace Dalamud.Plugin;
 

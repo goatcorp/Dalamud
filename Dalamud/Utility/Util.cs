@@ -19,12 +19,11 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
+
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
-
 using TerraFX.Interop.Windows;
-
 using Windows.Win32.Storage.FileSystem;
 
 namespace Dalamud.Utility;

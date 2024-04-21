@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Utility;
 

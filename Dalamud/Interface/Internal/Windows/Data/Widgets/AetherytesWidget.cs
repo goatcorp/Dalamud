@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Aetherytes;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

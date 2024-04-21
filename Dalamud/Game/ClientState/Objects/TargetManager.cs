@@ -1,8 +1,7 @@
-using System;
-
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+
 #pragma warning disable CS0618
 
 namespace Dalamud.Game.ClientState.Objects;

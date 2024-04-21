@@ -6,6 +6,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder;

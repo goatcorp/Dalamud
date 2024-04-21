@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 

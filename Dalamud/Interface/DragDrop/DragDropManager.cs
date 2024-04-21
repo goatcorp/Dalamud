@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+
 using ImGuiNET;
 using Serilog;
 

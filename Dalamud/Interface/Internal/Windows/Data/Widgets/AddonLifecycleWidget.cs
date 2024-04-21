@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Linq;
 
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
