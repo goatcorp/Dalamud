@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,7 +6,6 @@ using System.Runtime.InteropServices;
 using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Logging;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures.Wrappers;
 using Serilog;
 
@@ -90,7 +88,7 @@ internal static class SignatureHelper
 
             switch (sig.UseFlags)
             {
-                case SignatureUseFlags.Auto when actualType == typeof(IntPtr) || actualType.IsPointer || actualType.IsAssignableTo(typeof(Delegate)):
+                case SignatureUseFlags.Auto when actualType == typeof(IntPtr) || actualType.IsFunctionPointer || actualType.IsUnmanagedFunctionPointer || actualType.IsPointer || actualType.IsAssignableTo(typeof(Delegate)):
                 case SignatureUseFlags.Pointer:
                 {
                     if (actualType.IsAssignableTo(typeof(Delegate)))

@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
@@ -16,7 +15,7 @@ namespace Dalamud.IoC.Internal;
 /// This is only used to resolve dependencies for plugins.
 /// Dalamud services are constructed via Service{T}.ConstructObject at the moment.
 /// </summary>
-[ServiceManager.Service]
+[ServiceManager.ProvidedService]
 internal class ServiceContainer : IServiceProvider, IServiceType
 {
     private static readonly ModuleLog Log = new("SERVICECONTAINER");
@@ -133,7 +132,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
             return null;
         }
 
-        var instance = FormatterServices.GetUninitializedObject(objectType);
+        var instance = RuntimeHelpers.GetUninitializedObject(objectType);
 
         if (!await this.InjectProperties(instance, scopedObjects, scope))
         {
@@ -228,7 +227,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
             serviceType = implementingType;
         
-        if (serviceType.GetCustomAttribute<ServiceManager.ScopedService>() != null)
+        if (serviceType.GetCustomAttribute<ServiceManager.ScopedServiceAttribute>() != null)
         {
             if (scope == null)
             {
@@ -299,7 +298,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
             var contains = types.Any(x => x.IsAssignableTo(type));
 
             // Scoped services are created on-demand
-            return contains || type.GetCustomAttribute<ServiceManager.ScopedService>() != null;
+            return contains || type.GetCustomAttribute<ServiceManager.ScopedServiceAttribute>() != null;
         }
         
         var parameters = ctor.GetParameters();

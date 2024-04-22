@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+
 using ImGuiNET;
 using Serilog;
 
@@ -19,7 +19,7 @@ namespace Dalamud.Interface.DragDrop;
 #pragma warning disable SA1015
 [ResolveVia<IDragDropManager>]
 #pragma warning restore SA1015
-internal partial class DragDropManager : IDisposable, IDragDropManager, IServiceType
+internal partial class DragDropManager : IInternalDisposableService, IDragDropManager
 {
     private nint windowHandlePtr = nint.Zero;
 
@@ -55,6 +55,9 @@ internal partial class DragDropManager : IDisposable, IDragDropManager, IService
 
     /// <summary> Gets the list of directory paths currently being dragged from an external application over any FFXIV-related viewport or stored from the last drop. </summary>
     public IReadOnlyList<string> Directories { get; private set; } = Array.Empty<string>();
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService() => this.Disable();
 
     /// <summary> Enable external drag and drop. </summary>
     public void Enable()
@@ -98,10 +101,6 @@ internal partial class DragDropManager : IDisposable, IDragDropManager, IService
 
         this.ServiceAvailable = false;
     }
-
-    /// <inheritdoc cref="Disable"/>
-    public void Dispose()
-        => this.Disable();
 
     /// <inheritdoc cref="IDragDropManager.CreateImGuiSource(string, Func{IDragDropManager, bool}, Func{IDragDropManager, bool})"/>
     public void CreateImGuiSource(string label, Func<IDragDropManager, bool> validityCheck, Func<IDragDropManager, bool> tooltipBuilder)

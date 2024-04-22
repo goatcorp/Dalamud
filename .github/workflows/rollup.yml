@@ -1,8 +1,8 @@
 name: Rollup changes to next version
 on:
-#  push:
-#    branches:
-#      - master
+  push:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         branches:
-          - v9
+          - new_im_hooks
 
     defaults:
       run:

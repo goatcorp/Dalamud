@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -129,7 +128,7 @@ internal class PluginCategoryManager
 
     /// <summary>
     /// Gets a value indicating whether current group + category selection changed recently.
-    /// Changes in Available group should be followed with <see cref="GetCurrentCategoryContent"/>, everythine else can use <see cref="ResetContentDirty"/>.
+    /// Changes in Available group should be followed with <see cref="GetCurrentCategoryContent"/>, everything else can use <see cref="ResetContentDirty"/>.
     /// </summary>
     public bool IsContentDirty => this.isContentDirty;
 

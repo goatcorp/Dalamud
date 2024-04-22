@@ -11,11 +11,18 @@ public static partial class ImGuiComponents
     /// HelpMarker component to add a help icon with text on hover.
     /// </summary>
     /// <param name="helpText">The text to display on hover.</param>
-    public static void HelpMarker(string helpText)
+    public static void HelpMarker(string helpText) => HelpMarker(helpText, FontAwesomeIcon.InfoCircle);
+
+    /// <summary>
+    /// HelpMarker component to add a custom icon with text on hover.
+    /// </summary>
+    /// <param name="helpText">The text to display on hover.</param>
+    /// <param name="icon">The icon to use.</param>
+    public static void HelpMarker(string helpText, FontAwesomeIcon icon)
     {
         ImGui.SameLine();
         ImGui.PushFont(UiBuilder.IconFont);
-        ImGui.TextDisabled(FontAwesomeIcon.InfoCircle.ToIconString());
+        ImGui.TextDisabled(icon.ToIconString());
         ImGui.PopFont();
         if (!ImGui.IsItemHovered()) return;
         ImGui.BeginTooltip();

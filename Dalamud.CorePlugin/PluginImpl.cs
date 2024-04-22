@@ -2,7 +2,6 @@ using System;
 using System.IO;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -69,6 +68,10 @@ namespace Dalamud.CorePlugin
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
                 this.Interface.UiBuilder.OpenMainUi += this.OnOpenMainUi;
+                this.Interface.UiBuilder.DefaultFontHandle.ImFontChanged += (fc, _) =>
+                {
+                    Log.Information($"CorePlugin : DefaultFontHandle.ImFontChanged called {fc}");
+                };
 
                 Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = "Access the plugin." });
 
@@ -93,8 +96,6 @@ namespace Dalamud.CorePlugin
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
-
-            this.Interface.ExplicitDispose();
         }
 
         /// <summary>

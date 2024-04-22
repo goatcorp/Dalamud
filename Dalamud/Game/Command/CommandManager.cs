@@ -18,8 +18,8 @@ namespace Dalamud.Game.Command;
 /// This class manages registered in-game slash commands.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed class CommandManager : IServiceType, IDisposable, ICommandManager
+[ServiceManager.EarlyLoadedService]
+internal sealed class CommandManager : IInternalDisposableService, ICommandManager
 {
     private static readonly ModuleLog Log = new("Command");
 
@@ -130,7 +130,7 @@ internal sealed class CommandManager : IServiceType, IDisposable, ICommandManage
     }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
     }
@@ -170,7 +170,7 @@ internal sealed class CommandManager : IServiceType, IDisposable, ICommandManage
 #pragma warning disable SA1015
 [ResolveVia<ICommandManager>]
 #pragma warning restore SA1015
-internal class CommandManagerPluginScoped : IDisposable, IServiceType, ICommandManager
+internal class CommandManagerPluginScoped : IInternalDisposableService, ICommandManager
 {
     private static readonly ModuleLog Log = new("Command");
     
@@ -193,7 +193,7 @@ internal class CommandManagerPluginScoped : IDisposable, IServiceType, ICommandM
     public ReadOnlyDictionary<string, CommandInfo> Commands => this.commandManagerService.Commands;
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         foreach (var command in this.pluginRegisteredCommands)
         {

@@ -21,7 +21,7 @@ namespace Dalamud.Hooking.Internal;
 #pragma warning disable SA1015
 [ResolveVia<IGameInteropProvider>]
 #pragma warning restore SA1015
-internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceType, IDisposable
+internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternalDisposableService
 {
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
@@ -83,7 +83,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
         => this.HookFromAddress(this.scanner.ScanText(signature), detour, backend);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         var notDisposed = this.trackedHooks.Where(x => !x.IsDisposed).ToArray();
         if (notDisposed.Length != 0)
@@ -91,6 +91,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
 
         foreach (var hook in notDisposed)
         {
+            Log.Warning("\t\t\tLeaked hook at +0x{Address:X}", hook.Address.ToInt64() - this.scanner.Module.BaseAddress.ToInt64());
             hook.Dispose();
         }
         

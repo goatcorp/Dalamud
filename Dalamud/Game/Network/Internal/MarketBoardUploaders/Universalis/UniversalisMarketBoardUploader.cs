@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -7,6 +6,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Networking.Http;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -22,14 +22,14 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
     private const string ApiKey = "GGD6RdSfGyRiHM5WDnAo0Nj9Nv7aC5NDhMj3BebT";
 
-    private readonly HttpClient httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
+    private readonly HttpClient httpClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UniversalisMarketBoardUploader"/> class.
     /// </summary>
-    public UniversalisMarketBoardUploader()
-    {
-    }
+    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient"/>.</param>
+    public UniversalisMarketBoardUploader(HappyHttpClient happyHttpClient) =>
+        this.httpClient = happyHttpClient.SharedHttpClient;
 
     /// <inheritdoc/>
     public async Task Upload(MarketBoardItemRequest request)

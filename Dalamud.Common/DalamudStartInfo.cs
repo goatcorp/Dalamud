@@ -5,6 +5,7 @@ namespace Dalamud.Common;
 
 /// <summary>
 /// Struct containing information needed to initialize Dalamud.
+/// Modify DalamudStartInfo.h and DalamudStartInfo.cpp along with this record.
 /// </summary>
 [Serializable]
 public record DalamudStartInfo
@@ -18,36 +19,9 @@ public record DalamudStartInfo
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DalamudStartInfo"/> class.
+    /// Gets or sets the Dalamud load method.
     /// </summary>
-    /// <param name="other">Object to copy values from.</param>
-    public DalamudStartInfo(DalamudStartInfo other)
-    {
-        this.WorkingDirectory = other.WorkingDirectory;
-        this.ConfigurationPath = other.ConfigurationPath;
-        this.LogPath = other.LogPath;
-        this.LogName = other.LogName;
-        this.PluginDirectory = other.PluginDirectory;
-        this.AssetDirectory = other.AssetDirectory;
-        this.Language = other.Language;
-        this.GameVersion = other.GameVersion;
-        this.DelayInitializeMs = other.DelayInitializeMs;
-        this.TroubleshootingPackData = other.TroubleshootingPackData;
-        this.NoLoadPlugins = other.NoLoadPlugins;
-        this.NoLoadThirdPartyPlugins = other.NoLoadThirdPartyPlugins;
-        this.BootLogPath = other.BootLogPath;
-        this.BootShowConsole = other.BootShowConsole;
-        this.BootDisableFallbackConsole = other.BootDisableFallbackConsole;
-        this.BootWaitMessageBox = other.BootWaitMessageBox;
-        this.BootWaitDebugger = other.BootWaitDebugger;
-        this.BootVehEnabled = other.BootVehEnabled;
-        this.BootVehFull = other.BootVehFull;
-        this.BootEnableEtw = other.BootEnableEtw;
-        this.BootDotnetOpenProcessHookMode = other.BootDotnetOpenProcessHookMode;
-        this.BootEnabledGameFixes = other.BootEnabledGameFixes;
-        this.BootUnhookDlls = other.BootUnhookDlls;
-        this.CrashHandlerShow = other.CrashHandlerShow;
-    }
+    public LoadMethod LoadMethod { get; set; }
 
     /// <summary>
     /// Gets or sets the working directory of the XIVLauncher installations.
@@ -169,4 +143,9 @@ public record DalamudStartInfo
     /// Gets or sets a value indicating whether to show crash handler console window.
     /// </summary>
     public bool CrashHandlerShow { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to disable all kinds of global exception handlers.
+    /// </summary>
+    public bool NoExceptionHandlers { get; set; }
 }

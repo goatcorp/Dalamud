@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -25,7 +24,6 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
-using Dalamud.Utility;
 
 namespace Dalamud.Plugin;
 
@@ -52,7 +50,7 @@ public sealed class DalamudPluginInterface : IDisposable
         var dataManager = Service<DataManager>.Get();
         var localization = Service<Localization>.Get();
 
-        this.UiBuilder = new UiBuilder(plugin.Name);
+        this.UiBuilder = new UiBuilder(plugin.Name, plugin);
 
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
@@ -127,6 +125,11 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets the current internal plugin name.
     /// </summary>
     public string InternalName => this.plugin.InternalName;
+
+    /// <summary>
+    /// Gets the plugin's manifest.
+    /// </summary>
+    public IPluginManifest Manifest => this.plugin.Manifest;
 
     /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
@@ -223,7 +226,7 @@ public sealed class DalamudPluginInterface : IDisposable
             return false;
         }
 
-        dalamudInterface.OpenPluginInstallerPluginInstalled();
+        dalamudInterface.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
         dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
 
         return true;
@@ -452,24 +455,26 @@ public sealed class DalamudPluginInterface : IDisposable
 
     #endregion
 
-    /// <summary>
-    /// Unregister your plugin and dispose all references.
-    /// </summary>
+    /// <inheritdoc cref="Dispose"/>
     void IDisposable.Dispose()
     {
-        this.UiBuilder.ExplicitDispose();
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
-        Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
-        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
     }
 
-    /// <summary>
-    /// Obsolete implicit dispose implementation. Should not be used.
-    /// </summary>
-    [Obsolete("Do not dispose \"DalamudPluginInterface\".", true)]
+    /// <summary>This function will do nothing. Dalamud will dispose this object on plugin unload.</summary>
+    [Obsolete("This function will do nothing. Dalamud will dispose this object on plugin unload.", true)]
     public void Dispose()
     {
         // ignored
+    }
+
+    /// <summary>Unregister the plugin and dispose all references.</summary>
+    /// <remarks>Dalamud internal use only.</remarks>
+    internal void DisposeInternal()
+    {
+        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
+        Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
+        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+        this.UiBuilder.DisposeInternal();
     }
 
     /// <summary>

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup Label="Target">
-        <TargetFramework>net7.0-windows</TargetFramework>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <PlatformTarget>x64</PlatformTarget>
         <Platforms>x64;AnyCPU</Platforms>
-        <LangVersion>11.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>9.0.0.2</DalamudVersion>
+        <DalamudVersion>9.1.0.6</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
@@ -68,13 +68,13 @@
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
-        <PackageReference Include="Lumina" Version="3.11.0" />
-        <PackageReference Include="Lumina.Excel" Version="6.5.0" />
+        <PackageReference Include="Lumina" Version="3.17.0" />
+        <PackageReference Include="Lumina.Excel" Version="6.5.2" />
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
         <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="MinSharp" Version="1.0.4" />
-        <PackageReference Include="MonoModReorg.RuntimeDetour" Version="23.1.2-prerelease.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="Serilog" Version="2.11.0" />
         <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
@@ -90,6 +90,7 @@
         <PackageReference Include="System.Reactive" Version="5.0.0" />
         <PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
         <PackageReference Include="System.Resources.Extensions" Version="7.0.0" />
+        <PackageReference Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
@@ -110,22 +111,10 @@
       </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Game\Addon\" />
-    </ItemGroup>
-
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">
         <ItemGroup>
             <ContentWithTargetPath Include="$(ProjectDepsFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectDepsFileName)" />
             <ContentWithTargetPath Include="$(ProjectRuntimeConfigFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectRuntimeConfigFileName)" />
-        </ItemGroup>
-    </Target>
-
-    <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
-        <ItemGroup>
-            <ReferencePath Condition="'%(FileName)' == 'MonoMod.Iced'">
-                <Aliases>monomod</Aliases>
-            </ReferencePath>
         </ItemGroup>
     </Target>
 

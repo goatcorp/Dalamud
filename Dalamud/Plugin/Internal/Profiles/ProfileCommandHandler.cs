@@ -16,8 +16,18 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// Service responsible for profile-related chat commands.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class ProfileCommandHandler : IServiceType, IDisposable
+internal class ProfileCommandHandler : IInternalDisposableService
 {
+#pragma warning disable SA1600
+    public const string CommandEnable = "/xlenablecollection";
+    public const string CommandDisable = "/xldisablecollection";
+    public const string CommandToggle = "/xltogglecollection";
+#pragma warning restore SA1600
+    
+    private static readonly string LegacyCommandEnable = CommandEnable.Replace("collection", "profile");
+    private static readonly string LegacyCommandDisable = CommandDisable.Replace("collection", "profile");
+    private static readonly string LegacyCommandToggle = CommandToggle.Replace("collection", "profile");
+    
     private readonly CommandManager cmd;
     private readonly ProfileManager profileManager;
     private readonly ChatGui chat;
@@ -40,21 +50,36 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
         this.chat = chat;
         this.framework = framework;
 
-        this.cmd.AddHandler("/xlenableprofile", new CommandInfo(this.OnEnableProfile)
+        this.cmd.AddHandler(CommandEnable, new CommandInfo(this.OnEnableProfile)
         {
             HelpMessage = Loc.Localize("ProfileCommandsEnableHint", "Enable a collection. Usage: /xlenablecollection \"Collection Name\""),
             ShowInHelp = true,
         });
 
-        this.cmd.AddHandler("/xldisableprofile", new CommandInfo(this.OnDisableProfile)
+        this.cmd.AddHandler(CommandDisable, new CommandInfo(this.OnDisableProfile)
         {
             HelpMessage = Loc.Localize("ProfileCommandsDisableHint", "Disable a collection. Usage: /xldisablecollection \"Collection Name\""),
             ShowInHelp = true,
         });
 
-        this.cmd.AddHandler("/xltoggleprofile", new CommandInfo(this.OnToggleProfile)
+        this.cmd.AddHandler(CommandToggle, new CommandInfo(this.OnToggleProfile)
         {
             HelpMessage = Loc.Localize("ProfileCommandsToggleHint", "Toggle a collection. Usage: /xltogglecollection \"Collection Name\""),
+            ShowInHelp = true,
+        });
+        
+        this.cmd.AddHandler(LegacyCommandEnable, new CommandInfo(this.OnEnableProfile)
+        {
+            ShowInHelp = false,
+        });
+
+        this.cmd.AddHandler(LegacyCommandDisable, new CommandInfo(this.OnDisableProfile)
+        {
+            ShowInHelp = true,
+        });
+
+        this.cmd.AddHandler(LegacyCommandToggle, new CommandInfo(this.OnToggleProfile)
+        {
             ShowInHelp = true,
         });
 
@@ -69,11 +94,14 @@ internal class ProfileCommandHandler : IServiceType, IDisposable
     }
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
-        this.cmd.RemoveHandler("/xlenablecollection");
-        this.cmd.RemoveHandler("/xldisablecollection");
-        this.cmd.RemoveHandler("/xltogglecollection");
+        this.cmd.RemoveHandler(CommandEnable);
+        this.cmd.RemoveHandler(CommandDisable);
+        this.cmd.RemoveHandler(CommandToggle);
+        this.cmd.RemoveHandler(LegacyCommandEnable);
+        this.cmd.RemoveHandler(LegacyCommandDisable);
+        this.cmd.RemoveHandler(LegacyCommandToggle);
 
         this.framework.Update += this.FrameworkOnUpdate;
     }

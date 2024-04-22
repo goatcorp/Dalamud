@@ -1,9 +1,13 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Profiles;
@@ -19,11 +23,11 @@ namespace Dalamud.Configuration.Internal;
 /// Class containing Dalamud settings.
 /// </summary>
 [Serializable]
-[ServiceManager.Service]
+[ServiceManager.ProvidedService]
 #pragma warning disable SA1015
 [InherentDependency<ReliableFileStorage>] // We must still have this when unloading
 #pragma warning restore SA1015
-internal sealed class DalamudConfiguration : IServiceType, IDisposable
+internal sealed class DalamudConfiguration : IInternalDisposableService
 {
     private static readonly JsonSerializerSettings SerializerSettings = new()
     {
@@ -33,7 +37,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     };
 
     [JsonIgnore]
-    private string configPath;
+    private string? configPath;
 
     [JsonIgnore]
     private bool isSaveQueued;
@@ -47,12 +51,12 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Event that occurs when dalamud configuration is saved.
     /// </summary>
-    public event DalamudConfigurationSavedDelegate DalamudConfigurationSaved;
+    public event DalamudConfigurationSavedDelegate? DalamudConfigurationSaved;
 
     /// <summary>
     /// Gets or sets a list of muted works.
     /// </summary>
-    public List<string> BadWords { get; set; }
+    public List<string>? BadWords { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the taskbar should flash once a duty is found.
@@ -67,12 +71,12 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets the language code to load Dalamud localization with.
     /// </summary>
-    public string LanguageOverride { get; set; } = null;
+    public string? LanguageOverride { get; set; } = null;
 
     /// <summary>
     /// Gets or sets the last loaded Dalamud version.
     /// </summary>
-    public string LastVersion { get; set; } = null;
+    public string? LastVersion { get; set; } = null;
 
     /// <summary>
     /// Gets or sets a value indicating the last seen FTUE version.
@@ -83,7 +87,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets the last loaded Dalamud version.
     /// </summary>
-    public string LastChangelogMajorMinor { get; set; } = null;
+    public string? LastChangelogMajorMinor { get; set; } = null;
 
     /// <summary>
     /// Gets or sets the chat type used by default for plugin messages.
@@ -143,15 +147,18 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets a value indicating whether to use AXIS fonts from the game.
     /// </summary>
-    public bool UseAxisFontsFromGame { get; set; } = false;
+    [Obsolete($"See {nameof(DefaultFontSpec)}")]
+    public bool UseAxisFontsFromGame { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the gamma value to apply for Dalamud fonts. Effects text thickness.
-    ///
-    /// Before gamma is applied...
-    /// * ...TTF fonts loaded with stb or FreeType are in linear space.
-    /// * ...the game's prebaked AXIS fonts are in gamma space with gamma value of 1.4.
+    /// Gets or sets the default font spec.
     /// </summary>
+    public IFontSpec? DefaultFontSpec { get; set; }
+
+    /// <summary>
+    /// Gets or sets the gamma value to apply for Dalamud fonts. Do not use.
+    /// </summary>
+    [Obsolete("It happens that nobody touched this setting", true)]
     public float FontGammaLevel { get; set; } = 1.4f;
 
     /// <summary>
@@ -210,6 +217,11 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public bool LogOpenAtStartup { get; set; }
 
     /// <summary>
+    /// Gets or sets the number of lines to keep for the Dalamud Console window.
+    /// </summary>
+    public int LogLinesLimit { get; set; } = 10000;
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not the dev bar should open at startup.
     /// </summary>
     public bool DevBarOpenAtStartup { get; set; }
@@ -228,7 +240,15 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
     /// This setting is effected by the in-game "System Sounds" option and volume.
     /// </summary>
+    [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "ABI")]
     public bool EnablePluginUISoundEffects { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
+    /// on plugin title bars when using the Window System.
+    /// </summary>
+    [JsonProperty("EnablePluginUiAdditionalOptionsExperimental")]
+    public bool EnablePluginUiAdditionalOptions { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
@@ -258,7 +278,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     /// <summary>
     /// Gets or sets the kind of beta to download when <see cref="DalamudBetaKey"/> matches the server value.
     /// </summary>
-    public string DalamudBetaKind { get; set; }
+    public string? DalamudBetaKind { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not any plugin should be loaded when the game is started.
@@ -349,6 +369,11 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public bool ShowTsm { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether to reduce motions (animations).
+    /// </summary>
+    public bool? ReduceMotions { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not market board data should be uploaded.
     /// </summary>
     public bool IsMbCollect { get; set; } = true;
@@ -425,6 +450,11 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     public double UiBuilderHitch { get; set; } = 100;
 
     /// <summary>
+    /// Gets or sets the page of the plugin installer that is shown by default when opened.
+    /// </summary>
+    public PluginInstallerWindow.PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins;
+
+    /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
     /// <param name="path">Path to read from.</param>
@@ -457,6 +487,15 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
 
         deserialized ??= new DalamudConfiguration();
         deserialized.configPath = path;
+
+        try
+        {
+            deserialized.SetDefaults();
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Failed to set defaults for DalamudConfiguration");
+        }
         
         return deserialized;
     }
@@ -478,7 +517,7 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
     }
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         // Make sure that we save, if a save is queued while we are shutting down
         this.Update();
@@ -498,9 +537,36 @@ internal sealed class DalamudConfiguration : IServiceType, IDisposable
         }
     }
 
+    private void SetDefaults()
+    {
+        // "Reduced motion"
+        if (!this.ReduceMotions.HasValue)
+        {
+            // https://source.chromium.org/chromium/chromium/src/+/main:ui/gfx/animation/animation_win.cc;l=29?q=ReducedMotion&ss=chromium
+            var winAnimEnabled = 0;
+            var success = NativeFunctions.SystemParametersInfo(
+                (uint)NativeFunctions.AccessibilityParameter.SPI_GETCLIENTAREAANIMATION,
+                0,
+                ref winAnimEnabled,
+                0);
+
+            if (!success)
+            {
+                Log.Warning("Failed to get Windows animation setting, assuming reduced motion is off (GetLastError: {GetLastError:X})", Marshal.GetLastPInvokeError());
+                this.ReduceMotions = false;
+            }
+            else
+            {
+                this.ReduceMotions = winAnimEnabled == 0;
+            }
+        }
+    }
+    
     private void Save()
     {
         ThreadSafety.AssertMainThread();
+        if (this.configPath is null)
+            throw new InvalidOperationException("configPath is not set.");
 
         Service<ReliableFileStorage>.Get().WriteAllText(
             this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));

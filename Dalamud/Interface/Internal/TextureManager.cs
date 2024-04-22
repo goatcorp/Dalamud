@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -9,6 +9,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Tex.Buffers;
 using SharpDX.DXGI;
@@ -22,12 +23,12 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<ITextureProvider>]
 [ResolveVia<ITextureSubstitutionProvider>]
 #pragma warning restore SA1015
-internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITextureSubstitutionProvider
+internal class TextureManager : IInternalDisposableService, ITextureProvider, ITextureSubstitutionProvider
 {
     private const string IconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}.tex";
     private const string HighResolutionIconFileFormat = "ui/icon/{0:D3}000/{1}{2:D6}_hr1.tex";
@@ -268,12 +269,15 @@ internal class TextureManager : IDisposable, IServiceType, ITextureProvider, ITe
     }
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.fallbackTextureWrap?.Dispose();
         this.framework.Update -= this.FrameworkOnUpdate;
         
-        Log.Verbose("Disposing {Num} left behind textures.");
+        if (this.activeTextures.Count == 0)
+            return;
+
+        Log.Verbose("Disposing {Num} left behind textures.", this.activeTextures.Count);
         
         foreach (var activeTexture in this.activeTextures)
         {

@@ -1,6 +1,9 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+
+using Dalamud.Plugin.Internal;
+using Dalamud.Utility;
 
 namespace Dalamud.Networking.Http;
 
@@ -8,8 +11,10 @@ namespace Dalamud.Networking.Http;
 /// A service to help build and manage HttpClients with some semblance of Happy Eyeballs (RFC 8305 - IPv4 fallback)
 /// awareness.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
-internal class HappyHttpClient : IDisposable, IServiceType
+[ServiceManager.BlockingEarlyLoadedService($"{nameof(PluginManager)} currently uses this.")]
+// ^ TODO: This seems unnecessary, remove the hard dependency at a later time.
+//         Otherwise, if PM eventually marks this class as required, note that in the comment above.
+internal class HappyHttpClient : IInternalDisposableService
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="HappyHttpClient"/> class.
@@ -25,7 +30,16 @@ internal class HappyHttpClient : IDisposable, IServiceType
         {
             AutomaticDecompression = DecompressionMethods.All,
             ConnectCallback = this.SharedHappyEyeballsCallback.ConnectCallback,
-        });
+        })
+        {
+            DefaultRequestHeaders =
+            {
+                UserAgent =
+                {
+                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
+                },
+            },
+        };
     }
 
     /// <summary>
@@ -46,7 +60,7 @@ internal class HappyHttpClient : IDisposable, IServiceType
     public HappyEyeballsCallback SharedHappyEyeballsCallback { get; }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.SharedHttpClient.Dispose();
         this.SharedHappyEyeballsCallback.Dispose();

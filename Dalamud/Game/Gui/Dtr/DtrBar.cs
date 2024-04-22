@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Addon;
 using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
@@ -12,6 +11,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -22,8 +22,8 @@ namespace Dalamud.Game.Gui.Dtr;
 /// Class used to interface with the server info bar.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 {
     private const uint BaseNodeId = 1000;
 
@@ -46,22 +46,26 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
     private readonly AddonLifecycleEventListener dtrPostDrawListener;
     private readonly AddonLifecycleEventListener dtrPostRequestedUpdateListener;
-    
+    private readonly AddonLifecycleEventListener dtrPreFinalizeListener;
+
     private readonly ConcurrentBag<DtrBarEntry> newEntries = new();
     private readonly List<DtrBarEntry> entries = new();
 
     private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = new();
     
     private uint runningNodeIds = BaseNodeId;
+    private float entryStartPos = float.NaN;
 
     [ServiceManager.ServiceConstructor]
     private DtrBar()
     {
-        this.dtrPostDrawListener = new AddonLifecycleEventListener(AddonEvent.PostDraw, "_DTR", this.OnDtrPostDraw);
-        this.dtrPostRequestedUpdateListener = new AddonLifecycleEventListener(AddonEvent.PostRequestedUpdate, "_DTR", this.OnAddonRequestedUpdateDetour);
+        this.dtrPostDrawListener = new AddonLifecycleEventListener(AddonEvent.PostDraw, "_DTR", this.FixCollision);
+        this.dtrPostRequestedUpdateListener = new AddonLifecycleEventListener(AddonEvent.PostRequestedUpdate, "_DTR", this.FixCollision);
+        this.dtrPreFinalizeListener = new AddonLifecycleEventListener(AddonEvent.PreFinalize, "_DTR", this.PreFinalize);
 
         this.addonLifecycle.RegisterListener(this.dtrPostDrawListener);
         this.addonLifecycle.RegisterListener(this.dtrPostRequestedUpdateListener);
+        this.addonLifecycle.RegisterListener(this.dtrPreFinalizeListener);
         
         this.framework.Update += this.Update;
 
@@ -71,12 +75,15 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     }
 
     /// <inheritdoc/>
+    public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.entries;
+    
+    /// <inheritdoc/>
     public DtrBarEntry Get(string title, SeString? text = null)
     {
         if (this.entries.Any(x => x.Title == title) || this.newEntries.Any(x => x.Title == title))
             throw new ArgumentException("An entry with the same title already exists.");
 
-        var entry = new DtrBarEntry(title, null);
+        var entry = new DtrBarEntry(this.configuration, title, null);
         entry.Text = text;
 
         // Add the entry to the end of the order list, if it's not there already.
@@ -98,10 +105,11 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.addonLifecycle.UnregisterListener(this.dtrPostDrawListener);
         this.addonLifecycle.UnregisterListener(this.dtrPostRequestedUpdateListener);
+        this.addonLifecycle.UnregisterListener(this.dtrPreFinalizeListener);
 
         foreach (var entry in this.entries)
             this.RemoveNode(entry.TextNode);
@@ -185,15 +193,14 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         var collisionNode = dtr->GetNodeById(17);
         if (collisionNode == null) return;
 
-        // If we are drawing backwards, we should start from the right side of the collision node. That is,
-        // collisionNode->X + collisionNode->Width.
-        var runningXPos = this.configuration.DtrSwapDirection
-                              ? collisionNode->X + collisionNode->Width
-                              : collisionNode->X;
+        // We haven't calculated the native size yet, so we don't know where to start positioning.
+        if (float.IsNaN(this.entryStartPos)) return;
+
+        var runningXPos = this.entryStartPos;
 
         foreach (var data in this.entries)
         {
-            var isHide = this.configuration.DtrIgnore!.Any(x => x == data.Title) || !data.Shown;
+            var isHide = data.UserHidden || !data.Shown;
 
             if (data is { Dirty: true, Added: true, Text: not null, TextNode: not null })
             {
@@ -255,56 +262,61 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         }
     }
     
-    private void OnDtrPostDraw(AddonEvent eventType, AddonArgs addonInfo)
+    private void FixCollision(AddonEvent eventType, AddonArgs addonInfo)
     {
         var addon = (AtkUnitBase*)addonInfo.Addon;
+        if (addon->RootNode is null || addon->UldManager.NodeList is null) return;
 
-        this.UpdateNodePositions(addon);
-            
-        if (!this.configuration.DtrSwapDirection)
+        float minX = addon->RootNode->Width;
+        var additionalWidth = 0;
+        AtkResNode* collisionNode = null;
+
+        foreach (var index in Enumerable.Range(0, addon->UldManager.NodeListCount))
         {
-            var targetSize = (ushort)this.CalculateTotalSize();
-            var sizeDelta = MathF.Round((targetSize - addon->RootNode->Width) * addon->RootNode->ScaleX);
-                
-            if (addon->RootNode->Width != targetSize)
+            var node = addon->UldManager.NodeList[index];
+            if (node->IsVisible)
             {
-                addon->RootNode->SetWidth(targetSize);
-                addon->SetX((short)(addon->GetX() - sizeDelta));
-                    
-                // force a RequestedUpdate immediately to force the game to right-justify it immediately.
-                addon->OnUpdate(AtkStage.GetSingleton()->GetNumberArrayData(), AtkStage.GetSingleton()->GetStringArrayData());
-            }
-        }
-    }
-    
-    private void UpdateNodePositions(AtkUnitBase* addon)
-    {
-        // If we grow to the right, we need to left-justify the original elements.
-        // else if we grow to the left, the game right-justifies it for us.
-        if (this.configuration.DtrSwapDirection)
-        {
-            var targetSize = (ushort)this.CalculateTotalSize();
-            addon->RootNode->SetWidth(targetSize);
-            var sizeOffset = addon->GetNodeById(17)->GetX();
-            
-            var node = addon->RootNode->ChildNode;
-            while (node is not null)
-            {
-                if (node->NodeID < 1000 && node->IsVisible)
+                var nodeId = node->NodeID;
+                var nodeType = node->Type;
+
+                if (nodeType == NodeType.Collision)
                 {
-                    node->SetX(node->GetX() - sizeOffset);
+                    collisionNode = node;
                 }
-            
-                node = node->PrevSiblingNode;
+                else if (nodeId >= BaseNodeId)
+                {
+                    // Dalamud-created node
+                    additionalWidth += node->Width + this.configuration.DtrSpacing;
+                }
+                else if ((nodeType == NodeType.Res || (ushort)nodeType >= 1000) &&
+                         (node->ChildNode == null || node->ChildNode->IsVisible))
+                {
+                    // Native top-level node. These are are either res nodes or button components.
+                    // Both the node and its child (if it has one) must be visible for the node to be counted.
+                    minX = MathF.Min(minX, node->X);
+                }
             }
         }
+
+        if (collisionNode == null) return;
+
+        var nativeWidth = addon->RootNode->Width - (int)minX;
+        var targetX = minX - (this.configuration.DtrSwapDirection ? 0 : additionalWidth);
+        var targetWidth = (ushort)(nativeWidth + additionalWidth);
+
+        if (collisionNode->Width != targetWidth || collisionNode->X != targetX)
+        {
+            collisionNode->SetWidth(targetWidth);
+            collisionNode->SetX(targetX);
+        }
+
+        // If we are drawing backwards, we should start from the right side of the native nodes.
+        this.entryStartPos = this.configuration.DtrSwapDirection ? minX + nativeWidth : minX;
     }
 
-    private void OnAddonRequestedUpdateDetour(AddonEvent eventType, AddonArgs addonInfo)
+    private void PreFinalize(AddonEvent type, AddonArgs args)
     {
-        var addon = (AtkUnitBase*)addonInfo.Addon;
-        
-        this.UpdateNodePositions(addon);
+        this.entryStartPos = float.NaN;
     }
 
     /// <summary>
@@ -332,34 +344,12 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
         {
             this.eventHandles.Clear();
         }
-        
+
         foreach (var entry in this.entries)
         {
             entry.TextNode = this.MakeNode(++this.runningNodeIds);
             entry.Added = false;
         }
-    }
-
-    // Calculates the total width the dtr bar should be
-    private float CalculateTotalSize()
-    {
-        var addon = this.GetDtr();
-        if (addon is null || addon->RootNode is null || addon->UldManager.NodeList is null) return 0;
-
-        var totalSize = 0.0f;
-        
-        foreach (var index in Enumerable.Range(0, addon->UldManager.NodeListCount))
-        {
-            var node = addon->UldManager.NodeList[index];
-            
-            // Node 17 is the default CollisionNode that fits over the existing elements
-            if (node->NodeID is 17) totalSize += node->Width;
-            
-            // Node > 1000, are our custom nodes
-            if (node->NodeID is > 1000 && node->IsVisible) totalSize += node->Width + this.configuration.DtrSpacing;
-        }
-
-        return totalSize;
     }
 
     private bool AddNode(AtkTextNode* node)
@@ -507,15 +497,18 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 #pragma warning disable SA1015
 [ResolveVia<IDtrBar>]
 #pragma warning restore SA1015
-internal class DtrBarPluginScoped : IDisposable, IServiceType, IDtrBar
+internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
 {
     [ServiceManager.ServiceDependency]
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
 
     private readonly Dictionary<string, DtrBarEntry> pluginEntries = new();
+    
+    /// <inheritdoc/>
+    public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.dtrBarService.Entries;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         foreach (var entry in this.pluginEntries)
         {
@@ -524,7 +517,7 @@ internal class DtrBarPluginScoped : IDisposable, IServiceType, IDtrBar
         
         this.pluginEntries.Clear();
     }
-    
+
     /// <inheritdoc/>
     public DtrBarEntry Get(string title, SeString? text = null)
     {
