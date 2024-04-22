@@ -63,10 +63,16 @@ public interface IPluginManifest
     public List<string>? Tags { get; }
 
     /// <summary>
-    /// Gets the API level of this plugin. For the current API level, please see <see cref="PluginManager.DalamudApiLevel"/>
-    /// for the currently used API level.
+    /// Gets the API level of this plugin.
+    /// For the current API level, please see <see cref="PluginManager.DalamudApiLevel"/> for the currently used API level.
     /// </summary>
     public int DalamudApiLevel { get; }
+
+    /// <summary>
+    /// Gets the API level of the plugin's testing variant.
+    /// For the current API level, please see <see cref="PluginManager.DalamudApiLevel"/> for the currently used API level.
+    /// </summary>
+    public int? TestingDalamudApiLevel { get; }
 
     /// <summary>
     /// Gets the number of downloads this plugin has.

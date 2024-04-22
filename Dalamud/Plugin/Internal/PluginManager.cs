@@ -1178,7 +1178,8 @@ internal class PluginManager : IInternalDisposableService
         }
 
         // API level - we keep the API before this in the installer to show as "outdated"
-        if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !this.LoadAllApiLevels)
+        var effectiveApiLevel = this.UseTesting(manifest) && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
+        if (effectiveApiLevel < DalamudApiLevel - 1 && !this.LoadAllApiLevels)
         {
             Log.Verbose($"API Level: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
@@ -1698,7 +1699,7 @@ internal class PluginManager : IInternalDisposableService
 
         if (plugin == null)
             throw new Exception("Plugin was null when adding to list");
-        
+
         lock (this.pluginListLock)
         {
             this.installedPluginsList.Add(plugin);
@@ -1728,7 +1729,15 @@ internal class PluginManager : IInternalDisposableService
                 var updates = this.AvailablePlugins
                                   .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
                                   .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
-                                  .Where(remoteManifest => remoteManifest.DalamudApiLevel == DalamudApiLevel)
+                                  .Where(remoteManifest =>
+                                  {
+                                      var useTesting = this.UseTesting(remoteManifest);
+                                      var candidateApiLevel = useTesting && remoteManifest.TestingDalamudApiLevel != null
+                                                                  ? remoteManifest.TestingDalamudApiLevel.Value
+                                                                  : remoteManifest.DalamudApiLevel;
+
+                                      return candidateApiLevel == DalamudApiLevel;
+                                  })
                                   .Select(remoteManifest =>
                                   {
                                       var useTesting = this.UseTesting(remoteManifest);
