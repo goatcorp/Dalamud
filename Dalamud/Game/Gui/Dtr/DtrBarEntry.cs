@@ -90,7 +90,7 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     private readonly DalamudConfiguration configuration;
 
     private bool shownBacking = true;
-    private SeString? textBacking = null;
+    private SeString? textBacking;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DtrBarEntry"/> class.
@@ -153,18 +153,18 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// <summary>
     /// Gets a value indicating whether this entry should be removed.
     /// </summary>
-    internal bool ShouldBeRemoved { get; private set; } = false;
+    internal bool ShouldBeRemoved { get; private set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this entry is dirty.
     /// </summary>
-    internal bool Dirty { get; set; } = false;
+    internal bool Dirty { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this entry has just been added.
     /// </summary>
-    internal bool Added { get; set; } = false;
-    
+    internal bool Added { get; set; } 
+
     /// <inheritdoc/>
     public bool TriggerClickAction()
     {
