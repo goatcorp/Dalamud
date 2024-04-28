@@ -82,6 +82,12 @@ public class UIForegroundPayload : Payload
     [JsonIgnore]
     public uint RGBA => this.UIColor.UIForeground;
 
+    /// <summary>
+    /// Gets the ABGR value for this foreground color, as ImGui requires it in PushColor.
+    /// </summary>
+    [JsonIgnore]
+    public uint ABGR => Utility.Util.RGBAToABGR(this.UIColor.UIForeground);
+
     /// <inheritdoc/>
     public override string ToString()
     {
