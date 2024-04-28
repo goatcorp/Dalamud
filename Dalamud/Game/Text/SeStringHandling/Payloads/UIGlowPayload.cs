@@ -71,7 +71,7 @@ public class UIGlowPayload : Payload
     /// Gets the Red/Green/Blue values for this glow color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGB => this.UIColor.UIGlow & 0xFFFFFF;
+    public uint RGBA => this.UIColor.UIGlow;
 
     /// <summary>
     /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIGlow.
@@ -85,7 +85,7 @@ public class UIGlowPayload : Payload
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGB : 0)}";
+        return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGBA : 0)}";
     }
 
     /// <inheritdoc/>
