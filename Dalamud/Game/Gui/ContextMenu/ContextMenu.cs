@@ -268,11 +268,15 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
         foreach (var item in items)
         {
-            if (!item.Prefix.HasValue && !item.UseDefaultPrefix)
+            if (!item.Prefix.HasValue)
             {
                 item.Prefix = MenuItem.DalamudDefaultPrefix;
                 item.PrefixColor = MenuItem.DalamudDefaultPrefixColor;
-                Log.Warning($"Menu item \"{item.Name}\" has no prefix, defaulting to Dalamud's. Menu items outside of a submenu must have a prefix.");
+
+                if (!item.UseDefaultPrefix)
+                {
+                    Log.Warning($"Menu item \"{item.Name}\" has no prefix, defaulting to Dalamud's. Menu items outside of a submenu must have a prefix.");
+                }
             }
         }
 
