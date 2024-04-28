@@ -77,10 +77,10 @@ public class UIForegroundPayload : Payload
     }
 
     /// <summary>
-    /// Gets the Red/Green/Blue values for this foreground color, encoded as a typical hex color.
+    /// Gets the Red/Green/Blue/Alpha values for this foreground color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGB => this.UIColor.UIForeground & 0xFFFFFF;
+    public uint RGBA => this.UIColor.UIForeground;
 
     /// <inheritdoc/>
     public override string ToString()
