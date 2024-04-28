@@ -85,7 +85,7 @@ public class UIForegroundPayload : Payload
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGB : 0)}";
+        return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGBA : 0)}";
     }
 
     /// <inheritdoc/>
