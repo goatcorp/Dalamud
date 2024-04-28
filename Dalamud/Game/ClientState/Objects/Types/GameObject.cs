@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 
 using Dalamud.Game.ClientState.Objects.Enums;

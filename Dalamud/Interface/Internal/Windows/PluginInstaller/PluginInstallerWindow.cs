@@ -2099,7 +2099,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         var useTesting = pluginManager.UseTesting(manifest);
         var wasSeen = this.WasPluginSeen(manifest.InternalName);
 
-        var isOutdated = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+        var effectiveApiLevel = useTesting && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
+        var isOutdated = effectiveApiLevel < PluginManager.DalamudApiLevel;
 
         // Check for valid versions
         if ((useTesting && manifest.TestingAssemblyVersion == null) || manifest.AssemblyVersion == null)
@@ -2421,7 +2422,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             var canFeedback = !isThirdParty &&
                               !plugin.IsDev &&
                               !plugin.IsOrphaned &&
-                              plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel &&
+                              (plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel
+                               || plugin.Manifest.TestingDalamudApiLevel == PluginManager.DalamudApiLevel) &&
                               acceptsFeedback &&
                               availablePluginUpdate == default;
 
@@ -3323,7 +3325,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         var searchString = this.searchText.ToLowerInvariant();
         var matcher = new FuzzyMatcher(searchString, MatchMode.FuzzyParts);
         var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
-        var oldApi = manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+        var oldApi = (manifest.TestingDalamudApiLevel == null
+                            || manifest.TestingDalamudApiLevel < PluginManager.DalamudApiLevel)
+                          && manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
         var installed = this.IsManifestInstalled(manifest).IsInstalled;
 
         if (oldApi && !hasSearchString && !installed)

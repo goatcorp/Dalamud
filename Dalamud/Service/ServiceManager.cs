@@ -16,6 +16,8 @@ using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
+// API10 TODO: Move to Dalamud.Service namespace. Some plugins reflect this... including my own, oops. There's a todo
+// for more reflective APIs, so I'll just leave it for now.
 namespace Dalamud;
 
 // TODO:
@@ -46,6 +48,8 @@ internal static class ServiceManager
     private static readonly CancellationTokenSource UnloadCancellationTokenSource = new();
 
     private static ManualResetEvent unloadResetEvent = new(false);
+
+    private static LoadingDialog loadingDialog = new();
 
     /// <summary>
     /// Delegate for registering startup blocker task.<br />
@@ -179,7 +183,7 @@ internal static class ServiceManager
         var getAsyncTaskMap = new Dictionary<Type, Task>();
 
         var serviceContainer = Service<ServiceContainer>.Get();
-
+        
         foreach (var serviceType in GetConcreteServiceTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
@@ -238,43 +242,51 @@ internal static class ServiceManager
             try
             {
                 // Wait for all blocking constructors to complete first.
-                await WaitWithTimeoutConsent(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]));
+                await WaitWithTimeoutConsent(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]),
+                    LoadingDialog.State.LoadingDalamud);
 
                 // All the BlockingEarlyLoadedService constructors have been run,
                 // and blockerTasks now will not change. Now wait for them.
                 // Note that ServiceManager.CallWhenServicesReady does not get to register a blocker.
-                await WaitWithTimeoutConsent(blockerTasks);
+                await WaitWithTimeoutConsent(blockerTasks,
+                    LoadingDialog.State.LoadingPlugins);
 
-                BlockingServicesLoadedTaskCompletionSource.SetResult();
+                Log.Verbose("=============== BLOCKINGSERVICES & TASKS INITIALIZED ===============");
                 Timings.Event("BlockingServices Initialized");
+                BlockingServicesLoadedTaskCompletionSource.SetResult();
+                loadingDialog.HideAndJoin();
             }
             catch (Exception e)
             {
-                BlockingServicesLoadedTaskCompletionSource.SetException(e);
+                try
+                {
+                    BlockingServicesLoadedTaskCompletionSource.SetException(e);
+                }
+                catch (InvalidOperationException)
+                {
+                    // ignored, may have been set by the try/catch below
+                }
+
+                Log.Error(e, "Failed resolving blocking services");
             }
 
             return;
 
-            async Task WaitWithTimeoutConsent(IEnumerable<Task> tasksEnumerable)
+            async Task WaitWithTimeoutConsent(IEnumerable<Task> tasksEnumerable, LoadingDialog.State state)
             {
                 var tasks = tasksEnumerable.AsReadOnlyCollection();
                 if (tasks.Count == 0)
                     return;
+                
+                // Time we wait until showing the loading dialog
+                const int loadingDialogTimeout = 10000;
 
                 var aggregatedTask = Task.WhenAll(tasks);
-                while (await Task.WhenAny(aggregatedTask, Task.Delay(120000)) != aggregatedTask)
+                while (await Task.WhenAny(aggregatedTask, Task.Delay(loadingDialogTimeout)) != aggregatedTask)
                 {
-                    if (NativeFunctions.MessageBoxW(
-                            IntPtr.Zero,
-                            "Dalamud is taking a long time to load. Would you like to continue without Dalamud?\n" +
-                            "This can be caused by a faulty plugin, or a bug in Dalamud.",
-                            "Dalamud",
-                            NativeFunctions.MessageBoxType.IconWarning | NativeFunctions.MessageBoxType.YesNo) == 6)
-                    {
-                        throw new TimeoutException(
-                            "Failed to load services in the given time limit, " +
-                            "and the user chose to continue without Dalamud.");                        
-                    }
+                    loadingDialog.Show();
+                    loadingDialog.CanHide = true;
+                    loadingDialog.CurrentState = state;
                 }
             }
         }).ConfigureAwait(false);
@@ -387,6 +399,7 @@ internal static class ServiceManager
             try
             {
                 BlockingServicesLoadedTaskCompletionSource.SetException(e);
+                loadingDialog.HideAndJoin();
             }
             catch (Exception)
             {

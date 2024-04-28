@@ -1,10 +1,10 @@
-using System;
 using System.Numerics;
 
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using ImGuiNET;
 using Serilog;
 

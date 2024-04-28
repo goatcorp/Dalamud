@@ -167,7 +167,7 @@ internal class LocalPlugin : IDisposable
     /// <summary>
     /// Gets a value indicating whether this plugin's API level is out of date.
     /// </summary>
-    public bool IsOutdated => this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+    public bool IsOutdated => this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel;
 
     /// <summary>
     /// Gets a value indicating whether the plugin is for testing use only.
@@ -318,8 +318,8 @@ internal class LocalPlugin : IDisposable
             if (this.manifest.ApplicableVersion < dalamud.StartInfo.GameVersion)
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, game is newer than applicable version {this.manifest.ApplicableVersion}");
 
-            if (this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
-                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.DalamudApiLevel}");
+            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.EffectiveApiLevel}");
 
             // We might want to throw here?
             if (!this.IsWantedByAnyProfile)

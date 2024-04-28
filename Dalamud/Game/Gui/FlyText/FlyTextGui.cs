@@ -7,6 +7,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.Gui.FlyText;

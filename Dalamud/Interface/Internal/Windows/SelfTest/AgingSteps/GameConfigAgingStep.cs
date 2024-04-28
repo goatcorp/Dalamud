@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.Config;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;

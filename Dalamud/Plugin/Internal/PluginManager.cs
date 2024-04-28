@@ -22,7 +22,6 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.IoC;
-using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Networking.Http;
 using Dalamud.Plugin.Internal.Exceptions;
@@ -42,8 +41,8 @@ namespace Dalamud.Plugin.Internal;
 /// NOTE: ALL plugin exposed services are marked as dependencies for <see cref="PluginManager"/>
 /// from <see cref="ResolvePossiblePluginDependencyServices"/>.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService("Accomodation of plugins that blocks the game startup.")]
-internal partial class PluginManager : IInternalDisposableService
+[ServiceManager.BlockingEarlyLoadedService("Accommodation of plugins that blocks the game startup.")]
+internal class PluginManager : IInternalDisposableService
 {
     /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
@@ -245,6 +244,11 @@ internal partial class PluginManager : IInternalDisposableService
     /// Gets or sets a value indicating whether banned plugins will be loaded.
     /// </summary>
     public bool LoadBannedPlugins { get; set; }
+    
+    /// <summary>
+    /// Gets a tracker for plugins that are loading at startup, used to display information to the user.
+    /// </summary>
+    public StartupLoadTracker? StartupLoadTracking { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether the given repo manifest should be visible to the user.
@@ -632,6 +636,15 @@ internal partial class PluginManager : IInternalDisposableService
             Log.Information($"============= LoadPluginsAsync({logPrefix}) END =============");
         }
 
+        // Initialize the startup load tracker for all LoadSync plugins
+        {
+            this.StartupLoadTracking = new();
+            foreach (var pluginDef in pluginDefs.Where(x => x.Manifest.LoadSync))
+            {
+                this.StartupLoadTracking.Add(pluginDef.Manifest!.InternalName, pluginDef.Manifest.Name);
+            }
+        }
+
         var syncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync == true).ToList();
         var asyncPlugins = pluginDefs.Where(def => def.Manifest?.LoadSync != true).ToList();
         var loadTasks = new List<Task>();
@@ -702,6 +715,8 @@ internal partial class PluginManager : IInternalDisposableService
                 {
                     Log.Error(ex, "Plugin and profile validation failed!");
                 }
+
+                this.StartupLoadTracking = null;
             },
             tokenSource.Token);
     }
@@ -1163,7 +1178,8 @@ internal partial class PluginManager : IInternalDisposableService
         }
 
         // API level - we keep the API before this in the installer to show as "outdated"
-        if (manifest.DalamudApiLevel < DalamudApiLevel - 1 && !this.LoadAllApiLevels)
+        var effectiveApiLevel = this.UseTesting(manifest) && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
+        if (effectiveApiLevel < DalamudApiLevel - 1 && !this.LoadAllApiLevels)
         {
             Log.Verbose($"API Level: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
@@ -1683,11 +1699,15 @@ internal partial class PluginManager : IInternalDisposableService
 
         if (plugin == null)
             throw new Exception("Plugin was null when adding to list");
-        
+
         lock (this.pluginListLock)
         {
             this.installedPluginsList.Add(plugin);
         }
+
+        // Mark as finished loading
+        if (manifest.LoadSync)
+            this.StartupLoadTracking?.Finish(manifest.InternalName);
 
         return plugin;
     }
@@ -1709,7 +1729,15 @@ internal partial class PluginManager : IInternalDisposableService
                 var updates = this.AvailablePlugins
                                   .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
                                   .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
-                                  .Where(remoteManifest => remoteManifest.DalamudApiLevel == DalamudApiLevel)
+                                  .Where(remoteManifest =>
+                                  {
+                                      var useTesting = this.UseTesting(remoteManifest);
+                                      var candidateApiLevel = useTesting && remoteManifest.TestingDalamudApiLevel != null
+                                                                  ? remoteManifest.TestingDalamudApiLevel.Value
+                                                                  : remoteManifest.DalamudApiLevel;
+
+                                      return candidateApiLevel == DalamudApiLevel;
+                                  })
                                   .Select(remoteManifest =>
                                   {
                                       var useTesting = this.UseTesting(remoteManifest);
@@ -1782,7 +1810,16 @@ internal partial class PluginManager : IInternalDisposableService
 
             using (Timings.Start("PM Load Sync Plugins"))
             {
-                this.LoadAllPlugins().Wait();
+                var loadAllPlugins = Task.Run(this.LoadAllPlugins);
+                
+                // We wait for all blocking services and tasks to finish before kicking off the main thread in any mode.
+                // This means that we don't want to block here if this stupid thing isn't enabled.
+                if (this.configuration.IsResumeGameAfterPluginLoad)
+                {
+                    Log.Verbose("Waiting for all plugins to load before resuming game");
+                    loadAllPlugins.Wait();
+                }
+
                 Log.Information("[T3] PML OK!");
             }
 
@@ -1791,6 +1828,63 @@ internal partial class PluginManager : IInternalDisposableService
         catch (Exception ex)
         {
             Log.Error(ex, "Plugin load failed");
+        }
+    }
+    
+    /// <summary>
+    /// Simple class that tracks the internal names and public names of plugins that we are planning to load at startup,
+    /// and are still actively loading.
+    /// </summary>
+    public class StartupLoadTracker
+    {
+        private readonly Dictionary<string, string> internalToPublic = new();
+        private readonly ConcurrentBag<string> allInternalNames = new();
+        private readonly ConcurrentBag<string> finishedInternalNames = new();
+        
+        /// <summary>
+        /// Gets a value indicating the total load progress.
+        /// </summary>
+        public float Progress => (float)this.finishedInternalNames.Count / this.allInternalNames.Count;
+        
+        /// <summary>
+        /// Calculate a set of internal names that are still pending.
+        /// </summary>
+        /// <returns>Set of pending InternalNames.</returns>
+        public IReadOnlySet<string> GetPendingInternalNames()
+        {
+            var pending = new HashSet<string>(this.allInternalNames);
+            pending.ExceptWith(this.finishedInternalNames);
+            return pending;
+        }
+        
+        /// <summary>
+        /// Track a new plugin.
+        /// </summary>
+        /// <param name="internalName">The plugin's internal name.</param>
+        /// <param name="publicName">The plugin's public name.</param>
+        public void Add(string internalName, string publicName)
+        {
+            this.internalToPublic[internalName] = publicName;
+            this.allInternalNames.Add(internalName);
+        }
+    
+        /// <summary>
+        /// Mark a plugin as finished loading.
+        /// </summary>
+        /// <param name="internalName">The internal name of the plugin.</param>
+        public void Finish(string internalName)
+        {
+            this.finishedInternalNames.Add(internalName);
+        }
+        
+        /// <summary>
+        /// Get the public name for a given internal name.
+        /// </summary>
+        /// <param name="internalName">The internal name to look up.</param>
+        /// <returns>The public name.</returns>
+        public string? GetPublicName(string internalName)
+        {
+            return this.internalToPublic.TryGetValue(internalName, out var publicName) ? publicName : null;
         }
     }
 

@@ -10,6 +10,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle;
@@ -133,6 +134,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
+        // Set removed state to true immediately, then lazily remove it from the EventListeners list on next Framework Update.
+        listener.Removed = true;
+        
         this.framework.RunOnTick(() =>
         {
             this.EventListeners.Remove(listener);
@@ -167,6 +171,10 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
             if (listener.EventType != eventType)
                 continue;
 
+            // If the listener is pending removal, and is waiting until the next Framework Update, don't invoke listener.
+            if (listener.Removed)
+                continue;
+            
             // Match on string.empty for listeners that want events for all addons.
             if (!string.IsNullOrWhiteSpace(listener.AddonName) && !args.IsAddon(listener.AddonName))
                 continue;
