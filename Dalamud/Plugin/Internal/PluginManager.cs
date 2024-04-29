@@ -19,6 +19,7 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.IoC;
@@ -129,7 +130,7 @@ internal class PluginManager : IInternalDisposableService
                     (_, _) =>
                     {
                         Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(
-                            PluginInstallerWindow.PluginInstallerOpenKind.Changelogs);
+                            PluginInstallerOpenKind.Changelogs);
                     }));
 
         this.configuration.PluginTestingOptIns ??= new();

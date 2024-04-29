@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
@@ -452,7 +453,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets the page of the plugin installer that is shown by default when opened.
     /// </summary>
-    public PluginInstallerWindow.PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins;
+    public PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerOpenKind.AllPlugins;
 
     /// <summary>
     /// Load a configuration from the provided path.

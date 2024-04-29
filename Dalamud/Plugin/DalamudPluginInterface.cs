@@ -25,6 +25,9 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
+using Dalamud.Utility;
+
+using static Dalamud.Interface.Internal.Windows.PluginInstaller.PluginInstallerWindow;
 
 namespace Dalamud.Plugin;
 
@@ -216,11 +219,22 @@ public sealed class DalamudPluginInterface : IDisposable
     public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.EffectiveVersion));
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/>, with the plugin name set as search target by default.
+    /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
     /// </summary>
-    /// <param name="filterByPluginInternalName">Whether to filter the plugin list by the plugin's internal name. (Default is true)</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    public bool OpenPluginInstaller(bool filterByPluginInternalName = true)
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
+    public bool OpenPluginInstaller()
+    {
+        return this.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins, this.plugin.InternalName);
+    }
+
+    /// <summary>
+    /// Opens the <see cref="PluginInstallerWindow"/>, with an optional search term.
+    /// </summary>
+    /// <param name="openTo">The page to open the installer to. Defaults to the "All Plugins" page.</param>
+    /// <param name="searchText">An optional search text to input in the search box.</param>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -228,20 +242,19 @@ public sealed class DalamudPluginInterface : IDisposable
             return false;
         }
 
-        dalamudInterface.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
-        if (filterByPluginInternalName)
-        {
-            dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
-        }
+        dalamudInterface.OpenPluginInstallerTo(openTo);
+        dalamudInterface.SetPluginInstallerSearchText(searchText);
 
         return true;
     }
 
     /// <summary>
-    /// Opens the <see cref="SettingsWindow"/>
+    /// Opens the <see cref="SettingsWindow"/>, with an optional search term.
     /// </summary>
+    /// <param name="openTo">The tab to open the settings to. Defaults to the "General" tab.</param>
+    /// <param name="searchText">An optional search text to input in the search box.</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    public bool OpenDalamudSettings()
+    public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -249,7 +262,9 @@ public sealed class DalamudPluginInterface : IDisposable
             return false;
         }
 
-        dalamudInterface.OpenSettings();
+        dalamudInterface.OpenSettingsTo(openTo);
+        dalamudInterface.SetSettingsSearchText(searchText);
+
         return true;
     }
 

@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
@@ -10,6 +11,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
@@ -22,6 +24,9 @@ internal class SettingsWindow : Window
     private SettingsTab[]? tabs;
 
     private string searchInput = string.Empty;
+    private bool isSearchInputPrefilled = false;
+
+    private SettingsTab setActiveTab = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
@@ -37,6 +42,34 @@ internal class SettingsWindow : Window
         };
 
         this.SizeCondition = ImGuiCond.FirstUseEver;
+    }
+
+    /// <summary>
+    /// Open the settings window to the tab specified by <paramref name="kind"/>.
+    /// </summary>
+    /// <param name="kind">The tab of the settings window to open.</param>
+    public void OpenTo(SettingsOpenKind kind)
+    {
+        this.IsOpen = true;
+        this.SetOpenTab(kind);
+    }
+
+    /// <summary>
+    /// Sets the current search text and marks it as prefilled.
+    /// </summary>
+    /// <param name="text">The search term.</param>
+    public void SetSearchText(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            this.isSearchInputPrefilled = false;
+            this.searchInput = string.Empty;
+        }
+        else
+        {
+            this.isSearchInputPrefilled = true;
+            this.searchInput = text;
+        }
     }
 
     /// <inheritdoc/>
@@ -56,7 +89,7 @@ internal class SettingsWindow : Window
             settingsTab.Load();
         }
 
-        this.searchInput = string.Empty;
+        if (!this.isSearchInputPrefilled) this.searchInput = string.Empty;
 
         base.OnOpen();
     }
@@ -84,6 +117,12 @@ internal class SettingsWindow : Window
 
             settingsTab.IsOpen = false;
         }
+
+        if (this.isSearchInputPrefilled)
+        {
+            this.isSearchInputPrefilled = false;
+            this.searchInput = string.Empty;
+        }
     }
 
     /// <inheritdoc/>
@@ -97,7 +136,15 @@ internal class SettingsWindow : Window
             {
                 foreach (var settingsTab in this.tabs.Where(x => x.IsVisible))
                 {
-                    if (ImGui.BeginTabItem(settingsTab.Title))
+                    var flags = ImGuiTabItemFlags.NoCloseWithMiddleMouseButton;
+                    if (this.setActiveTab == settingsTab)
+                    {
+                        flags |= ImGuiTabItemFlags.SetSelected;
+                        this.setActiveTab = null;
+                    }
+
+                    using var tab = ImRaii.TabItem(settingsTab.Title, flags);
+                    if (tab)
                     {
                         if (!settingsTab.IsOpen)
                         {
@@ -230,5 +277,29 @@ internal class SettingsWindow : Window
         configuration.QueueSave();
 
         Service<InterfaceManager>.Get().RebuildFonts();
+    }
+
+    private void SetOpenTab(SettingsOpenKind kind)
+    {
+        switch (kind)
+        {
+            case SettingsOpenKind.General:
+                this.setActiveTab = this.tabs[0];
+                break;
+            case SettingsOpenKind.LookAndFeel:
+                this.setActiveTab = this.tabs[1];
+                break;
+            case SettingsOpenKind.ServerInfoBar:
+                this.setActiveTab = this.tabs[2];
+                break;
+            case SettingsOpenKind.Experimental:
+                this.setActiveTab = this.tabs[3];
+                break;
+            case SettingsOpenKind.About:
+                this.setActiveTab = this.tabs[4];
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+        }
     }
 }
