@@ -290,10 +290,10 @@ internal class DalamudInterface : IInternalDisposableService
     }
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
+    /// Opens the <see cref="PluginInstallerWindow"/> on the specified page.
     /// </summary>
     /// <param name="kind">The page of the installer to open.</param>
-    public void OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind kind)
+    public void OpenPluginInstallerTo(PluginInstallerOpenKind kind)
     {
         this.pluginWindow.OpenTo(kind);
         this.pluginWindow.BringToFront();
@@ -305,6 +305,16 @@ internal class DalamudInterface : IInternalDisposableService
     public void OpenSettings()
     {
         this.settingsWindow.IsOpen = true;
+        this.settingsWindow.BringToFront();
+    }
+
+    /// <summary>
+    /// Opens the <see cref="SettingsWindow"/> on the specified tab.
+    /// </summary>
+    /// <param name="kind">The tab of the settings to open.</param>
+    public void OpenSettingsTo(SettingsOpenKind kind)
+    {
+        this.settingsWindow.OpenTo(kind);
         this.settingsWindow.BringToFront();
     }
 
@@ -418,7 +428,7 @@ internal class DalamudInterface : IInternalDisposableService
     /// Toggles the <see cref="PluginInstallerWindow"/>.
     /// </summary>
     /// <param name="kind">The page of the installer to open.</param>
-    public void TogglePluginInstallerWindowTo(PluginInstallerWindow.PluginInstallerOpenKind kind) => this.pluginWindow.ToggleTo(kind);
+    public void TogglePluginInstallerWindowTo(PluginInstallerOpenKind kind) => this.pluginWindow.ToggleTo(kind);
 
     /// <summary>
     /// Toggles the <see cref="SettingsWindow"/>.
@@ -454,6 +464,15 @@ internal class DalamudInterface : IInternalDisposableService
     public void SetPluginInstallerSearchText(string text)
     {
         this.pluginWindow.SetSearchText(text);
+    }
+
+    /// <summary>
+    /// Sets the current search text for the settings window.
+    /// </summary>
+    /// <param name="text">The search term.</param>
+    public void SetSettingsSearchText(string text)
+    {
+        this.settingsWindow.SetSearchText(text);
     }
 
     /// <summary>
