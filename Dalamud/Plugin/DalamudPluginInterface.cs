@@ -18,6 +18,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
+using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
@@ -215,10 +216,11 @@ public sealed class DalamudPluginInterface : IDisposable
     public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.EffectiveVersion));
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
+    /// Opens the <see cref="PluginInstallerWindow"/>, with the plugin name set as search target by default.
     /// </summary>
+    /// <param name="filterByPluginInternalName">Whether to filter the plugin list by the plugin's internal name. (Default is true)</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    public bool OpenPluginInstaller()
+    public bool OpenPluginInstaller(bool filterByPluginInternalName = true)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -227,8 +229,43 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         dalamudInterface.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
-        dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
+        if (filterByPluginInternalName)
+        {
+            dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
+        }
 
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the <see cref="SettingsWindow"/>
+    /// </summary>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenDalamudSettings()
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenSettings();
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the dev menu bar.
+    /// </summary>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenDeveloperMenu()
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenDevMenu();
         return true;
     }
 
