@@ -109,7 +109,7 @@ public static partial class ImRaii
 
     public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
     {
-        // One-ff for now, we should make this into a generic solution if we need it more often
+        // One-off for now, we should make this into a generic solution if we need it more often
         const int ImGuiNET_Util_StackAllocationSizeLimit = 2048;
 
         byte* native_label;
