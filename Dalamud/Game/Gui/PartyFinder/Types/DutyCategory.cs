@@ -44,4 +44,9 @@ public enum DutyCategory
     /// The adventuring forays category.
     /// </summary>
     AdventuringForays = 1 << 6,
+
+    /// <summary>
+    /// The variant and criterion dungeons category.
+    /// </summary>
+    VariantAndCriterionDungeons = 1 << 7,
 }
