@@ -104,9 +104,12 @@ public static partial class ImRaii
     public static IEndObject TabItem(string label)
         => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label));
 
+    public static unsafe IEndObject TabItem(byte* label, ImGuiTabItemFlags flags)
+        => new EndConditionally(ImGuiNative.igEndTabItem, ImGuiNative.igBeginTabItem(label, null, flags) != 0);
+
     public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
     {
-        // I am so sorry for this.
+        // One-ff for now, we should make this into a generic solution if we need it more often
         const int ImGuiNET_Util_StackAllocationSizeLimit = 2048;
 
         byte* native_label;
