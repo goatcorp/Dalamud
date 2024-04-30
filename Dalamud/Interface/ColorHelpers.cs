@@ -160,6 +160,17 @@ public static class ColorHelpers
     }
 
     /// <summary>
+    /// Turns a RGBA color value into ABGR for usage in ImGui.PushColor
+    /// </summary>
+    /// <param name="rgba">Color value with byte order of RGBA.</param>
+    /// <returns>The color value in byte order of ABGR, the format that ImGui uses.</returns>
+    public static uint RGBAToABGR(uint rgba)
+    {
+        var tmp = ((rgba << 8) & 0xFF00FF00) | ((rgba >> 8) & 0xFF00FF);
+        return (tmp << 16) | (tmp >> 16);
+    }
+
+    /// <summary>
     /// Lighten a color.
     /// </summary>
     /// <param name="color">The color to lighten.</param>
@@ -259,7 +270,7 @@ public static class ColorHelpers
         hsv.A -= amount;
         return HsvToRgb(hsv);
     }
-    
+
     /// <summary>
     /// Set alpha of a color.
     /// </summary>
@@ -299,10 +310,10 @@ public static class ColorHelpers
     {
         // If any components are out of range, return original value.
         { W: > 255.0f or < 0.0f } or { X: > 255.0f or < 0.0f } or { Y: > 255.0f or < 0.0f } or { Z: > 255.0f or < 0.0f } => color,
-            
+
         // If all components are already unit range, return original value.
         { W: >= 0.0f and <= 1.0f, X: >= 0.0f and <= 1.0f, Y: >= 0.0f and <= 1.0f, Z: >= 0.0f and <= 1.0f } => color,
-            
+
         _ => color / 255.0f,
     };
 }

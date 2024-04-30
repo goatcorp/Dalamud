@@ -642,17 +642,6 @@ public static class Util
     }
 
     /// <summary>
-    /// Turns a RGBA color value into ABGR for usage in ImGui.PushColor
-    /// </summary>
-    /// <param name="rgba">Color value with byte order of RGBA.</param>
-    /// <returns>The color value in byte order of ABGR, the format that ImGui uses.</returns>
-    public static uint RGBAToABGR(uint rgba)
-    {
-        var tmp = ((rgba << 8) & 0xFF00FF00) | ((rgba >> 8) & 0xFF00FF);
-        return (tmp << 16) | (tmp >> 16);
-    }
-
-    /// <summary>
     /// Gets a random, inoffensive, human-friendly string.
     /// </summary>
     /// <returns>A random human-friendly name.</returns>
