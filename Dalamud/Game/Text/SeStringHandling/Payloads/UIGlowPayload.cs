@@ -77,7 +77,7 @@ public class UIGlowPayload : Payload
     /// Gets the ABGR value for this glow color, as ImGui requires it in PushColor.
     /// </summary>
     [JsonIgnore]
-    public uint ABGR => Interface.ColorHelpers.RGBAToABGR(this.UIColor.UIGlow);
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.UIGlow);
 
     /// <summary>
     /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIGlow.

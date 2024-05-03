@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Numerics;
@@ -160,15 +161,14 @@ public static class ColorHelpers
     }
 
     /// <summary>
-    /// Turns a RGBA color value into ABGR for usage in ImGui.PushColor
+    /// Performs a swap of endianness
+    /// Exmaple:
+    /// (FFXIV) RGBA to ABGR (ImGui)
     /// </summary>
-    /// <param name="rgba">Color value with byte order of RGBA.</param>
-    /// <returns>The color value in byte order of ABGR, the format that ImGui uses.</returns>
-    public static uint RGBAToABGR(uint rgba)
-    {
-        var tmp = ((rgba << 8) & 0xFF00FF00) | ((rgba >> 8) & 0xFF00FF);
-        return (tmp << 16) | (tmp >> 16);
-    }
+    /// <param name="rgba">Color value in byte order X Y Z W.</param>
+    /// <returns>Endian swapped color value with new byte order W Z Y X.</returns>
+    public static uint SwapEndianness(uint rgba)
+        => BinaryPrimitives.ReverseEndianness(rgba);
 
     /// <summary>
     /// Lighten a color.
