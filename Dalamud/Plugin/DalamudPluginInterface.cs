@@ -18,12 +18,16 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
+using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
+using Dalamud.Utility;
+
+using static Dalamud.Interface.Internal.Windows.PluginInstaller.PluginInstallerWindow;
 
 namespace Dalamud.Plugin;
 
@@ -218,7 +222,19 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
     /// </summary>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public bool OpenPluginInstaller()
+    {
+        return this.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins, this.plugin.InternalName);
+    }
+
+    /// <summary>
+    /// Opens the <see cref="PluginInstallerWindow"/>, with an optional search term.
+    /// </summary>
+    /// <param name="openTo">The page to open the installer to. Defaults to the "All Plugins" page.</param>
+    /// <param name="searchText">An optional search text to input in the search box.</param>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -226,9 +242,45 @@ public sealed class DalamudPluginInterface : IDisposable
             return false;
         }
 
-        dalamudInterface.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
-        dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
+        dalamudInterface.OpenPluginInstallerTo(openTo);
+        dalamudInterface.SetPluginInstallerSearchText(searchText);
 
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the <see cref="SettingsWindow"/>, with an optional search term.
+    /// </summary>
+    /// <param name="openTo">The tab to open the settings to. Defaults to the "General" tab.</param>
+    /// <param name="searchText">An optional search text to input in the search box.</param>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string searchText = null)
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenSettingsTo(openTo);
+        dalamudInterface.SetSettingsSearchText(searchText);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the dev menu bar.
+    /// </summary>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenDeveloperMenu()
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenDevMenu();
         return true;
     }
 
