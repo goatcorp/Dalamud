@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Text;
 
 using ImGuiNET;
 
@@ -36,7 +37,7 @@ public static partial class ImRaii
 
     public static IEndObject Popup(string id, ImGuiWindowFlags flags)
         => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopup(id, flags));
-    
+
     public static IEndObject PopupModal(string id)
         => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopupModal(id));
 
@@ -106,6 +107,44 @@ public static partial class ImRaii
     public static unsafe IEndObject TabItem(byte* label, ImGuiTabItemFlags flags)
         => new EndConditionally(ImGuiNative.igEndTabItem, ImGuiNative.igBeginTabItem(label, null, flags) != 0);
 
+    public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
+    {
+        // One-off for now, we should make this into a generic solution if we need it more often
+        const int ImGuiNET_Util_StackAllocationSizeLimit = 2048;
+
+        byte* native_label;
+        int label_byteCount = 0;
+        if (label != null)
+        {
+            label_byteCount = Encoding.UTF8.GetByteCount(label);
+
+            if (label_byteCount > ImGuiNET_Util_StackAllocationSizeLimit)
+            {
+                throw new ArgumentOutOfRangeException("label", "Label is too long. (Longer than 2048 bytes)");
+            }
+
+            byte* native_label_stackBytes = stackalloc byte[label_byteCount + 1];
+            native_label = native_label_stackBytes;
+
+            int native_label_offset;
+            fixed (char* utf16Ptr = label)
+            {
+                native_label_offset = Encoding.UTF8.GetBytes(utf16Ptr, label.Length, native_label, label_byteCount);
+            }
+
+            native_label[native_label_offset] = 0;
+        }
+        else
+        {
+            native_label = null;
+        }
+
+        byte* p_open = null;
+        byte ret = ImGuiNative.igBeginTabItem(native_label, p_open, flags);
+
+        return new EndUnconditionally(ImGuiNative.igEndTabItem, ret != 0);
+    }
+
     public static IEndObject TabItem(string label, ref bool open)
         => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, ref open));
 
@@ -174,7 +213,7 @@ public static partial class ImRaii
         return new EndUnconditionally(Widget.EndFramedGroup, true);
     }
     */
-    
+
     // Used to avoid tree pops when flag for no push is set.
     private static void Nop()
     {
@@ -210,15 +249,15 @@ public static partial class ImRaii
     {
         private Action EndAction { get; }
 
-        public  bool   Success   { get; }
+        public bool Success { get; }
 
-        public  bool   Disposed  { get; private set; }
+        public bool Disposed { get; private set; }
 
         public EndUnconditionally(Action endAction, bool success)
         {
             this.EndAction = endAction;
-            this.Success   = success;
-            this.Disposed  = false;
+            this.Success = success;
+            this.Disposed = false;
         }
 
         public void Dispose()
@@ -240,11 +279,11 @@ public static partial class ImRaii
             this.Success = success;
             this.Disposed = false;
         }
-        
+
         public bool Success { get; }
 
         public bool Disposed { get; private set; }
-        
+
         private Action EndAction { get; }
 
         public void Dispose()

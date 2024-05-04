@@ -12,11 +12,11 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows;
-using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -125,7 +125,7 @@ internal class ChatHandlers : IServiceType
 
         this.openInstallerWindowLink = chatGui.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
         {
-            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
+            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins);
         });
     }
 

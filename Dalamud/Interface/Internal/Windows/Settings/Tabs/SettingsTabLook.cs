@@ -128,8 +128,8 @@ public class SettingsTabLook : SettingsTab
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingInstallerOpenDefault", "Open the Plugin Installer to the \"Installed Plugins\" tab by default"),
             Loc.Localize("DalamudSettingInstallerOpenDefaultHint", "This will allow you to open the Plugin Installer to the \"Installed Plugins\" tab by default, instead of the \"Available Plugins\" tab."),
-            c => c.PluginInstallerOpen == PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins,
-            (v, c) => c.PluginInstallerOpen = v ? PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins : PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins),
+            c => c.PluginInstallerOpen == PluginInstallerOpenKind.InstalledPlugins,
+            (v, c) => c.PluginInstallerOpen = v ? PluginInstallerOpenKind.InstalledPlugins : PluginInstallerOpenKind.AllPlugins),
         
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingReducedMotion", "Reduce motions"),
