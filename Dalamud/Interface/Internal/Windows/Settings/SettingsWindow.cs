@@ -158,7 +158,6 @@ internal class SettingsWindow : Window
                         }
 
                         ImGui.EndChild();
-                        ImGui.EndTabItem();
                     }
                     else if (settingsTab.IsOpen)
                     {
