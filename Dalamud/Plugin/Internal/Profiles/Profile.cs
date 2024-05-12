@@ -183,10 +183,13 @@ internal class Profile
                 });
             }
         }
-
+        
+        Log.Information("Adding plugin {Plugin}({Guid}) to profile {Profile} with state {State}", internalName, workingPluginId, this.Guid, state);
+        
         // We need to remove this plugin from the default profile, if it declares it.
         if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(workingPluginId) != null)
         {
+            Log.Information("=> Removing plugin {Plugin}({Guid}) from default profile", internalName, workingPluginId);
             await this.manager.DefaultProfile.RemoveAsync(workingPluginId, false);
         }
 
@@ -202,8 +205,12 @@ internal class Profile
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <param name="checkDefault">
+    /// Whether or not to throw when a plugin is removed from the default profile, without being in another profile.
+    /// Used to prevent orphan plugins, but can be ignored when cleaning up old entries.
+    /// </param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task RemoveAsync(Guid workingPluginId, bool apply = true)
+    public async Task RemoveAsync(Guid workingPluginId, bool apply = true, bool checkDefault = true)
     {
         ProfileModelV1.ProfileModelV1Plugin entry;
         lock (this)
@@ -215,15 +222,18 @@ internal class Profile
             if (!this.modelV1.Plugins.Remove(entry))
                 throw new Exception("Couldn't remove plugin from model collection");
         }
+        
+        Log.Information("Removing plugin {Plugin}({Guid}) from profile {Profile}", entry.InternalName, entry.WorkingPluginId, this.Guid);
 
         // We need to add this plugin back to the default profile, if we were the last profile to have it.
         if (!this.manager.IsInAnyProfile(workingPluginId))
         {
             if (!this.IsDefaultProfile)
             {
+                Log.Information("=> Adding plugin {Plugin}({Guid}) back to default profile", entry.InternalName, entry.WorkingPluginId);
                 await this.manager.DefaultProfile.AddOrUpdateAsync(workingPluginId, entry.InternalName, this.IsEnabled && entry.IsEnabled, false);
             }
-            else
+            else if (checkDefault)
             {
                 throw new PluginNotInDefaultProfileException(workingPluginId.ToString());
             }
@@ -233,31 +243,6 @@ internal class Profile
 
         if (apply)
             await this.manager.ApplyAllWantStatesAsync();
-    }
-
-    /// <summary>
-    /// Remove a plugin from this profile.
-    /// This will block until all states have been applied.
-    /// </summary>
-    /// <param name="internalName">The internal name of the plugin.</param>
-    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task RemoveByInternalNameAsync(string internalName, bool apply = true)
-    {
-        Guid? pluginToRemove = null;
-        lock (this)
-        {
-            foreach (var plugin in this.Plugins)
-            {
-                if (plugin.InternalName.Equals(internalName, StringComparison.Ordinal))
-                {
-                    pluginToRemove = plugin.WorkingPluginId;
-                    break;
-                }
-            }
-        }
-
-        await this.RemoveAsync(pluginToRemove ?? throw new PluginNotFoundException(internalName), apply);
     }
 
     /// <summary>

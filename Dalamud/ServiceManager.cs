@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,6 +43,7 @@ internal static class ServiceManager
 #endif
 
     private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource = new();
+    private static readonly CancellationTokenSource UnloadCancellationTokenSource = new();
 
     private static ManualResetEvent unloadResetEvent = new(false);
 
@@ -106,6 +108,12 @@ internal static class ServiceManager
     /// Gets task that gets completed when all blocking early loading services are done loading.
     /// </summary>
     public static Task BlockingResolved { get; } = BlockingServicesLoadedTaskCompletionSource.Task;
+    
+    /// <summary>
+    /// Gets a cancellation token that will be cancelled once Dalamud needs to unload, be it due to a failure state
+    /// during initialization or during regular operation.
+    /// </summary>
+    public static CancellationToken UnloadCancellationToken => UnloadCancellationTokenSource.Token;
 
     /// <summary>
     /// Initializes Provided Services and FFXIVClientStructs.
@@ -165,6 +173,7 @@ internal static class ServiceManager
 
         var earlyLoadingServices = new HashSet<Type>();
         var blockingEarlyLoadingServices = new HashSet<Type>();
+        var providedServices = new HashSet<Type>();
 
         var dependencyServicesMap = new Dictionary<Type, List<Type>>();
         var getAsyncTaskMap = new Dictionary<Type, Task>();
@@ -174,7 +183,8 @@ internal static class ServiceManager
         foreach (var serviceType in GetConcreteServiceTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
-            Debug.Assert(serviceKind != ServiceKind.None, $"Service<{serviceType.FullName}> did not specify a kind");
+
+            CheckServiceTypeContracts(serviceType);
 
             // Let IoC know about the interfaces this service implements
             serviceContainer.RegisterInterfaces(serviceType);
@@ -197,7 +207,10 @@ internal static class ServiceManager
 
             // We don't actually need to load provided services, something else does
             if (serviceKind.HasFlag(ServiceKind.ProvidedService))
+            {
+                providedServices.Add(serviceType);
                 continue;
+            }
 
             Debug.Assert(
                 serviceKind.HasFlag(ServiceKind.EarlyLoadedService) ||
@@ -340,7 +353,16 @@ internal static class ServiceManager
                 }
 
                 if (!tasks.Any())
-                    throw new InvalidOperationException("Unresolvable dependency cycle detected");
+                {
+                    // No more services we can start loading for now.
+                    // Either we're waiting for provided services, or there's a dependency cycle.
+                    providedServices.RemoveWhere(x => getAsyncTaskMap[x].IsCompleted);
+                    if (providedServices.Any())
+                        await Task.WhenAny(providedServices.Select(x => getAsyncTaskMap[x]));
+                    else
+                        throw new InvalidOperationException("Unresolvable dependency cycle detected");
+                    continue;
+                }
 
                 if (servicesToLoad.Any())
                 {
@@ -359,6 +381,8 @@ internal static class ServiceManager
         }
         catch (Exception e)
         {
+            UnloadCancellationTokenSource.Cancel();
+
             Log.Error(e, "Failed resolving services");
             try
             {
@@ -386,6 +410,8 @@ internal static class ServiceManager
     /// </summary>
     public static void UnloadAllServices()
     {
+        UnloadCancellationTokenSource.Cancel();
+        
         var framework = Service<Framework>.GetNullable(Service<Framework>.ExceptionPropagationMode.None);
         if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
         {
@@ -501,6 +527,44 @@ internal static class ServiceManager
         return ServiceKind.ProvidedService;
     }
 
+    /// <summary>Validate service type contracts, and throws exceptions accordingly.</summary>
+    /// <param name="serviceType">An instance of <see cref="Type"/> that is supposed to be a service type.</param>
+    /// <remarks>Does nothing on non-debug builds.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void CheckServiceTypeContracts(Type serviceType)
+    {
+#if DEBUG
+        try
+        {
+            if (!serviceType.IsAssignableTo(typeof(IServiceType)))
+                throw new InvalidOperationException($"Non-{nameof(IServiceType)} passed.");
+            if (serviceType.GetServiceKind() == ServiceKind.None)
+                throw new InvalidOperationException("Service type is not specified.");
+
+            var isServiceDisposable =
+                serviceType.IsAssignableTo(typeof(IInternalDisposableService));
+            var isAnyDisposable =
+                isServiceDisposable
+                || serviceType.IsAssignableTo(typeof(IDisposable))
+                || serviceType.IsAssignableTo(typeof(IAsyncDisposable)); 
+            if (isAnyDisposable && !isServiceDisposable)
+            {
+                throw new InvalidOperationException(
+                    $"A service must be an {nameof(IInternalDisposableService)} without specifying " +
+                    $"{nameof(IDisposable)} nor {nameof(IAsyncDisposable)} if it is purely meant to be a service, " +
+                    $"or an {nameof(IPublicDisposableService)} if it also is allowed to be constructed not as a " +
+                    $"service to be used elsewhere and has to offer {nameof(IDisposable)} or " +
+                    $"{nameof(IAsyncDisposable)}. See {nameof(ReliableFileStorage)} for an example of " +
+                    $"{nameof(IPublicDisposableService)}.");
+            }
+        }
+        catch (Exception e)
+        {
+            throw new InvalidOperationException($"{serviceType.Name}: {e.Message}");
+        }
+#endif
+    }
+
     /// <summary>
     /// Indicates that this constructor will be called for early initialization.
     /// </summary>
@@ -585,10 +649,15 @@ internal static class ServiceManager
         /// <summary>
         /// Initializes a new instance of the <see cref="BlockingEarlyLoadedServiceAttribute"/> class.
         /// </summary>
-        public BlockingEarlyLoadedServiceAttribute()
+        /// <param name="blockReason">Reason of blocking the game startup.</param>
+        public BlockingEarlyLoadedServiceAttribute(string blockReason)
             : base(ServiceKind.BlockingEarlyLoadedService)
         {
+            this.BlockReason = blockReason;
         }
+
+        /// <summary>Gets the reason of blocking the startup of the game.</summary>
+        public string BlockReason { get; }
     }
 
     /// <summary>

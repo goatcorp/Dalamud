@@ -145,7 +145,7 @@ public record DalamudStartInfo
     public bool CrashHandlerShow { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to disable all kinds of global exception handlers.
+    /// Gets or sets a value indicating how to deal with unhandled exceptions.
     /// </summary>
-    public bool NoExceptionHandlers { get; set; }
+    public UnhandledExceptionHandlingMode UnhandledException { get; set; }
 }

@@ -21,8 +21,8 @@ namespace Dalamud.Game.Gui.Dtr;
 /// Class used to interface with the server info bar.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 {
     private const uint BaseNodeId = 1000;
 
@@ -101,7 +101,7 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.addonLifecycle.UnregisterListener(this.dtrPostDrawListener);
         this.addonLifecycle.UnregisterListener(this.dtrPostRequestedUpdateListener);
@@ -493,7 +493,7 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 #pragma warning disable SA1015
 [ResolveVia<IDtrBar>]
 #pragma warning restore SA1015
-internal class DtrBarPluginScoped : IDisposable, IServiceType, IDtrBar
+internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
 {
     [ServiceManager.ServiceDependency]
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
@@ -501,7 +501,7 @@ internal class DtrBarPluginScoped : IDisposable, IServiceType, IDtrBar
     private readonly Dictionary<string, DtrBarEntry> pluginEntries = new();
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         foreach (var entry in this.pluginEntries)
         {

@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Logging.Internal;
@@ -24,7 +26,7 @@ namespace Dalamud.Game;
 /// <summary>
 /// Chat events and public helper functions.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class ChatHandlers : IServiceType
 {
     // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
@@ -289,10 +291,17 @@ internal class ChatHandlers : IServiceType
         var chatGui = Service<ChatGui>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
         var notifications = Service<NotificationManager>.GetNullable();
+        var condition = Service<Condition>.GetNullable();
 
-        if (chatGui == null || pluginManager == null || notifications == null)
+        if (chatGui == null || pluginManager == null || notifications == null || condition == null)
         {
             Log.Warning("Aborting auto-update because a required service was not loaded.");
+            return false;
+        }
+
+        if (condition.Any(ConditionFlag.BoundByDuty, ConditionFlag.BoundByDuty56, ConditionFlag.BoundByDuty95))
+        {
+            Log.Warning("Aborting auto-update because the player is in a duty.");
             return false;
         }
 

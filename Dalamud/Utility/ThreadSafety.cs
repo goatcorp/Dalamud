@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Dalamud.Utility;
 
@@ -19,6 +20,7 @@ public static class ThreadSafety
     /// Throws an exception when the current thread is not the main thread.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the current thread is not the main thread.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AssertMainThread()
     {
         if (!threadStaticIsMainThread)
@@ -31,12 +33,22 @@ public static class ThreadSafety
     /// Throws an exception when the current thread is the main thread.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the current thread is the main thread.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AssertNotMainThread()
     {
         if (threadStaticIsMainThread)
         {
             throw new InvalidOperationException("On main thread!");
         }
+    }
+
+    /// <summary><see cref="AssertMainThread"/>, but only on debug compilation mode.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void DebugAssertMainThread()
+    {
+#if DEBUG
+        AssertMainThread();
+#endif
     }
 
     /// <summary>

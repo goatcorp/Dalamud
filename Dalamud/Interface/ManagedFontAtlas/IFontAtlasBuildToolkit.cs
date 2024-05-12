@@ -1,8 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
-using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -14,20 +12,6 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 /// </summary>
 public interface IFontAtlasBuildToolkit
 {
-    /// <summary>
-    /// Functionalities for compatibility behavior.<br />
-    /// </summary>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    internal interface IApi9Compat : IFontAtlasBuildToolkit
-    {
-        /// <summary>
-        /// Invokes <paramref name="action"/>, temporarily applying <see cref="IFontHandleSubstance"/>s.<br />
-        /// </summary>
-        /// <param name="action">The action to invoke.</param>
-        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-        public void FromUiBuilderObsoleteEventHandlers(Action action);
-    }
-
     /// <summary>
     /// Gets or sets the font relevant to the call.
     /// </summary>

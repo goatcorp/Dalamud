@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
 
@@ -98,6 +100,11 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
     /// Gets an ID uniquely identifying this specific instance of a devPlugin.
     /// </summary>
     public Guid DevImposedWorkingPluginId => this.devSettings.WorkingPluginId;
+    
+    /// <summary>
+    /// Gets a list of validation problems that have been dismissed by the user.
+    /// </summary>
+    public List<string> DismissedValidationProblems => this.devSettings.DismissedValidationProblems;
 
     /// <inheritdoc/>
     public new void Dispose()

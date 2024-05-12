@@ -26,8 +26,8 @@ namespace Dalamud.Game.Gui;
 /// A class handling many aspects of the in-game UI.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 {
     private static readonly ModuleLog Log = new("GameGui");
     
@@ -344,7 +344,7 @@ internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
     /// <summary>
     /// Disables the hooks and submodules of this module.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.setGlobalBgmHook.Dispose();
         this.handleItemHoverHook.Dispose();
@@ -520,7 +520,7 @@ internal sealed unsafe class GameGui : IDisposable, IServiceType, IGameGui
 #pragma warning disable SA1015
 [ResolveVia<IGameGui>]
 #pragma warning restore SA1015
-internal class GameGuiPluginScoped : IDisposable, IServiceType, IGameGui
+internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
 {
     [ServiceManager.ServiceDependency]
     private readonly GameGui gameGuiService = Service<GameGui>.Get();
@@ -558,7 +558,7 @@ internal class GameGuiPluginScoped : IDisposable, IServiceType, IGameGui
     public HoveredAction HoveredAction => this.gameGuiService.HoveredAction;
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.gameGuiService.UiHideToggled -= this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged -= this.HoveredItemForward;

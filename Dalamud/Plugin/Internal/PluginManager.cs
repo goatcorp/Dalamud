@@ -39,23 +39,11 @@ namespace Dalamud.Plugin.Internal;
 
 /// <summary>
 /// Class responsible for loading and unloading plugins.
-/// NOTE: ALL plugin exposed services are marked as dependencies for PluginManager in Service{T}.
+/// NOTE: ALL plugin exposed services are marked as dependencies for <see cref="PluginManager"/>
+/// from <see cref="ResolvePossiblePluginDependencyServices"/>.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
-#pragma warning disable SA1015
-
-// DalamudTextureWrap registers textures to dispose with IM
-[InherentDependency<InterfaceManager>]
-
-// LocalPlugin uses ServiceContainer to create scopes
-[InherentDependency<ServiceContainer>]
-
-// DalamudPluginInterface hands out a reference to this, so we have to keep it around
-// TODO api9: make it a service 
-[InherentDependency<DataShare>]
-
-#pragma warning restore SA1015
-internal partial class PluginManager : IDisposable, IServiceType
+[ServiceManager.BlockingEarlyLoadedService("Accomodation of plugins that blocks the game startup.")]
+internal partial class PluginManager : IInternalDisposableService
 {
     /// <summary>
     /// Default time to wait between plugin unload and plugin assembly unload.
@@ -72,7 +60,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     private readonly List<RemotePluginManifest> availablePluginsList = new();
     private readonly List<AvailablePluginUpdate> updatablePluginsList = new();
 
-    private readonly DalamudLinkPayload openInstallerWindowPluginChangelogsLink;
+    private readonly Task<DalamudLinkPayload> openInstallerWindowPluginChangelogsLink;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -85,9 +73,6 @@ internal partial class PluginManager : IDisposable, IServiceType
 
     [ServiceManager.ServiceDependency]
     private readonly HappyHttpClient happyHttpClient = Service<HappyHttpClient>.Get();
-
-    [ServiceManager.ServiceDependency]
-    private readonly ChatGui chatGui = Service<ChatGui>.Get();
 
     static PluginManager()
     {
@@ -137,15 +122,22 @@ internal partial class PluginManager : IDisposable, IServiceType
             throw new InvalidDataException("Couldn't deserialize banned plugins manifest.");
         }
 
-        this.openInstallerWindowPluginChangelogsLink = this.chatGui.AddChatLinkHandler("Dalamud", 1003, (_, _) =>
-        {
-            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.Changelogs);
-        });
+        this.openInstallerWindowPluginChangelogsLink =
+            Service<ChatGui>.GetAsync().ContinueWith(
+                chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
+                    "Dalamud",
+                    1003,
+                    (_, _) =>
+                    {
+                        Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(
+                            PluginInstallerWindow.PluginInstallerOpenKind.Changelogs);
+                    }));
 
         this.configuration.PluginTestingOptIns ??= new();
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
-        this.ApplyPatches();
+        // NET8 CHORE
+        // this.ApplyPatches();
 
         registerStartupBlocker(
             Task.Run(this.LoadAndStartLoadSyncPlugins),
@@ -303,41 +295,54 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <param name="updateMetadata">The list of updated plugin metadata.</param>
     /// <param name="header">The header text to send to chat prior to any update info.</param>
     public void PrintUpdatedPlugins(List<PluginUpdateStatus>? updateMetadata, string header)
-    {
-        if (updateMetadata is { Count: > 0 })
-        {
-            this.chatGui.Print(new XivChatEntry
+        => Service<ChatGui>.GetAsync().ContinueWith(
+            chatGuiTask =>
             {
-                Message = new SeString(new List<Payload>()
-                {
-                    new TextPayload(header),
-                    new TextPayload("  ["),
-                    new UIForegroundPayload(500),
-                    this.openInstallerWindowPluginChangelogsLink,
-                    new TextPayload(Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs")),
-                    RawPayload.LinkTerminator,
-                    new UIForegroundPayload(0),
-                    new TextPayload("]"),
-                }),
-            });
+                if (!chatGuiTask.IsCompletedSuccessfully)
+                    return;
 
-            foreach (var metadata in updateMetadata)
-            {
-                if (metadata.Status == PluginUpdateStatus.StatusKind.Success)
+                var chatGui = chatGuiTask.Result;
+                if (updateMetadata is { Count: > 0 })
                 {
-                    this.chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
-                }
-                else
-                {
-                    this.chatGui.Print(new XivChatEntry
+                    chatGui.Print(
+                        new XivChatEntry
+                        {
+                            Message = new SeString(
+                                new List<Payload>()
+                                {
+                                    new TextPayload(header),
+                                    new TextPayload("  ["),
+                                    new UIForegroundPayload(500),
+                                    this.openInstallerWindowPluginChangelogsLink.Result,
+                                    new TextPayload(
+                                        Loc.Localize("DalamudInstallerPluginChangelogHelp", "Open plugin changelogs")),
+                                    RawPayload.LinkTerminator,
+                                    new UIForegroundPayload(0),
+                                    new TextPayload("]"),
+                                }),
+                        });
+
+                    foreach (var metadata in updateMetadata)
                     {
-                        Message = Locs.DalamudPluginUpdateFailed(metadata.Name, metadata.Version, PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
-                        Type = XivChatType.Urgent,
-                    });
+                        if (metadata.Status == PluginUpdateStatus.StatusKind.Success)
+                        {
+                            chatGui.Print(Locs.DalamudPluginUpdateSuccessful(metadata.Name, metadata.Version));
+                        }
+                        else
+                        {
+                            chatGui.Print(
+                                new XivChatEntry
+                                {
+                                    Message = Locs.DalamudPluginUpdateFailed(
+                                        metadata.Name,
+                                        metadata.Version,
+                                        PluginUpdateStatus.LocalizeUpdateStatusKind(metadata.Status)),
+                                    Type = XivChatType.Urgent,
+                                });
+                        }
+                    }
                 }
-            }
-        }
-    }
+            });
 
     /// <summary>
     /// For a given manifest, determine if the user opted into testing this plugin.
@@ -370,7 +375,7 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         var disposablePlugins =
             this.installedPluginsList.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
@@ -410,11 +415,21 @@ internal partial class PluginManager : IDisposable, IServiceType
             // Now that we've waited enough, dispose the whole plugin.
             // Since plugins should have been unloaded above, this should be done quickly.
             foreach (var plugin in disposablePlugins)
-                plugin.ExplicitDisposeIgnoreExceptions($"Error disposing {plugin.Name}", Log);
+            {
+                try
+                {
+                    plugin.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, $"Error disposing {plugin.Name}");
+                }
+            }
         }
 
-        this.assemblyLocationMonoHook?.Dispose();
-        this.assemblyCodeBaseMonoHook?.Dispose();
+        // NET8 CHORE
+        // this.assemblyLocationMonoHook?.Dispose();
+        // this.assemblyCodeBaseMonoHook?.Dispose();
     }
 
     /// <summary>
@@ -459,10 +474,18 @@ internal partial class PluginManager : IDisposable, IServiceType
                 try
                 {
                     var dllFile = new FileInfo(Path.Combine(versionDir.FullName, $"{pluginDir.Name}.dll"));
-                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-
-                    if (!manifestFile.Exists)
+                    if (!dllFile.Exists)
+                    {
+                        Log.Error("No DLL found for plugin at {Path}", versionDir.FullName);
                         continue;
+                    }
+                    
+                    var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
+                    if (!manifestFile.Exists)
+                    {
+                        Log.Error("No manifest for plugin at {Path}", dllFile.FullName);
+                        continue;
+                    }
 
                     var manifest = LocalPluginManifest.Load(manifestFile);
                     if (manifest == null)
@@ -483,6 +506,12 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
 
             this.configuration.QueueSave();
+            
+            if (versionsDefs.Count == 0)
+            {
+                Log.Verbose("No versions found for plugin: {Name}", pluginDir.Name);
+                continue;
+            }
 
             try
             {
@@ -833,7 +862,8 @@ internal partial class PluginManager : IDisposable, IServiceType
             this.installedPluginsList.Remove(plugin);
         }
 
-        PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+        // NET8 CHORE
+        // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
 
         this.NotifyinstalledPluginsListChanged();
         this.NotifyAvailablePluginsChanged();
@@ -1231,6 +1261,16 @@ internal partial class PluginManager : IDisposable, IServiceType
     /// <returns>The dependency services.</returns>
     private static IEnumerable<Type> ResolvePossiblePluginDependencyServices()
     {
+        // DalamudPluginInterface hands out a reference to this, so we have to keep it around.
+        // TODO api9: make it a service
+        yield return typeof(DataShare);
+
+        // DalamudTextureWrap registers textures to dispose with IM.
+        yield return typeof(InterfaceManager);
+
+        // Note: LocalPlugin uses ServiceContainer to create scopes, but it is done outside PM ctor.
+        // This is not required: yield return typeof(ServiceContainer);
+
         foreach (var serviceType in ServiceManager.GetConcreteServiceTypes())
         {
             if (serviceType == typeof(PluginManager))
@@ -1329,12 +1369,25 @@ internal partial class PluginManager : IDisposable, IServiceType
         {
             try
             {
-                // We don't need to apply, it doesn't matter
-                await this.profileManager.DefaultProfile.RemoveByInternalNameAsync(repoManifest.InternalName, false);
+                // Only remove entries from the default profile that are NOT currently tied to an active LocalPlugin
+                var guidsToRemove = this.profileManager.DefaultProfile.Plugins
+                                        .Where(x => this.InstalledPlugins.All(y => y.Manifest.WorkingPluginId != x.WorkingPluginId))
+                                        .Select(x => x.WorkingPluginId)
+                                        .ToArray();
+
+                if (guidsToRemove.Length != 0)
+                {
+                    Log.Verbose("Removing {Cnt} orphaned entries from default profile", guidsToRemove.Length);
+                    foreach (var guid in guidsToRemove)
+                    {
+                        // We don't need to apply, it doesn't matter
+                        await this.profileManager.DefaultProfile.RemoveAsync(guid, false, false);
+                    }
+                }
             }
-            catch (ProfileOperationException)
+            catch (ProfileOperationException ex)
             {
-                // ignored
+                Log.Error(ex, "Error during default profile cleanup");
             }
         }
         else
@@ -1574,7 +1627,8 @@ internal partial class PluginManager : IDisposable, IServiceType
             }
             catch (InvalidPluginException)
             {
-                PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                // NET8 CHORE
+                // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                 throw;
             }
             catch (BannedPluginException)
@@ -1620,7 +1674,8 @@ internal partial class PluginManager : IDisposable, IServiceType
                 }
                 else
                 {
-                    PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
+                    // NET8 CHORE
+                    // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                     throw;
                 }
             }
@@ -1747,6 +1802,8 @@ internal partial class PluginManager : IDisposable, IServiceType
     }
 }
 
+// NET8 CHORE
+/*
 /// <summary>
 /// Class responsible for loading and unloading plugins.
 /// This contains the assembly patching functionality to resolve assembly locations.
@@ -1854,3 +1911,4 @@ internal partial class PluginManager
         this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
     }
 }
+*/

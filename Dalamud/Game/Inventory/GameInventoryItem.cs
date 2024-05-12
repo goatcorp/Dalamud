@@ -1,6 +1,9 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 
@@ -103,7 +106,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the array of materia grades.
     /// </summary>
-    public ReadOnlySpan<ushort> MateriaGrade =>
+    public ReadOnlySpan<byte> MateriaGrade =>
         new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
 
     /// <summary>

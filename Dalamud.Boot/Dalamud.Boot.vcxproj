@@ -58,7 +58,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Version.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib\CoreCLR;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -137,6 +137,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ntdll.cpp" />
     <ClCompile Include="unicode.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -176,6 +177,7 @@
     <ClInclude Include="DalamudStartInfo.h" />
     <ClInclude Include="hooks.h" />
     <ClInclude Include="logging.h" />
+    <ClInclude Include="ntdll.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="unicode.h" />
     <ClInclude Include="utils.h" />

@@ -14,8 +14,8 @@ namespace Dalamud.Game.Config;
 /// This class represents the game's configuration.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
+[ServiceManager.EarlyLoadedService]
+internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 {
     private readonly TaskCompletionSource tcsInitialization = new();
     private readonly TaskCompletionSource<GameConfigSection> tcsSystem = new();
@@ -195,7 +195,7 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
     public void Set(UiControlOption option, string value) => this.UiControl.Set(option.GetName(), value);
     
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         var ode = new ObjectDisposedException(nameof(GameConfig));
         this.tcsInitialization.SetExceptionIfIncomplete(ode);
@@ -248,7 +248,7 @@ internal sealed class GameConfig : IServiceType, IGameConfig, IDisposable
 #pragma warning disable SA1015
 [ResolveVia<IGameConfig>]
 #pragma warning restore SA1015
-internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
+internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
 {
     [ServiceManager.ServiceDependency]
     private readonly GameConfig gameConfigService = Service<GameConfig>.Get();
@@ -295,7 +295,7 @@ internal class GameConfigPluginScoped : IDisposable, IServiceType, IGameConfig
     public GameConfigSection UiControl => this.gameConfigService.UiControl;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.gameConfigService.Changed -= this.ConfigChangedForward;
         this.initializationTask.ContinueWith(

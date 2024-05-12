@@ -14,8 +14,8 @@ namespace Dalamud.Hooking.WndProcHook;
 /// <summary>
 /// Manages WndProc hooks for game main window and extra ImGui viewport windows.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed class WndProcHookManager : IServiceType, IDisposable
+[ServiceManager.EarlyLoadedService]
+internal sealed class WndProcHookManager : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new(nameof(WndProcHookManager));
 
@@ -56,7 +56,7 @@ internal sealed class WndProcHookManager : IServiceType, IDisposable
     public event WndProcEventDelegate? PostWndProc;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         if (this.dispatchMessageWHook.IsDisposed)
             return;

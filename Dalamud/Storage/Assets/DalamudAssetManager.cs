@@ -25,11 +25,12 @@ namespace Dalamud.Storage.Assets;
 /// A concrete class for <see cref="IDalamudAssetManager"/>.
 /// </summary>
 [PluginInterface]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService(
+    "Ensuring that it is worth continuing loading Dalamud, by checking if all required assets are properly available.")]
 #pragma warning disable SA1015
 [ResolveVia<IDalamudAssetManager>]
 #pragma warning restore SA1015
-internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudAssetManager
+internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamudAssetManager
 {
     private const int DownloadAttemptCount = 10;
     private const int RenameAttemptCount = 10;
@@ -69,7 +70,13 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                         .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
                         .Select(this.CreateStreamAsync)
                         .Select(x => x.ToContentDisposedTask()))
-                .ContinueWith(_ => loadTimings.Dispose()),
+                .ContinueWith(
+                    r =>
+                    {
+                        loadTimings.Dispose();
+                        return r;
+                    })
+                .Unwrap(),
             "Prevent Dalamud from loading more stuff, until we've ensured that all required assets are available.");
 
         Task.WhenAll(
@@ -88,7 +95,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
     public IDalamudTextureWrap White4X4 => this.GetDalamudTextureWrap(DalamudAsset.White4X4);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         lock (this.syncRoot)
         {
@@ -104,6 +111,7 @@ internal sealed class DalamudAssetManager : IServiceType, IDisposable, IDalamudA
                  .Concat(this.fileStreams.Values)
                  .Concat(this.textureWraps.Values)
                  .Where(x => x is not null)
+                 .Select(x => x.ContinueWith(r => { _ = r.Exception; }))
                  .ToArray());
         this.scopedFinalizer.Dispose();
     }

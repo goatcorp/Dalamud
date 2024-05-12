@@ -12,8 +12,8 @@ namespace Dalamud.Game.DutyState;
 /// This class represents the state of the currently occupied duty.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
+[ServiceManager.EarlyLoadedService]
+internal unsafe class DutyState : IInternalDisposableService, IDutyState
 {
     private readonly DutyStateAddressResolver address;
     private readonly Hook<SetupContentDirectNetworkMessageDelegate> contentDirectorNetworkMessageHook;
@@ -62,7 +62,7 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
     private bool CompletedThisTerritory { get; set; }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.contentDirectorNetworkMessageHook.Dispose();
         this.framework.Update -= this.FrameworkOnUpdateEvent;
@@ -168,7 +168,7 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
 #pragma warning disable SA1015
 [ResolveVia<IDutyState>]
 #pragma warning restore SA1015
-internal class DutyStatePluginScoped : IDisposable, IServiceType, IDutyState
+internal class DutyStatePluginScoped : IInternalDisposableService, IDutyState
 {
     [ServiceManager.ServiceDependency]
     private readonly DutyState dutyStateService = Service<DutyState>.Get();
@@ -200,7 +200,7 @@ internal class DutyStatePluginScoped : IDisposable, IServiceType, IDutyState
     public bool IsDutyStarted => this.dutyStateService.IsDutyStarted;
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.dutyStateService.DutyStarted -= this.DutyStartedForward;
         this.dutyStateService.DutyWiped -= this.DutyWipedForward;

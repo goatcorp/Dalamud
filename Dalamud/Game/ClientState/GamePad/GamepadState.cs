@@ -17,11 +17,11 @@ namespace Dalamud.Game.ClientState.GamePad;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IGamepadState>]
 #pragma warning restore SA1015
-internal unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
+internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
 {
     private readonly Hook<ControllerPoll>? gamepadPoll;
 
@@ -109,7 +109,7 @@ internal unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
     /// <summary>
     /// Disposes this instance, alongside its hooks.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);

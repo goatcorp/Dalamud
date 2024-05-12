@@ -7,7 +7,8 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
@@ -436,7 +437,7 @@ internal class ProfileManagerWidget
                 if (pmPlugin != null)
                 {
                     var cursorBeforeIcon = ImGui.GetCursorPos();
-                    pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon);
+                    pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon, out _);
                     icon ??= pic.DefaultIcon;
 
                     ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
@@ -650,13 +651,13 @@ internal class ProfileManagerWidget
             Loc.Localize("ProfileManagerTutorialCommands", "You can use the following commands in chat or in macros to manage active collections:");
         
         public static string TutorialCommandsEnable =>
-            Loc.Localize("ProfileManagerTutorialCommandsEnable", "/xlenableprofile \"Collection Name\" - Enable a collection");
+            Loc.Localize("ProfileManagerTutorialCommandsEnable", "{0} \"Collection Name\" - Enable a collection").Format(ProfileCommandHandler.CommandEnable);
 
         public static string TutorialCommandsDisable =>
-            Loc.Localize("ProfileManagerTutorialCommandsDisable", "/xldisableprofile \"Collection Name\" - Disable a collection");
+            Loc.Localize("ProfileManagerTutorialCommandsDisable", "{0} \"Collection Name\" - Disable a collection").Format(ProfileCommandHandler.CommandDisable);
         
         public static string TutorialCommandsToggle =>
-            Loc.Localize("ProfileManagerTutorialCommandsToggle", "/xltoggleprofile \"Collection Name\" - Toggle a collection's state");
+            Loc.Localize("ProfileManagerTutorialCommandsToggle", "{0} \"Collection Name\" - Toggle a collection's state").Format(ProfileCommandHandler.CommandToggle);
         
         public static string TutorialCommandsEnd =>
             Loc.Localize("ProfileManagerTutorialCommandsEnd", "If you run multiple of these commands, they will be executed in order.");

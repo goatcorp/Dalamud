@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using JetBrains.Annotations;
 
@@ -65,6 +66,12 @@ internal static class Service<T> where T : IServiceType
         None,
     }
 
+    /// <summary>Does nothing.</summary>
+    /// <remarks>Used to invoke the static ctor.</remarks>
+    public static void Nop()
+    {
+    }
+
     /// <summary>
     /// Sets the type in the service locator to the given object.
     /// </summary>
@@ -72,6 +79,8 @@ internal static class Service<T> where T : IServiceType
     public static void Provide(T obj)
     {
         ServiceManager.Log.Debug("Service<{0}>: Provided", typeof(T).Name);
+        if (obj is IPublicDisposableService pds)
+            pds.MarkDisposeOnlyFromService();
         instanceTcs.SetResult(obj);
     }
 
@@ -107,7 +116,7 @@ internal static class Service<T> where T : IServiceType
 #endif
 
         if (!instanceTcs.Task.IsCompleted)
-            instanceTcs.Task.Wait();
+            instanceTcs.Task.Wait(ServiceManager.UnloadCancellationToken);
         return instanceTcs.Task.Result;
     }
 
@@ -190,13 +199,16 @@ internal static class Service<T> where T : IServiceType
                                 .ToArray();
             if (offenders.Any())
             {
-                ServiceManager.Log.Error(
-                    "{me} is a {bels}; it can only depend on {bels} and {ps}.\nOffending dependencies:\n{offenders}",
-                    typeof(T),
-                    nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute),
-                    nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute),
-                    nameof(ServiceManager.ProvidedServiceAttribute),
-                    string.Join("\n", offenders.Select(x => $"\t* {x.Name}")));
+                const string bels = nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute);
+                const string ps = nameof(ServiceManager.ProvidedServiceAttribute);
+                var errmsg =
+                    $"{typeof(T)} is a {bels}; it can only depend on {bels} and {ps}.\nOffending dependencies:\n" +
+                    string.Join("\n", offenders.Select(x => $"\t* {x.Name}"));
+#if DEBUG
+                Util.Fatal(errmsg, "Service Dependency Check");
+#else
+                ServiceManager.Log.Error(errmsg);
+#endif
             }
         }
 
@@ -297,23 +309,26 @@ internal static class Service<T> where T : IServiceType
         if (!instanceTcs.Task.IsCompletedSuccessfully)
             return;
 
-        var instance = instanceTcs.Task.Result;
-        if (instance is IDisposable disposable)
+        switch (instanceTcs.Task.Result)
         {
-            ServiceManager.Log.Debug("Service<{0}>: Disposing", typeof(T).Name);
-            try
-            {
-                disposable.Dispose();
-                ServiceManager.Log.Debug("Service<{0}>: Disposed", typeof(T).Name);
-            }
-            catch (Exception e)
-            {
-                ServiceManager.Log.Warning(e, "Service<{0}>: Dispose failure", typeof(T).Name);
-            }
-        }
-        else
-        {
-            ServiceManager.Log.Debug("Service<{0}>: Unset", typeof(T).Name);
+            case IInternalDisposableService d:
+                ServiceManager.Log.Debug("Service<{0}>: Disposing", typeof(T).Name);
+                try
+                {
+                    d.DisposeService();
+                    ServiceManager.Log.Debug("Service<{0}>: Disposed", typeof(T).Name);
+                }
+                catch (Exception e)
+                {
+                    ServiceManager.Log.Warning(e, "Service<{0}>: Dispose failure", typeof(T).Name);
+                }
+
+                break;
+
+            default:
+                ServiceManager.CheckServiceTypeContracts(typeof(T));
+                ServiceManager.Log.Debug("Service<{0}>: Unset", typeof(T).Name);
+                break;
         }
 
         instanceTcs = new TaskCompletionSource<T>();

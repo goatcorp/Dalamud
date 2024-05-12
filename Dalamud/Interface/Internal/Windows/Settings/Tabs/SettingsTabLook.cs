@@ -12,7 +12,6 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ImGuiFontChooserDialog;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
-using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -131,6 +130,12 @@ public class SettingsTabLook : SettingsTab
             Loc.Localize("DalamudSettingInstallerOpenDefaultHint", "This will allow you to open the Plugin Installer to the \"Installed Plugins\" tab by default, instead of the \"Available Plugins\" tab."),
             c => c.PluginInstallerOpen == PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins,
             (v, c) => c.PluginInstallerOpen = v ? PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins : PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins),
+        
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingReducedMotion", "Reduce motions"),
+            Loc.Localize("DalamudSettingReducedMotionHint", "This will suppress certain animations from Dalamud, such as the notification popup."),
+            c => c.ReduceMotions ?? false,
+            (v, c) => c.ReduceMotions = v),
     };
 
     public override string Title => Loc.Localize("DalamudSettingsVisual", "Look & Feel");
@@ -199,10 +204,10 @@ public class SettingsTabLook : SettingsTab
         if (ImGui.Button(Loc.Localize("DalamudSettingChooseDefaultFont", "Choose Default Font")))
         {
             var faf = Service<FontAtlasFactory>.Get();
-            var fcd = new SingleFontChooserDialog(
-                faf.CreateFontAtlas($"{nameof(SettingsTabLook)}:Default", FontAtlasAutoRebuildMode.Async));
+            var fcd = new SingleFontChooserDialog(faf, $"{nameof(SettingsTabLook)}:Default");
             fcd.SelectedFont = (SingleFontSpec)this.defaultFontSpec;
             fcd.FontFamilyExcludeFilter = x => x is DalamudDefaultFontAndFamilyId;
+            fcd.SetPopupPositionAndSizeToCurrentWindowCenter();
             interfaceManager.Draw += fcd.Draw;
             fcd.ResultTask.ContinueWith(
                 r => Service<Framework>.Get().RunOnFrameworkThread(

@@ -14,8 +14,8 @@ namespace Dalamud.Game.Network;
 /// This class handles interacting with game network events.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
+[ServiceManager.EarlyLoadedService]
+internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
 {
     private readonly GameNetworkAddressResolver address;
     private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
@@ -59,7 +59,7 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
     public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.processZonePacketDownHook.Dispose();
         this.processZonePacketUpHook.Dispose();
@@ -145,7 +145,7 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
 #pragma warning disable SA1015
 [ResolveVia<IGameNetwork>]
 #pragma warning restore SA1015
-internal class GameNetworkPluginScoped : IDisposable, IServiceType, IGameNetwork
+internal class GameNetworkPluginScoped : IInternalDisposableService, IGameNetwork
 {
     [ServiceManager.ServiceDependency]
     private readonly GameNetwork gameNetworkService = Service<GameNetwork>.Get();
@@ -162,7 +162,7 @@ internal class GameNetworkPluginScoped : IDisposable, IServiceType, IGameNetwork
     public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
 

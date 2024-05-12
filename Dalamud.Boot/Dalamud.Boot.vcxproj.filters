@@ -73,6 +73,9 @@
     <ClCompile Include="DalamudStartInfo.cpp">
       <Filter>Dalamud.Boot DLL</Filter>
     </ClCompile>
+    <ClCompile Include="ntdll.cpp">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lib\CoreCLR\CoreCLR.h">
@@ -140,6 +143,9 @@
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="crashhandler_shared.h" />
+    <ClInclude Include="ntdll.h">
+      <Filter>Dalamud.Boot DLL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Dalamud.Boot.rc" />
