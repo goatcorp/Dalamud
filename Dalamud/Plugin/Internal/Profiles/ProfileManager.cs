@@ -183,8 +183,8 @@ internal class ProfileManager : IServiceType
                 var installedPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.InternalName == plugin.InternalName);
                 if (installedPlugin != null)
                 {
-                    Log.Information("Satisfying plugin {InternalName} for profile {Name} with {Guid}", plugin.InternalName, newModel.Name, installedPlugin.Manifest.WorkingPluginId);
-                    plugin.WorkingPluginId = installedPlugin.Manifest.WorkingPluginId;
+                    Log.Information("Satisfying plugin {InternalName} for profile {Name} with {Guid}", plugin.InternalName, newModel.Name, installedPlugin.EffectiveWorkingPluginId);
+                    plugin.WorkingPluginId = installedPlugin.EffectiveWorkingPluginId;
                 }
                 else
                 {
@@ -237,7 +237,7 @@ internal class ProfileManager : IServiceType
         var pm = Service<PluginManager>.Get();
         foreach (var installedPlugin in pm.InstalledPlugins)
         {
-            var wantThis = wantActive.Any(x => x.WorkingPluginId == installedPlugin.Manifest.WorkingPluginId);
+            var wantThis = wantActive.Any(x => x.WorkingPluginId == installedPlugin.EffectiveWorkingPluginId);
             switch (wantThis)
             {
                 case true when !installedPlugin.IsLoaded:

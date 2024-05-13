@@ -324,7 +324,7 @@ internal class ProfileManagerWidget
 
                         if (ImGui.Selectable($"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? "(dev plugin)" : string.Empty)}###selector{plugin.Manifest.InternalName}"))
                         {
-                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, true, false))
+                            Task.Run(() => profile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                         }
                     }
@@ -430,7 +430,7 @@ internal class ProfileManagerWidget
             foreach (var profileEntry in profile.Plugins.ToArray())
             {
                 didAny = true;
-                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.WorkingPluginId == profileEntry.WorkingPluginId);
+                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.EffectiveWorkingPluginId == profileEntry.WorkingPluginId);
                 var btnOffset = 2;
 
                 if (pmPlugin != null)
@@ -485,7 +485,7 @@ internal class ProfileManagerWidget
                                 FontAwesomeIcon.Check,
                                 "Yes, use this one"))
                         {
-                            profileEntry.WorkingPluginId = firstAvailableInstalled.Manifest.WorkingPluginId;
+                            profileEntry.WorkingPluginId = firstAvailableInstalled.EffectiveWorkingPluginId;
                             Task.Run(async () =>
                                 {
                                     await profman.ApplyAllWantStatesAsync();
