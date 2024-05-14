@@ -123,7 +123,7 @@ internal class ContextMenuAgingStep : IAgingStep
         this.targetCharacter = null;
     }
 
-    private void OnMenuOpened(MenuOpenedArgs args)
+    private void OnMenuOpened(IMenuOpenedArgs args)
     {
         this.LogMenuOpened(args);
 
@@ -186,7 +186,7 @@ internal class ContextMenuAgingStep : IAgingStep
         }
     }
 
-    private void LogMenuOpened(MenuOpenedArgs args)
+    private void LogMenuOpened(IMenuOpenedArgs args)
     {
         Log.Verbose($"Got {args.MenuType} context menu with addon 0x{args.AddonPtr:X8} ({args.AddonName}) and agent 0x{args.AgentPtr:X8}");
         if (args.Target is MenuTargetDefault targetDefault)

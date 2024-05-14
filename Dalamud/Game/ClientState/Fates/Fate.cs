@@ -75,7 +75,7 @@ public unsafe partial class Fate : IEquatable<Fate>
 /// <summary>
 /// This class represents an FFXIV Fate.
 /// </summary>
-public unsafe partial class Fate
+public unsafe partial class Fate : IFate
 {
     /// <summary>
     /// Gets the Fate ID of this <see cref="Fate" />.
@@ -131,4 +131,82 @@ public unsafe partial class Fate
     /// Gets the territory this <see cref="Fate"/> is located in.
     /// </summary>
     public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType => new(this.Struct->TerritoryId);
+}
+
+/// <summary>
+/// Interface representing an fate entry that can be seen in the current area.
+/// </summary>
+public interface IFate
+{
+    /// <summary>
+    /// Gets the Fate ID of this <see cref="Fate" />.
+    /// </summary>
+    unsafe ushort FateId { get; }
+
+    /// <summary>
+    /// Gets game data linked to this Fate.
+    /// </summary>
+    Lumina.Excel.GeneratedSheets.Fate GameData { get; }
+
+    /// <summary>
+    /// Gets the time this <see cref="Fate"/> started.
+    /// </summary>
+    unsafe int StartTimeEpoch { get; }
+
+    /// <summary>
+    /// Gets how long this <see cref="Fate"/> will run.
+    /// </summary>
+    unsafe short Duration { get; }
+
+    /// <summary>
+    /// Gets the remaining time in seconds for this <see cref="Fate"/>.
+    /// </summary>
+    long TimeRemaining { get; }
+
+    /// <summary>
+    /// Gets the displayname of this <see cref="Fate" />.
+    /// </summary>
+    unsafe SeString Name { get; }
+
+    /// <summary>
+    /// Gets the state of this <see cref="Fate"/> (Running, Ended, Failed, Preparation, WaitingForEnd).
+    /// </summary>
+    unsafe FateState State { get; }
+
+    /// <summary>
+    /// Gets the progress amount of this <see cref="Fate"/>.
+    /// </summary>
+    unsafe byte Progress { get; }
+
+    /// <summary>
+    /// Gets the level of this <see cref="Fate"/>.
+    /// </summary>
+    unsafe byte Level { get; }
+
+    /// <summary>
+    /// Gets the position of this <see cref="Fate"/>.
+    /// </summary>
+    unsafe Vector3 Position { get; }
+
+    /// <summary>
+    /// Gets the territory this <see cref="Fate"/> is located in.
+    /// </summary>
+    unsafe ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType { get; }
+
+    /// <summary>
+    /// Gets the address of this Fate in memory.
+    /// </summary>
+    IntPtr Address { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this actor is still valid in memory.
+    /// </summary>
+    /// <returns>True or false.</returns>
+    bool IsValid();
+
+    /// <inheritdoc/>
+    bool Equals(object obj);
+
+    /// <inheritdoc/>
+    int GetHashCode();
 }

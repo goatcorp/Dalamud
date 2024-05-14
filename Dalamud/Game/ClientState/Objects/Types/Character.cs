@@ -11,7 +11,7 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 /// <summary>
 /// This class represents the base for non-static entities.
 /// </summary>
-public unsafe class Character : GameObject
+public unsafe class Character : GameObject, ICharacter
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Character"/> class.
@@ -122,4 +122,91 @@ public unsafe class Character : GameObject
     /// </summary>
     protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct =>
         (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
+}
+
+/// <summary>
+/// Interface representing a character.
+/// </summary>
+public interface ICharacter : IGameObject
+{
+    /// <summary>
+    /// Gets the current HP of this Chara.
+    /// </summary>
+    public uint CurrentHp { get; }
+
+    /// <summary>
+    /// Gets the maximum HP of this Chara.
+    /// </summary>
+    public uint MaxHp { get; }
+
+    /// <summary>
+    /// Gets the current MP of this Chara.
+    /// </summary>
+    public uint CurrentMp { get; }
+
+    /// <summary>
+    /// Gets the maximum MP of this Chara.
+    /// </summary>
+    public uint MaxMp { get; }
+
+    /// <summary>
+    /// Gets the current GP of this Chara.
+    /// </summary>
+    public uint CurrentGp { get; }
+
+    /// <summary>
+    /// Gets the maximum GP of this Chara.
+    /// </summary>
+    public uint MaxGp { get; }
+
+    /// <summary>
+    /// Gets the current CP of this Chara.
+    /// </summary>
+    public uint CurrentCp { get; }
+
+    /// <summary>
+    /// Gets the maximum CP of this Chara.
+    /// </summary>
+    public uint MaxCp { get; }
+
+    /// <summary>
+    /// Gets the shield percentage of this Chara.
+    /// </summary>
+    public byte ShieldPercentage { get; }
+
+    /// <summary>
+    /// Gets the ClassJob of this Chara.
+    /// </summary>
+    public ExcelResolver<ClassJob> ClassJob { get; }
+
+    /// <summary>
+    /// Gets the level of this Chara.
+    /// </summary>
+    public byte Level { get; }
+
+    /// <summary>
+    /// Gets a byte array describing the visual appearance of this Chara.
+    /// Indexed by <see cref="CustomizeIndex"/>.
+    /// </summary>
+    public byte[] Customize { get; }
+
+    /// <summary>
+    /// Gets the Free Company tag of this chara.
+    /// </summary>
+    public SeString CompanyTag { get; }
+
+    /// <summary>
+    /// Gets the name ID of the character.
+    /// </summary>
+    public uint NameId { get; }
+
+    /// <summary>
+    /// Gets the current online status of the character.
+    /// </summary>
+    public ExcelResolver<OnlineStatus> OnlineStatus { get; }
+
+    /// <summary>
+    /// Gets the status flags.
+    /// </summary>
+    public StatusFlags StatusFlags { get; }
 }

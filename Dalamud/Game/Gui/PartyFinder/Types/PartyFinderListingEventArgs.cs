@@ -3,7 +3,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types;
 /// <summary>
 /// This class represents additional arguments passed by the game.
 /// </summary>
-public class PartyFinderListingEventArgs
+public class PartyFinderListingEventArgs : IPartyFinderListingEventArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyFinderListingEventArgs"/> class.
@@ -23,4 +23,20 @@ public class PartyFinderListingEventArgs
     /// Gets or sets a value indicating whether the listing is visible.
     /// </summary>
     public bool Visible { get; set; } = true;
+}
+
+/// <summary>
+/// A interface representing  additional arguments passed by the game.
+/// </summary>
+public interface IPartyFinderListingEventArgs
+{
+    /// <summary>
+    /// Gets the batch number.
+    /// </summary>
+    int BatchNumber { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the listing is visible.
+    /// </summary>
+    bool Visible { get; set; }
 }

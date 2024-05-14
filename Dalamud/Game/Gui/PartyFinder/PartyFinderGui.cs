@@ -154,5 +154,5 @@ internal class PartyFinderGuiPluginScoped : IInternalDisposableService, IPartyFi
         this.ReceiveListing = null;
     }
 
-    private void ReceiveListingForward(PartyFinderListing listing, PartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
+    private void ReceiveListingForward(IPartyFinderListing listing, IPartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
 }

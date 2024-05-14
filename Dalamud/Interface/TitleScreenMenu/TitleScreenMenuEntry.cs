@@ -11,7 +11,7 @@ namespace Dalamud.Interface;
 /// <summary>
 /// Class representing an entry in the title screen menu.
 /// </summary>
-public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
+public class TitleScreenMenuEntry : ITitleScreenMenuEntry
 {
     private readonly Action onTriggered;
 
@@ -58,22 +58,22 @@ public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
     /// <summary>
     /// Gets or sets a value indicating whether or not this entry is internal.
     /// </summary>
-    internal bool IsInternal { get; set; }
+    public bool IsInternal { get; set; }
 
     /// <summary>
     /// Gets the calling assembly of this entry.
     /// </summary>
-    internal Assembly? CallingAssembly { get; init; }
+    public Assembly? CallingAssembly { get; init; }
 
     /// <summary>
     /// Gets the internal ID of this entry.
     /// </summary>
-    internal Guid Id { get; init; } = Guid.NewGuid();
+    public Guid Id { get; init; } = Guid.NewGuid();
 
     /// <summary>
     /// Gets the keys that have to be pressed to show the menu.
     /// </summary>
-    internal IReadOnlySet<VirtualKey> ShowConditionKeys { get; init; }
+    public IReadOnlySet<VirtualKey> ShowConditionKeys { get; init; }
 
     /// <inheritdoc/>
     public int CompareTo(TitleScreenMenuEntry? other)
@@ -105,14 +105,72 @@ public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
     /// Determines the displaying condition of this menu entry is met.
     /// </summary>
     /// <returns>True if met.</returns>
-    internal bool IsShowConditionSatisfied() =>
+    public bool IsShowConditionSatisfied() =>
         this.ShowConditionKeys.All(x => Service<KeyState>.GetNullable()?[x] is true);
 
     /// <summary>
     /// Trigger the action associated with this entry.
     /// </summary>
-    internal void Trigger()
+    public void Trigger()
     {
         this.onTriggered();
     }
+}
+
+/// <summary>
+/// A interface representing an entry in the title screen menu.
+/// </summary>
+public interface ITitleScreenMenuEntry : IReadOnlyTitleScreenMenuEntry, IComparable<TitleScreenMenuEntry>
+{
+    /// <summary>
+    /// Gets or sets a value indicating whether or not this entry is internal.
+    /// </summary>
+    bool IsInternal { get; set; }
+
+    /// <summary>
+    /// Gets the calling assembly of this entry.
+    /// </summary>
+    Assembly? CallingAssembly { get; init; }
+
+    /// <summary>
+    /// Gets the internal ID of this entry.
+    /// </summary>
+    Guid Id { get; init; }
+
+    /// <summary>
+    /// Gets the keys that have to be pressed to show the menu.
+    /// </summary>
+    IReadOnlySet<VirtualKey> ShowConditionKeys { get; init; }
+
+    /// <summary>
+    /// Determines the displaying condition of this menu entry is met.
+    /// </summary>
+    /// <returns>True if met.</returns>
+    bool IsShowConditionSatisfied();
+
+    /// <summary>
+    /// Trigger the action associated with this entry.
+    /// </summary>
+    void Trigger();
+}
+
+/// <summary>
+/// A interface representing a read only entry in the title screen menu.
+/// </summary>
+public interface IReadOnlyTitleScreenMenuEntry
+{
+    /// <summary>
+    /// Gets the priority of this entry.
+    /// </summary>
+    ulong Priority { get; }
+
+    /// <summary>
+    /// Gets the name of this entry.
+    /// </summary>
+    string Name { get; }
+
+    /// <summary>
+    /// Gets the texture of this entry.
+    /// </summary>
+    IDalamudTextureWrap Texture { get; }
 }

@@ -103,7 +103,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     }
 
     /// <inheritdoc/>
-    public PlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as PlayerCharacter;
+    public IPlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as IPlayerCharacter;
 
     /// <inheritdoc/>
     public ulong LocalContentId => (ulong)Marshal.ReadInt64(this.address.LocalContentId);
@@ -275,7 +275,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     public uint MapId => this.clientStateService.MapId;
 
     /// <inheritdoc/>
-    public PlayerCharacter? LocalPlayer => this.clientStateService.LocalPlayer;
+    public IPlayerCharacter? LocalPlayer => this.clientStateService.LocalPlayer;
 
     /// <inheritdoc/>
     public ulong LocalContentId => this.clientStateService.LocalContentId;

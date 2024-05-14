@@ -8,7 +8,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 /// <summary>
 /// A menu item that can be added to a context menu.
 /// </summary>
-public sealed record MenuItem
+public sealed record MenuItem : IMenuItem
 {
     /// <summary>
     /// The default prefix used if no specific preset is specified.
@@ -92,15 +92,67 @@ public sealed record MenuItem
     /// If both <see cref="IsSubmenu"/> and <see cref="IsReturn"/> are true, the return arrow will take precedence.
     /// </summary>
     public bool IsReturn { get; set; }
+}
+
+/// <summary>
+///  Interface representing a menu item to be added to a context menu.
+/// </summary>
+public interface IMenuItem
+{
+    /// <summary>
+    /// Gets or sets the display name of the menu item.
+    /// </summary>
+    SeString Name { get; set; }
 
     /// <summary>
-    /// Gets the name with the given prefix.
+    /// Gets or sets the prefix attached to the beginning of <see cref="Name"/>.
     /// </summary>
-    internal SeString PrefixedName =>
-        this.Prefix is { } prefix
-            ? new SeStringBuilder()
-                .AddUiForeground($"{prefix.ToIconString()} ", this.PrefixColor)
-                .Append(this.Name)
-                .Build()
-            : this.Name;
+    SeIconChar? Prefix { get; set; }
+
+    /// <summary>
+    /// Sets the character to prefix the <see cref="Name"/> with. Will be converted into a fancy boxed letter icon. Must be an uppercase letter.
+    /// </summary>
+    /// <exception cref="ArgumentException"><paramref name="value"/> must be an uppercase letter.</exception>
+    char? PrefixChar { set; }
+
+    /// <summary>
+    /// Gets or sets the color of the <see cref="Prefix"/>. Specifies a <see cref="UIColor"/> row id.
+    /// </summary>
+    ushort PrefixColor { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the dev wishes to intentionally use the default prefix symbol and color.
+    /// </summary>
+    bool UseDefaultPrefix { get; set; }
+
+    /// <summary>
+    /// Gets or sets the callback to be invoked when the menu item is clicked.
+    /// </summary>
+    Action<MenuItemClickedArgs>? OnClicked { get; set; }
+
+    /// <summary>
+    /// Gets or sets the priority (or order) with which the menu item should be displayed in descending order.
+    /// Priorities below 0 will be displayed above the native menu items.
+    /// Other priorities will be displayed below the native menu items.
+    /// </summary>
+    int Priority { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the menu item is enabled.
+    /// Disabled items will be faded and cannot be clicked on.
+    /// </summary>
+    bool IsEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the menu item is a submenu.
+    /// This value is purely visual. Submenu items will have an arrow to its right.
+    /// </summary>
+    bool IsSubmenu { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the menu item is a return item.
+    /// This value is purely visual. Return items will have a back arrow to its left.
+    /// If both <see cref="IsSubmenu"/> and <see cref="IsReturn"/> are true, the return arrow will take precedence.
+    /// </summary>
+    bool IsReturn { get; set; }
 }

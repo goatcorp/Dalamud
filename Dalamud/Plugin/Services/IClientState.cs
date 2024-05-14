@@ -56,7 +56,7 @@ public interface IClientState
     /// <summary>
     /// Gets the local player character, if one is present.
     /// </summary>
-    public PlayerCharacter? LocalPlayer { get; }
+    public IPlayerCharacter? LocalPlayer { get; }
 
     /// <summary>
     /// Gets the content ID of the local character.

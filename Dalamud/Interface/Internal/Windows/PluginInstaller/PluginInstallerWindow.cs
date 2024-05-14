@@ -2597,7 +2597,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 var commands = commandManager.Commands
                                              .Where(cInfo =>
                                                         cInfo.Value is { ShowInHelp: true } &&
-                                                        cInfo.Value.LoaderAssemblyName == plugin.Manifest.InternalName)
+                                                        commandManager.GetHandlerAssemblyName(cInfo.Key, cInfo.Value) == plugin.Manifest.InternalName)
                                              .ToArray();
 
                 if (commands.Any())

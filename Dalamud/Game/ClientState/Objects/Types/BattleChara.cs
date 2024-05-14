@@ -6,7 +6,7 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 /// <summary>
 /// This class represents the battle characters.
 /// </summary>
-public unsafe class BattleChara : Character
+public unsafe class BattleChara : Character, IBattleChara
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BattleChara"/> class.
@@ -76,4 +76,62 @@ public unsafe class BattleChara : Character
     /// Gets the underlying structure.
     /// </summary>
     protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)this.Address;
+}
+
+/// <summary>
+/// Interface representing a battle character.
+/// </summary>
+public interface IBattleChara : ICharacter
+{
+    /// <summary>
+    /// Gets the current status effects.
+    /// </summary>
+    public StatusList StatusList { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the chara is currently casting.
+    /// </summary>
+    public bool IsCasting { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the cast is interruptible.
+    /// </summary>
+    public bool IsCastInterruptible { get; }
+
+    /// <summary>
+    /// Gets the spell action type of the spell being cast by the actor.
+    /// </summary>
+    public byte CastActionType { get; }
+
+    /// <summary>
+    /// Gets the spell action ID of the spell being cast by the actor.
+    /// </summary>
+    public uint CastActionId { get; }
+
+    /// <summary>
+    /// Gets the object ID of the target currently being cast at by the chara.
+    /// </summary>
+    public uint CastTargetObjectId { get; }
+
+    /// <summary>
+    /// Gets the current casting time of the spell being cast by the chara.
+    /// </summary>
+    public float CurrentCastTime { get; }
+
+    /// <summary>
+    /// Gets the total casting time of the spell being cast by the chara.
+    /// </summary>
+    /// <remarks>
+    /// This can only be a portion of the total cast for some actions.
+    /// Use AdjustedTotalCastTime if you always need the total cast time.
+    /// </remarks>
+    public float TotalCastTime { get; }
+
+    /// <summary>
+    /// Gets the <see cref="TotalCastTime"/> plus any adjustments from the game, such as Action offset 2B. Used for display purposes.
+    /// </summary>
+    /// <remarks>
+    /// This is the actual total cast time for all actions.
+    /// </remarks>
+    public float AdjustedTotalCastTime { get; }
 }

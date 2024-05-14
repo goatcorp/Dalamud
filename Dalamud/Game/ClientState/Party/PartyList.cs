@@ -63,7 +63,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     private FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager* GroupManagerStruct => (FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager*)this.GroupManagerAddress;
 
     /// <inheritdoc/>
-    public PartyMember? this[int index]
+    public IPartyMember? this[int index]
     {
         get
         {
@@ -94,7 +94,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     }
 
     /// <inheritdoc/>
-    public PartyMember? CreatePartyMemberReference(IntPtr address)
+    public IPartyMember? CreatePartyMemberReference(IntPtr address)
     {
         if (this.clientState.LocalContentId == 0)
             return null;
@@ -115,7 +115,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     }
 
     /// <inheritdoc/>
-    public PartyMember? CreateAllianceMemberReference(IntPtr address)
+    public IPartyMember? CreateAllianceMemberReference(IntPtr address)
     {
         if (this.clientState.LocalContentId == 0)
             return null;
@@ -133,10 +133,10 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
 internal sealed partial class PartyList
 {
     /// <inheritdoc/>
-    int IReadOnlyCollection<PartyMember>.Count => this.Length;
+    int IReadOnlyCollection<IPartyMember>.Count => this.Length;
 
     /// <inheritdoc/>
-    public IEnumerator<PartyMember> GetEnumerator()
+    public IEnumerator<IPartyMember> GetEnumerator()
     {
         // Normally using Length results in a recursion crash, however we know the party size via ptr.
         for (var i = 0; i < this.Length; i++)

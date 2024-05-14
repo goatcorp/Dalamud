@@ -69,7 +69,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
     private unsafe FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager*)this.FateTableAddress;
 
     /// <inheritdoc/>
-    public Fate? this[int index]
+    public IFate? this[int index]
     {
         get
         {
@@ -92,7 +92,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
     }
 
     /// <inheritdoc/>
-    public Fate? CreateFateReference(IntPtr offset)
+    public IFate? CreateFateReference(IntPtr offset)
     {
         var clientState = Service<ClientState>.Get();
 
@@ -112,10 +112,10 @@ internal sealed partial class FateTable : IServiceType, IFateTable
 internal sealed partial class FateTable
 {
     /// <inheritdoc/>
-    int IReadOnlyCollection<Fate>.Count => this.Length;
+    int IReadOnlyCollection<IFate>.Count => this.Length;
 
     /// <inheritdoc/>
-    public IEnumerator<Fate> GetEnumerator()
+    public IEnumerator<IFate> GetEnumerator()
     {
         for (var i = 0; i < this.Length; i++)
         {

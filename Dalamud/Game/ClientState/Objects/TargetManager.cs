@@ -34,49 +34,49 @@ internal sealed unsafe class TargetManager : IServiceType, ITargetManager
     public IntPtr Address => this.address.TargetManager;
 
     /// <inheritdoc/>
-    public GameObject? Target
+    public IGameObject? Target
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->Target);
         set => Struct->Target = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
     /// <inheritdoc/>
-    public GameObject? MouseOverTarget
+    public IGameObject? MouseOverTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->MouseOverTarget);
         set => Struct->MouseOverTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
     /// <inheritdoc/>
-    public GameObject? FocusTarget
+    public IGameObject? FocusTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->FocusTarget);
         set => Struct->FocusTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
     /// <inheritdoc/>
-    public GameObject? PreviousTarget
+    public IGameObject? PreviousTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->PreviousTarget);
         set => Struct->PreviousTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
     /// <inheritdoc/>
-    public GameObject? SoftTarget
+    public IGameObject? SoftTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->SoftTarget);
         set => Struct->SoftTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
     /// <inheritdoc/>
-    public GameObject? GPoseTarget
+    public IGameObject? GPoseTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->GPoseTarget);
         set => Struct->GPoseTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
     
     /// <inheritdoc/>
-    public GameObject? MouseOverNameplateTarget
+    public IGameObject? MouseOverNameplateTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->MouseOverNameplateTarget);
         set => Struct->MouseOverNameplateTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;

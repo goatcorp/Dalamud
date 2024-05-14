@@ -77,7 +77,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.entries;
     
     /// <inheritdoc/>
-    public DtrBarEntry Get(string title, SeString? text = null)
+    public IDtrBarEntry Get(string title, SeString? text = null)
     {
         if (this.entries.Any(x => x.Title == title) || this.newEntries.Any(x => x.Title == title))
             throw new ArgumentException("An entry with the same title already exists.");
@@ -501,7 +501,7 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
     [ServiceManager.ServiceDependency]
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
 
-    private readonly Dictionary<string, DtrBarEntry> pluginEntries = new();
+    private readonly Dictionary<string, IDtrBarEntry> pluginEntries = new();
     
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.dtrBarService.Entries;
@@ -518,7 +518,7 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
     }
 
     /// <inheritdoc/>
-    public DtrBarEntry Get(string title, SeString? text = null)
+    public IDtrBarEntry Get(string title, SeString? text = null)
     {
         // If we already have a known entry for this plugin, return it.
         if (this.pluginEntries.TryGetValue(title, out var existingEntry)) return existingEntry;

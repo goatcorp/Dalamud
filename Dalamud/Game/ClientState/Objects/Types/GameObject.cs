@@ -10,7 +10,7 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 /// <summary>
 /// This class represents a GameObject in FFXIV.
 /// </summary>
-public unsafe partial class GameObject : IEquatable<GameObject>
+public partial class GameObject
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GameObject"/> class.
@@ -54,7 +54,7 @@ public unsafe partial class GameObject : IEquatable<GameObject>
     /// </summary>
     /// <param name="actor">The actor to check.</param>
     /// <returns>True or false.</returns>
-    public static bool IsValid(GameObject? actor)
+    public static bool IsValid(IGameObject? actor)
     {
         var clientState = Service<ClientState>.GetNullable();
 
@@ -74,10 +74,10 @@ public unsafe partial class GameObject : IEquatable<GameObject>
     public bool IsValid() => IsValid(this);
 
     /// <inheritdoc/>
-    bool IEquatable<GameObject>.Equals(GameObject other) => this.GameObjectId == other?.GameObjectId;
+    bool IEquatable<IGameObject>.Equals(IGameObject other) => this.GameObjectId == other?.GameObjectId;
 
     /// <inheritdoc/>
-    public override bool Equals(object obj) => ((IEquatable<GameObject>)this).Equals(obj as GameObject);
+    public override bool Equals(object obj) => ((IEquatable<IGameObject>)this).Equals(obj as IGameObject);
 
     /// <inheritdoc/>
     public override int GetHashCode() => this.GameObjectId.GetHashCode();
@@ -86,7 +86,7 @@ public unsafe partial class GameObject : IEquatable<GameObject>
 /// <summary>
 /// This class represents a basic actor (GameObject) in FFXIV.
 /// </summary>
-public unsafe partial class GameObject
+public unsafe partial class GameObject : IGameObject
 {
     /// <summary>
     /// Gets the name of this <see cref="GameObject" />.
@@ -107,7 +107,7 @@ public unsafe partial class GameObject
     /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
     /// </summary>
     public uint EntityId => this.Struct->EntityId;
-    
+
     /// <summary>
     /// Gets the data ID for linking to other respective game data.
     /// </summary>
@@ -182,7 +182,7 @@ public unsafe partial class GameObject
     /// This iterates the actor table, it should be used with care.
     /// </remarks>
     // TODO: Fix for non-networked GameObjects
-    public virtual GameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
+    public virtual IGameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
 
     /// <summary>
     /// Gets the underlying structure.
@@ -191,4 +191,107 @@ public unsafe partial class GameObject
 
     /// <inheritdoc/>
     public override string ToString() => $"{this.GameObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
+}
+
+/// <summary>
+/// Interface representing a game object.
+/// </summary>
+public interface IGameObject : IEquatable<IGameObject>
+{
+    /// <summary>
+    /// Gets the name of this <see cref="GameObject" />.
+    /// </summary>
+    public SeString Name { get; }
+
+    /// <summary>
+    /// Gets the object ID of this <see cref="GameObject" />.
+    /// </summary>
+    public uint ObjectId { get; }
+
+    /// <summary>
+    /// Gets the data ID for linking to other respective game data.
+    /// </summary>
+    public uint DataId { get; }
+
+    /// <summary>
+    /// Gets the ID of this GameObject's owner.
+    /// </summary>
+    public uint OwnerId { get; }
+
+    /// <summary>
+    /// Gets the index of this object in the object table.
+    /// </summary>
+    public ushort ObjectIndex { get; }
+
+    /// <summary>
+    /// Gets the entity kind of this <see cref="GameObject" />.
+    /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
+    /// </summary>
+    public ObjectKind ObjectKind { get; }
+
+    /// <summary>
+    /// Gets the sub kind of this Actor.
+    /// </summary>
+    public byte SubKind { get; }
+
+    /// <summary>
+    /// Gets the X distance from the local player in yalms.
+    /// </summary>
+    public byte YalmDistanceX { get; }
+
+    /// <summary>
+    /// Gets the Y distance from the local player in yalms.
+    /// </summary>
+    public byte YalmDistanceZ { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the object is dead or alive.
+    /// </summary>
+    public bool IsDead { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the object is targetable.
+    /// </summary>
+    public bool IsTargetable { get; }
+
+    /// <summary>
+    /// Gets the position of this <see cref="GameObject" />.
+    /// </summary>
+    public Vector3 Position { get; }
+
+    /// <summary>
+    /// Gets the rotation of this <see cref="GameObject" />.
+    /// This ranges from -pi to pi radians.
+    /// </summary>
+    public float Rotation { get; }
+
+    /// <summary>
+    /// Gets the hitbox radius of this <see cref="GameObject" />.
+    /// </summary>
+    public float HitboxRadius { get; }
+
+    /// <summary>
+    /// Gets the current target of the game object.
+    /// </summary>
+    public ulong TargetObjectId { get; }
+
+    /// <summary>
+    /// Gets the target object of the game object.
+    /// </summary>
+    /// <remarks>
+    /// This iterates the actor table, it should be used with care.
+    /// </remarks>
+    // TODO: Fix for non-networked GameObjects
+    public IGameObject? TargetObject { get; }
+
+    /// <summary>
+    /// Gets the address of the game object in memory.
+    /// </summary>
+    public IntPtr Address { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this actor is still valid in memory.
+    /// </summary>
+    /// <returns>True or false.</returns>
+    public bool IsValid();
 }

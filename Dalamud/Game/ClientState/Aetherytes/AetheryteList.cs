@@ -49,7 +49,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
     }
 
     /// <inheritdoc/>
-    public AetheryteEntry? this[int index]
+    public IAetheryteEntry? this[int index]
     {
         get
         {
@@ -84,7 +84,7 @@ internal sealed partial class AetheryteList
     public int Count => this.Length;
 
     /// <inheritdoc/>
-    public IEnumerator<AetheryteEntry> GetEnumerator()
+    public IEnumerator<IAetheryteEntry> GetEnumerator()
     {
         for (var i = 0; i < this.Length; i++)
         {
