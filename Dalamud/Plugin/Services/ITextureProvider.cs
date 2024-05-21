@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
@@ -32,8 +31,20 @@ namespace Dalamud.Plugin.Services;
 /// <see cref="TexWidget"/>.
 /// </para>
 /// </remarks>
-public partial interface ITextureProvider
+public interface ITextureProvider
 {
+    /// <summary>Creates an empty texture.</summary>
+    /// <param name="specs">Texture specifications.</param>
+    /// <param name="cpuRead">Whether to support reading from CPU, while disabling reading from GPU.</param>
+    /// <param name="cpuWrite">Whether to support writing from CPU, while disabling writing from GPU.</param>
+    /// <param name="debugName">Name for debug display purposes.</param>
+    /// <returns>A new empty texture.</returns>
+    IDalamudTextureWrap CreateEmpty(
+        RawImageSpecification specs,
+        bool cpuRead,
+        bool cpuWrite,
+        string? debugName = null);
+
     /// <summary>Creates a texture from the given existing texture, cropping and converting pixel format as needed.
     /// </summary>
     /// <param name="wrap">The source texture wrap. The passed value may be disposed once this function returns,

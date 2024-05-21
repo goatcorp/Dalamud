@@ -28,9 +28,8 @@ namespace Dalamud.Interface.Textures.Internal;
 [ResolveVia<ITextureSubstitutionProvider>]
 [ResolveVia<ITextureReadbackProvider>]
 #pragma warning restore SA1015
-internal sealed partial class TextureManagerPluginScoped
-    : IServiceType,
-      IDisposable,
+internal sealed class TextureManagerPluginScoped
+    : IInternalDisposableService,
       ITextureProvider,
       ITextureSubstitutionProvider,
       ITextureReadbackProvider
@@ -114,7 +113,7 @@ internal sealed partial class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         if (Interlocked.Exchange(ref this.managerTaskNullable, null) is not { } task)
             return;
@@ -132,6 +131,19 @@ internal sealed partial class TextureManagerPluginScoped
         return this.managerTaskNullable is null
                    ? $"{nameof(TextureManagerPluginScoped)}({this.plugin.Name}, disposed)"
                    : $"{nameof(TextureManagerPluginScoped)}({this.plugin.Name})";
+    }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap CreateEmpty(
+        RawImageSpecification specs,
+        bool cpuRead,
+        bool cpuWrite,
+        string? debugName = null)
+    {
+        var manager = this.ManagerOrThrow;
+        var textureWrap = manager.CreateEmpty(specs, cpuRead, cpuWrite, debugName);
+        manager.Blame(textureWrap, this.plugin);
+        return textureWrap;
     }
 
     /// <inheritdoc/>

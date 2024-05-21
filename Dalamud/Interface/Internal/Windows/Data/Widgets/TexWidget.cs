@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Utility;
@@ -89,8 +90,6 @@ internal class TexWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
-
-    private ITextureProvider TextureManagerForApi9 => this.textureManager!;
 
     /// <inheritdoc/>
     public void Load()
@@ -634,17 +633,6 @@ internal class TexWidget : IDataWindowWidget
         ImGui.InputText("Icon ID", ref this.iconId, 32);
         ImGui.Checkbox("HQ Item", ref this.hq);
         ImGui.Checkbox("Hi-Res", ref this.hiRes);
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (ImGui.Button("Load Icon (API9)"))
-        {
-            var flags = ITextureProvider.IconFlags.None;
-            if (this.hq)
-                flags |= ITextureProvider.IconFlags.ItemHighQuality;
-            if (this.hiRes)
-                flags |= ITextureProvider.IconFlags.HiRes;
-            this.addedTextures.Add(new(Api9: this.TextureManagerForApi9.GetIcon(uint.Parse(this.iconId), flags)));
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         ImGui.SameLine();
         if (ImGui.Button("Load Icon (Async)"))
@@ -668,11 +656,6 @@ internal class TexWidget : IDataWindowWidget
     {
         ImGui.InputText("Tex Path", ref this.inputTexPath, 255);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (ImGui.Button("Load Tex (API9)"))
-            this.addedTextures.Add(new(Api9: this.TextureManagerForApi9.GetTextureFromGame(this.inputTexPath)));
-#pragma warning restore CS0618 // Type or member is obsolete
-
         ImGui.SameLine();
         if (ImGui.Button("Load Tex (Async)"))
             this.addedTextures.Add(new(Api10: this.textureManager.Shared.GetFromGame(this.inputTexPath).RentAsync()));
@@ -687,11 +670,6 @@ internal class TexWidget : IDataWindowWidget
     private void DrawGetFromFile()
     {
         ImGui.InputText("File Path", ref this.inputFilePath, 255);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (ImGui.Button("Load File (API9)"))
-            this.addedTextures.Add(new(Api9: this.TextureManagerForApi9.GetTextureFromFile(new(this.inputFilePath))));
-#pragma warning restore CS0618 // Type or member is obsolete
 
         ImGui.SameLine();
         if (ImGui.Button("Load File (Async)"))
@@ -929,7 +907,6 @@ internal class TexWidget : IDataWindowWidget
 
     private record TextureEntry(
         IDalamudTextureWrap? SharedResource = null,
-        IDalamudTextureWrap? Api9 = null,
         Task<IDalamudTextureWrap>? Api10 = null,
         GameIconLookup? Api10ImmGameIcon = null,
         string? Api10ImmGamePath = null,
@@ -943,15 +920,12 @@ internal class TexWidget : IDataWindowWidget
         public void Dispose()
         {
             this.SharedResource?.Dispose();
-            this.Api9?.Dispose();
             _ = this.Api10?.ToContentDisposedTask();
         }
 
         public string? DescribeError()
         {
             if (this.SharedResource is not null)
-                return "Unknown error";
-            if (this.Api9 is not null)
                 return "Unknown error";
             if (this.Api10 is not null)
             {
@@ -975,8 +949,6 @@ internal class TexWidget : IDataWindowWidget
         {
             if (this.SharedResource is not null)
                 return this.SharedResource;
-            if (this.Api9 is not null)
-                return this.Api9;
             if (this.Api10 is not null)
                 return this.Api10.IsCompletedSuccessfully ? this.Api10.Result : null;
             if (this.Api10ImmGameIcon is not null)
@@ -1014,8 +986,6 @@ internal class TexWidget : IDataWindowWidget
         {
             if (this.SharedResource is not null)
                 return $"{nameof(this.SharedResource)}: {this.SharedResource}";
-            if (this.Api9 is not null)
-                return $"{nameof(this.Api9)}: {this.Api9}";
             if (this.Api10 is { IsCompletedSuccessfully: true })
                 return $"{nameof(this.Api10)}: {this.Api10.Result}";
             if (this.Api10 is not null)

@@ -12,15 +12,10 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
-using Dalamud.Interface.Textures;
-using Dalamud.Interface.Textures.Internal;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using ImGuiNET;
-
-using ImGuiScene;
 
 using Serilog;
 
@@ -45,9 +40,6 @@ public sealed class UiBuilder : IDisposable
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
-
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    private readonly TextureManagerPluginScoped scopedTextureProvider;
 
     private bool hasErrorWindow = false;
     private bool lastFrameUiHideState = false;
@@ -77,8 +69,6 @@ public sealed class UiBuilder : IDisposable
 
             this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
             this.scopedFinalizer.Add(() => this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers);
-
-            this.scopedFinalizer.Add(this.scopedTextureProvider = new(plugin));
 
             this.FontAtlas =
                 this.scopedFinalizer
@@ -351,86 +341,12 @@ public sealed class UiBuilder : IDisposable
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
 
     /// <summary>
-    /// Loads an image from the specified file.
-    /// </summary>
-    /// <param name="filePath">The full filepath to the image.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.GetFromFile)}.")]
-    public IDalamudTextureWrap LoadImage(string filePath) =>
-        this.scopedTextureProvider.GetFromFile(filePath).RentAsync().Result;
-
-    /// <summary>
-    /// Loads an image from a byte stream, such as a png downloaded into memory.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw image data.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.CreateFromImageAsync)}.")]
-    public IDalamudTextureWrap LoadImage(byte[] imageData) =>
-        this.scopedTextureProvider.CreateFromImageAsync(imageData).Result;
-
-    /// <summary>
-    /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw pixel data.</param>
-    /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.CreateFromRaw)} or {nameof(ITextureProvider.CreateFromRawAsync)}.")]
-    public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels) =>
-        numChannels switch
-        {
-            4 => this.scopedTextureProvider.CreateFromRaw(RawImageSpecification.Rgba32(width, height), imageData),
-            _ => throw new NotSupportedException(),
-        };
-
-    /// <summary>
     /// Loads an ULD file that can load textures containing multiple icons in a single texture.
     /// </summary>
     /// <param name="uldPath">The path of the requested ULD file.</param>
     /// <returns>A wrapper around said ULD file.</returns>
     public UldWrapper LoadUld(string uldPath)
         => new(this, uldPath);
-
-    /// <summary>
-    /// Asynchronously loads an image from the specified file, when it's possible to do so.
-    /// </summary>
-    /// <param name="filePath">The full filepath to the image.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.GetFromFile)}.")]
-    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) =>
-        this.scopedTextureProvider.GetFromFile(filePath).RentAsync();
-
-    /// <summary>
-    /// Asynchronously loads an image from a byte stream, such as a png downloaded into memory, when it's possible to do so.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw image data.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.CreateFromImageAsync)}.")]
-    public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) =>
-        this.scopedTextureProvider.CreateFromImageAsync(imageData);
-
-    /// <summary>
-    /// Asynchronously loads an image from raw unformatted pixel data, with no type or header information, when it's possible to do so.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw pixel data.</param>
-    /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    [Obsolete($"Use {nameof(ITextureProvider.CreateFromRawAsync)}.")]
-    public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) =>
-        numChannels switch
-        {
-            4 => this.scopedTextureProvider.CreateFromRawAsync(RawImageSpecification.Rgba32(width, height), imageData),
-            _ => Task.FromException<IDalamudTextureWrap>(new NotSupportedException()),
-        };
 
     /// <summary>
     /// Waits for UI to become available for use.

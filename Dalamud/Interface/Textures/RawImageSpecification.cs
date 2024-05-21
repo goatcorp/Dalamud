@@ -33,6 +33,13 @@ public record struct RawImageSpecification
 
     /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> class.</summary>
     /// <param name="desc">The source texture description.</param>
+    internal RawImageSpecification(in D3D11_TEXTURE2D_DESC desc)
+        : this((int)desc.Width, (int)desc.Height, (int)desc.Format)
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> class.</summary>
+    /// <param name="desc">The source texture description.</param>
     /// <param name="pitch">The pitch of the raw image in bytes.</param>
     internal RawImageSpecification(in D3D11_TEXTURE2D_DESC desc, uint pitch)
         : this((int)desc.Width, (int)desc.Height, (int)desc.Format, checked((int)pitch))

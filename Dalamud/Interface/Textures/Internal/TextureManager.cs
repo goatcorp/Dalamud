@@ -12,6 +12,7 @@ using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Dalamud.Utility.TerraFxCom;
 
 using Lumina.Data;
 using Lumina.Data.Files;
@@ -24,8 +25,7 @@ namespace Dalamud.Interface.Textures.Internal;
 /// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
 [ServiceManager.EarlyLoadedService]
 internal sealed partial class TextureManager
-    : IServiceType,
-      IDisposable,
+    : IInternalDisposableService,
       ITextureProvider,
       ITextureSubstitutionProvider,
       ITextureReadbackProvider
@@ -101,7 +101,7 @@ internal sealed partial class TextureManager
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         if (this.disposing)
             return;
@@ -219,6 +219,53 @@ internal sealed partial class TextureManager
             cancellationToken);
 
         static T? ForceNullable<T>(T s) => s;
+    }
+
+    /// <inheritdoc/>
+    public unsafe IDalamudTextureWrap CreateEmpty(
+        RawImageSpecification specs,
+        bool cpuRead,
+        bool cpuWrite,
+        string? debugName = null)
+    {
+        if (cpuRead && cpuWrite)
+            throw new ArgumentException("cpuRead and cpuWrite cannot be set at the same time.");
+
+        var cpuaf = default(D3D11_CPU_ACCESS_FLAG);
+        if (cpuRead)
+            cpuaf |= D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ;
+        if (cpuWrite)
+            cpuaf |= D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_WRITE;
+
+        D3D11_USAGE usage;
+        if (cpuRead)
+            usage = D3D11_USAGE.D3D11_USAGE_STAGING;
+        else if (cpuWrite)
+            usage = D3D11_USAGE.D3D11_USAGE_DYNAMIC;
+        else
+            usage = D3D11_USAGE.D3D11_USAGE_DEFAULT;
+        
+        using var texture = this.device.CreateTexture2D(
+            new()
+            {
+                Width = (uint)specs.Width,
+                Height = (uint)specs.Height,
+                MipLevels = 1,
+                ArraySize = 1,
+                Format = specs.Format,
+                SampleDesc = new(1, 0),
+                Usage = usage,
+                BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE,
+                CPUAccessFlags = (uint)cpuaf,
+                MiscFlags = 0,
+            });
+        using var view = this.device.CreateShaderResourceView(
+            texture,
+            new(texture, D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D));
+
+        var wrap = new UnknownTextureWrap((IUnknown*)view.Get(), specs.Width, specs.Height, true);
+        this.BlameSetName(wrap, debugName ?? $"{nameof(this.CreateEmpty)}({specs})");
+        return wrap;
     }
 
     /// <inheritdoc/>

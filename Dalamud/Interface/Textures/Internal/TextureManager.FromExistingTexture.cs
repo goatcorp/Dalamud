@@ -7,6 +7,7 @@ using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Dalamud.Utility.TerraFxCom;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -62,18 +63,11 @@ internal sealed partial class TextureManager
 
                 unsafe
                 {
-                    var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
+                    using var srv = this.device.CreateShaderResourceView(
                         tex,
-                        D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
-                    using var srv = default(ComPtr<ID3D11ShaderResourceView>);
-                    this.device.Get()->CreateShaderResourceView(
-                            (ID3D11Resource*)tex.Get(),
-                            &srvDesc,
-                            srv.GetAddressOf())
-                        .ThrowOnError();
+                        new(tex.Get(), D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D));
 
-                    var desc = default(D3D11_TEXTURE2D_DESC);
-                    tex.Get()->GetDesc(&desc);
+                    var desc = tex.GetDesc();
 
                     var outWrap = new UnknownTextureWrap(
                         (IUnknown*)srv.Get(),
@@ -126,15 +120,10 @@ internal sealed partial class TextureManager
         TextureModificationArgs args = default,
         CancellationToken cancellationToken = default)
     {
-        using var tex2D = wrapAux.NewTexRef();
-        if (!args.IsCompleteSourceCopy(wrapAux.Desc))
-        {
-            using var tmp = await this.NoThrottleCreateFromExistingTextureAsync(wrapAux, args);
-            unsafe
-            {
-                tex2D.Swap(&tmp);
-            }
-        }
+        using var tex2D =
+            args.IsCompleteSourceCopy(wrapAux.Desc)
+            ? wrapAux.NewTexRef()
+            : await this.NoThrottleCreateFromExistingTextureAsync(wrapAux, args);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -147,32 +136,29 @@ internal sealed partial class TextureManager
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            D3D11_TEXTURE2D_DESC desc;
-            tex2D.Get()->GetDesc(&desc);
+            var desc = tex2D.GetDesc();
 
             using var device = default(ComPtr<ID3D11Device>);
             tex2D.Get()->GetDevice(device.GetAddressOf());
             using var context = default(ComPtr<ID3D11DeviceContext>);
             device.Get()->GetImmediateContext(context.GetAddressOf());
 
-            using var tmpTex = default(ComPtr<ID3D11Texture2D>);
-            if ((desc.CPUAccessFlags & (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ) == 0)
-            {
-                var tmpTexDesc = desc with
-                {
-                    MipLevels = 1,
-                    ArraySize = 1,
-                    SampleDesc = new(1, 0),
-                    Usage = D3D11_USAGE.D3D11_USAGE_STAGING,
-                    BindFlags = 0u,
-                    CPUAccessFlags = (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ,
-                    MiscFlags = 0u,
-                };
-                device.Get()->CreateTexture2D(&tmpTexDesc, null, tmpTex.GetAddressOf()).ThrowOnError();
-                context.Get()->CopyResource((ID3D11Resource*)tmpTex.Get(), (ID3D11Resource*)tex2D.Get());
-
-                cancellationToken.ThrowIfCancellationRequested();
-            }
+            using var tmpTex =
+                (desc.CPUAccessFlags & (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ) == 0
+                    ? device.CreateTexture2D(
+                        desc with
+                        {
+                            MipLevels = 1,
+                            ArraySize = 1,
+                            SampleDesc = new(1, 0),
+                            Usage = D3D11_USAGE.D3D11_USAGE_STAGING,
+                            BindFlags = 0u,
+                            CPUAccessFlags = (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ,
+                            MiscFlags = 0u,
+                        },
+                        tex2D)
+                    : default;
+            cancellationToken.ThrowIfCancellationRequested();
 
             var mapWhat = (ID3D11Resource*)(tmpTex.IsEmpty() ? tex2D.Get() : tmpTex.Get());
 
@@ -205,25 +191,22 @@ internal sealed partial class TextureManager
         if (args.NewHeight == 0)
             args = args with { NewHeight = (int)MathF.Round((args.Uv1Effective.Y - args.Uv0.Y) * wrapAux.Desc.Height) };
 
-        using var tex2DCopyTemp = default(ComPtr<ID3D11Texture2D>);
-        unsafe
-        {
-            var tex2DCopyTempDesc = new D3D11_TEXTURE2D_DESC
-            {
-                Width = (uint)args.NewWidth,
-                Height = (uint)args.NewHeight,
-                MipLevels = 1,
-                ArraySize = 1,
-                Format = args.Format,
-                SampleDesc = new(1, 0),
-                Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
-                BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE |
-                                   D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
-                CPUAccessFlags = 0u,
-                MiscFlags = 0u,
-            };
-            this.device.Get()->CreateTexture2D(&tex2DCopyTempDesc, null, tex2DCopyTemp.GetAddressOf()).ThrowOnError();
-        }
+        using var tex2DCopyTemp =
+            this.device.CreateTexture2D(
+                new()
+                {
+                    Width = (uint)args.NewWidth,
+                    Height = (uint)args.NewHeight,
+                    MipLevels = 1,
+                    ArraySize = 1,
+                    Format = args.Format,
+                    SampleDesc = new(1, 0),
+                    Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
+                    BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE |
+                                       D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
+                    CPUAccessFlags = 0u,
+                    MiscFlags = 0u,
+                });
 
         await this.RunDuringPresent(() => DrawSourceTextureToTarget(wrapAux, args, this.SimpleDrawer, tex2DCopyTemp));
 
