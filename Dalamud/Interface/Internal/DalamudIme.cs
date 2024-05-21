@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.Colors;
@@ -73,6 +74,9 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         StbTextMakeUndoReplace;
 
     private static readonly delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, void> StbTextUndo;
+
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
@@ -774,30 +778,42 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 ImGui.GetStyle().WindowRounding);
         }
 
+        var stateOpacity = Math.Clamp(this.dalamudConfiguration.ImeStateIndicatorOpacity, 0, 1);
+        var stateBg = ImGui.GetColorU32(
+            new Vector4(1, 1, 1, MathF.Pow(stateOpacity, 2)) * *ImGui.GetStyleColorVec4(ImGuiCol.WindowBg));
+        var stateFg =
+            ImGui.GetColorU32(new Vector4(1, 1, 1, stateOpacity) * *ImGui.GetStyleColorVec4(ImGuiCol.Text));
         if (!expandUpward && drawIme)
         {
-            for (var dx = -2; dx <= 2; dx++)
+            if (stateBg >= 0x1000000)
             {
-                for (var dy = -2; dy <= 2; dy++)
+                for (var dx = -2; dx <= 2; dx++)
                 {
-                    if (dx != 0 || dy != 0)
+                    for (var dy = -2; dy <= 2; dy++)
                     {
-                        imeIconFont.RenderChar(
-                            drawList,
-                            imeIconFont.FontSize,
-                            cursor + new Vector2(dx, dy),
-                            ImGui.GetColorU32(ImGuiCol.WindowBg),
-                            ime.inputModeIcon);
+                        if (dx != 0 || dy != 0)
+                        {
+                            imeIconFont.RenderChar(
+                                drawList,
+                                imeIconFont.FontSize,
+                                cursor + new Vector2(dx, dy),
+                                stateBg,
+                                ime.inputModeIcon);
+                        }
                     }
                 }
             }
 
-            imeIconFont.RenderChar(
-                drawList,
-                imeIconFont.FontSize,
-                cursor,
-                ImGui.GetColorU32(ImGuiCol.Text),
-                ime.inputModeIcon);
+            if (stateFg >= 0x1000000)
+            {
+                imeIconFont.RenderChar(
+                    drawList,
+                    imeIconFont.FontSize,
+                    cursor,
+                    stateFg,
+                    ime.inputModeIcon);
+            }
+
             cursor.Y += candTextSize.Y + spaceY;
         }
 
@@ -851,28 +867,34 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         if (expandUpward && drawIme)
         {
-            for (var dx = -2; dx <= 2; dx++)
+            if (stateBg >= 0x1000000)
             {
-                for (var dy = -2; dy <= 2; dy++)
+                for (var dx = -2; dx <= 2; dx++)
                 {
-                    if (dx != 0 || dy != 0)
+                    for (var dy = -2; dy <= 2; dy++)
                     {
-                        imeIconFont.RenderChar(
-                            drawList,
-                            imeIconFont.FontSize,
-                            cursor + new Vector2(dx, dy),
-                            ImGui.GetColorU32(ImGuiCol.WindowBg),
-                            ime.inputModeIcon);
+                        if (dx != 0 || dy != 0)
+                        {
+                            imeIconFont.RenderChar(
+                                drawList,
+                                imeIconFont.FontSize,
+                                cursor + new Vector2(dx, dy),
+                                ImGui.GetColorU32(ImGuiCol.WindowBg),
+                                ime.inputModeIcon);
+                        }
                     }
                 }
             }
 
-            imeIconFont.RenderChar(
-                drawList,
-                imeIconFont.FontSize,
-                cursor,
-                ImGui.GetColorU32(ImGuiCol.Text),
-                ime.inputModeIcon);
+            if (stateFg >= 0x1000000)
+            {
+                imeIconFont.RenderChar(
+                    drawList,
+                    imeIconFont.FontSize,
+                    cursor,
+                    ImGui.GetColorU32(ImGuiCol.Text),
+                    ime.inputModeIcon);
+            }
         }
 
         return;
