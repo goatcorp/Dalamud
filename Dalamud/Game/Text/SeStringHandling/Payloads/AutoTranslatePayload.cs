@@ -150,7 +150,7 @@ public class AutoTranslatePayload : Payload, ITextProvider
                     "PetMirage" => this.DataResolver.GetExcelSheet<PetMirage>().GetRow(this.key).Name,
                     "PlaceName" => this.DataResolver.GetExcelSheet<PlaceName>().GetRow(this.key).Name,
                     "Race" => this.DataResolver.GetExcelSheet<Race>().GetRow(this.key).Masculine,
-                    "TextCommand" => this.DataResolver.GetExcelSheet<TextCommand>().GetRow(this.key).Command,
+                    "TextCommand" => this.ResolveTextCommand(),
                     "Tribe" => this.DataResolver.GetExcelSheet<Tribe>().GetRow(this.key).Masculine,
                     "Weather" => this.DataResolver.GetExcelSheet<Weather>().GetRow(this.key).Name,
                     _ => throw new Exception(actualTableName),
@@ -165,5 +165,13 @@ public class AutoTranslatePayload : Payload, ITextProvider
         }
 
         return value;
+    }
+
+    private Lumina.Text.SeString ResolveTextCommand()
+    {
+        // TextCommands prioritize the `Alias` field, if it not empty
+        // Example for this is /rangerpose2l which becomes /blackrangerposeb in chat
+        var result = this.DataResolver.GetExcelSheet<TextCommand>().GetRow(this.key);
+        return result.Alias.Payloads.Count > 0 ? result.Alias : result.Command;
     }
 }
