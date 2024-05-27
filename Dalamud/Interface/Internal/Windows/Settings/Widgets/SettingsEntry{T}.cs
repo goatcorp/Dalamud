@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 
@@ -50,9 +51,21 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
     public delegate void SaveSettingDelegate(T? value, DalamudConfiguration config);
 
-    public T? Value => this.valueBacking == default ? default : (T)this.valueBacking;
+    public T? Value
+    {
+        get => this.valueBacking == default ? default : (T)this.valueBacking;
+        set
+        {
+            if (Equals(value, this.valueBacking))
+                return;
+            this.valueBacking = value;
+            this.change?.Invoke(value);
+        }
+    }
 
     public string Description { get; }
+
+    public Action<SettingsEntry<T>>? CustomDraw { get; init; }
 
     public Func<T?, string?>? CheckValidity { get; init; }
 
@@ -68,7 +81,11 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
         var type = typeof(T);
 
-        if (type == typeof(DirectoryInfo))
+        if (this.CustomDraw is not null)
+        {
+            this.CustomDraw.Invoke(this);
+        }
+        else if (type == typeof(DirectoryInfo))
         {
             ImGuiHelpers.SafeTextWrapped(this.Name);
 
