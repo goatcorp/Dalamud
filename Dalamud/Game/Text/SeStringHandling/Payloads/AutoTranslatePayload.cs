@@ -15,10 +15,10 @@ public class AutoTranslatePayload : Payload, ITextProvider
 {
     private string text;
 
-    [JsonProperty]
+    [JsonProperty("group")]
     public uint Group { get; private set; }
 
-    [JsonProperty]
+    [JsonProperty("key")]
     public uint Key { get; private set; }
 
     /// <summary>
