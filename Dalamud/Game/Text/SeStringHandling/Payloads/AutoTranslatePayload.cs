@@ -16,22 +16,10 @@ public class AutoTranslatePayload : Payload, ITextProvider
     private string text;
 
     [JsonProperty]
-    private uint group;
+    public uint Group { get; private set; }
 
     [JsonProperty]
-    private uint key;
-
-    /// <summary>
-    /// Gets the sheet group this entry belongs to
-    /// </summary>
-    [JsonIgnore]
-    public uint Group => this.group;
-
-    /// <summary>
-    /// Gets the sheet key for this entry
-    /// </summary>
-    [JsonIgnore]
-    public uint Key => this.key;
+    public uint Key { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
