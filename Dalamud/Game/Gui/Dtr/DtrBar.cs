@@ -276,7 +276,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             var node = addon->UldManager.NodeList[index];
             if (node->IsVisible)
             {
-                var nodeId = node->NodeID;
+                var nodeId = node->NodeId;
                 var nodeType = node->Type;
 
                 if (nodeType == NodeType.Collision)
@@ -330,7 +330,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         for (var i = 0; i < dtr->UldManager.NodeListCount; i++)
         {
-            if (dtr->UldManager.NodeList[i]->NodeID > 1000)
+            if (dtr->UldManager.NodeList[i]->NodeId > 1000)
                 return true;
         }
 
@@ -357,8 +357,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
 
-        this.eventHandles.TryAdd(node->AtkResNode.NodeID, new List<IAddonEventHandle>());
-        this.eventHandles[node->AtkResNode.NodeID].AddRange(new List<IAddonEventHandle>
+        this.eventHandles.TryAdd(node->AtkResNode.NodeId, new List<IAddonEventHandle>());
+        this.eventHandles[node->AtkResNode.NodeId].AddRange(new List<IAddonEventHandle>
         {
             this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseOver, this.DtrEventHandler),
             this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler),
@@ -386,8 +386,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return;
 
-        this.eventHandles[node->AtkResNode.NodeID].ForEach(handle => this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, handle));
-        this.eventHandles[node->AtkResNode.NodeID].Clear();
+        this.eventHandles[node->AtkResNode.NodeId].ForEach(handle => this.uiEventManager.RemoveEvent(AddonEventManager.DalamudInternalKey, handle));
+        this.eventHandles[node->AtkResNode.NodeId].Clear();
 
         var tmpPrevNode = node->AtkResNode.PrevSiblingNode;
         var tmpNextNode = node->AtkResNode.NextSiblingNode;
@@ -414,7 +414,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             return null;
         }
 
-        newTextNode->AtkResNode.NodeID = nodeId;
+        newTextNode->AtkResNode.NodeId = nodeId;
         newTextNode->AtkResNode.Type = NodeType.Text;
         newTextNode->AtkResNode.NodeFlags = NodeFlags.AnchorLeft | NodeFlags.AnchorTop | NodeFlags.Enabled | NodeFlags.RespondToMouse | NodeFlags.HasCollision | NodeFlags.EmitsEvents;
         newTextNode->AtkResNode.DrawFlags = 12;
@@ -459,11 +459,11 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             switch (atkEventType)
             {
                 case AddonEventType.MouseOver:
-                    AtkStage.GetSingleton()->TooltipManager.ShowTooltip(addon->ID, node, dtrBarEntry.Tooltip.Encode());
+                    AtkStage.GetSingleton()->TooltipManager.ShowTooltip(addon->Id, node, dtrBarEntry.Tooltip.Encode());
                     break;
                 
                 case AddonEventType.MouseOut:
-                    AtkStage.GetSingleton()->TooltipManager.HideTooltip(addon->ID);
+                    AtkStage.GetSingleton()->TooltipManager.HideTooltip(addon->Id);
                     break;
             }
         }

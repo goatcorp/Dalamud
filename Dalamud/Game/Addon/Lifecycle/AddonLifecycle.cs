@@ -194,8 +194,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         // Hook the addon's ReceiveEvent function here, but only enable the hook if we have an active listener.
         // Disallows hooking the core internal event handler.
-        var addonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
-        var receiveEventAddress = (nint)addon->VTable->ReceiveEvent;
+        var addonName = addon->NameString;
+        var receiveEventAddress = (nint)addon->VirtualTable->ReceiveEvent;
         if (receiveEventAddress != this.disallowedReceiveEventAddress)
         {
             // If we have a ReceiveEvent listener already made for this hook address, add this addon's name to that handler.
@@ -275,7 +275,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         try
         {
-            var addonName = MemoryHelper.ReadStringNullTerminated((nint)atkUnitBase[0]->Name);
+            var addonName = atkUnitBase[0]->NameString;
             this.UnregisterReceiveEventHook(addonName);
         }
         catch (Exception e)

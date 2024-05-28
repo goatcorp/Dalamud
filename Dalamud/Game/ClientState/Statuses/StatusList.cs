@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Game.ClientState.Statuses;
@@ -98,16 +99,16 @@ public sealed unsafe partial class StatusList
     }
 
     /// <summary>
-    /// Gets the address of the party member at the specified index of the party list.
+    /// Gets the address of the status at the specific index in the status list.
     /// </summary>
-    /// <param name="index">The index of the party member.</param>
-    /// <returns>The memory address of the party member.</returns>
+    /// <param name="index">The index of the status.</param>
+    /// <returns>The memory address of the status.</returns>
     public IntPtr GetStatusAddress(int index)
     {
         if (index < 0 || index >= this.Length)
             return IntPtr.Zero;
 
-        return (IntPtr)(this.Struct->Status + (index * StatusSize));
+        return (IntPtr)Unsafe.AsPointer(ref this.Struct->Status[index]);
     }
 }
 

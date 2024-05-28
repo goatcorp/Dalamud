@@ -42,6 +42,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dalamud.Common", "Dalamud.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.LocExporter", "tools\Dalamud.LocExporter\Dalamud.LocExporter.csproj", "{A568929D-6FF6-4DFA-9D14-5D7DC08FA5E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteropGenerator", "lib\FFXIVClientStructs\InteropGenerator\InteropGenerator.csproj", "{3620414C-7DFC-423E-929F-310E19F5D930}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteropGenerator.Runtime", "lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj", "{A6AA1C3F-9470-4922-9D3F-D4549657AB22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +112,14 @@ Global
 		{A568929D-6FF6-4DFA-9D14-5D7DC08FA5E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A568929D-6FF6-4DFA-9D14-5D7DC08FA5E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A568929D-6FF6-4DFA-9D14-5D7DC08FA5E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3620414C-7DFC-423E-929F-310E19F5D930}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3620414C-7DFC-423E-929F-310E19F5D930}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3620414C-7DFC-423E-929F-310E19F5D930}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3620414C-7DFC-423E-929F-310E19F5D930}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6AA1C3F-9470-4922-9D3F-D4549657AB22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6AA1C3F-9470-4922-9D3F-D4549657AB22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6AA1C3F-9470-4922-9D3F-D4549657AB22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6AA1C3F-9470-4922-9D3F-D4549657AB22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -118,6 +130,8 @@ Global
 		{2F7FF0A8-B619-4572-86C7-71E46FE22FB8} = {E15BDA6D-E881-4482-94BA-BE5527E917FF}
 		{C9B87BD7-AF49-41C3-91F1-D550ADEB7833} = {E15BDA6D-E881-4482-94BA-BE5527E917FF}
 		{05AB2F46-268B-4915-806F-DDF813E2D59D} = {E15BDA6D-E881-4482-94BA-BE5527E917FF}
+		{3620414C-7DFC-423E-929F-310E19F5D930} = {E15BDA6D-E881-4482-94BA-BE5527E917FF}
+		{A6AA1C3F-9470-4922-9D3F-D4549657AB22} = {E15BDA6D-E881-4482-94BA-BE5527E917FF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {79B65AC9-C940-410E-AB61-7EA7E12C7599}

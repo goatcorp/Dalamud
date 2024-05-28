@@ -62,7 +62,7 @@ public sealed class AetheryteEntry
     /// <summary>
     /// Gets a value indicating whether this Aetheryte is an Appartment or not.
     /// </summary>
-    public bool IsAppartment => this.data.IsAppartment;
+    public bool IsAppartment => this.data.IsApartment;
 
     /// <summary>
     /// Gets the Aetheryte data related to this aetheryte.
