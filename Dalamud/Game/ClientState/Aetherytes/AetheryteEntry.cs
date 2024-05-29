@@ -60,9 +60,9 @@ public sealed class AetheryteEntry
     public bool IsSharedHouse => this.data.IsSharedHouse;
 
     /// <summary>
-    /// Gets a value indicating whether this Aetheryte is an Appartment or not.
+    /// Gets a value indicating whether this Aetheryte is an Apartment or not.
     /// </summary>
-    public bool IsAppartment => this.data.IsApartment;
+    public bool IsApartment => this.data.IsApartment;
 
     /// <summary>
     /// Gets the Aetheryte data related to this aetheryte.

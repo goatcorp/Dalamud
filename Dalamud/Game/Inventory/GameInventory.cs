@@ -51,7 +51,7 @@ internal class GameInventory : IInternalDisposableService
         unsafe
         {
             this.raptureAtkModuleUpdateHook = Hook<RaptureAtkModuleUpdateDelegate>.FromFunctionPointerVariable(
-                new(RaptureAtkModule.StaticVirtualTablePointer->Update),
+                new(&RaptureAtkModule.StaticVirtualTablePointer->Update),
                 this.RaptureAtkModuleUpdateDetour);
         }
 
