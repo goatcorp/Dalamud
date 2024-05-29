@@ -96,7 +96,7 @@ public unsafe partial class GameObject
     /// <summary>
     /// Gets the name of this <see cref="GameObject" />.
     /// </summary>
-    public SeString Name => MemoryHelper.ReadSeString((nint) Unsafe.AsPointer(ref this.Struct->Name[0]), 64);
+    public SeString Name => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->Name[0]), 64);
 
     /// <summary>
     /// Gets the object ID of this <see cref="GameObject" />.

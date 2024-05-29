@@ -34,7 +34,7 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
             {
                 Log.Verbose("[GameConfig] Initializing");
                 var csFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-                var commonConfig = &csFramework->SystemConfig.CommonSystemConfig;
+                var commonConfig = &csFramework->SystemConfig.SystemConfigBase;
                 this.tcsSystem.SetResult(new("System", framework, &commonConfig->ConfigBase));
                 this.tcsUiConfig.SetResult(new("UiConfig", framework, &commonConfig->UiConfig));
                 this.tcsUiControl.SetResult(
