@@ -23,10 +23,10 @@ internal unsafe class AddonEventListener : IDisposable
         this.receiveEventDelegate = eventHandler;
 
         this.eventListener = (AtkEventListener*)Marshal.AllocHGlobal(sizeof(AtkEventListener));
-        this.eventListener->vtbl = (void*)Marshal.AllocHGlobal(sizeof(void*) * 3);
-        this.eventListener->vfunc[0] = (delegate* unmanaged<void>)&NullSub;
-        this.eventListener->vfunc[1] = (delegate* unmanaged<void>)&NullSub;
-        this.eventListener->vfunc[2] = (void*)Marshal.GetFunctionPointerForDelegate(this.receiveEventDelegate);
+        this.eventListener->VirtualTable = (AtkEventListener.AtkEventListenerVirtualTable*)Marshal.AllocHGlobal(sizeof(void*) * 3);
+        this.eventListener->VirtualTable->Dtor = (delegate* unmanaged<AtkEventListener*, byte, void>)(delegate* unmanaged<void>)&NullSub;
+        this.eventListener->VirtualTable->ReceiveGlobalEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, nint, void>)(delegate* unmanaged<void>)&NullSub;
+        this.eventListener->VirtualTable->ReceiveEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, nint, void>)Marshal.GetFunctionPointerForDelegate(this.receiveEventDelegate);
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ internal unsafe class AddonEventListener : IDisposable
     {
         if (this.eventListener is null) return;
         
-        Marshal.FreeHGlobal((nint)this.eventListener->vtbl);
+        Marshal.FreeHGlobal((nint)this.eventListener->VirtualTable);
         Marshal.FreeHGlobal((nint)this.eventListener);
 
         this.eventListener = null;

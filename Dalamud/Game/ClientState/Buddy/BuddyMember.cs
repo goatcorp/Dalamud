@@ -29,7 +29,7 @@ public unsafe class BuddyMember
     /// <summary>
     /// Gets the object ID of this buddy.
     /// </summary>
-    public uint ObjectId => this.Struct->ObjectID;
+    public uint ObjectId => this.Struct->ObjectId;
 
     /// <summary>
     /// Gets the actor associated with this buddy.
@@ -52,7 +52,7 @@ public unsafe class BuddyMember
     /// <summary>
     /// Gets the data ID of this buddy.
     /// </summary>
-    public uint DataID => this.Struct->DataID;
+    public uint DataID => this.Struct->DataId;
 
     /// <summary>
     /// Gets the Mount data related to this buddy. It should only be used with companion buddies.

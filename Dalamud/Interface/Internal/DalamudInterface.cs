@@ -779,7 +779,7 @@ internal class DalamudInterface : IInternalDisposableService
                             unsafe
                             {
                                 var hook = Hook<CrashDebugDelegate>.FromAddress(
-                                    (nint)UIModule.StaticVTable.GetUIInputData,
+                                    (nint)UIModule.StaticVirtualTablePointer->GetUIInputData,
                                     self =>
                                     {
                                         _ = *(byte*)0;

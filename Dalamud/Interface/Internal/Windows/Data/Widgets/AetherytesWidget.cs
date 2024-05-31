@@ -83,7 +83,7 @@ internal class AetherytesWidget : IDataWindowWidget
             ImGui.TextUnformatted($"{info.IsSharedHouse}");
 
             ImGui.TableNextColumn(); // Apartment
-            ImGui.TextUnformatted($"{info.IsAppartment}");
+            ImGui.TextUnformatted($"{info.IsApartment}");
         }
 
         ImGui.EndTable();

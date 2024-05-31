@@ -17,6 +17,7 @@ using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.FFXIV.Component.GUI.AtkModuleInterface;
 using FFXIVClientStructs.Interop;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
@@ -40,7 +41,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     private ContextMenu()
     {
         this.raptureAtkModuleOpenAddonByAgentHook = Hook<RaptureAtkModuleOpenAddonByAgentDelegate>.FromAddress((nint)RaptureAtkModule.Addresses.OpenAddonByAgent.Value, this.RaptureAtkModuleOpenAddonByAgentDetour);
-        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVTable.OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
+        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVirtualTablePointer->OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
         this.raptureAtkModuleOpenAddon = Marshal.GetDelegateForFunctionPointer<RaptureAtkModuleOpenAddonDelegate>((nint)RaptureAtkModule.Addresses.OpenAddon.Value);
 
         this.raptureAtkModuleOpenAddonByAgentHook.Enable();

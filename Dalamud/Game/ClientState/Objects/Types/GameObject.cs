@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
@@ -95,22 +96,22 @@ public unsafe partial class GameObject
     /// <summary>
     /// Gets the name of this <see cref="GameObject" />.
     /// </summary>
-    public SeString Name => MemoryHelper.ReadSeString((IntPtr)this.Struct->Name, 64);
+    public SeString Name => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->Name[0]), 64);
 
     /// <summary>
     /// Gets the object ID of this <see cref="GameObject" />.
     /// </summary>
-    public uint ObjectId => this.Struct->ObjectID;
+    public uint ObjectId => this.Struct->EntityId;
 
     /// <summary>
     /// Gets the data ID for linking to other respective game data.
     /// </summary>
-    public uint DataId => this.Struct->DataID;
+    public uint DataId => this.Struct->BaseId;
 
     /// <summary>
     /// Gets the ID of this GameObject's owner.
     /// </summary>
-    public uint OwnerId => this.Struct->OwnerID;
+    public uint OwnerId => this.Struct->OwnerId;
 
     /// <summary>
     /// Gets the index of this object in the object table.

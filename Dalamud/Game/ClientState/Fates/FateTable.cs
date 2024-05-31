@@ -49,7 +49,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
             if (Struct->Fates.First == null || Struct->Fates.Last == null)
                 return 0;
 
-            return (int)Struct->Fates.Size();
+            return Struct->Fates.Count;
         }
     }
 
@@ -89,7 +89,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
         if (fateTable == IntPtr.Zero)
             return IntPtr.Zero;
 
-        return (IntPtr)this.Struct->Fates.Get((ulong)index).Value;
+        return (IntPtr)this.Struct->Fates[index].Value;
     }
 
     /// <inheritdoc/>

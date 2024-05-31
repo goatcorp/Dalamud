@@ -1,4 +1,6 @@
-﻿using Dalamud.Memory;
+﻿using System.Runtime.CompilerServices;
+
+using Dalamud.Memory;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -64,9 +66,14 @@ public abstract unsafe class AddonArgs
             return false;
 
         var addonPointer = (AtkUnitBase*)this.Addon;
-        if (addonPointer->Name is null) return false;
+        if (addonPointer->Name[0] == 0) return false;
 
-        return MemoryHelper.EqualsZeroTerminatedString(name, (nint)addonPointer->Name, null, 0x20);
+        // note: might want to rewrite this to just compare to NameString
+        return MemoryHelper.EqualsZeroTerminatedString(
+            name,
+            (nint)Unsafe.AsPointer(ref addonPointer->Name[0]),
+            null,
+            0x20);
     }
 
     /// <summary>
@@ -78,8 +85,8 @@ public abstract unsafe class AddonArgs
         if (this.Addon == nint.Zero) return InvalidAddon;
 
         var addonPointer = (AtkUnitBase*)this.Addon;
-        if (addonPointer->Name is null) return InvalidAddon;
+        if (addonPointer->Name[0] == 0) return InvalidAddon;
 
-        return this.addonName ??= MemoryHelper.ReadString((nint)addonPointer->Name, 0x20);
+        return this.addonName ??= addonPointer->NameString;
     }
 }

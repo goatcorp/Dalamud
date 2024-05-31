@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
@@ -50,10 +51,10 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     public IntPtr GroupManagerAddress => this.address.GroupManager;
 
     /// <inheritdoc/>
-    public IntPtr GroupListAddress => (IntPtr)GroupManagerStruct->PartyMembers;
+    public IntPtr GroupListAddress => (IntPtr)Unsafe.AsPointer(ref GroupManagerStruct->PartyMembers[0]);
 
     /// <inheritdoc/>
-    public IntPtr AllianceListAddress => (IntPtr)this.GroupManagerStruct->AllianceMembers;
+    public IntPtr AllianceListAddress => (IntPtr)Unsafe.AsPointer(ref this.GroupManagerStruct->AllianceMembers[0]);
 
     /// <inheritdoc/>
     public long PartyId => this.GroupManagerStruct->PartyId;

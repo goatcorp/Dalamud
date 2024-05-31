@@ -31,5 +31,5 @@ public unsafe class PlayerCharacter : BattleChara
     /// <summary>
     /// Gets the target actor ID of the PlayerCharacter.
     /// </summary>
-    public override ulong TargetObjectId => this.Struct->Character.Gaze.Controller.GazesSpan[0].TargetInfo.TargetId;
+    public override ulong TargetObjectId => this.Struct->Character.Gaze.Controller.Gazes[0].TargetInfo.TargetId;
 }

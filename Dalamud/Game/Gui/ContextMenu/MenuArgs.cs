@@ -24,7 +24,7 @@ public abstract unsafe class MenuArgs
     /// <param name="eventInterfaces">List of AtkEventInterfaces associated with the context menu.</param>
     protected internal MenuArgs(AtkUnitBase* addon, AgentInterface* agent, ContextMenuType type, IReadOnlySet<nint>? eventInterfaces)
     {
-        this.AddonName = addon != null ? MemoryHelper.ReadString((nint)addon->Name, 32) : null;
+        this.AddonName = addon != null ? addon->NameString : null;
         this.AddonPtr = (nint)addon;
         this.AgentPtr = (nint)agent;
         this.MenuType = type;
