@@ -273,7 +273,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (framework == null)
             return IntPtr.Zero;
 
-        var uiModule = framework->GetUiModule();
+        var uiModule = framework->GetUIModule();
         if (uiModule == null)
             return IntPtr.Zero;
 

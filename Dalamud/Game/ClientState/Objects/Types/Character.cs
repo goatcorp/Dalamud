@@ -82,7 +82,7 @@ public unsafe class Character : GameObject
     /// Gets a byte array describing the visual appearance of this Chara.
     /// Indexed by <see cref="CustomizeIndex"/>.
     /// </summary>
-    public byte[] Customize => MemoryHelper.Read<byte>((IntPtr)this.Struct->DrawData.CustomizeData.Data, 28);
+    public byte[] Customize => this.Struct->DrawData.CustomizeData.Data.ToArray();
 
     /// <summary>
     /// Gets the Free Company tag of this chara.

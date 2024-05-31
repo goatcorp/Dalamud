@@ -21,15 +21,15 @@ public unsafe class PlayerCharacter : BattleChara
     /// <summary>
     /// Gets the current <see cref="ExcelResolver{T}">world</see> of the character.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.World> CurrentWorld => new(this.Struct->Character.CurrentWorld);
+    public ExcelResolver<Lumina.Excel.GeneratedSheets.World> CurrentWorld => new(this.Struct->CurrentWorld);
 
     /// <summary>
     /// Gets the home <see cref="ExcelResolver{T}">world</see> of the character.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.World> HomeWorld => new(this.Struct->Character.HomeWorld);
+    public ExcelResolver<Lumina.Excel.GeneratedSheets.World> HomeWorld => new(this.Struct->HomeWorld);
 
     /// <summary>
     /// Gets the target actor ID of the PlayerCharacter.
     /// </summary>
-    public override ulong TargetObjectId => this.Struct->Character.Gaze.Controller.Gazes[0].TargetInfo.TargetId;
+    public override ulong TargetObjectId => this.Struct->LookAt.Controller.Params[0].TargetParam.TargetId;
 }

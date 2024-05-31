@@ -317,8 +317,8 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 this.SelectedMenuType = ContextMenuType.Default;
 
                 var menu = AgentContext.Instance()->CurrentContextMenu;
-                var handlers = new Span<Pointer<AtkEventInterface>>(menu->EventHandlerArray, 32);
-                var ids = new Span<byte>(menu->EventIdArray, 32);
+                var handlers = menu->EventHandlers;
+                var ids = menu->EventIds;
                 var count = (int)values[0].UInt;
                 handlers = handlers.Slice(7, count);
                 ids = ids.Slice(7, count);
