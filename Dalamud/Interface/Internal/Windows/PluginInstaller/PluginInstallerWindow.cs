@@ -1084,7 +1084,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             return;
         }
 
-        IEnumerable<IChangelogEntry> changelogs = null;
+        IEnumerable<IChangelogEntry>? changelogs = null;
         if (displayDalamud && displayPlugins && this.dalamudChangelogManager.Changelogs != null)
         {
             changelogs = this.dalamudChangelogManager.Changelogs;
@@ -1098,10 +1098,15 @@ internal class PluginInstallerWindow : Window, IDisposable
             changelogs = this.dalamudChangelogManager.Changelogs.OfType<PluginChangelogEntry>();
         }
 
-        var sortedChangelogs = changelogs?.Where(x => this.searchText.IsNullOrWhitespace() || new FuzzyMatcher(this.searchText.ToLowerInvariant(), MatchMode.FuzzyParts).Matches(x.Title.ToLowerInvariant()) > 0)
-                                                            .OrderByDescending(x => x.Date).ToList();
+        changelogs ??= Array.Empty<IChangelogEntry>();
+        var sortedChangelogs =
+            this.searchText.IsNullOrWhitespace()
+                ? changelogs.ToList()
+                : changelogs.Where(x => x.Title.FuzzyMatchesParts(this.searchText))
+                            .OrderByDescending(x => x.Date)
+                            .ToList();
 
-        if (sortedChangelogs == null || !sortedChangelogs.Any())
+        if (!sortedChangelogs.Any())
         {
             ImGui.TextColored(
                 ImGuiColors.DalamudGrey2,
@@ -3311,23 +3316,27 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
-        var searchString = this.searchText.ToLowerInvariant();
-        var matcher = new FuzzyMatcher(searchString, MatchMode.FuzzyParts);
         var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
         var oldApi = (manifest.TestingDalamudApiLevel == null
                             || manifest.TestingDalamudApiLevel < PluginManager.DalamudApiLevel)
                           && manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
         var installed = this.IsManifestInstalled(manifest).IsInstalled;
 
-        if (oldApi && !hasSearchString && !installed)
-            return true;
+        // Are we not searching at all? Hide plugins of older API levels that aren't installed. 
+        if (!hasSearchString)
+            return oldApi && !installed;
 
-        return hasSearchString && !(
-                                       (!manifest.Name.IsNullOrEmpty() && matcher.Matches(manifest.Name.ToLowerInvariant()) > 0) ||
-                                       (!manifest.InternalName.IsNullOrEmpty() && matcher.Matches(manifest.InternalName.ToLowerInvariant()) > 0) ||
-                                       (!manifest.Author.IsNullOrEmpty() && matcher.Matches(manifest.Author.ToLowerInvariant()) > 0) ||
-                                       (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
-                                       (manifest.Tags != null && matcher.MatchesAny(manifest.Tags.Select(term => term.ToLowerInvariant()).ToArray()) > 0));
+        if (manifest.Name.FuzzyMatchesParts(this.searchText))
+            return false;
+        if (manifest.InternalName.FuzzyMatchesParts(this.searchText))
+            return false;
+        if (manifest.Author.FuzzyMatchesParts(this.searchText))
+            return false;
+        if (manifest.Punchline?.Contains(this.searchText, StringComparison.InvariantCultureIgnoreCase) is true)
+            return false;
+        if (manifest.Tags?.Any(x => x.FuzzyMatchesParts(this.searchText)) is true)
+            return false;
+        return true;
     }
 
     private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(IPluginManifest? manifest)
