@@ -13,11 +13,10 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows;
-using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
@@ -140,7 +139,7 @@ internal class ChatHandlers : IServiceType
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
 
-    private void OnCheckMessageHandled(XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         var textVal = message.TextValue;
 
@@ -166,7 +165,7 @@ internal class ChatHandlers : IServiceType
         }
     }
 
-    private void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         var clientState = Service<ClientState.ClientState>.GetNullable();
         if (clientState == null)

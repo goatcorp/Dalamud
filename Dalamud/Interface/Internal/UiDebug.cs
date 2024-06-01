@@ -80,7 +80,7 @@ internal unsafe class UiDebug
     private void DrawUnitBase(AtkUnitBase* atkUnitBase)
     {
         var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
-        var addonName = MemoryHelper.ReadSeStringAsString(out _, new IntPtr(atkUnitBase->Name));
+        var addonName = atkUnitBase->NameString;
         var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
         ImGui.Text($"{addonName}");
@@ -352,11 +352,11 @@ internal unsafe class UiDebug
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
                     ImGui.Text($"InputBase Text1: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
                     ImGui.Text($"InputBase Text2: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->AtkComponentInputBase.UnkText2.StringPtr))}");
-                    ImGui.Text($"Text1: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText1.StringPtr))}");
-                    ImGui.Text($"Text2: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText2.StringPtr))}");
-                    ImGui.Text($"Text3: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText3.StringPtr))}");
-                    ImGui.Text($"Text4: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText4.StringPtr))}");
-                    ImGui.Text($"Text5: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText5.StringPtr))}");
+                    ImGui.Text($"Text1: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText01.StringPtr))}");
+                    ImGui.Text($"Text2: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText02.StringPtr))}");
+                    ImGui.Text($"Text3: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText03.StringPtr))}");
+                    ImGui.Text($"Text4: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText04.StringPtr))}");
+                    ImGui.Text($"Text5: {MemoryHelper.ReadSeStringAsString(out _, new IntPtr(textInputComponent->UnkText05.StringPtr))}");
                     break;
             }
 
@@ -390,7 +390,7 @@ internal unsafe class UiDebug
 
     private void PrintResNode(AtkResNode* node)
     {
-        ImGui.Text($"NodeID: {node->NodeID}");
+        ImGui.Text($"NodeID: {node->NodeId}");
         ImGui.SameLine();
         if (ImGui.SmallButton($"T:Visible##{(ulong)node:X}"))
         {
@@ -465,14 +465,14 @@ internal unsafe class UiDebug
 
             for (var j = 0; j < unitManager->Count && headerOpen; j++)
             {
-                var unitBase = *(AtkUnitBase**)Unsafe.AsPointer(ref unitManager->EntriesSpan[j]);
+                AtkUnitBase* unitBase = unitManager->Entries[j];
                 if (this.selectedUnitBase != null && unitBase == this.selectedUnitBase)
                 {
                     this.selectedInList[i] = true;
                     foundSelected = true;
                 }
 
-                var name = MemoryHelper.ReadSeStringAsString(out _, new IntPtr(unitBase->Name));
+                var name = unitBase->NameString;
                 if (searching)
                 {
                     if (name == null || !name.ToLower().Contains(searchStr.ToLower())) continue;
@@ -510,7 +510,7 @@ internal unsafe class UiDebug
             {
                 for (var j = 0; j < unitManager->Count; j++)
                 {
-                    var unitBase = *(AtkUnitBase**)Unsafe.AsPointer(ref unitManager->EntriesSpan[j]);
+                    AtkUnitBase* unitBase = unitManager->Entries[j];
                     if (this.selectedUnitBase == null || unitBase != this.selectedUnitBase) continue;
                     this.selectedInList[i] = true;
                     foundSelected = true;

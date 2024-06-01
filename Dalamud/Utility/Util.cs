@@ -476,12 +476,12 @@ public static class Util
             case "MacOS": return OSPlatform.OSX;
             case "Linux": return OSPlatform.Linux;
         }
-        
+
         // n.b. we had some fancy code here to check if the Wine host version returned "Darwin" but apparently
         // *all* our Wines report Darwin if exports aren't hidden. As such, it is effectively impossible (without some
         // (very cursed and inaccurate heuristics) to determine if we're on macOS or Linux unless we're explicitly told
         // by our launcher. See commit a7aacb15e4603a367e2f980578271a9a639d8852 for the old check.
-        
+
         return IsWine() ? OSPlatform.Linux : OSPlatform.Windows;
     }
 
@@ -544,7 +544,7 @@ public static class Util
                     }
                 }
             }
-        } 
+        }
         finally
         {
             foreach (var enumerator in enumerators)
@@ -585,7 +585,7 @@ public static class Util
     {
         WriteAllTextSafe(path, text, Encoding.UTF8);
     }
-    
+
     /// <summary>
     /// Overwrite text in a file by first writing it to a temporary file, and then
     /// moving that file to the path specified.
@@ -597,7 +597,7 @@ public static class Util
     {
         WriteAllBytesSafe(path, encoding.GetBytes(text));
     }
-    
+
     /// <summary>
     /// Overwrite data in a file by first writing it to a temporary file, and then
     /// moving that file to the path specified.
@@ -607,13 +607,13 @@ public static class Util
     public static unsafe void WriteAllBytesSafe(string path, byte[] bytes)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
-        
+
         // Open the temp file
         var tempPath = path + ".tmp";
 
         using var tempFile = Windows.Win32.PInvoke.CreateFile(
-            tempPath, 
-            (uint)(FILE_ACCESS_RIGHTS.FILE_GENERIC_READ | FILE_ACCESS_RIGHTS.FILE_GENERIC_WRITE), 
+            tempPath,
+            (uint)(FILE_ACCESS_RIGHTS.FILE_GENERIC_READ | FILE_ACCESS_RIGHTS.FILE_GENERIC_WRITE),
             FILE_SHARE_MODE.FILE_SHARE_NONE,
             null,
             FILE_CREATION_DISPOSITION.CREATE_ALWAYS,
@@ -622,7 +622,7 @@ public static class Util
 
         if (tempFile.IsInvalid)
             throw new Win32Exception();
-        
+
         // Write the data
         uint bytesWritten = 0;
         if (!Windows.Win32.PInvoke.WriteFile(tempFile, new ReadOnlySpan<byte>(bytes), &bytesWritten, null))
@@ -633,7 +633,7 @@ public static class Util
 
         if (!Windows.Win32.PInvoke.FlushFileBuffers(tempFile))
             throw new Win32Exception();
-        
+
         tempFile.Close();
 
         if (!Windows.Win32.PInvoke.MoveFileEx(tempPath, path, MOVE_FILE_FLAGS.MOVEFILE_REPLACE_EXISTING | MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH))
@@ -750,7 +750,7 @@ public static class Util
             "-",
             MethodAttributes.Public | MethodAttributes.Static,
             CallingConventions.Standard,
-            null, 
+            null,
             new[] { typeof(object), typeof(IList<string>), typeof(ulong) },
             obj.GetType(),
             true);
@@ -907,7 +907,7 @@ public static class Util
             }
         }
     }
-    
+
     /// <summary>
     /// Show a structure in an ImGui context.
     /// </summary>

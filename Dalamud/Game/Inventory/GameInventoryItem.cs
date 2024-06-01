@@ -46,7 +46,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets a value indicating whether the this <see cref="GameInventoryItem"/> is empty.
     /// </summary>
-    public bool IsEmpty => this.InternalItem.ItemID == 0;
+    public bool IsEmpty => this.InternalItem.ItemId == 0;
 
     /// <summary>
     /// Gets the container inventory type.
@@ -61,7 +61,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the item id.
     /// </summary>
-    public uint ItemId => this.InternalItem.ItemID;
+    public uint ItemId => this.InternalItem.ItemId;
 
     /// <summary>
     /// Gets the quantity of items in this item stack.
@@ -81,7 +81,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets a value indicating whether the item is High Quality.
     /// </summary>
-    public bool IsHq => (this.InternalItem.Flags & InventoryItem.ItemFlags.HQ) != 0;
+    public bool IsHq => (this.InternalItem.Flags & InventoryItem.ItemFlags.HighQuality) != 0;
 
     /// <summary>
     /// Gets a value indicating whether the  item has a company crest applied.
@@ -106,10 +106,8 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the array of materia grades.
     /// </summary>
-    // TODO: Replace with MateriaGradeBytes
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public ReadOnlySpan<ushort> MateriaGrade =>
-        this.MateriaGradeBytes.ToArray().Select(g => (ushort)g).ToArray().AsSpan();
+    public ReadOnlySpan<byte> MateriaGrade =>
+        new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
 
     /// <summary>
     /// Gets the address of native inventory item in the game.<br />
@@ -143,16 +141,13 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the glamour id for this item.
     /// </summary>
-    public uint GlamourId => this.InternalItem.GlamourID;
+    public uint GlamourId => this.InternalItem.GlamourId;
 
     /// <summary>
     /// Gets the items crafter's content id.
     /// NOTE: I'm not sure if this is a good idea to include or not in the dalamud api. Marked internal for now.
     /// </summary>
-    internal ulong CrafterContentId => this.InternalItem.CrafterContentID;
-
-    private ReadOnlySpan<byte> MateriaGradeBytes =>
-        new(Unsafe.AsPointer(ref Unsafe.AsRef(in this.InternalItem.MateriaGrade[0])), 5);
+    internal ulong CrafterContentId => this.InternalItem.CrafterContentId;
 
     public static bool operator ==(in GameInventoryItem l, in GameInventoryItem r) => l.Equals(r);
 

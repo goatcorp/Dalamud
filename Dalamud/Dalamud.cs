@@ -211,8 +211,10 @@ internal sealed class Dalamud : IServiceType
     {
         using (Timings.Start("CS Resolver Init"))
         {
-            FFXIVClientStructs.Interop.Resolver.GetInstance.SetupSearchSpace(Service<TargetSigScanner>.Get().SearchBase, new FileInfo(Path.Combine(cacheDir.FullName, $"{this.StartInfo.GameVersion}_cs.json")));
-            FFXIVClientStructs.Interop.Resolver.GetInstance.Resolve();
+            // the resolver tracks version as a field in the json
+            InteropGenerator.Runtime.Resolver.GetInstance.Setup(Service<TargetSigScanner>.Get().SearchBase, $"{this.StartInfo.GameVersion}", new FileInfo(Path.Combine(cacheDir.FullName, "cs.json")));
+            FFXIVClientStructs.Interop.Generated.Addresses.Register();
+            InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
         }
     }
 }

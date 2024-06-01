@@ -45,25 +45,6 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     void DisposeAfterBuild(Action action);
 
     /// <summary>
-    /// Excludes given font from global scaling.
-    /// </summary>
-    /// <param name="fontPtr">The font.</param>
-    /// <returns>Same <see cref="ImFontPtr"/> with <paramref name="fontPtr"/>.</returns>
-    [Obsolete(
-        $"Use {nameof(this.SetFontScaleMode)} with {nameof(FontScaleMode)}.{nameof(FontScaleMode.UndoGlobalScale)}")]
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    ImFontPtr IgnoreGlobalScale(ImFontPtr fontPtr) => this.SetFontScaleMode(fontPtr, FontScaleMode.UndoGlobalScale);
-
-    /// <summary>
-    /// Gets whether global scaling is ignored for the given font.
-    /// </summary>
-    /// <param name="fontPtr">The font.</param>
-    /// <returns>True if ignored.</returns>
-    [Obsolete($"Use {nameof(this.GetFontScaleMode)}")]
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    bool IsGlobalScaleIgnored(ImFontPtr fontPtr) => this.GetFontScaleMode(fontPtr) == FontScaleMode.UndoGlobalScale;
-
-    /// <summary>
     /// Sets the scaling mode for the given font.
     /// </summary>
     /// <param name="fontPtr">The font, returned from <see cref="AddFontFromFile"/> and alike.

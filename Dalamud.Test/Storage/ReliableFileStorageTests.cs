@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
 using Dalamud.Storage;
@@ -20,8 +21,7 @@ public class ReliableFileStorageTests
     public async Task IsConcurrencySafe()
     {
         var dbDir = CreateTempDir();
-        using var rfs = new ReliableFileStorage(dbDir);
-
+        var rfs = new DisposableReliableFileStorage(dbDir);
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
 
         // Do reads/writes/deletes on the same file on many threads at once and
@@ -36,14 +36,14 @@ public class ReliableFileStorageTests
                                   if (i % 2 == 0)
                                   {
                                       // ReSharper disable once AccessToDisposedClosure
-                                      rfs.WriteAllText(tempFile, j.ToString());
+                                      rfs.Instance.WriteAllText(tempFile, j.ToString());
                                   }
                                   else if (i % 3 == 0)
                                   {
                                       try
                                       {
                                           // ReSharper disable once AccessToDisposedClosure
-                                          rfs.ReadAllText(tempFile);
+                                          rfs.Instance.ReadAllText(tempFile);
                                       }
                                       catch (FileNotFoundException)
                                       {
@@ -64,7 +64,7 @@ public class ReliableFileStorageTests
     {
         var dbDir = CreateTempDir();
         var dbPath = Path.Combine(dbDir, DbFileName);
-        using var rfs = new ReliableFileStorage(dbDir);
+        using var rfs = new DisposableReliableFileStorage(dbDir);
 
         Assert.True(File.Exists(dbPath));
     }
@@ -73,14 +73,14 @@ public class ReliableFileStorageTests
     public void Exists_ThrowsIfPathIsEmpty()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentException>(() => rfs.Exists(""));
+        Assert.Throws<ArgumentException>(() => rfs.Instance.Exists(""));
     }
 
     [Fact]
     public void Exists_ThrowsIfPathIsNull()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentNullException>(() => rfs.Exists(null!));
+        Assert.Throws<ArgumentNullException>(() => rfs.Instance.Exists(null!));
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        Assert.False(rfs.Exists(tempFile));
+        Assert.False(rfs.Instance.Exists(tempFile));
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateFailedRfs();
 
-        Assert.False(rfs.Exists(tempFile));
+        Assert.False(rfs.Instance.Exists(tempFile));
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class ReliableFileStorageTests
         await File.WriteAllTextAsync(tempFile, TestFileContent1);
         using var rfs = CreateRfs();
 
-        Assert.True(rfs.Exists(tempFile));
+        Assert.True(rfs.Instance.Exists(tempFile));
     }
 
     [Fact]
@@ -117,10 +117,10 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
 
         File.Delete(tempFile);
-        Assert.True(rfs.Exists(tempFile));
+        Assert.True(rfs.Instance.Exists(tempFile));
     }
 
     [Fact]
@@ -129,24 +129,24 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
 
         File.Delete(tempFile);
-        Assert.False(rfs.Exists(tempFile, Guid.NewGuid()));
+        Assert.False(rfs.Instance.Exists(tempFile, Guid.NewGuid()));
     }
 
     [Fact]
     public void WriteAllText_ThrowsIfPathIsEmpty()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentException>(() => rfs.WriteAllText("", TestFileContent1));
+        Assert.Throws<ArgumentException>(() => rfs.Instance.WriteAllText("", TestFileContent1));
     }
 
     [Fact]
     public void WriteAllText_ThrowsIfPathIsNull()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentNullException>(() => rfs.WriteAllText(null!, TestFileContent1));
+        Assert.Throws<ArgumentNullException>(() => rfs.Instance.WriteAllText(null!, TestFileContent1));
     }
 
     [Fact]
@@ -155,10 +155,10 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
 
         Assert.True(File.Exists(tempFile));
-        Assert.Equal(TestFileContent1, rfs.ReadAllText(tempFile, forceBackup: true));
+        Assert.Equal(TestFileContent1, rfs.Instance.ReadAllText(tempFile, forceBackup: true));
         Assert.Equal(TestFileContent1, await File.ReadAllTextAsync(tempFile));
     }
 
@@ -169,12 +169,12 @@ public class ReliableFileStorageTests
         var containerId = Guid.NewGuid();
 
         using var rfs = CreateRfs();
-        rfs.WriteAllText(tempFile, TestFileContent1);
-        rfs.WriteAllText(tempFile, TestFileContent2, containerId);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent2, containerId);
         File.Delete(tempFile);
 
-        Assert.Equal(TestFileContent1, rfs.ReadAllText(tempFile, forceBackup: true));
-        Assert.Equal(TestFileContent2, rfs.ReadAllText(tempFile, forceBackup: true, containerId));
+        Assert.Equal(TestFileContent1, rfs.Instance.ReadAllText(tempFile, forceBackup: true));
+        Assert.Equal(TestFileContent2, rfs.Instance.ReadAllText(tempFile, forceBackup: true, containerId));
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateFailedRfs();
 
-        rfs.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
 
         Assert.True(File.Exists(tempFile));
         Assert.Equal(TestFileContent1, await File.ReadAllTextAsync(tempFile));
@@ -195,11 +195,11 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.WriteAllText(tempFile, TestFileContent1);
-        rfs.WriteAllText(tempFile, TestFileContent2);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent2);
 
         Assert.True(File.Exists(tempFile));
-        Assert.Equal(TestFileContent2, rfs.ReadAllText(tempFile, forceBackup: true));
+        Assert.Equal(TestFileContent2, rfs.Instance.ReadAllText(tempFile, forceBackup: true));
         Assert.Equal(TestFileContent2, await File.ReadAllTextAsync(tempFile));
     }
 
@@ -209,24 +209,24 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.WriteAllText(tempFile, null);
+        rfs.Instance.WriteAllText(tempFile, null);
 
         Assert.True(File.Exists(tempFile));
-        Assert.Equal("", rfs.ReadAllText(tempFile));
+        Assert.Equal("", rfs.Instance.ReadAllText(tempFile));
     }
 
     [Fact]
     public void ReadAllText_ThrowsIfPathIsEmpty()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentException>(() => rfs.ReadAllText(""));
+        Assert.Throws<ArgumentException>(() => rfs.Instance.ReadAllText(""));
     }
 
     [Fact]
     public void ReadAllText_ThrowsIfPathIsNull()
     {
         using var rfs = CreateRfs();
-        Assert.Throws<ArgumentNullException>(() => rfs.ReadAllText(null!));
+        Assert.Throws<ArgumentNullException>(() => rfs.Instance.ReadAllText(null!));
     }
 
     [Fact]
@@ -236,7 +236,7 @@ public class ReliableFileStorageTests
         await File.WriteAllTextAsync(tempFile, TestFileContent1);
         using var rfs = CreateRfs();
 
-        Assert.Equal(TestFileContent1, rfs.ReadAllText(tempFile));
+        Assert.Equal(TestFileContent1, rfs.Instance.ReadAllText(tempFile));
     }
 
     [Fact]
@@ -245,10 +245,10 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
 
-        rfs.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
         File.Delete(tempFile);
 
-        Assert.Equal(TestFileContent1, rfs.ReadAllText(tempFile));
+        Assert.Equal(TestFileContent1, rfs.Instance.ReadAllText(tempFile));
     }
 
     [Fact]
@@ -258,10 +258,10 @@ public class ReliableFileStorageTests
         var containerId = Guid.NewGuid();
         using var rfs = CreateRfs();
 
-        rfs.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
         File.Delete(tempFile);
 
-        Assert.Throws<FileNotFoundException>(() => rfs.ReadAllText(tempFile, containerId: containerId));
+        Assert.Throws<FileNotFoundException>(() => rfs.Instance.ReadAllText(tempFile, containerId: containerId));
     }
 
     [Fact]
@@ -269,7 +269,7 @@ public class ReliableFileStorageTests
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateFailedRfs();
-        Assert.Throws<FileNotFoundException>(() => rfs.ReadAllText(tempFile));
+        Assert.Throws<FileNotFoundException>(() => rfs.Instance.ReadAllText(tempFile));
     }
 
     [Fact]
@@ -278,7 +278,7 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         await File.WriteAllTextAsync(tempFile, TestFileContent1);
         using var rfs = CreateRfs();
-        rfs.ReadAllText(tempFile, text => Assert.Equal(TestFileContent1, text));
+        rfs.Instance.ReadAllText(tempFile, text => Assert.Equal(TestFileContent1, text));
     }
 
     [Fact]
@@ -290,7 +290,7 @@ public class ReliableFileStorageTests
         var readerCalledOnce = false;
 
         using var rfs = CreateRfs();
-        Assert.Throws<FileReadException>(() => rfs.ReadAllText(tempFile, Reader));
+        Assert.Throws<FileReadException>(() => rfs.Instance.ReadAllText(tempFile, Reader));
 
         return;
 
@@ -311,10 +311,10 @@ public class ReliableFileStorageTests
         var assertionCalled = false;
 
         using var rfs = CreateRfs();
-        rfs.WriteAllText(tempFile, TestFileContent1);
+        rfs.Instance.WriteAllText(tempFile, TestFileContent1);
         File.Delete(tempFile);
 
-        rfs.ReadAllText(tempFile, Reader);
+        rfs.Instance.ReadAllText(tempFile, Reader);
         Assert.True(assertionCalled);
 
         return;
@@ -335,7 +335,7 @@ public class ReliableFileStorageTests
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         await File.WriteAllTextAsync(tempFile, TestFileContent1);
         using var rfs = CreateRfs();
-        Assert.Throws<FileNotFoundException>(() => rfs.ReadAllText(tempFile, _ => throw new FileNotFoundException()));
+        Assert.Throws<FileNotFoundException>(() => rfs.Instance.ReadAllText(tempFile, _ => throw new FileNotFoundException()));
     }
 
     [Theory]
@@ -345,16 +345,16 @@ public class ReliableFileStorageTests
     {
         var tempFile = Path.Combine(CreateTempDir(), TestFileName);
         using var rfs = CreateRfs();
-        Assert.Throws<FileNotFoundException>(() => rfs.ReadAllText(tempFile, forceBackup));
+        Assert.Throws<FileNotFoundException>(() => rfs.Instance.ReadAllText(tempFile, forceBackup));
     }
 
-    private static ReliableFileStorage CreateRfs()
+    private static DisposableReliableFileStorage CreateRfs()
     {
         var dbDir = CreateTempDir();
-        return new ReliableFileStorage(dbDir);
+        return new(dbDir);
     }
 
-    private static ReliableFileStorage CreateFailedRfs()
+    private static DisposableReliableFileStorage CreateFailedRfs()
     {
         var dbDir = CreateTempDir();
         var dbPath = Path.Combine(dbDir, DbFileName);
@@ -367,7 +367,7 @@ public class ReliableFileStorageTests
         // Throws an SQLiteException initially, and then throws an
         // IOException when attempting to delete the file because
         // there's already an active handle associated with it
-        return new ReliableFileStorage(dbDir);
+        return new(dbDir);
     }
 
     private static string CreateTempDir()
@@ -382,5 +382,14 @@ public class ReliableFileStorageTests
 
         Directory.CreateDirectory(tempDir);
         return tempDir;
+    }
+
+    private sealed class DisposableReliableFileStorage : IDisposable
+    {
+        public DisposableReliableFileStorage(string rfsDbPath) => this.Instance = new(rfsDbPath);
+
+        public ReliableFileStorage Instance { get; }
+
+        public void Dispose() => ((IInternalDisposableService)this.Instance).DisposeService();
     }
 }

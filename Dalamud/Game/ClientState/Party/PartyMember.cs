@@ -41,12 +41,12 @@ public unsafe class PartyMember
     /// <summary>
     /// Gets the content ID of the party member.
     /// </summary>
-    public long ContentId => this.Struct->ContentID;
+    public long ContentId => this.Struct->ContentId;
 
     /// <summary>
     /// Gets the actor ID of this party member.
     /// </summary>
-    public uint ObjectId => this.Struct->ObjectID;
+    public uint ObjectId => this.Struct->ObjectId;
 
     /// <summary>
     /// Gets the actor associated with this buddy.

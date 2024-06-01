@@ -435,7 +435,7 @@ internal sealed partial class FontAtlasFactory
             if (IsBuildInProgressForTask.Value)
             {
                 throw new InvalidOperationException(
-                    $"{nameof(this.NewGameFontHandle)} may not be called during {nameof(this.BuildStepChange)}, the callback of {nameof(this.NewDelegateFontHandle)}, {nameof(UiBuilder.BuildFonts)} or {nameof(UiBuilder.AfterBuildFonts)}.");
+                    $"{nameof(this.NewGameFontHandle)} may not be called during {nameof(this.BuildStepChange)} or the callback of {nameof(this.NewDelegateFontHandle)}.");
             }
 
             return this.gameFontHandleManager.NewFontHandle(style);
@@ -447,7 +447,7 @@ internal sealed partial class FontAtlasFactory
             if (IsBuildInProgressForTask.Value)
             {
                 throw new InvalidOperationException(
-                    $"{nameof(this.NewDelegateFontHandle)} may not be called during {nameof(this.BuildStepChange)} or the callback of {nameof(this.NewDelegateFontHandle)}, {nameof(UiBuilder.BuildFonts)} or {nameof(UiBuilder.AfterBuildFonts)}.");
+                    $"{nameof(this.NewDelegateFontHandle)} may not be called during {nameof(this.BuildStepChange)} or the callback of {nameof(this.NewDelegateFontHandle)}.");
             }
 
             return this.delegateFontHandleManager.NewFontHandle(buildStepDelegate);

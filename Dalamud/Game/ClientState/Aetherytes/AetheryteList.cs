@@ -45,7 +45,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
             if (this.telepoInstance->TeleportList.First == this.telepoInstance->TeleportList.Last)
                 return 0;
 
-            return (int)this.telepoInstance->TeleportList.Size();
+            return this.telepoInstance->TeleportList.Count;
         }
     }
 
@@ -62,7 +62,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
             if (this.clientState.LocalPlayer == null)
                 return null;
 
-            return new AetheryteEntry(this.telepoInstance->TeleportList.Get((ulong)index));
+            return new AetheryteEntry(this.telepoInstance->TeleportList[index]);
         }
     }
 
