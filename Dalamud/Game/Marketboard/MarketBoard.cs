@@ -8,7 +8,7 @@ using Network.Internal;
 using Network.Structures;
 
 /// <summary>
-/// This class represents the state of the currently occupied duty.
+/// This class provides access to market board events
 /// </summary>
 [InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
