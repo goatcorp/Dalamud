@@ -111,9 +111,17 @@ namespace logging {
      * @param arg1 First format parameter.
      * @param args Second and further format parameters, if any.
      */
-    template<typename Arg, typename...Args>
-    void print(Level level, const char* fmt, Arg&& arg1, Args&&...args) {
-        print(level, std::vformat(fmt, std::make_format_args(to_format_arg(std::forward<Arg>(arg1)), to_format_arg(std::forward<Args>(args))...)));
+    template<typename Arg, typename... Args>
+    void print(Level level, const char* fmt, Arg&& arg1, Args&&... args) {
+        // make_format_args only accepts references now due to https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2905r2.html
+        // we can switch std::runtime_format in C++26 :) https://isocpp.org/files/papers/P2918R0.html
+        auto transformed_args = std::make_tuple(to_format_arg(arg1), to_format_arg(args)...);
+        auto format_args = std::apply(
+            [&](auto&... elems) { return std::make_format_args(elems...); },
+            transformed_args
+        );
+
+        print(level, std::vformat(fmt, format_args));
     }
 
     template<typename...Args> void V(Args&&...args) { print(Level::Verbose, std::forward<Args>(args)...); }

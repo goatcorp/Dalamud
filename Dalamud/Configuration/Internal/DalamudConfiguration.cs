@@ -162,6 +162,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     [Obsolete("It happens that nobody touched this setting", true)]
     public float FontGammaLevel { get; set; } = 1.4f;
 
+    /// <summary>Gets or sets the opacity of the IME state indicator.</summary>
+    /// <value>0 will hide the state indicator. 1 will make the state indicator fully visible. Values outside the
+    /// range will be clamped to [0, 1].</value>
+    /// <remarks>See <see cref="SeIconChar.ImeHiragana"/> to <see cref="SeIconChar.ImeChineseLatin"/>.</remarks>
+    public float ImeStateIndicatorOpacity { get; set; } = 1f;
+
     /// <summary>
     /// Gets or sets a value indicating whether or not plugin UI should be hidden.
     /// </summary>

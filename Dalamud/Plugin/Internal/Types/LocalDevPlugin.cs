@@ -50,14 +50,6 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
             Log.Verbose("{InternalName} was assigned new devPlugin GUID {Guid}", this.InternalName, this.devSettings.WorkingPluginId);
             configuration.QueueSave();
         }
-        
-        // If the ID in the manifest is wrong, force the good one
-        if (this.DevImposedWorkingPluginId != this.manifest.WorkingPluginId)
-        {
-            Debug.Assert(this.DevImposedWorkingPluginId != Guid.Empty, "Empty guid for devPlugin");
-            this.manifest.WorkingPluginId = this.DevImposedWorkingPluginId;
-            this.SaveManifest("dev imposed working plugin id");
-        }
 
         if (this.AutomaticReload)
         {
@@ -99,7 +91,10 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
     /// Gets an ID uniquely identifying this specific instance of a devPlugin.
     /// </summary>
     public Guid DevImposedWorkingPluginId => this.devSettings.WorkingPluginId;
-    
+
+    /// <inheritdoc/>
+    public override Guid EffectiveWorkingPluginId => this.DevImposedWorkingPluginId;
+
     /// <summary>
     /// Gets a list of validation problems that have been dismissed by the user.
     /// </summary>
@@ -146,6 +141,23 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
             this.fileWatcher.Dispose();
             this.fileWatcher = null;
         }
+    }
+
+    /// <summary>
+    /// Reload the manifest if it exists, to update possible changes.
+    /// </summary>
+    /// <exception cref="Exception">Thrown if the manifest could not be loaded.</exception>
+    public void ReloadManifest()
+    {
+        var manifestPath = LocalPluginManifest.GetManifestFile(this.DllFile);
+        if (manifestPath.Exists)
+            this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
+    }
+    
+    /// <inheritdoc/>
+    protected override void OnPreReload()
+    {
+        this.ReloadManifest();
     }
 
     private void OnFileChanged(object sender, FileSystemEventArgs args)

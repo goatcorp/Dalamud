@@ -152,13 +152,12 @@ internal class SettingsWindow : Window
                             settingsTab.OnOpen();
                         }
 
-                        if (ImGui.BeginChild($"###settings_scrolling_{settingsTab.Title}", new Vector2(-1, -1), false))
-                        {
+                        using var tabChild = ImRaii.Child(
+                            $"###settings_scrolling_{settingsTab.Title}",
+                            new Vector2(-1, -1),
+                            false);
+                        if (tabChild)
                             settingsTab.Draw();
-                        }
-
-                        ImGui.EndChild();
-                        ImGui.EndTabItem();
                     }
                     else if (settingsTab.IsOpen)
                     {
@@ -208,32 +207,33 @@ internal class SettingsWindow : Window
 
         ImGui.SetCursorPos(windowSize - ImGuiHelpers.ScaledVector2(70));
 
-        if (ImGui.BeginChild("###settingsFinishButton"))
+        using (var buttonChild = ImRaii.Child("###settingsFinishButton"))
         {
-            using var disabled = ImRaii.Disabled(this.tabs.Any(x => x.Entries.Any(y => !y.IsValid)));
-
-            using (ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 100f))
+            if (buttonChild)
             {
-                using var font = ImRaii.PushFont(InterfaceManager.IconFont);
+                using var disabled = ImRaii.Disabled(this.tabs.Any(x => x.Entries.Any(y => !y.IsValid)));
 
-                if (ImGui.Button(FontAwesomeIcon.Save.ToIconString(), new Vector2(40)))
+                using (ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 100f))
                 {
-                    this.Save();
+                    using var font = ImRaii.PushFont(InterfaceManager.IconFont);
 
-                    if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
-                        this.IsOpen = false;
+                    if (ImGui.Button(FontAwesomeIcon.Save.ToIconString(), new Vector2(40)))
+                    {
+                        this.Save();
+
+                        if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
+                            this.IsOpen = false;
+                    }
+                }
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
+                                         ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
+                                         : Loc.Localize("DalamudSettingsSave", "Save changes"));
                 }
             }
-
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
-                                     ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
-                                     : Loc.Localize("DalamudSettingsSave", "Save changes"));
-            }
         }
-
-        ImGui.EndChild();
 
         ImGui.SetCursorPos(new Vector2(windowSize.X - 250, ImGui.GetTextLineHeightWithSpacing() + (ImGui.GetStyle().FramePadding.Y * 2)));
         ImGui.SetNextItemWidth(240);

@@ -398,7 +398,7 @@ public sealed class DalamudPluginInterface : IDisposable
         if (currentConfig == null)
             return;
 
-        this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
+        this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
     }
 
     /// <summary>
@@ -425,7 +425,7 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         // this shouldn't be a thing, I think, but just in case
-        return this.configs.Load(this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
+        return this.configs.Load(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
     }
 
     /// <summary>

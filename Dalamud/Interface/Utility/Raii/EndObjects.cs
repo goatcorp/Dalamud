@@ -109,40 +109,31 @@ public static partial class ImRaii
 
     public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
     {
+        ArgumentNullException.ThrowIfNull(label);
+        
         // One-off for now, we should make this into a generic solution if we need it more often
-        const int ImGuiNET_Util_StackAllocationSizeLimit = 2048;
+        const int labelMaxAlloc = 2048;
 
-        byte* native_label;
-        int label_byteCount = 0;
-        if (label != null)
+        var labelByteCount = Encoding.UTF8.GetByteCount(label);
+
+        if (labelByteCount > labelMaxAlloc)
         {
-            label_byteCount = Encoding.UTF8.GetByteCount(label);
-
-            if (label_byteCount > ImGuiNET_Util_StackAllocationSizeLimit)
-            {
-                throw new ArgumentOutOfRangeException("label", "Label is too long. (Longer than 2048 bytes)");
-            }
-
-            byte* native_label_stackBytes = stackalloc byte[label_byteCount + 1];
-            native_label = native_label_stackBytes;
-
-            int native_label_offset;
-            fixed (char* utf16Ptr = label)
-            {
-                native_label_offset = Encoding.UTF8.GetBytes(utf16Ptr, label.Length, native_label, label_byteCount);
-            }
-
-            native_label[native_label_offset] = 0;
-        }
-        else
-        {
-            native_label = null;
+            throw new ArgumentOutOfRangeException(nameof(label), $"Label is too long. (Longer than {labelMaxAlloc} bytes)");
         }
 
-        byte* p_open = null;
-        byte ret = ImGuiNative.igBeginTabItem(native_label, p_open, flags);
+        var nativeLabelStackBytes = stackalloc byte[labelByteCount + 1];
 
-        return new EndUnconditionally(ImGuiNative.igEndTabItem, ret != 0);
+        int nativeLabelOffset;
+        fixed (char* utf16Ptr = label)
+        {
+            nativeLabelOffset = Encoding.UTF8.GetBytes(utf16Ptr, label.Length, nativeLabelStackBytes, labelByteCount);
+        }
+
+        nativeLabelStackBytes[nativeLabelOffset] = 0;
+
+        var ret = ImGuiNative.igBeginTabItem(nativeLabelStackBytes, null, flags);
+
+        return new EndConditionally(ImGuiNative.igEndTabItem, ret != 0);
     }
 
     public static IEndObject TabItem(string label, ref bool open)
