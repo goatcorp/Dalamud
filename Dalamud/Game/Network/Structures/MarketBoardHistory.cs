@@ -7,7 +7,7 @@ namespace Dalamud.Game.Network.Structures;
 /// <summary>
 /// This class represents the market board history from a game network packet.
 /// </summary>
-public class MarketBoardHistory
+public class MarketBoardHistory : IMarketBoardHistory
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MarketBoardHistory"/> class.
@@ -29,7 +29,7 @@ public class MarketBoardHistory
     /// <summary>
     /// Gets the list of individual item history listings.
     /// </summary>
-    public List<MarketBoardHistoryListing> HistoryListings { get; } = new();
+    public List<IMarketBoardHistoryListing> HistoryListings { get; } = new();
 
     /// <summary>
     /// Read a <see cref="MarketBoardHistory"/> object from memory.
@@ -81,7 +81,7 @@ public class MarketBoardHistory
     /// <summary>
     /// This class represents the market board history of a single item from the <see cref="MarketBoardHistory"/> network packet.
     /// </summary>
-    public class MarketBoardHistoryListing
+    public class MarketBoardHistoryListing : IMarketBoardHistoryListing
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MarketBoardHistoryListing"/> class.
@@ -125,4 +125,66 @@ public class MarketBoardHistory
         /// </summary>
         public uint SalePrice { get; internal set; }
     }
+}
+
+/// <summary>
+/// An interface that represents the market board history from the game.
+/// </summary>
+public interface IMarketBoardHistory
+{
+    /// <summary>
+    /// Gets the catalog ID.
+    /// </summary>
+    uint CatalogId { get; }
+
+    /// <summary>
+    /// Gets the second catalog ID.
+    /// </summary>
+    uint CatalogId2 { get; }
+
+    /// <summary>
+    /// Gets the list of individual item history listings.
+    /// </summary>
+    List<IMarketBoardHistoryListing> HistoryListings { get; }
+}
+
+/// <summary>
+/// An interface that represents the market board history of a single item from <see cref="IMarketBoardHistory"/>.
+/// </summary>
+public interface IMarketBoardHistoryListing
+{
+    /// <summary>
+    /// Gets the buyer's name.
+    /// </summary>
+    string BuyerName { get; }
+
+    /// <summary>
+    /// Gets the next entry's catalog ID.
+    /// </summary>
+    uint NextCatalogId { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the item is HQ.
+    /// </summary>
+    bool IsHq { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the item is on a mannequin.
+    /// </summary>
+    bool OnMannequin { get; }
+
+    /// <summary>
+    /// Gets the time of purchase.
+    /// </summary>
+    DateTime PurchaseTime { get; }
+
+    /// <summary>
+    /// Gets the quantity.
+    /// </summary>
+    uint Quantity { get; }
+
+    /// <summary>
+    /// Gets the sale price.
+    /// </summary>
+    uint SalePrice { get; }
 }
