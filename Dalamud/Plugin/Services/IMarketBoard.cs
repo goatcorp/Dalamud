@@ -8,57 +8,57 @@ using Game.Network.Structures;
 public interface IMarketBoard
 {
     /// <summary>
-    /// A delegate type used with the <see cref="MarketBoardHistoryReceived"/> event.
+    /// A delegate type used with the <see cref="HistoryReceived"/> event.
     /// </summary>
-    /// <param name="marketBoardHistory">The historical listings for a particular item on the market board.</param>
-    public delegate void MarketBoardHistoryReceivedDelegate(IMarketBoardHistory marketBoardHistory);
+    /// <param name="history">The historical listings for a particular item on the market board.</param>
+    public delegate void HistoryReceivedDelegate(IMarketBoardHistory history);
 
     /// <summary>
-    /// A delegate type used with the <see cref="MarketBoardItemPurchased"/> event.
+    /// A delegate type used with the <see cref="ItemPurchased"/> event.
     /// </summary>
-    /// <param name="marketBoardPurchased">The item that has been purchased.</param>
-    public delegate void MarketBoardItemPurchasedDelegate(IMarketBoardPurchase marketBoardPurchased);
+    /// <param name="purchase">The item that has been purchased.</param>
+    public delegate void ItemPurchasedDelegate(IMarketBoardPurchase purchase);
 
     /// <summary>
-    /// A delegate type used with the <see cref="MarketBoardOfferingsReceived"/> event.
+    /// A delegate type used with the <see cref="OfferingsReceived"/> event.
     /// </summary>
-    /// <param name="marketBoardCurrentOfferings">The current offerings for a particular item on the market board.</param>
-    public delegate void MarketBoardOfferingsReceivedDelegate(IMarketBoardCurrentOfferings marketBoardCurrentOfferings);
+    /// <param name="currentOfferings">The current offerings for a particular item on the market board.</param>
+    public delegate void OfferingsReceivedDelegate(IMarketBoardCurrentOfferings currentOfferings);
 
     /// <summary>
-    /// A delegate type used with the <see cref="MarketBoardPurchaseRequested"/> event.
+    /// A delegate type used with the <see cref="PurchaseRequested"/> event.
     /// </summary>
-    /// <param name="marketBoardPurchaseRequested">The details about the item being purchased.</param>
-    public delegate void MarketBoardPurchaseRequestedDelegate(IMarketBoardPurchaseHandler marketBoardPurchaseRequested);
+    /// <param name="purchaseRequested">The details about the item being purchased.</param>
+    public delegate void PurchaseRequestedDelegate(IMarketBoardPurchaseHandler purchaseRequested);
 
     /// <summary>
-    /// A delegate type used with the <see cref="MarketBoardPurchaseRequested"/> event.
+    /// A delegate type used with the <see cref="PurchaseRequested"/> event.
     /// </summary>
-    /// <param name="marketTaxRates">The new tax rates.</param>
-    public delegate void MarketTaxRatesReceivedDelegate(IMarketTaxRates marketTaxRates);
+    /// <param name="taxRates">The new tax rates.</param>
+    public delegate void TaxRatesReceivedDelegate(IMarketTaxRates taxRates);
 
     /// <summary>
     /// Event that fires when historical sale listings are received for a specific item on the market board.
     /// </summary>
-    public event MarketBoardHistoryReceivedDelegate MarketBoardHistoryReceived;
+    public event HistoryReceivedDelegate HistoryReceived;
 
     /// <summary>
     /// Event that fires when a item is purchased on the market board.
     /// </summary>
-    public event MarketBoardItemPurchasedDelegate MarketBoardItemPurchased;
+    public event ItemPurchasedDelegate ItemPurchased;
 
     /// <summary>
     /// Event that fires when current offerings are received for a specific item on the market board.
     /// </summary>
-    public event MarketBoardOfferingsReceivedDelegate MarketBoardOfferingsReceived;
+    public event OfferingsReceivedDelegate OfferingsReceived;
 
     /// <summary>
     /// Event that fires when a player requests to purchase an item from the market board.
     /// </summary>
-    public event MarketBoardPurchaseRequestedDelegate MarketBoardPurchaseRequested;
+    public event PurchaseRequestedDelegate PurchaseRequested;
 
     /// <summary>
     /// Event that fires when the client receives new tax rates. These events only occur when accessing a retainer vocate and requesting the tax rates.
     /// </summary>
-    public event MarketTaxRatesReceivedDelegate MarketTaxRatesReceived;
+    public event TaxRatesReceivedDelegate TaxRatesReceived;
 }

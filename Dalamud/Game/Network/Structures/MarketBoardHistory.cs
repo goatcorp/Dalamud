@@ -26,10 +26,17 @@ public class MarketBoardHistory : IMarketBoardHistory
     /// </summary>
     public uint CatalogId2 { get; private set; }
 
+    public uint ItemId => this.CatalogId;
+
     /// <summary>
-    /// Gets the list of individual item history listings.
+    /// Gets the list of individual item listings.
     /// </summary>
-    public List<IMarketBoardHistoryListing> HistoryListings { get; } = new();
+    IReadOnlyList<IMarketBoardHistoryListing> IMarketBoardHistory.HistoryListings => this.InternalHistoryListings;
+
+    /// <summary>
+    /// Gets or sets a list of individual item listings.
+    /// </summary>
+    internal List<MarketBoardHistoryListing> InternalHistoryListings { get; set; } = new List<MarketBoardHistoryListing>();
 
     /// <summary>
     /// Read a <see cref="MarketBoardHistory"/> object from memory.
@@ -53,6 +60,7 @@ public class MarketBoardHistory : IMarketBoardHistory
             return output;
         }
 
+        var historyListings = new List<MarketBoardHistoryListing>();
         for (var i = 0; i < 20; i++)
         {
             var listingEntry = new MarketBoardHistoryListing
@@ -69,11 +77,13 @@ public class MarketBoardHistory : IMarketBoardHistory
             listingEntry.BuyerName = Encoding.UTF8.GetString(reader.ReadBytes(33)).TrimEnd('\u0000');
             listingEntry.NextCatalogId = reader.ReadUInt32();
 
-            output.HistoryListings.Add(listingEntry);
+            historyListings.Add(listingEntry);
 
             if (listingEntry.NextCatalogId == 0)
                 break;
         }
+
+        output.InternalHistoryListings = historyListings;
 
         return output;
     }
@@ -133,19 +143,14 @@ public class MarketBoardHistory : IMarketBoardHistory
 public interface IMarketBoardHistory
 {
     /// <summary>
-    /// Gets the catalog ID.
+    /// Gets the item ID.
     /// </summary>
-    uint CatalogId { get; }
-
-    /// <summary>
-    /// Gets the second catalog ID.
-    /// </summary>
-    uint CatalogId2 { get; }
+    uint ItemId { get; }
 
     /// <summary>
     /// Gets the list of individual item history listings.
     /// </summary>
-    List<IMarketBoardHistoryListing> HistoryListings { get; }
+    IReadOnlyList<IMarketBoardHistoryListing> HistoryListings { get; }
 }
 
 /// <summary>
@@ -157,11 +162,6 @@ public interface IMarketBoardHistoryListing
     /// Gets the buyer's name.
     /// </summary>
     string BuyerName { get; }
-
-    /// <summary>
-    /// Gets the next entry's catalog ID.
-    /// </summary>
-    uint NextCatalogId { get; }
 
     /// <summary>
     /// Gets a value indicating whether the item is HQ.

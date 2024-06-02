@@ -310,7 +310,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         return result;
     }
 
-    private IObservable<List<IMarketBoardItemListing>> OnMarketBoardListingsBatch(
+    private IObservable<List<MarketBoardCurrentOfferings.MarketBoardItemListing>> OnMarketBoardListingsBatch(
         IObservable<MarketBoardItemRequest> start)
     {
         var offeringsObservable = this.MbOfferingsObservable.Publish().RefCount();
@@ -327,7 +327,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Verbose(
                 "Observed element of request {RequestId} with {NumListings} listings",
                 offerings.RequestId,
-                offerings.ItemListings.Count);
+                offerings.InternalItemListings.Count);
         }
 
         IObservable<MarketBoardCurrentOfferings> UntilBatchEnd(MarketBoardItemRequest request)
@@ -339,7 +339,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
 
             return offeringsObservable
-                   .Where(offerings => offerings.ItemListings.All(l => l.CatalogId == request.CatalogId))
+                   .Where(offerings => offerings.InternalItemListings.All(l => l.CatalogId == request.CatalogId))
                    .Skip(totalPackets - 1)
                    .Do(LogEndObserved);
         }
@@ -352,15 +352,15 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                .Window(start, UntilBatchEnd)
                .SelectMany(
                    o => o.Aggregate(
-                       new List<IMarketBoardItemListing>(),
+                       new List<MarketBoardCurrentOfferings.MarketBoardItemListing>(),
                        (agg, next) =>
                        {
-                           agg.AddRange(next.ItemListings);
+                           agg.AddRange(next.InternalItemListings);
                            return agg;
                        }));
     }
 
-    private IObservable<List<IMarketBoardHistoryListing>> OnMarketBoardSalesBatch(
+    private IObservable<List<MarketBoardHistory.MarketBoardHistoryListing>> OnMarketBoardSalesBatch(
         IObservable<MarketBoardItemRequest> start)
     {
         var historyObservable = this.MbHistoryObservable.Publish().RefCount();
@@ -370,7 +370,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Verbose(
                 "Observed history for item {CatalogId} with {NumSales} sales",
                 history.CatalogId,
-                history.HistoryListings.Count);
+                history.InternalHistoryListings.Count);
         }
 
         IObservable<MarketBoardHistory> UntilBatchEnd(MarketBoardItemRequest request)
@@ -388,10 +388,10 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                .Window(start, UntilBatchEnd)
                .SelectMany(
                    o => o.Aggregate(
-                       new List<IMarketBoardHistoryListing>(),
+                       new List<MarketBoardHistory.MarketBoardHistoryListing>(),
                        (agg, next) =>
                        {
-                           agg.AddRange(next.HistoryListings);
+                           agg.AddRange(next.InternalHistoryListings);
                            return agg;
                        }));
     }
@@ -428,8 +428,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private void UploadMarketBoardData(
         MarketBoardItemRequest request,
-        ICollection<IMarketBoardHistoryListing> sales,
-        ICollection<IMarketBoardItemListing> listings)
+        ICollection<MarketBoardHistory.MarketBoardHistoryListing> sales,
+        ICollection<MarketBoardCurrentOfferings.MarketBoardItemListing> listings)
     {
         if (listings.Count != request.AmountToArrive)
         {

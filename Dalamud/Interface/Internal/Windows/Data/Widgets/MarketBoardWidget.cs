@@ -35,11 +35,11 @@ internal class MarketBoardWidget : IDataWindowWidget
             var marketBoard = Service<MarketBoard>.GetNullable();
             if (marketBoard != null)
             {
-                marketBoard.MarketBoardHistoryReceived -= this.MarketBoardHistoryReceived;
-                marketBoard.MarketBoardOfferingsReceived -= this.MarketBoardOfferingsReceived;
-                marketBoard.MarketBoardItemPurchased -= this.MarketBoardItemPurchased;
-                marketBoard.MarketBoardPurchaseRequested -= this.MarketBoardPurchaseRequested;
-                marketBoard.MarketTaxRatesReceived -= this.TaxRatesReceived;
+                marketBoard.HistoryReceived -= this.MarketBoardHistoryReceived;
+                marketBoard.OfferingsReceived -= this.MarketBoardOfferingsReceived;
+                marketBoard.ItemPurchased -= this.MarketBoardItemPurchased;
+                marketBoard.PurchaseRequested -= this.MarketBoardPurchaseRequested;
+                marketBoard.TaxRatesReceived -= this.TaxRatesReceived;
             }
         }
     }
@@ -74,19 +74,19 @@ internal class MarketBoardWidget : IDataWindowWidget
         {
             if (this.trackMarketBoard)
             {
-                marketBoard.MarketBoardHistoryReceived += this.MarketBoardHistoryReceived;
-                marketBoard.MarketBoardOfferingsReceived += this.MarketBoardOfferingsReceived;
-                marketBoard.MarketBoardItemPurchased += this.MarketBoardItemPurchased;
-                marketBoard.MarketBoardPurchaseRequested += this.MarketBoardPurchaseRequested;
-                marketBoard.MarketTaxRatesReceived += this.TaxRatesReceived;
+                marketBoard.HistoryReceived += this.MarketBoardHistoryReceived;
+                marketBoard.OfferingsReceived += this.MarketBoardOfferingsReceived;
+                marketBoard.ItemPurchased += this.MarketBoardItemPurchased;
+                marketBoard.PurchaseRequested += this.MarketBoardPurchaseRequested;
+                marketBoard.TaxRatesReceived += this.TaxRatesReceived;
             }
             else
             {
-                marketBoard.MarketBoardHistoryReceived -= this.MarketBoardHistoryReceived;
-                marketBoard.MarketBoardOfferingsReceived -= this.MarketBoardOfferingsReceived;
-                marketBoard.MarketBoardItemPurchased -= this.MarketBoardItemPurchased;
-                marketBoard.MarketBoardPurchaseRequested -= this.MarketBoardPurchaseRequested;
-                marketBoard.MarketTaxRatesReceived -= this.TaxRatesReceived;
+                marketBoard.HistoryReceived -= this.MarketBoardHistoryReceived;
+                marketBoard.OfferingsReceived -= this.MarketBoardOfferingsReceived;
+                marketBoard.ItemPurchased -= this.MarketBoardItemPurchased;
+                marketBoard.PurchaseRequested -= this.MarketBoardPurchaseRequested;
+                marketBoard.TaxRatesReceived -= this.TaxRatesReceived;
             }
         }
 
@@ -207,7 +207,7 @@ internal class MarketBoardWidget : IDataWindowWidget
     private void DrawMarketBoardHistory((IMarketBoardHistory History, IMarketBoardHistoryListing Listing) data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.History.CatalogId.ToString());
+        ImGui.TextUnformatted(data.History.ItemId.ToString());
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.Listing.Quantity.ToString());
@@ -228,7 +228,7 @@ internal class MarketBoardWidget : IDataWindowWidget
     private void DrawMarketBoardCurrentOfferings((IMarketBoardCurrentOfferings MarketBoardCurrentOfferings, IMarketBoardItemListing Listing) data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.CatalogId.ToString());
+        ImGui.TextUnformatted(data.Listing.ItemId.ToString());
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.Listing.ItemQuantity.ToString());

@@ -16,7 +16,10 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
     /// <summary>
     /// Gets the list of individual item listings.
     /// </summary>
-    public List<IMarketBoardItemListing> ItemListings { get; } = new();
+    IReadOnlyList<IMarketBoardItemListing> IMarketBoardCurrentOfferings.ItemListings => this.InternalItemListings;
+
+    internal List<MarketBoardItemListing> InternalItemListings { get; set; } = new List<MarketBoardItemListing>();
+
 
     /// <summary>
     /// Gets the listing end index.
@@ -45,6 +48,8 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
 
+        var listings = new List<MarketBoardItemListing>();
+
         for (var i = 0; i < 10; i++)
         {
             var listingEntry = new MarketBoardItemListing();
@@ -64,6 +69,8 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
             reader.ReadUInt16(); // durability
             reader.ReadUInt16(); // spiritbond
 
+            var materiaList = new List<IItemMateria>();
+
             for (var materiaIndex = 0; materiaIndex < 5; materiaIndex++)
             {
                 var materiaVal = reader.ReadUInt16();
@@ -74,8 +81,10 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
                 };
 
                 if (materiaEntry.MateriaId != 0)
-                    listingEntry.Materia.Add(materiaEntry);
+                    materiaList.Add(materiaEntry);
             }
+
+            listingEntry.Materia = materiaList;
 
             reader.ReadUInt16();
             reader.ReadUInt32();
@@ -92,9 +101,10 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
             reader.ReadUInt32();
 
             if (listingEntry.CatalogId != 0)
-                output.ItemListings.Add(listingEntry);
+                listings.Add(listingEntry);
         }
 
+        output.InternalItemListings = listings;
         output.ListingIndexEnd = reader.ReadByte();
         output.ListingIndexStart = reader.ReadByte();
         output.RequestId = reader.ReadUInt16();
@@ -118,6 +128,9 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// Gets the artisan ID.
         /// </summary>
         public ulong ArtisanId { get; internal set; }
+
+        /// <inheritdoc/>
+        public uint ItemId => this.CatalogId;
 
         /// <summary>
         /// Gets the catalog ID.
@@ -147,7 +160,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// <summary>
         /// Gets the list of materia attached to this item.
         /// </summary>
-        public List<IItemMateria> Materia { get; } = new();
+        public IReadOnlyList<IItemMateria> Materia { get; internal set; } = new List<IItemMateria>();
 
         /// <summary>
         /// Gets the amount of attached materia.
@@ -232,7 +245,7 @@ public interface IMarketBoardCurrentOfferings
     /// <summary>
     /// Gets the list of individual item listings.
     /// </summary>
-    List<IMarketBoardItemListing> ItemListings { get; }
+    IReadOnlyList<IMarketBoardItemListing> ItemListings { get; }
 
     /// <summary>
     /// Gets the listing end index.
@@ -263,7 +276,7 @@ public interface IMarketBoardItemListing
     /// <summary>
     /// Gets the item ID.
     /// </summary>
-    uint CatalogId { get; }
+    uint ItemId { get; }
 
     /// <summary>
     /// Gets a value indicating whether the item is HQ.
@@ -288,7 +301,7 @@ public interface IMarketBoardItemListing
     /// <summary>
     /// Gets the list of materia attached to this item.
     /// </summary>
-    List<IItemMateria> Materia { get; }
+    IReadOnlyList<IItemMateria> Materia { get; }
 
     /// <summary>
     /// Gets the amount of attached materia.
@@ -324,11 +337,6 @@ public interface IMarketBoardItemListing
     /// Gets the name of the retainer.
     /// </summary>
     string RetainerName { get; }
-
-    /// <summary>
-    /// Gets the ID of the retainer's owner.
-    /// </summary>
-    ulong RetainerOwnerId { get; }
 
     /// <summary>
     /// Gets the stain or applied dye of the item.

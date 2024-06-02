@@ -31,48 +31,53 @@ internal class MarketBoard : IInternalDisposableService, IMarketBoard
     }
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketBoardHistoryReceivedDelegate? MarketBoardHistoryReceived;
+    public event IMarketBoard.HistoryReceivedDelegate? HistoryReceived;
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketBoardItemPurchasedDelegate? MarketBoardItemPurchased;
+    public event IMarketBoard.ItemPurchasedDelegate? ItemPurchased;
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketBoardOfferingsReceivedDelegate? MarketBoardOfferingsReceived;
+    public event IMarketBoard.OfferingsReceivedDelegate? OfferingsReceived;
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketBoardPurchaseRequestedDelegate? MarketBoardPurchaseRequested;
+    public event IMarketBoard.PurchaseRequestedDelegate? PurchaseRequested;
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketTaxRatesReceivedDelegate? MarketTaxRatesReceived;
+    public event IMarketBoard.TaxRatesReceivedDelegate? TaxRatesReceived;
 
     /// <inheritdoc/>
     public void DisposeService()
     {
+        this.HistoryReceived = null;
+        this.ItemPurchased = null;
+        this.OfferingsReceived = null;
+        this.PurchaseRequested = null;
+        this.TaxRatesReceived = null;
     }
 
     private void OnMbHistory(MarketBoardHistory marketBoardHistory)
     {
-        this.MarketBoardHistoryReceived?.Invoke(marketBoardHistory);
+        this.HistoryReceived?.Invoke(marketBoardHistory);
     }
 
     private void OnPurchase(MarketBoardPurchase marketBoardHistory)
     {
-        this.MarketBoardItemPurchased?.Invoke(marketBoardHistory);
+        this.ItemPurchased?.Invoke(marketBoardHistory);
     }
 
     private void OnOfferings(MarketBoardCurrentOfferings currentOfferings)
     {
-        this.MarketBoardOfferingsReceived?.Invoke(currentOfferings);
+        this.OfferingsReceived?.Invoke(currentOfferings);
     }
 
     private void OnPurchaseSent(MarketBoardPurchaseHandler purchaseHandler)
     {
-        this.MarketBoardPurchaseRequested?.Invoke(purchaseHandler);
+        this.PurchaseRequested?.Invoke(purchaseHandler);
     }
 
     private void OnTaxRates(MarketTaxRates taxRates)
     {
-        this.MarketTaxRatesReceived?.Invoke(taxRates);
+        this.TaxRatesReceived?.Invoke(taxRates);
     }
 }
 
@@ -95,60 +100,60 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
     /// </summary>
     internal MarketBoardPluginScoped()
     {
-        this.marketBoardService.MarketBoardHistoryReceived += this.OnMarketBoardHistoryReceived;
-        this.marketBoardService.MarketBoardItemPurchased += this.OnMarketBoardItemPurchased;
-        this.marketBoardService.MarketBoardOfferingsReceived += this.OnMarketBoardOfferingsReceived;
-        this.marketBoardService.MarketBoardPurchaseRequested += this.OnMarketBoardPurchaseRequested;
-        this.marketBoardService.MarketTaxRatesReceived += this.OnMarketTaxRatesReceived;
+        this.marketBoardService.HistoryReceived += this.OnHistoryReceived;
+        this.marketBoardService.ItemPurchased += this.OnItemPurchased;
+        this.marketBoardService.OfferingsReceived += this.OnOfferingsReceived;
+        this.marketBoardService.PurchaseRequested += this.OnPurchaseRequested;
+        this.marketBoardService.TaxRatesReceived += this.OnTaxRatesReceived;
     }
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketBoardHistoryReceivedDelegate? MarketBoardHistoryReceived;
+    public event IMarketBoard.HistoryReceivedDelegate? HistoryReceived;
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketBoardItemPurchasedDelegate? MarketBoardItemPurchased;
+    public event IMarketBoard.ItemPurchasedDelegate? ItemPurchased;
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketBoardOfferingsReceivedDelegate? MarketBoardOfferingsReceived;
+    public event IMarketBoard.OfferingsReceivedDelegate? OfferingsReceived;
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketBoardPurchaseRequestedDelegate? MarketBoardPurchaseRequested;
+    public event IMarketBoard.PurchaseRequestedDelegate? PurchaseRequested;
 
     /// <inheritdoc/>
-    public event IMarketBoard.MarketTaxRatesReceivedDelegate? MarketTaxRatesReceived;
+    public event IMarketBoard.TaxRatesReceivedDelegate? TaxRatesReceived;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.marketBoardService.MarketBoardHistoryReceived -= this.OnMarketBoardHistoryReceived;
-        this.marketBoardService.MarketBoardItemPurchased -= this.OnMarketBoardItemPurchased;
-        this.marketBoardService.MarketBoardOfferingsReceived -= this.OnMarketBoardOfferingsReceived;
-        this.marketBoardService.MarketBoardPurchaseRequested -= this.OnMarketBoardPurchaseRequested;
-        this.marketBoardService.MarketTaxRatesReceived -= this.OnMarketTaxRatesReceived;
+        this.marketBoardService.HistoryReceived -= this.OnHistoryReceived;
+        this.marketBoardService.ItemPurchased -= this.OnItemPurchased;
+        this.marketBoardService.OfferingsReceived -= this.OnOfferingsReceived;
+        this.marketBoardService.PurchaseRequested -= this.OnPurchaseRequested;
+        this.marketBoardService.TaxRatesReceived -= this.OnTaxRatesReceived;
     }
 
-    private void OnMarketBoardHistoryReceived(IMarketBoardHistory marketBoardHistory)
+    private void OnHistoryReceived(IMarketBoardHistory history)
     {
-        this.MarketBoardHistoryReceived?.Invoke(marketBoardHistory);
+        this.HistoryReceived?.Invoke(history);
     }
 
-    private void OnMarketBoardItemPurchased(IMarketBoardPurchase marketBoardPurchase)
+    private void OnItemPurchased(IMarketBoardPurchase purchase)
     {
-        this.MarketBoardItemPurchased?.Invoke(marketBoardPurchase);
+        this.ItemPurchased?.Invoke(purchase);
     }
 
-    private void OnMarketBoardOfferingsReceived(IMarketBoardCurrentOfferings marketBoardCurrentOfferings)
+    private void OnOfferingsReceived(IMarketBoardCurrentOfferings currentOfferings)
     {
-        this.MarketBoardOfferingsReceived?.Invoke(marketBoardCurrentOfferings);
+        this.OfferingsReceived?.Invoke(currentOfferings);
     }
 
-    private void OnMarketBoardPurchaseRequested(IMarketBoardPurchaseHandler marketBoardPurchaseHandler)
+    private void OnPurchaseRequested(IMarketBoardPurchaseHandler purchaseHandler)
     {
-        this.MarketBoardPurchaseRequested?.Invoke(marketBoardPurchaseHandler);
+        this.PurchaseRequested?.Invoke(purchaseHandler);
     }
 
-    private void OnMarketTaxRatesReceived(IMarketTaxRates marketTaxRates)
+    private void OnTaxRatesReceived(IMarketTaxRates taxRates)
     {
-        this.MarketTaxRatesReceived?.Invoke(marketTaxRates);
+        this.TaxRatesReceived?.Invoke(taxRates);
     }
 }

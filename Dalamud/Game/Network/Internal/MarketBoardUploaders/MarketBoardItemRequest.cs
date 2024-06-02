@@ -37,12 +37,12 @@ internal class MarketBoardItemRequest
     /// <summary>
     /// Gets the offered item listings.
     /// </summary>
-    public List<IMarketBoardItemListing> Listings { get; } = new();
+    public List<MarketBoardCurrentOfferings.MarketBoardItemListing> Listings { get; } = new();
 
     /// <summary>
     /// Gets the historical item listings.
     /// </summary>
-    public List<IMarketBoardHistoryListing> History { get; } = new();
+    public List<MarketBoardHistory.MarketBoardHistoryListing> History { get; } = new();
 
     /// <summary>
     /// Gets or sets the listing request ID.

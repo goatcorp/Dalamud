@@ -62,7 +62,7 @@ internal class MarketBoardAgingStep : IAgingStep
                     ImGui.Text($"Sale Price: {this.historyListing.SalePrice.ToString()}");
                     ImGui.Text($"Purchase Time: {this.historyListing.PurchaseTime.ToString(CultureInfo.InvariantCulture)}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct"))
+                    if (ImGui.Button("Looks Correct / Skip"))
                     {
                         this.currentSubStep++;
                     }
@@ -90,7 +90,7 @@ internal class MarketBoardAgingStep : IAgingStep
                     ImGui.Text($"Retainer Name: {this.itemListing.RetainerName}");
                     ImGui.Text($"Is HQ?: {(this.itemListing.IsHq ? "Yes" : "No")}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct"))
+                    if (ImGui.Button("Looks Correct / Skip"))
                     {
                         this.currentSubStep++;
                     }
@@ -116,7 +116,7 @@ internal class MarketBoardAgingStep : IAgingStep
                     ImGui.Text($"Item ID: {this.marketBoardPurchaseRequest.CatalogId}");
                     ImGui.Text($"Price Per Unit: {this.marketBoardPurchaseRequest.PricePerUnit}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct"))
+                    if (ImGui.Button("Looks Correct / Skip"))
                     {
                         this.currentSubStep++;
                     }
@@ -141,7 +141,7 @@ internal class MarketBoardAgingStep : IAgingStep
                     ImGui.Text($"Quantity: {this.marketBoardPurchase.ItemQuantity.ToString()}");
                     ImGui.Text($"Item ID: {this.marketBoardPurchase.CatalogId}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct"))
+                    if (ImGui.Button("Looks Correct / Skip"))
                     {
                         this.currentSubStep++;
                     }
@@ -171,7 +171,7 @@ internal class MarketBoardAgingStep : IAgingStep
                     ImGui.Text($"Crystarium: {this.marketTaxRate.CrystariumTax.ToString()}");
                     ImGui.Text($"Sharlayan: {this.marketTaxRate.SharlayanTax.ToString()}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct"))
+                    if (ImGui.Button("Looks Correct / Skip"))
                     {
                         this.currentSubStep++;
                     }
@@ -207,41 +207,41 @@ internal class MarketBoardAgingStep : IAgingStep
     private void SubscribeToEvents()
     {
         var marketBoard = Service<MarketBoard>.Get();
-        marketBoard.MarketBoardHistoryReceived += this.MarketBoardOnMarketBoardHistoryReceived;
-        marketBoard.MarketBoardOfferingsReceived += this.MarketBoardOnMarketBoardOfferingsReceived;
-        marketBoard.MarketBoardItemPurchased += this.MarketBoardOnMarketBoardItemPurchased;
-        marketBoard.MarketBoardPurchaseRequested += this.MarketBoardOnMarketBoardPurchaseRequested;
-        marketBoard.MarketTaxRatesReceived += this.MarketBoardOnMarketTaxRatesReceived;
+        marketBoard.HistoryReceived += this.OnHistoryReceived;
+        marketBoard.OfferingsReceived += this.OnOfferingsReceived;
+        marketBoard.ItemPurchased += this.OnItemPurchased;
+        marketBoard.PurchaseRequested += this.OnPurchaseRequested;
+        marketBoard.TaxRatesReceived += this.OnTaxRatesReceived;
         this.eventsSubscribed = true;
-    }
-
-    private void MarketBoardOnMarketTaxRatesReceived(IMarketTaxRates marketTaxRates)
-    {
-        this.marketTaxRate = marketTaxRates;
-    }
-
-    private void MarketBoardOnMarketBoardPurchaseRequested(IMarketBoardPurchaseHandler marketBoardPurchaseHandler)
-    {
-        this.marketBoardPurchaseRequest = marketBoardPurchaseHandler;
-    }
-
-    private void MarketBoardOnMarketBoardItemPurchased(IMarketBoardPurchase purchase)
-    {
-        this.marketBoardPurchase = purchase;
     }
 
     private void UnsubscribeFromEvents()
     {
         var marketBoard = Service<MarketBoard>.Get();
-        marketBoard.MarketBoardHistoryReceived -= this.MarketBoardOnMarketBoardHistoryReceived;
-        marketBoard.MarketBoardOfferingsReceived -= this.MarketBoardOnMarketBoardOfferingsReceived;
-        marketBoard.MarketBoardItemPurchased -= this.MarketBoardOnMarketBoardItemPurchased;
-        marketBoard.MarketBoardPurchaseRequested -= this.MarketBoardOnMarketBoardPurchaseRequested;
-        marketBoard.MarketTaxRatesReceived -= this.MarketBoardOnMarketTaxRatesReceived;
+        marketBoard.HistoryReceived -= this.OnHistoryReceived;
+        marketBoard.OfferingsReceived -= this.OnOfferingsReceived;
+        marketBoard.ItemPurchased -= this.OnItemPurchased;
+        marketBoard.PurchaseRequested -= this.OnPurchaseRequested;
+        marketBoard.TaxRatesReceived -= this.OnTaxRatesReceived;
         this.eventsSubscribed = false;
     }
 
-    private void MarketBoardOnMarketBoardOfferingsReceived(IMarketBoardCurrentOfferings marketBoardCurrentOfferings)
+    private void OnTaxRatesReceived(IMarketTaxRates marketTaxRates)
+    {
+        this.marketTaxRate = marketTaxRates;
+    }
+
+    private void OnPurchaseRequested(IMarketBoardPurchaseHandler marketBoardPurchaseHandler)
+    {
+        this.marketBoardPurchaseRequest = marketBoardPurchaseHandler;
+    }
+
+    private void OnItemPurchased(IMarketBoardPurchase purchase)
+    {
+        this.marketBoardPurchase = purchase;
+    }
+
+    private void OnOfferingsReceived(IMarketBoardCurrentOfferings marketBoardCurrentOfferings)
     {
         if (marketBoardCurrentOfferings.ItemListings.Count != 0)
         {
@@ -249,7 +249,7 @@ internal class MarketBoardAgingStep : IAgingStep
         }
     }
 
-    private void MarketBoardOnMarketBoardHistoryReceived(IMarketBoardHistory marketBoardHistory)
+    private void OnHistoryReceived(IMarketBoardHistory marketBoardHistory)
     {
         if (marketBoardHistory.HistoryListings.Count != 0)
         {
