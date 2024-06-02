@@ -130,6 +130,12 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
         this.marketBoardService.OfferingsReceived -= this.OnOfferingsReceived;
         this.marketBoardService.PurchaseRequested -= this.OnPurchaseRequested;
         this.marketBoardService.TaxRatesReceived -= this.OnTaxRatesReceived;
+
+        this.HistoryReceived = null;
+        this.ItemPurchased = null;
+        this.OfferingsReceived = null;
+        this.PurchaseRequested = null;
+        this.TaxRatesReceived = null;
     }
 
     private void OnHistoryReceived(IMarketBoardHistory history)
