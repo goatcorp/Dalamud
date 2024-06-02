@@ -371,7 +371,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
         try
         {
-            addon->OnUpdate(numberArrayData, stringArrayData);
+            addon->OnRequestedUpdate(numberArrayData, stringArrayData);
         }
         catch (Exception e)
         {
