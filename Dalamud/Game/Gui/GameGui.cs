@@ -283,7 +283,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public IntPtr GetAddonByName(string name, int index = 1)
     {
-        var atkStage = AtkStage.GetSingleton();
+        var atkStage = AtkStage.Instance();
         if (atkStage == null)
             return IntPtr.Zero;
 

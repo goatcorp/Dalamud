@@ -47,7 +47,7 @@ public unsafe class PartyMember
     /// <summary>
     /// Gets the actor ID of this party member.
     /// </summary>
-    public uint ObjectId => this.Struct->ObjectId;
+    public uint ObjectId => this.Struct->EntityId;
 
     /// <summary>
     /// Gets the actor associated with this buddy.

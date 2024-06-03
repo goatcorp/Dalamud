@@ -439,7 +439,7 @@ internal unsafe class UiDebug
     {
         var foundSelected = false;
         var noResults = true;
-        var stage = AtkStage.GetSingleton();
+        var stage = AtkStage.Instance();
 
         var unitManagers = &stage->RaptureAtkUnitManager->AtkUnitManager.DepthLayerOneList;
 
