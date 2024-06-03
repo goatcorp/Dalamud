@@ -1,4 +1,3 @@
-using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
@@ -10,7 +9,7 @@ namespace Dalamud.Game.Network.Internal;
 /// This class enables TCP optimizations in the game socket for better performance.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed class WinSockHandlers : IDisposable, IServiceType
+internal sealed class WinSockHandlers : IInternalDisposableService
 {
     private Hook<SocketDelegate> ws2SocketHook;
 
@@ -27,7 +26,7 @@ internal sealed class WinSockHandlers : IDisposable, IServiceType
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.ws2SocketHook?.Dispose();
     }

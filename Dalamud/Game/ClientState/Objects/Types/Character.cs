@@ -62,6 +62,11 @@ public unsafe class Character : GameObject
     public uint MaxCp => this.Struct->CharacterData.MaxCraftingPoints;
 
     /// <summary>
+    /// Gets the shield percentage of this Chara.
+    /// </summary>
+    public byte ShieldPercentage => this.Struct->CharacterData.ShieldValue;
+
+    /// <summary>
     /// Gets the ClassJob of this Chara.
     /// </summary>
     public ExcelResolver<ClassJob> ClassJob => new(this.Struct->CharacterData.ClassJob);

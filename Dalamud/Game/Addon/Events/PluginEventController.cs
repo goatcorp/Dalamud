@@ -5,6 +5,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Events;
@@ -19,19 +20,11 @@ internal unsafe class PluginEventController : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginEventController"/> class.
     /// </summary>
-    /// <param name="pluginId">The Unique ID for this plugin.</param>
-    public PluginEventController(string pluginId)
+    public PluginEventController()
     {
-        this.PluginId = pluginId;
-
         this.EventListener = new AddonEventListener(this.PluginEventListHandler);
     }
 
-    /// <summary>
-    /// Gets the unique ID for this PluginEventList.
-    /// </summary>
-    public string PluginId { get; init; }
-    
     private AddonEventListener EventListener { get; init; }
     
     private List<AddonEventEntry> Events { get; } = new();
@@ -125,7 +118,7 @@ internal unsafe class PluginEventController : IDisposable
             if (this.Events.All(registeredEvent => registeredEvent.ParamKey != i)) return i;
         }
 
-        throw new OverflowException($"uint.MaxValue number of ParamKeys used for {this.PluginId}");
+        throw new OverflowException($"uint.MaxValue number of ParamKeys used for this event controller.");
     }
     
     /// <summary>

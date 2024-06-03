@@ -11,6 +11,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -21,8 +22,8 @@ namespace Dalamud.Game.Gui.Dtr;
 /// Class used to interface with the server info bar.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 {
     private const uint BaseNodeId = 1000;
 
@@ -74,12 +75,15 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     }
 
     /// <inheritdoc/>
+    public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.entries;
+    
+    /// <inheritdoc/>
     public DtrBarEntry Get(string title, SeString? text = null)
     {
         if (this.entries.Any(x => x.Title == title) || this.newEntries.Any(x => x.Title == title))
             throw new ArgumentException("An entry with the same title already exists.");
 
-        var entry = new DtrBarEntry(title, null);
+        var entry = new DtrBarEntry(this.configuration, title, null);
         entry.Text = text;
 
         // Add the entry to the end of the order list, if it's not there already.
@@ -101,7 +105,7 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
     }
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.addonLifecycle.UnregisterListener(this.dtrPostDrawListener);
         this.addonLifecycle.UnregisterListener(this.dtrPostRequestedUpdateListener);
@@ -196,7 +200,7 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 
         foreach (var data in this.entries)
         {
-            var isHide = this.configuration.DtrIgnore!.Any(x => x == data.Title) || !data.Shown;
+            var isHide = data.UserHidden || !data.Shown;
 
             if (data is { Dirty: true, Added: true, Text: not null, TextNode: not null })
             {
@@ -493,15 +497,18 @@ internal sealed unsafe class DtrBar : IDisposable, IServiceType, IDtrBar
 #pragma warning disable SA1015
 [ResolveVia<IDtrBar>]
 #pragma warning restore SA1015
-internal class DtrBarPluginScoped : IDisposable, IServiceType, IDtrBar
+internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
 {
     [ServiceManager.ServiceDependency]
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
 
     private readonly Dictionary<string, DtrBarEntry> pluginEntries = new();
+    
+    /// <inheritdoc/>
+    public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.dtrBarService.Entries;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         foreach (var entry in this.pluginEntries)
         {
@@ -510,7 +517,7 @@ internal class DtrBarPluginScoped : IDisposable, IServiceType, IDtrBar
         
         this.pluginEntries.Clear();
     }
-    
+
     /// <inheritdoc/>
     public DtrBarEntry Get(string title, SeString? text = null)
     {

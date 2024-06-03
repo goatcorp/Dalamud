@@ -2,14 +2,16 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
@@ -19,16 +21,12 @@ namespace Dalamud.Interface.Internal.Windows.Settings;
 /// </summary>
 internal class SettingsWindow : Window
 {
-    private readonly SettingsTab[] tabs =
-    {
-        new SettingsTabGeneral(),
-        new SettingsTabLook(),
-        new SettingsTabDtr(),
-        new SettingsTabExperimental(),
-        new SettingsTabAbout(),
-    };
+    private SettingsTab[]? tabs;
 
     private string searchInput = string.Empty;
+    private bool isSearchInputPrefilled = false;
+
+    private SettingsTab setActiveTab = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsWindow"/> class.
@@ -46,15 +44,52 @@ internal class SettingsWindow : Window
         this.SizeCondition = ImGuiCond.FirstUseEver;
     }
 
+    /// <summary>
+    /// Open the settings window to the tab specified by <paramref name="kind"/>.
+    /// </summary>
+    /// <param name="kind">The tab of the settings window to open.</param>
+    public void OpenTo(SettingsOpenKind kind)
+    {
+        this.IsOpen = true;
+        this.SetOpenTab(kind);
+    }
+
+    /// <summary>
+    /// Sets the current search text and marks it as prefilled.
+    /// </summary>
+    /// <param name="text">The search term.</param>
+    public void SetSearchText(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            this.isSearchInputPrefilled = false;
+            this.searchInput = string.Empty;
+        }
+        else
+        {
+            this.isSearchInputPrefilled = true;
+            this.searchInput = text;
+        }
+    }
+
     /// <inheritdoc/>
     public override void OnOpen()
     {
+        this.tabs ??= new SettingsTab[]
+        {
+            new SettingsTabGeneral(),
+            new SettingsTabLook(),
+            new SettingsTabDtr(),
+            new SettingsTabExperimental(),
+            new SettingsTabAbout(),
+        };
+
         foreach (var settingsTab in this.tabs)
         {
             settingsTab.Load();
         }
 
-        this.searchInput = string.Empty;
+        if (!this.isSearchInputPrefilled) this.searchInput = string.Empty;
 
         base.OnOpen();
     }
@@ -64,15 +99,13 @@ internal class SettingsWindow : Window
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var interfaceManager = Service<InterfaceManager>.Get();
+        var fontAtlasFactory = Service<FontAtlasFactory>.Get();
 
-        var rebuildFont =
-            ImGui.GetIO().FontGlobalScale != configuration.GlobalUiScale ||
-            interfaceManager.FontGamma != configuration.FontGammaLevel ||
-            interfaceManager.UseAxis != configuration.UseAxisFontsFromGame;
+        var rebuildFont = !Equals(fontAtlasFactory.DefaultFontSpec, configuration.DefaultFontSpec);
+        rebuildFont |= !Equals(ImGui.GetIO().FontGlobalScale, configuration.GlobalUiScale);
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
-        interfaceManager.FontGammaOverride = null;
-        interfaceManager.UseAxisOverride = null;
+        fontAtlasFactory.DefaultFontSpecOverride = null;
 
         if (rebuildFont)
             interfaceManager.RebuildFonts();
@@ -83,6 +116,12 @@ internal class SettingsWindow : Window
                 settingsTab.OnClose();
 
             settingsTab.IsOpen = false;
+        }
+
+        if (this.isSearchInputPrefilled)
+        {
+            this.isSearchInputPrefilled = false;
+            this.searchInput = string.Empty;
         }
     }
 
@@ -97,7 +136,15 @@ internal class SettingsWindow : Window
             {
                 foreach (var settingsTab in this.tabs.Where(x => x.IsVisible))
                 {
-                    if (ImGui.BeginTabItem(settingsTab.Title))
+                    var flags = ImGuiTabItemFlags.NoCloseWithMiddleMouseButton;
+                    if (this.setActiveTab == settingsTab)
+                    {
+                        flags |= ImGuiTabItemFlags.SetSelected;
+                        this.setActiveTab = null;
+                    }
+
+                    using var tab = ImRaii.TabItem(settingsTab.Title, flags);
+                    if (tab)
                     {
                         if (!settingsTab.IsOpen)
                         {
@@ -105,13 +152,12 @@ internal class SettingsWindow : Window
                             settingsTab.OnOpen();
                         }
 
-                        if (ImGui.BeginChild($"###settings_scrolling_{settingsTab.Title}", new Vector2(-1, -1), false))
-                        {
+                        using var tabChild = ImRaii.Child(
+                            $"###settings_scrolling_{settingsTab.Title}",
+                            new Vector2(-1, -1),
+                            false);
+                        if (tabChild)
                             settingsTab.Draw();
-                        }
-
-                        ImGui.EndChild();
-                        ImGui.EndTabItem();
                     }
                     else if (settingsTab.IsOpen)
                     {
@@ -155,36 +201,39 @@ internal class SettingsWindow : Window
                     ImGui.EndTabItem();
                 }
             }
+
+            ImGui.EndTabBar();
         }
 
         ImGui.SetCursorPos(windowSize - ImGuiHelpers.ScaledVector2(70));
 
-        if (ImGui.BeginChild("###settingsFinishButton"))
+        using (var buttonChild = ImRaii.Child("###settingsFinishButton"))
         {
-            using var disabled = ImRaii.Disabled(this.tabs.Any(x => x.Entries.Any(y => !y.IsValid)));
-
-            using (ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 100f))
+            if (buttonChild)
             {
-                using var font = ImRaii.PushFont(InterfaceManager.IconFont);
+                using var disabled = ImRaii.Disabled(this.tabs.Any(x => x.Entries.Any(y => !y.IsValid)));
 
-                if (ImGui.Button(FontAwesomeIcon.Save.ToIconString(), new Vector2(40)))
+                using (ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 100f))
                 {
-                    this.Save();
+                    using var font = ImRaii.PushFont(InterfaceManager.IconFont);
 
-                    if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
-                        this.IsOpen = false;
+                    if (ImGui.Button(FontAwesomeIcon.Save.ToIconString(), new Vector2(40)))
+                    {
+                        this.Save();
+
+                        if (!ImGui.IsKeyDown(ImGuiKey.ModShift))
+                            this.IsOpen = false;
+                    }
+                }
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
+                                         ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
+                                         : Loc.Localize("DalamudSettingsSave", "Save changes"));
                 }
             }
-
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
-                                     ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
-                                     : Loc.Localize("DalamudSettingsSaveAndExit", "Save changes"));
-            }
         }
-
-        ImGui.EndChild();
 
         ImGui.SetCursorPos(new Vector2(windowSize.X - 250, ImGui.GetTextLineHeightWithSpacing() + (ImGui.GetStyle().FramePadding.Y * 2)));
         ImGui.SetNextItemWidth(240);
@@ -228,5 +277,29 @@ internal class SettingsWindow : Window
         configuration.QueueSave();
 
         Service<InterfaceManager>.Get().RebuildFonts();
+    }
+
+    private void SetOpenTab(SettingsOpenKind kind)
+    {
+        switch (kind)
+        {
+            case SettingsOpenKind.General:
+                this.setActiveTab = this.tabs[0];
+                break;
+            case SettingsOpenKind.LookAndFeel:
+                this.setActiveTab = this.tabs[1];
+                break;
+            case SettingsOpenKind.ServerInfoBar:
+                this.setActiveTab = this.tabs[2];
+                break;
+            case SettingsOpenKind.Experimental:
+                this.setActiveTab = this.tabs[3];
+                break;
+            case SettingsOpenKind.About:
+                this.setActiveTab = this.tabs[4];
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+        }
     }
 }

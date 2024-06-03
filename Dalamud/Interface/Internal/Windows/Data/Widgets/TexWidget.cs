@@ -4,8 +4,9 @@ using System.Numerics;
 
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
+
 using ImGuiNET;
-using ImGuiScene;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -119,6 +120,10 @@ internal class TexWidget : IDataWindowWidget
 
                 if (ImGui.Button($"X##{i}"))
                     toRemove = tex;
+
+                ImGui.SameLine();
+                if (ImGui.Button($"Clone##{i}"))
+                    this.addedTextures.Add(tex.CreateWrapSharingLowLevelResource());
             }
         }
 

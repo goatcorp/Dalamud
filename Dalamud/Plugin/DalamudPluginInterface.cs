@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -19,6 +18,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
+using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
@@ -26,6 +26,8 @@ using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
+
+using static Dalamud.Interface.Internal.Windows.PluginInstaller.PluginInstallerWindow;
 
 namespace Dalamud.Plugin;
 
@@ -52,7 +54,7 @@ public sealed class DalamudPluginInterface : IDisposable
         var dataManager = Service<DataManager>.Get();
         var localization = Service<Localization>.Get();
 
-        this.UiBuilder = new UiBuilder(plugin.Name);
+        this.UiBuilder = new UiBuilder(plugin.Name, plugin);
 
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
@@ -127,6 +129,11 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets the current internal plugin name.
     /// </summary>
     public string InternalName => this.plugin.InternalName;
+
+    /// <summary>
+    /// Gets the plugin's manifest.
+    /// </summary>
+    public IPluginManifest Manifest => this.plugin.Manifest;
 
     /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
@@ -215,7 +222,19 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
     /// </summary>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
+    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
     public bool OpenPluginInstaller()
+    {
+        return this.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins, this.plugin.InternalName);
+    }
+
+    /// <summary>
+    /// Opens the <see cref="PluginInstallerWindow"/>, with an optional search term.
+    /// </summary>
+    /// <param name="openTo">The page to open the installer to. Defaults to the "All Plugins" page.</param>
+    /// <param name="searchText">An optional search text to input in the search box.</param>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -223,9 +242,45 @@ public sealed class DalamudPluginInterface : IDisposable
             return false;
         }
 
-        dalamudInterface.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
-        dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
+        dalamudInterface.OpenPluginInstallerTo(openTo);
+        dalamudInterface.SetPluginInstallerSearchText(searchText);
 
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the <see cref="SettingsWindow"/>, with an optional search term.
+    /// </summary>
+    /// <param name="openTo">The tab to open the settings to. Defaults to the "General" tab.</param>
+    /// <param name="searchText">An optional search text to input in the search box.</param>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string searchText = null)
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenSettingsTo(openTo);
+        dalamudInterface.SetSettingsSearchText(searchText);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the dev menu bar.
+    /// </summary>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenDeveloperMenu()
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenDevMenu();
         return true;
     }
 
@@ -343,7 +398,7 @@ public sealed class DalamudPluginInterface : IDisposable
         if (currentConfig == null)
             return;
 
-        this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
+        this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
     }
 
     /// <summary>
@@ -370,7 +425,7 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         // this shouldn't be a thing, I think, but just in case
-        return this.configs.Load(this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
+        return this.configs.Load(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
     }
 
     /// <summary>
@@ -452,24 +507,26 @@ public sealed class DalamudPluginInterface : IDisposable
 
     #endregion
 
-    /// <summary>
-    /// Unregister your plugin and dispose all references.
-    /// </summary>
+    /// <inheritdoc cref="Dispose"/>
     void IDisposable.Dispose()
     {
-        this.UiBuilder.ExplicitDispose();
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
-        Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
-        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
     }
 
-    /// <summary>
-    /// Obsolete implicit dispose implementation. Should not be used.
-    /// </summary>
-    [Obsolete("Do not dispose \"DalamudPluginInterface\".", true)]
+    /// <summary>This function will do nothing. Dalamud will dispose this object on plugin unload.</summary>
+    [Obsolete("This function will do nothing. Dalamud will dispose this object on plugin unload.", true)]
     public void Dispose()
     {
         // ignored
+    }
+
+    /// <summary>Unregister the plugin and dispose all references.</summary>
+    /// <remarks>Dalamud internal use only.</remarks>
+    internal void DisposeInternal()
+    {
+        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
+        Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
+        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+        this.UiBuilder.DisposeInternal();
     }
 
     /// <summary>

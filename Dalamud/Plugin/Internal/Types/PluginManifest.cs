@@ -81,6 +81,10 @@ internal record PluginManifest : IPluginManifest
 
     /// <inheritdoc/>
     [JsonProperty]
+    public int? TestingDalamudApiLevel { get; init; }
+
+    /// <inheritdoc/>
+    [JsonProperty]
     public long DownloadCount { get; init; }
 
     /// <inheritdoc/>

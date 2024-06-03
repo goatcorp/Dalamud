@@ -1,5 +1,9 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Internal;
 
 namespace Dalamud.Interface;
@@ -19,13 +23,21 @@ public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
     /// <param name="text">The text to show.</param>
     /// <param name="texture">The texture to show.</param>
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
-    internal TitleScreenMenuEntry(Assembly? callingAssembly, ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
+    /// <param name="showConditionKeys">The keys that have to be held to display the menu.</param>
+    internal TitleScreenMenuEntry(
+        Assembly? callingAssembly,
+        ulong priority,
+        string text,
+        IDalamudTextureWrap texture,
+        Action onTriggered,
+        IEnumerable<VirtualKey>? showConditionKeys = null)
     {
         this.CallingAssembly = callingAssembly;
         this.Priority = priority;
         this.Name = text;
         this.Texture = texture;
         this.onTriggered = onTriggered;
+        this.ShowConditionKeys = (showConditionKeys ?? Array.Empty<VirtualKey>()).ToImmutableSortedSet();
     }
 
     /// <summary>
@@ -58,6 +70,11 @@ public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
     /// </summary>
     internal Guid Id { get; init; } = Guid.NewGuid();
 
+    /// <summary>
+    /// Gets the keys that have to be pressed to show the menu.
+    /// </summary>
+    internal IReadOnlySet<VirtualKey> ShowConditionKeys { get; init; }
+
     /// <inheritdoc/>
     public int CompareTo(TitleScreenMenuEntry? other)
     {
@@ -83,6 +100,13 @@ public class TitleScreenMenuEntry : IComparable<TitleScreenMenuEntry>
             return string.Compare(this.Name, other.Name, StringComparison.InvariantCultureIgnoreCase);
         return 0;
     }
+
+    /// <summary>
+    /// Determines the displaying condition of this menu entry is met.
+    /// </summary>
+    /// <returns>True if met.</returns>
+    internal bool IsShowConditionSatisfied() =>
+        this.ShowConditionKeys.All(x => Service<KeyState>.GetNullable()?[x] is true);
 
     /// <summary>
     /// Trigger the action associated with this entry.

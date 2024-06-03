@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 using Dalamud.Utility;
@@ -45,6 +44,11 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     /// Gets the effective version of this plugin.
     /// </summary>
     public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
+
+    /// <summary>
+    /// Gets the effective API level of this plugin.
+    /// </summary>
+    public int EffectiveApiLevel => this.Testing && this.TestingDalamudApiLevel != null ? this.TestingDalamudApiLevel.Value : this.DalamudApiLevel;
 
     /// <summary>
     /// Save a plugin manifest to file.

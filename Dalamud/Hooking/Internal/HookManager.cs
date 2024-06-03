@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +5,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+
 using Iced.Intel;
 
 namespace Dalamud.Hooking.Internal;
@@ -14,7 +14,7 @@ namespace Dalamud.Hooking.Internal;
 /// This class manages the final disposition of hooks, cleaning up any that have not reverted their changes.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class HookManager : IDisposable, IServiceType
+internal class HookManager : IInternalDisposableService
 {
     /// <summary>
     /// Logger shared with <see cref="Unhooker"/>.
@@ -74,7 +74,7 @@ internal class HookManager : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         RevertHooks();
         TrackedHooks.Clear();

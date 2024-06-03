@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,8 +6,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
 using Iced.Intel;
 using Newtonsoft.Json;
 using Serilog;
@@ -103,6 +100,10 @@ public class SigScanner : IDisposable, ISigScanner
 
     /// <inheritdoc/>
     public ProcessModule Module { get; }
+
+    /// <summary>Gets or sets a value indicating whether this instance of <see cref="SigScanner"/> is meant to be a
+    /// Dalamud service.</summary>
+    private protected bool IsService { get; set; }
 
     private IntPtr TextSectionTop => this.TextSectionBase + this.TextSectionSize;
 
@@ -309,13 +310,11 @@ public class SigScanner : IDisposable, ISigScanner
         }
     }
 
-    /// <summary>
-    /// Free the memory of the copied module search area on object disposal, if applicable.
-    /// </summary>
+    /// <inheritdoc/>
     public void Dispose()
     {
-        this.Save();
-        Marshal.FreeHGlobal(this.moduleCopyPtr);
+        if (!this.IsService)
+            this.DisposeCore();
     }
 
     /// <summary>
@@ -335,6 +334,15 @@ public class SigScanner : IDisposable, ISigScanner
         {
             Log.Warning(e, "Failed to save cache to {CachePath}", this.cacheFile);
         }
+    }
+
+    /// <summary>
+    /// Free the memory of the copied module search area on object disposal, if applicable.
+    /// </summary>
+    private protected void DisposeCore()
+    {
+        this.Save();
+        Marshal.FreeHGlobal(this.moduleCopyPtr);
     }
 
     /// <summary>

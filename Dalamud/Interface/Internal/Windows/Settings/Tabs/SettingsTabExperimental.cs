@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
@@ -28,6 +27,14 @@ public class SettingsTabExperimental : SettingsTab
         new HintSettingsEntry(
             Loc.Localize("DalamudSettingsPluginTestWarning", "Testing plugins may contain bugs or crash your game. Please only enable this if you are aware of the risks."),
             ImGuiColors.DalamudRed),
+        
+        new GapSettingsEntry(5),
+        
+        new SettingsEntry<bool>(
+            Loc.Localize("DalamudSettingEnablePluginUIAdditionalOptions", "Add a button to the title bar of plugin windows to open additional options"),
+            Loc.Localize("DalamudSettingEnablePluginUIAdditionalOptionsHint", "This will allow you to pin certain plugin windows, make them clickthrough or adjust their opacity.\nThis may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."),
+            c => c.EnablePluginUiAdditionalOptions,
+            (v, c) => c.EnablePluginUiAdditionalOptions = v),
 
         new GapSettingsEntry(5),
 

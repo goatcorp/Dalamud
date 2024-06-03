@@ -12,6 +12,8 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+
 using Lumina.Excel.GeneratedSheets;
 
 using Action = System.Action;
@@ -22,8 +24,8 @@ namespace Dalamud.Game.ClientState;
 /// This class represents the state of the game client at the time of access.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed class ClientState : IDisposable, IServiceType, IClientState
+[ServiceManager.EarlyLoadedService]
+internal sealed class ClientState : IInternalDisposableService, IClientState
 {
     private static readonly ModuleLog Log = new("ClientState");
     
@@ -58,6 +60,8 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
         this.framework.Update += this.FrameworkOnOnUpdateEvent;
 
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
+
+        this.setupTerritoryTypeHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -88,6 +92,16 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
     public ushort TerritoryType { get; private set; }
 
     /// <inheritdoc/>
+    public unsafe uint MapId
+    {
+        get
+        {
+            var agentMap = AgentMap.Instance();
+            return agentMap != null ? AgentMap.Instance()->CurrentMapId : 0;
+        }
+    }
+
+    /// <inheritdoc/>
     public PlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as PlayerCharacter;
 
     /// <inheritdoc/>
@@ -113,17 +127,11 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.setupTerritoryTypeHook.Dispose();
         this.framework.Update -= this.FrameworkOnOnUpdateEvent;
         this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.setupTerritoryTypeHook.Enable();
     }
 
     private IntPtr SetupTerritoryTypeDetour(IntPtr manager, ushort terriType)
@@ -200,7 +208,7 @@ internal sealed class ClientState : IDisposable, IServiceType, IClientState
 #pragma warning disable SA1015
 [ResolveVia<IClientState>]
 #pragma warning restore SA1015
-internal class ClientStatePluginScoped : IDisposable, IServiceType, IClientState
+internal class ClientStatePluginScoped : IInternalDisposableService, IClientState
 {
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientStateService = Service<ClientState>.Get();
@@ -241,6 +249,9 @@ internal class ClientStatePluginScoped : IDisposable, IServiceType, IClientState
 
     /// <inheritdoc/>
     public ushort TerritoryType => this.clientStateService.TerritoryType;
+    
+    /// <inheritdoc/>
+    public uint MapId => this.clientStateService.MapId;
 
     /// <inheritdoc/>
     public PlayerCharacter? LocalPlayer => this.clientStateService.LocalPlayer;
@@ -261,7 +272,7 @@ internal class ClientStatePluginScoped : IDisposable, IServiceType, IClientState
     public bool IsGPosing => this.clientStateService.IsGPosing;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.clientStateService.TerritoryChanged -= this.TerritoryChangedForward;
         this.clientStateService.Login -= this.LoginForward;

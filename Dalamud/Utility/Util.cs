@@ -10,6 +10,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
@@ -18,10 +19,11 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
-using Dalamud.Logging.Internal;
+
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
+using TerraFX.Interop.Windows;
 using Windows.Win32.Storage.FileSystem;
 
 namespace Dalamud.Utility;
@@ -341,7 +343,10 @@ public static class Util
         _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
 
         if (exit)
+        {
+            Log.CloseAndFlush();
             Environment.Exit(-1);
+        }
     }
 
     /// <summary>
@@ -634,42 +639,6 @@ public static class Util
         if (!Windows.Win32.PInvoke.MoveFileEx(tempPath, path, MOVE_FILE_FLAGS.MOVEFILE_REPLACE_EXISTING | MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH))
             throw new Win32Exception();
     }
-    
-    /// <summary>
-    /// Dispose this object.
-    /// </summary>
-    /// <param name="obj">The object to dispose.</param>
-    /// <typeparam name="T">The type of object to dispose.</typeparam>
-    internal static void ExplicitDispose<T>(this T obj) where T : IDisposable
-    {
-        obj.Dispose();
-    }
-
-    /// <summary>
-    /// Dispose this object.
-    /// </summary>
-    /// <param name="obj">The object to dispose.</param>
-    /// <param name="logMessage">Log message to print, if specified and an error occurs.</param>
-    /// <param name="moduleLog">Module logger, if any.</param>
-    /// <typeparam name="T">The type of object to dispose.</typeparam>
-    internal static void ExplicitDisposeIgnoreExceptions<T>(
-        this T obj, string? logMessage = null, ModuleLog? moduleLog = null) where T : IDisposable
-    {
-        try
-        {
-            obj.Dispose();
-        }
-        catch (Exception e)
-        {
-            if (logMessage == null)
-                return;
-
-            if (moduleLog != null)
-                moduleLog.Error(e, logMessage);
-            else
-                Log.Error(e, logMessage);
-        }
-    }
 
     /// <summary>
     /// Gets a random, inoffensive, human-friendly string.
@@ -682,6 +651,55 @@ public static class Util
         var rng = new Random();
 
         return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
+    }
+
+    /// <summary>
+    /// Throws a corresponding exception if <see cref="HRESULT.FAILED"/> is true.
+    /// </summary>
+    /// <param name="hr">The result value.</param>
+    internal static void ThrowOnError(this HRESULT hr)
+    {
+        if (hr.FAILED)
+            Marshal.ThrowExceptionForHR(hr.Value);
+    }
+
+    /// <summary>
+    /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.
+    /// </summary>
+    /// <param name="t">The task.</param>
+    /// <param name="ex">The exception to set.</param>
+    internal static void SetExceptionIfIncomplete(this TaskCompletionSource t, Exception ex)
+    {
+        if (t.Task.IsCompleted)
+            return;
+        try
+        {
+            t.SetException(ex);
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    /// <summary>
+    /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.
+    /// </summary>
+    /// <typeparam name="T">The type of the result.</typeparam>
+    /// <param name="t">The task.</param>
+    /// <param name="ex">The exception to set.</param>
+    internal static void SetExceptionIfIncomplete<T>(this TaskCompletionSource<T> t, Exception ex)
+    {
+        if (t.Task.IsCompleted)
+            return;
+        try
+        {
+            t.SetException(ex);
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
     /// <summary>

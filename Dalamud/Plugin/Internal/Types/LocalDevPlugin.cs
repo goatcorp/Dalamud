@@ -1,10 +1,11 @@
-using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types.Manifest;
@@ -49,14 +50,6 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
             Log.Verbose("{InternalName} was assigned new devPlugin GUID {Guid}", this.InternalName, this.devSettings.WorkingPluginId);
             configuration.QueueSave();
         }
-        
-        // If the ID in the manifest is wrong, force the good one
-        if (this.DevImposedWorkingPluginId != this.manifest.WorkingPluginId)
-        {
-            Debug.Assert(this.DevImposedWorkingPluginId != Guid.Empty, "Empty guid for devPlugin");
-            this.manifest.WorkingPluginId = this.DevImposedWorkingPluginId;
-            this.SaveManifest("dev imposed working plugin id");
-        }
 
         if (this.AutomaticReload)
         {
@@ -100,6 +93,14 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
     public Guid DevImposedWorkingPluginId => this.devSettings.WorkingPluginId;
 
     /// <inheritdoc/>
+    public override Guid EffectiveWorkingPluginId => this.DevImposedWorkingPluginId;
+
+    /// <summary>
+    /// Gets a list of validation problems that have been dismissed by the user.
+    /// </summary>
+    public List<string> DismissedValidationProblems => this.devSettings.DismissedValidationProblems;
+
+    /// <inheritdoc/>
     public new void Dispose()
     {
         if (this.fileWatcher != null)
@@ -140,6 +141,23 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
             this.fileWatcher.Dispose();
             this.fileWatcher = null;
         }
+    }
+
+    /// <summary>
+    /// Reload the manifest if it exists, to update possible changes.
+    /// </summary>
+    /// <exception cref="Exception">Thrown if the manifest could not be loaded.</exception>
+    public void ReloadManifest()
+    {
+        var manifestPath = LocalPluginManifest.GetManifestFile(this.DllFile);
+        if (manifestPath.Exists)
+            this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
+    }
+    
+    /// <inheritdoc/>
+    protected override void OnPreReload()
+    {
+        this.ReloadManifest();
     }
 
     private void OnFileChanged(object sender, FileSystemEventArgs args)

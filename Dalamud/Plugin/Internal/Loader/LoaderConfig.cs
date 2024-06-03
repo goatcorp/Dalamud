@@ -1,7 +1,6 @@
 // Copyright (c) Nate McMaster, Dalamud contributors.
 // Licensed under the Apache License, Version 2.0. See License.txt in the Loader root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -46,7 +45,7 @@ internal class LoaderConfig
     /// Gets a list of assemblies which should be unified between the host and the plugin.
     /// </summary>
     /// <seealso href="https://github.com/natemcmaster/DotNetCorePlugins/blob/main/docs/what-are-shared-types.md">what-are-shared-types</seealso>
-    public ICollection<AssemblyName> SharedAssemblies { get; } = new List<AssemblyName>();
+    public ICollection<(AssemblyName Name, bool Recursive)> SharedAssemblies { get; } = new List<(AssemblyName Name, bool Recursive)>();
 
     /// <summary>
     /// Gets or sets a value indicating whether attempt to unify all types from a plugin with the host.

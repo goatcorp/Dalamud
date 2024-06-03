@@ -1,7 +1,6 @@
 // Copyright (c) Nate McMaster, Dalamud contributors.
 // Licensed under the Apache License, Version 2.0. See License.txt in the Loader root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -194,7 +193,18 @@ internal class ManagedLoadContext : AssemblyLoadContext
             }
         }
 
-        return null;
+        // https://learn.microsoft.com/en-us/dotnet/core/dependency-loading/loading-managed#algorithm
+        // > These assemblies are loaded (load-by-name) as needed by the runtime.
+        // For load-by-name assembiles, the following will happen in order:
+        // (1) this.Load will be called.
+        // (2) AssemblyLoadContext.Default's cache will be referred for lookup.
+        // (3) Default probing will be done from PLATFORM_RESOURCE_ROOTS and APP_PATHS.
+        // https://learn.microsoft.com/en-us/dotnet/core/dependency-loading/default-probing#managed-assembly-default-probing
+        // > TRUSTED_PLATFORM_ASSEMBLIES: List of platform and application assembly file paths.
+        // > APP_PATHS: is not populated by default and is omitted for most applications.
+        // If we return null here, if the assembly has not been already loaded, the resolution will fail.
+        // Therefore as the final attempt, we try loading from the default load context.
+        return this.defaultLoadContext.LoadFromAssemblyName(assemblyName);
     }
 
     /// <summary>

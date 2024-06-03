@@ -1,10 +1,10 @@
-using System;
 using System.Numerics;
 
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using ImGuiNET;
 using Serilog;
 
@@ -17,11 +17,11 @@ namespace Dalamud.Game.ClientState.GamePad;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IGamepadState>]
 #pragma warning restore SA1015
-internal unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
+internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
 {
     private readonly Hook<ControllerPoll>? gamepadPoll;
 
@@ -38,6 +38,7 @@ internal unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
         var resolver = clientState.AddressResolver;
         Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
         this.gamepadPoll = Hook<ControllerPoll>.FromAddress(resolver.GamepadPoll, this.GamepadPollDetour);
+        this.gamepadPoll?.Enable();
     }
 
     private delegate int ControllerPoll(IntPtr controllerInput);
@@ -108,16 +109,10 @@ internal unsafe class GamepadState : IDisposable, IServiceType, IGamepadState
     /// <summary>
     /// Disposes this instance, alongside its hooks.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.gamepadPoll?.Enable();
     }
 
     private int GamepadPollDetour(IntPtr gamepadInput)

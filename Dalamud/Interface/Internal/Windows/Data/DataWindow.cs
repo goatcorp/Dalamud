@@ -6,6 +6,8 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
+
 using ImGuiNET;
 using Serilog;
 
@@ -14,42 +16,45 @@ namespace Dalamud.Interface.Internal.Windows.Data;
 /// <summary>
 /// Class responsible for drawing the data/debug window.
 /// </summary>
-internal class DataWindow : Window
+internal class DataWindow : Window, IDisposable
 {
     private readonly IDataWindowWidget[] modules =
     {
-        new ServicesWidget(),
-        new AddressesWidget(),
-        new ObjectTableWidget(),
-        new FateTableWidget(),
-        new SeFontTestWidget(),
-        new FontAwesomeTestWidget(),
-        new PartyListWidget(),
-        new BuddyListWidget(),
-        new PluginIpcWidget(),
-        new ConditionWidget(),
-        new GaugeWidget(),
-        new CommandWidget(),
-        new AddonWidget(),
         new AddonInspectorWidget(),
+        new AddonLifecycleWidget(),
+        new AddonWidget(),
+        new AddressesWidget(),
+        new AetherytesWidget(),
         new AtkArrayDataBrowserWidget(),
+        new BuddyListWidget(),
+        new CommandWidget(),
+        new ConditionWidget(),
+        new ConfigurationWidget(),
+        new DataShareWidget(),
+        new DtrBarWidget(),
+        new FateTableWidget(),
+        new FlyTextWidget(),
+        new FontAwesomeTestWidget(),
+        new GameInventoryTestWidget(),
+        new GamePrebakedFontsTestWidget(),
+        new GamepadWidget(),
+        new GaugeWidget(),
+        new HookWidget(),
+        new IconBrowserWidget(),
+        new ImGuiWidget(),
+        new KeyStateWidget(),
+        new NetworkMonitorWidget(),
+        new ObjectTableWidget(),
+        new PartyListWidget(),
+        new PluginIpcWidget(),
+        new SeFontTestWidget(),
+        new ServicesWidget(),
         new StartInfoWidget(),
         new TargetWidget(),
-        new ToastWidget(),
-        new FlyTextWidget(),
-        new ImGuiWidget(),
-        new TexWidget(),
-        new KeyStateWidget(),
-        new GamepadWidget(),
-        new ConfigurationWidget(),
         new TaskSchedulerWidget(),
-        new HookWidget(),
-        new AetherytesWidget(),
-        new DtrBarWidget(),
+        new TexWidget(),
+        new ToastWidget(),
         new UIColorWidget(),
-        new DataShareWidget(),
-        new NetworkMonitorWidget(),
-        new IconBrowserWidget(),
     };
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
@@ -73,6 +78,9 @@ internal class DataWindow : Window
 
         this.Load();
     }
+
+    /// <inheritdoc/>
+    public void Dispose() => this.modules.OfType<IDisposable>().AggregateToDisposable().Dispose();
 
     /// <inheritdoc/>
     public override void OnOpen()

@@ -1,10 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Fates;
@@ -14,7 +14,7 @@ namespace Dalamud.Game.ClientState.Fates;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IFateTable>]
 #pragma warning restore SA1015

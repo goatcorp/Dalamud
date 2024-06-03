@@ -1,6 +1,7 @@
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Conditions;
@@ -9,23 +10,37 @@ namespace Dalamud.Game.ClientState.Conditions;
 /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed partial class Condition : IServiceType, ICondition
+[ServiceManager.EarlyLoadedService]
+internal sealed class Condition : IInternalDisposableService, ICondition
 {
     /// <summary>
     /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
     /// </summary>
     internal const int MaxConditionEntries = 104;
+
+    [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
     
     private readonly bool[] cache = new bool[MaxConditionEntries];
+
+    private bool isDisposed;
 
     [ServiceManager.ServiceConstructor]
     private Condition(ClientState clientState)
     {
         var resolver = clientState.AddressResolver;
         this.Address = resolver.ConditionFlags;
+
+        // Initialization
+        for (var i = 0; i < MaxConditionEntries; i++)
+            this.cache[i] = this[i];
+
+        this.framework.Update += this.FrameworkUpdate;
     }
     
+    /// <summary>Finalizes an instance of the <see cref="Condition" /> class.</summary>
+    ~Condition() => this.Dispose(false);
+
     /// <inheritdoc/>
     public event ICondition.ConditionChangeDelegate? ConditionChange;
 
@@ -50,6 +65,9 @@ internal sealed partial class Condition : IServiceType, ICondition
     /// <inheritdoc/>
     public bool this[ConditionFlag flag]
         => this[(int)flag];
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService() => this.Dispose(true);
 
     /// <inheritdoc/>
     public bool Any()
@@ -80,17 +98,20 @@ internal sealed partial class Condition : IServiceType, ICondition
         return false;
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(Framework framework)
+    private void Dispose(bool disposing)
     {
-        // Initialization
-        for (var i = 0; i < MaxConditionEntries; i++)
-            this.cache[i] = this[i];
+        if (this.isDisposed)
+            return;
 
-        framework.Update += this.FrameworkUpdate;
+        if (disposing)
+        {
+            this.framework.Update -= this.FrameworkUpdate;
+        }
+
+        this.isDisposed = true;
     }
 
-    private void FrameworkUpdate(IFramework framework)
+    private void FrameworkUpdate(IFramework unused)
     {
         for (var i = 0; i < MaxConditionEntries; i++)
         {
@@ -114,44 +135,6 @@ internal sealed partial class Condition : IServiceType, ICondition
 }
 
 /// <summary>
-/// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
-/// </summary>
-internal sealed partial class Condition : IDisposable
-{
-    private bool isDisposed;
-
-    /// <summary>
-    /// Finalizes an instance of the <see cref="Condition" /> class.
-    /// </summary>
-    ~Condition()
-    {
-        this.Dispose(false);
-    }
-
-    /// <summary>
-    /// Disposes this instance, alongside its hooks.
-    /// </summary>
-    void IDisposable.Dispose()
-    {
-        GC.SuppressFinalize(this);
-        this.Dispose(true);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (this.isDisposed)
-            return;
-
-        if (disposing)
-        {
-            Service<Framework>.Get().Update -= this.FrameworkUpdate;
-        }
-
-        this.isDisposed = true;
-    }
-}
-
-/// <summary>
 /// Plugin-scoped version of a Condition service.
 /// </summary>
 [PluginInterface]
@@ -160,7 +143,7 @@ internal sealed partial class Condition : IDisposable
 #pragma warning disable SA1015
 [ResolveVia<ICondition>]
 #pragma warning restore SA1015
-internal class ConditionPluginScoped : IDisposable, IServiceType, ICondition
+internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 {
     [ServiceManager.ServiceDependency]
     private readonly Condition conditionService = Service<Condition>.Get();
@@ -186,7 +169,7 @@ internal class ConditionPluginScoped : IDisposable, IServiceType, ICondition
     public bool this[int flag] => this.conditionService[flag];
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.conditionService.ConditionChange -= this.ConditionChangedForward;
 

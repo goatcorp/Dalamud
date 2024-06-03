@@ -2,28 +2,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
-using Serilog;
 
 namespace Dalamud.Game;
 
 /// <summary>
 /// Chat events and public helper functions.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class ChatHandlers : IServiceType
 {
     // private static readonly Dictionary<string, string> UnicodeToDiscordEmojiDict = new()
@@ -59,6 +63,8 @@ internal class ChatHandlers : IServiceType
     //     { XivChatType.NoviceNetwork, Color.SaddleBrown },
     //     { XivChatType.Echo, Color.Gray },
     // };
+
+    private static readonly ModuleLog Log = new("CHATHANDLER");
 
     private readonly Regex rmtRegex = new(
         @"4KGOLD|We have sufficient stock|VPK\.OM|[Gg]il for free|[Gg]il [Cc]heap|5GOLD|www\.so9\.com|Fast & Convenient|Cheap & Safety Guarantee|【Code|A O A U E|igfans|4KGOLD\.COM|Cheapest Gil with|pvp and bank on google|Selling Cheap GIL|ff14mogstation\.com|Cheap Gil 1000k|gilsforyou|server 1000K =|gils_selling|E A S Y\.C O M|bonus code|mins delivery guarantee|Sell cheap|Salegm\.com|cheap Mog|Off Code:|FF14Mog.com|使用する5％オ|[Oo][Ff][Ff] [Cc]ode( *)[:;]|offers Fantasia",
@@ -110,6 +116,7 @@ internal class ChatHandlers : IServiceType
 
     private bool hasSeenLoadingMsg;
     private bool startedAutoUpdatingPlugins;
+    private CancellationTokenSource deferredAutoUpdateCts = new();
 
     [ServiceManager.ServiceConstructor]
     private ChatHandlers(ChatGui chatGui)
@@ -119,7 +126,7 @@ internal class ChatHandlers : IServiceType
 
         this.openInstallerWindowLink = chatGui.AddChatLinkHandler("Dalamud", 1001, (i, m) =>
         {
-            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins);
+            Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins);
         });
     }
 
@@ -165,15 +172,18 @@ internal class ChatHandlers : IServiceType
         if (clientState == null)
             return;
 
-        if (type == XivChatType.Notice && !this.hasSeenLoadingMsg)
-            this.PrintWelcomeMessage();
+        if (type == XivChatType.Notice)
+        {
+            if (!this.hasSeenLoadingMsg)
+                this.PrintWelcomeMessage();
+            
+            if (!this.startedAutoUpdatingPlugins)
+                this.AutoUpdatePluginsWithRetry();
+        }
 
         // For injections while logged in
         if (clientState.LocalPlayer != null && clientState.TerritoryType == 0 && !this.hasSeenLoadingMsg)
             this.PrintWelcomeMessage();
-
-        if (!this.startedAutoUpdatingPlugins)
-            this.AutoUpdatePlugins();
 
 #if !DEBUG && false
             if (!this.hasSeenLoadingMsg)
@@ -264,24 +274,49 @@ internal class ChatHandlers : IServiceType
         this.hasSeenLoadingMsg = true;
     }
 
-    private void AutoUpdatePlugins()
+    private void AutoUpdatePluginsWithRetry()
+    {
+        var firstAttempt = this.AutoUpdatePlugins();
+        if (!firstAttempt)
+        {
+            Task.Run(() =>
+            {
+                Task.Delay(30_000, this.deferredAutoUpdateCts.Token);
+                this.AutoUpdatePlugins();
+            });
+        }
+    }
+
+    private bool AutoUpdatePlugins()
     {
         var chatGui = Service<ChatGui>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
         var notifications = Service<NotificationManager>.GetNullable();
+        var condition = Service<Condition>.GetNullable();
 
-        if (chatGui == null || pluginManager == null || notifications == null)
-            return;
+        if (chatGui == null || pluginManager == null || notifications == null || condition == null)
+        {
+            Log.Warning("Aborting auto-update because a required service was not loaded.");
+            return false;
+        }
+
+        if (condition.Any(ConditionFlag.BoundByDuty, ConditionFlag.BoundByDuty56, ConditionFlag.BoundByDuty95))
+        {
+            Log.Warning("Aborting auto-update because the player is in a duty.");
+            return false;
+        }
 
         if (!pluginManager.ReposReady || !pluginManager.InstalledPlugins.Any() || !pluginManager.AvailablePlugins.Any())
         {
             // Plugins aren't ready yet.
             // TODO: We should retry. This sucks, because it means we won't ever get here again until another notice.
-            return;
+            Log.Warning("Aborting auto-update because plugins weren't loaded or ready.");
+            return false;
         }
 
         this.startedAutoUpdatingPlugins = true;
 
+        Log.Debug("Beginning plugin auto-update process...");
         Task.Run(() => pluginManager.UpdatePluginsAsync(true, !this.configuration.AutoUpdatePlugins, true)).ContinueWith(task =>
         {
             this.IsAutoUpdateComplete = true;
@@ -320,5 +355,7 @@ internal class ChatHandlers : IServiceType
                 }
             }
         });
+
+        return true;
     }
 }

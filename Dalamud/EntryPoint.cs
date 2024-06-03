@@ -138,7 +138,9 @@ public sealed class EntryPoint
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
         // Load configuration first to get some early persistent state, like log level
+#pragma warning disable CS0618 // Type or member is obsolete
         var fs = new ReliableFileStorage(Path.GetDirectoryName(info.ConfigurationPath)!);
+#pragma warning restore CS0618 // Type or member is obsolete
         var configuration = DalamudConfiguration.Load(info.ConfigurationPath!, fs);
 
         // Set the appropriate logging level from the configuration
@@ -147,7 +149,8 @@ public sealed class EntryPoint
         LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 
         // Log any unhandled exception.
-        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        if (!info.NoExceptionHandlers)
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         var unloadFailed = false;
@@ -196,7 +199,8 @@ public sealed class EntryPoint
         finally
         {
             TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
-            AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+            if (!info.NoExceptionHandlers)
+                AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
 
             Log.Information("Session has ended.");
             Log.CloseAndFlush();

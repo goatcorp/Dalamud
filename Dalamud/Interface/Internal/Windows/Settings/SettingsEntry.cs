@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Internal.Windows.Settings;
+﻿namespace Dalamud.Interface.Internal.Windows.Settings;
 
 /// <summary>
 /// Basic, drawable settings entry.
