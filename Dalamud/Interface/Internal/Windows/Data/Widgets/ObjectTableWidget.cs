@@ -81,7 +81,7 @@ internal class ObjectTableWidget : IDataWindowWidget
                     // So, while WorldToScreen will return false if the point is off of game client screen, to
                     // to avoid performance issues, we have to manually determine if creating a window would
                     // produce a new viewport, and skip rendering it if so
-                    var objectText = $"{obj.Address.ToInt64():X}:{obj.ObjectId:X}[{i}] - {obj.ObjectKind} - {obj.Name}";
+                    var objectText = $"{obj.Address.ToInt64():X}:{obj.GameObjectId:X}[{i}] - {obj.ObjectKind} - {obj.Name}";
 
                     var screenPos = ImGui.GetMainViewport().Pos;
                     var screenSize = ImGui.GetMainViewport().Size;

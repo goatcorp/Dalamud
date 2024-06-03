@@ -13,11 +13,6 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 public unsafe partial class GameObject : IEquatable<GameObject>
 {
     /// <summary>
-    /// IDs of non-networked GameObjects.
-    /// </summary>
-    public const uint InvalidGameObjectId = 0xE0000000;
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="GameObject"/> class.
     /// </summary>
     /// <param name="address">The address of this game object in memory.</param>
@@ -79,13 +74,13 @@ public unsafe partial class GameObject : IEquatable<GameObject>
     public bool IsValid() => IsValid(this);
 
     /// <inheritdoc/>
-    bool IEquatable<GameObject>.Equals(GameObject other) => this.ObjectId == other?.ObjectId;
+    bool IEquatable<GameObject>.Equals(GameObject other) => this.GameObjectId == other?.GameObjectId;
 
     /// <inheritdoc/>
     public override bool Equals(object obj) => ((IEquatable<GameObject>)this).Equals(obj as GameObject);
 
     /// <inheritdoc/>
-    public override int GetHashCode() => this.ObjectId.GetHashCode();
+    public override int GetHashCode() => this.GameObjectId.GetHashCode();
 }
 
 /// <summary>
@@ -99,10 +94,20 @@ public unsafe partial class GameObject
     public SeString Name => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->Name[0]), 64);
 
     /// <summary>
-    /// Gets the object ID of this <see cref="GameObject" />.
+    /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
+    /// this specific object. This ID is used to reference specific objects on the local client (e.g. for targeting).
+    ///
+    /// Not to be confused with <see cref="EntityId"/>.
     /// </summary>
-    public uint ObjectId => this.Struct->EntityId;
+    public ulong GameObjectId => this.Struct->GetObjectId();
 
+    /// <summary>
+    /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.
+    ///
+    /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
+    /// </summary>
+    public uint EntityId => this.Struct->EntityId;
+    
     /// <summary>
     /// Gets the data ID for linking to other respective game data.
     /// </summary>
@@ -185,5 +190,5 @@ public unsafe partial class GameObject
     protected internal FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
 
     /// <inheritdoc/>
-    public override string ToString() => $"{this.ObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
+    public override string ToString() => $"{this.GameObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
 }

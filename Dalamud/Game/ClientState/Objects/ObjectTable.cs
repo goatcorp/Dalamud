@@ -83,16 +83,16 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     }
 
     /// <inheritdoc/>
-    public GameObject? SearchById(ulong objectId)
+    public GameObject? SearchById(ulong gameObjectId)
     {
         _ = this.WarnMultithreadedUsage();
 
-        if (objectId is GameObject.InvalidGameObjectId or 0)
+        if (gameObjectId is 0)
             return null;
 
         foreach (var e in this.cachedObjectTable)
         {
-            if (e.Update() is { } o && o.ObjectId == objectId)
+            if (e.Update() is { } o && o.GameObjectId == gameObjectId)
                 return o;
         }
 
