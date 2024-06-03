@@ -30,7 +30,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
     {
         var fontWidth = ImGui.CalcTextSize("A").X;
         var fontHeight = ImGui.GetTextLineHeightWithSpacing();
-        var uiModule = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule();
+        var uiModule = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUIModule();
 
         if (uiModule == null)
         {

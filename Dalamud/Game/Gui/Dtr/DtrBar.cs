@@ -459,11 +459,11 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             switch (atkEventType)
             {
                 case AddonEventType.MouseOver:
-                    AtkStage.GetSingleton()->TooltipManager.ShowTooltip(addon->Id, node, dtrBarEntry.Tooltip.Encode());
+                    AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, dtrBarEntry.Tooltip.Encode());
                     break;
                 
                 case AddonEventType.MouseOut:
-                    AtkStage.GetSingleton()->TooltipManager.HideTooltip(addon->Id);
+                    AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
                     break;
             }
         }

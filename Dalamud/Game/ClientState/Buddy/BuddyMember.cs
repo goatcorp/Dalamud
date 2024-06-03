@@ -29,7 +29,7 @@ public unsafe class BuddyMember
     /// <summary>
     /// Gets the object ID of this buddy.
     /// </summary>
-    public uint ObjectId => this.Struct->ObjectId;
+    public uint ObjectId => this.Struct->EntityId;
 
     /// <summary>
     /// Gets the actor associated with this buddy.

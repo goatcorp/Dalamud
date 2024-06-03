@@ -173,14 +173,14 @@ internal unsafe class AddonEventManager : IInternalDisposableService
     {
         try
         {
-            var atkStage = AtkStage.GetSingleton();
+            var atkStage = AtkStage.Instance();
             
             if (this.cursorOverride is not null && atkStage is not null)
             {
                 var cursor = (AddonCursorType)atkStage->AtkCursor.Type;
                 if (cursor != this.cursorOverride) 
                 {
-                    AtkStage.GetSingleton()->AtkCursor.SetCursorType((AtkCursor.CursorType)this.cursorOverride, 1);
+                    AtkStage.Instance()->AtkCursor.SetCursorType((AtkCursor.CursorType)this.cursorOverride, 1);
                 }
                 
                 return nint.Zero;
