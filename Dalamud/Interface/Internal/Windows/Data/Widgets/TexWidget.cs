@@ -31,6 +31,8 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class TexWidget : IDataWindowWidget
 {
+    // TODO: move tracking implementation to PluginStats where applicable,
+    //       and show stats over there instead of TexWidget.
     private static readonly Dictionary<
         DrawBlameTableColumnUserId,
         Func<TextureManager.IBlameableDalamudTextureWrap, IComparable>> DrawBlameTableColumnColumnComparers = new()
