@@ -344,9 +344,12 @@ internal abstract class SharedImmediateTexture
             default(CancellationToken));
     }
 
-    /// <summary>Creates the texture.</summary>
+    /// <summary>Creates the texture immediately.</summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The task resulting in a loaded texture.</returns>
+    /// <remarks>This function is intended to be called from texture load scheduler.
+    /// See <see cref="LoadUnderlyingWrap"/> and note that this function is being used as the callback from
+    /// <see cref="DynamicPriorityQueueLoader.LoadAsync{T}"/>.</remarks>
     protected abstract Task<IDalamudTextureWrap> CreateTextureAsync(CancellationToken cancellationToken);
 
     private IRefCountable.RefCountResult TryAddRef(out int newRefCount)
