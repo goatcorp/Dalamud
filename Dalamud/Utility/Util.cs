@@ -640,6 +640,30 @@ public static class Util
             throw new Win32Exception();
     }
 
+    /// <summary>Gets a temporary file name, for use as the sourceFileName in
+    /// <see cref="File.Replace(string,string,string?)"/>.</summary>
+    /// <param name="targetFile">The target file.</param>
+    /// <returns>A temporary file name that should be usable with <see cref="File.Replace(string,string,string?)"/>.
+    /// </returns>
+    /// <remarks>No write operation is done on the filesystem.</remarks>
+    public static string GetTempFileNameForFileReplacement(string targetFile)
+    {
+        Span<byte> buf = stackalloc byte[9];
+        Random.Shared.NextBytes(buf);
+        for (var i = 0; ; i++)
+        {
+            var tempName =
+                Path.GetFileName(targetFile) +
+                Convert.ToBase64String(buf)
+                       .TrimEnd('=')
+                       .Replace('+', '-')
+                       .Replace('/', '_');
+            var tempPath = Path.Join(Path.GetDirectoryName(targetFile), tempName);
+            if (i >= 64 || !Path.Exists(tempPath))
+                return tempPath;
+        }
+    }
+
     /// <summary>
     /// Gets a random, inoffensive, human-friendly string.
     /// </summary>
