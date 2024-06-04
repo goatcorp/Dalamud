@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Internal;
 
 using ImGuiNET;
 
@@ -170,7 +171,7 @@ public class IconBrowserWidget : IDataWindowWidget
 
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
-                _ = Service<DalamudInterface>.Get().ShowTextureSaveMenuAsync(
+                _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
                     this.DisplayName,
                     iconId.ToString(),
                     Task.FromResult(texture.CreateWrapSharingLowLevelResource()));

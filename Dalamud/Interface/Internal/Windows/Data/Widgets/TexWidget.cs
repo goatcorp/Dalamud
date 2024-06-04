@@ -13,6 +13,7 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
@@ -249,7 +250,7 @@ internal class TexWidget : IDataWindowWidget
                 ImGui.SameLine();
                 if (ImGui.Button("Save"))
                 {
-                    _ = Service<DalamudInterface>.Get().ShowTextureSaveMenuAsync(
+                    _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
                         this.DisplayName,
                         $"Texture {t.Id}",
                         t.CreateNewTextureWrapReference(this.textureManager));
@@ -458,7 +459,7 @@ internal class TexWidget : IDataWindowWidget
                 ImGui.TableNextColumn();
                 if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
                 {
-                    _ = Service<DalamudInterface>.Get().ShowTextureSaveMenuAsync(
+                    _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
                         this.DisplayName,
                         $"{wrap.ImGuiHandle:X16}",
                         Task.FromResult(wrap.CreateWrapSharingLowLevelResource()));
@@ -585,7 +586,7 @@ internal class TexWidget : IDataWindowWidget
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
                     {
                         var name = Path.ChangeExtension(Path.GetFileName(texture.SourcePathForDebug), null);
-                        _ = Service<DalamudInterface>.Get().ShowTextureSaveMenuAsync(
+                        _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
                             this.DisplayName,
                             name,
                             texture.RentAsync());
