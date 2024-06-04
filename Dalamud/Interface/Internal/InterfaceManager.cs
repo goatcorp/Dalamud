@@ -217,7 +217,7 @@ internal class InterfaceManager : IInternalDisposableService
 
     /// <summary>Gets a value indicating whether the main thread is executing <see cref="PresentDetour"/>.</summary>
     /// <remarks>This still will be <c>true</c> even when queried off the main thread.</remarks>
-    public bool IsInPresent { get; private set; }
+    public bool IsMainThreadInPresent { get; private set; }
 
     /// <summary>
     /// Gets a value indicating the native handle of the game main window.
@@ -249,9 +249,11 @@ internal class InterfaceManager : IInternalDisposableService
     /// </summary>
     public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
 
-    /// <summary>
-    /// Gets the number of calls to <see cref="PresentDetour"/> so far.
-    /// </summary>
+    /// <summary>Gets the number of calls to <see cref="PresentDetour"/> so far.</summary>
+    /// <remarks>
+    /// The value increases even when Dalamud is hidden via &quot;/xlui hide&quot;.
+    /// <see cref="DalamudInterface.FrameCount"/> does not.
+    /// </remarks>
     public long CumulativePresentCalls { get; private set; }
 
     /// <summary>
@@ -657,7 +659,7 @@ internal class InterfaceManager : IInternalDisposableService
         }
 
         this.CumulativePresentCalls++;
-        this.IsInPresent = true;
+        this.IsMainThreadInPresent = true;
 
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
@@ -668,14 +670,14 @@ internal class InterfaceManager : IInternalDisposableService
 
             RenderImGui(this.scene!);
             this.PostImGuiRender();
-            this.IsInPresent = false;
+            this.IsMainThreadInPresent = false;
 
             return pRes;
         }
 
         RenderImGui(this.scene!);
         this.PostImGuiRender();
-        this.IsInPresent = false;
+        this.IsMainThreadInPresent = false;
 
         return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
     }
