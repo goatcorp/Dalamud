@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Dalamud.Plugin.Ipc.Exceptions;
+
 using Serilog;
 
 namespace Dalamud.Plugin.Ipc.Internal;

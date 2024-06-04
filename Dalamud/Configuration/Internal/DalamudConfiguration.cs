@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -7,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Text;
+using Dalamud.Interface;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
@@ -161,6 +161,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// </summary>
     [Obsolete("It happens that nobody touched this setting", true)]
     public float FontGammaLevel { get; set; } = 1.4f;
+
+    /// <summary>Gets or sets the opacity of the IME state indicator.</summary>
+    /// <value>0 will hide the state indicator. 1 will make the state indicator fully visible. Values outside the
+    /// range will be clamped to [0, 1].</value>
+    /// <remarks>See <see cref="SeIconChar.ImeHiragana"/> to <see cref="SeIconChar.ImeChineseLatin"/>.</remarks>
+    public float ImeStateIndicatorOpacity { get; set; } = 1f;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not plugin UI should be hidden.
@@ -456,7 +462,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets the page of the plugin installer that is shown by default when opened.
     /// </summary>
-    public PluginInstallerWindow.PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins;
+    public PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerOpenKind.AllPlugins;
 
     /// <summary>
     /// Load a configuration from the provided path.

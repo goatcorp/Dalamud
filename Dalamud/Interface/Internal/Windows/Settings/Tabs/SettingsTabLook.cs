@@ -6,6 +6,7 @@ using System.Text;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
@@ -128,14 +129,35 @@ public class SettingsTabLook : SettingsTab
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingInstallerOpenDefault", "Open the Plugin Installer to the \"Installed Plugins\" tab by default"),
             Loc.Localize("DalamudSettingInstallerOpenDefaultHint", "This will allow you to open the Plugin Installer to the \"Installed Plugins\" tab by default, instead of the \"Available Plugins\" tab."),
-            c => c.PluginInstallerOpen == PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins,
-            (v, c) => c.PluginInstallerOpen = v ? PluginInstallerWindow.PluginInstallerOpenKind.InstalledPlugins : PluginInstallerWindow.PluginInstallerOpenKind.AllPlugins),
+            c => c.PluginInstallerOpen == PluginInstallerOpenKind.InstalledPlugins,
+            (v, c) => c.PluginInstallerOpen = v ? PluginInstallerOpenKind.InstalledPlugins : PluginInstallerOpenKind.AllPlugins),
         
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingReducedMotion", "Reduce motions"),
             Loc.Localize("DalamudSettingReducedMotionHint", "This will suppress certain animations from Dalamud, such as the notification popup."),
             c => c.ReduceMotions ?? false,
             (v, c) => c.ReduceMotions = v),
+        
+        new SettingsEntry<float>(
+            Loc.Localize("DalamudSettingImeStateIndicatorOpacity", "IME State Indicator Opacity (CJK only)"),
+            Loc.Localize("DalamudSettingImeStateIndicatorOpacityHint", "When any of CJK IMEs is in use, the state of IME will be shown with the opacity specified here."),
+            c => c.ImeStateIndicatorOpacity,
+            (v, c) => c.ImeStateIndicatorOpacity = v)
+        {
+            CustomDraw = static e =>
+            {
+                ImGuiHelpers.SafeTextWrapped(e.Name!);
+
+                var v = e.Value * 100f;
+                if (ImGui.SliderFloat($"###{e}", ref v, 0f, 100f, "%.1f%%"))
+                    e.Value = v / 100f;
+                ImGui.SameLine();
+
+                ImGui.PushStyleVar(ImGuiStyleVar.Alpha, v / 100);
+                ImGui.TextUnformatted("\uE020\uE021\uE022\uE023\uE024\uE025\uE026\uE027");
+                ImGui.PopStyleVar(1);
+            },
+        },
     };
 
     public override string Title => Loc.Localize("DalamudSettingsVisual", "Look & Feel");

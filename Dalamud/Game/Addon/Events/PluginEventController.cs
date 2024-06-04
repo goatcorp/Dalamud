@@ -5,6 +5,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Events;
@@ -46,7 +47,7 @@ internal unsafe class PluginEventController : IDisposable
         
         var eventHandle = new AddonEventHandle
         {
-            AddonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name),
+            AddonName = addon->NameString,
             ParamKey = eventId,
             EventType = atkEventType,
             EventGuid = eventGuid,

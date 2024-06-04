@@ -17,6 +17,7 @@ using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.FFXIV.Component.GUI.AtkModuleInterface;
 using FFXIVClientStructs.Interop;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
@@ -40,7 +41,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     private ContextMenu()
     {
         this.raptureAtkModuleOpenAddonByAgentHook = Hook<RaptureAtkModuleOpenAddonByAgentDelegate>.FromAddress((nint)RaptureAtkModule.Addresses.OpenAddonByAgent.Value, this.RaptureAtkModuleOpenAddonByAgentDetour);
-        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVTable.OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
+        this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVirtualTablePointer->OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
         this.raptureAtkModuleOpenAddon = Marshal.GetDelegateForFunctionPointer<RaptureAtkModuleOpenAddonDelegate>((nint)RaptureAtkModule.Addresses.OpenAddon.Value);
 
         this.raptureAtkModuleOpenAddonByAgentHook.Enable();
@@ -268,11 +269,15 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
         foreach (var item in items)
         {
-            if (!item.Prefix.HasValue && !item.UseDefaultPrefix)
+            if (!item.Prefix.HasValue)
             {
                 item.Prefix = MenuItem.DalamudDefaultPrefix;
                 item.PrefixColor = MenuItem.DalamudDefaultPrefixColor;
-                Log.Warning($"Menu item \"{item.Name}\" has no prefix, defaulting to Dalamud's. Menu items outside of a submenu must have a prefix.");
+
+                if (!item.UseDefaultPrefix)
+                {
+                    Log.Warning($"Menu item \"{item.Name}\" has no prefix, defaulting to Dalamud's. Menu items outside of a submenu must have a prefix.");
+                }
             }
         }
 
@@ -312,8 +317,8 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 this.SelectedMenuType = ContextMenuType.Default;
 
                 var menu = AgentContext.Instance()->CurrentContextMenu;
-                var handlers = new Span<Pointer<AtkEventInterface>>(menu->EventHandlerArray, 32);
-                var ids = new Span<byte>(menu->EventIdArray, 32);
+                var handlers = menu->EventHandlers;
+                var ids = menu->EventIds;
                 var count = (int)values[0].UInt;
                 handlers = handlers.Slice(7, count);
                 ids = ids.Slice(7, count);

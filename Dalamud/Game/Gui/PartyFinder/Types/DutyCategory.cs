@@ -11,9 +11,9 @@ public enum DutyCategory
     Duty = 0,
 
     /// <summary>
-    /// The quest battle category.
+    /// The gold saucer category.
     /// </summary>
-    QuestBattles = 1 << 0,
+    GoldSaucer = 1 << 0,
 
     /// <summary>
     /// The fate category.
@@ -43,5 +43,16 @@ public enum DutyCategory
     /// <summary>
     /// The adventuring forays category.
     /// </summary>
+    [Obsolete("Adventuring Forays have been renamed to Field Operations")]
     AdventuringForays = 1 << 6,
+
+    /// <summary>
+    /// The field operations category.
+    /// </summary>
+    FieldOperations = 1 << 6,
+
+    /// <summary>
+    /// The variant and criterion dungeons category.
+    /// </summary>
+    VariantAndCriterionDungeons = 1 << 7,
 }

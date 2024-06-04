@@ -1,11 +1,12 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Buddy;
@@ -97,13 +98,13 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     /// <inheritdoc/>
     public unsafe IntPtr GetCompanionBuddyMemberAddress()
     {
-        return (IntPtr)(&this.BuddyListStruct->Companion);
+        return (IntPtr)this.BuddyListStruct->CompanionInfo.Companion;
     }
 
     /// <inheritdoc/>
     public unsafe IntPtr GetPetBuddyMemberAddress()
     {
-        return (IntPtr)(&this.BuddyListStruct->Pet);
+        return (IntPtr)this.BuddyListStruct->PetInfo.Pet;
     }
 
     /// <inheritdoc/>
@@ -112,7 +113,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
         if (index < 0 || index >= 3)
             return IntPtr.Zero;
 
-        return (IntPtr)(this.BuddyListStruct->BattleBuddies + (index * BuddyMemberSize));
+        return (IntPtr)Unsafe.AsPointer(ref this.BuddyListStruct->BattleBuddies[index]);
     }
 
     /// <inheritdoc/>

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Game.ClientState.Keys;
+﻿namespace Dalamud.Game.ClientState.Keys;
 
 /// <summary>
 /// Attribute describing a VirtualKey.

@@ -132,12 +132,12 @@ public unsafe class CharacterData
     /// <summary>
     /// Gets the name of the character.
     /// </summary>
-    public string Name => MemoryHelper.ReadString((nint)this.Struct->Name, 32);
+    public string Name => this.Struct->NameString;
 
     /// <summary>
     /// Gets the free company tag of the character.
     /// </summary>
-    public string FCTag => MemoryHelper.ReadString((nint)this.Struct->Name, 6);
+    public string FCTag => this.Struct->FCTagString;
 
     /// <summary>
     /// Gets the underlying <see cref="InfoProxyCommonList.CharacterData"/> struct.

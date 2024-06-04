@@ -29,9 +29,9 @@ public interface IObjectTable : IEnumerable<GameObject>
     /// <summary>
     /// Search for a game object by their Object ID.
     /// </summary>
-    /// <param name="objectId">Object ID to find.</param>
+    /// <param name="gameObjectId">Object ID to find.</param>
     /// <returns>A game object or null.</returns>
-    public GameObject? SearchById(ulong objectId);
+    public GameObject? SearchById(ulong gameObjectId);
 
     /// <summary>
     /// Gets the address of the game object at the specified index of the object table.
