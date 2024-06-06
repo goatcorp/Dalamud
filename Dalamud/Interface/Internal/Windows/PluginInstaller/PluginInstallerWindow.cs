@@ -364,10 +364,13 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <returns>A value indicating whether to continue with the next task.</returns>
     public bool DisplayErrorContinuation(Task task, object state)
     {
-        if (task.IsFaulted)
-        {
-            var errorModalMessage = state as string;
+        if (!task.IsFaulted && !task.IsCanceled)
+            return true;
+        
+        var newErrorMessage = state as string;
 
+        if (task.Exception != null)
+        {
             foreach (var ex in task.Exception.InnerExceptions)
             {
                 if (ex is PluginException)
@@ -375,7 +378,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     Log.Error(ex, "Plugin installer threw an error");
 #if DEBUG
                     if (!string.IsNullOrEmpty(ex.Message))
-                        errorModalMessage += $"\n\n{ex.Message}";
+                        newErrorMessage += $"\n\n{ex.Message}";
 #endif
                 }
                 else
@@ -383,17 +386,15 @@ internal class PluginInstallerWindow : Window, IDisposable
                     Log.Error(ex, "Plugin installer threw an unexpected error");
 #if DEBUG
                     if (!string.IsNullOrEmpty(ex.Message))
-                        errorModalMessage += $"\n\n{ex.Message}";
+                        newErrorMessage += $"\n\n{ex.Message}";
 #endif
                 }
             }
-
-            this.ShowErrorModal(errorModalMessage);
-
-            return false;
         }
 
-        return true;
+        this.ShowErrorModal(newErrorMessage ?? "An unknown error occurred.");
+
+        return false;
     }
 
     private void SetOpenPage(PluginInstallerOpenKind kind)
