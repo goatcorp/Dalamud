@@ -12,11 +12,10 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using ImGuiNET;
-
-using ImGuiScene;
 
 using Serilog;
 
@@ -30,6 +29,7 @@ namespace Dalamud.Interface;
 /// </summary>
 public sealed class UiBuilder : IDisposable
 {
+    private readonly LocalPlugin plugin;
     private readonly Stopwatch stopwatch;
     private readonly HitchDetector hitchDetector;
     private readonly string namespaceName;
@@ -53,14 +53,16 @@ public sealed class UiBuilder : IDisposable
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
     /// You do not have to call this manually.
     /// </summary>
+    /// <param name="plugin">The plugin.</param>
     /// <param name="namespaceName">The plugin namespace.</param>
-    internal UiBuilder(string namespaceName)
+    internal UiBuilder(LocalPlugin plugin, string namespaceName)
     {
         try
         {
             this.stopwatch = new Stopwatch();
             this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
             this.namespaceName = namespaceName;
+            this.plugin = plugin;
 
             this.interfaceManager.Draw += this.OnDraw;
             this.scopedFinalizer.Add(() => this.interfaceManager.Draw -= this.OnDraw);
@@ -339,75 +341,12 @@ public sealed class UiBuilder : IDisposable
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
 
     /// <summary>
-    /// Loads an image from the specified file.
-    /// </summary>
-    /// <param name="filePath">The full filepath to the image.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public IDalamudTextureWrap LoadImage(string filePath)
-        => this.InterfaceManagerWithScene?.LoadImage(filePath)
-           ?? throw new InvalidOperationException("Load failed.");
-
-    /// <summary>
-    /// Loads an image from a byte stream, such as a png downloaded into memory.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw image data.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public IDalamudTextureWrap LoadImage(byte[] imageData)
-        => this.InterfaceManagerWithScene?.LoadImage(imageData)
-           ?? throw new InvalidOperationException("Load failed.");
-
-    /// <summary>
-    /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw pixel data.</param>
-    /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
-        => this.InterfaceManagerWithScene?.LoadImageRaw(imageData, width, height, numChannels)
-           ?? throw new InvalidOperationException("Load failed.");
-
-    /// <summary>
     /// Loads an ULD file that can load textures containing multiple icons in a single texture.
     /// </summary>
     /// <param name="uldPath">The path of the requested ULD file.</param>
     /// <returns>A wrapper around said ULD file.</returns>
     public UldWrapper LoadUld(string uldPath)
         => new(this, uldPath);
-
-    /// <summary>
-    /// Asynchronously loads an image from the specified file, when it's possible to do so.
-    /// </summary>
-    /// <param name="filePath">The full filepath to the image.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).LoadImage(filePath)
-            ?? throw new InvalidOperationException("Load failed."));
-
-    /// <summary>
-    /// Asynchronously loads an image from a byte stream, such as a png downloaded into memory, when it's possible to do so.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw image data.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).LoadImage(imageData)
-            ?? throw new InvalidOperationException("Load failed."));
-
-    /// <summary>
-    /// Asynchronously loads an image from raw unformatted pixel data, with no type or header information, when it's possible to do so.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw pixel data.</param>
-    /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
-    /// <returns>A <see cref="TextureWrap"/> object wrapping the created image.  Use <see cref="TextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).LoadImageRaw(imageData, width, height, numChannels)
-            ?? throw new InvalidOperationException("Load failed."));
 
     /// <summary>
     /// Waits for UI to become available for use.
@@ -482,7 +421,8 @@ public sealed class UiBuilder : IDisposable
                                  .CreateFontAtlas(
                                      this.namespaceName + ":" + (debugName ?? "custom"),
                                      autoRebuildMode,
-                                     isGlobalScaled));
+                                     isGlobalScaled,
+                                     this.plugin));
 
     /// <summary>
     /// Unregister the UiBuilder. Do not call this in plugin code.

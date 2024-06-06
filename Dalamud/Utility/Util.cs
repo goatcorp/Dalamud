@@ -640,6 +640,30 @@ public static class Util
             throw new Win32Exception();
     }
 
+    /// <summary>Gets a temporary file name, for use as the sourceFileName in
+    /// <see cref="File.Replace(string,string,string?)"/>.</summary>
+    /// <param name="targetFile">The target file.</param>
+    /// <returns>A temporary file name that should be usable with <see cref="File.Replace(string,string,string?)"/>.
+    /// </returns>
+    /// <remarks>No write operation is done on the filesystem.</remarks>
+    public static string GetTempFileNameForFileReplacement(string targetFile)
+    {
+        Span<byte> buf = stackalloc byte[9];
+        Random.Shared.NextBytes(buf);
+        for (var i = 0; ; i++)
+        {
+            var tempName =
+                Path.GetFileName(targetFile) +
+                Convert.ToBase64String(buf)
+                       .TrimEnd('=')
+                       .Replace('+', '-')
+                       .Replace('/', '_');
+            var tempPath = Path.Join(Path.GetDirectoryName(targetFile), tempName);
+            if (i >= 64 || !Path.Exists(tempPath))
+                return tempPath;
+        }
+    }
+
     /// <summary>
     /// Gets a random, inoffensive, human-friendly string.
     /// </summary>
@@ -657,11 +681,20 @@ public static class Util
     /// Throws a corresponding exception if <see cref="HRESULT.FAILED"/> is true.
     /// </summary>
     /// <param name="hr">The result value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void ThrowOnError(this HRESULT hr)
     {
         if (hr.FAILED)
             Marshal.ThrowExceptionForHR(hr.Value);
     }
+
+    /// <summary>Determines if the specified instance of <see cref="ComPtr{T}"/> points to null.</summary>
+    /// <param name="f">The pointer.</param>
+    /// <typeparam name="T">The COM interface type from TerraFX.</typeparam>
+    /// <returns><c>true</c> if not empty.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static unsafe bool IsEmpty<T>(in this ComPtr<T> f) where T : unmanaged, IUnknown.Interface =>
+        f.Get() is null;
 
     /// <summary>
     /// Calls <see cref="TaskCompletionSource.SetException(System.Exception)"/> if the task is incomplete.

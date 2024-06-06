@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 
-using Dalamud.Data;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
-using Dalamud.Utility;
+using Dalamud.Interface.Utility.Internal;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -15,23 +16,20 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 public class IconBrowserWidget : IDataWindowWidget
 {
-    // Remove range 170,000 -> 180,000 by default, this specific range causes exceptions.
-    private readonly HashSet<int> nullValues = Enumerable.Range(170000, 9999).ToHashSet(); 
-    
     private Vector2 iconSize = new(64.0f, 64.0f);
     private Vector2 editIconSize = new(64.0f, 64.0f);
-    
-    private List<int> valueRange = Enumerable.Range(0, 200000).ToList();
-    
-    private int lastNullValueCount;
+
+    private List<int>? valueRange;
+    private Task<List<(int ItemId, string Path)>>? iconIdsTask;
+
     private int startRange;
     private int stopRange = 200000;
     private bool showTooltipImage;
-    
+
     private Vector2 mouseDragStart;
     private bool dragStarted;
     private Vector2 lastWindowSize = Vector2.Zero;
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "icon", "icons" };
 
@@ -45,31 +43,58 @@ public class IconBrowserWidget : IDataWindowWidget
     public void Load()
     {
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
+        this.iconIdsTask ??= Task.Run(
+            () =>
+            {
+                var texm = Service<TextureManager>.Get();
+
+                var result = new List<(int ItemId, string Path)>(200000);
+                for (var iconId = 0; iconId < 200000; iconId++)
+                {
+                    // // Remove range 170,000 -> 180,000 by default, this specific range causes exceptions.
+                    // if (iconId is >= 170000 and < 180000)
+                    //     continue;
+                    if (!texm.TryGetIconPath(new((uint)iconId), out var path))
+                        continue;
+                    result.Add((iconId, path));
+                }
+
+                return result;
+            });
+
         this.DrawOptions();
 
-        if (ImGui.BeginChild("ScrollableSection", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoMove))
+        if (!this.iconIdsTask.IsCompleted)
         {
-            var itemsPerRow = (int)MathF.Floor(ImGui.GetContentRegionMax().X / (this.iconSize.X + ImGui.GetStyle().ItemSpacing.X));
-            var itemHeight = this.iconSize.Y + ImGui.GetStyle().ItemSpacing.Y;
-
-            ImGuiClip.ClippedDraw(this.valueRange, this.DrawIcon, itemsPerRow, itemHeight);
+            ImGui.TextUnformatted("Loading...");
         }
-        
-        ImGui.EndChild();
-        
-        this.ProcessMouseDragging();
-        
-        if (this.lastNullValueCount != this.nullValues.Count)
+        else if (!this.iconIdsTask.IsCompletedSuccessfully)
+        {
+            ImGui.TextUnformatted(this.iconIdsTask.Exception?.ToString() ?? "Unknown error");
+        }
+        else
         {
             this.RecalculateIndexRange();
-            this.lastNullValueCount = this.nullValues.Count;
+
+            if (ImGui.BeginChild("ScrollableSection", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoMove))
+            {
+                var itemsPerRow = (int)MathF.Floor(
+                    ImGui.GetContentRegionMax().X / (this.iconSize.X + ImGui.GetStyle().ItemSpacing.X));
+                var itemHeight = this.iconSize.Y + ImGui.GetStyle().ItemSpacing.Y;
+
+                ImGuiClip.ClippedDraw(this.valueRange!, this.DrawIcon, itemsPerRow, itemHeight);
+            }
+
+            ImGui.EndChild();
+
+            this.ProcessMouseDragging();
         }
     }
-    
+
     // Limit the popup image to half our screen size.
     private static float GetImageScaleFactor(IDalamudTextureWrap texture)
     {
@@ -83,83 +108,120 @@ public class IconBrowserWidget : IDataWindowWidget
 
             scale = MathF.Min(widthRatio, heightRatio);
         }
-        
+
         return scale;
     }
-    
+
     private void DrawOptions()
     {
         ImGui.Columns(2);
 
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.InputInt("##StartRange", ref this.startRange, 0, 0)) this.RecalculateIndexRange();
+        if (ImGui.InputInt("##StartRange", ref this.startRange, 0, 0))
+            this.valueRange = null;
 
         ImGui.NextColumn();
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.InputInt("##StopRange", ref this.stopRange, 0, 0)) this.RecalculateIndexRange();
+        if (ImGui.InputInt("##StopRange", ref this.stopRange, 0, 0))
+            this.valueRange = null;
 
         ImGui.NextColumn();
         ImGui.Checkbox("Show Image in Tooltip", ref this.showTooltipImage);
-        
+
         ImGui.NextColumn();
         ImGui.InputFloat2("Icon Size", ref this.editIconSize);
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
             this.iconSize = this.editIconSize;
         }
-        
+
         ImGui.Columns(1);
     }
-    
+
     private void DrawIcon(int iconId)
     {
-        try
+        var texm = Service<TextureManager>.Get();
+        var cursor = ImGui.GetCursorScreenPos();
+
+        if (texm.Shared.GetFromGameIcon(iconId).TryGetWrap(out var texture, out var exc))
         {
-            var cursor = ImGui.GetCursorScreenPos();
-            
-            if (!this.IsIconValid(iconId))
+            ImGui.Image(texture.ImGuiHandle, this.iconSize);
+
+            // If we have the option to show a tooltip image, draw the image, but make sure it's not too big.
+            if (ImGui.IsItemHovered() && this.showTooltipImage)
             {
-                this.nullValues.Add(iconId);
-                return;
-            }
-        
-            if (Service<TextureManager>.Get().GetIcon((uint)iconId) is { } texture)
-            {
-                ImGui.Image(texture.ImGuiHandle, this.iconSize);
-            
-                // If we have the option to show a tooltip image, draw the image, but make sure it's not too big.
-                if (ImGui.IsItemHovered() && this.showTooltipImage)
-                {
-                    ImGui.BeginTooltip();
-            
-                    var scale = GetImageScaleFactor(texture);
-                    
-                    var textSize = ImGui.CalcTextSize(iconId.ToString());
-                    ImGui.SetCursorPosX(texture.Size.X * scale / 2.0f - textSize.X / 2.0f + ImGui.GetStyle().FramePadding.X * 2.0f);
-                    ImGui.Text(iconId.ToString());
-            
-                    ImGui.Image(texture.ImGuiHandle, texture.Size * scale);
-                    ImGui.EndTooltip();
-                }
-                
-                // else, just draw the iconId.
-                else if (ImGui.IsItemHovered())
-                {
-                    ImGui.SetTooltip(iconId.ToString());
-                }
-            }
-            else
-            {
-                // This texture was null, draw nothing, and prevent from trying to show it again.
-                this.nullValues.Add(iconId);
+                ImGui.BeginTooltip();
+
+                var scale = GetImageScaleFactor(texture);
+
+                var textSize = ImGui.CalcTextSize(iconId.ToString());
+                ImGui.SetCursorPosX(
+                    texture.Size.X * scale / 2.0f - textSize.X / 2.0f + ImGui.GetStyle().FramePadding.X * 2.0f);
+                ImGui.Text(iconId.ToString());
+
+                ImGui.Image(texture.ImGuiHandle, texture.Size * scale);
+                ImGui.EndTooltip();
             }
 
-            ImGui.GetWindowDrawList().AddRect(cursor, cursor + this.iconSize, ImGui.GetColorU32(ImGuiColors.DalamudWhite));
+            // else, just draw the iconId.
+            else if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(iconId.ToString());
+            }
+
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+            {
+                _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
+                    this.DisplayName,
+                    iconId.ToString(),
+                    Task.FromResult(texture.CreateWrapSharingLowLevelResource()));
+            }
+
+            ImGui.GetWindowDrawList().AddRect(
+                cursor,
+                cursor + this.iconSize,
+                ImGui.GetColorU32(ImGuiColors.DalamudWhite));
         }
-        catch (Exception)
+        else if (exc is not null)
         {
-            // If something went wrong, prevent from trying to show this icon again.
-            this.nullValues.Add(iconId);
+            ImGui.Dummy(this.iconSize);
+            using (Service<InterfaceManager>.Get().IconFontHandle?.Push())
+            {
+                var iconText = FontAwesomeIcon.Ban.ToIconString();
+                var textSize = ImGui.CalcTextSize(iconText);
+                ImGui.GetWindowDrawList().AddText(
+                    cursor + ((this.iconSize - textSize) / 2),
+                    ImGui.GetColorU32(ImGuiColors.DalamudRed),
+                    iconText);
+            }
+            
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip($"{iconId}\n{exc}".Replace("%", "%%"));
+
+            ImGui.GetWindowDrawList().AddRect(
+                cursor,
+                cursor + this.iconSize,
+                ImGui.GetColorU32(ImGuiColors.DalamudRed));
+        }
+        else
+        {
+            const uint color = 0x50FFFFFFu;
+            const string text = "...";
+
+            ImGui.Dummy(this.iconSize);
+            var textSize = ImGui.CalcTextSize(text);
+            ImGui.GetWindowDrawList().AddText(
+                    cursor + ((this.iconSize - textSize) / 2),
+                    color,
+                    text);
+            
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(iconId.ToString());
+
+            ImGui.GetWindowDrawList().AddRect(
+                cursor,
+                cursor + this.iconSize,
+                color);
         }
     }
 
@@ -181,7 +243,7 @@ public class IconBrowserWidget : IDataWindowWidget
                 this.dragStarted = false;
             }
         }
-        
+
         if (ImGui.IsMouseDragging(ImGuiMouseButton.Left) && this.dragStarted)
         {
             var delta = this.mouseDragStart - ImGui.GetMousePos();
@@ -193,24 +255,17 @@ public class IconBrowserWidget : IDataWindowWidget
             this.dragStarted = false;
         }
     }
-    
-    // Check if the icon has a valid filepath, and exists in the game data.
-    private bool IsIconValid(int iconId)
-    {
-        var filePath = Service<TextureManager>.Get().GetIconPath((uint)iconId);
-        return !filePath.IsNullOrEmpty() && Service<DataManager>.Get().FileExists(filePath);
-    }
 
     private void RecalculateIndexRange()
     {
-        if (this.stopRange <= this.startRange || this.stopRange <= 0 || this.startRange < 0)
+        if (this.valueRange is not null)
+            return;
+
+        this.valueRange = new();
+        foreach (var (id, _) in this.iconIdsTask!.Result)
         {
-            this.valueRange = new List<int>();
-        }
-        else
-        {
-            this.valueRange = Enumerable.Range(this.startRange, this.stopRange - this.startRange).ToList();
-            this.valueRange.RemoveAll(value => this.nullValues.Contains(value));
+            if (this.startRange <= id && id < this.stopRange)
+                this.valueRange.Add(id);
         }
     }
 }

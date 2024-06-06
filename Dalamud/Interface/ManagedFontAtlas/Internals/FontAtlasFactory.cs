@@ -11,6 +11,8 @@ using Dalamud.Game;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -20,9 +22,7 @@ using ImGuiScene;
 
 using Lumina.Data.Files;
 
-using SharpDX;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -145,6 +145,11 @@ internal sealed partial class FontAtlasFactory
     public InterfaceManager InterfaceManager { get; }
 
     /// <summary>
+    /// Gets the service instance of <see cref="TextureManager"/>.
+    /// </summary>
+    public TextureManager TextureManager => Service<TextureManager>.Get();
+
+    /// <summary>
     /// Gets the async task for <see cref="RawDX11Scene"/> inside <see cref="InterfaceManager"/>.
     /// </summary>
     public Task<RawDX11Scene> SceneTask { get; }
@@ -174,12 +179,14 @@ internal sealed partial class FontAtlasFactory
     /// <param name="atlasName">Name of atlas, for debugging and logging purposes.</param>
     /// <param name="autoRebuildMode">Specify how to auto rebuild.</param>
     /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
+    /// <param name="ownerPlugin">The owner plugin, if any.</param>
     /// <returns>The new font atlas.</returns>
     public IFontAtlas CreateFontAtlas(
         string atlasName,
         FontAtlasAutoRebuildMode autoRebuildMode,
-        bool isGlobalScaled = true) =>
-        new DalamudFontAtlas(this, atlasName, autoRebuildMode, isGlobalScaled);
+        bool isGlobalScaled = true,
+        LocalPlugin? ownerPlugin = null) =>
+        new DalamudFontAtlas(this, atlasName, autoRebuildMode, isGlobalScaled, ownerPlugin);
 
     /// <summary>
     /// Adds the font from Dalamud Assets.
@@ -239,30 +246,11 @@ internal sealed partial class FontAtlasFactory
             var fileIndex = textureIndex / 4;
             var channelIndex = FdtReader.FontTableEntry.TextureChannelOrder[textureIndex % 4];
             wraps[textureIndex] ??= this.GetChannelTexture(texPathFormat, fileIndex, channelIndex);
-            return CloneTextureWrap(wraps[textureIndex]);
+            return wraps[textureIndex].CreateWrapSharingLowLevelResource();
         }
     }
 
     private static T ExtractResult<T>(Task<T> t) => t.IsCompleted ? t.Result : t.GetAwaiter().GetResult();
-
-    /// <summary>
-    /// Clones a texture wrap, by getting a new reference to the underlying <see cref="ShaderResourceView"/> and the
-    /// texture behind.
-    /// </summary>
-    /// <param name="wrap">The <see cref="IDalamudTextureWrap"/> to clone from.</param>
-    /// <returns>The cloned <see cref="IDalamudTextureWrap"/>.</returns>
-    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap)
-    {
-        var srv = CppObject.FromPointer<ShaderResourceView>(wrap.ImGuiHandle);
-        using var res = srv.Resource;
-        using var tex2D = res.QueryInterface<Texture2D>();
-        var description = tex2D.Description;
-        return new DalamudTextureWrap(
-            new D3DTextureWrap(
-                srv.QueryInterface<ShaderResourceView>(),
-                description.Width,
-                description.Height));
-    }
 
     private static unsafe void ExtractChannelFromB8G8R8A8(
         Span<byte> target,
@@ -346,7 +334,7 @@ internal sealed partial class FontAtlasFactory
         var numPixels = texFile.Header.Width * texFile.Header.Height;
 
         _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-        var targetIsB4G4R4A4 = this.InterfaceManager.SupportsDxgiFormat(Format.B4G4R4A4_UNorm);
+        var targetIsB4G4R4A4 = this.TextureManager.IsDxgiFormatSupported(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
         var bpp = targetIsB4G4R4A4 ? 2 : 4;
         var buffer = ArrayPool<byte>.Shared.Rent(numPixels * bpp);
         try
@@ -369,12 +357,16 @@ internal sealed partial class FontAtlasFactory
             }
 
             return this.scopedFinalizer.Add(
-                this.InterfaceManager.LoadImageFromDxgiFormat(
+                this.TextureManager.CreateFromRaw(
+                    new(
+                        texFile.Header.Width,
+                        texFile.Header.Height,
+                        (int)(targetIsB4G4R4A4
+                                  ? DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
+                                  : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM),
+                        texFile.Header.Width * bpp),
                     buffer,
-                    texFile.Header.Width * bpp,
-                    texFile.Header.Width,
-                    texFile.Header.Height,
-                    targetIsB4G4R4A4 ? Format.B4G4R4A4_UNorm : Format.B8G8R8A8_UNorm));
+                    $"{nameof(FontAtlasFactory)}[{texPathFormat.Format(fileIndex)}][{channelIndex}]"));
         }
         finally
         {

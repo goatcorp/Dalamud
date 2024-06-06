@@ -54,7 +54,7 @@ public sealed class DalamudPluginInterface : IDisposable
         var dataManager = Service<DataManager>.Get();
         var localization = Service<Localization>.Get();
 
-        this.UiBuilder = new UiBuilder(plugin.Name);
+        this.UiBuilder = new(plugin, plugin.Name);
 
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
