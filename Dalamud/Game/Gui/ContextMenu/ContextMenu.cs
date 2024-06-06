@@ -17,8 +17,6 @@ using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using FFXIVClientStructs.FFXIV.Component.GUI.AtkModuleInterface;
-using FFXIVClientStructs.Interop;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 

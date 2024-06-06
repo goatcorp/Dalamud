@@ -79,7 +79,7 @@ internal unsafe class UiDebug
 
     private void DrawUnitBase(AtkUnitBase* atkUnitBase)
     {
-        var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
+        var isVisible = atkUnitBase->IsVisible;
         var addonName = atkUnitBase->NameString;
         var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
@@ -92,7 +92,7 @@ internal unsafe class UiDebug
         ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 25);
         if (ImGui.SmallButton("V"))
         {
-            atkUnitBase->Flags ^= 0x20;
+            atkUnitBase->IsVisible = !atkUnitBase->IsVisible;
         }
 
         ImGui.Separator();
@@ -487,7 +487,7 @@ internal unsafe class UiDebug
 
                 if (headerOpen)
                 {
-                    var visible = (unitBase->Flags & 0x20) == 0x20;
+                    var visible = unitBase->IsVisible;
                     ImGui.PushStyleColor(ImGuiCol.Text, visible ? 0xFF00FF00 : 0xFF999999);
 
                     if (ImGui.Selectable($"{name}##list{i}-{(ulong)unitBase:X}_{j}", this.selectedUnitBase == unitBase))
