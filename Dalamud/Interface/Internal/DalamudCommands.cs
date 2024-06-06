@@ -25,19 +25,19 @@ internal class DalamudCommands : IServiceType
     {
         commandManager.AddHandler("/xldclose", new CommandInfo(this.OnUnloadCommand)
         {
-            HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon."),
+            HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon. For debug use only!"),
             ShowInHelp = false,
         });
 
         commandManager.AddHandler("/xlkill", new CommandInfo(this.OnKillCommand)
         {
-            HelpMessage = "Kill the game.",
+            HelpMessage = "Kill the game. For debug use only!",
             ShowInHelp = false,
         });
 
         commandManager.AddHandler("/xlrestart", new CommandInfo(this.OnRestartCommand)
         {
-            HelpMessage = "Restart the game.",
+            HelpMessage = "Restart the game. For debug use only!",
             ShowInHelp = false,
         });
 
@@ -80,13 +80,11 @@ internal class DalamudCommands : IServiceType
         commandManager.AddHandler("/xlstats", new CommandInfo(this.OnTogglePluginStats)
         {
             HelpMessage = Loc.Localize("DalamudPluginStats", "Draw plugin statistics window"),
-            ShowInHelp = false,
         });
 
         commandManager.AddHandler("/xlbranch", new CommandInfo(this.OnToggleBranchSwitcher)
         {
-            HelpMessage = Loc.Localize("DalamudBranchSwitcher", "Draw branch switcher"),
-            ShowInHelp = false,
+            HelpMessage = Loc.Localize("DalamudBranchSwitcher", "Open the branch switcher"),
         });
 
         commandManager.AddHandler("/xldata", new CommandInfo(this.OnDebugDrawDataMenu)
@@ -97,8 +95,7 @@ internal class DalamudCommands : IServiceType
 
         commandManager.AddHandler("/xllog", new CommandInfo(this.OnOpenLog)
         {
-            HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open dev log DEBUG"),
-            ShowInHelp = false,
+            HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open the plugin log window/console"),
         });
 
         commandManager.AddHandler("/xlplugins", new CommandInfo(this.OnOpenInstallerCommand)
