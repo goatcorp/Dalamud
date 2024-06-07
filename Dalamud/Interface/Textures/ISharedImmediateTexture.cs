@@ -20,6 +20,8 @@ public interface ISharedImmediateTexture
     /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current
     /// frame being drawn.</returns>
     /// <remarks>
+    /// <para>Do not cache the result of this function across draw calls for different frames.
+    /// <see cref="ISharedImmediateTexture"/>s may be cached, but the performance benefit will be minimal.</para>
     /// <para>Calling outside the main thread will fail.</para>
     /// <para>This function does not throw.</para>
     /// <para><see cref="IDisposable.Dispose"/> will be ignored.</para>
@@ -35,6 +37,8 @@ public interface ISharedImmediateTexture
     /// <returns>An instance of <see cref="IDalamudTextureWrap"/> that is guaranteed to be available for the current
     /// frame being drawn.</returns>
     /// <remarks>
+    /// <para>Do not cache the result of this function across draw calls for different frames.
+    /// <see cref="ISharedImmediateTexture"/>s may be cached, but the performance benefit will be minimal.</para>
     /// <para>Calling outside the main thread will fail.</para>
     /// <para>This function does not throw.</para>
     /// <para><see cref="IDisposable.Dispose"/> will be ignored.</para>
@@ -50,6 +54,8 @@ public interface ISharedImmediateTexture
     /// <returns><c>true</c> if <paramref name="texture"/> points to the loaded texture; <c>false</c> if the texture is
     /// still being loaded, or the load has failed.</returns>
     /// <remarks>
+    /// <para>Do not cache the result of this function across draw calls for different frames.
+    /// <see cref="ISharedImmediateTexture"/>s may be cached, but the performance benefit will be minimal.</para>
     /// <para>Calling outside the main thread will fail.</para>
     /// <para>This function does not throw.</para>
     /// <para><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored.</para>
