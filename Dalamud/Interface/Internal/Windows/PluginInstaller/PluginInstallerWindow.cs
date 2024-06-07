@@ -391,6 +391,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
             }
         }
+        
+        if (task.IsCanceled)
+            Log.Error("A task was cancelled");
 
         this.ShowErrorModal(newErrorMessage ?? "An unknown error occurred.");
 
