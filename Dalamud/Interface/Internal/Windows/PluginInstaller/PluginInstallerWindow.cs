@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using CheapLoc;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
@@ -2443,6 +2444,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 ImGuiHelpers.ScaledDummy(3);
                 ImGui.TextColored(ImGuiColors.DalamudGrey, $"WorkingPluginId: {plugin.EffectiveWorkingPluginId}");
+                ImGui.TextColored(ImGuiColors.DalamudGrey, $"Command prefix: {ConsoleManagerPluginUtil.GetSanitizedNamespaceName(plugin.InternalName)}");
                 ImGuiHelpers.ScaledDummy(3);
             }
 
