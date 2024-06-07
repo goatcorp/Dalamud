@@ -139,7 +139,7 @@ public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
 /// </summary>
 internal static partial class ConsoleManagerPluginUtil
 {
-    private static readonly string[] ReservedNamespaces = ["dalamud", "xl"];
+    private static readonly string[] ReservedNamespaces = ["dalamud", "xl", "plugin"];
     
     /// <summary>
     /// Get a sanitized namespace name from a plugin's internal name.
