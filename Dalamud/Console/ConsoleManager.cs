@@ -27,6 +27,7 @@ internal partial class ConsoleManager : IServiceType
     [ServiceManager.ServiceConstructor]
     public ConsoleManager()
     {
+        this.AddCommand("toggle", "Toggle a boolean variable.", this.OnToggleVariable);
     }
     
     /// <summary>
@@ -316,6 +317,19 @@ internal partial class ConsoleManager : IServiceType
     private ConsoleEntry? FindEntry(string name)
     {
         return this.entries.TryGetValue(name, out var entry) ? entry as ConsoleEntry : null;
+    }
+
+    private bool OnToggleVariable(string name)
+    {
+        if (this.FindEntry(name) is not IConsoleVariable<bool> variable)
+        {
+            Log.Error("Variable {VariableName} not found or not a boolean", name);
+            return false;
+        }
+
+        variable.Value = !variable.Value;
+
+        return true;
     }
     
     private static class Traits
