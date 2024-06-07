@@ -18,6 +18,13 @@ public interface IFateTable : IReadOnlyCollection<IFate>
     /// Gets the amount of currently active Fates.
     /// </summary>
     public int Length { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this Fate is still valid in memory.
+    /// </summary>
+    /// <param name="fate">The fate to check.</param>
+    /// <returns>True or false.</returns>
+    public bool IsValid(IFate fate);
     
     /// <summary>
     /// Get an actor at the specified spawn index.

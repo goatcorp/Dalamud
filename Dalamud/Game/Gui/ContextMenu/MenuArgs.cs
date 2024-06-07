@@ -11,7 +11,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 /// <summary>
 /// Base class for <see cref="IContextMenu"/> menu args.
 /// </summary>
-public abstract unsafe class MenuArgs : IMenuArgs
+internal abstract unsafe class MenuArgs : IMenuArgs
 {
     private IReadOnlySet<nint>? eventInterfaces;
 
@@ -37,39 +37,22 @@ public abstract unsafe class MenuArgs : IMenuArgs
         };
     }
 
-    /// <summary>
-    /// Gets the name of the addon that opened the context menu.
-    /// </summary>
+    /// <inheritdoc/>
     public string? AddonName { get; }
 
-    /// <summary>
-    /// Gets the memory pointer of the addon that opened the context menu.
-    /// </summary>
+    /// <inheritdoc/>
     public nint AddonPtr { get; }
 
-    /// <summary>
-    /// Gets the memory pointer of the agent that opened the context menu.
-    /// </summary>
+    /// <inheritdoc/>
     public nint AgentPtr { get; }
 
-    /// <summary>
-    /// Gets the type of the context menu.
-    /// </summary>
+    /// <inheritdoc/>
     public ContextMenuType MenuType { get; }
 
-    /// <summary>
-    /// Gets the target info of the context menu. The actual type depends on <see cref="MenuType"/>.
-    /// <see cref="ContextMenuType.Default"/> signifies a <see cref="MenuTargetDefault"/>.
-    /// <see cref="ContextMenuType.Inventory"/> signifies a <see cref="MenuTargetInventory"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public MenuTarget Target { get; }
 
-    /// <summary>
-    /// Gets a list of AtkEventInterface pointers associated with the context menu.
-    /// Only available with <see cref="ContextMenuType.Default"/>.
-    /// Almost always an agent pointer. You can use this to find out what type of context menu it is.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the context menu is not a <see cref="ContextMenuType.Default"/>.</exception>
+    /// <inheritdoc/>
     public IReadOnlySet<nint> EventInterfaces 
     {
         get

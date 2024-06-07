@@ -3,7 +3,7 @@ namespace Dalamud.Game.Gui.PartyFinder.Types;
 /// <summary>
 /// This class represents additional arguments passed by the game.
 /// </summary>
-public class PartyFinderListingEventArgs : IPartyFinderListingEventArgs
+internal class PartyFinderListingEventArgs : IPartyFinderListingEventArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyFinderListingEventArgs"/> class.
@@ -14,14 +14,10 @@ public class PartyFinderListingEventArgs : IPartyFinderListingEventArgs
         this.BatchNumber = batchNumber;
     }
 
-    /// <summary>
-    /// Gets the batch number.
-    /// </summary>
+    /// <inheritdoc/>
     public int BatchNumber { get; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the listing is visible.
-    /// </summary>
+    /// <inheritdoc/>
     public bool Visible { get; set; } = true;
 }
 

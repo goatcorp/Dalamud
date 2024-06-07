@@ -5,7 +5,7 @@ namespace Dalamud.Game.ClientState.Objects.SubKinds;
 /// <summary>
 /// This class represents a NPC.
 /// </summary>
-public unsafe class Npc : Character
+internal unsafe class Npc : Character
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Npc"/> class.

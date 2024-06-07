@@ -11,7 +11,7 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 /// <summary>
 /// This class represents the base for non-static entities.
 /// </summary>
-public unsafe class Character : GameObject, ICharacter
+internal unsafe class Character : GameObject, ICharacter
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Character"/> class.
@@ -23,70 +23,43 @@ public unsafe class Character : GameObject, ICharacter
     {
     }
 
-    /// <summary>
-    /// Gets the current HP of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public uint CurrentHp => this.Struct->CharacterData.Health;
 
-    /// <summary>
-    /// Gets the maximum HP of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public uint MaxHp => this.Struct->CharacterData.MaxHealth;
 
-    /// <summary>
-    /// Gets the current MP of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public uint CurrentMp => this.Struct->CharacterData.Mana;
 
-    /// <summary>
-    /// Gets the maximum MP of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public uint MaxMp => this.Struct->CharacterData.MaxMana;
 
-    /// <summary>
-    /// Gets the current GP of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public uint CurrentGp => this.Struct->CharacterData.GatheringPoints;
 
-    /// <summary>
-    /// Gets the maximum GP of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public uint MaxGp => this.Struct->CharacterData.MaxGatheringPoints;
 
-    /// <summary>
-    /// Gets the current CP of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public uint CurrentCp => this.Struct->CharacterData.CraftingPoints;
 
-    /// <summary>
-    /// Gets the maximum CP of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public uint MaxCp => this.Struct->CharacterData.MaxCraftingPoints;
 
-    /// <summary>
-    /// Gets the shield percentage of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public byte ShieldPercentage => this.Struct->CharacterData.ShieldValue;
 
-    /// <summary>
-    /// Gets the ClassJob of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public ExcelResolver<ClassJob> ClassJob => new(this.Struct->CharacterData.ClassJob);
 
-    /// <summary>
-    /// Gets the level of this Chara.
-    /// </summary>
+    /// <inheritdoc/>
     public byte Level => this.Struct->CharacterData.Level;
 
-    /// <summary>
-    /// Gets a byte array describing the visual appearance of this Chara.
-    /// Indexed by <see cref="CustomizeIndex"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public byte[] Customize => this.Struct->DrawData.CustomizeData.Data.ToArray();
 
-    /// <summary>
-    /// Gets the Free Company tag of this chara.
-    /// </summary>
+    /// <inheritdoc/>
     public SeString CompanyTag => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->FreeCompanyTag[0]), 6);
 
     /// <summary>
@@ -94,14 +67,10 @@ public unsafe class Character : GameObject, ICharacter
     /// </summary>
     public override ulong TargetObjectId => this.Struct->TargetId;
 
-    /// <summary>
-    /// Gets the name ID of the character.
-    /// </summary>
+    /// <inheritdoc/>
     public uint NameId => this.Struct->NameId;
 
-    /// <summary>
-    /// Gets the current online status of the character.
-    /// </summary>
+    /// <inheritdoc/>
     public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->CharacterData.OnlineStatus);
 
     /// <summary>

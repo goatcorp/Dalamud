@@ -4,9 +4,9 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 namespace Dalamud.Game.ClientState.Aetherytes;
 
 /// <summary>
-/// This class represents an entry in the Aetheryte list.
+/// Class representing an aetheryte entry available to the game.
 /// </summary>
-public sealed class AetheryteEntry : IAetheryteEntry
+internal sealed class AetheryteEntry : IAetheryteEntry
 {
     private readonly TeleportInfo data;
 
@@ -19,59 +19,39 @@ public sealed class AetheryteEntry : IAetheryteEntry
         this.data = data;
     }
 
-    /// <summary>
-    /// Gets the Aetheryte ID.
-    /// </summary>
+    /// <inheritdoc />
     public uint AetheryteId => this.data.AetheryteId;
 
-    /// <summary>
-    /// Gets the Territory ID.
-    /// </summary>
+    /// <inheritdoc />
     public uint TerritoryId => this.data.TerritoryId;
 
-    /// <summary>
-    /// Gets the SubIndex used when there can be multiple Aetherytes with the same ID (Private/Shared Estates etc.).
-    /// </summary>
+    /// <inheritdoc />
     public byte SubIndex => this.data.SubIndex;
 
-    /// <summary>
-    /// Gets the Ward. Zero if not a Shared Estate.
-    /// </summary>
+    /// <inheritdoc />
     public byte Ward => this.data.Ward;
 
-    /// <summary>
-    /// Gets the Plot. Zero if not a Shared Estate.
-    /// </summary>
+    /// <inheritdoc />
     public byte Plot => this.data.Plot;
 
-    /// <summary>
-    /// Gets the Cost in Gil to Teleport to this location.
-    /// </summary>
+    /// <inheritdoc />
     public uint GilCost => this.data.GilCost;
 
-    /// <summary>
-    /// Gets a value indicating whether the LocalPlayer has set this Aetheryte as Favorite or not.
-    /// </summary>
+    /// <inheritdoc />
     public bool IsFavourite => this.data.IsFavourite != 0;
 
-    /// <summary>
-    /// Gets a value indicating whether this Aetheryte is a Shared Estate or not.
-    /// </summary>
+    /// <inheritdoc />
     public bool IsSharedHouse => this.data.IsSharedHouse;
 
-    /// <summary>
-    /// Gets a value indicating whether this Aetheryte is an Apartment or not.
-    /// </summary>
+    /// <inheritdoc />
     public bool IsApartment => this.data.IsApartment;
 
-    /// <summary>
-    /// Gets the Aetheryte data related to this aetheryte.
-    /// </summary>
+    /// <inheritdoc />
     public ExcelResolver<Lumina.Excel.GeneratedSheets.Aetheryte> AetheryteData => new(this.AetheryteId);
 }
 
 /// <summary>
-/// Interface representing an aetheryte entry available to the game
+/// Interface representing an aetheryte entry available to the game.
 /// </summary>
 public interface IAetheryteEntry
 {
@@ -116,9 +96,9 @@ public interface IAetheryteEntry
     bool IsSharedHouse { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this Aetheryte is an Appartment or not.
+    /// Gets a value indicating whether this Aetheryte is an Apartment or not.
     /// </summary>
-    bool IsAppartment { get; }
+    bool IsApartment { get; }
 
     /// <summary>
     /// Gets the Aetheryte data related to this aetheryte.

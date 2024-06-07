@@ -40,39 +40,25 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
         this.ShowConditionKeys = (showConditionKeys ?? Array.Empty<VirtualKey>()).ToImmutableSortedSet();
     }
 
-    /// <summary>
-    /// Gets the priority of this entry.
-    /// </summary>
+    /// <inheritdoc/>
     public ulong Priority { get; init; }
 
-    /// <summary>
-    /// Gets or sets the name of this entry.
-    /// </summary>
+    /// <inheritdoc/>
     public string Name { get; set; }
 
-    /// <summary>
-    /// Gets or sets the texture of this entry.
-    /// </summary>
+    /// <inheritdoc/>
     public IDalamudTextureWrap Texture { get; set; }
         
-    /// <summary>
-    /// Gets or sets a value indicating whether or not this entry is internal.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsInternal { get; set; }
 
-    /// <summary>
-    /// Gets the calling assembly of this entry.
-    /// </summary>
+    /// <inheritdoc/>
     public Assembly? CallingAssembly { get; init; }
 
-    /// <summary>
-    /// Gets the internal ID of this entry.
-    /// </summary>
+    /// <inheritdoc/>
     public Guid Id { get; init; } = Guid.NewGuid();
 
-    /// <summary>
-    /// Gets the keys that have to be pressed to show the menu.
-    /// </summary>
+    /// <inheritdoc/>
     public IReadOnlySet<VirtualKey> ShowConditionKeys { get; init; }
 
     /// <inheritdoc/>

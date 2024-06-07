@@ -10,7 +10,7 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 /// <summary>
 /// This class represents a GameObject in FFXIV.
 /// </summary>
-public partial class GameObject
+internal partial class GameObject
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GameObject"/> class.
@@ -86,101 +86,57 @@ public partial class GameObject
 /// <summary>
 /// This class represents a basic actor (GameObject) in FFXIV.
 /// </summary>
-public unsafe partial class GameObject : IGameObject
+internal unsafe partial class GameObject : IGameObject
 {
-    /// <summary>
-    /// Gets the name of this <see cref="GameObject" />.
-    /// </summary>
+    /// <inheritdoc/>
     public SeString Name => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->Name[0]), 64);
 
-    /// <summary>
-    /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
-    /// this specific object. This ID is used to reference specific objects on the local client (e.g. for targeting).
-    ///
-    /// Not to be confused with <see cref="EntityId"/>.
-    /// </summary>
+    /// <inheritdoc/>
     public ulong GameObjectId => this.Struct->GetGameObjectId();
 
-    /// <summary>
-    /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.
-    ///
-    /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
-    /// </summary>
+    /// <inheritdoc/>
     public uint EntityId => this.Struct->EntityId;
 
-    /// <summary>
-    /// Gets the data ID for linking to other respective game data.
-    /// </summary>
+    /// <inheritdoc/>
     public uint DataId => this.Struct->BaseId;
 
-    /// <summary>
-    /// Gets the ID of this GameObject's owner.
-    /// </summary>
+    /// <inheritdoc/>
     public uint OwnerId => this.Struct->OwnerId;
 
-    /// <summary>
-    /// Gets the index of this object in the object table.
-    /// </summary>
+    /// <inheritdoc/>
     public ushort ObjectIndex => this.Struct->ObjectIndex;
 
-    /// <summary>
-    /// Gets the entity kind of this <see cref="GameObject" />.
-    /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
-    /// </summary>
+    /// <inheritdoc/>
     public ObjectKind ObjectKind => (ObjectKind)this.Struct->ObjectKind;
 
-    /// <summary>
-    /// Gets the sub kind of this Actor.
-    /// </summary>
+    /// <inheritdoc/>
     public byte SubKind => this.Struct->SubKind;
 
-    /// <summary>
-    /// Gets the X distance from the local player in yalms.
-    /// </summary>
+    /// <inheritdoc/>
     public byte YalmDistanceX => this.Struct->YalmDistanceFromPlayerX;
 
-    /// <summary>
-    /// Gets the Y distance from the local player in yalms.
-    /// </summary>
+    /// <inheritdoc/>
     public byte YalmDistanceZ => this.Struct->YalmDistanceFromPlayerZ;
 
-    /// <summary>
-    /// Gets a value indicating whether the object is dead or alive.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsDead => this.Struct->IsDead();
 
-    /// <summary>
-    /// Gets a value indicating whether the object is targetable.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsTargetable => this.Struct->GetIsTargetable();
 
-    /// <summary>
-    /// Gets the position of this <see cref="GameObject" />.
-    /// </summary>
+    /// <inheritdoc/>
     public Vector3 Position => new(this.Struct->Position.X, this.Struct->Position.Y, this.Struct->Position.Z);
 
-    /// <summary>
-    /// Gets the rotation of this <see cref="GameObject" />.
-    /// This ranges from -pi to pi radians.
-    /// </summary>
+    /// <inheritdoc/>
     public float Rotation => this.Struct->Rotation;
 
-    /// <summary>
-    /// Gets the hitbox radius of this <see cref="GameObject" />.
-    /// </summary>
+    /// <inheritdoc/>
     public float HitboxRadius => this.Struct->HitboxRadius;
 
-    /// <summary>
-    /// Gets the current target of the game object.
-    /// </summary>
+    /// <inheritdoc/>
     public virtual ulong TargetObjectId => 0;
 
-    /// <summary>
-    /// Gets the target object of the game object.
-    /// </summary>
-    /// <remarks>
-    /// This iterates the actor table, it should be used with care.
-    /// </remarks>
+    /// <inheritdoc/>
     // TODO: Fix for non-networked GameObjects
     public virtual IGameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
 
@@ -204,9 +160,19 @@ public interface IGameObject : IEquatable<IGameObject>
     public SeString Name { get; }
 
     /// <summary>
-    /// Gets the object ID of this <see cref="GameObject" />.
+    /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
+    /// this specific object. This ID is used to reference specific objects on the local client (e.g. for targeting).
+    ///
+    /// Not to be confused with <see cref="EntityId"/>.
     /// </summary>
-    public uint ObjectId { get; }
+    public ulong GameObjectId { get; }
+
+    /// <summary>
+    /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.
+    ///
+    /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
+    /// </summary>
+    public uint EntityId { get; }
 
     /// <summary>
     /// Gets the data ID for linking to other respective game data.

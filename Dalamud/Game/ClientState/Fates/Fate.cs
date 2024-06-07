@@ -10,7 +10,7 @@ namespace Dalamud.Game.ClientState.Fates;
 /// <summary>
 /// This class represents an FFXIV Fate.
 /// </summary>
-public unsafe partial class Fate : IEquatable<Fate>
+internal unsafe partial class Fate
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Fate"/> class.
@@ -21,9 +21,7 @@ public unsafe partial class Fate : IEquatable<Fate>
         this.Address = address;
     }
 
-    /// <summary>
-    /// Gets the address of this Fate in memory.
-    /// </summary>
+    /// <inheritdoc />
     public IntPtr Address { get; }
 
     private FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Fate.FateContext*)this.Address;
@@ -63,10 +61,10 @@ public unsafe partial class Fate : IEquatable<Fate>
     public bool IsValid() => IsValid(this);
 
     /// <inheritdoc/>
-    bool IEquatable<Fate>.Equals(Fate other) => this.FateId == other?.FateId;
+    bool IEquatable<IFate>.Equals(IFate other) => this.FateId == other?.FateId;
 
     /// <inheritdoc/>
-    public override bool Equals(object obj) => ((IEquatable<Fate>)this).Equals(obj as Fate);
+    public override bool Equals(object obj) => ((IEquatable<IFate>)this).Equals(obj as IFate);
 
     /// <inheritdoc/>
     public override int GetHashCode() => this.FateId.GetHashCode();
@@ -75,7 +73,7 @@ public unsafe partial class Fate : IEquatable<Fate>
 /// <summary>
 /// This class represents an FFXIV Fate.
 /// </summary>
-public unsafe partial class Fate : IFate
+internal unsafe partial class Fate : IFate
 {
     /// <summary>
     /// Gets the Fate ID of this <see cref="Fate" />.
@@ -136,7 +134,7 @@ public unsafe partial class Fate : IFate
 /// <summary>
 /// Interface representing an fate entry that can be seen in the current area.
 /// </summary>
-public interface IFate
+public interface IFate : IEquatable<IFate>
 {
     /// <summary>
     /// Gets the Fate ID of this <see cref="Fate" />.
@@ -197,16 +195,4 @@ public interface IFate
     /// Gets the address of this Fate in memory.
     /// </summary>
     IntPtr Address { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether this actor is still valid in memory.
-    /// </summary>
-    /// <returns>True or false.</returns>
-    bool IsValid();
-
-    /// <inheritdoc/>
-    bool Equals(object obj);
-
-    /// <inheritdoc/>
-    int GetHashCode();
 }

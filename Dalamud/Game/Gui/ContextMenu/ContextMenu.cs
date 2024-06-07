@@ -279,8 +279,8 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         {
             if (!item.Prefix.HasValue)
             {
-                item.Prefix = MenuItem.DalamudDefaultPrefix;
-                item.PrefixColor = MenuItem.DalamudDefaultPrefixColor;
+                item.Prefix = IMenuItem.DalamudDefaultPrefix;
+                item.PrefixColor = IMenuItem.DalamudDefaultPrefixColor;
 
                 if (!item.UseDefaultPrefix)
                 {

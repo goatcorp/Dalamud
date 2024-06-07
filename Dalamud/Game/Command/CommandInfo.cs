@@ -3,7 +3,7 @@ namespace Dalamud.Game.Command;
 /// <summary>
 /// This class describes a registered command.
 /// </summary>
-public sealed class CommandInfo : ICommandInfo
+internal sealed class CommandInfo : ICommandInfo
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandInfo"/> class.
@@ -15,19 +15,13 @@ public sealed class CommandInfo : ICommandInfo
         this.Handler = handler;
     }
 
-    /// <summary>
-    /// Gets a <see cref="ICommandInfo.HandlerDelegate"/> which will be called when the command is dispatched.
-    /// </summary>
+    /// <inheritdoc/>
     public ICommandInfo.HandlerDelegate Handler { get; }
 
-    /// <summary>
-    /// Gets or sets the help message for this command.
-    /// </summary>
+    /// <inheritdoc/>
     public string HelpMessage { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether if this command should be shown in the help output.
-    /// </summary>
+    /// <inheritdoc/>
     public bool ShowInHelp { get; set; } = true;
 }
 

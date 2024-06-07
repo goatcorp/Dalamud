@@ -139,11 +139,11 @@ internal class ContextMenuAgingStep : IAgingStep
                         PrefixColor = 56,
                         Priority = -1,
                         IsSubmenu = true,
-                        OnClicked = (MenuItemClickedArgs a) =>
+                        OnClicked = (IMenuItemClickedArgs a) =>
                         {
                             SeString name;
                             uint count;
-                            var targetItem = (a.Target as MenuTargetInventory).TargetItem;
+                            var targetItem = (a.Target as MenuTargetInventory)!.TargetItem;
                             if (targetItem is { } item)
                             {
                                 name = (this.itemSheet.GetRow(item.ItemId)?.Name.ToDalamudString() ?? $"Unknown ({item.ItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);

@@ -79,6 +79,20 @@ internal sealed partial class FateTable : IServiceType, IFateTable
     }
 
     /// <inheritdoc/>
+    public bool IsValid(IFate fate)
+    {
+        var clientState = Service<ClientState>.GetNullable();
+
+        if (fate == null || clientState == null)
+            return false;
+
+        if (clientState.LocalContentId == 0)
+            return false;
+
+        return true;
+    }
+
+    /// <inheritdoc/>
     public unsafe IntPtr GetFateAddress(int index)
     {
         if (index >= this.Length)

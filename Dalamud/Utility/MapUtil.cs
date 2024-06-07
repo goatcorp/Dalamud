@@ -142,7 +142,7 @@ public static class MapUtil
     /// <param name="go">The GameObject to get the position for.</param>
     /// <param name="correctZOffset">Whether to "correct" a Z offset to sane values for maps that don't have one.</param>
     /// <returns>A Vector3 that represents the X (east/west), Y (north/south), and Z (height) position of this object.</returns>
-    public static unsafe Vector3 GetMapCoordinates(this GameObject go, bool correctZOffset = false)
+    public static unsafe Vector3 GetMapCoordinates(this IGameObject go, bool correctZOffset = false)
     {
         var agentMap = AgentMap.Instance();
 

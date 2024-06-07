@@ -10,7 +10,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 /// <summary>
 /// Callback args used when a menu item is clicked.
 /// </summary>
-public sealed unsafe class MenuItemClickedArgs : MenuArgs, IMenuItemClickedArgs
+internal sealed unsafe class MenuItemClickedArgs : MenuArgs, IMenuItemClickedArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MenuItemClickedArgs"/> class.
@@ -28,18 +28,11 @@ public sealed unsafe class MenuItemClickedArgs : MenuArgs, IMenuItemClickedArgs
 
     private Action<SeString?, IReadOnlyList<IMenuItem>> OnOpenSubmenu { get; }
 
-    /// <summary>
-    /// Opens a submenu with the given name and items.
-    /// </summary>
-    /// <param name="name">The name of the submenu, displayed at the top.</param>
-    /// <param name="items">The items to display in the submenu.</param>
+    /// <inheritdoc/>
     public void OpenSubmenu(SeString name, IReadOnlyList<IMenuItem> items) =>
         this.OnOpenSubmenu(name, items);
 
-    /// <summary>
-    /// Opens a submenu with the given items.
-    /// </summary>
-    /// <param name="items">The items to display in the submenu.</param>
+    /// <inheritdoc/>
     public void OpenSubmenu(IReadOnlyList<IMenuItem> items) =>
         this.OnOpenSubmenu(null, items);
 }
