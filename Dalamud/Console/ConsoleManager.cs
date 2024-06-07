@@ -384,6 +384,9 @@ internal partial class ConsoleManager : IServiceType
         /// <exception cref="ArgumentException">Thrown if the given type cannot be handled by the console system.</exception>
         protected static ArgumentInfo TypeToArgument(Type type, object? defaultValue = null)
         {
+            // If the default value is DBNull, we want to treat it as null
+            defaultValue = defaultValue == DBNull.Value ? null : defaultValue;
+            
             if (type == typeof(string))
                 return new ArgumentInfo(ConsoleArgumentType.String, defaultValue);
             
@@ -462,8 +465,7 @@ internal partial class ConsoleManager : IServiceType
         /// <inheritdoc cref="ConsoleEntry.Invoke" />
         public override bool Invoke(IEnumerable<object> arguments)
         {
-            this.func.DynamicInvoke(arguments.ToArray());
-            return true;
+            return (bool)this.func.DynamicInvoke(arguments.ToArray())!;
         }
     }
 
