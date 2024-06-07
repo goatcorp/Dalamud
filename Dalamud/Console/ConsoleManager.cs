@@ -191,7 +191,7 @@ internal partial class ConsoleManager : IServiceType
             return false;
         
         var entryName = matches[0].Value;
-        if (string.IsNullOrEmpty(entryName) || entryName.Any(x => x == ' '))
+        if (string.IsNullOrEmpty(entryName) || entryName.Any(char.IsWhiteSpace))
         {
             Log.Error("No valid command specified");
             return false;
@@ -419,7 +419,7 @@ internal partial class ConsoleManager : IServiceType
     /// </summary>
     private class ConsoleCommand : ConsoleEntry, IConsoleCommand
     {
-        private Delegate func;
+        private readonly Delegate func;
         
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsoleCommand"/> class.
