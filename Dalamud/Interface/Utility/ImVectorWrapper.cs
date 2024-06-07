@@ -11,166 +11,6 @@ using JetBrains.Annotations;
 namespace Dalamud.Interface.Utility;
 
 /// <summary>
-/// Utility methods for <see cref="ImVectorWrapper{T}"/>.
-/// </summary>
-public static class ImVectorWrapper
-{
-    /// <summary>
-    /// Creates a new instance of the <see cref="ImVectorWrapper{T}"/> struct, initialized with
-    /// <paramref name="sourceEnumerable"/>.<br />
-    /// You must call <see cref="ImVectorWrapper{T}.Dispose"/> after use.
-    /// </summary>
-    /// <typeparam name="T">The item type.</typeparam>
-    /// <param name="sourceEnumerable">The initial data.</param>
-    /// <param name="destroyer">The destroyer function to call on item removal.</param>
-    /// <param name="minCapacity">The minimum capacity of the new vector.</param>
-    /// <returns>The new wrapped vector, that has to be disposed after use.</returns>
-    public static ImVectorWrapper<T> CreateFromEnumerable<T>(
-        IEnumerable<T> sourceEnumerable,
-        ImVectorWrapper<T>.ImGuiNativeDestroyDelegate? destroyer = null,
-        int minCapacity = 0)
-        where T : unmanaged
-    {
-        var res = new ImVectorWrapper<T>(0, destroyer);
-        try
-        {
-            switch (sourceEnumerable)
-            {
-                case T[] c:
-                    res.SetCapacity(Math.Max(minCapacity, c.Length + 1));
-                    res.LengthUnsafe = c.Length;
-                    c.AsSpan().CopyTo(res.DataSpan);
-                    break;
-                case ICollection c:
-                    res.SetCapacity(Math.Max(minCapacity, c.Count + 1));
-                    res.AddRange(sourceEnumerable);
-                    break;
-                case ICollection<T> c:
-                    res.SetCapacity(Math.Max(minCapacity, c.Count + 1));
-                    res.AddRange(sourceEnumerable);
-                    break;
-                default:
-                    res.SetCapacity(minCapacity);
-                    res.AddRange(sourceEnumerable);
-                    res.EnsureCapacity(res.LengthUnsafe + 1);
-                    break;
-            }
-
-            // Null termination
-            Debug.Assert(res.LengthUnsafe < res.CapacityUnsafe, "Capacity must be more than source length + 1");
-            res.StorageSpan[res.LengthUnsafe] = default;
-
-            return res;
-        }
-        catch
-        {
-            res.Dispose();
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Creates a new instance of the <see cref="ImVectorWrapper{T}"/> struct, initialized with
-    /// <paramref name="sourceSpan"/>.<br />
-    /// You must call <see cref="ImVectorWrapper{T}.Dispose"/> after use.
-    /// </summary>
-    /// <typeparam name="T">The item type.</typeparam>
-    /// <param name="sourceSpan">The initial data.</param>
-    /// <param name="destroyer">The destroyer function to call on item removal.</param>
-    /// <param name="minCapacity">The minimum capacity of the new vector.</param>
-    /// <returns>The new wrapped vector, that has to be disposed after use.</returns>
-    public static ImVectorWrapper<T> CreateFromSpan<T>(
-        ReadOnlySpan<T> sourceSpan,
-        ImVectorWrapper<T>.ImGuiNativeDestroyDelegate? destroyer = null,
-        int minCapacity = 0)
-        where T : unmanaged
-    {
-        var res = new ImVectorWrapper<T>(Math.Max(minCapacity, sourceSpan.Length + 1), destroyer);
-        try
-        {
-            res.LengthUnsafe = sourceSpan.Length;
-            sourceSpan.CopyTo(res.DataSpan);
-
-            // Null termination
-            Debug.Assert(res.LengthUnsafe < res.CapacityUnsafe, "Capacity must be more than source length + 1");
-            res.StorageSpan[res.LengthUnsafe] = default;
-            return res;
-        }
-        catch
-        {
-            res.Dispose();
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Wraps <see cref="ImFontAtlas.ConfigData"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
-    /// This does not need to be disposed.
-    /// </summary>
-    /// <param name="obj">The owner object.</param>
-    /// <returns>The wrapped vector.</returns>
-    public static unsafe ImVectorWrapper<ImFontConfig> ConfigDataWrapped(this ImFontAtlasPtr obj) =>
-        obj.NativePtr is null
-            ? throw new NullReferenceException()
-            : new(&obj.NativePtr->ConfigData, ImGuiNative.ImFontConfig_destroy);
-
-    /// <summary>
-    /// Wraps <see cref="ImFontAtlas.Fonts"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
-    /// This does not need to be disposed.
-    /// </summary>
-    /// <param name="obj">The owner object.</param>
-    /// <returns>The wrapped vector.</returns>
-    public static unsafe ImVectorWrapper<ImFontPtr> FontsWrapped(this ImFontAtlasPtr obj) =>
-        obj.NativePtr is null
-            ? throw new NullReferenceException()
-            : new(&obj.NativePtr->Fonts, x => ImGuiNative.ImFont_destroy(x->NativePtr));
-
-    /// <summary>
-    /// Wraps <see cref="ImFontAtlas.Textures"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
-    /// This does not need to be disposed.
-    /// </summary>
-    /// <param name="obj">The owner object.</param>
-    /// <returns>The wrapped vector.</returns>
-    public static unsafe ImVectorWrapper<ImFontAtlasTexture> TexturesWrapped(this ImFontAtlasPtr obj) =>
-        obj.NativePtr is null
-            ? throw new NullReferenceException()
-            : new(&obj.NativePtr->Textures);
-
-    /// <summary>
-    /// Wraps <see cref="ImFont.Glyphs"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
-    /// This does not need to be disposed.
-    /// </summary>
-    /// <param name="obj">The owner object.</param>
-    /// <returns>The wrapped vector.</returns>
-    public static unsafe ImVectorWrapper<ImGuiHelpers.ImFontGlyphReal> GlyphsWrapped(this ImFontPtr obj) =>
-        obj.NativePtr is null
-            ? throw new NullReferenceException()
-            : new(&obj.NativePtr->Glyphs);
-
-    /// <summary>
-    /// Wraps <see cref="ImFont.IndexedHotData"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
-    /// This does not need to be disposed.
-    /// </summary>
-    /// <param name="obj">The owner object.</param>
-    /// <returns>The wrapped vector.</returns>
-    public static unsafe ImVectorWrapper<ImGuiHelpers.ImFontGlyphHotDataReal> IndexedHotDataWrapped(this ImFontPtr obj)
-        => obj.NativePtr is null
-               ? throw new NullReferenceException()
-               : new(&obj.NativePtr->IndexedHotData);
-
-    /// <summary>
-    /// Wraps <see cref="ImFont.IndexLookup"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
-    /// This does not need to be disposed.
-    /// </summary>
-    /// <param name="obj">The owner object.</param>
-    /// <returns>The wrapped vector.</returns>
-    public static unsafe ImVectorWrapper<ushort> IndexLookupWrapped(this ImFontPtr obj) =>
-        obj.NativePtr is null
-            ? throw new NullReferenceException()
-            : new(&obj.NativePtr->IndexLookup);
-}
-
-/// <summary>
 /// Wrapper for ImVector.
 /// </summary>
 /// <typeparam name="T">Contained type.</typeparam>
@@ -743,4 +583,164 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     void IList<T>.Insert(int index, T item) => this.Insert(index, in item);
 
     private int EnsureIndex(int i) => i >= 0 && i < this.LengthUnsafe ? i : throw new IndexOutOfRangeException();
+}
+
+/// <summary>
+/// Utility methods for <see cref="ImVectorWrapper{T}"/>.
+/// </summary>
+public static class ImVectorWrapper
+{
+    /// <summary>
+    /// Creates a new instance of the <see cref="ImVectorWrapper{T}"/> struct, initialized with
+    /// <paramref name="sourceEnumerable"/>.<br />
+    /// You must call <see cref="ImVectorWrapper{T}.Dispose"/> after use.
+    /// </summary>
+    /// <typeparam name="T">The item type.</typeparam>
+    /// <param name="sourceEnumerable">The initial data.</param>
+    /// <param name="destroyer">The destroyer function to call on item removal.</param>
+    /// <param name="minCapacity">The minimum capacity of the new vector.</param>
+    /// <returns>The new wrapped vector, that has to be disposed after use.</returns>
+    public static ImVectorWrapper<T> CreateFromEnumerable<T>(
+        IEnumerable<T> sourceEnumerable,
+        ImVectorWrapper<T>.ImGuiNativeDestroyDelegate? destroyer = null,
+        int minCapacity = 0)
+        where T : unmanaged
+    {
+        var res = new ImVectorWrapper<T>(0, destroyer);
+        try
+        {
+            switch (sourceEnumerable)
+            {
+                case T[] c:
+                    res.SetCapacity(Math.Max(minCapacity, c.Length + 1));
+                    res.LengthUnsafe = c.Length;
+                    c.AsSpan().CopyTo(res.DataSpan);
+                    break;
+                case ICollection c:
+                    res.SetCapacity(Math.Max(minCapacity, c.Count + 1));
+                    res.AddRange(sourceEnumerable);
+                    break;
+                case ICollection<T> c:
+                    res.SetCapacity(Math.Max(minCapacity, c.Count + 1));
+                    res.AddRange(sourceEnumerable);
+                    break;
+                default:
+                    res.SetCapacity(minCapacity);
+                    res.AddRange(sourceEnumerable);
+                    res.EnsureCapacity(res.LengthUnsafe + 1);
+                    break;
+            }
+
+            // Null termination
+            Debug.Assert(res.LengthUnsafe < res.CapacityUnsafe, "Capacity must be more than source length + 1");
+            res.StorageSpan[res.LengthUnsafe] = default;
+
+            return res;
+        }
+        catch
+        {
+            res.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="ImVectorWrapper{T}"/> struct, initialized with
+    /// <paramref name="sourceSpan"/>.<br />
+    /// You must call <see cref="ImVectorWrapper{T}.Dispose"/> after use.
+    /// </summary>
+    /// <typeparam name="T">The item type.</typeparam>
+    /// <param name="sourceSpan">The initial data.</param>
+    /// <param name="destroyer">The destroyer function to call on item removal.</param>
+    /// <param name="minCapacity">The minimum capacity of the new vector.</param>
+    /// <returns>The new wrapped vector, that has to be disposed after use.</returns>
+    public static ImVectorWrapper<T> CreateFromSpan<T>(
+        ReadOnlySpan<T> sourceSpan,
+        ImVectorWrapper<T>.ImGuiNativeDestroyDelegate? destroyer = null,
+        int minCapacity = 0)
+        where T : unmanaged
+    {
+        var res = new ImVectorWrapper<T>(Math.Max(minCapacity, sourceSpan.Length + 1), destroyer);
+        try
+        {
+            res.LengthUnsafe = sourceSpan.Length;
+            sourceSpan.CopyTo(res.DataSpan);
+
+            // Null termination
+            Debug.Assert(res.LengthUnsafe < res.CapacityUnsafe, "Capacity must be more than source length + 1");
+            res.StorageSpan[res.LengthUnsafe] = default;
+            return res;
+        }
+        catch
+        {
+            res.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Wraps <see cref="ImFontAtlas.ConfigData"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
+    /// This does not need to be disposed.
+    /// </summary>
+    /// <param name="obj">The owner object.</param>
+    /// <returns>The wrapped vector.</returns>
+    public static unsafe ImVectorWrapper<ImFontConfig> ConfigDataWrapped(this ImFontAtlasPtr obj) =>
+        obj.NativePtr is null
+            ? throw new NullReferenceException()
+            : new(&obj.NativePtr->ConfigData, ImGuiNative.ImFontConfig_destroy);
+
+    /// <summary>
+    /// Wraps <see cref="ImFontAtlas.Fonts"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
+    /// This does not need to be disposed.
+    /// </summary>
+    /// <param name="obj">The owner object.</param>
+    /// <returns>The wrapped vector.</returns>
+    public static unsafe ImVectorWrapper<ImFontPtr> FontsWrapped(this ImFontAtlasPtr obj) =>
+        obj.NativePtr is null
+            ? throw new NullReferenceException()
+            : new(&obj.NativePtr->Fonts, x => ImGuiNative.ImFont_destroy(x->NativePtr));
+
+    /// <summary>
+    /// Wraps <see cref="ImFontAtlas.Textures"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
+    /// This does not need to be disposed.
+    /// </summary>
+    /// <param name="obj">The owner object.</param>
+    /// <returns>The wrapped vector.</returns>
+    public static unsafe ImVectorWrapper<ImFontAtlasTexture> TexturesWrapped(this ImFontAtlasPtr obj) =>
+        obj.NativePtr is null
+            ? throw new NullReferenceException()
+            : new(&obj.NativePtr->Textures);
+
+    /// <summary>
+    /// Wraps <see cref="ImFont.Glyphs"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
+    /// This does not need to be disposed.
+    /// </summary>
+    /// <param name="obj">The owner object.</param>
+    /// <returns>The wrapped vector.</returns>
+    public static unsafe ImVectorWrapper<ImGuiHelpers.ImFontGlyphReal> GlyphsWrapped(this ImFontPtr obj) =>
+        obj.NativePtr is null
+            ? throw new NullReferenceException()
+            : new(&obj.NativePtr->Glyphs);
+
+    /// <summary>
+    /// Wraps <see cref="ImFont.IndexedHotData"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
+    /// This does not need to be disposed.
+    /// </summary>
+    /// <param name="obj">The owner object.</param>
+    /// <returns>The wrapped vector.</returns>
+    public static unsafe ImVectorWrapper<ImGuiHelpers.ImFontGlyphHotDataReal> IndexedHotDataWrapped(this ImFontPtr obj)
+        => obj.NativePtr is null
+               ? throw new NullReferenceException()
+               : new(&obj.NativePtr->IndexedHotData);
+
+    /// <summary>
+    /// Wraps <see cref="ImFont.IndexLookup"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
+    /// This does not need to be disposed.
+    /// </summary>
+    /// <param name="obj">The owner object.</param>
+    /// <returns>The wrapped vector.</returns>
+    public static unsafe ImVectorWrapper<ushort> IndexLookupWrapped(this ImFontPtr obj) =>
+        obj.NativePtr is null
+            ? throw new NullReferenceException()
+            : new(&obj.NativePtr->IndexLookup);
 }

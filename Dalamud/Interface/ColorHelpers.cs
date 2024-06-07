@@ -10,17 +10,6 @@ namespace Dalamud.Interface;
 public static class ColorHelpers
 {
     /// <summary>
-    /// A struct representing a color using HSVA coordinates.
-    /// </summary>
-    /// <param name="H">The hue represented by this struct.</param>
-    /// <param name="S">The saturation represented by this struct.</param>
-    /// <param name="V">The value represented by this struct.</param>
-    /// <param name="A">The alpha represented by this struct.</param>
-    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter",
-                     Justification = "I don't like it.")]
-    public record struct HsvaColor(float H, float S, float V, float A);
-
-    /// <summary>
     /// Pack a vector4 color into a uint for use in ImGui APIs.
     /// </summary>
     /// <param name="color">The color to pack.</param>
@@ -305,4 +294,15 @@ public static class ColorHelpers
             
         _ => color / 255.0f,
     };
+    
+    /// <summary>
+    /// A struct representing a color using HSVA coordinates.
+    /// </summary>
+    /// <param name="H">The hue represented by this struct.</param>
+    /// <param name="S">The saturation represented by this struct.</param>
+    /// <param name="V">The value represented by this struct.</param>
+    /// <param name="A">The alpha represented by this struct.</param>
+    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter",
+                     Justification = "I don't like it.")]
+    public record struct HsvaColor(float H, float S, float V, float A);
 }

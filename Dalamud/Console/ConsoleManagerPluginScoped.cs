@@ -9,6 +9,8 @@ using Dalamud.Plugin.Services;
 
 namespace Dalamud.Console;
 
+#pragma warning disable Dalamud001
+
 /// <summary>
 /// Plugin-scoped version of the console service.
 /// </summary>
