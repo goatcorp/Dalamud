@@ -200,7 +200,7 @@ internal partial class ConsoleManager : IServiceType
         var entry = this.FindEntry(entryName);
         if (entry == null)
         {
-            Log.Error("Command '{CommandName}' not found", entryName);
+            Log.Error("Command {CommandName} not found", entryName);
             return false;
         }
         
@@ -212,7 +212,7 @@ internal partial class ConsoleManager : IServiceType
             {
                 if (i - 1 >= entry.ValidArguments.Count)
                 {
-                    Log.Error("Too many arguments for command '{CommandName}'", entryName);
+                    Log.Error("Too many arguments for command {CommandName}", entryName);
                     PrintUsage(entry);
                     return false;
                 }
@@ -237,7 +237,7 @@ internal partial class ConsoleManager : IServiceType
                         parsedArguments.Add(intValue);
                         break;
                     case ConsoleArgumentType.Integer:
-                        Log.Error("Argument '{Argument}' for command '{CommandName}' is not an integer", value, entryName);
+                        Log.Error("Argument {Argument} for command {CommandName} is not an integer", value, entryName);
                         PrintUsage(entry);
                         return false;
 
@@ -245,7 +245,7 @@ internal partial class ConsoleManager : IServiceType
                         parsedArguments.Add(floatValue);
                         break;
                     case ConsoleArgumentType.Float:
-                        Log.Error("Argument '{Argument}' for command '{CommandName}' is not a float", value, entryName);
+                        Log.Error("Argument {Argument} for command {CommandName} is not a float", value, entryName);
                         PrintUsage(entry);
                         return false;
 
@@ -253,7 +253,7 @@ internal partial class ConsoleManager : IServiceType
                         parsedArguments.Add(boolValue);
                         break;
                     case ConsoleArgumentType.Bool:
-                        Log.Error("Argument '{Argument}' for command '{CommandName}' is not a boolean", value, entryName);
+                        Log.Error("Argument {Argument} for command {CommandName} is not a boolean", value, entryName);
                         PrintUsage(entry);
                         return false;
 
@@ -271,7 +271,7 @@ internal partial class ConsoleManager : IServiceType
                     var argument = entry.ValidArguments[i];
                     if (argument.DefaultValue == null)
                     {
-                        Log.Error("Not enough arguments for command '{CommandName}'", entryName);
+                        Log.Error("Not enough arguments for command {CommandName}", entryName);
                         PrintUsage(entry);
                         return false;
                     }
@@ -281,7 +281,7 @@ internal partial class ConsoleManager : IServiceType
                 
                 if (parsedArguments.Count != entry.ValidArguments.Count)
                 {
-                    Log.Error("Too many arguments for command '{CommandName}'", entryName);
+                    Log.Error("Too many arguments for command {CommandName}", entryName);
                     PrintUsage(entry);
                     return false;
                 }
@@ -291,7 +291,7 @@ internal partial class ConsoleManager : IServiceType
         {
             if (matches.Count > 1)
             {
-                Log.Error("Command '{CommandName}' does not take any arguments", entryName);
+                Log.Error("Command {CommandName} does not take any arguments", entryName);
                 PrintUsage(entry);
                 return false;
             }
