@@ -118,6 +118,9 @@ internal partial class ConsoleManager : IServiceType
     public void RemoveEntry(IConsoleEntry entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
+
+        if (!this.entries.Remove(entry.Name))
+            throw new EntryNotFoundException(entry.Name);
     }
 
     /// <summary>
