@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.TerraFxCom;
@@ -44,15 +45,15 @@ internal sealed partial class TextureManager
                 throw new NullReferenceException($"{nameof(stream)} cannot be null.");
 
             using var istream = ManagedIStream.Create(stream, true);
-            using var wrapAux = new WrapAux(wrap, true);
 
             var dxgiFormat =
-                WicManager.GetCorrespondingWicPixelFormat(wrapAux.Desc.Format, out _, out _)
-                    ? wrapAux.Desc.Format
+                WicManager.GetCorrespondingWicPixelFormat((DXGI_FORMAT)wrap.DxgiFormat, out _, out _)
+                    ? (DXGI_FORMAT)wrap.DxgiFormat
                     : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
 
-            var (specs, bytes) = await this.GetRawImageAsync(wrapAux, new() { Format = dxgiFormat }, cancellationToken)
-                                           .ConfigureAwait(false);
+            var (specs, bytes) =
+                await this.GetRawImageAsync(wrap, new() { Format = dxgiFormat }, true, cancellationToken)
+                          .ConfigureAwait(false);
 
             await Task.Run(
                 () => this.Wic.SaveToStreamUsingWic(
@@ -89,7 +90,6 @@ internal sealed partial class TextureManager
             if (path is null)
                 throw new NullReferenceException($"{nameof(path)} cannot be null.");
 
-            using var wrapAux = new WrapAux(wrap, true);
             var pathTemp = Util.GetTempFileNameForFileReplacement(path);
             var trashfire = new List<Exception>();
             try
@@ -101,14 +101,13 @@ internal sealed partial class TextureManager
                            FileShare.None))
                 {
                     var dxgiFormat =
-                        WicManager.GetCorrespondingWicPixelFormat(wrapAux.Desc.Format, out _, out _)
-                            ? wrapAux.Desc.Format
+                        WicManager.GetCorrespondingWicPixelFormat((DXGI_FORMAT)wrap.DxgiFormat, out _, out _)
+                            ? (DXGI_FORMAT)wrap.DxgiFormat
                             : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
 
-                    var (specs, bytes) = await this.GetRawImageAsync(
-                                             wrapAux,
-                                             new() { Format = dxgiFormat },
-                                             cancellationToken).ConfigureAwait(false);
+                    var (specs, bytes) =
+                        await this.GetRawImageAsync(wrap, new() { Format = dxgiFormat }, true, cancellationToken)
+                                  .ConfigureAwait(false);
 
                     await Task.Run(
                         () => this.Wic.SaveToStreamUsingWic(
@@ -395,7 +394,8 @@ internal sealed partial class TextureManager
             cancellationToken.ThrowIfCancellationRequested();
 
             using var bitmapSource = default(ComPtr<IWICBitmapSource>);
-            if (dxgiFormat == DXGI_FORMAT.DXGI_FORMAT_UNKNOWN || !this.textureManager.IsDxgiFormatSupported(dxgiFormat))
+            if (dxgiFormat == DXGI_FORMAT.DXGI_FORMAT_UNKNOWN ||
+                !this.textureManager.IsDxgiFormatSupported((int)dxgiFormat))
             {
                 dxgiFormat = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
                 pixelFormat = GUID.GUID_WICPixelFormat32bppBGRA;

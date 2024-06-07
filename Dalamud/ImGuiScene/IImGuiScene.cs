@@ -1,6 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.ImGuiScene;
 
@@ -40,19 +42,22 @@ internal interface IImGuiScene : IDisposable
     event NewRenderFrameDelegate? NewRenderFrame;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the cursor should be overridden with the ImGui cursor.
+    /// Gets or sets a value indicating whether the cursor should be overridden with the ImGui cursor.
     /// </summary>
-    public bool UpdateCursor { get; set; }
+    bool UpdateCursor { get; set; }
 
     /// <summary>
     /// Gets or sets the path of ImGui configuration .ini file.
     /// </summary>
-    public string? IniPath { get; set; }
+    string? IniPath { get; set; }
 
     /// <summary>
     /// Gets the device handle.
     /// </summary>
-    public nint DeviceHandle { get; }
+    nint DeviceHandle { get; }
+
+    /// <summary>Gets the texture manager.</summary>
+    ISceneTextureManager TextureManager { get; }
 
     /// <summary>
     /// Perform a render cycle.
@@ -77,47 +82,6 @@ internal interface IImGuiScene : IDisposable
     /// <remarks>Call this while handling <see cref="NewRenderFrame"/>.</remarks>
     void InvalidateFonts();
 
-    /// <summary>
-    /// Check whether the current backend supports the given texture format.
-    /// </summary>
-    /// <param name="format">DXGI format to check.</param>
-    /// <returns>Whether it is supported.</returns>
-    public bool SupportsTextureFormat(int format);
-
-    /// <summary>
-    /// Loads an image from a file.
-    /// </summary>
-    /// <param name="path">The path to file.</param>
-    /// <param name="debugName">The debug name.</param>
-    /// <returns>The loaded image.</returns>
-    IDalamudTextureWrap CreateTexture2DFromFile(string path, [CallerMemberName] string debugName = "");
-
-    /// <summary>
-    /// Loads an image from memory. The image must be in a contained format, such as .png, .jpg, and etc.
-    /// </summary>
-    /// <param name="data">The data of the image.</param>
-    /// <param name="debugName">The debug name.</param>
-    /// <returns>The loaded image.</returns>
-    IDalamudTextureWrap CreateTexture2DFromBytes(ReadOnlySpan<byte> data, [CallerMemberName] string debugName = "");
-
-    /// <summary>
-    /// Load an image from a span of bytes of specified format.
-    /// </summary>
-    /// <param name="data">The data to load.</param>
-    /// <param name="pitch">The pitch(stride) in bytes.</param>
-    /// <param name="width">The width in pixels.</param>
-    /// <param name="height">The height in pixels.</param>
-    /// <param name="format">Format of the texture.</param>
-    /// <param name="debugName">The debug name.</param>
-    /// <returns>A texture, ready to use in ImGui.</returns>
-    IDalamudTextureWrap CreateTexture2DFromRaw(
-        ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
-        [CallerMemberName] string debugName = "");
-
     /// <inheritdoc cref="IImGuiRenderer.SetTexturePipeline"/>
     void SetTexturePipeline(IDalamudTextureWrap textureHandle, ITexturePipelineWrap? pipelineHandle);
     
@@ -129,18 +93,18 @@ internal interface IImGuiScene : IDisposable
     /// </summary>
     /// <param name="cursorHandle">The cursor.</param>
     /// <returns>Whether it is the case.</returns>
-    public bool IsImGuiCursor(nint cursorHandle);
+    bool IsImGuiCursor(nint cursorHandle);
 
     /// <summary>
     /// Determines if this instance of <see cref="IImGuiScene"/> is rendering to <paramref name="targetHandle"/>.
     /// </summary>
     /// <param name="targetHandle">The present target handle.</param>
     /// <returns>Whether it is the case.</returns>
-    public bool IsAttachedToPresentationTarget(nint targetHandle);
+    bool IsAttachedToPresentationTarget(nint targetHandle);
 
     /// <summary>
     /// Determines if the main viewport is full screen.
     /// </summary>
     /// <returns>Whether it is the case.</returns>
-    public bool IsMainViewportFullScreen();
+    bool IsMainViewportFullScreen();
 }

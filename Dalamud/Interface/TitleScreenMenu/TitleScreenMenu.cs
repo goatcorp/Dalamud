@@ -4,6 +4,7 @@ using System.Reflection;
 
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;

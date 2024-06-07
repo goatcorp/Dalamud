@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -7,9 +8,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -37,8 +39,14 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     private readonly nint renderNamePtr;
     private readonly DXGI_FORMAT rtvFormat;
     private readonly ViewportData mainViewport;
+    private readonly D3D11RectangleDrawer rectangleDrawer;
 
+    private readonly ConcurrentQueue<(Action Action, TaskCompletionSource Tcs)> preNewFrameActions = new();
+
+    private bool disposeCalled;
     private bool releaseUnmanagedResourceCalled;
+
+    private bool isInDrawCycle;
 
     private ComPtr<ID3D11Device> device;
     private ComPtr<ID3D11DeviceContext> context;
@@ -102,6 +110,10 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
 
             this.mainViewport = ViewportData.Create(this, swapChain, null, null);
             ImGui.GetPlatformIO().Viewports[0].RendererUserData = this.mainViewport.AsHandle();
+
+            this.TextureManager = new Dx11TextureManager(this);
+            this.rectangleDrawer = new();
+            this.rectangleDrawer.Setup(this.device);
         }
         catch
         {
@@ -116,8 +128,19 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     ~Dx11Renderer() => this.ReleaseUnmanagedResources();
 
     /// <inheritdoc/>
+    public ISceneTextureManager TextureManager { get; }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
+        if (this.disposeCalled)
+            return;
+        this.disposeCalled = true;
+
+        while (this.preNewFrameActions.TryDequeue(out var a))
+            a.Tcs.TrySetCanceled();
+
+        this.rectangleDrawer.Dispose();
         this.ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);
     }
@@ -126,6 +149,20 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     public void OnNewFrame()
     {
         this.EnsureDeviceObjects();
+
+        this.isInDrawCycle = true;
+        while (this.preNewFrameActions.TryDequeue(out var t))
+        {
+            try
+            {
+                t.Action.Invoke();
+                t.Tcs.SetResult();
+            }
+            catch (Exception e)
+            {
+                t.Tcs.SetException(e);
+            }
+        }
     }
 
     /// <inheritdoc/>
@@ -135,8 +172,11 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     public void OnPostResize(int width, int height) => this.mainViewport.ResizeBuffers(width, height, false);
 
     /// <inheritdoc/>
-    public void RenderDrawData(ImDrawDataPtr drawData) =>
+    public void RenderDrawData(ImDrawDataPtr drawData)
+    {
         this.mainViewport.Draw(drawData, this.mainViewport.SwapChain == null);
+        this.isInDrawCycle = false;
+    }
 
     /// <summary>
     /// Creates a new texture pipeline.
@@ -197,60 +237,33 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         this.CreateFontsTexture();
     }
 
-    /// <inheritdoc/>
-    public IDalamudTextureWrap LoadTexture(
-        ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
-        [CallerMemberName] string debugName = "")
-    {
-        var texd = new D3D11_TEXTURE2D_DESC
-        {
-            Width = (uint)width,
-            Height = (uint)height,
-            MipLevels = 1,
-            ArraySize = 1,
-            Format = (DXGI_FORMAT)format,
-            SampleDesc = new(1, 0),
-            Usage = D3D11_USAGE.D3D11_USAGE_IMMUTABLE,
-            BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE,
-            CPUAccessFlags = 0,
-            MiscFlags = 0,
-        };
-        using var texture = default(ComPtr<ID3D11Texture2D>);
-        fixed (void* dataPtr = data)
-        {
-            var subrdata = new D3D11_SUBRESOURCE_DATA { pSysMem = dataPtr, SysMemPitch = (uint)pitch };
-            Marshal.ThrowExceptionForHR(this.device.Get()->CreateTexture2D(&texd, &subrdata, texture.GetAddressOf()));
-        }
-        
-        SetDebugName((ID3D11DeviceChild*)texture.Get(), $"Texture:{debugName}:Tex2D");
-
-        var viewd = new D3D11_SHADER_RESOURCE_VIEW_DESC
-        {
-            Format = texd.Format,
-            ViewDimension = D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D,
-            Texture2D = new() { MipLevels = texd.MipLevels },
-        };
-        using var view = default(ComPtr<ID3D11ShaderResourceView>);
-        Marshal.ThrowExceptionForHR(
-            this.device.Get()->CreateShaderResourceView((ID3D11Resource*)texture.Get(), &viewd, view.GetAddressOf()));
-        
-        SetDebugName((ID3D11DeviceChild*)view.Get(), $"Texture:{debugName}:SRV");
-
-        return TextureWrap.TakeOwnership(new(view, width, height));
-    }
-
-    private static void SetDebugName(ID3D11DeviceChild* child, string name)
+    private static void SetDebugName<T>(ComPtr<T> child, string name)
+        where T : unmanaged, ID3D11DeviceChild.Interface
     {
         var len = Encoding.UTF8.GetByteCount(name);
         var buf = stackalloc byte[len + 1];
         Encoding.UTF8.GetBytes(name, new(buf, len + 1));
         buf[len] = 0;
         fixed (Guid* pId = &DirectX.WKPDID_D3DDebugObjectName)
-            child->SetPrivateData(pId, (uint)(len + 1), buf).ThrowOnError();
+            child.Get()->SetPrivateData(pId, (uint)(len + 1), buf).ThrowOnError();
+    }
+
+    /// <summary>Runs the given action in IDXGISwapChain.Present immediately or waiting as needed.</summary>
+    /// <param name="action">The action to run.</param>
+    private Task RunDuringPresent(Action action)
+    {
+        if (this.disposeCalled)
+            throw new OperationCanceledException();
+
+        if (this.isInDrawCycle && ThreadSafety.IsMainThread)
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
+        var tcs = new TaskCompletionSource();
+        this.preNewFrameActions.Enqueue((action, tcs));
+        return tcs.Task;
     }
 
     private void RenderDrawDataInternal(
@@ -401,7 +414,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     (textureData.CustomPipeline ?? this.defaultPipeline!).BindTo(this.context);
 
                     var srv = textureData.ShaderResourceView;
-                    this.context.Get()->PSSetShaderResources(0, 1, &srv);
+                    this.context.Get()->PSSetShaderResources(0, 1, srv.GetAddressOf());
                     this.context.Get()->DrawIndexed(
                         cmd.ElemCount,
                         (uint)(cmd.IdxOffset + indexOffset),
@@ -447,12 +460,12 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 out var height,
                 out var bytespp);
 
-            var tex = this.LoadTexture(
+            var tex = this.TextureManager.Create(
                 new(fontPixels, width * height * bytespp),
-                width * bytespp,
-                width,
-                height,
-                (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
+                new(width, height, (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM, width * bytespp),
+                false,
+                false,
+                true,
                 $"Font#{textureIndex}");
             io.Fonts.SetTexID(textureIndex, tex.ImGuiHandle);
             this.fontTextures.Add(tex);

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 using TerraFX.Interop;
 using TerraFX.Interop.DirectX;
@@ -27,21 +27,31 @@ internal unsafe partial class Dx11Renderer
         public static readonly Guid MyGuid =
             new(0x72fe3f82, 0x3ffc, 0x4be9, 0xb0, 0x08, 0x4a, 0xef, 0x7a, 0x94, 0x2f, 0x55);
 
+        private ComPtr<ID3D11Texture2D> tex;
         private ComPtr<ID3D11ShaderResourceView> srv;
         private TexturePipeline? customPipeline;
 
-        public TextureData(ID3D11ShaderResourceView* srv, int width, int height)
+        public TextureData(
+            ComPtr<ID3D11Texture2D> tex,
+            ComPtr<ID3D11ShaderResourceView> srv,
+            int width,
+            int height,
+            DXGI_FORMAT format)
         {
-            this.srv = new(srv);
+            this.tex = tex;
+            this.srv = srv;
             this.Width = width;
             this.Height = height;
+            this.Format = format;
         }
 
         public static Guid* NativeGuid => (Guid*)Unsafe.AsPointer(ref Unsafe.AsRef(in MyGuid));
 
-        public int Width { get; private init; }
+        public int Width { get; }
 
-        public int Height { get; private init; }
+        public int Height { get; }
+
+        public DXGI_FORMAT Format { get; }
 
         public TexturePipeline? CustomPipeline
         {
@@ -55,13 +65,16 @@ internal unsafe partial class Dx11Renderer
             }
         }
 
-        public ID3D11ShaderResourceView* ShaderResourceView => this.srv;
+        public ComPtr<ID3D11Texture2D> Texture2D => this.tex;
+
+        public ComPtr<ID3D11ShaderResourceView> ShaderResourceView => this.srv;
 
         protected override void* DynamicCast(in Guid iid) =>
             iid == MyGuid ? this.AsComInterface() : base.DynamicCast(iid);
 
         protected override void FinalRelease()
         {
+            this.tex.Reset();
             this.srv.Reset();
             this.customPipeline?.Dispose();
             this.customPipeline = null;
@@ -85,6 +98,8 @@ internal unsafe partial class Dx11Renderer
         public int Width => this.Data.Width;
 
         public int Height => this.Data.Height;
+
+        public int DxgiFormat => (int)this.Data.Format;
 
         public static TextureWrap TakeOwnership(TextureData data) => new(data);
 

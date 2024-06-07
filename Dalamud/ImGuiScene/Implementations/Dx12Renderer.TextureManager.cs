@@ -3,7 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 using Dalamud.ImGuiScene.Helpers;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Utility;
+using Dalamud.Utility.TerraFxCom;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -20,15 +23,16 @@ namespace Dalamud.ImGuiScene.Implementations;
     Justification = "Multiple fixed/using scopes")]
 internal unsafe partial class Dx12Renderer
 {
-    private class TextureManager : IDisposable
+    private class Dx12TextureManager : IDisposable, ISceneTextureManager
     {
         private readonly FixedObjectPool<StructWrapper<Win32Handle>> eventPool;
         private readonly FixedObjectPool<CommandQueueWrapper> commandQueuePool;
         private readonly FixedObjectPool<GraphicsCommandListWrapper> commandListPool;
         private readonly List<FixedObjectPool<GraphicsCommandListWrapper>.Returner> flushTempList;
 
+        private readonly AutoResourceHeap gpuHeap;
         private readonly AutoResourceHeap uploadHeap;
-        private readonly AutoResourceHeap textureHeap;
+        private readonly AutoResourceHeap readBackHeap;
 
         private readonly object uploadListLock = new();
         private List<TextureData> pending1 = new();
@@ -39,11 +43,12 @@ internal unsafe partial class Dx12Renderer
         private ComPtr<ID3D12Device> device;
         private bool disposed;
 
-        public TextureManager(
+        public Dx12TextureManager(
             ID3D12Device* device,
             int queuePoolCapacity = 8,
+            ulong commonGpuHeapSize = 64 * 1048576,
             ulong commonUploadHeapSize = 16 * 1048576,
-            ulong commonTextureHeapSize = 64 * 1048576)
+            ulong commonReadBackHeapSize = 16 * 1048576)
         {
             if (queuePoolCapacity <= 0)
                 queuePoolCapacity = Environment.ProcessorCount;
@@ -54,21 +59,29 @@ internal unsafe partial class Dx12Renderer
                 this.device.Attach(device);
                 this.eventPool = new(_ => new(Win32Handle.CreateEvent()), queuePoolCapacity);
 
+                this.gpuHeap = new(
+                    device,
+                    D3D12_HEAP_FLAGS.D3D12_HEAP_FLAG_CREATE_NOT_ZEROED |
+                    D3D12_HEAP_FLAGS.D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES,
+                    new() { Type = D3D12_HEAP_TYPE.D3D12_HEAP_TYPE_DEFAULT },
+                    commonGpuHeapSize,
+                    debugName: $"{nameof(Dx12TextureManager)}.{nameof(this.gpuHeap)}");
+
                 this.uploadHeap = new(
                     device,
                     D3D12_HEAP_FLAGS.D3D12_HEAP_FLAG_CREATE_NOT_ZEROED |
                     D3D12_HEAP_FLAGS.D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS,
                     new() { Type = D3D12_HEAP_TYPE.D3D12_HEAP_TYPE_UPLOAD },
                     commonUploadHeapSize,
-                    debugName: $"{nameof(TextureManager)}.{nameof(this.uploadHeap)}");
+                    debugName: $"{nameof(Dx12TextureManager)}.{nameof(this.uploadHeap)}");
 
-                this.textureHeap = new(
+                this.readBackHeap = new(
                     device,
                     D3D12_HEAP_FLAGS.D3D12_HEAP_FLAG_CREATE_NOT_ZEROED |
                     D3D12_HEAP_FLAGS.D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES,
-                    new() { Type = D3D12_HEAP_TYPE.D3D12_HEAP_TYPE_DEFAULT },
-                    commonTextureHeapSize,
-                    debugName: $"{nameof(TextureManager)}.{nameof(this.textureHeap)}");
+                    new() { Type = D3D12_HEAP_TYPE.D3D12_HEAP_TYPE_READBACK },
+                    commonReadBackHeapSize,
+                    debugName: $"{nameof(Dx12TextureManager)}.{nameof(this.readBackHeap)}");
 
                 this.commandQueuePool = new(
                     i => new(
@@ -78,16 +91,16 @@ internal unsafe partial class Dx12Renderer
                             Type = D3D12_COMMAND_LIST_TYPE.D3D12_COMMAND_LIST_TYPE_COPY,
                             Flags = D3D12_COMMAND_QUEUE_FLAGS.D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT,
                         },
-                        $"{nameof(TextureManager)}.{nameof(this.commandQueuePool)}[{i}]"),
+                        $"{nameof(Dx12TextureManager)}.{nameof(this.commandQueuePool)}[{i}]"),
                     queuePoolCapacity);
-                
+
                 this.commandListPool = new(
                     i => new(
                         device,
                         D3D12_COMMAND_LIST_TYPE.D3D12_COMMAND_LIST_TYPE_COPY,
-                        $"{nameof(TextureManager)}.{nameof(this.commandListPool)}[{i}]"),
+                        $"{nameof(Dx12TextureManager)}.{nameof(this.commandListPool)}[{i}]"),
                     queuePoolCapacity);
-                
+
                 this.flushTempList = new(queuePoolCapacity);
                 this.activeQueues1 = new(queuePoolCapacity);
                 this.activeQueues2 = new(queuePoolCapacity);
@@ -98,13 +111,14 @@ internal unsafe partial class Dx12Renderer
                 this.commandQueuePool?.Dispose();
                 this.eventPool?.Dispose();
                 this.uploadHeap?.Dispose();
-                this.textureHeap?.Dispose();
+                this.gpuHeap?.Dispose();
+                this.readBackHeap?.Dispose();
                 this.ReleaseUnmanagedResources();
                 throw;
             }
         }
 
-        ~TextureManager() => this.ReleaseUnmanagedResources();
+        ~Dx12TextureManager() => this.ReleaseUnmanagedResources();
 
         public void Dispose()
         {
@@ -133,45 +147,39 @@ internal unsafe partial class Dx12Renderer
             this.commandListPool.Dispose();
             this.eventPool.Dispose();
             this.uploadHeap.Dispose();
-            this.textureHeap.Dispose();
+            this.gpuHeap.Dispose();
+            this.readBackHeap.Dispose();
             this.ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
 
-        public TextureWrap CreateTexture(
+        public ComPtr<ID3D12Resource> CreateUpload(
             ReadOnlySpan<byte> data,
-            int pitch,
-            int width,
-            int height,
-            DXGI_FORMAT format,
-            string debugName)
+            RawImageSpecification specs,
+            string debugName,
+            out int uploadPitch)
         {
             uint numRows;
-            int uploadPitch;
             int uploadSize;
 
-            // Create an empty texture of same specifications with the request
-            using var texture = default(ComPtr<ID3D12Resource>);
-            this.textureHeap.CreateResource(
-                out var resDesc,
+            var resDesc = this.device.Get()->FixDescAlignment(
                 new()
                 {
                     Dimension = D3D12_RESOURCE_DIMENSION.D3D12_RESOURCE_DIMENSION_TEXTURE2D,
                     Alignment = D3D12.D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT,
-                    Width = (ulong)width,
-                    Height = (uint)height,
+                    Width = (ulong)specs.Width,
+                    Height = (uint)specs.Height,
                     DepthOrArraySize = 1,
                     MipLevels = 1,
-                    Format = format,
+                    Format = specs.Format,
                     SampleDesc = { Count = 1, Quality = 0 },
                     Layout = D3D12_TEXTURE_LAYOUT.D3D12_TEXTURE_LAYOUT_UNKNOWN,
                     Flags = D3D12_RESOURCE_FLAGS.D3D12_RESOURCE_FLAG_NONE,
-                },
-                debugName: debugName).Swap(&texture);
+                });
 
             ulong cbRow;
             this.device.Get()->GetCopyableFootprints(&resDesc, 0, 1, 0, null, &numRows, &cbRow, null);
-            if (pitch == (int)cbRow)
+            if (specs.Pitch == (int)cbRow)
             {
                 uploadPitch = ((checked((int)cbRow) + D3D12.D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) - 1) &
                               ~(D3D12.D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
@@ -180,14 +188,13 @@ internal unsafe partial class Dx12Renderer
             else
             {
                 throw new ArgumentException(
-                    $"The provided pitch {pitch} does not match the calculated pitch of {cbRow}.",
-                    nameof(pitch));
+                    $"The provided pitch {specs.Pitch} does not match the calculated pitch of {cbRow}.",
+                    nameof(specs));
             }
 
             // Upload texture to graphics system
             using var uploadBuffer = default(ComPtr<ID3D12Resource>);
             this.uploadHeap.CreateResource(
-                out resDesc,
                 new()
                 {
                     Dimension = D3D12_RESOURCE_DIMENSION.D3D12_RESOURCE_DIMENSION_BUFFER,
@@ -203,76 +210,141 @@ internal unsafe partial class Dx12Renderer
                 },
                 D3D12_RESOURCE_STATES.D3D12_RESOURCE_STATE_GENERIC_READ,
                 debugName: debugName).Swap(&uploadBuffer);
-            
-            try
-            {
-                void* mapped;
-                var range = new D3D12_RANGE(0, (nuint)uploadSize);
-                uploadBuffer.Get()->Map(0, &range, &mapped).ThrowOnError();
-                var source = data;
-                var target = new Span<byte>(mapped, uploadSize);
-                for (var y = 0; y < numRows; y++)
-                {
-                    source[..pitch].CopyTo(target);
-                    source = source[pitch..];
-                    target = target[uploadPitch..];
-                }
-            }
-            finally
-            {
-                uploadBuffer.Get()->Unmap(0, null);
-            }
 
-            using var texData = new TextureData(format, width, height, uploadPitch, texture, uploadBuffer);
-
-            // deal with completed ones in the active queue, so that the following TryRent is more likely to succeed.
-            lock (this.uploadListLock)
+            if (!data.IsEmpty)
             {
-                this.activeQueues1.RemoveAll(
-                    x =>
-                    {
-                        if (x.O.HasPendingWork)
-                            return false;
-                        x.Dispose();
-                        return true;
-                    });
-            }
-
-            if (this.commandListPool.TryRent(out var rentedList))
-            {
-                FixedObjectPool<CommandQueueWrapper>.Returner rentedQueue = default;
-                var texDataPtrCopy = texData.CloneRef();
-                var giveup = () =>
-                {
-                    texDataPtrCopy?.ClearUploadBuffer();
-                    texDataPtrCopy?.Dispose();
-                    texDataPtrCopy = null;
-                    rentedList.Dispose();
-                };
                 try
                 {
-                    rentedQueue = this.commandQueuePool.Rent(giveup);
-                    using (rentedList.O.Record(out var cmdList))
-                        texDataPtrCopy.WriteCopyCommand(cmdList);
-                    rentedQueue.O.Submit(rentedList.O);
+                    void* mapped;
+                    var range = new D3D12_RANGE(0, (nuint)uploadSize);
+                    uploadBuffer.Get()->Map(0, &range, &mapped).ThrowOnError();
+                    var source = data;
+                    var target = new Span<byte>(mapped, uploadSize);
+                    for (var y = 0; y < numRows; y++)
+                    {
+                        source[..specs.Pitch].CopyTo(target);
+                        source = source[specs.Pitch..];
+                        target = target[uploadPitch..];
+                    }
                 }
-                catch
+                finally
                 {
-                    rentedQueue.Dispose();
-                    giveup.Invoke();
-                    throw;
+                    uploadBuffer.Get()->Unmap(0, null);
                 }
+            }
 
-                lock (this.uploadListLock)
-                    this.activeQueues1.Add(rentedQueue);
+            return new(uploadBuffer);
+        }
+
+        public IDalamudTextureWrap Create(
+            ReadOnlySpan<byte> data,
+            RawImageSpecification specs,
+            bool cpuRead,
+            bool cpuWrite,
+            bool immutable,
+            string? debugName = null) =>
+            this.CreateTexture(data, specs, cpuRead, cpuWrite, debugName ?? "Texture");
+
+        public TextureWrap CreateTexture(
+            ReadOnlySpan<byte> data,
+            RawImageSpecification specs,
+            bool cpuRead,
+            bool cpuWrite,
+            string debugName)
+        {
+            if (cpuRead && cpuWrite)
+                throw new ArgumentException("cpuRead and cpuWrite cannot be set at the same time.");
+
+            if (cpuWrite)
+            {
+                using var texture = this.CreateUpload(data, specs, debugName, out var uploadPitch);
+                using var texData = new TextureData(
+                    specs.Format,
+                    specs.Width,
+                    specs.Height,
+                    uploadPitch,
+                    new(texture),
+                    default);
+                return TextureWrap.NewReference(texData);
             }
             else
             {
-                lock (this.uploadListLock)
-                    this.pending1.Add(texData.CloneRef());
-            }
+                var heap = cpuRead ? this.readBackHeap : this.gpuHeap;
+                using var uploadBuffer = this.CreateUpload(data, specs, debugName, out var uploadPitch);
 
-            return TextureWrap.NewReference(texData);
+                // Create an empty texture of same specifications with the request
+                using var texture = heap.CreateResource(
+                    new()
+                    {
+                        Dimension = D3D12_RESOURCE_DIMENSION.D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+                        Alignment = D3D12.D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT,
+                        Width = (ulong)specs.Width,
+                        Height = (uint)specs.Height,
+                        DepthOrArraySize = 1,
+                        MipLevels = 1,
+                        Format = specs.Format,
+                        SampleDesc = { Count = 1, Quality = 0 },
+                        Layout = D3D12_TEXTURE_LAYOUT.D3D12_TEXTURE_LAYOUT_UNKNOWN,
+                        Flags = D3D12_RESOURCE_FLAGS.D3D12_RESOURCE_FLAG_NONE,
+                    },
+                    debugName: debugName);
+                using var texData = new TextureData(
+                    specs.Format,
+                    specs.Width,
+                    specs.Height,
+                    uploadPitch,
+                    new(texture),
+                    new(uploadBuffer));
+
+                // deal with completed ones in the active queue, so that the following TryRent is more likely to succeed.
+                lock (this.uploadListLock)
+                {
+                    this.activeQueues1.RemoveAll(
+                        x =>
+                        {
+                            if (x.O.HasPendingWork)
+                                return false;
+                            x.Dispose();
+                            return true;
+                        });
+                }
+
+                if (this.commandListPool.TryRent(out var rentedList))
+                {
+                    FixedObjectPool<CommandQueueWrapper>.Returner rentedQueue = default;
+                    var texDataPtrCopy = texData.CloneRef();
+                    var giveup = () =>
+                    {
+                        texDataPtrCopy?.ClearUploadBuffer();
+                        texDataPtrCopy?.Dispose();
+                        texDataPtrCopy = null;
+                        rentedList.Dispose();
+                    };
+                    try
+                    {
+                        rentedQueue = this.commandQueuePool.Rent(giveup);
+                        using (rentedList.O.Record(out var cmdList))
+                            texDataPtrCopy.WriteCopyCommand(cmdList);
+                        rentedQueue.O.Submit(rentedList.O);
+                    }
+                    catch
+                    {
+                        rentedQueue.Dispose();
+                        giveup.Invoke();
+                        throw;
+                    }
+
+                    lock (this.uploadListLock)
+                        this.activeQueues1.Add(rentedQueue);
+                }
+                else
+                {
+                    lock (this.uploadListLock)
+                        this.pending1.Add(texData.CloneRef());
+                }
+
+                return TextureWrap.NewReference(texData);
+            }
         }
 
         public void FlushPendingTextureUploads()
@@ -330,7 +402,7 @@ internal unsafe partial class Dx12Renderer
             {
                 lock (this.uploadListLock)
                     (this.activeQueues2, this.activeQueues1) = (this.activeQueues1, this.activeQueues2);
-            
+
                 using (var waiter = this.eventPool.Rent())
                 {
                     foreach (var x in this.activeQueues2)
@@ -339,12 +411,12 @@ internal unsafe partial class Dx12Renderer
                         x.Dispose();
                     }
                 }
-            
+
                 this.activeQueues2.Clear();
             }
-            
+
             this.uploadHeap.ClearEmptyHeaps();
-            this.textureHeap.ClearEmptyHeaps();
+            this.gpuHeap.ClearEmptyHeaps();
         }
 
         private void ReleaseUnmanagedResources()

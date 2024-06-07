@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -150,6 +150,9 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
     /// </summary>
     public ID3D11Device1* Device => this.device11;
 
+    /// <inheritdoc/>
+    public ISceneTextureManager TextureManager => this.scene12.TextureManager;
+
     /// <summary>
     /// Gets the pointer to an instance of <see cref="ID3D11Device"/>, in <see cref="nint"/>.
     /// </summary>
@@ -247,29 +250,6 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
         this.swapChain.Get()->GetFullscreenState(&fullscreen, null);
         return fullscreen;
     }
-
-    /// <inheritdoc/>
-    public bool SupportsTextureFormat(int format) => this.scene12.SupportsTextureFormat(format);
-
-    /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromFile(string path, [CallerMemberName] string debugName = "") =>
-        this.scene12.CreateTexture2DFromFile(path, debugName);
-
-    /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromBytes(
-        ReadOnlySpan<byte> data,
-        [CallerMemberName] string debugName = "") =>
-        this.scene12.CreateTexture2DFromBytes(data, debugName);
-
-    /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromRaw(
-        ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
-        [CallerMemberName] string debugName = "") =>
-        this.scene12.CreateTexture2DFromRaw(data, pitch, width, height, format, debugName);
 
     /// <inheritdoc cref="Dx12Win32Scene.CreateTexturePipeline"/>
     public ITexturePipelineWrap CreateTexturePipeline(

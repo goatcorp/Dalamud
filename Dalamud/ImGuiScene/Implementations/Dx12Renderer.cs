@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -33,7 +33,7 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
     private readonly Dictionary<nint, IImGuiRenderer.DrawCmdUserCallbackDelegate> userCallbacks = new();
     private readonly List<IDalamudTextureWrap> fontTextures = new();
 
-    private readonly TextureManager textureManager;
+    private readonly Dx12TextureManager textureManager;
     private readonly ViewportHandler viewportHandler;
     private readonly nint renderNamePtr;
 
@@ -200,6 +200,9 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
     /// </summary>
     ~Dx12Renderer() => this.ReleaseUnmanagedResources();
 
+    /// <inheritdoc/>
+    public ISceneTextureManager TextureManager => this.textureManager;
+
     /// <summary>
     /// Gets the number of back buffers.
     /// </summary>
@@ -332,26 +335,26 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
         this.CreateFontsTexture();
     }
 
-    /// <inheritdoc/>
-    public IDalamudTextureWrap LoadTexture(
-        ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
-        [CallerMemberName] string debugName = "")
-    {
-        try
-        {
-            return this.textureManager.CreateTexture(data, pitch, width, height, (DXGI_FORMAT)format, debugName);
-        }
-        catch (COMException e) when (e.HResult == unchecked((int)0x887a0005))
-        {
-            throw new AggregateException(
-                Marshal.GetExceptionForHR(this.device.Get()->GetDeviceRemovedReason()) ?? new(),
-                e);
-        }
-    }
+    // /// <inheritdoc/>
+    // public IDalamudTextureWrap LoadTexture(
+    //     ReadOnlySpan<byte> data,
+    //     int pitch,
+    //     int width,
+    //     int height,
+    //     int format,
+    //     [CallerMemberName] string debugName = "")
+    // {
+    //     try
+    //     {
+    //         return this.textureManager.CreateTexture(data, pitch, width, height, (DXGI_FORMAT)format, debugName);
+    //     }
+    //     catch (COMException e) when (e.HResult == unchecked((int)0x887a0005))
+    //     {
+    //         throw new AggregateException(
+    //             Marshal.GetExceptionForHR(this.device.Get()->GetDeviceRemovedReason()) ?? new(),
+    //             e);
+    //     }
+    // }
 
     private void RenderDrawDataInternal(ViewportFrame frameData, ImDrawDataPtr drawData, ID3D12GraphicsCommandList* ctx)
     {
@@ -477,12 +480,11 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
                 out var height,
                 out var bytespp);
 
-            var tex = this.LoadTexture(
+            var tex = this.textureManager.CreateTexture(
                 new(fontPixels, width * height * bytespp),
-                width * bytespp,
-                width,
-                height,
-                (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
+                new(width, height, width * bytespp, (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM),
+                false,
+                false,
                 $"Font#{textureIndex}");
             io.Fonts.SetTexID(textureIndex, tex.ImGuiHandle);
             this.fontTextures.Add(tex);

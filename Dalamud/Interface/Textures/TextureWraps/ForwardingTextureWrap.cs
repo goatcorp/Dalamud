@@ -34,6 +34,13 @@ public abstract class ForwardingTextureWrap : IDalamudTextureWrap
     }
 
     /// <inheritdoc/>
+    public int DxgiFormat
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => this.GetWrap().DxgiFormat;
+    }
+
+    /// <inheritdoc/>
     public Vector2 Size
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -52,7 +59,7 @@ public abstract class ForwardingTextureWrap : IDalamudTextureWrap
     {
         // Dalamud specific: IDalamudTextureWrap always points to an ID3D11ShaderResourceView.
         var handle = (IUnknown*)this.ImGuiHandle;
-        return new UnknownTextureWrap(handle, this.Width, this.Height, true);
+        return new UnknownTextureWrap(handle, this.Width, this.Height, this.DxgiFormat, true);
     }
 
     /// <inheritdoc/>

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
@@ -152,9 +153,9 @@ internal sealed partial class TextureManager
 
         private readonly nint[] comObject;
         private readonly IUnknown.Vtbl<IUnknown> vtbl;
-        private readonly D3D11_TEXTURE2D_DESC desc;
 
-        private ID3D11Texture2D* tex2D;
+        private ComPtr<ID3D11Texture2D> pD11Tex2D;
+        private ComPtr<ID3D12Resource> pD12Res; 
         private GCHandle gchThis;
         private GCHandle gchComObject;
         private GCHandle gchVtbl;
@@ -168,11 +169,28 @@ internal sealed partial class TextureManager
             try
             {
                 fixed (Guid* piid = &IID.IID_ID3D11Texture2D)
-                fixed (ID3D11Texture2D** ppTex2D = &this.tex2D)
-                    trackWhat->QueryInterface(piid, (void**)ppTex2D).ThrowOnError();
+                fixed (ID3D11Texture2D** ppTex2D = &this.pD11Tex2D.GetPinnableReference())
+                {
+                    if (trackWhat->QueryInterface(piid, (void**)ppTex2D).SUCCEEDED)
+                    {
+                        D3D11_TEXTURE2D_DESC desc;
+                        this.pD11Tex2D.Get()->GetDesc(&desc);
+                        this.RawSpecs = new((int)desc.Width, (int)desc.Height, (int)desc.Format, 0);
+                    }
+                }
 
-                fixed (D3D11_TEXTURE2D_DESC* pDesc = &this.desc)
-                    this.tex2D->GetDesc(pDesc);
+                fixed (Guid* piid = &IID.IID_ID3D12Resource)
+                fixed (ID3D12Resource** ppRes = &this.pD12Res.GetPinnableReference())
+                {
+                    if (trackWhat->QueryInterface(piid, (void**)ppRes).SUCCEEDED)
+                    {
+                        var desc = this.pD12Res.Get()->GetDesc();
+                        this.RawSpecs = new((int)desc.Width, (int)desc.Height, (int)desc.Format, 0);
+                    }
+                }
+
+                if (this.pD11Tex2D.IsEmpty() && this.pD12Res.IsEmpty())
+                    throw new InvalidOperationException("Given object ");
 
                 this.comObject = new nint[2];
 
@@ -196,19 +214,20 @@ internal sealed partial class TextureManager
                     this.gchVtbl.Free();
                 if (this.gchThis.IsAllocated)
                     this.gchThis.Free();
-                this.tex2D->Release();
+                this.pD11Tex2D.Reset();
+                this.pD12Res.Reset();
                 throw;
             }
 
             try
             {
                 fixed (Guid* pMyGuid = &MyGuid)
-                    this.tex2D->SetPrivateDataInterface(pMyGuid, this).ThrowOnError();
+                    this.pD11Tex2D->SetPrivateDataInterface(pMyGuid, this).ThrowOnError();
             }
             finally
             {
                 // We don't own this.
-                this.tex2D->Release();
+                this.pD11Tex2D->Release();
 
                 // If the try block above failed, then we will dispose ourselves right away.
                 // Otherwise, we are transferring our ownership to the device child tagging system.
@@ -235,7 +254,7 @@ internal sealed partial class TextureManager
         public List<LocalPlugin> OwnerPlugins { get; } = new();
 
         /// <inheritdoc/>
-        public nint ResourceAddress => (nint)this.tex2D;
+        public nint ResourceAddress => (nint)this.pD11Tex2D;
 
         /// <inheritdoc/>
         public string Name { get; set; } = "<unnamed>";
@@ -244,11 +263,7 @@ internal sealed partial class TextureManager
         public DXGI_FORMAT Format => this.desc.Format;
 
         /// <inheritdoc/>
-        public RawImageSpecification RawSpecs => new(
-            (int)this.desc.Width,
-            (int)this.desc.Height,
-            (int)this.desc.Format,
-            0);
+        public RawImageSpecification RawSpecs { get; }
 
         /// <inheritdoc/>
         public IntPtr ImGuiHandle
@@ -262,14 +277,14 @@ internal sealed partial class TextureManager
                 if (!this.srvDebugPreview.IsEmpty())
                     return (nint)this.srvDebugPreview.Get();
                 var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
-                    this.tex2D,
+                    this.pD11Tex2D,
                     D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
 
                 using var device = default(ComPtr<ID3D11Device>);
-                this.tex2D->GetDevice(device.GetAddressOf());
+                this.pD11Tex2D->GetDevice(device.GetAddressOf());
 
                 using var srv = default(ComPtr<ID3D11ShaderResourceView>);
-                if (device.Get()->CreateShaderResourceView((ID3D11Resource*)this.tex2D, &srvDesc, srv.GetAddressOf())
+                if (device.Get()->CreateShaderResourceView((ID3D11Resource*)this.pD11Tex2D, &srvDesc, srv.GetAddressOf())
                     .FAILED)
                     return Service<DalamudAssetManager>.Get().Empty4X4.ImGuiHandle;
 

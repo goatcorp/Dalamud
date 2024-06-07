@@ -1,15 +1,10 @@
 using System.Numerics;
 
-using Dalamud.Interface.Textures;
-using Dalamud.Interface.Textures.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 
 using TerraFX.Interop.Windows;
 
-// ReSharper disable once CheckNamespace
-namespace Dalamud.Interface.Internal;
-// TODO(api10): fix namespace maybe?
+namespace Dalamud.Interface.Textures.TextureWraps;
 
 /// <summary>
 /// Base TextureWrap interface for all Dalamud-owned texture wraps.
@@ -27,6 +22,9 @@ public interface IDalamudTextureWrap : IDisposable
 
     /// <summary>Gets the height of the texture.</summary>
     int Height { get; }
+
+    /// <summary>Gets the DXGI format of the texture.</summary>
+    int DxgiFormat { get; }
 
     /// <summary>Gets the size vector of the texture using Width, Height.</summary>
     Vector2 Size => new(this.Width, this.Height);
@@ -51,6 +49,6 @@ public interface IDalamudTextureWrap : IDisposable
     {
         // Dalamud specific: IDalamudTextureWrap always points to an ID3D11ShaderResourceView.
         var handle = (IUnknown*)this.ImGuiHandle;
-        return new UnknownTextureWrap(handle, this.Width, this.Height, true);
+        return new UnknownTextureWrap(handle, this.Width, this.Height, this.DxgiFormat, true);
     }
 }

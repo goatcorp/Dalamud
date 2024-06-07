@@ -5,6 +5,7 @@ using System.Threading;
 
 using Dalamud.ImGuiScene.Helpers;
 using Dalamud.Utility;
+using Dalamud.Utility.TerraFxCom;
 
 using TerraFX.Interop;
 using TerraFX.Interop.DirectX;
@@ -68,24 +69,13 @@ internal unsafe partial class Dx12Renderer
         }
 
         public ComPtr<ID3D12Resource> CreateResource(
-            out D3D12_RESOURCE_DESC outDesc,
             D3D12_RESOURCE_DESC desc,
             D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATES.D3D12_RESOURCE_STATE_COMMON,
             D3D12_CLEAR_VALUE* pOptimizedClearValue = null,
             [CallerMemberName] string debugName = "")
         {
-            desc.Alignment = D3D12.D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT;
+            desc = this.device.Get()->FixDescAlignment(desc);
             var resAlloc = this.device.Get()->GetResourceAllocationInfo(0, 1, &desc);
-            if (resAlloc.SizeInBytes == ulong.MaxValue)
-            {
-                desc.Alignment = D3D12.D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-                resAlloc = this.device.Get()->GetResourceAllocationInfo(0, 1, &desc);
-                if (resAlloc.SizeInBytes == ulong.MaxValue)
-                    throw new InvalidOperationException($"{nameof(ID3D12Device.GetResourceAllocationInfo)}");
-            }
-
-            outDesc = desc;
-
             var useNormalHeap = resAlloc.SizeInBytes <= this.heapDesc.SizeInBytes;
             var heaps = useNormalHeap ? this.standardHeaps : this.hugeHeaps;
 

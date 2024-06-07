@@ -3,13 +3,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 using TerraFX.Interop;
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
-
-using Win32 = TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.ImGuiScene.Implementations;
 
@@ -38,11 +36,11 @@ internal unsafe partial class Dx12Renderer
             int width,
             int height,
             int uploadPitch,
-            ID3D12Resource* texture,
-            ID3D12Resource* uploadBuffer)
+            ComPtr<ID3D12Resource> texture,
+            ComPtr<ID3D12Resource> uploadBuffer)
         {
-            this.texture = new(texture);
-            this.uploadBuffer = new(uploadBuffer);
+            this.texture = texture;
+            this.uploadBuffer = uploadBuffer;
             this.Format = format;
             this.Width = width;
             this.Height = height;
@@ -133,6 +131,8 @@ internal unsafe partial class Dx12Renderer
         public int Width => this.Data.Width;
 
         public int Height => this.Data.Height;
+
+        public int DxgiFormat => (int)this.Data.Format;
 
         public static TextureWrap TakeOwnership(TextureData data) => new(data);
 

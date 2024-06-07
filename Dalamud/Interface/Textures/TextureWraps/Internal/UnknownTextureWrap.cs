@@ -14,17 +14,19 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
     private IntPtr imGuiHandle;
 
     /// <summary>Initializes a new instance of the <see cref="UnknownTextureWrap"/> class.</summary>
-    /// <param name="unknown">The pointer to <see cref="IUnknown"/> that is suitable for use with
+    /// <param name="unknown">Pointer to <see cref="IUnknown"/> that is suitable for use with
     /// <see cref="IDalamudTextureWrap.ImGuiHandle"/>.</param>
-    /// <param name="width">The width of the texture.</param>
-    /// <param name="height">The height of the texture.</param>
+    /// <param name="width">Width of the texture.</param>
+    /// <param name="height">Height of the texture.</param>
+    /// <param name="dxgiFormat">DXGI Format of the texture.</param>
     /// <param name="callAddRef">If <c>true</c>, call <see cref="IUnknown.AddRef"/>.</param>
-    public UnknownTextureWrap(IUnknown* unknown, int width, int height, bool callAddRef)
+    public UnknownTextureWrap(IUnknown* unknown, int width, int height, int dxgiFormat, bool callAddRef)
     {
         ObjectDisposedException.ThrowIf(unknown is null, typeof(IUnknown));
         this.imGuiHandle = (nint)unknown;
         this.Width = width;
         this.Height = height;
+        this.DxgiFormat = dxgiFormat;
         if (callAddRef)
             unknown->AddRef();
     }
@@ -43,6 +45,9 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
 
     /// <inheritdoc/>
     public int Height { get; }
+
+    /// <inheritdoc/>
+    public int DxgiFormat { get; }
 
     /// <summary>Queue the texture to be disposed once the frame ends.</summary>
     public void Dispose()

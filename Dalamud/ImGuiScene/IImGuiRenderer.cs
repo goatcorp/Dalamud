@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 using ImGuiNET;
 
@@ -17,6 +18,9 @@ internal interface IImGuiRenderer : IDisposable
     /// <param name="drawData">The relevant draw data.</param>
     /// <param name="drawCmd">The relevant draw command.</param>
     public delegate void DrawCmdUserCallbackDelegate(ImDrawDataPtr drawData, ImDrawCmdPtr drawCmd);
+
+    /// <summary>Gets the texture manager.</summary>
+    ISceneTextureManager TextureManager { get; }
 
     /// <summary>
     /// Notifies that the window is about to be resized.
@@ -70,22 +74,4 @@ internal interface IImGuiRenderer : IDisposable
     /// </summary>
     /// <param name="delegate">The delegate.</param>
     void RemoveDrawCmdUserCallback(DrawCmdUserCallbackDelegate @delegate);
-
-    /// <summary>
-    /// Load an image from a span of bytes of specified format.
-    /// </summary>
-    /// <param name="data">The data to load.</param>
-    /// <param name="pitch">The pitch(stride) in bytes.</param>
-    /// <param name="width">The width in pixels.</param>
-    /// <param name="height">The height in pixels.</param>
-    /// <param name="format">Format of the texture.</param>
-    /// <param name="debugName">Name for debugging.</param>
-    /// <returns>A texture, ready to use in ImGui.</returns>
-    IDalamudTextureWrap LoadTexture(
-        ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
-        [CallerMemberName] string debugName = "");
 }

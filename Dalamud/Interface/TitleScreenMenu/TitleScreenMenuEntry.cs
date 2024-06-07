@@ -5,6 +5,7 @@ using System.Reflection;
 
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface;
 

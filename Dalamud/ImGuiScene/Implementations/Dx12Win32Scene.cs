@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -160,6 +160,9 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
     /// Gets the pointer to an instance of <see cref="ID3D12Device"/>.
     /// </summary>
     public ID3D12Device* Device => this.device;
+
+    /// <inheritdoc/>
+    public ISceneTextureManager TextureManager => this.imguiRenderer.TextureManager;
 
     /// <summary>
     /// Gets the pointer to an instance of <see cref="ID3D12Device"/>, in <see cref="nint"/>.

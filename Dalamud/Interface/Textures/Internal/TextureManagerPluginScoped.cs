@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -14,8 +15,6 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using Lumina.Data.Files;
-
-using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.Textures.Internal;
 
@@ -307,11 +306,11 @@ internal sealed class TextureManagerPluginScoped
 
     /// <inheritdoc/>
     public bool IsDxgiFormatSupported(int dxgiFormat) =>
-        this.ManagerOrThrow.IsDxgiFormatSupported((DXGI_FORMAT)dxgiFormat);
+        this.ManagerOrThrow.IsDxgiFormatSupported(dxgiFormat);
 
     /// <inheritdoc/>
     public bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat) =>
-        this.ManagerOrThrow.IsDxgiFormatSupportedForCreateFromExistingTextureAsync((DXGI_FORMAT)dxgiFormat);
+        this.ManagerOrThrow.IsDxgiFormatSupportedForCreateFromExistingTextureAsync(dxgiFormat);
 
     /// <inheritdoc/>
     public string GetSubstitutedPath(string originalPath) =>
