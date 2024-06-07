@@ -1,9 +1,8 @@
-using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
 using Dalamud.Hooking.Internal;
-using Dalamud.Memory;
+
 using Reloaded.Hooks;
 
 namespace Dalamud.Hooking;

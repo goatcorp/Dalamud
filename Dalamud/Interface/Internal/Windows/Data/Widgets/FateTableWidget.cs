@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Fates;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

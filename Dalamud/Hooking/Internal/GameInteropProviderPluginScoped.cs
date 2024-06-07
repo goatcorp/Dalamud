@@ -47,7 +47,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromFunctionPointerVariable<T>(IntPtr address, T detour) where T : Delegate
+    public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate
     {
         var hook = Hook<T>.FromFunctionPointerVariable(address, detour);
         this.trackedHooks.Add(hook);
@@ -71,12 +71,20 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromAddress<T>(IntPtr procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+    public Hook<T> HookFromAddress<T>(nint procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
         var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook);
         this.trackedHooks.Add(hook);
         return hook;
     }
+
+    /// <inheritdoc/>
+    public Hook<T> HookFromAddress<T>(UIntPtr procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+        => this.HookFromAddress((nint)procAddress, detour, backend);
+
+    /// <inheritdoc/>
+    public unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+        => this.HookFromAddress((nint)procAddress, detour, backend);
 
     /// <inheritdoc/>
     public Hook<T> HookFromSignature<T>(string signature, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate

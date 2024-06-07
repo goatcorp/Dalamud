@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Utility.Signatures.Wrappers;
 
 /// <summary>

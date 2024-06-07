@@ -1,6 +1,3 @@
-using System;
-using System.Runtime.Serialization;
-
 namespace Dalamud.Memory.Exceptions;
 
 /// <summary>

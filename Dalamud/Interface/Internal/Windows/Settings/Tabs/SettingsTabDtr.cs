@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -9,6 +8,7 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;

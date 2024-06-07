@@ -1,5 +1,6 @@
 ﻿using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui.Dtr;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Serilog;
 
@@ -14,7 +15,7 @@ namespace Dalamud.Game.ClientState.Aetherytes;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IAetheryteList>]
 #pragma warning restore SA1015
@@ -44,7 +45,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
             if (this.telepoInstance->TeleportList.First == this.telepoInstance->TeleportList.Last)
                 return 0;
 
-            return (int)this.telepoInstance->TeleportList.Size();
+            return this.telepoInstance->TeleportList.Count;
         }
     }
 
@@ -61,7 +62,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
             if (this.clientState.LocalPlayer == null)
                 return null;
 
-            return new AetheryteEntry(this.telepoInstance->TeleportList.Get((ulong)index));
+            return new AetheryteEntry(this.telepoInstance->TeleportList[index]);
         }
     }
 

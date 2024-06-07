@@ -4,11 +4,9 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Common.Game;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Dtr;
-using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -93,7 +91,7 @@ internal class LocalPlugin : IDisposable
         }
 
         // Create an installation instance ID for this plugin, if it doesn't have one yet
-        if (this.manifest.WorkingPluginId == Guid.Empty)
+        if (this.manifest.WorkingPluginId == Guid.Empty && !this.IsDev)
         {
             this.manifest.WorkingPluginId = Guid.NewGuid();
 
@@ -164,12 +162,12 @@ internal class LocalPlugin : IDisposable
     /// INCLUDES the default profile.
     /// </summary>
     public bool IsWantedByAnyProfile =>
-        Service<ProfileManager>.Get().GetWantStateAsync(this.manifest.WorkingPluginId, this.Manifest.InternalName, false, false).GetAwaiter().GetResult();
+        Service<ProfileManager>.Get().GetWantStateAsync(this.EffectiveWorkingPluginId, this.Manifest.InternalName, false, false).GetAwaiter().GetResult();
 
     /// <summary>
     /// Gets a value indicating whether this plugin's API level is out of date.
     /// </summary>
-    public bool IsOutdated => this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel;
+    public bool IsOutdated => this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel;
 
     /// <summary>
     /// Gets a value indicating whether the plugin is for testing use only.
@@ -216,6 +214,11 @@ internal class LocalPlugin : IDisposable
     /// Gets the effective version of this plugin.
     /// </summary>
     public Version EffectiveVersion => this.manifest.EffectiveVersion;
+
+    /// <summary>
+    /// Gets the effective working plugin ID for this plugin.
+    /// </summary>
+    public virtual Guid EffectiveWorkingPluginId => this.manifest.WorkingPluginId;
 
     /// <summary>
     /// Gets the service scope for this plugin.
@@ -273,11 +276,8 @@ internal class LocalPlugin : IDisposable
         await this.pluginLoadStateLock.WaitAsync();
         try
         {
-            if (reloading && this.IsDev)
-            {
-                // Reload the manifest in-case there were changes here too.
-                this.ReloadManifest();
-            }
+            if (reloading)
+                this.OnPreReload();
 
             // If we reload a plugin we don't want to delete it. Makes sense, right?
             if (this.manifest.ScheduledForDeletion)
@@ -320,8 +320,8 @@ internal class LocalPlugin : IDisposable
             if (this.manifest.ApplicableVersion < dalamud.StartInfo.GameVersion)
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, game is newer than applicable version {this.manifest.ApplicableVersion}");
 
-            if (this.manifest.DalamudApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
-                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.DalamudApiLevel}");
+            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.EffectiveApiLevel}");
 
             // We might want to throw here?
             if (!this.IsWantedByAnyProfile)
@@ -581,24 +581,6 @@ internal class LocalPlugin : IDisposable
     }
 
     /// <summary>
-    /// Reload the manifest if it exists, preserve the internal Disabled state.
-    /// </summary>
-    public void ReloadManifest()
-    {
-        var manifestPath = LocalPluginManifest.GetManifestFile(this.DllFile);
-        if (manifestPath.Exists)
-        {
-            // Save some state that we do actually want to carry over
-            var guid = this.manifest.WorkingPluginId;
-            
-            this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
-            this.manifest.WorkingPluginId = guid;
-
-            this.SaveManifest("dev reload");
-        }
-    }
-
-    /// <summary>
     /// Get the repository this plugin was installed from.
     /// </summary>
     /// <returns>The plugin repository this plugin was installed from, or null if it is no longer there or if the plugin is a dev plugin.</returns>
@@ -622,18 +604,19 @@ internal class LocalPlugin : IDisposable
     /// </summary>
     /// <param name="reason">Why it should be saved.</param>
     protected void SaveManifest(string reason) => this.manifest.Save(this.manifestFile, reason);
+    
+    /// <summary>
+    /// Called before a plugin is reloaded.
+    /// </summary>
+    protected virtual void OnPreReload()
+    {
+    }
 
     private static void SetupLoaderConfig(LoaderConfig config)
     {
         config.IsUnloadable = true;
         config.LoadInMemory = true;
         config.PreferSharedTypes = false;
-
-        // Pin Lumina and its dependencies recursively (compatibility behavior).
-        // It currently only pulls in System.* anyway.
-        // TODO(api10): Remove this. We don't want to pin Lumina anymore, plugins should be able to provide their own.
-        config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
-        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
 
         // Make sure that plugins do not load their own Dalamud assembly.
         // We do not pin this recursively; if a plugin loads its own assembly of Dalamud, it is always wrong,

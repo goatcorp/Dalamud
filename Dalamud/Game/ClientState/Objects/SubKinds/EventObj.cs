@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Game.ClientState.Objects.Types;
 
 namespace Dalamud.Game.ClientState.Objects.SubKinds;

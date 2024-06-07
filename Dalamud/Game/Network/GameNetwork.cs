@@ -14,7 +14,7 @@ namespace Dalamud.Game.Network;
 /// This class handles interacting with game network events.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
 {
     private readonly GameNetworkAddressResolver address;

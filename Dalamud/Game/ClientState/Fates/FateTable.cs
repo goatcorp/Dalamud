@@ -1,10 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Fates;
@@ -14,7 +14,7 @@ namespace Dalamud.Game.ClientState.Fates;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IFateTable>]
 #pragma warning restore SA1015
@@ -49,7 +49,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
             if (Struct->Fates.First == null || Struct->Fates.Last == null)
                 return 0;
 
-            return (int)Struct->Fates.Size();
+            return Struct->Fates.Count;
         }
     }
 
@@ -89,7 +89,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
         if (fateTable == IntPtr.Zero)
             return IntPtr.Zero;
 
-        return (IntPtr)this.Struct->Fates.Get((ulong)index).Value;
+        return (IntPtr)this.Struct->Fates[index].Value;
     }
 
     /// <inheritdoc/>

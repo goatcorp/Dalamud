@@ -1,5 +1,4 @@
-﻿using Serilog;
-using Serilog.Events;
+﻿using Serilog.Events;
 
 #pragma warning disable CS1573 // See https://github.com/dotnet/roslyn/issues/40325
 

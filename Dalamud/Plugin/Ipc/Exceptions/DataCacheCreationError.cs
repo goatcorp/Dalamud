@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Plugin.Ipc.Exceptions;
 
 /// <summary>

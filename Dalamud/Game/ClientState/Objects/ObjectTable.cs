@@ -24,7 +24,7 @@ namespace Dalamud.Game.ClientState.Objects;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IObjectTable>]
 #pragma warning restore SA1015
@@ -83,16 +83,16 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     }
 
     /// <inheritdoc/>
-    public GameObject? SearchById(ulong objectId)
+    public GameObject? SearchById(ulong gameObjectId)
     {
         _ = this.WarnMultithreadedUsage();
 
-        if (objectId is GameObject.InvalidGameObjectId or 0)
+        if (gameObjectId is 0)
             return null;
 
         foreach (var e in this.cachedObjectTable)
         {
-            if (e.Update() is { } o && o.ObjectId == objectId)
+            if (e.Update() is { } o && o.GameObjectId == gameObjectId)
                 return o;
         }
 
@@ -216,9 +216,6 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 /// </summary>
 internal sealed partial class ObjectTable
 {
-    /// <inheritdoc/>
-    int IReadOnlyCollection<GameObject>.Count => this.Length;
-
     /// <inheritdoc/>
     public IEnumerator<GameObject> GetEnumerator()
     {

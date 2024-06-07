@@ -33,8 +33,9 @@ internal sealed class Dalamud : IServiceType
 {
     #region Internals
 
+    private static int shownServiceError = 0;
     private readonly ManualResetEvent unloadSignal;
-
+    
     #endregion
 
     /// <summary>
@@ -68,54 +69,47 @@ internal sealed class Dalamud : IServiceType
         
         // Set up FFXIVClientStructs
         this.SetupClientStructsResolver(cacheDir);
-
-        if (!configuration.IsResumeGameAfterPluginLoad)
+        
+        void KickoffGameThread()
         {
+            Log.Verbose("=============== GAME THREAD KICKOFF ===============");
+            Timings.Event("Game thread kickoff");
             NativeFunctions.SetEvent(mainThreadContinueEvent);
-            ServiceManager.InitializeEarlyLoadableServices()
-                          .ContinueWith(t =>
+        }
+
+        void HandleServiceInitFailure(Task t)
+        {
+            Log.Error(t.Exception!, "Service initialization failure");
+            
+            if (Interlocked.CompareExchange(ref shownServiceError, 1, 0) != 0)
+                return;
+
+            Util.Fatal(
+                "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
+                "Dalamud", false);
+        }
+
+        ServiceManager.InitializeEarlyLoadableServices()
+                      .ContinueWith(
+                          t =>
                           {
                               if (t.IsCompletedSuccessfully)
                                   return;
-                                  
-                              Log.Error(t.Exception!, "Service initialization failure");
-                              Util.Fatal(
-                                  "Dalamud failed to load all necessary services.\n\nThe game will continue, but you may not be able to use plugins.",
-                                  "Dalamud", false);
+
+                              HandleServiceInitFailure(t);
                           });
-        }
-        else
-        {
-            Task.Run(async () =>
+
+        ServiceManager.BlockingResolved.ContinueWith(
+            t =>
             {
-                try
+                if (t.IsCompletedSuccessfully)
                 {
-                    var tasks = new[]
-                    {
-                        ServiceManager.InitializeEarlyLoadableServices(),
-                        ServiceManager.BlockingResolved,
-                    };
-
-                    await Task.WhenAny(tasks);
-                    var faultedTasks = tasks.Where(x => x.IsFaulted).Select(x => (Exception)x.Exception!).ToArray();
-                    if (faultedTasks.Any())
-                        throw new AggregateException(faultedTasks);
-
-                    NativeFunctions.SetEvent(mainThreadContinueEvent);
-
-                    await Task.WhenAll(tasks);
+                    KickoffGameThread();
+                    return;
                 }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Service initialization failure");
-                    Util.Fatal("Dalamud could not initialize correctly. Please report this error. \n\nThe game will continue, but you may not be able to use plugins.", "Dalamud", false);
-                }
-                finally
-                {
-                    NativeFunctions.SetEvent(mainThreadContinueEvent);
-                }
+
+                HandleServiceInitFailure(t);
             });
-        }
 
         this.DefaultExceptionFilter = NativeFunctions.SetUnhandledExceptionFilter(nint.Zero);
         NativeFunctions.SetUnhandledExceptionFilter(this.DefaultExceptionFilter);
@@ -217,8 +211,10 @@ internal sealed class Dalamud : IServiceType
     {
         using (Timings.Start("CS Resolver Init"))
         {
-            FFXIVClientStructs.Interop.Resolver.GetInstance.SetupSearchSpace(Service<TargetSigScanner>.Get().SearchBase, new FileInfo(Path.Combine(cacheDir.FullName, $"{this.StartInfo.GameVersion}_cs.json")));
-            FFXIVClientStructs.Interop.Resolver.GetInstance.Resolve();
+            // the resolver tracks version as a field in the json
+            InteropGenerator.Runtime.Resolver.GetInstance.Setup(Service<TargetSigScanner>.Get().SearchBase, $"{this.StartInfo.GameVersion}", new FileInfo(Path.Combine(cacheDir.FullName, "cs.json")));
+            FFXIVClientStructs.Interop.Generated.Addresses.Register();
+            InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
         }
     }
 }

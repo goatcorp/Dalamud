@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-using Dalamud.Game.Addon;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;

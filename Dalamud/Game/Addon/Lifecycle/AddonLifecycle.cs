@@ -10,6 +10,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle;
@@ -133,6 +134,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
+        // Set removed state to true immediately, then lazily remove it from the EventListeners list on next Framework Update.
+        listener.Removed = true;
+        
         this.framework.RunOnTick(() =>
         {
             this.EventListeners.Remove(listener);
@@ -167,6 +171,10 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
             if (listener.EventType != eventType)
                 continue;
 
+            // If the listener is pending removal, and is waiting until the next Framework Update, don't invoke listener.
+            if (listener.Removed)
+                continue;
+            
             // Match on string.empty for listeners that want events for all addons.
             if (!string.IsNullOrWhiteSpace(listener.AddonName) && !args.IsAddon(listener.AddonName))
                 continue;
@@ -186,8 +194,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         // Hook the addon's ReceiveEvent function here, but only enable the hook if we have an active listener.
         // Disallows hooking the core internal event handler.
-        var addonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
-        var receiveEventAddress = (nint)addon->VTable->ReceiveEvent;
+        var addonName = addon->NameString;
+        var receiveEventAddress = (nint)addon->VirtualTable->ReceiveEvent;
         if (receiveEventAddress != this.disallowedReceiveEventAddress)
         {
             // If we have a ReceiveEvent listener already made for this hook address, add this addon's name to that handler.
@@ -267,7 +275,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         try
         {
-            var addonName = MemoryHelper.ReadStringNullTerminated((nint)atkUnitBase[0]->Name);
+            var addonName = atkUnitBase[0]->NameString;
             this.UnregisterReceiveEventHook(addonName);
         }
         catch (Exception e)
@@ -363,7 +371,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
         try
         {
-            addon->OnUpdate(numberArrayData, stringArrayData);
+            addon->OnRequestedUpdate(numberArrayData, stringArrayData);
         }
         catch (Exception e)
         {

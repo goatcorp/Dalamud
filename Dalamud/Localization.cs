@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,6 +5,7 @@ using System.Reflection;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+
 using Serilog;
 
 namespace Dalamud;

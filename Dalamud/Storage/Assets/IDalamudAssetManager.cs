@@ -24,6 +24,11 @@ public interface IDalamudAssetManager
     IDalamudTextureWrap Empty4X4 { get; }
 
     /// <summary>
+    /// Gets the shared texture wrap for <see cref="DalamudAsset.White4X4"/>.
+    /// </summary>
+    IDalamudTextureWrap White4X4 { get; }
+
+    /// <summary>
     /// Gets whether the stream for the asset is instantly available.
     /// </summary>
     /// <param name="asset">The asset.</param>

@@ -48,7 +48,7 @@ internal class PartyListWidget : IDataWindowWidget
                 continue;
             }
 
-            ImGui.Text($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject?.ObjectId}");
+            ImGui.Text($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject?.GameObjectId}");
             if (this.resolveGameData)
             {
                 var actor = member.GameObject;

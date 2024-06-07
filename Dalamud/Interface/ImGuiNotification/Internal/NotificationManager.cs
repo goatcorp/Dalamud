@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;

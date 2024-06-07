@@ -142,6 +142,12 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         var scale = ImGui.GetIO().FontGlobalScale;
         var entries = this.titleScreenMenu.Entries;
 
+        var hovered = ImGui.IsWindowHovered(
+            ImGuiHoveredFlags.RootAndChildWindows |
+            ImGuiHoveredFlags.AllowWhenBlockedByActiveItem);
+
+        Service<InterfaceManager>.Get().OverrideGameCursor = !hovered;
+        
         switch (this.state)
         {
             case State.Show:
@@ -187,8 +193,11 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     i++;
                 }
 
-                if (!ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows |
-                                           ImGuiHoveredFlags.AllowWhenBlockedByActiveItem))
+                // Don't check for hover if we're in the middle of an animation, as it will cause flickering.
+                if (this.moveEasings.Any(x => !x.Value.IsDone))
+                    break;
+
+                if (!hovered)
                 {
                     this.state = State.FadeOut;
                 }

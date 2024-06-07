@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Game.Config;
+﻿namespace Dalamud.Game.Config;
 
 public abstract record ConfigChangeEvent(Enum Option);
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -7,8 +6,8 @@ using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
@@ -325,7 +324,7 @@ internal class ProfileManagerWidget
 
                         if (ImGui.Selectable($"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? "(dev plugin)" : string.Empty)}###selector{plugin.Manifest.InternalName}"))
                         {
-                            Task.Run(() => profile.AddOrUpdateAsync(plugin.Manifest.WorkingPluginId, plugin.Manifest.InternalName, true, false))
+                            Task.Run(() => profile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false))
                                 .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
                         }
                     }
@@ -431,7 +430,7 @@ internal class ProfileManagerWidget
             foreach (var profileEntry in profile.Plugins.ToArray())
             {
                 didAny = true;
-                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.Manifest.WorkingPluginId == profileEntry.WorkingPluginId);
+                var pmPlugin = pm.InstalledPlugins.FirstOrDefault(x => x.EffectiveWorkingPluginId == profileEntry.WorkingPluginId);
                 var btnOffset = 2;
 
                 if (pmPlugin != null)
@@ -486,7 +485,7 @@ internal class ProfileManagerWidget
                                 FontAwesomeIcon.Check,
                                 "Yes, use this one"))
                         {
-                            profileEntry.WorkingPluginId = firstAvailableInstalled.Manifest.WorkingPluginId;
+                            profileEntry.WorkingPluginId = firstAvailableInstalled.EffectiveWorkingPluginId;
                             Task.Run(async () =>
                                 {
                                     await profman.ApplyAllWantStatesAsync();
@@ -651,13 +650,13 @@ internal class ProfileManagerWidget
             Loc.Localize("ProfileManagerTutorialCommands", "You can use the following commands in chat or in macros to manage active collections:");
         
         public static string TutorialCommandsEnable =>
-            Loc.Localize("ProfileManagerTutorialCommandsEnable", "/xlenableprofile \"Collection Name\" - Enable a collection");
+            Loc.Localize("ProfileManagerTutorialCommandsEnable", "{0} \"Collection Name\" - Enable a collection").Format(ProfileCommandHandler.CommandEnable);
 
         public static string TutorialCommandsDisable =>
-            Loc.Localize("ProfileManagerTutorialCommandsDisable", "/xldisableprofile \"Collection Name\" - Disable a collection");
+            Loc.Localize("ProfileManagerTutorialCommandsDisable", "{0} \"Collection Name\" - Disable a collection").Format(ProfileCommandHandler.CommandDisable);
         
         public static string TutorialCommandsToggle =>
-            Loc.Localize("ProfileManagerTutorialCommandsToggle", "/xltoggleprofile \"Collection Name\" - Toggle a collection's state");
+            Loc.Localize("ProfileManagerTutorialCommandsToggle", "{0} \"Collection Name\" - Toggle a collection's state").Format(ProfileCommandHandler.CommandToggle);
         
         public static string TutorialCommandsEnd =>
             Loc.Localize("ProfileManagerTutorialCommandsEnd", "If you run multiple of these commands, they will be executed in order.");

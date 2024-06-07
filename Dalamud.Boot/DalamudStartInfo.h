@@ -32,6 +32,13 @@ struct DalamudStartInfo {
     };
     friend void from_json(const nlohmann::json&, LoadMethod&);
 
+    enum class UnhandledExceptionHandlingMode : int {
+        Default,
+        StallDebug,
+        None,
+    };
+    friend void from_json(const nlohmann::json&, UnhandledExceptionHandlingMode&);
+
     LoadMethod DalamudLoadMethod = LoadMethod::Entrypoint;
     std::string WorkingDirectory;
     std::string ConfigurationPath;
@@ -59,7 +66,7 @@ struct DalamudStartInfo {
     std::set<std::string> BootUnhookDlls{};
 
     bool CrashHandlerShow = false;
-    bool NoExceptionHandlers = false;
+    UnhandledExceptionHandlingMode UnhandledException = UnhandledExceptionHandlingMode::Default;
 
     friend void from_json(const nlohmann::json&, DalamudStartInfo&);
     void from_envvars();

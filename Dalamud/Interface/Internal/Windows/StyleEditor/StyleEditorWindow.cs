@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -6,7 +5,6 @@ using System.Reflection;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
-using Dalamud.Data;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Style;
@@ -14,7 +12,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.StyleEditor;

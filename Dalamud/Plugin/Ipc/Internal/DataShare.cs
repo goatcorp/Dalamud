@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Dalamud.Plugin.Ipc.Exceptions;
+
 using Serilog;
 
 namespace Dalamud.Plugin.Ipc.Internal;
@@ -11,7 +12,7 @@ namespace Dalamud.Plugin.Ipc.Internal;
 /// <summary>
 /// This class facilitates sharing data-references of standard types between plugins without using more expensive IPC.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class DataShare : IServiceType
 {
     /// <summary>

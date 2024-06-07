@@ -11,6 +11,16 @@ namespace Dalamud.Game.Gui.ContextMenu;
 public sealed record MenuItem
 {
     /// <summary>
+    /// The default prefix used if no specific preset is specified.
+    /// </summary>
+    public const SeIconChar DalamudDefaultPrefix = SeIconChar.BoxedLetterD;
+
+    /// <summary>
+    /// The default prefix color used if no specific preset is specified.
+    /// </summary>
+    public const ushort DalamudDefaultPrefixColor = 539;
+    
+    /// <summary>
     /// Gets or sets the display name of the menu item.
     /// </summary>
     public SeString Name { get; set; } = SeString.Empty;
@@ -46,6 +56,11 @@ public sealed record MenuItem
     /// Gets or sets the color of the <see cref="Prefix"/>. Specifies a <see cref="UIColor"/> row id.
     /// </summary>
     public ushort PrefixColor { get; set; }
+    
+    /// <summary>
+    /// Gets or sets a value indicating whether the dev wishes to intentionally use the default prefix symbol and color.
+    /// </summary>
+    public bool UseDefaultPrefix { get; set; }
 
     /// <summary>
     /// Gets or sets the callback to be invoked when the menu item is clicked.

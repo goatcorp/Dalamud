@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.Addon;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 

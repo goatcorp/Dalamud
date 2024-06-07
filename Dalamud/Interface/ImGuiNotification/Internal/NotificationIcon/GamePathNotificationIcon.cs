@@ -1,7 +1,6 @@
 using System.Numerics;
 
-using Dalamud.Interface.Internal;
-using Dalamud.Plugin.Services;
+using Dalamud.Interface.Textures.Internal;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal.NotificationIcon;
 
@@ -13,7 +12,6 @@ internal class GamePathNotificationIcon : INotificationIcon
 
     /// <summary>Initializes a new instance of the <see cref="GamePathNotificationIcon"/> class.</summary>
     /// <param name="gamePath">The path to a .tex file inside the game resources.</param>
-    /// <remarks>Use <see cref="ITextureProvider.GetIconPath"/> to get the game path from icon IDs.</remarks>
     public GamePathNotificationIcon(string gamePath) => this.gamePath = gamePath;
 
     /// <inheritdoc/>
@@ -21,7 +19,7 @@ internal class GamePathNotificationIcon : INotificationIcon
         NotificationUtilities.DrawIconFrom(
             minCoord,
             maxCoord,
-            Service<TextureManager>.Get().GetTextureFromGame(this.gamePath));
+            Service<TextureManager>.Get().Shared.GetFromGame(this.gamePath).GetWrapOrDefault());
 
     /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is GamePathNotificationIcon r && r.gamePath == this.gamePath;

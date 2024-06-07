@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+
 using ImGuiNET;
 using Serilog;
 
@@ -15,7 +15,7 @@ namespace Dalamud.Interface.DragDrop;
 /// and can be used to create ImGui drag and drop sources and targets for those external events.
 /// </summary>
 [PluginInterface]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IDragDropManager>]
 #pragma warning restore SA1015

@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
@@ -80,12 +82,12 @@ public unsafe class Character : GameObject
     /// Gets a byte array describing the visual appearance of this Chara.
     /// Indexed by <see cref="CustomizeIndex"/>.
     /// </summary>
-    public byte[] Customize => MemoryHelper.Read<byte>((IntPtr)this.Struct->DrawData.CustomizeData.Data, 28);
+    public byte[] Customize => this.Struct->DrawData.CustomizeData.Data.ToArray();
 
     /// <summary>
     /// Gets the Free Company tag of this chara.
     /// </summary>
-    public SeString CompanyTag => MemoryHelper.ReadSeString((IntPtr)this.Struct->FreeCompanyTag, 6);
+    public SeString CompanyTag => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->FreeCompanyTag[0]), 6);
 
     /// <summary>
     /// Gets the target object ID of the character.
@@ -95,7 +97,7 @@ public unsafe class Character : GameObject
     /// <summary>
     /// Gets the name ID of the character.
     /// </summary>
-    public uint NameId => this.Struct->NameID;
+    public uint NameId => this.Struct->NameId;
 
     /// <summary>
     /// Gets the current online status of the character.

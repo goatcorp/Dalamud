@@ -133,14 +133,6 @@ internal sealed class DelegateFontHandle : FontHandle
         public IFontHandleManager Manager { get; }
 
         /// <inheritdoc/>
-        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-        public IFontAtlasBuildToolkitPreBuild? PreBuildToolkitForApi9Compat { get; set; }
-
-        /// <inheritdoc/>
-        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-        public bool CreateFontOnAccess { get; set; }
-
-        /// <inheritdoc/>
         public void Dispose()
         {
             this.fonts.Clear();

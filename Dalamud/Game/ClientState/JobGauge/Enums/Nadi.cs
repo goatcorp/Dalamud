@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Game.ClientState.JobGauge.Enums;
+﻿namespace Dalamud.Game.ClientState.JobGauge.Enums;
 
 /// <summary>
 /// MNK Nadi types.

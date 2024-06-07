@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Game.Text;
@@ -15,9 +13,9 @@ public sealed class XivChatEntry
     public XivChatType Type { get; set; } = XivChatType.Debug;
 
     /// <summary>
-    /// Gets or sets the sender ID.
+    /// Gets or sets the message timestamp.
     /// </summary>
-    public uint SenderId { get; set; }
+    public int Timestamp { get; set; }
 
     /// <summary>
     /// Gets or sets the sender name.
@@ -30,7 +28,7 @@ public sealed class XivChatEntry
     public SeString Message { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the message parameters.
+    /// Gets or sets a value indicating whether new message sounds should be silenced or not.
     /// </summary>
-    public IntPtr Parameters { get; set; }
+    public bool Silent { get; set; }
 }

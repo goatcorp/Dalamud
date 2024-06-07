@@ -1,6 +1,7 @@
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
@@ -62,7 +63,7 @@ internal class ChatAgingStep : IAgingStep
     }
 
     private void ChatOnOnChatMessage(
-        XivChatType type, uint senderid, ref SeString sender, ref SeString message, ref bool ishandled)
+        XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool ishandled)
     {
         if (type == XivChatType.Echo && message.TextValue == "DALAMUD")
         {

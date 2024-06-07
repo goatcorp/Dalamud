@@ -166,7 +166,12 @@ internal class CallGateChannel
             if (arg == null)
             {
                 if (paramType.IsValueType)
+                {
+                    if (paramType.IsGenericType && paramType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        continue;
+
                     throw new IpcValueNullError(this.Name, paramType, i);
+                }
 
                 continue;
             }

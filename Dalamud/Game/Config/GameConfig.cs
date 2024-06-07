@@ -14,7 +14,7 @@ namespace Dalamud.Game.Config;
 /// This class represents the game's configuration.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 {
     private readonly TaskCompletionSource tcsInitialization = new();
@@ -34,7 +34,7 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
             {
                 Log.Verbose("[GameConfig] Initializing");
                 var csFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-                var commonConfig = &csFramework->SystemConfig.CommonSystemConfig;
+                var commonConfig = &csFramework->SystemConfig.SystemConfigBase;
                 this.tcsSystem.SetResult(new("System", framework, &commonConfig->ConfigBase));
                 this.tcsUiConfig.SetResult(new("UiConfig", framework, &commonConfig->UiConfig));
                 this.tcsUiControl.SetResult(

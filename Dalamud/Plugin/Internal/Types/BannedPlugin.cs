@@ -1,5 +1,3 @@
-using System;
-
 using Newtonsoft.Json;
 
 namespace Dalamud.Plugin.Internal.Types;

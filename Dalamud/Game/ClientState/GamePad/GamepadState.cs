@@ -1,10 +1,10 @@
-using System;
 using System.Numerics;
 
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using ImGuiNET;
 using Serilog;
 
@@ -17,7 +17,7 @@ namespace Dalamud.Game.ClientState.GamePad;
 /// </summary>
 [PluginInterface]
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IGamepadState>]
 #pragma warning restore SA1015

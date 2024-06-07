@@ -1,5 +1,4 @@
-﻿using Dalamud.Interface.Internal;
-using Dalamud.Utility;
+using Dalamud.Interface.Internal;
 
 using ImGuiNET;
 
@@ -11,11 +10,6 @@ namespace Dalamud.Interface.ManagedFontAtlas;
 /// </summary>
 public interface IFontAtlasBuildToolkitPostBuild : IFontAtlasBuildToolkit
 {
-    /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.IsGlobalScaleIgnored"/>
-    [Obsolete($"Use {nameof(this.GetFontScaleMode)}")]
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    bool IsGlobalScaleIgnored(ImFontPtr fontPtr) => this.GetFontScaleMode(fontPtr) == FontScaleMode.UndoGlobalScale;
-
     /// <inheritdoc cref="IFontAtlasBuildToolkitPreBuild.GetFontScaleMode"/>
     FontScaleMode GetFontScaleMode(ImFontPtr fontPtr);
 
@@ -26,6 +20,13 @@ public interface IFontAtlasBuildToolkitPostBuild : IFontAtlasBuildToolkit
     /// <param name="disposeOnError">Dispose the wrap on error.</param>
     /// <returns>The texture index.</returns>
     int StoreTexture(IDalamudTextureWrap textureWrap, bool disposeOnError);
+
+    /// <summary>
+    /// Fits a font to a fixed 1:1 ratio adjusting glyph positions horizontally and vertically to fit within font size boundaries.
+    /// </summary>
+    /// <param name="font">The font to fit.</param>
+    /// <param name="rebuildLookupTable">Whether to call target.BuildLookupTable().</param>
+    void FitRatio(ImFontPtr font, bool rebuildLookupTable = true);
 
     /// <summary>
     /// Copies glyphs across fonts, in a safer way.<br />

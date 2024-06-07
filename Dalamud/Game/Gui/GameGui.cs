@@ -12,6 +12,7 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -25,7 +26,7 @@ namespace Dalamud.Game.Gui;
 /// A class handling many aspects of the in-game UI.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 {
     private static readonly ModuleLog Log = new("GameGui");
@@ -267,7 +268,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (framework == null)
             return IntPtr.Zero;
 
-        var uiModule = framework->GetUiModule();
+        var uiModule = framework->GetUIModule();
         if (uiModule == null)
             return IntPtr.Zero;
 
@@ -277,7 +278,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public IntPtr GetAddonByName(string name, int index = 1)
     {
-        var atkStage = AtkStage.GetSingleton();
+        var atkStage = AtkStage.Instance();
         if (atkStage == null)
             return IntPtr.Zero;
 
@@ -317,7 +318,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
             return IntPtr.Zero;
 
         var addon = (AtkUnitBase*)addonPtr;
-        var addonId = addon->ParentID == 0 ? addon->ID : addon->ParentID;
+        var addonId = addon->ParentId == 0 ? addon->Id : addon->ParentId;
 
         if (addonId == 0)
             return IntPtr.Zero;
@@ -325,7 +326,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         var index = 0;
         while (true)
         {
-            var agent = agentModule->GetAgentByInternalID((uint)index++);
+            var agent = agentModule->GetAgentByInternalId((AgentId)index++);
             if (agent == uiModule || agent == null)
                 break;
 

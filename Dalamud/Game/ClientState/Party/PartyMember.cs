@@ -1,5 +1,5 @@
-using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -42,12 +42,12 @@ public unsafe class PartyMember
     /// <summary>
     /// Gets the content ID of the party member.
     /// </summary>
-    public long ContentId => this.Struct->ContentID;
+    public long ContentId => (long)this.Struct->ContentId;
 
     /// <summary>
     /// Gets the actor ID of this party member.
     /// </summary>
-    public uint ObjectId => this.Struct->ObjectID;
+    public uint ObjectId => this.Struct->EntityId;
 
     /// <summary>
     /// Gets the actor associated with this buddy.
@@ -90,7 +90,7 @@ public unsafe class PartyMember
     /// <summary>
     /// Gets the displayname of this party member.
     /// </summary>
-    public SeString Name => MemoryHelper.ReadSeString((IntPtr)Struct->Name, 0x40);
+    public SeString Name => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref Struct->Name[0]), 0x40);
 
     /// <summary>
     /// Gets the sex of this party member.

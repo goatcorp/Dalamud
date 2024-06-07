@@ -1,9 +1,6 @@
-﻿using Dalamud.Utility;
-
-namespace Dalamud.Interface.Internal.Notifications;
+﻿namespace Dalamud.Interface.ImGuiNotification;
 
 /// <summary>Possible notification types.</summary>
-[Api10ToDo(Api10ToDoAttribute.MoveNamespace, nameof(ImGuiNotification.Internal))]
 public enum NotificationType
 {
     /// <summary>No special type.</summary>

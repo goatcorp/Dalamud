@@ -21,11 +21,11 @@ internal unsafe class AddonEventEntry
     /// Gets the pointer to the addons AtkUnitBase.
     /// </summary>
     required public nint Addon { get; init; }
-    
+
     /// <summary>
     /// Gets the name of the addon this args referrers to.
     /// </summary>
-    public string AddonName => this.Addon == nint.Zero ? InvalidAddonName : this.addonName ??= MemoryHelper.ReadString((nint)((AtkUnitBase*)this.Addon)->Name, 0x20);
+    public string AddonName => this.Addon == nint.Zero ? InvalidAddonName : this.addonName ??= ((AtkUnitBase*)this.Addon)->NameString;
 
     /// <summary>
     /// Gets the pointer to the event source.

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,7 +24,7 @@ namespace Dalamud.Game.Network.Internal;
 /// <summary>
 /// This class handles network notifications and uploading market board data.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal unsafe class NetworkHandlers : IInternalDisposableService
 {
     private readonly IMarketBoardUploader uploader;

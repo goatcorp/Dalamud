@@ -18,7 +18,7 @@ namespace Dalamud.Game.Command;
 /// This class manages registered in-game slash commands.
 /// </summary>
 [InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class CommandManager : IInternalDisposableService, ICommandManager
 {
     private static readonly ModuleLog Log = new("Command");
@@ -135,9 +135,9 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
         this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
     }
 
-    private void OnCheckMessageHandled(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+    private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        if (type == XivChatType.ErrorMessage && senderId == 0)
+        if (type == XivChatType.ErrorMessage && timestamp == 0)
         {
             var cmdMatch = this.currentLangCommandRegex.Match(message.TextValue).Groups["command"];
             if (cmdMatch.Success)

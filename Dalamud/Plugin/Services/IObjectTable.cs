@@ -1,16 +1,13 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This collection represents the currently spawned FFXIV game objects.
 /// </summary>
-[Api10ToDo(
-    "Make it an IEnumerable<GameObject> instead. Skipping null objects make IReadOnlyCollection<T>.Count yield incorrect values.")]
-public interface IObjectTable : IReadOnlyCollection<GameObject>
+public interface IObjectTable : IEnumerable<GameObject>
 {
     /// <summary>
     /// Gets the address of the object table.
@@ -32,9 +29,9 @@ public interface IObjectTable : IReadOnlyCollection<GameObject>
     /// <summary>
     /// Search for a game object by their Object ID.
     /// </summary>
-    /// <param name="objectId">Object ID to find.</param>
+    /// <param name="gameObjectId">Object ID to find.</param>
     /// <returns>A game object or null.</returns>
-    public GameObject? SearchById(ulong objectId);
+    public GameObject? SearchById(ulong gameObjectId);
 
     /// <summary>
     /// Gets the address of the game object at the specified index of the object table.

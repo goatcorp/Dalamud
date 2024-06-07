@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Data;
 using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Text.SeStringHandling;
+
 using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;

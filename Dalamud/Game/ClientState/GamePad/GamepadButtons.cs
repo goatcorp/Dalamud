@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Game.ClientState.GamePad;
 
 /// <summary>

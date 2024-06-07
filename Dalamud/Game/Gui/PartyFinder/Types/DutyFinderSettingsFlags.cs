@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
 /// <summary>

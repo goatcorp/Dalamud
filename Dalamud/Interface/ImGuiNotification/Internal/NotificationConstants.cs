@@ -3,7 +3,6 @@ using System.Numerics;
 using CheapLoc;
 
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
@@ -56,7 +55,7 @@ internal static class NotificationConstants
     public const float ProgressWaveLoopMaxColorTimeRatio = 0.7f;
 
     /// <summary>Default duration of the notification.</summary>
-    public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(3);
+    public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(7);
 
     /// <summary>Duration of show animation.</summary>
     public static readonly TimeSpan ShowAnimationDuration = TimeSpan.FromMilliseconds(300);

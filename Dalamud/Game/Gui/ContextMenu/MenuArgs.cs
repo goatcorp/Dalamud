@@ -24,7 +24,7 @@ public abstract unsafe class MenuArgs
     /// <param name="eventInterfaces">List of AtkEventInterfaces associated with the context menu.</param>
     protected internal MenuArgs(AtkUnitBase* addon, AgentInterface* agent, ContextMenuType type, IReadOnlySet<nint>? eventInterfaces)
     {
-        this.AddonName = addon != null ? MemoryHelper.ReadString((nint)addon->Name, 32) : null;
+        this.AddonName = addon != null ? addon->NameString : null;
         this.AddonPtr = (nint)addon;
         this.AgentPtr = (nint)agent;
         this.MenuType = type;
@@ -70,8 +70,18 @@ public abstract unsafe class MenuArgs
     /// Almost always an agent pointer. You can use this to find out what type of context menu it is.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the context menu is not a <see cref="ContextMenuType.Default"/>.</exception>
-    public IReadOnlySet<nint> EventInterfaces =>
-        this.MenuType != ContextMenuType.Default ?
-            this.eventInterfaces :
-            throw new InvalidOperationException("Not a default context menu");
+    public IReadOnlySet<nint> EventInterfaces 
+    {
+        get
+        {
+            if (this.MenuType is ContextMenuType.Default)
+            {
+                return this.eventInterfaces ?? new HashSet<nint>();
+            }
+            else
+            {
+                throw new InvalidOperationException("Not a default context menu");
+            }
+        }
+    }
 }

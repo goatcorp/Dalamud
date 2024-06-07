@@ -1,5 +1,3 @@
-using System;
-
 // This is a copy from NativeFunctions.MemoryProtection
 
 namespace Dalamud.Memory;

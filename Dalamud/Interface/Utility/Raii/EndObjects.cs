@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Text;
 
 using ImGuiNET;
 
@@ -36,7 +37,7 @@ public static partial class ImRaii
 
     public static IEndObject Popup(string id, ImGuiWindowFlags flags)
         => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopup(id, flags));
-    
+
     public static IEndObject PopupModal(string id)
         => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopupModal(id));
 
@@ -106,6 +107,35 @@ public static partial class ImRaii
     public static unsafe IEndObject TabItem(byte* label, ImGuiTabItemFlags flags)
         => new EndConditionally(ImGuiNative.igEndTabItem, ImGuiNative.igBeginTabItem(label, null, flags) != 0);
 
+    public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
+    {
+        ArgumentNullException.ThrowIfNull(label);
+        
+        // One-off for now, we should make this into a generic solution if we need it more often
+        const int labelMaxAlloc = 2048;
+
+        var labelByteCount = Encoding.UTF8.GetByteCount(label);
+
+        if (labelByteCount > labelMaxAlloc)
+        {
+            throw new ArgumentOutOfRangeException(nameof(label), $"Label is too long. (Longer than {labelMaxAlloc} bytes)");
+        }
+
+        var nativeLabelStackBytes = stackalloc byte[labelByteCount + 1];
+
+        int nativeLabelOffset;
+        fixed (char* utf16Ptr = label)
+        {
+            nativeLabelOffset = Encoding.UTF8.GetBytes(utf16Ptr, label.Length, nativeLabelStackBytes, labelByteCount);
+        }
+
+        nativeLabelStackBytes[nativeLabelOffset] = 0;
+
+        var ret = ImGuiNative.igBeginTabItem(nativeLabelStackBytes, null, flags);
+
+        return new EndConditionally(ImGuiNative.igEndTabItem, ret != 0);
+    }
+
     public static IEndObject TabItem(string label, ref bool open)
         => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, ref open));
 
@@ -174,7 +204,7 @@ public static partial class ImRaii
         return new EndUnconditionally(Widget.EndFramedGroup, true);
     }
     */
-    
+
     // Used to avoid tree pops when flag for no push is set.
     private static void Nop()
     {
@@ -210,15 +240,15 @@ public static partial class ImRaii
     {
         private Action EndAction { get; }
 
-        public  bool   Success   { get; }
+        public bool Success { get; }
 
-        public  bool   Disposed  { get; private set; }
+        public bool Disposed { get; private set; }
 
         public EndUnconditionally(Action endAction, bool success)
         {
             this.EndAction = endAction;
-            this.Success   = success;
-            this.Disposed  = false;
+            this.Success = success;
+            this.Disposed = false;
         }
 
         public void Dispose()
@@ -240,11 +270,11 @@ public static partial class ImRaii
             this.Success = success;
             this.Disposed = false;
         }
-        
+
         public bool Success { get; }
 
         public bool Disposed { get; private set; }
-        
+
         private Action EndAction { get; }
 
         public void Dispose()

@@ -428,7 +428,14 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while bound by duty.
     /// </summary>
+    [Obsolete("Use InDutyQueue")]
     BoundToDuty97 = 91,
+    
+    /// <summary>
+    /// Unable to execute command while bound by duty.
+    /// Specifically triggered when you are in a queue for a duty but not inside a duty.
+    /// </summary>
+    InDutyQueue = 91,
 
     /// <summary>
     /// Unable to execute command while readying to visit another World.

@@ -1,7 +1,3 @@
-using System;
-
-using FFXIVClientStructs.FFXIV.Common.Configuration;
-
 namespace Dalamud.Game.Config;
 
 /// <summary>

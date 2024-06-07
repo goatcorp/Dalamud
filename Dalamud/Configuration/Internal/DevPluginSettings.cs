@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 
 namespace Dalamud.Configuration.Internal;
 
@@ -21,4 +21,9 @@ internal sealed class DevPluginSettings
     /// Gets or sets an ID uniquely identifying this specific instance of a devPlugin.
     /// </summary>
     public Guid WorkingPluginId { get; set; } = Guid.Empty;
+    
+    /// <summary>
+    /// Gets or sets a list of validation problems that have been dismissed by the user.
+    /// </summary>
+    public List<string> DismissedValidationProblems { get; set; } = new();
 }

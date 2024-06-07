@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using JetBrains.Annotations;
 
 namespace Dalamud;
@@ -115,7 +117,7 @@ internal static class Service<T> where T : IServiceType
 #endif
 
         if (!instanceTcs.Task.IsCompleted)
-            instanceTcs.Task.Wait();
+            instanceTcs.Task.Wait(ServiceManager.UnloadCancellationToken);
         return instanceTcs.Task.Result;
     }
 
@@ -198,13 +200,16 @@ internal static class Service<T> where T : IServiceType
                                 .ToArray();
             if (offenders.Any())
             {
-                ServiceManager.Log.Error(
-                    "{me} is a {bels}; it can only depend on {bels} and {ps}.\nOffending dependencies:\n{offenders}",
-                    typeof(T),
-                    nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute),
-                    nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute),
-                    nameof(ServiceManager.ProvidedServiceAttribute),
-                    string.Join("\n", offenders.Select(x => $"\t* {x.Name}")));
+                const string bels = nameof(ServiceManager.BlockingEarlyLoadedServiceAttribute);
+                const string ps = nameof(ServiceManager.ProvidedServiceAttribute);
+                var errmsg =
+                    $"{typeof(T)} is a {bels}; it can only depend on {bels} and {ps}.\nOffending dependencies:\n" +
+                    string.Join("\n", offenders.Select(x => $"\t* {x.Name}"));
+#if DEBUG
+                Util.Fatal(errmsg, "Service Dependency Check");
+#else
+                ServiceManager.Log.Error(errmsg);
+#endif
             }
         }
 
