@@ -412,28 +412,39 @@ internal class LocalPlugin : IDisposable
             this.ServiceScope = ioc.GetScope();
             this.ServiceScope.RegisterPrivateScopes(this); // Add this LocalPlugin as a private scope, so services can get it
 
-            if (this.manifest.LoadSync && this.manifest.LoadRequiredState is 0 or 1)
+            try
             {
-                this.instance = await framework.RunOnFrameworkThread(
-                                    () => this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!)) as IDalamudPlugin;
+                if (this.manifest.LoadSync && this.manifest.LoadRequiredState is 0 or 1)
+                {
+                    this.instance = await framework.RunOnFrameworkThread(
+                                        () => this.ServiceScope.CreateAsync(
+                                            this.pluginType!,
+                                            this.DalamudInterface!)) as IDalamudPlugin;
+                }
+                else
+                {
+                    this.instance =
+                        await this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!) as IDalamudPlugin;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                this.instance =
-                    await this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!) as IDalamudPlugin;
+                Log.Error(ex, "Exception in plugin constructor");
+                this.instance = null;
             }
 
             if (this.instance == null)
             {
                 this.State = PluginState.LoadError;
-                this.DalamudInterface.DisposeInternal();
+                this.UnloadAndDisposeState();
+                
                 Log.Error(
-                    $"Error while loading {this.Name}, failed to bind and call the plugin constructor");
+                    "Error while loading {PluginName}, failed to bind and call the plugin constructor", this.InternalName);
                 return;
             }
 
             this.State = PluginState.Loaded;
-            Log.Information($"Finished loading {this.DllFile.Name}");
+            Log.Information("Finished loading {PluginName}", this.InternalName);
         }
         catch (Exception ex)
         {
@@ -443,7 +454,7 @@ internal class LocalPlugin : IDisposable
             if (ex is PluginPreconditionFailedException)
                 Log.Warning(ex.Message);
             else
-                Log.Error(ex, $"Error while loading {this.Name}");
+                Log.Error(ex, "Error while loading {PluginName}", this.InternalName);
 
             throw;
         }
@@ -498,15 +509,7 @@ internal class LocalPlugin : IDisposable
                 await framework.RunOnFrameworkThread(() => this.instance?.Dispose());
 
             this.instance = null;
-
-            this.DalamudInterface?.DisposeInternal();
-            this.DalamudInterface = null;
-
-            this.ServiceScope?.Dispose();
-            this.ServiceScope = null;
-
-            this.pluginType = null;
-            this.pluginAssembly = null;
+            this.UnloadAndDisposeState();
 
             if (!reloading)
             {
@@ -680,5 +683,20 @@ internal class LocalPlugin : IDisposable
             Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.FullName}");
             throw new InvalidPluginException(this.DllFile);
         }
+    }
+    
+    private void UnloadAndDisposeState()
+    {
+        if (this.instance != null)
+            throw new InvalidOperationException("Plugin instance should be disposed at this point");
+        
+        this.DalamudInterface?.DisposeInternal();
+        this.DalamudInterface = null;
+
+        this.ServiceScope?.Dispose();
+        this.ServiceScope = null;
+
+        this.pluginType = null;
+        this.pluginAssembly = null;
     }
 }
