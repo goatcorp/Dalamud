@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using CheapLoc;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
@@ -365,10 +366,13 @@ internal class PluginInstallerWindow : Window, IDisposable
     /// <returns>A value indicating whether to continue with the next task.</returns>
     public bool DisplayErrorContinuation(Task task, object state)
     {
-        if (task.IsFaulted)
-        {
-            var errorModalMessage = state as string;
+        if (!task.IsFaulted && !task.IsCanceled)
+            return true;
+        
+        var newErrorMessage = state as string;
 
+        if (task.Exception != null)
+        {
             foreach (var ex in task.Exception.InnerExceptions)
             {
                 if (ex is PluginException)
@@ -376,7 +380,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     Log.Error(ex, "Plugin installer threw an error");
 #if DEBUG
                     if (!string.IsNullOrEmpty(ex.Message))
-                        errorModalMessage += $"\n\n{ex.Message}";
+                        newErrorMessage += $"\n\n{ex.Message}";
 #endif
                 }
                 else
@@ -384,17 +388,18 @@ internal class PluginInstallerWindow : Window, IDisposable
                     Log.Error(ex, "Plugin installer threw an unexpected error");
 #if DEBUG
                     if (!string.IsNullOrEmpty(ex.Message))
-                        errorModalMessage += $"\n\n{ex.Message}";
+                        newErrorMessage += $"\n\n{ex.Message}";
 #endif
                 }
             }
-
-            this.ShowErrorModal(errorModalMessage);
-
-            return false;
         }
+        
+        if (task.IsCanceled)
+            Log.Error("A task was cancelled");
 
-        return true;
+        this.ShowErrorModal(newErrorMessage ?? "An unknown error occurred.");
+
+        return false;
     }
 
     private void SetOpenPage(PluginInstallerOpenKind kind)
@@ -2472,6 +2477,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 ImGuiHelpers.ScaledDummy(3);
                 ImGui.TextColored(ImGuiColors.DalamudGrey, $"WorkingPluginId: {plugin.EffectiveWorkingPluginId}");
+                ImGui.TextColored(ImGuiColors.DalamudGrey, $"Command prefix: {ConsoleManagerPluginUtil.GetSanitizedNamespaceName(plugin.InternalName)}");
                 ImGuiHelpers.ScaledDummy(3);
             }
 

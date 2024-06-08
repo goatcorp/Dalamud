@@ -36,7 +36,7 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
 
     /// <summary>
     /// Gets a value indicating whether this manifest is associated with a plugin that was installed from a third party
-    /// repo. Unless the manifest has been manually modified, this is determined by the InstalledFromUrl being null.
+    /// repo.
     /// </summary>
     public bool IsThirdParty => !this.InstalledFromUrl.IsNullOrEmpty() && this.InstalledFromUrl != SpecialPluginSource.MainRepo;
 

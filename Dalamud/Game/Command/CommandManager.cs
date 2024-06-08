@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 
+using Dalamud.Console;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -33,6 +34,9 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
 
     [ServiceManager.ServiceDependency]
     private readonly ChatGui chatGui = Service<ChatGui>.Get();
+    
+    [ServiceManager.ServiceDependency]
+    private readonly ConsoleManager console = Service<ConsoleManager>.Get();
 
     [ServiceManager.ServiceConstructor]
     private CommandManager(Dalamud dalamud)
@@ -47,6 +51,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
         };
 
         this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
+        this.console.Invoke += this.ConsoleOnInvoke;
     }
 
     /// <inheritdoc/>
@@ -132,7 +137,13 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.console.Invoke -= this.ConsoleOnInvoke;
         this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
+    }
+    
+    private bool ConsoleOnInvoke(string arg)
+    {
+        return arg.StartsWith('/') && this.ProcessCommand(arg);
     }
 
     private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
