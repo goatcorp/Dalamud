@@ -178,7 +178,6 @@ internal class LocalPlugin : IDisposable
     /// Gets a value indicating whether or not this plugin is orphaned(belongs to a repo) or not.
     /// </summary>
     public bool IsOrphaned => !this.IsDev &&
-                              !this.manifest.InstalledFromUrl.IsNullOrEmpty() && // TODO(api8): Remove this, all plugins will have a proper flag
                               this.GetSourceRepository() == null;
 
     /// <summary>
