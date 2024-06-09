@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
@@ -41,6 +42,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
     private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
     private readonly Dictionary<Guid, InOutCubic> logoEasings = new();
+    
+    private readonly IConsoleVariable<bool> showTsm;
 
     private InOutCubic? fadeOutEasing;
 
@@ -55,7 +58,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// <param name="fontAtlasFactory">An instance of <see cref="FontAtlasFactory"/>.</param>
     /// <param name="framework">An instance of <see cref="Framework"/>.</param>
     /// <param name="titleScreenMenu">An instance of <see cref="TitleScreenMenu"/>.</param>
-    /// <param name="gameGui">An instance of <see cref="gameGui"/>.</param>
+    /// <param name="gameGui">An instance of <see cref="GameGui"/>.</param>
+    /// <param name="consoleManager">An instance of <see cref="ConsoleManager"/>.</param>
     public TitleScreenMenuWindow(
         ClientState clientState,
         DalamudConfiguration configuration,
@@ -63,12 +67,15 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         FontAtlasFactory fontAtlasFactory,
         Framework framework,
         GameGui gameGui,
-        TitleScreenMenu titleScreenMenu)
+        TitleScreenMenu titleScreenMenu,
+        ConsoleManager consoleManager)
         : base(
             "TitleScreenMenuOverlay",
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar |
             ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus)
     {
+        this.showTsm = consoleManager.AddVariable("dalamud.show_tsm", "Show the Title Screen Menu", true);
+        
         this.clientState = clientState;
         this.configuration = configuration;
         this.gameGui = gameGui;
@@ -136,7 +143,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
-        if (!this.AllowDrawing)
+        if (!this.AllowDrawing || !this.showTsm.Value)
             return;
         
         var scale = ImGui.GetIO().FontGlobalScale;

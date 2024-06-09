@@ -1,13 +1,19 @@
 ﻿#define BORDER_MATCHING
 
-namespace Dalamud.Utility;
-
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
+namespace Dalamud.Utility;
+
 #pragma warning disable SA1600
 #pragma warning disable SA1602
+
+internal enum MatchMode
+{
+    Simple,
+    Fuzzy,
+    FuzzyParts,
+}
 
 internal readonly ref struct FuzzyMatcher
 {
@@ -270,13 +276,6 @@ internal readonly ref struct FuzzyMatcher
 
         return (-1, 0, 0, 0);
     }
-}
-
-internal enum MatchMode
-{
-    Simple,
-    Fuzzy,
-    FuzzyParts,
 }
 
 #pragma warning restore SA1600

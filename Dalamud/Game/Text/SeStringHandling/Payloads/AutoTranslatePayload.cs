@@ -13,13 +13,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class AutoTranslatePayload : Payload, ITextProvider
 {
-    private string text;
-
-    [JsonProperty("group")]
-    public uint Group { get; private set; }
-
-    [JsonProperty("key")]
-    public uint Key { get; private set; }
+    private string? text;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
@@ -44,6 +38,18 @@ public class AutoTranslatePayload : Payload, ITextProvider
     internal AutoTranslatePayload()
     {
     }
+    
+    /// <summary>
+    /// Gets the autotranslate group.
+    /// </summary>
+    [JsonProperty("group")]
+    public uint Group { get; private set; }
+
+    /// <summary>
+    /// Gets the autotranslate key.
+    /// </summary>
+    [JsonProperty("key")]
+    public uint Key { get; private set; }
 
     /// <inheritdoc/>
     public override PayloadType Type => PayloadType.AutoTranslateText;

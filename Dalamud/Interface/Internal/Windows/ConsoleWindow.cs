@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
 using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Colors;
@@ -89,6 +90,14 @@ internal class ConsoleWindow : Window, IDisposable
         SerilogEventSink.Instance.LogLine += this.OnLogLine;
 
         Service<Framework>.GetAsync().ContinueWith(r => r.Result.Update += this.FrameworkOnUpdate);
+            
+        var cm = Service<ConsoleManager>.Get();
+        cm.AddCommand("clear", "Clear the console log", () => 
+        {
+            this.QueueClear();
+            return true;
+        });
+        cm.AddAlias("clear", "cls");
 
         this.Size = new Vector2(500, 400);
         this.SizeCondition = ImGuiCond.FirstUseEver;
@@ -786,11 +795,6 @@ internal class ConsoleWindow : Window, IDisposable
     {
         try
         {
-            if (this.commandText.StartsWith('/'))
-            {
-                this.commandText = this.commandText[1..];
-            }
-
             this.historyPos = -1;
             for (var i = this.history.Count - 1; i >= 0; i--)
             {
@@ -809,7 +813,7 @@ internal class ConsoleWindow : Window, IDisposable
                 return;
             }
 
-            this.lastCmdSuccess = Service<CommandManager>.Get().ProcessCommand("/" + this.commandText);
+            this.lastCmdSuccess = Service<ConsoleManager>.Get().ProcessCommand(this.commandText);
             this.commandText = string.Empty;
 
             // TODO: Force scroll to bottom
@@ -838,15 +842,21 @@ internal class ConsoleWindow : Window, IDisposable
                 if (words.Length > 1)
                     return 0;
 
-                // TODO: Improve this, add partial completion
+                // TODO: Improve this, add partial completion, arguments, description, etc.
                 // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp#L6443-L6484
-                var candidates = Service<CommandManager>.Get().Commands
-                                                        .Where(x => x.Key.Contains("/" + words[0]))
-                                                        .ToList();
-                if (candidates.Count > 0)
+                var candidates = Service<ConsoleManager>.Get().Entries
+                                                        .Where(x => x.Key.StartsWith(words[0]))
+                                                        .Select(x => x.Key);
+
+                candidates = candidates.Union(
+                    Service<CommandManager>.Get().Commands
+                                           .Where(x => x.Key.StartsWith(words[0])).Select(x => x.Key));
+
+                var enumerable = candidates as string[] ?? candidates.ToArray();
+                if (enumerable.Length != 0)
                 {
                     ptr.DeleteChars(0, ptr.BufTextLen);
-                    ptr.InsertChars(0, candidates[0].Key.Replace("/", string.Empty));
+                    ptr.InsertChars(0, enumerable[0]);
                 }
 
                 break;
