@@ -170,7 +170,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             iconId);
 
         // Free pointers
-        ptrToFree.ForEach(n => n.Dtor(true));
+        ptrToFree.ForEach(n => n.Dtor(false));
 
         // Return result
         return result;
