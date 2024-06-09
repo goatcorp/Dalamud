@@ -38,6 +38,7 @@ internal class ConsoleWindow : Window, IDisposable
 {
     private const int LogLinesMinimum = 100;
     private const int LogLinesMaximum = 1000000;
+    private const int HistorySize = 50;
 
     // Only this field may be touched from any thread.
     private readonly ConcurrentQueue<(string Line, LogEvent LogEvent)> newLogEntries;
@@ -45,9 +46,10 @@ internal class ConsoleWindow : Window, IDisposable
     // Fields below should be touched only from the main thread.
     private readonly RollingList<LogEntry> logText;
     private readonly RollingList<LogEntry> filteredLogEntries;
-
-    private readonly List<string> history = new();
+    
     private readonly List<PluginFilterEntry> pluginFilters = new();
+    
+    private readonly DalamudConfiguration configuration;
 
     private int newRolledLines;
     private bool pendingRefilter;
@@ -89,6 +91,8 @@ internal class ConsoleWindow : Window, IDisposable
     public ConsoleWindow(DalamudConfiguration configuration)
         : base("Dalamud Console", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
+        this.configuration = configuration;
+        
         this.autoScroll = configuration.LogAutoScroll;
         this.autoOpen = configuration.LogOpenAtStartup;
         SerilogEventSink.Instance.LogLine += this.OnLogLine;
@@ -115,7 +119,7 @@ internal class ConsoleWindow : Window, IDisposable
         this.logText = new(limit);
         this.filteredLogEntries = new(limit);
 
-        configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
+        this.configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
 
         unsafe
         {
@@ -134,7 +138,7 @@ internal class ConsoleWindow : Window, IDisposable
     public void Dispose()
     {
         SerilogEventSink.Instance.LogLine -= this.OnLogLine;
-        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+        this.configuration.DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         if (Service<Framework>.GetNullable() is { } framework)
             framework.Update -= this.FrameworkOnUpdate;
 
@@ -465,8 +469,6 @@ internal class ConsoleWindow : Window, IDisposable
 
     private void DrawOptionsToolbar()
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-
         ImGui.PushItemWidth(150.0f * ImGuiHelpers.GlobalScale);
         if (ImGui.BeginCombo("##log_level", $"{EntryPoint.LogLevelSwitch.MinimumLevel}+"))
         {
@@ -475,8 +477,8 @@ internal class ConsoleWindow : Window, IDisposable
                 if (ImGui.Selectable(value.ToString(), value == EntryPoint.LogLevelSwitch.MinimumLevel))
                 {
                     EntryPoint.LogLevelSwitch.MinimumLevel = value;
-                    configuration.LogLevel = value;
-                    configuration.QueueSave();
+                    this.configuration.LogLevel = value;
+                    this.configuration.QueueSave();
                     this.QueueRefilter();
                 }
             }
@@ -489,13 +491,13 @@ internal class ConsoleWindow : Window, IDisposable
         var settingsPopup = ImGui.BeginPopup("##console_settings");
         if (settingsPopup)
         {
-            this.DrawSettingsPopup(configuration);
+            this.DrawSettingsPopup();
             ImGui.EndPopup();
         }
         else if (this.settingsPopupWasOpen)
         {
             // Prevent side effects in case Apply wasn't clicked
-            this.logLinesLimit = configuration.LogLinesLimit;
+            this.logLinesLimit = this.configuration.LogLinesLimit;
         }
 
         this.settingsPopupWasOpen = settingsPopup;
@@ -643,18 +645,18 @@ internal class ConsoleWindow : Window, IDisposable
         }
     }
 
-    private void DrawSettingsPopup(DalamudConfiguration configuration)
+    private void DrawSettingsPopup()
     {
         if (ImGui.Checkbox("Open at startup", ref this.autoOpen))
         {
-            configuration.LogOpenAtStartup = this.autoOpen;
-            configuration.QueueSave();
+            this.configuration.LogOpenAtStartup = this.autoOpen;
+            this.configuration.QueueSave();
         }
 
         if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
         {
-            configuration.LogAutoScroll = this.autoScroll;
-            configuration.QueueSave();
+            this.configuration.LogAutoScroll = this.autoScroll;
+            this.configuration.QueueSave();
         }
 
         ImGui.TextUnformatted("Logs buffer");
@@ -663,8 +665,8 @@ internal class ConsoleWindow : Window, IDisposable
         {
             this.logLinesLimit = Math.Max(LogLinesMinimum, this.logLinesLimit);
 
-            configuration.LogLinesLimit = this.logLinesLimit;
-            configuration.QueueSave();
+            this.configuration.LogLinesLimit = this.logLinesLimit;
+            this.configuration.QueueSave();
 
             ImGui.CloseCurrentPopup();
         }
@@ -800,23 +802,18 @@ internal class ConsoleWindow : Window, IDisposable
     {
         try
         {
-            this.historyPos = -1;
-            for (var i = this.history.Count - 1; i >= 0; i--)
-            {
-                if (this.history[i] == this.commandText)
-                {
-                    this.history.RemoveAt(i);
-                    break;
-                }
-            }
-
-            this.history.Add(this.commandText);
-
-            if (this.commandText is "clear" or "cls")
-            {
-                this.QueueClear();
+            if (string.IsNullOrEmpty(this.commandText))
                 return;
-            }
+            
+            this.historyPos = -1;
+            
+            if (this.commandText != this.configuration.LogCommandHistory.LastOrDefault())
+                this.configuration.LogCommandHistory.Add(this.commandText);
+            
+            if (this.configuration.LogCommandHistory.Count > HistorySize)
+                this.configuration.LogCommandHistory.RemoveAt(0);
+            
+            this.configuration.QueueSave();
 
             this.lastCmdSuccess = Service<ConsoleManager>.Get().ProcessCommand(this.commandText);
             this.commandText = string.Empty;
@@ -902,7 +899,7 @@ internal class ConsoleWindow : Window, IDisposable
                 if (ptr.EventKey == ImGuiKey.UpArrow)
                 {
                     if (this.historyPos == -1)
-                        this.historyPos = this.history.Count - 1;
+                        this.historyPos = this.configuration.LogCommandHistory.Count - 1;
                     else if (this.historyPos > 0)
                         this.historyPos--;
                 }
@@ -910,7 +907,7 @@ internal class ConsoleWindow : Window, IDisposable
                 {
                     if (this.historyPos != -1)
                     {
-                        if (++this.historyPos >= this.history.Count)
+                        if (++this.historyPos >= this.configuration.LogCommandHistory.Count)
                         {
                             this.historyPos = -1;
                         }
@@ -919,7 +916,7 @@ internal class ConsoleWindow : Window, IDisposable
 
                 if (prevPos != this.historyPos)
                 {
-                    var historyStr = this.historyPos >= 0 ? this.history[this.historyPos] : string.Empty;
+                    var historyStr = this.historyPos >= 0 ? this.configuration.LogCommandHistory[this.historyPos] : string.Empty;
 
                     ptr.DeleteChars(0, ptr.BufTextLen);
                     ptr.InsertChars(0, historyStr);
