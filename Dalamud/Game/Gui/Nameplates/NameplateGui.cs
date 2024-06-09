@@ -1,11 +1,10 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.Gui.Nameplates.EventArgs;
 using Dalamud.Game.Gui.Nameplates.Model;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC.Internal;
 using Dalamud.Memory;
@@ -63,7 +62,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
     }
 
     /// <inheritdoc/>
-    public T? GetNameplateGameObject<T>(NameplateObject nameplateObject) where T : GameObject
+    public T? GetNameplateGameObject<T>(INameplateObject nameplateObject) where T : GameObject
     {
         return this.GetNameplateGameObject<T>(nameplateObject.Pointer);
     }
@@ -92,7 +91,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         unsafe
         {
             var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-            nameplateInfoArrayPtr = new IntPtr(&framework->GetUiModule()->GetRaptureAtkModule()->NamePlateInfoArray);
+            nameplateInfoArrayPtr = new IntPtr(&framework->GetUIModule()->GetRaptureAtkModule()->NamePlateInfoArray);
         }
 
         // Get the nameplate info for the nameplate object
@@ -100,64 +99,50 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         var namePlateInfo = Marshal.PtrToStructure<RaptureAtkModule.NamePlateInfo>(namePlateInfoPtr);
 
         // Return the object for its object id
-        var objectId = namePlateInfo.ObjectID.ObjectID;
+        var objectId = namePlateInfo.ObjectId.ObjectId;
         return this.objectTable.SearchById(objectId) as T;
     }
 
     private IntPtr HandleSetPlayerNameplateDetour(IntPtr playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, IntPtr titlePtr, IntPtr namePtr, IntPtr freeCompanyPtr, IntPtr prefixPtr, int iconId)
     {
+        var ptrToFree = new List<nint>();
 
         if (this.OnNameplateUpdate != null)
         {
-            // Create NamePlateObject if possible
-            var namePlateObj = new NameplateObject(playerNameplateObjectPtr);
-
-            // Create new event
+            // Create new nameplate info
             var nameplateInfo = new NameplateInfo
             {
-                Title = MemoryHelper.ReadSeStringNullTerminated(titlePtr),
-                Name = MemoryHelper.ReadSeStringNullTerminated(namePtr),
-                FreeCompany = MemoryHelper.ReadSeStringNullTerminated(freeCompanyPtr),
-                Prefix = MemoryHelper.ReadSeStringNullTerminated(prefixPtr),
                 IsTitleAboveName = isTitleAboveName,
                 IsTitleVisible = isTitleVisible,
-                IconID = (StatusIcons)iconId,
+                IconID = (NameplateStatusIcons)iconId,
             };
 
+            // Add known nameplate nodes
+            nameplateInfo.Nodes.Add(new(titlePtr, NameplateNodeName.Title));
+            nameplateInfo.Nodes.Add(new(namePtr, NameplateNodeName.Name));
+            nameplateInfo.Nodes.Add(new(freeCompanyPtr, NameplateNodeName.FreeCompany));
+            nameplateInfo.Nodes.Add(new(prefixPtr, NameplateNodeName.Prefix));
+
+            // Create new nameplate object
+            var namePlateObj = new NameplateObject(playerNameplateObjectPtr, nameplateInfo);
+
             // Invoke event
-            var eventArgs = new NameplateUpdateEventArgs(nameplateInfo, namePlateObj);
-            this.OnNameplateUpdate.Invoke(eventArgs);
+            this.OnNameplateUpdate.Invoke(namePlateObj);
 
-            if (eventArgs.HasChanged)
+            // Get new states
+            isTitleAboveName = nameplateInfo.IsTitleAboveName;
+            isTitleVisible = nameplateInfo.IsTitleVisible;
+            iconId = (int)nameplateInfo.IconID;
+
+            // Handle changed nodes
+            foreach (var node in nameplateInfo.Nodes)
             {
-                // Get new states
-                isTitleAboveName = nameplateInfo.IsTitleAboveName;
-                isTitleVisible = nameplateInfo.IsTitleVisible;
-                iconId = (int)nameplateInfo.IconID;
-
-                // Get new Title string content
-                var titleRaw = nameplateInfo.Title.Encode();
-                var titleNewRaw = nameplateInfo.Title.Encode();
-                if (!titleRaw.SequenceEqual(titleNewRaw))
-                    MemoryHelper.WriteSeString(titlePtr, nameplateInfo.Title);
-
-                // Get new Name string content
-                var nameRaw = nameplateInfo.Name.Encode();
-                var nameNewRaw = nameplateInfo.Name.Encode();
-                if (!nameRaw.SequenceEqual(nameNewRaw))
-                    MemoryHelper.WriteSeString(namePtr, nameplateInfo.Name);
-
-                // Get new Free Company string content
-                var freeCompanyRaw = nameplateInfo.FreeCompany.Encode();
-                var freeCompanyNewRaw = nameplateInfo.FreeCompany.Encode();
-                if (!freeCompanyRaw.SequenceEqual(freeCompanyNewRaw))
-                    MemoryHelper.WriteSeString(freeCompanyPtr, nameplateInfo.FreeCompany);
-
-                // Get new Prefix string content
-                var prefixRaw = nameplateInfo.Prefix.Encode();
-                var prefixNewRaw = nameplateInfo.Prefix.Encode();
-                if (!prefixRaw.SequenceEqual(prefixNewRaw))
-                    MemoryHelper.WriteSeString(prefixPtr, nameplateInfo.Prefix);
+                if (node.HasChanged)
+                {
+                    var textRaw = node.Text.Encode();
+                    node.Pointer = MemoryHelper.Allocate(textRaw.Length);
+                    ptrToFree.Add(node.Pointer);
+                }
             }
         }
 
@@ -171,6 +156,9 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             freeCompanyPtr,
             prefixPtr,
             iconId);
+
+        // Free pointers
+        ptrToFree.ForEach(n => MemoryHelper.Free(n));
 
         // Return result
         return result;

@@ -1,5 +1,4 @@
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.Gui.Nameplates.EventArgs;
 using Dalamud.Game.Gui.Nameplates.Model;
 
 namespace Dalamud.Game.Gui.Nameplates;
@@ -13,7 +12,7 @@ public interface INameplatesGui
     /// Will be executed when the the Game wants to update the content of a nameplate with the details of the Player.
     /// </summary>
     /// <param name="eventArgs">Provides some infos about the current updating Nameplate.</param>
-    public delegate void OnNameplateUpdateDelegate(NameplateUpdateEventArgs eventArgs);
+    public delegate void OnNameplateUpdateDelegate(INameplateObject eventArgs);
     
     /// <summary>
     /// Will be executed when the the Game wants to update the content of a nameplate with the details of the Player.
@@ -26,7 +25,7 @@ public interface INameplatesGui
     /// <typeparam name="T">The type you want to get.</typeparam>
     /// <param name="nameplateObject">The nameplate object to get from.</param>
     /// <returns>Returns a <see cref="GameObject"/> null if failed.</returns>
-    abstract T? GetNameplateGameObject<T>(NameplateObject nameplateObject) where T : GameObject;
+    abstract T? GetNameplateGameObject<T>(INameplateObject nameplateObject) where T : GameObject;
 
     /// <summary>
     /// Tries to find a <see cref="GameObject"/> of the given type by a given nameplate object pointer.
