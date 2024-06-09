@@ -152,6 +152,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
                 {
                     var textRaw = node.Text.Encode();
                     node.Pointer = MemoryHelper.Allocate(textRaw.Length);
+                    MemoryHelper.WriteRaw(node.Pointer, textRaw);
                     ptrToFree.Add(node.Pointer);
                 }
             }
