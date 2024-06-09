@@ -8,7 +8,6 @@ using Dalamud.Hooking.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -29,65 +28,70 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecyclePooledArgs argsPool = Service<AddonLifecyclePooledArgs>.Get();
-
-    private readonly nint disallowedReceiveEventAddress;
     
     private readonly AddonLifecycleAddressResolver address;
-    private readonly CallHook<AddonSetupDelegate> onAddonSetupHook;
-    private readonly CallHook<AddonSetupDelegate> onAddonSetup2Hook;
-    private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
-    private readonly CallHook<AddonDrawDelegate> onAddonDrawHook;
-    private readonly CallHook<AddonUpdateDelegate> onAddonUpdateHook;
+    
+    private readonly CallHook<AtkUnitBase.Delegates.OnSetup> onAddonSetupHook;
+    private readonly CallHook<AtkUnitBase.Delegates.OnSetup> onAddonSetup2Hook;
+    private readonly CallHook<AtkUnitBase.Delegates.Draw> onAddonDrawHook;
+    private readonly CallHook<AtkUnitBase.Delegates.Update> onAddonUpdateHook;
+    private readonly CallHook<AtkUnitBase.Delegates.OnRequestedUpdate> onAddonRequestedUpdateHook;
+    
     private readonly Hook<AddonOnRefreshDelegate> onAddonRefreshHook;
-    private readonly CallHook<AddonOnRequestedUpdateDelegate> onAddonRequestedUpdateHook;
+    private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
 
+    private readonly AtkUnitBase* atkUnitBaseRoot;
+    
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle(TargetSigScanner sigScanner)
     {
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
-        // We want value of the function pointer at vFunc[2]
-        this.disallowedReceiveEventAddress = ((nint*)this.address.AtkEventListener)![2];
+        this.atkUnitBaseRoot = this.address.AtkUnitBase;
 
-        this.onAddonSetupHook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup, this.OnAddonSetup);
-        this.onAddonSetup2Hook = new CallHook<AddonSetupDelegate>(this.address.AddonSetup2, this.OnAddonSetup);
-        this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
-        this.onAddonDrawHook = new CallHook<AddonDrawDelegate>(this.address.AddonDraw, this.OnAddonDraw);
-        this.onAddonUpdateHook = new CallHook<AddonUpdateDelegate>(this.address.AddonUpdate, this.OnAddonUpdate);
+        this.onAddonSetupHook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup, this.OnAddonSetup);
+        this.onAddonSetup2Hook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup2, this.OnAddonSetup);
+        this.onAddonDrawHook = new CallHook<AtkUnitBase.Delegates.Draw>(this.address.AddonDraw, this.OnAddonDraw);
+        this.onAddonUpdateHook = new CallHook<AtkUnitBase.Delegates.Update>(this.address.AddonUpdate, this.OnAddonUpdate);
+        this.onAddonRequestedUpdateHook = new CallHook<AtkUnitBase.Delegates.OnRequestedUpdate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
+        
         this.onAddonRefreshHook = Hook<AddonOnRefreshDelegate>.FromAddress(this.address.AddonOnRefresh, this.OnAddonRefresh);
-        this.onAddonRequestedUpdateHook = new CallHook<AddonOnRequestedUpdateDelegate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
+        this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
 
         this.onAddonSetupHook.Enable();
         this.onAddonSetup2Hook.Enable();
-        this.onAddonFinalizeHook.Enable();
         this.onAddonDrawHook.Enable();
         this.onAddonUpdateHook.Enable();
-        this.onAddonRefreshHook.Enable();
         this.onAddonRequestedUpdateHook.Enable();
+        
+        this.onAddonRefreshHook.Enable();
+        this.onAddonFinalizeHook.Enable();
     }
-
-    private delegate void AddonSetupDelegate(AtkUnitBase* addon, uint valueCount, AtkValue* values);
 
     private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
 
-    private delegate void AddonDrawDelegate(AtkUnitBase* addon);
-
-    private delegate void AddonUpdateDelegate(AtkUnitBase* addon, float delta);
-
-    private delegate void AddonOnRequestedUpdateDelegate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData);
-
     private delegate byte AddonOnRefreshDelegate(AtkUnitManager* unitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values);
-    
+
     /// <summary>
     /// Gets a list of all AddonLifecycle ReceiveEvent Listener Hooks.
     /// </summary>
-    internal List<AddonLifecycleReceiveEventListener> ReceiveEventListeners { get; } = new();
+    internal List<AddonLifecycleReceiveEventListener> ReceiveEventListeners { get; } = [];
     
     /// <summary>
     /// Gets a list of all AddonLifecycle Event Listeners.
     /// </summary>
-    internal List<AddonLifecycleEventListener> EventListeners { get; } = new();
+    internal List<AddonLifecycleEventListener> EventListeners { get; } = [];
+
+    /// <summary>
+    /// Gets a list of all AddonLifecycle Show Hooks.
+    /// </summary>
+    internal List<Hook<AtkUnitBase.Delegates.Show>> ShowHooks { get; } = [];
+    
+    /// <summary>
+    /// Gets a list of all AddonLifecycle Hide Hooks.
+    /// </summary> 
+    internal List<Hook<AtkUnitBase.Delegates.Hide>> HideHooks { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -190,13 +194,13 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         }
     }
 
-    private void RegisterReceiveEventHook(AtkUnitBase* addon)
+    private void RegisterSpecialEventHooks(AtkUnitBase* addon)
     {
         // Hook the addon's ReceiveEvent function here, but only enable the hook if we have an active listener.
         // Disallows hooking the core internal event handler.
         var addonName = addon->NameString;
         var receiveEventAddress = (nint)addon->VirtualTable->ReceiveEvent;
-        if (receiveEventAddress != this.disallowedReceiveEventAddress)
+        if (receiveEventAddress != (nint)this.atkUnitBaseRoot->VirtualTable->ReceiveEvent)
         {
             // If we have a ReceiveEvent listener already made for this hook address, add this addon's name to that handler.
             if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.HookAddress == receiveEventAddress) is { } existingListener)
@@ -222,14 +226,35 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
                 }
             }
         }
+        
+        // Hook the addon's Show and Hide functions here, but only enable the hook if we have an active listener.
+        // Disallows hooking the core internal event handler for AtkUnitBase.Show/AtkUnitBase.Hide
+        // It's fine to enable these hooks immediately, as we don't expect them to be called anywhere near the same rate as ReceiveEvent
+        var showAddress = (nint)addon->VirtualTable->Show;
+        if (showAddress != (nint)this.atkUnitBaseRoot->VirtualTable->Show && this.ShowHooks.All(hook => hook.Address != showAddress))
+        {
+            var showHook = Hook<AtkUnitBase.Delegates.Show>.FromAddress(showAddress, this.OnAddonShow);
+            showHook.Enable();
+            
+            this.ShowHooks.Add(showHook);
+        }
+        
+        var hideAddress = (nint)addon->VirtualTable->Hide;
+        if (hideAddress != (nint)this.atkUnitBaseRoot->VirtualTable->Hide && this.HideHooks.All(hook => hook.Address != hideAddress))
+        {
+            var hideHook = Hook<AtkUnitBase.Delegates.Hide>.FromAddress(hideAddress, this.OnAddonHide);
+            hideHook.Enable();
+            
+            this.HideHooks.Add(hideHook);
+        }
     }
 
-    private void UnregisterReceiveEventHook(string addonName)
+    private void UnregisterSpecialEventHooks(AtkUnitBase* addon)
     {
         // Remove this addons ReceiveEvent Registration
-        if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } eventListener)
+        if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addon->NameString)) is { } eventListener)
         {
-            eventListener.AddonNames.Remove(addonName);
+            eventListener.AddonNames.Remove(addon->NameString);
 
             // If there are no more listeners let's remove and dispose.
             if (eventListener.AddonNames.Count is 0)
@@ -238,13 +263,25 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
                 eventListener.Dispose();
             }
         }
+
+        if (this.ShowHooks.FirstOrDefault(hook => hook.Address == (nint)addon->VirtualTable->Show) is { } showHook)
+        {
+            showHook.Dispose();
+            this.ShowHooks.Remove(showHook);
+        }
+        
+        if (this.HideHooks.FirstOrDefault(hook => hook.Address == (nint)addon->VirtualTable->Hide) is { } hideHook)
+        {
+            hideHook.Dispose();
+            this.HideHooks.Remove(hideHook);
+        }
     }
 
     private void OnAddonSetup(AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
         try
         {
-            this.RegisterReceiveEventHook(addon);
+            this.RegisterSpecialEventHooks(addon);
         }
         catch (Exception e)
         {
@@ -275,8 +312,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     {
         try
         {
-            var addonName = atkUnitBase[0]->NameString;
-            this.UnregisterReceiveEventHook(addonName);
+            var addon = atkUnitBase[0];
+            this.UnregisterSpecialEventHooks(addon);
         }
         catch (Exception e)
         {
@@ -295,6 +332,52 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         {
             Log.Error(e, "Caught exception when calling original AddonFinalize. This may be a bug in the game or another plugin hooking this method.");
         }
+    }
+
+    private void OnAddonShow(AtkUnitBase* addon, bool openSilently, uint unsetShowHideFlags)
+    {
+        using var returner = this.argsPool.Rent(out AddonShowArgs arg);
+        arg.AddonInternal = (nint)addon;
+        arg.OpenSilently = openSilently;
+        arg.UnsetShowHideFlags = unsetShowHideFlags;
+        this.InvokeListenersSafely(AddonEvent.PreShow, arg);
+        openSilently = arg.OpenSilently;
+        unsetShowHideFlags = arg.UnsetShowHideFlags;
+        
+        try
+        {
+            addon->Show(openSilently, unsetShowHideFlags);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonShow. This may be a bug in the game or another plugin hooking this method.");
+        }
+
+        this.InvokeListenersSafely(AddonEvent.PostShow, arg);
+    }
+
+    private void OnAddonHide(AtkUnitBase* addon, bool unknown, bool callCallback, uint setShowHideFlags)
+    {
+        using var returner = this.argsPool.Rent(out AddonHideArgs arg);
+        arg.AddonInternal = (nint)addon;
+        arg.Unknown = unknown;
+        arg.CallHideCallback = callCallback;
+        arg.SetShowHideFlags = setShowHideFlags;
+        this.InvokeListenersSafely(AddonEvent.PreHide, arg);
+        unknown = arg.Unknown;
+        callCallback = arg.CallHideCallback;
+        setShowHideFlags = arg.SetShowHideFlags;
+        
+        try
+        {
+            addon->Hide(unknown, callCallback, setShowHideFlags);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Caught exception when calling original AddonHide. This may be a bug in the game or another plugin hooking this method.");
+        }
+
+        this.InvokeListenersSafely(AddonEvent.PostHide, arg);
     }
 
     private void OnAddonDraw(AtkUnitBase* addon)
@@ -396,7 +479,7 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
 
-    private readonly List<AddonLifecycleEventListener> eventListeners = new();
+    private readonly List<AddonLifecycleEventListener> eventListeners = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

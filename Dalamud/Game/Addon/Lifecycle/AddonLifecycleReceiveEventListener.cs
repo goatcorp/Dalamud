@@ -3,7 +3,6 @@
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -29,7 +28,7 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
     internal AddonLifecycleReceiveEventListener(AddonLifecycle service, string addonName, nint receiveEventAddress)
     {
         this.AddonLifecycle = service;
-        this.AddonNames = new List<string> { addonName };
+        this.AddonNames = [addonName];
         this.Hook = Hook<AddonReceiveEventDelegate>.FromAddress(receiveEventAddress, this.OnReceiveEvent);
     }
 

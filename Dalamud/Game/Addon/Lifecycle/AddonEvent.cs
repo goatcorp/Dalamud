@@ -69,4 +69,24 @@ public enum AddonEvent
     /// Event that is fired after an addon has processed an event.
     /// </summary>
     PostReceiveEvent,
+    
+    /// <summary>
+    /// Event that is fired before an addon begins showing.
+    /// </summary>
+    PreShow,
+    
+    /// <summary>
+    /// Event that is fired after an addon has completed showing.
+    /// </summary>
+    PostShow,
+    
+    /// <summary>
+    /// Event that is fired before and addon begins hiding.
+    /// </summary>
+    PreHide,
+    
+    /// <summary>
+    /// Event that is fired after an addon has completed hiding.
+    /// </summary>
+    PostHide,
 }
