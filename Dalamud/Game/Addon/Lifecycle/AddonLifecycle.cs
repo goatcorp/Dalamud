@@ -120,7 +120,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         {
             this.EventListeners.Add(listener);
             
-            // If we want receive event messages have an already active addon, enable the receive event hook.
+            // If we want to receive event messages have an already active addon, enable the receive event hook.
             // If the addon isn't active yet, we'll grab the hook when it sets up.
             if (listener is { EventType: AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent })
             {
@@ -234,6 +234,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         if (showAddress != (nint)this.atkUnitBaseRoot->VirtualTable->Show && this.ShowHooks.All(hook => hook.Address != showAddress))
         {
             var showHook = Hook<AtkUnitBase.Delegates.Show>.FromAddress(showAddress, this.OnAddonShow);
+            Log.Debug($"Hooking {addonName}.Show");
             showHook.Enable();
             
             this.ShowHooks.Add(showHook);
@@ -243,6 +244,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         if (hideAddress != (nint)this.atkUnitBaseRoot->VirtualTable->Hide && this.HideHooks.All(hook => hook.Address != hideAddress))
         {
             var hideHook = Hook<AtkUnitBase.Delegates.Hide>.FromAddress(hideAddress, this.OnAddonHide);
+            Log.Debug($"Hooking {addonName}.Hide");
             hideHook.Enable();
             
             this.HideHooks.Add(hideHook);
@@ -336,6 +338,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
     private void OnAddonShow(AtkUnitBase* addon, bool openSilently, uint unsetShowHideFlags)
     {
+        Log.Debug($"{addon->NameString}.Show Invoked");
+        
         using var returner = this.argsPool.Rent(out AddonShowArgs arg);
         arg.AddonInternal = (nint)addon;
         arg.OpenSilently = openSilently;
@@ -346,7 +350,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         
         try
         {
-            addon->Show(openSilently, unsetShowHideFlags);
+            // This should be fine, because we can only land in this function if an addon that we actually hooked is called.
+            this.ShowHooks.First(hook => hook.Address == (nint)addon->VirtualTable->Show).Original(addon, openSilently, unsetShowHideFlags);
         }
         catch (Exception e)
         {
@@ -358,6 +363,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
     private void OnAddonHide(AtkUnitBase* addon, bool unknown, bool callCallback, uint setShowHideFlags)
     {
+        Log.Debug($"{addon->NameString}.Hide Invoked");
+        
         using var returner = this.argsPool.Rent(out AddonHideArgs arg);
         arg.AddonInternal = (nint)addon;
         arg.Unknown = unknown;
@@ -370,7 +377,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         
         try
         {
-            addon->Hide(unknown, callCallback, setShowHideFlags);
+            // This should be fine, because we can only land in this function if an addon that we actually hooked is called.
+            this.HideHooks.First(hook => hook.Address == (nint)addon->VirtualTable->Hide).Original(addon, unknown, callCallback, setShowHideFlags);
         }
         catch (Exception e)
         {
