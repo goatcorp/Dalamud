@@ -120,5 +120,4 @@ internal sealed class AddonLifecyclePooledArgs : IServiceType
             }
         }
     }
-    
 }
