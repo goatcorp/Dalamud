@@ -86,12 +86,12 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <summary>
     /// Gets a list of all AddonLifecycle Show Hooks.
     /// </summary>
-    internal List<Hook<AtkUnitBase.Delegates.Show>> ShowHooks { get; } = [];
+    internal List<AddonLifecycleShowListener> ShowListeners { get; } = [];
     
     /// <summary>
     /// Gets a list of all AddonLifecycle Hide Hooks.
     /// </summary> 
-    internal List<Hook<AtkUnitBase.Delegates.Hide>> HideHooks { get; } = [];
+    internal List<AddonLifecycleHideListener> HideListeners { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -107,6 +107,16 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         foreach (var receiveEventListener in this.ReceiveEventListeners)
         {
             receiveEventListener.Dispose();
+        }
+        
+        foreach (var showListener in this.ShowListeners)
+        {
+            showListener.Dispose();
+        }
+        
+        foreach (var hideListener in this.HideListeners)
+        {
+            hideListener.Dispose();
         }
     }
 
@@ -127,6 +137,22 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
                 if (this.ReceiveEventListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } receiveEventListener)
                 {
                     receiveEventListener.Hook?.Enable();
+                }
+            }
+
+            if (listener is { EventType: AddonEvent.PostShow or AddonEvent.PreShow })
+            {
+                if (this.ShowListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } showListener)
+                {
+                    showListener.Hook?.Enable();
+                }
+            }
+            
+            if (listener is { EventType: AddonEvent.PostHide or AddonEvent.PreHide })
+            {
+                if (this.HideListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } hideListener)
+                {
+                    hideListener.Hook?.Enable();
                 }
             }
         });
@@ -155,6 +181,34 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
                     if (!this.EventListeners.Any(listeners => listeners.AddonName.Contains(listener.AddonName) && listener.EventType is AddonEvent.PreReceiveEvent or AddonEvent.PostReceiveEvent))
                     {
                         receiveEventListener.Hook?.Disable();
+                    }
+                }
+            }
+            
+            // If we are disabling an ReceiveEvent listener, check if we should disable the hook.
+            if (listener is { EventType: AddonEvent.PostHide or AddonEvent.PreHide })
+            {
+                // Get the ReceiveEvent Listener for this addon
+                if (this.HideListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } hideListener)
+                {
+                    // If there are no other listeners listening for this event, disable the hook.
+                    if (!this.EventListeners.Any(listeners => listeners.AddonName.Contains(listener.AddonName) && listener.EventType is AddonEvent.PostHide or AddonEvent.PreHide))
+                    {
+                        hideListener.Hook?.Disable();
+                    }
+                }
+            }
+            
+            // If we are disabling an ReceiveEvent listener, check if we should disable the hook.
+            if (listener is { EventType: AddonEvent.PostShow or AddonEvent.PreShow })
+            {
+                // Get the ReceiveEvent Listener for this addon
+                if (this.ShowListeners.FirstOrDefault(listeners => listeners.AddonNames.Contains(listener.AddonName)) is { } showListener)
+                {
+                    // If there are no other listeners listening for this event, disable the hook.
+                    if (!this.EventListeners.Any(listeners => listeners.AddonName.Contains(listener.AddonName) && listener.EventType is AddonEvent.PostShow or AddonEvent.PreShow))
+                    {
+                        showListener.Hook?.Disable();
                     }
                 }
             }
@@ -227,27 +281,62 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
             }
         }
         
-        // Hook the addon's Show and Hide functions here, but only enable the hook if we have an active listener.
-        // Disallows hooking the core internal event handler for AtkUnitBase.Show/AtkUnitBase.Hide
-        // It's fine to enable these hooks immediately, as we don't expect them to be called anywhere near the same rate as ReceiveEvent
+        // Register Show hooks
         var showAddress = (nint)addon->VirtualTable->Show;
-        if (showAddress != (nint)this.atkUnitBaseRoot->VirtualTable->Show && this.ShowHooks.All(hook => hook.Address != showAddress))
+        if (showAddress != (nint)this.atkUnitBaseRoot->VirtualTable->Show)
         {
-            var showHook = Hook<AtkUnitBase.Delegates.Show>.FromAddress(showAddress, this.OnAddonShow);
-            Log.Debug($"Hooking {addonName}.Show");
-            showHook.Enable();
-            
-            this.ShowHooks.Add(showHook);
+            // If we have a Show listener already made for this hook address, add this addon's name to that handler.
+            if (this.ShowListeners.FirstOrDefault(listener => listener.HookAddress == showAddress) is { } existingListener)
+            {
+                if (!existingListener.AddonNames.Contains(addonName))
+                {
+                    existingListener.AddonNames.Add(addonName);
+                }
+            }
+
+            // Else, we have an addon that we don't have the show for yet, make it.
+            else
+            {
+                this.ShowListeners.Add(new AddonLifecycleShowListener(this, addonName, showAddress));
+            }
+
+            // If we have an active listener for this addon already, we need to activate this hook.
+            if (this.EventListeners.Any(listener => (listener.EventType is AddonEvent.PreShow or AddonEvent.PostShow) && listener.AddonName == addonName))
+            {
+                if (this.ShowListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } showEventListener)
+                {
+                    showEventListener.Hook?.Enable();
+                }
+            }
         }
         
+        // Register Hide hooks
         var hideAddress = (nint)addon->VirtualTable->Hide;
-        if (hideAddress != (nint)this.atkUnitBaseRoot->VirtualTable->Hide && this.HideHooks.All(hook => hook.Address != hideAddress))
+        if (hideAddress != (nint)this.atkUnitBaseRoot->VirtualTable->Hide)
         {
-            var hideHook = Hook<AtkUnitBase.Delegates.Hide>.FromAddress(hideAddress, this.OnAddonHide);
-            Log.Debug($"Hooking {addonName}.Hide");
-            hideHook.Enable();
-            
-            this.HideHooks.Add(hideHook);
+            // If we have a Show listener already made for this hook address, add this addon's name to that handler.
+            if (this.HideListeners.FirstOrDefault(listener => listener.HookAddress == hideAddress) is { } existingListener)
+            {
+                if (!existingListener.AddonNames.Contains(addonName))
+                {
+                    existingListener.AddonNames.Add(addonName);
+                }
+            }
+
+            // Else, we have an addon that we don't have the show for yet, make it.
+            else
+            {
+                this.HideListeners.Add(new AddonLifecycleHideListener(this, addonName, hideAddress));
+            }
+
+            // If we have an active listener for this addon already, we need to activate this hook.
+            if (this.EventListeners.Any(listener => (listener.EventType is AddonEvent.PreHide or AddonEvent.PostHide) && listener.AddonName == addonName))
+            {
+                if (this.HideListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } hideEventListener)
+                {
+                    hideEventListener.Hook?.Enable();
+                }
+            }
         }
     }
 
@@ -266,16 +355,30 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
             }
         }
 
-        if (this.ShowHooks.FirstOrDefault(hook => hook.Address == (nint)addon->VirtualTable->Show) is { } showHook)
+        // Remove this addons Show Registration
+        if (this.ShowListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addon->NameString)) is { } showListener)
         {
-            showHook.Dispose();
-            this.ShowHooks.Remove(showHook);
+            showListener.AddonNames.Remove(addon->NameString);
+
+            // If there are no more listeners let's remove and dispose.
+            if (showListener.AddonNames.Count is 0)
+            {
+                this.ShowListeners.Remove(showListener);
+                showListener.Dispose();
+            }
         }
         
-        if (this.HideHooks.FirstOrDefault(hook => hook.Address == (nint)addon->VirtualTable->Hide) is { } hideHook)
+        // Remove this addons Hide Registration
+        if (this.HideListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addon->NameString)) is { } hideListener)
         {
-            hideHook.Dispose();
-            this.HideHooks.Remove(hideHook);
+            hideListener.AddonNames.Remove(addon->NameString);
+
+            // If there are no more listeners let's remove and dispose.
+            if (hideListener.AddonNames.Count is 0)
+            {
+                this.HideListeners.Remove(hideListener);
+                hideListener.Dispose();
+            }
         }
     }
 
@@ -334,58 +437,6 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         {
             Log.Error(e, "Caught exception when calling original AddonFinalize. This may be a bug in the game or another plugin hooking this method.");
         }
-    }
-
-    private void OnAddonShow(AtkUnitBase* addon, bool openSilently, uint unsetShowHideFlags)
-    {
-        Log.Debug($"{addon->NameString}.Show Invoked");
-        
-        using var returner = this.argsPool.Rent(out AddonShowArgs arg);
-        arg.AddonInternal = (nint)addon;
-        arg.OpenSilently = openSilently;
-        arg.UnsetShowHideFlags = unsetShowHideFlags;
-        this.InvokeListenersSafely(AddonEvent.PreShow, arg);
-        openSilently = arg.OpenSilently;
-        unsetShowHideFlags = arg.UnsetShowHideFlags;
-        
-        try
-        {
-            // This should be fine, because we can only land in this function if an addon that we actually hooked is called.
-            this.ShowHooks.First(hook => hook.Address == (nint)addon->VirtualTable->Show).Original(addon, openSilently, unsetShowHideFlags);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Caught exception when calling original AddonShow. This may be a bug in the game or another plugin hooking this method.");
-        }
-
-        this.InvokeListenersSafely(AddonEvent.PostShow, arg);
-    }
-
-    private void OnAddonHide(AtkUnitBase* addon, bool unknown, bool callCallback, uint setShowHideFlags)
-    {
-        Log.Debug($"{addon->NameString}.Hide Invoked");
-        
-        using var returner = this.argsPool.Rent(out AddonHideArgs arg);
-        arg.AddonInternal = (nint)addon;
-        arg.Unknown = unknown;
-        arg.CallHideCallback = callCallback;
-        arg.SetShowHideFlags = setShowHideFlags;
-        this.InvokeListenersSafely(AddonEvent.PreHide, arg);
-        unknown = arg.Unknown;
-        callCallback = arg.CallHideCallback;
-        setShowHideFlags = arg.SetShowHideFlags;
-        
-        try
-        {
-            // This should be fine, because we can only land in this function if an addon that we actually hooked is called.
-            this.HideHooks.First(hook => hook.Address == (nint)addon->VirtualTable->Hide).Original(addon, unknown, callCallback, setShowHideFlags);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Caught exception when calling original AddonHide. This may be a bug in the game or another plugin hooking this method.");
-        }
-
-        this.InvokeListenersSafely(AddonEvent.PostHide, arg);
     }
 
     private void OnAddonDraw(AtkUnitBase* addon)
