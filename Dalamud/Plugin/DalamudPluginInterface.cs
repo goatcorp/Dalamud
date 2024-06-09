@@ -32,7 +32,7 @@ namespace Dalamud.Plugin;
 /// <summary>
 /// This class acts as an interface to various objects needed to interact with Dalamud and the game.
 /// </summary>
-public sealed class DalamudPluginInterface : IDisposable
+public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposable
 {
     private readonly LocalPlugin plugin;
     private readonly PluginConfigurations configs;
@@ -81,28 +81,16 @@ public sealed class DalamudPluginInterface : IDisposable
         configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
     }
 
-    /// <summary>
-    /// Delegate for localization change with two-letter iso lang code.
-    /// </summary>
-    /// <param name="langCode">The new language code.</param>
-    public delegate void LanguageChangedDelegate(string langCode);
-
-    /// <summary>
-    /// Delegate for events that listen to changes to the list of active plugins.
-    /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
 
     /// <summary>
     /// Event that gets fired when loc is changed
     /// </summary>
-    public event LanguageChangedDelegate LanguageChanged;
+    public event IDalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
 
     /// <summary>
     /// Event that is fired when the active list of plugins is changed.
     /// </summary>
-    public event ActivePluginsChangedDelegate ActivePluginsChanged;
+    public event IDalamudPluginInterface.ActivePluginsChangedDelegate? ActivePluginsChanged;
 
     /// <summary>
     /// Gets the reason this plugin was loaded.
@@ -505,21 +493,9 @@ public sealed class DalamudPluginInterface : IDisposable
 
     #endregion
 
-    /// <inheritdoc cref="Dispose"/>
-    void IDisposable.Dispose()
-    {
-    }
-
-    /// <summary>This function will do nothing. Dalamud will dispose this object on plugin unload.</summary>
-    [Obsolete("This function will do nothing. Dalamud will dispose this object on plugin unload.", true)]
-    public void Dispose()
-    {
-        // ignored
-    }
-
     /// <summary>Unregister the plugin and dispose all references.</summary>
     /// <remarks>Dalamud internal use only.</remarks>
-    internal void DisposeInternal()
+    public void Dispose()
     {
         Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
         Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;

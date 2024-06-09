@@ -158,6 +158,8 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     public event Action? OnAvailablePluginsChanged;
 
+    public event IDalamudPluginInterface.ActivePluginsChangedDelegate? ActivePluginsChanged;
+
     /// <summary>
     /// Gets the current Dalamud API level, used to handle breaking changes. Only plugins with this level will be loaded.
     /// As of Dalamud 9.x, this always matches the major version number of Dalamud.

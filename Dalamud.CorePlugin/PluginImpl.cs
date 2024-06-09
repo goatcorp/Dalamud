@@ -55,7 +55,7 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log)
+        public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log)
         {
             try
             {
@@ -86,7 +86,7 @@ namespace Dalamud.CorePlugin
         /// <summary>
         /// Gets the plugin interface.
         /// </summary>
-        internal DalamudPluginInterface Interface { get; private set; }
+        internal IDalamudPluginInterface Interface { get; private set; }
 
         /// <inheritdoc/>
         public void Dispose()
