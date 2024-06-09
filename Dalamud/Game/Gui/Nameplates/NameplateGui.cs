@@ -11,6 +11,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC.Internal;
 using Dalamud.Memory;
 
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace Dalamud.Game.Gui.Nameplates;
@@ -114,9 +115,9 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             this.namePlatePtr = nint.Zero;
     }
 
-    private nint HandleSetPlayerNameplateDetour(nint playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, nint titlePtr, nint namePtr, nint freeCompanyPtr, nint prefixPtr, int iconId)
+    private unsafe nint HandleSetPlayerNameplateDetour(nint playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, nint titlePtr, nint namePtr, nint freeCompanyPtr, nint prefixPtr, int iconId)
     {
-        var ptrToFree = new List<nint>();
+        var ptrToFree = new List<Utf8String>();
 
         if (this.OnNameplateUpdate != null)
         {
@@ -150,10 +151,9 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             {
                 if (node.HasChanged)
                 {
-                    var textRaw = node.Text.Encode();
-                    node.Pointer = MemoryHelper.Allocate(textRaw.Length);
-                    MemoryHelper.WriteRaw(node.Pointer, textRaw);
-                    ptrToFree.Add(node.Pointer);
+                    var str = new Utf8String(node.Text.Encode());
+                    node.Pointer = (nint)str.StringPtr;
+                    ptrToFree.Add(str);
                 }
             }
         }
@@ -170,7 +170,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             iconId);
 
         // Free pointers
-        ptrToFree.ForEach(n => MemoryHelper.Free(n));
+        ptrToFree.ForEach(n => n.Dtor(true));
 
         // Return result
         return result;
