@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Gui.Nameplates.Model;
@@ -22,11 +24,10 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
 {
     private readonly GameGui gameGui;
     private readonly ObjectTable objectTable;
-
-    private readonly NameplateGuiAddressResolver addresses;
-    private readonly nint namePlatePtr;
-
-    private Hook<SetPlayerNameplateDetourDelegate>? setPlayerNameplateDetourHook = null;
+    private readonly AddonLifecycle addonLifecycle;
+    private readonly NameplateGuiAddressResolver hookAddresses;
+    private readonly Hook<SetPlayerNameplateDetourDelegate>? setPlayerNameplateDetourHook;
+    private nint namePlatePtr;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NameplateGui"/> class.
@@ -37,16 +38,18 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         // Services
         this.gameGui = Service<GameGui>.Get();
         this.objectTable = Service<ObjectTable>.Get();
+        this.addonLifecycle = Service<AddonLifecycle>.Get();
 
         // Pointers
-        this.namePlatePtr = this.gameGui.GetAddonByName("NamePlate", 1);
+        this.addonLifecycle.RegisterListener(new AddonLifecycleEventListener(AddonEvent.PostSetup, "NamePlate", this.AddonLifecycle_Event));
+        this.addonLifecycle.RegisterListener(new AddonLifecycleEventListener(AddonEvent.PreFinalize, "NamePlate", this.AddonLifecycle_Event));
 
         // Address resolver
-        this.addresses = new();
-        this.addresses.Setup(sigScanner);
+        this.hookAddresses = new();
+        this.hookAddresses.Setup(sigScanner);
 
         // Hooks
-        this.setPlayerNameplateDetourHook = Hook<SetPlayerNameplateDetourDelegate>.FromAddress(this.addresses.SetPlayerNameplateDetour, this.HandleSetPlayerNameplateDetour);
+        this.setPlayerNameplateDetourHook = Hook<SetPlayerNameplateDetourDelegate>.FromAddress(this.hookAddresses.SetPlayerNameplateDetour, this.HandleSetPlayerNameplateDetour);
         this.setPlayerNameplateDetourHook.Enable();
     }
 
@@ -101,6 +104,14 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         // Return the object for its object id
         var objectId = namePlateInfo.ObjectId.ObjectId;
         return this.objectTable.SearchById(objectId) as T;
+    }
+
+    private void AddonLifecycle_Event(AddonEvent type, AddonArgs args)
+    {
+        if (type == AddonEvent.PreFinalize)
+            this.namePlatePtr = args.Addon;
+        else if (type == AddonEvent.PreFinalize)
+            this.namePlatePtr = nint.Zero;
     }
 
     private nint HandleSetPlayerNameplateDetour(nint playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, nint titlePtr, nint namePtr, nint freeCompanyPtr, nint prefixPtr, int iconId)
