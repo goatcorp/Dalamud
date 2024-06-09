@@ -7,7 +7,7 @@ public record struct RawImageSpecification
 {
     private const string FormatNotSupportedMessage = $"{nameof(DxgiFormat)} is not supported.";
 
-    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> struct.</summary>
     /// <param name="width">The width of the raw image.</param>
     /// <param name="height">The height of the raw image.</param>
     /// <param name="dxgiFormat">The DXGI format of the raw image.</param>
@@ -31,14 +31,14 @@ public record struct RawImageSpecification
         this.DxgiFormat = dxgiFormat;
     }
 
-    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> struct.</summary>
     /// <param name="desc">The source texture description.</param>
     internal RawImageSpecification(in D3D11_TEXTURE2D_DESC desc)
         : this((int)desc.Width, (int)desc.Height, (int)desc.Format)
     {
     }
 
-    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> struct.</summary>
     /// <param name="desc">The source texture description.</param>
     /// <param name="pitch">The pitch of the raw image in bytes.</param>
     internal RawImageSpecification(in D3D11_TEXTURE2D_DESC desc, uint pitch)
