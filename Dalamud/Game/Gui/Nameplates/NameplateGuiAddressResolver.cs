@@ -8,7 +8,7 @@ internal class NameplateGuiAddressResolver : BaseAddressResolver
     /// <summary>
     /// Gets the address of the native SetPlayerNameplateDetour method.
     /// </summary>
-    public IntPtr SetPlayerNameplateDetour { get; private set; }
+    public nint SetPlayerNameplateDetour { get; private set; }
 
     /// <inheritdoc/>
     protected override void SetupInternal(ISigScanner scanner)

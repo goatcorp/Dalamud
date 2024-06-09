@@ -8,7 +8,7 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 internal class NameplateObject(IntPtr pointer, INameplateInfo info) : INameplateObject
 {
     /// <inheritdoc/>
-    public IntPtr Pointer { get; } = pointer;
+    public nint Pointer { get; } = pointer;
 
     /// <inheritdoc/>
     public INameplateInfo Nameplate { get; } = info;

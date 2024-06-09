@@ -24,7 +24,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
     private readonly ObjectTable objectTable;
 
     private readonly NameplateGuiAddressResolver addresses;
-    private readonly IntPtr namePlatePtr;
+    private readonly nint namePlatePtr;
 
     private Hook<SetPlayerNameplateDetourDelegate>? setPlayerNameplateDetourHook = null;
 
@@ -50,7 +50,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         this.setPlayerNameplateDetourHook.Enable();
     }
 
-    private unsafe delegate IntPtr SetPlayerNameplateDetourDelegate(IntPtr playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, IntPtr titlePtr, IntPtr namePtr, IntPtr freeCompanyPtr, IntPtr prefix, int iconId);
+    private unsafe delegate nint SetPlayerNameplateDetourDelegate(nint playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, nint titlePtr, nint namePtr, nint freeCompanyPtr, nint prefix, int iconId);
 
     /// <inheritdoc/>
     public event INameplatesGui.OnNameplateUpdateDelegate OnNameplateUpdate;
@@ -68,14 +68,14 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
     }
 
     /// <inheritdoc/>
-    public T? GetNameplateGameObject<T>(IntPtr nameplateObjectPtr) where T : GameObject
+    public T? GetNameplateGameObject<T>(nint nameplateObjectPtr) where T : GameObject
     {
         // Get the nameplate object array
         var nameplateAddonPtr = this.gameGui.GetAddonByName("NamePlate", 1);
         var nameplateObjectArrayPtrPtr = nameplateAddonPtr + Marshal.OffsetOf(typeof(AddonNamePlate), nameof(AddonNamePlate.NamePlateObjectArray)).ToInt32();
         var nameplateObjectArrayPtr = Marshal.ReadIntPtr(nameplateObjectArrayPtrPtr);
 
-        if (nameplateObjectArrayPtr == IntPtr.Zero)
+        if (nameplateObjectArrayPtr == nint.Zero)
             return null;
 
         // Determine the index of the nameplate object within the nameplate object array
@@ -87,15 +87,15 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             return null;
 
         // Get the nameplate info array
-        var nameplateInfoArrayPtr = IntPtr.Zero;
+        var nameplateInfoArrayPtr = nint.Zero;
         unsafe
         {
             var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-            nameplateInfoArrayPtr = new IntPtr(&framework->GetUIModule()->GetRaptureAtkModule()->NamePlateInfoArray);
+            nameplateInfoArrayPtr = new nint(&framework->GetUIModule()->GetRaptureAtkModule()->NamePlateInfoArray);
         }
 
         // Get the nameplate info for the nameplate object
-        var namePlateInfoPtr = new IntPtr(nameplateInfoArrayPtr.ToInt64() + Marshal.SizeOf(typeof(RaptureAtkModule.NamePlateInfo)) * namePlateIndex);
+        var namePlateInfoPtr = new nint(nameplateInfoArrayPtr.ToInt64() + Marshal.SizeOf(typeof(RaptureAtkModule.NamePlateInfo)) * namePlateIndex);
         var namePlateInfo = Marshal.PtrToStructure<RaptureAtkModule.NamePlateInfo>(namePlateInfoPtr);
 
         // Return the object for its object id
@@ -103,7 +103,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         return this.objectTable.SearchById(objectId) as T;
     }
 
-    private IntPtr HandleSetPlayerNameplateDetour(IntPtr playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, IntPtr titlePtr, IntPtr namePtr, IntPtr freeCompanyPtr, IntPtr prefixPtr, int iconId)
+    private nint HandleSetPlayerNameplateDetour(nint playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, nint titlePtr, nint namePtr, nint freeCompanyPtr, nint prefixPtr, int iconId)
     {
         var ptrToFree = new List<nint>();
 

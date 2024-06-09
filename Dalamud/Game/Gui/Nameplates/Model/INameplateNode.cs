@@ -10,7 +10,7 @@ public interface INameplateNode
     /// <summary>
     /// Gets the pointer for the nameplate node.
     /// </summary>
-    public nint Pointer { get; }
+    nint Pointer { get; }
 
     /// <summary>
     /// Gets or sets the text for the nameplate node.
