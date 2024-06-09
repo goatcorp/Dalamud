@@ -321,6 +321,7 @@ internal class ConsoleWindow : Window, IDisposable
                     ImGuiInputTextFlags.CallbackHistory | ImGuiInputTextFlags.CallbackEdit,
                     this.CommandInputCallback))
             {
+                this.newLogEntries.Enqueue((this.commandText, new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate(string.Empty, []), [])));
                 this.ProcessCommand();
                 getFocus = true;
             }
