@@ -4,10 +4,12 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 /// Represents a nameplate object (mostly like player or NPC).
 /// </summary>
 /// <param name="pointer">The pointer for the nameplate object.</param>
-public class NameplateObject(IntPtr pointer)
+/// <param name="info">The nameplate info for this nameplate object.</param>
+internal class NameplateObject(IntPtr pointer, INameplateInfo info) : INameplateObject
 {
-    /// <summary>
-    /// Gets the pointer for the nameplate object.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr Pointer { get; } = pointer;
+
+    /// <inheritdoc/>
+    public INameplateInfo Nameplate { get; } = info;
 }

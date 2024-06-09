@@ -7,7 +7,7 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 /// Possible status icons that are able to show as icon on the Nameplate.
 /// </summary>
 [JsonConverter(typeof(StringEnumConverter))]
-public enum StatusIcons
+public enum NameplateStatusIcons
 {
     /// <summary>
     /// The status for a player that is disconnecting.
