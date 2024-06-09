@@ -75,8 +75,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
     public T? GetNameplateGameObject<T>(nint nameplateObjectPtr) where T : GameObject
     {
         // Get the nameplate object array
-        var nameplateAddonPtr = this.gameGui.GetAddonByName("NamePlate", 1);
-        var nameplateObjectArrayPtrPtr = nameplateAddonPtr + Marshal.OffsetOf(typeof(AddonNamePlate), nameof(AddonNamePlate.NamePlateObjectArray)).ToInt32();
+        var nameplateObjectArrayPtrPtr = this.namePlatePtr + Marshal.OffsetOf(typeof(AddonNamePlate), nameof(AddonNamePlate.NamePlateObjectArray)).ToInt32();
         var nameplateObjectArrayPtr = Marshal.ReadIntPtr(nameplateObjectArrayPtrPtr);
 
         if (nameplateObjectArrayPtr == nint.Zero)
@@ -90,17 +89,13 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         if (namePlateIndex < 0 || namePlateIndex >= AddonNamePlate.NumNamePlateObjects)
             return null;
 
-        // Get the nameplate info array
-        var nameplateInfoArrayPtr = nint.Zero;
+        // Get the nameplate info
+        RaptureAtkModule.NamePlateInfo namePlateInfo;
         unsafe
         {
             var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-            nameplateInfoArrayPtr = new nint(&framework->GetUIModule()->GetRaptureAtkModule()->NamePlateInfoArray);
+            namePlateInfo = framework->GetUIModule()->GetRaptureAtkModule()->NamePlateInfoEntries[(int)namePlateIndex];
         }
-
-        // Get the nameplate info for the nameplate object
-        var namePlateInfoPtr = new nint(nameplateInfoArrayPtr.ToInt64() + Marshal.SizeOf(typeof(RaptureAtkModule.NamePlateInfo)) * namePlateIndex);
-        var namePlateInfo = Marshal.PtrToStructure<RaptureAtkModule.NamePlateInfo>(namePlateInfoPtr);
 
         // Return the object for its object id
         var objectId = namePlateInfo.ObjectId.ObjectId;
