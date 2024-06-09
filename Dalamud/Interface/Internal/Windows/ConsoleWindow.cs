@@ -79,6 +79,9 @@ internal class ConsoleWindow : Window, IDisposable
     private int historyPos;
     private int copyStart = -1;
 
+    private string? completionZipText = null;
+    private int completionTabIdx = 0;
+
     private IActiveNotification? prevCopyNotification;
 
     /// <summary>Initializes a new instance of the <see cref="ConsoleWindow"/> class.</summary>
@@ -315,7 +318,7 @@ internal class ConsoleWindow : Window, IDisposable
                     ref this.commandText,
                     255,
                     ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackCompletion |
-                    ImGuiInputTextFlags.CallbackHistory,
+                    ImGuiInputTextFlags.CallbackHistory | ImGuiInputTextFlags.CallbackEdit,
                     this.CommandInputCallback))
             {
                 this.ProcessCommand();
@@ -832,6 +835,11 @@ internal class ConsoleWindow : Window, IDisposable
 
         switch (data->EventFlag)
         {
+            case ImGuiInputTextFlags.CallbackEdit:
+                this.completionZipText = null;
+                this.completionTabIdx = 0;
+                break;
+            
             case ImGuiInputTextFlags.CallbackCompletion:
                 var textBytes = new byte[data->BufTextLen];
                 Marshal.Copy((IntPtr)data->Buf, textBytes, 0, data->BufTextLen);
@@ -842,22 +850,47 @@ internal class ConsoleWindow : Window, IDisposable
                 // We can't do any completion for parameters at the moment since it just calls into CommandHandler
                 if (words.Length > 1)
                     return 0;
+                
+                var wordToComplete = words[0];
+                if (wordToComplete.IsNullOrWhitespace())
+                    return 0;
+                
+                if (this.completionZipText is not null)
+                    wordToComplete = this.completionZipText;
 
                 // TODO: Improve this, add partial completion, arguments, description, etc.
                 // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp#L6443-L6484
                 var candidates = Service<ConsoleManager>.Get().Entries
-                                                        .Where(x => x.Key.StartsWith(words[0]))
+                                                        .Where(x => x.Key.StartsWith(wordToComplete))
                                                         .Select(x => x.Key);
 
                 candidates = candidates.Union(
                     Service<CommandManager>.Get().Commands
-                                           .Where(x => x.Key.StartsWith(words[0])).Select(x => x.Key));
+                                           .Where(x => x.Key.StartsWith(wordToComplete)).Select(x => x.Key))
+                                       .ToArray();
 
-                var enumerable = candidates as string[] ?? candidates.ToArray();
-                if (enumerable.Length != 0)
+                if (candidates.Any())
                 {
-                    ptr.DeleteChars(0, ptr.BufTextLen);
-                    ptr.InsertChars(0, enumerable[0]);
+                    string? toComplete = null;
+                    if (this.completionZipText == null)
+                    {
+                        // Find the "common" prefix of all matches
+                        toComplete = candidates.Aggregate(
+                            (prefix, candidate) => string.Concat(prefix.Zip(candidate, (a, b) => a == b ? a : '\0')));
+
+                        this.completionZipText = toComplete;
+                    }
+                    else
+                    {
+                        toComplete = candidates.ElementAt(this.completionTabIdx);
+                        this.completionTabIdx = (this.completionTabIdx + 1) % candidates.Count();
+                    }
+                
+                    if (toComplete != null)
+                    {
+                        ptr.DeleteChars(0, ptr.BufTextLen);
+                        ptr.InsertChars(0, toComplete);
+                    }
                 }
 
                 break;
