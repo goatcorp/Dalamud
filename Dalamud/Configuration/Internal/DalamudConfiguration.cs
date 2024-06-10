@@ -462,6 +462,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerOpenKind.AllPlugins;
 
     /// <summary>
+    /// Gets or sets a list of endorsed plugins.
+    /// </summary>
+    public List<string> EndorsedPluginInternalNames { get; set; } = new();
+
+    /// <summary>
     /// Load a configuration from the provided path.
     /// </summary>
     /// <param name="path">Path to read from.</param>

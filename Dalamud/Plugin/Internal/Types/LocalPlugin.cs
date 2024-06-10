@@ -213,6 +213,11 @@ internal class LocalPlugin : IDisposable
     /// Gets the effective version of this plugin.
     /// </summary>
     public Version EffectiveVersion => this.manifest.EffectiveVersion;
+    
+    /// <summary>
+    /// Gets a value indicating whether the user has endorsed this plugin.
+    /// </summary>
+    public bool Endorsed { get; private set; }
 
     /// <summary>
     /// Gets the effective working plugin ID for this plugin.
@@ -442,7 +447,8 @@ internal class LocalPlugin : IDisposable
                     "Error while loading {PluginName}, failed to bind and call the plugin constructor", this.InternalName);
                 return;
             }
-
+            
+            this.Endorsed = pluginManager.IsPluginEndorsed(this);
             this.State = PluginState.Loaded;
             Log.Information("Finished loading {PluginName}", this.InternalName);
         }
@@ -599,6 +605,21 @@ internal class LocalPlugin : IDisposable
 
             return x.PluginMasterUrl == this.manifest.InstalledFromUrl;
         });
+    }
+
+    public async Task EndorsePluginAsync()
+    {
+        this.Endorsed = true;
+        try
+        {
+            var pluginManager = await Service<PluginManager>.GetAsync();
+            await pluginManager.EndorsePluginAsync(this);
+        }
+        catch
+        {
+            this.Endorsed = false;
+            throw;
+        }
     }
 
     /// <summary>
