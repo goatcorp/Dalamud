@@ -229,6 +229,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public int LogLinesLimit { get; set; } = 10000;
 
     /// <summary>
+    /// Gets or sets a list of commands that have been run in the console window.
+    /// </summary>
+    public List<string> LogCommandHistory { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets a value indicating whether or not the dev bar should open at startup.
     /// </summary>
     public bool DevBarOpenAtStartup { get; set; }
