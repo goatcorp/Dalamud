@@ -15,7 +15,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 public class AddonLifecycleWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "AddonLifecycle" };
+    public string[]? CommandShortcuts { get; init; } = ["AddonLifecycle"];
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Addon Lifecycle";
@@ -74,7 +74,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
                 ImGui.Indent();
                 var listeners = this.AddonLifecycle.EventListeners.Where(listener => listener.EventType == eventType).ToList();
 
-                if (!listeners.Any())
+                if (listeners.Count == 0)
                 {
                     ImGui.Text("No Listeners Registered for Event");
                 }
@@ -90,7 +90,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
                         ImGui.Text(listener.AddonName is "" ? "GLOBAL" : listener.AddonName);
 
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType.FullName}::{listener.FunctionDelegate.Method.Name}");
+                        ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
                     }
                     
                     ImGui.EndTable();
@@ -107,7 +107,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
 
         var listeners = this.AddonLifecycle.ReceiveEventListeners;
 
-        if (!listeners.Any())
+        if (listeners.Count == 0)
         {
             ImGui.Text("No ReceiveEvent Hooks are Registered");
         }
@@ -120,7 +120,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
 
                 ImGui.Text("Hook Address");
                 ImGui.NextColumn();
-                ImGui.Text(receiveEventListener.HookAddress.ToString("X"));
+                ImGui.Text(receiveEventListener.FunctionAddress.ToString("X"));
 
                 ImGui.NextColumn();
                 ImGui.Text("Hook Status");
