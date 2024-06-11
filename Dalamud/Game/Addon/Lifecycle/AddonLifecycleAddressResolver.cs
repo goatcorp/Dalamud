@@ -1,9 +1,11 @@
-﻿namespace Dalamud.Game.Addon.Lifecycle;
+﻿using FFXIVClientStructs.FFXIV.Component.GUI;
+
+namespace Dalamud.Game.Addon.Lifecycle;
 
 /// <summary>
 /// AddonLifecycleService memory address resolver.
 /// </summary>
-internal class AddonLifecycleAddressResolver : BaseAddressResolver
+internal unsafe class AddonLifecycleAddressResolver : BaseAddressResolver
 {
     /// <summary>
     /// Gets the address of the addon setup hook invoked by the AtkUnitManager.
@@ -45,10 +47,10 @@ internal class AddonLifecycleAddressResolver : BaseAddressResolver
     public nint AddonOnRefresh { get; private set; }
     
     /// <summary>
-    /// Gets the address of AtkEventListener base vTable.
+    /// Gets the address of AtkUnitBase base vTable.
     /// This is used to ensure that we do not hook ReceiveEvents that resolve back to the internal handler.
     /// </summary>
-    public nint AtkEventListener { get; private set; }
+    public AtkUnitBase* AtkUnitBase { get; private set; }
 
     /// <summary>
     /// Scan for and setup any configured address pointers.
@@ -63,6 +65,6 @@ internal class AddonLifecycleAddressResolver : BaseAddressResolver
         this.AddonUpdate = sig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF");
         this.AddonOnRequestedUpdate = sig.ScanText("FF 90 98 01 00 00 48 8B 5C 24 30 48 83 C4 20");
         this.AddonOnRefresh = sig.ScanText("48 89 5C 24 08 57 48 83 EC 20 41 8B F8 48 8B DA");
-        this.AtkEventListener = sig.GetStaticAddressFromSig("4C 8D 3D ?? ?? ?? ?? 49 8D 8E");
+        this.AtkUnitBase = (AtkUnitBase*)sig.GetStaticAddressFromSig("48 8D 05 ?? ?? ?? ?? 48 89 01 48 8D 05 ?? ?? ?? ?? 4C 89 41 28");
     }
 }
