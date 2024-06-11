@@ -1,3 +1,5 @@
+using System.Linq;
+
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -98,6 +100,20 @@ internal sealed class Condition : IInternalDisposableService, ICondition
         return false;
     }
 
+    /// <inheritdoc/>
+    public bool Only(params ConditionFlag[] flags)
+    {
+        for (var i = 0; i < MaxConditionEntries; i++)
+        {
+            if (this[i] && flags.All(f => (int)f != i))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private void Dispose(bool disposing)
     {
         if (this.isDisposed)
@@ -181,6 +197,9 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 
     /// <inheritdoc/>
     public bool Any(params ConditionFlag[] flags) => this.conditionService.Any(flags);
+    
+    /// <inheritdoc/>
+    public bool Only(params ConditionFlag[] flags) => this.conditionService.Only(flags);
 
     private void ConditionChangedForward(ConditionFlag flag, bool value) => this.ConditionChange?.Invoke(flag, value);
 }

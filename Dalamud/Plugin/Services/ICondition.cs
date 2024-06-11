@@ -51,4 +51,12 @@ public interface ICondition
     /// <returns>Whether any single provided flag is set.</returns>
     /// <param name="flags">The condition flags to check.</param>
     public bool Any(params ConditionFlag[] flags);
+
+    /// <summary>
+    /// Check if none but the provided condition flags are set.
+    /// This is not an exclusive check, it will return true if the provided flags are the only ones set.
+    /// </summary>
+    /// <param name="flags">The condition flags to check for.</param>
+    /// <returns>Whether only flags passed in are set.</returns>
+    public bool Only(params ConditionFlag[] flags);
 }
