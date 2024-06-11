@@ -207,7 +207,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
             {
                 if (this.ReceiveEventListeners.FirstOrDefault(listener => listener.AddonNames.Contains(addonName)) is { } receiveEventListener)
                 {
-                    receiveEventListener.Hook?.Enable();
+                    receiveEventListener.TryEnable();
                 }
             }
         }
