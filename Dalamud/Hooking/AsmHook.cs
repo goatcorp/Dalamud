@@ -32,19 +32,22 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     /// <param name="asmHookBehaviour">How the hook is inserted into the execution flow.</param>
     public AsmHook(IntPtr address, byte[] assembly, string name, AsmHookBehaviour asmHookBehaviour = AsmHookBehaviour.ExecuteFirst)
     {
-        address = HookManager.FollowJmp(address);
+        lock (HookManager.HookSyncRoot)
+        {
+            address = HookManager.FollowJmp(address);
 
-        // We cannot call TrimAfterHook here because the hook is activated by the caller.
-        HookManager.RegisterUnhooker(address);
+            // We cannot call TrimAfterHook here because the hook is activated by the caller.
+            HookManager.RegisterUnhooker(address);
 
-        this.address = address;
-        this.hookImpl = ReloadedHooks.Instance.CreateAsmHook(assembly, address.ToInt64(), (Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour)asmHookBehaviour);
+            this.address = address;
+            this.hookImpl = ReloadedHooks.Instance.CreateAsmHook(assembly, address.ToInt64(), (Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour)asmHookBehaviour);
 
-        this.statsMethod = new DynamicMethod(name, null, null);
-        this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
-        var dele = this.statsMethod.CreateDelegate(typeof(Action));
+            this.statsMethod = new DynamicMethod(name, null, null);
+            this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
+            var dele = this.statsMethod.CreateDelegate(typeof(Action));
 
-        HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly()));
+            HookManager.Hooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly(), 64));
+        }
     }
 
     /// <summary>
@@ -58,19 +61,22 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     /// <param name="asmHookBehaviour">How the hook is inserted into the execution flow.</param>
     public AsmHook(IntPtr address, string[] assembly, string name, AsmHookBehaviour asmHookBehaviour = AsmHookBehaviour.ExecuteFirst)
     {
-        address = HookManager.FollowJmp(address);
+        lock (HookManager.HookSyncRoot)
+        {
+            address = HookManager.FollowJmp(address);
 
-        // We cannot call TrimAfterHook here because the hook is activated by the caller.
-        HookManager.RegisterUnhooker(address);
+            // We cannot call TrimAfterHook here because the hook is activated by the caller.
+            HookManager.RegisterUnhooker(address);
 
-        this.address = address;
-        this.hookImpl = ReloadedHooks.Instance.CreateAsmHook(assembly, address.ToInt64(), (Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour)asmHookBehaviour);
+            this.address = address;
+            this.hookImpl = ReloadedHooks.Instance.CreateAsmHook(assembly, address.ToInt64(), (Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour)asmHookBehaviour);
 
-        this.statsMethod = new DynamicMethod(name, null, null);
-        this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
-        var dele = this.statsMethod.CreateDelegate(typeof(Action));
+            this.statsMethod = new DynamicMethod(name, null, null);
+            this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
+            var dele = this.statsMethod.CreateDelegate(typeof(Action));
 
-        HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly()));
+            HookManager.Hooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly(), 64));
+        }
     }
 
     /// <summary>
@@ -114,12 +120,15 @@ public sealed class AsmHook : IDisposable, IDalamudHook
         if (this.IsDisposed)
             return;
 
-        this.IsDisposed = true;
-
-        if (this.isEnabled)
+        lock (HookManager.HookSyncRoot)
         {
-            this.isEnabled = false;
-            this.hookImpl.Disable();
+            this.IsDisposed = true;
+
+            if (this.isEnabled)
+            {
+                this.isEnabled = false;
+                this.hookImpl.Disable();
+            }
         }
     }
 
@@ -130,16 +139,19 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     {
         this.CheckDisposed();
 
-        if (!this.isActivated)
+        lock (HookManager.HookSyncRoot)
         {
-            this.isActivated = true;
-            this.hookImpl.Activate();
-        }
+            if (!this.isActivated)
+            {
+                this.isActivated = true;
+                this.hookImpl.Activate();
+            }
 
-        if (!this.isEnabled)
-        {
-            this.isEnabled = true;
-            this.hookImpl.Enable();
+            if (!this.isEnabled)
+            {
+                this.isEnabled = true;
+                this.hookImpl.Enable();
+            }
         }
     }
 
@@ -150,13 +162,16 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     {
         this.CheckDisposed();
 
-        if (!this.isEnabled)
-            return;
-
-        if (this.isEnabled)
+        lock (HookManager.HookSyncRoot)
         {
-            this.isEnabled = false;
-            this.hookImpl.Disable();
+            if (!this.isEnabled)
+                return;
+
+            if (this.isEnabled)
+            {
+                this.isEnabled = false;
+                this.hookImpl.Disable();
+            }
         }
     }
 

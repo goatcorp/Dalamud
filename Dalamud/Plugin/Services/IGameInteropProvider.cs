@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
@@ -40,16 +40,19 @@ public interface IGameInteropProvider
     /// </summary>
     /// <param name="self">The object to initialize.</param>
     public void InitializeFromAttributes(object self);
-    
+
     /// <summary>
     /// Creates a hook by replacing the original address with an address pointing to a newly created jump to the detour.
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate;
-    
+    public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate;
+
     /// <summary>
     /// Creates a hook by rewriting import table address.
     /// </summary>
@@ -58,9 +61,12 @@ public interface IGameInteropProvider
     /// <param name="functionName">Decorated name of the function.</param>
     /// <param name="hintOrOrdinal">Hint or ordinal. 0 to unspecify.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    public Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour) where T : Delegate;
+    public Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate;
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
@@ -71,9 +77,12 @@ public interface IGameInteropProvider
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="backend">Hooking library to use.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, HookBackend backend = HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate;
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
@@ -83,10 +92,13 @@ public interface IGameInteropProvider
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="backend">Hooking library to use.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> HookFromAddress<T>(nint procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
-    
+    Hook<T> HookFromAddress<T>(nint procAddress, T detour, HookBackend backend = HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate;
+
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
     /// The hook is not activated until Enable() method is called.
@@ -95,10 +107,13 @@ public interface IGameInteropProvider
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="backend">Hooking library to use.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> HookFromAddress<T>(nuint procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
-    
+    Hook<T> HookFromAddress<T>(nuint procAddress, T detour, HookBackend backend = HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate;
+
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
     /// The hook is not activated until Enable() method is called.
@@ -107,17 +122,23 @@ public interface IGameInteropProvider
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="backend">Hooking library to use.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
-    
+    unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, HookBackend backend = HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate;
+
     /// <summary>
     /// Creates a hook from a signature into the Dalamud target module.
     /// </summary>
     /// <param name="signature">Signature of function to hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="backend">Hooking library to use.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
     /// <returns>The hook with the supplied parameters.</returns>
     /// <typeparam name="T">Delegate of detour.</typeparam>
-    Hook<T> HookFromSignature<T>(string signature, T detour, HookBackend backend = HookBackend.Automatic) where T : Delegate;
+    Hook<T> HookFromSignature<T>(string signature, T detour, HookBackend backend = HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate;
 }

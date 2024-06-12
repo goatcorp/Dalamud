@@ -1,6 +1,7 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 using Dalamud.Game;
 using Dalamud.IoC;
@@ -26,7 +27,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
 
-    private readonly ConcurrentBag<IDalamudHook> trackedHooks = new();
+    private readonly ConcurrentBag<IDalamudHook> trackedHooks = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInteropProviderPluginScoped"/> class.
@@ -47,48 +48,45 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate
+    public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate
     {
-        var hook = Hook<T>.FromFunctionPointerVariable(address, detour);
+        var hook = Hook<T>.FromFunctionPointerVariable(address, detour, priority, precedence, Assembly.GetCallingAssembly());
         this.trackedHooks.Add(hook);
         return hook;
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour) where T : Delegate
+    public Hook<T> HookFromImport<T>(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate
     {
-        var hook = Hook<T>.FromImport(module, moduleName, functionName, hintOrOrdinal, detour);
+        var hook = Hook<T>.FromImport(module, moduleName, functionName, hintOrOrdinal, detour, priority, precedence, Assembly.GetCallingAssembly());
         this.trackedHooks.Add(hook);
         return hook;
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+    public Hook<T> HookFromSymbol<T>(string moduleName, string exportName, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate
     {
-        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, backend == IGameInteropProvider.HookBackend.MinHook);
+        var hook = Hook<T>.FromSymbol(moduleName, exportName, detour, backend == IGameInteropProvider.HookBackend.MinHook, priority, precedence, Assembly.GetCallingAssembly());
         this.trackedHooks.Add(hook);
         return hook;
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromAddress<T>(nint procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
-    {
-        var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook);
-        this.trackedHooks.Add(hook);
-        return hook;
-    }
+    public Hook<T> HookFromAddress<T>(nint procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate
+    => this.HookFromAddress(procAddress, detour, Assembly.GetCallingAssembly(), backend, priority, precedence);
+
 
     /// <inheritdoc/>
-    public Hook<T> HookFromAddress<T>(UIntPtr procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
-        => this.HookFromAddress((nint)procAddress, detour, backend);
+    public Hook<T> HookFromAddress<T>(UIntPtr procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate
+        => this.HookFromAddress((nint)procAddress, detour, Assembly.GetCallingAssembly(), backend, priority, precedence);
 
     /// <inheritdoc/>
-    public unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
-        => this.HookFromAddress((nint)procAddress, detour, backend);
+    public unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate
+        => this.HookFromAddress((nint)procAddress, detour, Assembly.GetCallingAssembly(), backend, priority, precedence);
 
     /// <inheritdoc/>
-    public Hook<T> HookFromSignature<T>(string signature, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
-        => this.HookFromAddress(this.scanner.ScanText(signature), detour, backend);
+    public Hook<T> HookFromSignature<T>(string signature, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic, HookPriority priority = HookPriority.NormalPriority, int precedence = 0) where T : Delegate
+        => this.HookFromAddress(this.scanner.ScanText(signature), detour, Assembly.GetCallingAssembly(), backend, priority, precedence);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -104,5 +102,12 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
         }
         
         this.trackedHooks.Clear();
+    }
+
+    private Hook<T> HookFromAddress<T>(nint procAddress, T detour, Assembly callingAssembly, IGameInteropProvider.HookBackend backend, HookPriority priority, int precedence) where T : Delegate
+    {
+        var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook, priority, precedence, callingAssembly);
+        this.trackedHooks.Add(hook);
+        return hook;
     }
 }

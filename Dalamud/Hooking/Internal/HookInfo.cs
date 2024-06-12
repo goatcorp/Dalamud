@@ -16,11 +16,13 @@ internal class HookInfo
     /// <param name="hook">The tracked hook.</param>
     /// <param name="hookDelegate">The hook delegate.</param>
     /// <param name="assembly">The assembly implementing the hook.</param>
-    public HookInfo(IDalamudHook hook, Delegate hookDelegate, Assembly assembly)
+    /// <param name="priority">The priority of the hook.</param>
+    public HookInfo(IDalamudHook hook, Delegate hookDelegate, Assembly assembly, byte priority)
     {
         this.Hook = hook;
         this.Delegate = hookDelegate;
         this.Assembly = assembly;
+        this.Priority = priority;
     }
 
     /// <summary>
@@ -69,4 +71,10 @@ internal class HookInfo
     /// Gets the assembly implementing the hook.
     /// </summary>
     internal Assembly Assembly { get; }
+
+    /// <summary>
+    /// Gets the hook priority.
+    /// Higher priorities are run first; 0 and 255 are notify-only.
+    /// </summary>
+    internal byte Priority { get; }
 }

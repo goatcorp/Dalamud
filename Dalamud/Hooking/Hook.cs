@@ -11,7 +11,7 @@ namespace Dalamud.Hooking;
 /// Manages a hook which can be used to intercept a call to native function.
 /// This class is basically a thin wrapper around the LocalHook type to provide helper functions.
 /// </summary>
-/// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
+/// <typeparam name="T">Delegate type to represent a function prototype. This must be the same prototype as the original function.</typeparam>
 public abstract class Hook<T> : IDalamudHook where T : Delegate
 {
 #pragma warning disable SA1310
@@ -93,14 +93,23 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     public virtual void Disable() => throw new NotImplementedException();
 
     /// <summary>
-    /// Creates a hook by rewriting import table address.
+    /// Creates a hook from a function pointer variable address.
+    /// The hook is not activated until Enable() method is called.
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromFunctionPointerVariable(IntPtr address, T detour)
+    internal static Hook<T> FromFunctionPointerVariable(nint address, T detour, HookPriority priority = HookPriority.NormalPriority, int precedence = 0, Assembly? callingAssembly = null)
     {
-        return new FunctionPointerVariableHook<T>(address, detour, Assembly.GetCallingAssembly());
+        Hook<T> HookConstructor(T backendDetour) => new FunctionPointerVariableHook<T>(address, backendDetour);
+
+        callingAssembly ??= Assembly.GetCallingAssembly();
+
+        return HookManager.CreateHook(address, detour, HookConstructor, priority, precedence, callingAssembly);
     }
 
     /// <summary>
@@ -111,10 +120,15 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="functionName">Decorated name of the function.</param>
     /// <param name="hintOrOrdinal">Hint or ordinal. 0 to unspecify.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour)
+    internal static unsafe Hook<T> FromImport(ProcessModule? module, string moduleName, string functionName, uint hintOrOrdinal, T detour, HookPriority priority = HookPriority.NormalPriority, int precedence = 0, Assembly? callingAssembly = null)
     {
         module ??= Process.GetCurrentProcess().MainModule;
+        callingAssembly ??= Assembly.GetCallingAssembly();
         if (module == null)
             throw new InvalidOperationException("Current module is null?");
         var pDos = (PeHeader.IMAGE_DOS_HEADER*)module.BaseAddress;
@@ -156,14 +170,13 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
             if (currentDllNameWithNullTerminator.ToLowerInvariant() != moduleNameLowerWithNullTerminator)
                 continue;
 
-            if (isPe64)
-            {
-                return new FunctionPointerVariableHook<T>(FromImportHelper64(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, Assembly.GetCallingAssembly());
-            }
-            else
-            {
-                return new FunctionPointerVariableHook<T>(FromImportHelper32(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal), detour, Assembly.GetCallingAssembly());
-            }
+            var address = isPe64 ? 
+                FromImportHelper64(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal) : 
+                FromImportHelper32(module.BaseAddress, ref importDescriptor, ref *pDataDirectory, functionName, hintOrOrdinal);
+
+            Hook<T> HookConstructor(T backendDetour) => new FunctionPointerVariableHook<T>(address, backendDetour);
+
+            return HookManager.CreateHook(address, detour, HookConstructor, priority, precedence, callingAssembly);
         }
 
         throw new MissingMethodException("Specified dll not found");
@@ -176,9 +189,13 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="moduleName">A name of the module currently loaded in the memory. (e.g. ws2_32.dll).</param>
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour)
-        => FromSymbol(moduleName, exportName, detour, false);
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, HookPriority priority = HookPriority.NormalPriority, int precedence = 0, Assembly? callingAssembly = null)
+        => FromSymbol(moduleName, exportName, detour, false, priority, precedence, callingAssembly);
 
     /// <summary>
     /// Creates a hook. Hooking address is inferred by calling to GetProcAddress() function.
@@ -189,8 +206,12 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="exportName">A name of the exported function name (e.g. send).</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook)
+    internal static Hook<T> FromSymbol(string moduleName, string exportName, T detour, bool useMinHook, HookPriority priority = HookPriority.NormalPriority, int precedence = 0, Assembly? callingAssembly = null)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
@@ -203,11 +224,18 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         if (procAddress == IntPtr.Zero)
             throw new Exception($"Could not get the address of {moduleName}::{exportName}");
 
-        procAddress = HookManager.FollowJmp(procAddress);
-        if (useMinHook)
-            return new MinHookHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
-        else
-            return new ReloadedHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
+        Hook<T> HookConstructor(T backendDetour)
+        {
+            procAddress = HookManager.FollowJmp(procAddress);
+            if (useMinHook)
+                return new MinHookHook<T>(procAddress, backendDetour);
+            else
+                return new ReloadedHook<T>(procAddress, backendDetour);
+        }
+
+        callingAssembly ??= Assembly.GetCallingAssembly();
+
+        return HookManager.CreateHook(procAddress, detour, HookConstructor, priority, precedence, callingAssembly);
     }
 
     /// <summary>
@@ -218,17 +246,28 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <param name="procAddress">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
     /// <param name="useMinHook">Use the MinHook hooking library instead of Reloaded.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
     /// <returns>The hook with the supplied parameters.</returns>
-    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false)
+    internal static Hook<T> FromAddress(IntPtr procAddress, T detour, bool useMinHook = false, HookPriority priority = HookPriority.NormalPriority, int precedence = 0, Assembly? callingAssembly = null)
     {
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
 
-        procAddress = HookManager.FollowJmp(procAddress);
-        if (useMinHook)
-            return new MinHookHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
-        else
-            return new ReloadedHook<T>(procAddress, detour, Assembly.GetCallingAssembly());
+        Hook<T> HookConstructor(T backendDetour)
+        {
+            procAddress = HookManager.FollowJmp(procAddress);
+            if (useMinHook)
+                return new MinHookHook<T>(procAddress, backendDetour);
+            else
+                return new ReloadedHook<T>(procAddress, backendDetour);
+        }
+
+        callingAssembly ??= Assembly.GetCallingAssembly();
+
+        return HookManager.CreateHook(procAddress, detour, HookConstructor, priority, precedence, callingAssembly);
     }
 
     /// <summary>

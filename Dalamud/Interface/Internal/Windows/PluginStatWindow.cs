@@ -272,7 +272,7 @@ internal class PluginStatWindow : Window
 
             if (ImGui.BeginTable(
                     "##PluginStatsHooks",
-                    4,
+                    5,
                     ImGuiTableFlags.RowBg
                     | ImGuiTableFlags.SizingStretchProp
                     | ImGuiTableFlags.Resizable
@@ -284,10 +284,11 @@ internal class PluginStatWindow : Window
                 ImGui.TableSetupColumn("Detour Method", ImGuiTableColumnFlags.None, 250);
                 ImGui.TableSetupColumn("Address", ImGuiTableColumnFlags.None, 100);
                 ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.None, 40);
+                ImGui.TableSetupColumn("Priority", ImGuiTableColumnFlags.None, 10);
                 ImGui.TableSetupColumn("Backend", ImGuiTableColumnFlags.None, 40);
                 ImGui.TableHeadersRow();
 
-                foreach (var (guid, trackedHook) in HookManager.TrackedHooks)
+                foreach (var (guid, trackedHook) in HookManager.Hooks)
                 {
                     try
                     {
@@ -343,6 +344,10 @@ internal class PluginStatWindow : Window
 
                         ImGui.TableNextColumn();
 
+                        ImGui.Text(trackedHook.Priority.ToString());
+
+                        ImGui.TableNextColumn();
+
                         ImGui.Text(trackedHook.Hook.BackendName);
                     }
                     catch (Exception ex)
@@ -359,7 +364,10 @@ internal class PluginStatWindow : Window
         {
             foreach (var guid in toRemove)
             {
-                HookManager.TrackedHooks.TryRemove(guid, out _);
+                lock (HookManager.HookSyncRoot) 
+                {
+                    HookManager.Hooks.Remove(guid, out _);
+                }
             }
         }
 
