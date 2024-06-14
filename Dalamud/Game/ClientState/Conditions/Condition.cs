@@ -71,6 +71,22 @@ internal sealed class Condition : IInternalDisposableService, ICondition
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.Dispose(true);
+    
+    /// <inheritdoc/>
+    public IReadOnlySet<ConditionFlag> AsReadOnlySet()
+    {
+        var result = new HashSet<ConditionFlag>();
+        
+        for (var i = 0; i < MaxConditionEntries; i++)
+        {
+            if (this[i])
+            {
+                result.Add((ConditionFlag)i);
+            }
+        }
+
+        return result;
+    }
 
     /// <inheritdoc/>
     public bool Any()
@@ -99,6 +115,25 @@ internal sealed class Condition : IInternalDisposableService, ICondition
         }
 
         return false;
+    }
+    
+    /// <inheritdoc/>
+    public bool AnyExcept(params ConditionFlag[] excluded)
+    {
+        return !this.AsReadOnlySet().Intersect(excluded).Any();
+    }
+
+    /// <inheritdoc/>
+    public bool OnlyAny(params ConditionFlag[] other)
+    {
+        return !this.AsReadOnlySet().Except(other).Any();
+    }
+
+    /// <inheritdoc/>
+    public bool OnlyAll(params ConditionFlag[] other)
+    {
+        var resultSet = this.AsReadOnlySet();
+        return resultSet.SetEquals(other);
     }
 
     /// <inheritdoc/>
@@ -217,6 +252,15 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 
     /// <inheritdoc/>
     public bool Any(params ConditionFlag[] flags) => this.conditionService.Any(flags);
+    
+    /// <inheritdoc/>
+    public bool OnlyAny(params ConditionFlag[] other) => this.conditionService.OnlyAny(other);
+    
+    /// <inheritdoc/>
+    public bool OnlyAll(params ConditionFlag[] other) => this.conditionService.OnlyAll(other);
+
+    /// <inheritdoc/>
+    public bool AnyExcept(params ConditionFlag[] except) => this.conditionService.AnyExcept(except);
     
     /// <inheritdoc/>
     public bool OnlyAny(params ConditionFlag[] other) => this.conditionService.OnlyAny(other);
