@@ -6,10 +6,14 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.ClientState;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
+using Dalamud.Utility;
 
 using ImGuiNET;
 using Newtonsoft.Json;
@@ -67,6 +71,7 @@ public class BranchSwitcherWindow : Window
         }
 
         var si = Service<Dalamud>.Get().StartInfo;
+        var clientState = Service<ClientState>.Get();
 
         var itemsArray = this.branches.Select(x => x.Key).ToArray();
         ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray, itemsArray.Length);
@@ -100,21 +105,29 @@ public class BranchSwitcherWindow : Window
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Pick & Restart"))
+            using (ImRaii.Disabled(!Util.IsClientIdleIgnoringDebug()))
             {
-                Pick();
-
-                // If we exit immediately, we need to write out the new config now
-                Service<DalamudConfiguration>.Get().ForceSave();
-
-                var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var xlPath = Path.Combine(appData, "XIVLauncher", "XIVLauncher.exe");
-
-                if (File.Exists(xlPath))
+                if (ImGui.Button("Pick & Restart"))
                 {
-                    Process.Start(xlPath);
-                    Environment.Exit(0);
+                    Pick();
+
+                    // If we exit immediately, we need to write out the new config now
+                    Service<DalamudConfiguration>.Get().ForceSave();
+
+                    var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    var xlPath = Path.Combine(appData, "XIVLauncher", "XIVLauncher.exe");
+
+                    if (File.Exists(xlPath))
+                    {
+                        Process.Start(xlPath);
+                        Environment.Exit(0);
+                    }
                 }
+            }
+
+            if (!Util.IsClientIdleIgnoringDebug())
+            {
+                ImGuiComponents.HelpMarker("Only available when idle.");
             }
         }
     }

@@ -4,13 +4,18 @@ using System.Linq;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
+
 using Serilog;
+
+using Condition = Lumina.Excel.GeneratedSheets.Condition;
 
 namespace Dalamud.Interface.Internal;
 
@@ -153,11 +158,31 @@ internal class DalamudCommands : IServiceType
 
     private void OnKillCommand(string command, string arguments)
     {
+#if RELEASE
+        var clientState = Service<ClientState>.Get();
+        if (!clientState.IsClientIdle(out var failingCondition))
+        {
+            var errCondition = Service<DataManager>.Get().GetExcelSheet<Condition>()!.GetRow((uint)failingCondition)!;
+            Service<ChatGui>.Get().PrintError(errCondition.LogMessage.Value!.Text);
+            return;
+        }
+#endif
+        
         Process.GetCurrentProcess().Kill();
     }
 
     private void OnRestartCommand(string command, string arguments)
     {
+#if RELEASE
+        var clientState = Service<ClientState>.Get();
+        if (!clientState.IsClientIdle(out var failingCondition))
+        {
+            var errCondition = Service<DataManager>.Get().GetExcelSheet<Condition>()!.GetRow((uint)failingCondition)!;
+            Service<ChatGui>.Get().PrintError(errCondition.LogMessage.Value!.Text);
+            return;
+        }
+#endif
+        
         Dalamud.RestartGame();
     }
 

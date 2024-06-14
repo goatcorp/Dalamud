@@ -735,64 +735,70 @@ internal class DalamudInterface : IInternalDisposableService
 
                     ImGui.Separator();
 
-                    if (ImGui.MenuItem("Unload Dalamud"))
+                    using (ImRaii.Disabled(!Util.IsClientIdleIgnoringDebug()))
                     {
-                        Service<Dalamud>.Get().Unload();
-                    }
+                        if (ImGui.MenuItem("Unload Dalamud"))
+                        {
+                            Service<Dalamud>.Get().Unload();
+                        }
 
-                    if (ImGui.MenuItem("Restart game"))
-                    {
-                        Dalamud.RestartGame();
-                    }
+                        if (ImGui.MenuItem("Restart game"))
+                        {
+                            Dalamud.RestartGame();
+                        }
 
-                    if (ImGui.MenuItem("Kill game"))
-                    {
-                        Process.GetCurrentProcess().Kill();
+                        if (ImGui.MenuItem("Kill game"))
+                        {
+                            Process.GetCurrentProcess().Kill();
+                        }
                     }
 
                     ImGui.Separator();
-                    
-                    if (ImGui.BeginMenu("Crash game"))
+
+                    using (ImRaii.Disabled(!Util.IsClientIdleIgnoringDebug()))
                     {
-                        if (ImGui.MenuItem("Access Violation"))
+                        if (ImGui.BeginMenu("Crash game"))
                         {
-                            Marshal.ReadByte(IntPtr.Zero);
-                        }                    
-                        
-                        if (ImGui.MenuItem("Set UiModule to NULL"))
-                        {
-                            unsafe
+                            if (ImGui.MenuItem("Access Violation"))
                             {
-                                var framework = Framework.Instance();
-                                framework->UIModule = (UIModule*)0;
-                            }
-                        }
+                                Marshal.ReadByte(IntPtr.Zero);
+                            }                    
                         
-                        if (ImGui.MenuItem("Set UiModule to invalid ptr"))
-                        {
-                            unsafe
+                            if (ImGui.MenuItem("Set UiModule to NULL"))
                             {
-                                var framework = Framework.Instance();
-                                framework->UIModule = (UIModule*)0x12345678;
+                                unsafe
+                                {
+                                    var framework = Framework.Instance();
+                                    framework->UIModule = (UIModule*)0;
+                                }
                             }
-                        }
                         
-                        if (ImGui.MenuItem("Deref nullptr in Hook"))
-                        {
-                            unsafe
+                            if (ImGui.MenuItem("Set UiModule to invalid ptr"))
                             {
-                                var hook = Hook<CrashDebugDelegate>.FromAddress(
-                                    (nint)UIModule.StaticVTable.GetUIInputData,
-                                    self =>
-                                    {
-                                        _ = *(byte*)0;
-                                        return (nint)UIModule.Instance()->GetUIInputData();
-                                    });
-                                hook.Enable();
+                                unsafe
+                                {
+                                    var framework = Framework.Instance();
+                                    framework->UIModule = (UIModule*)0x12345678;
+                                }
                             }
-                        }
                         
-                        ImGui.EndMenu();
+                            if (ImGui.MenuItem("Deref nullptr in Hook"))
+                            {
+                                unsafe
+                                {
+                                    var hook = Hook<CrashDebugDelegate>.FromAddress(
+                                        (nint)UIModule.StaticVTable.GetUIInputData,
+                                        self =>
+                                        {
+                                            _ = *(byte*)0;
+                                            return (nint)UIModule.Instance()->GetUIInputData();
+                                        });
+                                    hook.Enable();
+                                }
+                            }
+                        
+                            ImGui.EndMenu();
+                        }
                     }
 
                     if (ImGui.MenuItem("Report crashes at shutdown", null, this.configuration.ReportShutdownCrashes))

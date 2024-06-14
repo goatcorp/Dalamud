@@ -559,18 +559,25 @@ internal class ConsoleWindow : Window, IDisposable
             this.CopyFilteredLogEntries(false);
 
         ImGui.SameLine();
-        if (this.killGameArmed)
+        if (!Util.IsClientIdleIgnoringDebug())
         {
-            if (ImGuiComponents.IconButton(FontAwesomeIcon.ExclamationTriangle))
+            ImGuiComponents.DisabledButton(FontAwesomeIcon.Stop);
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Kill disabled in current game state.");
+        }
+        else if (this.killGameArmed)
+        {
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.ExclamationTriangle)) 
                 Process.GetCurrentProcess().Kill();
+                
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Confirm Kill");
         }
         else
         {
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Stop))
                 this.killGameArmed = true;
+            
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("Kill game");
         }
-
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Kill game");
 
         ImGui.SameLine();
 

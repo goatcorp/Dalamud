@@ -26,6 +26,8 @@ using Serilog;
 using TerraFX.Interop.Windows;
 using Windows.Win32.Storage.FileSystem;
 
+using Dalamud.Game.ClientState;
+
 namespace Dalamud.Utility;
 
 /// <summary>
@@ -734,6 +736,19 @@ public static class Util
         {
             ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
         }
+    }
+
+    /// <summary>
+    /// Check if the client is idle, always returning true in debug mode. Used for UI control.
+    /// </summary>
+    /// <returns>Returns if the client is idle, or true in debug.</returns>
+    internal static bool IsClientIdleIgnoringDebug()
+    {
+#if DEBUG
+        return true;
+#endif
+
+        return Service<ClientState>.Get().IsClientIdle();
     }
 
     private static void ShowSpanProperty(ulong addr, IList<string> path, PropertyInfo p, object obj)
