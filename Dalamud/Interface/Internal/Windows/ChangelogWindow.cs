@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Numerics;
 
+using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
@@ -12,6 +14,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -23,6 +26,8 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 internal sealed class ChangelogWindow : Window, IDisposable
 {
+    private const AutoUpdateBehavior DefaultAutoUpdateBehavior = AutoUpdateBehavior.UpdateMainRepo;
+    
     private const string WarrantsChangelogForMajorMinor = "9.0.";
     
     private const string ChangeLog =
@@ -47,15 +52,32 @@ internal sealed class ChangelogWindow : Window, IDisposable
         Point2 = new Vector2(2f),
     };
     
-    private readonly InOutCubic bodyFade = new(TimeSpan.FromSeconds(1f))
+    private readonly InOutCubic bodyFade = new(TimeSpan.FromSeconds(1.3f))
     {
         Point1 = Vector2.Zero,
         Point2 = Vector2.One,
     };
     
+    private readonly InOutCubic titleFade = new(TimeSpan.FromSeconds(1f))
+    {
+        Point1 = Vector2.Zero,
+        Point2 = Vector2.One,
+    };
+    
+    private readonly InOutCubic fadeOut = new(TimeSpan.FromSeconds(0.8f))
+    {
+        Point1 = Vector2.One,
+        Point2 = Vector2.Zero,
+    };
+    
     private State state = State.WindowFadeIn;
-
+    
     private bool needFadeRestart = false;
+    
+    private bool isFadingOutForStateChange = false;
+    private State? stateAfterFadeOut;
+    
+    private AutoUpdateBehavior autoUpdateBehavior = DefaultAutoUpdateBehavior;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
@@ -90,6 +112,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         WindowFadeIn,
         ExplainerIntro,
         ExplainerApiBump,
+        AskAutoUpdate,
         Links,
     }
     
@@ -114,11 +137,18 @@ internal sealed class ChangelogWindow : Window, IDisposable
         this.tsmWindow.AllowDrawing = false;
 
         _ = this.bannerFont;
+
+        this.isFadingOutForStateChange = false;
+        this.stateAfterFadeOut = null;
         
         this.state = State.WindowFadeIn;
         this.windowFade.Reset();
         this.bodyFade.Reset();
+        this.titleFade.Reset();
+        this.fadeOut.Reset();
         this.needFadeRestart = true;
+        
+        this.autoUpdateBehavior = DefaultAutoUpdateBehavior;
         
         base.OnOpen();
     }
@@ -130,6 +160,10 @@ internal sealed class ChangelogWindow : Window, IDisposable
         
         this.tsmWindow.AllowDrawing = true;
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(false);
+
+        var configuration = Service<DalamudConfiguration>.Get();
+        configuration.AutoUpdateBehavior = this.autoUpdateBehavior;
+        configuration.QueueSave();
     }
 
     /// <inheritdoc/>
@@ -144,10 +178,13 @@ internal sealed class ChangelogWindow : Window, IDisposable
         if (this.needFadeRestart)
         {
             this.windowFade.Restart();
+            this.titleFade.Restart();
             this.needFadeRestart = false;
         }
         
         this.windowFade.Update();
+        this.titleFade.Update();
+        this.fadeOut.Update();
         ImGui.SetNextWindowBgAlpha(Math.Clamp(this.windowFade.EasedPoint.X, 0, 0.9f));
         
         this.Size = new Vector2(900, 400);
@@ -207,8 +244,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
                 return;
             
             ImGuiHelpers.ScaledDummy(20);
-            
-            using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(this.windowFade.EasedPoint.X - 1f, 0f, 1f)))
+
+            var titleFadeVal = this.isFadingOutForStateChange ? this.fadeOut.EasedPoint.X : this.titleFade.EasedPoint.X;
+            using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(titleFadeVal, 0f, 1f)))
             {
                 using var font = this.bannerFont.Value.Push();
 
@@ -221,6 +259,10 @@ internal sealed class ChangelogWindow : Window, IDisposable
                     
                     case State.ExplainerApiBump:
                         ImGuiHelpers.CenteredText("Plugin Updates");
+                        break;
+                    
+                    case State.AskAutoUpdate:
+                        ImGuiHelpers.CenteredText("Auto-Updates");
                         break;
                     
                     case State.Links:
@@ -236,10 +278,30 @@ internal sealed class ChangelogWindow : Window, IDisposable
                 this.state = State.ExplainerIntro;
                 this.bodyFade.Restart();
             }
+
+            if (this.isFadingOutForStateChange && this.fadeOut.IsDone)
+            {
+                this.state = this.stateAfterFadeOut ?? throw new Exception("State after fade out is null");
+
+                this.bodyFade.Restart();
+                this.titleFade.Restart();
+                
+                this.isFadingOutForStateChange = false;
+                this.stateAfterFadeOut = null;
+            }
             
             this.bodyFade.Update();
-            using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(this.bodyFade.EasedPoint.X, 0, 1f)))
+            var bodyFadeVal = this.isFadingOutForStateChange ? this.fadeOut.EasedPoint.X : this.bodyFade.EasedPoint.X;
+            using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(bodyFadeVal, 0, 1f)))
             {
+                void GoToNextState(State nextState)
+                {
+                    this.isFadingOutForStateChange = true;
+                    this.stateAfterFadeOut = nextState;
+                        
+                    this.fadeOut.Restart();
+                }
+                
                 void DrawNextButton(State nextState)
                 {
                     // Draw big, centered next button at the bottom of the window
@@ -249,10 +311,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
                     ImGui.SetCursorPosY(windowSize.Y - buttonHeight - (20 * ImGuiHelpers.GlobalScale));
                     ImGuiHelpers.CenterCursorFor((int)buttonWidth);
                 
-                    if (ImGui.Button(buttonText, new Vector2(buttonWidth, buttonHeight)))
+                    if (ImGui.Button(buttonText, new Vector2(buttonWidth, buttonHeight)) && !this.isFadingOutForStateChange)
                     {
-                        this.state = nextState;
-                        this.bodyFade.Restart();
+                        GoToNextState(nextState);
                     }
                 }
                 
@@ -286,7 +347,65 @@ internal sealed class ChangelogWindow : Window, IDisposable
                             this.apiBumpExplainerTexture.Value.ImGuiHandle,
                             this.apiBumpExplainerTexture.Value.Size);
                         
-                        DrawNextButton(State.Links);
+                        DrawNextButton(State.AskAutoUpdate);
+                        break;
+                    
+                    case State.AskAutoUpdate:
+                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
+                                                "Dalamud can update your plugins automatically, making sure that you always " +
+                                                "have the newest features and bug fixes. You can choose when and how auto-updates are run here."));
+                        ImGuiHelpers.ScaledDummy(2);
+                        
+                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
+                                                                "You can always update your plugins manually by clicking the update button in the plugin list. " +
+                                                                "You can also opt into updates for specific plugins by right-clicking them and selecting \"Always auto-update\"."));
+                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
+                                                                "Dalamud will never bother you about updates while you are not idle."));
+                        
+                        ImGuiHelpers.ScaledDummy(15);
+                        
+                        /*
+                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateBehavior",
+                                                                "When the game starts..."));
+                        var behaviorInt = (int)this.autoUpdateBehavior;
+                        ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateNone", "Do not check for updates automatically"), ref behaviorInt, (int)AutoUpdateBehavior.None);
+                        ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateNotify", "Only notify me of new updates"), ref behaviorInt, (int)AutoUpdateBehavior.OnlyNotify);
+                        ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateMainRepo", "Auto-update main repository plugins"), ref behaviorInt, (int)AutoUpdateBehavior.UpdateMainRepo);
+                        this.autoUpdateBehavior = (AutoUpdateBehavior)behaviorInt;
+                        */
+                        
+                        bool DrawCenteredButton(string text, float height)
+                        {
+                            var buttonHeight = height * ImGuiHelpers.GlobalScale;
+                            var buttonWidth = ImGui.CalcTextSize(text).X + 50 * ImGuiHelpers.GlobalScale;
+                            ImGuiHelpers.CenterCursorFor((int)buttonWidth);
+
+                            return ImGui.Button(text, new Vector2(buttonWidth, buttonHeight)) &&
+                                   !this.isFadingOutForStateChange;
+                        }
+
+                        using (ImRaii.PushColor(ImGuiCol.Button, ImGuiColors.DPSRed))
+                        {
+                            if (DrawCenteredButton("Enable auto-updates", 30))
+                            { 
+                                this.autoUpdateBehavior = AutoUpdateBehavior.UpdateMainRepo;
+                                GoToNextState(State.Links);
+                            }
+                        }
+                        
+                        ImGuiHelpers.ScaledDummy(2);
+                        
+                        using (ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 1))
+                        using (var buttonColor = ImRaii.PushColor(ImGuiCol.Button, Vector4.Zero))
+                        {
+                            buttonColor.Push(ImGuiCol.Border, ImGuiColors.DalamudGrey3);
+                            if (DrawCenteredButton("Disable auto-updates", 25))
+                            { 
+                                this.autoUpdateBehavior = AutoUpdateBehavior.OnlyNotify;
+                                GoToNextState(State.Links);
+                            }
+                        }
+                        
                         break;
                     
                     case State.Links:
@@ -356,12 +475,12 @@ internal sealed class ChangelogWindow : Window, IDisposable
             // Draw close button in the top right corner
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
             var btnAlpha = Math.Clamp(this.windowFade.EasedPoint.X - 0.5f, 0f, 1f);
-            ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.DalamudRed.WithAlpha(btnAlpha).Desaturate(0.3f));
+            ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.DPSRed.WithAlpha(btnAlpha).Desaturate(0.3f));
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudWhite.WithAlpha(btnAlpha));
             
             var childSize = ImGui.GetWindowSize();
             var closeButtonSize = 15 * ImGuiHelpers.GlobalScale;
-            ImGui.SetCursorPos(new Vector2(childSize.X - closeButtonSize - 5, 10 * ImGuiHelpers.GlobalScale));
+            ImGui.SetCursorPos(new Vector2(childSize.X - closeButtonSize - (10 * ImGuiHelpers.GlobalScale), 10 * ImGuiHelpers.GlobalScale));
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Times))
             {
                 Dismiss();

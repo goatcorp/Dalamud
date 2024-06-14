@@ -21,7 +21,7 @@ namespace Dalamud.Interface.Internal.Windows.Settings;
 /// </summary>
 internal class SettingsWindow : Window
 {
-    private SettingsTab[]? tabs;
+    private readonly SettingsTab[] tabs;
 
     private string searchInput = string.Empty;
     private bool isSearchInputPrefilled = false;
@@ -42,6 +42,16 @@ internal class SettingsWindow : Window
         };
 
         this.SizeCondition = ImGuiCond.FirstUseEver;
+        
+        this.tabs =
+        [
+            new SettingsTabGeneral(),
+            new SettingsTabLook(),
+            new SettingsTabAutoUpdates(),
+            new SettingsTabDtr(),
+            new SettingsTabExperimental(),
+            new SettingsTabAbout()
+        ];
     }
 
     /// <summary>
@@ -75,15 +85,6 @@ internal class SettingsWindow : Window
     /// <inheritdoc/>
     public override void OnOpen()
     {
-        this.tabs ??= new SettingsTab[]
-        {
-            new SettingsTabGeneral(),
-            new SettingsTabLook(),
-            new SettingsTabDtr(),
-            new SettingsTabExperimental(),
-            new SettingsTabAbout(),
-        };
-
         foreach (var settingsTab in this.tabs)
         {
             settingsTab.Load();
@@ -142,7 +143,7 @@ internal class SettingsWindow : Window
                         flags |= ImGuiTabItemFlags.SetSelected;
                         this.setActiveTab = null;
                     }
-
+ 
                     using var tab = ImRaii.TabItem(settingsTab.Title, flags);
                     if (tab)
                     {
@@ -152,10 +153,14 @@ internal class SettingsWindow : Window
                             settingsTab.OnOpen();
                         }
 
+                        // Don't add padding for the about tab(credits)
+                        using var padding = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(2, 2),
+                            settingsTab is not SettingsTabAbout);
+                        using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ImGui.GetColorU32(ImGuiCol.ChildBg));
                         using var tabChild = ImRaii.Child(
                             $"###settings_scrolling_{settingsTab.Title}",
                             new Vector2(-1, -1),
-                            false);
+                            true);
                         if (tabChild)
                             settingsTab.Draw();
                     }
@@ -281,25 +286,15 @@ internal class SettingsWindow : Window
 
     private void SetOpenTab(SettingsOpenKind kind)
     {
-        switch (kind)
+        this.setActiveTab = kind switch
         {
-            case SettingsOpenKind.General:
-                this.setActiveTab = this.tabs[0];
-                break;
-            case SettingsOpenKind.LookAndFeel:
-                this.setActiveTab = this.tabs[1];
-                break;
-            case SettingsOpenKind.ServerInfoBar:
-                this.setActiveTab = this.tabs[2];
-                break;
-            case SettingsOpenKind.Experimental:
-                this.setActiveTab = this.tabs[3];
-                break;
-            case SettingsOpenKind.About:
-                this.setActiveTab = this.tabs[4];
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
-        }
+            SettingsOpenKind.General => this.tabs[0],
+            SettingsOpenKind.LookAndFeel => this.tabs[1],
+            SettingsOpenKind.AutoUpdates => this.tabs[2],
+            SettingsOpenKind.ServerInfoBar => this.tabs[3],
+            SettingsOpenKind.Experimental => this.tabs[4],
+            SettingsOpenKind.About => this.tabs[5],
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+        };
     }
 }

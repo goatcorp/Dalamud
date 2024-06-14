@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.FontIdentifier;
-using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Storage;
 using Dalamud.Utility;
@@ -196,6 +196,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets a value indicating whether or not plugins should be auto-updated.
     /// </summary>
+    [Obsolete("Use AutoUpdateBehavior instead.")]
     public bool AutoUpdatePlugins { get; set; }
 
     /// <summary>
@@ -229,7 +230,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public int LogLinesLimit { get; set; } = 10000;
 
     /// <summary>
-    /// Gets or sets a list of commands that have been run in the console window.
+    /// Gets or sets a list representing the command history for the Dalamud Console.
     /// </summary>
     public List<string> LogCommandHistory { get; set; } = new();
 
@@ -434,7 +435,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets a list of plugins that testing builds should be downloaded for.
     /// </summary>
-    public List<PluginTestingOptIn>? PluginTestingOptIns { get; set; }
+    public List<PluginTestingOptIn> PluginTestingOptIns { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets a list of plugins that have opted into or out of auto-updating.
+    /// </summary>
+    public List<AutoUpdatePreference> PluginAutoUpdatePreferences { get; set; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether the FFXIV window should be toggled to immersive mode.
@@ -465,6 +471,16 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets the page of the plugin installer that is shown by default when opened.
     /// </summary>
     public PluginInstallerOpenKind PluginInstallerOpen { get; set; } = PluginInstallerOpenKind.AllPlugins;
+
+    /// <summary>
+    /// Gets or sets a value indicating how auto-updating should behave.
+    /// </summary>
+    public AutoUpdateBehavior? AutoUpdateBehavior { get; set; } = null;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not users should be notified regularly about pending updates.
+    /// </summary>
+    public bool CheckPeriodicallyForUpdates { get; set; } = true;
 
     /// <summary>
     /// Load a configuration from the provided path.
@@ -551,6 +567,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
 
     private void SetDefaults()
     {
+#pragma warning disable CS0618
         // "Reduced motion"
         if (!this.ReduceMotions.HasValue)
         {
@@ -572,6 +589,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
                 this.ReduceMotions = winAnimEnabled == 0;
             }
         }
+        
+        // Migrate old auto-update setting to new auto-update behavior
+        this.AutoUpdateBehavior ??= this.AutoUpdatePlugins
+                                        ? Plugin.Internal.AutoUpdate.AutoUpdateBehavior.UpdateAll
+                                        : Plugin.Internal.AutoUpdate.AutoUpdateBehavior.OnlyNotify;
+#pragma warning restore CS0618
     }
     
     private void Save()
