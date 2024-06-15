@@ -3,6 +3,7 @@
 using CheapLoc;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
+
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
