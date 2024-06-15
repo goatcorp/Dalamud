@@ -80,5 +80,5 @@ public interface ICondition
     /// </summary>
     /// <param name="other">The array of flags to check.</param>
     /// <returns>Returns a bool.</returns>
-    public bool OnlyAll(params ConditionFlag[] other);
+    public bool EqualTo(params ConditionFlag[] other);
 }

@@ -130,40 +130,10 @@ internal sealed class Condition : IInternalDisposableService, ICondition
     }
 
     /// <inheritdoc/>
-    public bool OnlyAll(params ConditionFlag[] other)
+    public bool EqualTo(params ConditionFlag[] other)
     {
         var resultSet = this.AsReadOnlySet();
         return resultSet.SetEquals(other);
-    }
-
-    /// <inheritdoc/>
-    public bool OnlyAny(params ConditionFlag[] other)
-    {
-        var resultSet = this.AsReadOnlySet();
-        return !resultSet.Except(other).Any();
-    }
-
-    /// <inheritdoc/>
-    public bool OnlyAll(params ConditionFlag[] other)
-    {
-        var resultSet = this.AsReadOnlySet();
-        return resultSet.SetEquals(other);
-    }
-
-    /// <inheritdoc/>
-    public IReadOnlySet<ConditionFlag> AsReadOnlySet()
-    {
-        var result = new HashSet<ConditionFlag>();
-        
-        for (var i = 0; i < MaxConditionEntries; i++)
-        {
-            if (this[i])
-            {
-                result.Add((ConditionFlag)i);
-            }
-        }
-
-        return result;
     }
 
     private void Dispose(bool disposing)
@@ -252,12 +222,6 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 
     /// <inheritdoc/>
     public bool Any(params ConditionFlag[] flags) => this.conditionService.Any(flags);
-    
-    /// <inheritdoc/>
-    public bool OnlyAny(params ConditionFlag[] other) => this.conditionService.OnlyAny(other);
-    
-    /// <inheritdoc/>
-    public bool OnlyAll(params ConditionFlag[] other) => this.conditionService.OnlyAll(other);
 
     /// <inheritdoc/>
     public bool AnyExcept(params ConditionFlag[] except) => this.conditionService.AnyExcept(except);
@@ -266,7 +230,7 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
     public bool OnlyAny(params ConditionFlag[] other) => this.conditionService.OnlyAny(other);
     
     /// <inheritdoc/>
-    public bool OnlyAll(params ConditionFlag[] other) => this.conditionService.OnlyAll(other);
+    public bool EqualTo(params ConditionFlag[] other) => this.conditionService.EqualTo(other);
 
     private void ConditionChangedForward(ConditionFlag flag, bool value) => this.ConditionChange?.Invoke(flag, value);
 }
