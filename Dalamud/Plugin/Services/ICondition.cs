@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using System.Collections.Generic;
+
+using Dalamud.Game.ClientState.Conditions;
 
 namespace Dalamud.Plugin.Services;
 
@@ -51,4 +53,26 @@ public interface ICondition
     /// <returns>Whether any single provided flag is set.</returns>
     /// <param name="flags">The condition flags to check.</param>
     public bool Any(params ConditionFlag[] flags);
+
+    /// <summary>
+    /// Check that *only* any of the condition flags specified are set. Useful to test if the client is in one of any
+    /// of a few specific condiiton states.
+    /// </summary>
+    /// <param name="other">The array of flags to check.</param>
+    /// <returns>Returns a bool.</returns>
+    public bool OnlyAny(params ConditionFlag[] other);
+
+    /// <summary>
+    /// Check that *only* the specified flags are set. Unlike <see cref="OnlyAny"/>, this method requires that all the
+    /// specified flags are set and no others are present.
+    /// </summary>
+    /// <param name="other">The array of flags to check.</param>
+    /// <returns>Returns a bool.</returns>
+    public bool OnlyAll(params ConditionFlag[] other);
+    
+    /// <summary>
+    /// Convert the conditions array to a set of all set condition flags.
+    /// </summary>
+    /// <returns>Returns a set.</returns>
+    public IReadOnlySet<ConditionFlag> AsReadOnlySet();
 }

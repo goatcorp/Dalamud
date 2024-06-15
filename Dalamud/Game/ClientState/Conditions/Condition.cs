@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -98,6 +101,36 @@ internal sealed class Condition : IInternalDisposableService, ICondition
         return false;
     }
 
+    /// <inheritdoc/>
+    public bool OnlyAny(params ConditionFlag[] other)
+    {
+        var resultSet = this.AsReadOnlySet();
+        return !resultSet.Except(other).Any();
+    }
+
+    /// <inheritdoc/>
+    public bool OnlyAll(params ConditionFlag[] other)
+    {
+        var resultSet = this.AsReadOnlySet();
+        return resultSet.SetEquals(other);
+    }
+
+    /// <inheritdoc/>
+    public IReadOnlySet<ConditionFlag> AsReadOnlySet()
+    {
+        var result = new HashSet<ConditionFlag>();
+        
+        for (var i = 0; i < MaxConditionEntries; i++)
+        {
+            if (this[i])
+            {
+                result.Add((ConditionFlag)i);
+            }
+        }
+
+        return result;
+    }
+
     private void Dispose(bool disposing)
     {
         if (this.isDisposed)
@@ -175,12 +208,21 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 
         this.ConditionChange = null;
     }
+    
+    /// <inheritdoc/>
+    public IReadOnlySet<ConditionFlag> AsReadOnlySet() => this.conditionService.AsReadOnlySet();
 
     /// <inheritdoc/>
     public bool Any() => this.conditionService.Any();
 
     /// <inheritdoc/>
     public bool Any(params ConditionFlag[] flags) => this.conditionService.Any(flags);
+    
+    /// <inheritdoc/>
+    public bool OnlyAny(params ConditionFlag[] other) => this.conditionService.OnlyAny(other);
+    
+    /// <inheritdoc/>
+    public bool OnlyAll(params ConditionFlag[] other) => this.conditionService.OnlyAll(other);
 
     private void ConditionChangedForward(ConditionFlag flag, bool value) => this.ConditionChange?.Invoke(flag, value);
 }
