@@ -87,7 +87,7 @@ internal class AutoUpdateManager : IServiceType
             });
         Service<Framework>.GetAsync().ContinueWith(t => { t.Result.Update += this.OnUpdate; });
         
-        this.isDryRun = console.AddVariable("dalamud.autoupdate.dry_run", "Simulate updates instead", true);
+        this.isDryRun = console.AddVariable("dalamud.autoupdate.dry_run", "Simulate updates instead", false);
         console.AddCommand("dalamud.autoupdate.trigger_login", "Trigger a login event", () =>
         {
             this.hasStartedInitialUpdateThisSession = false;
