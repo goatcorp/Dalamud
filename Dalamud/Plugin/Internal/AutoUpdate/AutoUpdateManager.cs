@@ -255,8 +255,6 @@ internal class AutoUpdateManager : IServiceType
 
     private async Task RunAutoUpdates(ICollection<AvailablePluginUpdate> updatablePlugins)
     {
-        var pluginStates = new List<PluginUpdateStatus>();
-
         Log.Information("Found {UpdatablePluginsCount} plugins to update", updatablePlugins.Count);
 
         if (updatablePlugins.Count == 0)
@@ -274,35 +272,16 @@ internal class AutoUpdateManager : IServiceType
             Icon = INotificationIcon.From(FontAwesomeIcon.Download),
             Minimized = false,
         });
-        
-        var numDone = 0;
-        // TODO: This is NOT correct, we need to do this inside PM to be able to avoid notifying for each of these and avoid
-        //       refreshing the plugin list until we're done. See PluginManager::UpdatePluginsAsync().
-        //       Maybe have a function in PM that can take a list of AvailablePluginUpdate instead and update them all,
-        //       and get rid of UpdatePluginsAsync()? Will have to change the installer a bit but that might be for the better API-wise.
-        foreach (var plugin in updatablePlugins)
+
+        var progress = new Progress<PluginManager.PluginUpdateProgress>();
+        progress.ProgressChanged += (_, progress) =>
         {
-            try
-            {
-                notification.Content = $"Updating {plugin.InstalledPlugin.Manifest.Name}...";
-                notification.Progress = (float)numDone / updatablePlugins.Count;
-                
-                if (this.isDryRun.Value)
-                {
-                    await Task.Delay(5000);
-                }
-
-                var status = await this.pluginManager.UpdateSinglePluginAsync(plugin, true, this.isDryRun.Value);
-                pluginStates.Add(status);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to auto-update plugin {PluginName}", plugin.InstalledPlugin.Manifest.Name);
-            }
-
-            numDone++;
-        }
+            notification.Content = $"Updating {progress.CurrentPluginManifest.Name}...";
+            notification.Progress = (float)progress.PluginsProcessed / progress.TotalPlugins;
+        };
         
+        var pluginStates = await this.pluginManager.UpdatePluginsAsync(updatablePlugins, this.isDryRun.Value, true, progress);
+
         notification.Progress = 1;
         notification.UserDismissable = true;
         notification.HardExpiry = DateTime.Now.AddSeconds(30);
@@ -318,7 +297,8 @@ internal class AutoUpdateManager : IServiceType
         };
         
         // Update the notification to show the final state
-        if (pluginStates.All(x => x.Status == PluginUpdateStatus.StatusKind.Success))
+        var pluginUpdateStatusEnumerable = pluginStates as PluginUpdateStatus[] ?? pluginStates.ToArray();
+        if (pluginUpdateStatusEnumerable.All(x => x.Status == PluginUpdateStatus.StatusKind.Success))
         {
             notification.Minimized = true;
 
@@ -337,7 +317,7 @@ internal class AutoUpdateManager : IServiceType
             notification.Type = NotificationType.Error;
             notification.Content = "Some plugins failed to update. Please check the plugin installer for more information.";
             
-            var failedPlugins = pluginStates
+            var failedPlugins = pluginUpdateStatusEnumerable
                                 .Where(x => x.Status != PluginUpdateStatus.StatusKind.Success)
                                 .Select(x => x.Name).ToList();
             

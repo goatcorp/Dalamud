@@ -711,8 +711,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 this.updateStatus = OperationStatus.InProgress;
                 this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingAll;
+                
+                var toUpdate = this.pluginListUpdatable
+                                   .Where(x => x.InstalledPlugin.IsLoaded)
+                                   .ToList();
 
-                Task.Run(() => pluginManager.UpdatePluginsAsync(true, false))
+                Task.Run(() => pluginManager.UpdatePluginsAsync(toUpdate, false))
                     .ContinueWith(task =>
                     {
                         this.updateStatus = OperationStatus.Complete;
