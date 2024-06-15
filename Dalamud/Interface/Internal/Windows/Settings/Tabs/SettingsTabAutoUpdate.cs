@@ -87,7 +87,7 @@ public class SettingsTabAutoUpdates : SettingsTab
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
             {
                 ImGuiHelpers.CenteredText(Loc.Localize("DalamudSettingsAutoUpdateOptedInHint2",
-                                                       "You did not override auto-updates for any plugins yet."));
+                                                       "You don't have auto-update rules for any plugins."));
             }
             
             ImGuiHelpers.ScaledDummy(2);
