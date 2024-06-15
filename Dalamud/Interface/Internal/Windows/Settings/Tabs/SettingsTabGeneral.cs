@@ -20,7 +20,7 @@ public class SettingsTabGeneral : SettingsTab
             Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."),
             c => c.GeneralChatType,
             (v, c) => c.GeneralChatType = v,
-            warning: (v) =>
+            warning: v =>
             {
                 // TODO: Maybe actually implement UI for the validity check...
                 if (v == XivChatType.None)
@@ -61,12 +61,6 @@ public class SettingsTabGeneral : SettingsTab
             Loc.Localize("DalamudSettingsPrintPluginsWelcomeMsgHint", "Display loaded plugins in FFXIV chat when logging in with a character."),
             c => c.PrintPluginsWelcomeMsg,
             (v, c) => c.PrintPluginsWelcomeMsg = v),
-
-        new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingsAutoUpdatePlugins", "Auto-update plugins"),
-            Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins when logging in with a character."),
-            c => c.AutoUpdatePlugins,
-            (v, c) => c.AutoUpdatePlugins = v),
 
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingsSystemMenu", "Dalamud buttons in system menu"),

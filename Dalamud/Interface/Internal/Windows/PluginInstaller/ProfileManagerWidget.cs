@@ -12,7 +12,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Profiles;
-using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 using ImGuiNET;
 using Serilog;
@@ -300,39 +299,16 @@ internal class ProfileManagerWidget
             return;
         }
 
-        const string addPluginToProfilePopup = "###addPluginToProfile";
-        var addPluginToProfilePopupId = ImGui.GetID(addPluginToProfilePopup);
-        using (var popup = ImRaii.Popup(addPluginToProfilePopup))
-        {
-            if (popup.Success)
+        var addPluginToProfilePopupId = DalamudComponents.DrawPluginPicker(
+            "###addPluginToProfilePicker",
+            ref this.pickerSearch,
+            plugin =>
             {
-                var width = ImGuiHelpers.GlobalScale * 300;
-
-                using var disabled = ImRaii.Disabled(profman.IsBusy);
-
-                ImGui.SetNextItemWidth(width);
-                ImGui.InputTextWithHint("###pluginPickerSearch", Locs.SearchHint, ref this.pickerSearch, 255);
-
-                if (ImGui.BeginListBox("###pluginPicker", new Vector2(width, width - 80)))
-                {
-                    // TODO: Plugin searching should be abstracted... installer and this should use the same search
-                    foreach (var plugin in pm.InstalledPlugins.Where(x => x.Manifest.SupportsProfiles &&
-                                                                          (this.pickerSearch.IsNullOrWhitespace() || x.Manifest.Name.ToLowerInvariant().Contains(this.pickerSearch.ToLowerInvariant()))))
-                    {
-                        using var disabled2 =
-                            ImRaii.Disabled(profile.Plugins.Any(y => y.InternalName == plugin.Manifest.InternalName));
-
-                        if (ImGui.Selectable($"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? "(dev plugin)" : string.Empty)}###selector{plugin.Manifest.InternalName}"))
-                        {
-                            Task.Run(() => profile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false))
-                                .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
-                        }
-                    }
-
-                    ImGui.EndListBox();
-                }
-            }
-        }
+                Task.Run(() => profile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, true, false))
+                    .ContinueWith(this.installer.DisplayErrorContinuation, Locs.ErrorCouldNotChangeState);
+            },
+            plugin => !plugin.Manifest.SupportsProfiles ||
+                      profile.Plugins.Any(x => x.WorkingPluginId == plugin.EffectiveWorkingPluginId));
 
         var didAny = false;
 
@@ -602,8 +578,6 @@ internal class ProfileManagerWidget
             Loc.Localize("ProfileManagerCopyToClipboardHint", "Copied to clipboard!");
 
         public static string BackToOverview => Loc.Localize("ProfileManagerBackToOverview", "Back to overview");
-
-        public static string SearchHint => Loc.Localize("ProfileManagerSearchHint", "Search...");
 
         public static string AddProfileHint => Loc.Localize("ProfileManagerAddProfileHint", "No collections! Add one!");
 

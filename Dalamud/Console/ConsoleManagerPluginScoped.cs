@@ -22,7 +22,8 @@ namespace Dalamud.Console;
 #pragma warning restore SA1015
 public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
 {
-    private readonly ConsoleManager console;
+    [ServiceManager.ServiceDependency]
+    private readonly ConsoleManager console = Service<ConsoleManager>.Get();
     
     private readonly List<IConsoleEntry> trackedEntries = new();
 
@@ -30,12 +31,9 @@ public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
     /// Initializes a new instance of the <see cref="ConsoleManagerPluginScoped"/> class.
     /// </summary>
     /// <param name="plugin">The plugin this service belongs to.</param>
-    /// <param name="console">The console manager.</param>
     [ServiceManager.ServiceConstructor]
-    internal ConsoleManagerPluginScoped(LocalPlugin plugin, ConsoleManager console)
+    internal ConsoleManagerPluginScoped(LocalPlugin plugin)
     {
-        this.console = console;
-        
         this.Prefix = ConsoleManagerPluginUtil.GetSanitizedNamespaceName(plugin.InternalName);
     }
 

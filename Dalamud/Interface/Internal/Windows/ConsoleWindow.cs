@@ -37,6 +37,7 @@ internal class ConsoleWindow : Window, IDisposable
 {
     private const int LogLinesMinimum = 100;
     private const int LogLinesMaximum = 1000000;
+    private const int HistorySize = 50;
 
     // Only this field may be touched from any thread.
     private readonly ConcurrentQueue<(string Line, LogEvent LogEvent)> newLogEntries;
@@ -44,9 +45,10 @@ internal class ConsoleWindow : Window, IDisposable
     // Fields below should be touched only from the main thread.
     private readonly RollingList<LogEntry> logText;
     private readonly RollingList<LogEntry> filteredLogEntries;
-
-    private readonly List<string> history = new();
+    
     private readonly List<PluginFilterEntry> pluginFilters = new();
+    
+    private readonly DalamudConfiguration configuration;
 
     private int newRolledLines;
     private bool pendingRefilter;
@@ -78,6 +80,9 @@ internal class ConsoleWindow : Window, IDisposable
     private int historyPos;
     private int copyStart = -1;
 
+    private string? completionZipText = null;
+    private int completionTabIdx = 0;
+
     private IActiveNotification? prevCopyNotification;
 
     /// <summary>Initializes a new instance of the <see cref="ConsoleWindow"/> class.</summary>
@@ -85,6 +90,8 @@ internal class ConsoleWindow : Window, IDisposable
     public ConsoleWindow(DalamudConfiguration configuration)
         : base("Dalamud Console", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
+        this.configuration = configuration;
+        
         this.autoScroll = configuration.LogAutoScroll;
         this.autoOpen = configuration.LogOpenAtStartup;
         SerilogEventSink.Instance.LogLine += this.OnLogLine;
@@ -111,7 +118,7 @@ internal class ConsoleWindow : Window, IDisposable
         this.logText = new(limit);
         this.filteredLogEntries = new(limit);
 
-        configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
+        this.configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
 
         unsafe
         {
@@ -130,7 +137,7 @@ internal class ConsoleWindow : Window, IDisposable
     public void Dispose()
     {
         SerilogEventSink.Instance.LogLine -= this.OnLogLine;
-        Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
+        this.configuration.DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         if (Service<Framework>.GetNullable() is { } framework)
             framework.Update -= this.FrameworkOnUpdate;
 
@@ -314,9 +321,10 @@ internal class ConsoleWindow : Window, IDisposable
                     ref this.commandText,
                     255,
                     ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackCompletion |
-                    ImGuiInputTextFlags.CallbackHistory,
+                    ImGuiInputTextFlags.CallbackHistory | ImGuiInputTextFlags.CallbackEdit,
                     this.CommandInputCallback))
             {
+                this.newLogEntries.Enqueue((this.commandText, new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate(string.Empty, []), [])));
                 this.ProcessCommand();
                 getFocus = true;
             }
@@ -460,8 +468,6 @@ internal class ConsoleWindow : Window, IDisposable
 
     private void DrawOptionsToolbar()
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-
         ImGui.PushItemWidth(150.0f * ImGuiHelpers.GlobalScale);
         if (ImGui.BeginCombo("##log_level", $"{EntryPoint.LogLevelSwitch.MinimumLevel}+"))
         {
@@ -470,8 +476,8 @@ internal class ConsoleWindow : Window, IDisposable
                 if (ImGui.Selectable(value.ToString(), value == EntryPoint.LogLevelSwitch.MinimumLevel))
                 {
                     EntryPoint.LogLevelSwitch.MinimumLevel = value;
-                    configuration.LogLevel = value;
-                    configuration.QueueSave();
+                    this.configuration.LogLevel = value;
+                    this.configuration.QueueSave();
                     this.QueueRefilter();
                 }
             }
@@ -484,13 +490,13 @@ internal class ConsoleWindow : Window, IDisposable
         var settingsPopup = ImGui.BeginPopup("##console_settings");
         if (settingsPopup)
         {
-            this.DrawSettingsPopup(configuration);
+            this.DrawSettingsPopup();
             ImGui.EndPopup();
         }
         else if (this.settingsPopupWasOpen)
         {
             // Prevent side effects in case Apply wasn't clicked
-            this.logLinesLimit = configuration.LogLinesLimit;
+            this.logLinesLimit = this.configuration.LogLinesLimit;
         }
 
         this.settingsPopupWasOpen = settingsPopup;
@@ -638,18 +644,18 @@ internal class ConsoleWindow : Window, IDisposable
         }
     }
 
-    private void DrawSettingsPopup(DalamudConfiguration configuration)
+    private void DrawSettingsPopup()
     {
         if (ImGui.Checkbox("Open at startup", ref this.autoOpen))
         {
-            configuration.LogOpenAtStartup = this.autoOpen;
-            configuration.QueueSave();
+            this.configuration.LogOpenAtStartup = this.autoOpen;
+            this.configuration.QueueSave();
         }
 
         if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
         {
-            configuration.LogAutoScroll = this.autoScroll;
-            configuration.QueueSave();
+            this.configuration.LogAutoScroll = this.autoScroll;
+            this.configuration.QueueSave();
         }
 
         ImGui.TextUnformatted("Logs buffer");
@@ -658,8 +664,8 @@ internal class ConsoleWindow : Window, IDisposable
         {
             this.logLinesLimit = Math.Max(LogLinesMinimum, this.logLinesLimit);
 
-            configuration.LogLinesLimit = this.logLinesLimit;
-            configuration.QueueSave();
+            this.configuration.LogLinesLimit = this.logLinesLimit;
+            this.configuration.QueueSave();
 
             ImGui.CloseCurrentPopup();
         }
@@ -795,23 +801,18 @@ internal class ConsoleWindow : Window, IDisposable
     {
         try
         {
-            this.historyPos = -1;
-            for (var i = this.history.Count - 1; i >= 0; i--)
-            {
-                if (this.history[i] == this.commandText)
-                {
-                    this.history.RemoveAt(i);
-                    break;
-                }
-            }
-
-            this.history.Add(this.commandText);
-
-            if (this.commandText is "clear" or "cls")
-            {
-                this.QueueClear();
+            if (string.IsNullOrEmpty(this.commandText))
                 return;
-            }
+            
+            this.historyPos = -1;
+            
+            if (this.commandText != this.configuration.LogCommandHistory.LastOrDefault())
+                this.configuration.LogCommandHistory.Add(this.commandText);
+            
+            if (this.configuration.LogCommandHistory.Count > HistorySize)
+                this.configuration.LogCommandHistory.RemoveAt(0);
+            
+            this.configuration.QueueSave();
 
             this.lastCmdSuccess = Service<ConsoleManager>.Get().ProcessCommand(this.commandText);
             this.commandText = string.Empty;
@@ -831,6 +832,11 @@ internal class ConsoleWindow : Window, IDisposable
 
         switch (data->EventFlag)
         {
+            case ImGuiInputTextFlags.CallbackEdit:
+                this.completionZipText = null;
+                this.completionTabIdx = 0;
+                break;
+            
             case ImGuiInputTextFlags.CallbackCompletion:
                 var textBytes = new byte[data->BufTextLen];
                 Marshal.Copy((IntPtr)data->Buf, textBytes, 0, data->BufTextLen);
@@ -841,22 +847,47 @@ internal class ConsoleWindow : Window, IDisposable
                 // We can't do any completion for parameters at the moment since it just calls into CommandHandler
                 if (words.Length > 1)
                     return 0;
+                
+                var wordToComplete = words[0];
+                if (wordToComplete.IsNullOrWhitespace())
+                    return 0;
+                
+                if (this.completionZipText is not null)
+                    wordToComplete = this.completionZipText;
 
                 // TODO: Improve this, add partial completion, arguments, description, etc.
                 // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp#L6443-L6484
                 var candidates = Service<ConsoleManager>.Get().Entries
-                                                        .Where(x => x.Key.StartsWith(words[0]))
+                                                        .Where(x => x.Key.StartsWith(wordToComplete))
                                                         .Select(x => x.Key);
 
                 candidates = candidates.Union(
                     Service<CommandManager>.Get().Commands
-                                           .Where(x => x.Key.StartsWith(words[0])).Select(x => x.Key));
+                                           .Where(x => x.Key.StartsWith(wordToComplete)).Select(x => x.Key))
+                                       .ToArray();
 
-                var enumerable = candidates as string[] ?? candidates.ToArray();
-                if (enumerable.Length != 0)
+                if (candidates.Any())
                 {
-                    ptr.DeleteChars(0, ptr.BufTextLen);
-                    ptr.InsertChars(0, enumerable[0]);
+                    string? toComplete = null;
+                    if (this.completionZipText == null)
+                    {
+                        // Find the "common" prefix of all matches
+                        toComplete = candidates.Aggregate(
+                            (prefix, candidate) => string.Concat(prefix.Zip(candidate, (a, b) => a == b ? a : '\0')));
+
+                        this.completionZipText = toComplete;
+                    }
+                    else
+                    {
+                        toComplete = candidates.ElementAt(this.completionTabIdx);
+                        this.completionTabIdx = (this.completionTabIdx + 1) % candidates.Count();
+                    }
+                
+                    if (toComplete != null)
+                    {
+                        ptr.DeleteChars(0, ptr.BufTextLen);
+                        ptr.InsertChars(0, toComplete);
+                    }
                 }
 
                 break;
@@ -867,7 +898,7 @@ internal class ConsoleWindow : Window, IDisposable
                 if (ptr.EventKey == ImGuiKey.UpArrow)
                 {
                     if (this.historyPos == -1)
-                        this.historyPos = this.history.Count - 1;
+                        this.historyPos = this.configuration.LogCommandHistory.Count - 1;
                     else if (this.historyPos > 0)
                         this.historyPos--;
                 }
@@ -875,7 +906,7 @@ internal class ConsoleWindow : Window, IDisposable
                 {
                     if (this.historyPos != -1)
                     {
-                        if (++this.historyPos >= this.history.Count)
+                        if (++this.historyPos >= this.configuration.LogCommandHistory.Count)
                         {
                             this.historyPos = -1;
                         }
@@ -884,7 +915,7 @@ internal class ConsoleWindow : Window, IDisposable
 
                 if (prevPos != this.historyPos)
                 {
-                    var historyStr = this.historyPos >= 0 ? this.history[this.historyPos] : string.Empty;
+                    var historyStr = this.historyPos >= 0 ? this.configuration.LogCommandHistory[this.historyPos] : string.Empty;
 
                     ptr.DeleteChars(0, ptr.BufTextLen);
                     ptr.InsertChars(0, historyStr);

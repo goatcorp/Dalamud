@@ -270,7 +270,9 @@ internal partial class ConsoleManager : IServiceType
                 for (var i = parsedArguments.Count; i < entry.ValidArguments.Count; i++)
                 {
                     var argument = entry.ValidArguments[i];
-                    if (argument.DefaultValue == null)
+                    
+                    // If the default value is DBNull, we need to error out as that means it was not specified
+                    if (argument.DefaultValue == DBNull.Value)
                     {
                         Log.Error("Not enough arguments for command {CommandName}", entryName);
                         PrintUsage(entry);
@@ -382,11 +384,8 @@ internal partial class ConsoleManager : IServiceType
         /// <param name="defaultValue">The default value to use if none is specified.</param>
         /// <returns>An <see cref="ArgumentInfo"/> instance.</returns>
         /// <exception cref="ArgumentException">Thrown if the given type cannot be handled by the console system.</exception>
-        protected static ArgumentInfo TypeToArgument(Type type, object? defaultValue = null)
+        protected static ArgumentInfo TypeToArgument(Type type, object? defaultValue)
         {
-            // If the default value is DBNull, we want to treat it as null
-            defaultValue = defaultValue == DBNull.Value ? null : defaultValue;
-            
             if (type == typeof(string))
                 return new ArgumentInfo(ConsoleArgumentType.String, defaultValue);
             
@@ -490,7 +489,7 @@ internal partial class ConsoleManager : IServiceType
         public ConsoleVariable(string name, string description)
             : base(name, description)
         {
-            this.ValidArguments = new List<ArgumentInfo> { TypeToArgument(typeof(T)) };
+            this.ValidArguments = new List<ArgumentInfo> { TypeToArgument(typeof(T), null) };
         }
         
         /// <inheritdoc/>
@@ -500,7 +499,20 @@ internal partial class ConsoleManager : IServiceType
         public override bool Invoke(IEnumerable<object> arguments)
         {
             var first = arguments.FirstOrDefault();
-            if (first == null || first.GetType() != typeof(T))
+
+            if (first == null)
+            {
+                // Invert the value if it's a boolean
+                if (this.Value is bool boolValue)
+                {
+                    this.Value = (T)(object)!boolValue;
+                }
+                
+                Log.WriteLog(LogEventLevel.Information, "{VariableName} = {VariableValue}", null, this.Name, this.Value);
+                return true;
+            }
+            
+            if (first.GetType() != typeof(T))
                 throw new ArgumentException($"Console variable must be set with an argument of type {typeof(T).Name}.");
 
             this.Value = (T)first;

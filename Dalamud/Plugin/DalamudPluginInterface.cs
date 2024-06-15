@@ -9,7 +9,6 @@ using System.Reflection;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
-using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
@@ -20,14 +19,13 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
-
-using static Dalamud.Interface.Internal.Windows.PluginInstaller.PluginInstallerWindow;
 
 namespace Dalamud.Plugin;
 
@@ -114,7 +112,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a value indicating whether or not auto-updates have already completed this session.
     /// </summary>
-    public bool IsAutoUpdateComplete => Service<ChatHandlers>.Get().IsAutoUpdateComplete;
+    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.Get().IsAutoUpdateComplete;
 
     /// <summary>
     /// Gets the repository from which this plugin was installed.
