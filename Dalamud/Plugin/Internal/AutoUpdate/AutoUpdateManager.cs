@@ -407,7 +407,7 @@ internal class AutoUpdateManager : IServiceType
         var condition = Service<Condition>.Get();
         return this.IsPluginManagerReady() &&
             !this.dalamudInterface.IsPluginInstallerOpen && 
-            condition.Only(ConditionFlag.NormalConditions,
+            condition.OnlyAny(ConditionFlag.NormalConditions,
                               ConditionFlag.Jumping,
                               ConditionFlag.Mounted,
                               ConditionFlag.UsingParasol);
