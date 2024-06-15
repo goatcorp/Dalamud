@@ -17,6 +17,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -26,8 +27,6 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 internal sealed class ChangelogWindow : Window, IDisposable
 {
-    private const AutoUpdateBehavior DefaultAutoUpdateBehavior = AutoUpdateBehavior.UpdateMainRepo;
-    
     private const string WarrantsChangelogForMajorMinor = "9.0.";
     
     private const string ChangeLog =
@@ -77,7 +76,10 @@ internal sealed class ChangelogWindow : Window, IDisposable
     private bool isFadingOutForStateChange = false;
     private State? stateAfterFadeOut;
     
-    private AutoUpdateBehavior autoUpdateBehavior = DefaultAutoUpdateBehavior;
+    private AutoUpdateBehavior? chosenAutoUpdateBehavior;
+    
+    private int currentFtueLevel;
+    private int updatedFtueLevel;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
@@ -147,8 +149,10 @@ internal sealed class ChangelogWindow : Window, IDisposable
         this.titleFade.Reset();
         this.fadeOut.Reset();
         this.needFadeRestart = true;
+
+        this.chosenAutoUpdateBehavior = null;
         
-        this.autoUpdateBehavior = DefaultAutoUpdateBehavior;
+        this.currentFtueLevel = Service<DalamudConfiguration>.Get().SeenFtueLevel;
         
         base.OnOpen();
     }
@@ -162,7 +166,13 @@ internal sealed class ChangelogWindow : Window, IDisposable
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(false);
 
         var configuration = Service<DalamudConfiguration>.Get();
-        configuration.AutoUpdateBehavior = this.autoUpdateBehavior;
+        
+        if (this.chosenAutoUpdateBehavior.HasValue)
+        {
+            configuration.AutoUpdateBehavior = this.chosenAutoUpdateBehavior.Value;
+        }
+        
+        configuration.SeenFtueLevel = this.updatedFtueLevel;
         configuration.QueueSave();
     }
 
@@ -302,7 +312,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                     this.fadeOut.Restart();
                 }
                 
-                void DrawNextButton(State nextState)
+                bool DrawNextButton(State nextState)
                 {
                     // Draw big, centered next button at the bottom of the window
                     var buttonHeight = 30 * ImGuiHelpers.GlobalScale;
@@ -314,7 +324,10 @@ internal sealed class ChangelogWindow : Window, IDisposable
                     if (ImGui.Button(buttonText, new Vector2(buttonWidth, buttonHeight)) && !this.isFadingOutForStateChange)
                     {
                         GoToNextState(nextState);
+                        return true;
                     }
+
+                    return false;
                 }
                 
                 switch (this.state)
@@ -347,7 +360,18 @@ internal sealed class ChangelogWindow : Window, IDisposable
                             this.apiBumpExplainerTexture.Value.ImGuiHandle,
                             this.apiBumpExplainerTexture.Value.Size);
                         
-                        DrawNextButton(State.AskAutoUpdate);
+                        if (this.currentFtueLevel < FtueLevels.AutoUpdateBehavior)
+                        {
+                            if (DrawNextButton(State.AskAutoUpdate))
+                            {
+                                this.updatedFtueLevel = this.currentFtueLevel = FtueLevels.AutoUpdateBehavior;
+                            }
+                        }
+                        else
+                        {
+                            DrawNextButton(State.Links);
+                        }
+                        
                         break;
                     
                     case State.AskAutoUpdate:
@@ -364,16 +388,6 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         
                         ImGuiHelpers.ScaledDummy(15);
                         
-                        /*
-                        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateBehavior",
-                                                                "When the game starts..."));
-                        var behaviorInt = (int)this.autoUpdateBehavior;
-                        ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateNone", "Do not check for updates automatically"), ref behaviorInt, (int)AutoUpdateBehavior.None);
-                        ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateNotify", "Only notify me of new updates"), ref behaviorInt, (int)AutoUpdateBehavior.OnlyNotify);
-                        ImGui.RadioButton(Loc.Localize("DalamudSettingsAutoUpdateMainRepo", "Auto-update main repository plugins"), ref behaviorInt, (int)AutoUpdateBehavior.UpdateMainRepo);
-                        this.autoUpdateBehavior = (AutoUpdateBehavior)behaviorInt;
-                        */
-                        
                         bool DrawCenteredButton(string text, float height)
                         {
                             var buttonHeight = height * ImGuiHelpers.GlobalScale;
@@ -388,7 +402,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         {
                             if (DrawCenteredButton("Enable auto-updates", 30))
                             { 
-                                this.autoUpdateBehavior = AutoUpdateBehavior.UpdateMainRepo;
+                                this.chosenAutoUpdateBehavior = AutoUpdateBehavior.UpdateMainRepo;
                                 GoToNextState(State.Links);
                             }
                         }
@@ -401,7 +415,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                             buttonColor.Push(ImGuiCol.Border, ImGuiColors.DalamudGrey3);
                             if (DrawCenteredButton("Disable auto-updates", 25))
                             { 
-                                this.autoUpdateBehavior = AutoUpdateBehavior.OnlyNotify;
+                                this.chosenAutoUpdateBehavior = AutoUpdateBehavior.OnlyNotify;
                                 GoToNextState(State.Links);
                             }
                         }
@@ -502,5 +516,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
     /// </summary>
     public void Dispose()
     {
+    }
+
+    private static class FtueLevels
+    {
+        public const int Default = 1;
+        public const int AutoUpdateBehavior = 2;
     }
 }
