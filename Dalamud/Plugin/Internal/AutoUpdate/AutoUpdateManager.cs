@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 
+using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
@@ -21,8 +23,6 @@ using Dalamud.Plugin.Services;
 using ImGuiNET;
 
 namespace Dalamud.Plugin.Internal.AutoUpdate;
-
-// TODO: Loc
 
 /// <summary>
 /// Class to manage automatic updates for plugins.
@@ -262,8 +262,8 @@ internal class AutoUpdateManager : IServiceType
 
         var notification = this.GetBaseNotification(new Notification
         {
-            Title = "Updating plugins...",
-            Content = $"Preparing to update {updatablePlugins.Count} plugins...",
+            Title = Locs.NotificationTitleUpdatingPlugins,
+            Content = Locs.NotificationContentPreparingToUpdate(updatablePlugins.Count),
             Type = NotificationType.Info,
             InitialDuration = TimeSpan.MaxValue,
             ShowIndeterminateIfNoExpiry = false,
@@ -276,7 +276,7 @@ internal class AutoUpdateManager : IServiceType
         var progress = new Progress<PluginManager.PluginUpdateProgress>();
         progress.ProgressChanged += (_, progress) =>
         {
-            notification.Content = $"Updating {progress.CurrentPluginManifest.Name}...";
+            notification.Content = Locs.NotificationContentUpdating(progress.CurrentPluginManifest.Name);
             notification.Progress = (float)progress.PluginsProcessed / progress.TotalPlugins;
         };
         
@@ -289,7 +289,7 @@ internal class AutoUpdateManager : IServiceType
         notification.DrawActions += _ =>
         {
             ImGuiHelpers.ScaledDummy(2);
-            if (DalamudComponents.PrimaryButton("Open Plugin Installer"))
+            if (DalamudComponents.PrimaryButton(Locs.NotificationButtonOpenPluginInstaller))
             {
                 Service<DalamudInterface>.Get().OpenPluginInstaller();
                 notification.DismissNow();
@@ -305,23 +305,23 @@ internal class AutoUpdateManager : IServiceType
             // Janky way to make sure the notification does not change before it's minimized...
             await Task.Delay(500);
             
-            notification.Title = "Updates successful!";
-            notification.MinimizedText = "Plugins updated successfully.";
+            notification.Title = Locs.NotificationTitleUpdatesSuccessful;
+            notification.MinimizedText = Locs.NotificationContentUpdatesSuccessfulMinimized;
             notification.Type = NotificationType.Success;
-            notification.Content = "All plugins have been updated successfully.";
+            notification.Content = Locs.NotificationContentUpdatesSuccessful;
         }
         else
         {
-            notification.Title = "Updates failed!";
-            notification.Title = "Plugins failed to update.";
+            notification.Title = Locs.NotificationTitleUpdatesFailed;
+            notification.MinimizedText = Locs.NotificationContentUpdatesFailedMinimized;
             notification.Type = NotificationType.Error;
-            notification.Content = "Some plugins failed to update. Please check the plugin installer for more information.";
+            notification.Content = Locs.NotificationContentUpdatesFailed;
             
             var failedPlugins = pluginUpdateStatusEnumerable
                                 .Where(x => x.Status != PluginUpdateStatus.StatusKind.Success)
                                 .Select(x => x.Name).ToList();
             
-            notification.Content += $"\nFailed plugins: {string.Join(", ", failedPlugins)}";
+            notification.Content += "\n" + Locs.NotificationContentFailedPlugins(failedPlugins);
         }
     }
 
@@ -332,8 +332,9 @@ internal class AutoUpdateManager : IServiceType
 
         var notification = this.GetBaseNotification(new Notification
         {
-            Title = "Updates available!",
-            Content = $"There are {updatablePlugins.Count} plugins that can be updated.",
+            Title = Locs.NotificationTitleUpdatesAvailable,
+            Content = Locs.NotificationContentUpdatesAvailable(updatablePlugins.Count),
+            MinimizedText = Locs.NotificationContentUpdatesAvailableMinimized(updatablePlugins.Count),
             Type = NotificationType.Info,
             InitialDuration = TimeSpan.MaxValue,
             ShowIndeterminateIfNoExpiry = false,
@@ -344,14 +345,14 @@ internal class AutoUpdateManager : IServiceType
         {
             ImGuiHelpers.ScaledDummy(2);
 
-            if (DalamudComponents.PrimaryButton("Update"))
+            if (DalamudComponents.PrimaryButton(Locs.NotificationButtonUpdate))
             {
                 this.KickOffAutoUpdates(updatablePlugins);
                 notification.DismissNow();
             }
 
             ImGui.SameLine();
-            if (DalamudComponents.SecondaryButton("Open installer"))
+            if (DalamudComponents.SecondaryButton(Locs.NotificationButtonOpenPluginInstaller))
             {
                 Service<DalamudInterface>.Get().OpenPluginInstaller();
                 notification.DismissNow();
@@ -415,5 +416,43 @@ internal class AutoUpdateManager : IServiceType
     private bool IsPluginManagerReady()
     {
         return this.pluginManager.ReposReady && this.pluginManager.PluginsReady && !this.pluginManager.SafeMode;
+    }
+
+    private static class Locs
+    {
+        public static string NotificationButtonOpenPluginInstaller => Loc.Localize("AutoUpdateOpenPluginInstaller", "Open installer");
+
+        public static string NotificationButtonUpdate => Loc.Localize("AutoUpdateUpdate", "Update");
+        
+        public static string NotificationTitleUpdatesAvailable => Loc.Localize("AutoUpdateUpdatesAvailable", "Updates available!");
+        
+        public static string NotificationTitleUpdatesSuccessful => Loc.Localize("AutoUpdateUpdatesSuccessful", "Updates successful!");
+        
+        public static string NotificationTitleUpdatingPlugins => Loc.Localize("AutoUpdateUpdatingPlugins", "Updating plugins...");
+        
+        public static string NotificationTitleUpdatesFailed => Loc.Localize("AutoUpdateUpdatesFailed", "Updates failed!");
+        
+        public static string NotificationContentUpdatesSuccessful => Loc.Localize("AutoUpdateUpdatesSuccessfulContent", "All plugins have been updated successfully.");
+        
+        public static string NotificationContentUpdatesSuccessfulMinimized => Loc.Localize("AutoUpdateUpdatesSuccessfulContentMinimized", "Plugins updated successfully.");
+        
+        public static string NotificationContentUpdatesFailed => Loc.Localize("AutoUpdateUpdatesFailedContent", "Some plugins failed to update. Please check the plugin installer for more information.");
+        
+        public static string NotificationContentUpdatesFailedMinimized => Loc.Localize("AutoUpdateUpdatesFailedContentMinimized", "Plugins failed to update.");
+        
+        public static string NotificationContentUpdatesAvailable(int numUpdates)
+            => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "There are {0} plugins that can be updated."), numUpdates);
+        
+        public static string NotificationContentUpdatesAvailableMinimized(int numUpdates)
+            => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "{0} updates available."), numUpdates);
+        
+        public static string NotificationContentPreparingToUpdate(int numPlugins)
+            => string.Format(Loc.Localize("AutoUpdatePreparingToUpdate", "Preparing to update {0} plugins..."), numPlugins);
+        
+        public static string NotificationContentUpdating(string name)
+            => string.Format(Loc.Localize("AutoUpdateUpdating", "Updating {0}..."), name);
+        
+        public static string NotificationContentFailedPlugins(IEnumerable<string> failedPlugins)
+            => string.Format(Loc.Localize("AutoUpdateFailedPlugins", "Failed plugins: {0}"), string.Join(", ", failedPlugins));
     }
 }
