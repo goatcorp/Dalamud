@@ -99,7 +99,7 @@ public unsafe partial class GameObject
     ///
     /// Not to be confused with <see cref="EntityId"/>.
     /// </summary>
-    public ulong GameObjectId => this.Struct->GetObjectId();
+    public ulong GameObjectId => this.Struct->GetGameObjectId();
 
     /// <summary>
     /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.

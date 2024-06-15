@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -274,7 +274,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         foreach (var index in Enumerable.Range(0, addon->UldManager.NodeListCount))
         {
             var node = addon->UldManager.NodeList[index];
-            if (node->IsVisible)
+            if (node->IsVisible())
             {
                 var nodeId = node->NodeId;
                 var nodeType = node->Type;
@@ -289,7 +289,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     additionalWidth += node->Width + this.configuration.DtrSpacing;
                 }
                 else if ((nodeType == NodeType.Res || (ushort)nodeType >= 1000) &&
-                         (node->ChildNode == null || node->ChildNode->IsVisible))
+                         (node->ChildNode == null || node->ChildNode->IsVisible()))
                 {
                     // Native top-level node. These are are either res nodes or button components.
                     // Both the node and its child (if it has one) must be visible for the node to be counted.

@@ -46,7 +46,7 @@ public unsafe class BattleChara : Character
     /// <summary>
     /// Gets the object ID of the target currently being cast at by the chara.
     /// </summary>
-    public ulong CastTargetObjectId => this.Struct->GetCastInfo()->CastTargetId;
+    public ulong CastTargetObjectId => this.Struct->GetCastInfo()->TargetId;
 
     /// <summary>
     /// Gets the current casting time of the spell being cast by the chara.
