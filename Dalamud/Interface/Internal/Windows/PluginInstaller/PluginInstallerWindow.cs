@@ -207,6 +207,19 @@ internal class PluginInstallerWindow : Window, IDisposable
         EnabledDisabled,
         ProfileOrNot,
     }
+    
+    [Flags] 
+    private enum PluginHeaderFlags
+    {
+        None = 0,
+        IsThirdParty = 1 << 0,
+        HasTrouble = 1 << 1,
+        UpdateAvailable = 1 << 2,
+        IsNew = 1 << 3,
+        IsInstallableOutdated = 1 << 4,
+        IsOrphan = 1 << 5,
+        IsTesting = 1 << 6,
+    }
 
     private bool AnyOperationInProgress => this.installStatus == OperationStatus.InProgress ||
                                            this.updateStatus == OperationStatus.InProgress ||
@@ -1778,22 +1791,62 @@ internal class PluginInstallerWindow : Window, IDisposable
         return ready;
     }
 
-    private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, IPluginManifest manifest, bool isThirdParty, bool trouble, bool updateAvailable, bool isNew, bool installableOutdated, bool isOrphan, Action drawContextMenuAction, int index)
+    private bool DrawPluginCollapsingHeader(string label, LocalPlugin? plugin, IPluginManifest manifest, PluginHeaderFlags flags, Action drawContextMenuAction, int index)
     {
-        ImGui.Separator();
-
         var isOpen = this.openPluginCollapsibles.Contains(index);
 
         var sectionSize = ImGuiHelpers.GlobalScale * 66;
+        var tapeCursor = ImGui.GetCursorPos();
+        
+        ImGui.Separator();
+        
         var startCursor = ImGui.GetCursorPos();
+
+        if (flags.HasFlag(PluginHeaderFlags.IsTesting))
+        {
+            void DrawCautionTape(Vector2 position, Vector2 size, float stripeWidth, float skewAmount)
+            {
+                var wdl = ImGui.GetWindowDrawList();
+
+                var windowPos = ImGui.GetWindowPos();
+                var scroll = new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
+                
+                var adjustedPosition = windowPos + position - scroll;
+                
+                var yellow = ImGui.ColorConvertFloat4ToU32(new Vector4(1.0f, 0.9f, 0.0f, 0.10f));
+                var numStripes = (int)(size.X / stripeWidth) + (int)(size.Y / skewAmount) + 1;  // +1 to cover partial stripe
+
+                for (var i = 0; i < numStripes; i++)
+                {
+                    var x0 = adjustedPosition.X + i * stripeWidth;
+                    var x1 = x0 + stripeWidth;
+                    var y0 = adjustedPosition.Y;
+                    var y1 = y0 + size.Y;
+                    
+                    var p0 = new Vector2(x0, y0);
+                    var p1 = new Vector2(x1, y0);
+                    var p2 = new Vector2(x1 - skewAmount, y1);
+                    var p3 = new Vector2(x0 - skewAmount, y1);
+                    
+                    if (i % 2 != 0)
+                        continue;
+                    
+                    wdl.AddQuadFilled(p0, p1, p2, p3, yellow);
+                }
+            }
+            
+            DrawCautionTape(tapeCursor + new Vector2(0, 1), new Vector2(ImGui.GetWindowWidth(), sectionSize + ImGui.GetStyle().ItemSpacing.Y), ImGuiHelpers.GlobalScale * 40, 20);
+        }
 
         ImGui.PushStyleColor(ImGuiCol.Button, isOpen ? new Vector4(0.5f, 0.5f, 0.5f, 0.1f) : Vector4.Zero);
 
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.5f, 0.5f, 0.5f, 0.2f));
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.5f, 0.5f, 0.5f, 0.35f));
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+        
+        ImGui.SetCursorPos(tapeCursor);
 
-        if (ImGui.Button($"###plugin{index}CollapsibleBtn", new Vector2(ImGui.GetContentRegionAvail().X, sectionSize)))
+        if (ImGui.Button($"###plugin{index}CollapsibleBtn", new Vector2(ImGui.GetContentRegionAvail().X, sectionSize + ImGui.GetStyle().ItemSpacing.Y)))
         {
             if (isOpen)
             {
@@ -1825,7 +1878,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (ImGui.IsRectVisible(rectOffset + cursorBeforeImage, rectOffset + cursorBeforeImage + iconSize))
         {
             var iconTex = this.imageCache.DefaultIcon;
-            var hasIcon = this.imageCache.TryGetIcon(plugin, manifest, isThirdParty, out var cachedIconTex, out var loadedSince);
+            var hasIcon = this.imageCache.TryGetIcon(plugin, manifest, flags.HasFlag(PluginHeaderFlags.IsThirdParty), out var cachedIconTex, out var loadedSince);
             if (hasIcon && cachedIconTex != null)
             {
                 iconTex = cachedIconTex;
@@ -1839,7 +1892,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 float EaseOutCubic(float t) => 1 - MathF.Pow(1 - t, 3);
 
                 var secondsSinceLoad = (float)DateTime.Now.Subtract(loadedSince.Value).TotalSeconds;
-                var fadeTo = pluginDisabled || installableOutdated ? 0.4f : 1f;
+                var fadeTo = pluginDisabled || flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated) ? 0.4f : 1f;
 
                 float Interp(float to) => Math.Clamp(EaseOutCubic(Math.Min(secondsSinceLoad, fadeTime) / fadeTime) * to, 0, 1);
                 iconAlpha = Interp(fadeTo);
@@ -1857,11 +1910,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         var isLoaded = plugin is { IsLoaded: true };
 
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, overlayAlpha);
-        if (updateAvailable)
+        if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
             ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
-        else if ((trouble && !pluginDisabled) || isOrphan)
+        else if ((flags.HasFlag(PluginHeaderFlags.HasTrouble) && !pluginDisabled) || flags.HasFlag(PluginHeaderFlags.IsOrphan))
             ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
-        else if (installableOutdated)
+        else if (flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
             ImGui.Image(this.imageCache.OutdatedInstallableIcon.ImGuiHandle, iconSize);
         else if (pluginDisabled)
             ImGui.Image(this.imageCache.DisabledIcon.ImGuiHandle, iconSize);
@@ -1905,7 +1958,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.Wrench, devIconOutlineColor, devIconColor);
                 this.VerifiedCheckmarkFadeTooltip(label, "This is a dev plugin. You added it.");
             }
-            else if (!isThirdParty)
+            else if (!flags.HasFlag(PluginHeaderFlags.IsThirdParty))
             {
                 this.DrawFontawesomeIconOutlined(FontAwesomeIcon.CheckCircle, verifiedOutlineColor, verifiedIconColor);
                 this.VerifiedCheckmarkFadeTooltip(label, Locs.VerifiedCheckmark_VerifiedTooltip);
@@ -1925,7 +1978,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SameLine();
         ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
 
-        if (isNew)
+        if (flags.HasFlag(PluginHeaderFlags.IsNew))
         {
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.TankBlue, Locs.PluginTitleMod_New);
@@ -1935,12 +1988,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPos(cursor);
 
         // Outdated warning
-        if (plugin is { IsOutdated: true, IsBanned: false } || installableOutdated)
+        if (plugin is { IsOutdated: true, IsBanned: false } || flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
 
             var bodyText = Locs.PluginBody_Outdated + " ";
-            if (updateAvailable)
+            if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
                 bodyText += Locs.PluginBody_Outdated_CanNowUpdate;
             else
                 bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
@@ -1958,7 +2011,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                                : Locs.PluginBody_BannedReason(plugin.BanReason);
             bodyText += " ";
 
-            if (updateAvailable)
+            if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
                 bodyText += Locs.PluginBody_Outdated_CanNowUpdate;
             else
                 bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
@@ -2002,7 +2055,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPosX(cursor.X);
 
         // Description
-        if (plugin is null or { IsOutdated: false, IsBanned: false } && !trouble)
+        if (plugin is null or { IsOutdated: false, IsBanned: false } && !flags.HasFlag(PluginHeaderFlags.HasTrouble))
         {
             if (!string.IsNullOrWhiteSpace(manifest.Punchline))
             {
@@ -2123,11 +2176,22 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             label += Locs.PluginTitleMod_TestingAvailable;
         }
+        
+        var isThirdParty = manifest.SourceRepo.IsThirdParty;
 
         ImGui.PushID($"available{index}{manifest.InternalName}");
-
-        var isThirdParty = manifest.SourceRepo.IsThirdParty;
-        if (this.DrawPluginCollapsingHeader(label, null, manifest, isThirdParty, false, false, !wasSeen, isOutdated, false, () => this.DrawAvailablePluginContextMenu(manifest), index))
+        
+        var flags = PluginHeaderFlags.None;
+        if (isThirdParty)
+            flags |= PluginHeaderFlags.IsThirdParty;
+        if (!wasSeen)
+            flags |= PluginHeaderFlags.IsNew;
+        if (isOutdated)
+            flags |= PluginHeaderFlags.IsInstallableOutdated;
+        if (useTesting || manifest.IsTestingExclusive)
+            flags |= PluginHeaderFlags.IsTesting;
+        
+        if (this.DrawPluginCollapsingHeader(label, null, manifest, flags, () => this.DrawAvailablePluginContextMenu(manifest), index))
         {
             if (!wasSeen)
                 configuration.SeenPluginInternalName.Add(manifest.InternalName);
@@ -2391,7 +2455,19 @@ internal class PluginInstallerWindow : Window, IDisposable
         var hasChangelog = !applicableChangelog.IsNullOrWhitespace();
         var didDrawChangelogInsideCollapsible = false;
 
-        if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, plugin.IsThirdParty, trouble, availablePluginUpdate != default, false, false, plugin.IsOrphaned, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
+        var flags = PluginHeaderFlags.None;
+        if (plugin.IsThirdParty)
+            flags |= PluginHeaderFlags.IsThirdParty;
+        if (trouble)
+            flags |= PluginHeaderFlags.HasTrouble;
+        if (availablePluginUpdate != default)
+            flags |= PluginHeaderFlags.UpdateAvailable;
+        if (plugin.IsOrphaned)
+            flags |= PluginHeaderFlags.IsOrphan;
+        if (plugin.IsTesting)
+            flags |= PluginHeaderFlags.IsTesting;
+
+        if (this.DrawPluginCollapsingHeader(label, plugin, plugin.Manifest, flags, () => this.DrawInstalledPluginContextMenu(plugin, testingOptIn), index))
         {
             if (!this.WasPluginSeen(plugin.Manifest.InternalName))
                 configuration.SeenPluginInternalName.Add(plugin.Manifest.InternalName);
