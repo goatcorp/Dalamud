@@ -40,6 +40,12 @@ public interface ICondition
     
     /// <inheritdoc cref="this[int]"/>
     public bool this[ConditionFlag flag] => this[(int)flag];
+    
+    /// <summary>
+    /// Convert the conditions array to a set of all set condition flags.
+    /// </summary>
+    /// <returns>Returns a set.</returns>
+    public IReadOnlySet<ConditionFlag> AsReadOnlySet();
 
     /// <summary>
     /// Check if any condition flags are set.
@@ -55,8 +61,14 @@ public interface ICondition
     public bool Any(params ConditionFlag[] flags);
 
     /// <summary>
-    /// Check that *only* any of the condition flags specified are set. Useful to test if the client is in one of any
-    /// of a few specific condiiton states.
+    /// Check that the specified condition flags are *not* present in the current conditions.
+    /// </summary>
+    /// <param name="except">The array of flags to check.</param>
+    /// <returns>Returns false if any of the listed conditions are present, true otherwise.</returns>
+    public bool AnyExcept(params ConditionFlag[] except);
+
+    /// <summary>
+    /// Check that *only* any of the condition flags specified are set.
     /// </summary>
     /// <param name="other">The array of flags to check.</param>
     /// <returns>Returns a bool.</returns>
@@ -68,11 +80,5 @@ public interface ICondition
     /// </summary>
     /// <param name="other">The array of flags to check.</param>
     /// <returns>Returns a bool.</returns>
-    public bool OnlyAll(params ConditionFlag[] other);
-    
-    /// <summary>
-    /// Convert the conditions array to a set of all set condition flags.
-    /// </summary>
-    /// <returns>Returns a set.</returns>
-    public IReadOnlySet<ConditionFlag> AsReadOnlySet();
+    public bool EqualTo(params ConditionFlag[] other);
 }
