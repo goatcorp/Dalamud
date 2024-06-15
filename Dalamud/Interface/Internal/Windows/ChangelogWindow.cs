@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -78,8 +79,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
     
     private AutoUpdateBehavior? chosenAutoUpdateBehavior;
     
-    private int currentFtueLevel;
-    private int updatedFtueLevel;
+    private Dictionary<string, int> currentFtueLevels = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
@@ -152,7 +152,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
         this.chosenAutoUpdateBehavior = null;
         
-        this.currentFtueLevel = Service<DalamudConfiguration>.Get().SeenFtueLevel;
+        this.currentFtueLevels = Service<DalamudConfiguration>.Get().SeenFtueLevels;
         
         base.OnOpen();
     }
@@ -172,7 +172,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
             configuration.AutoUpdateBehavior = this.chosenAutoUpdateBehavior.Value;
         }
         
-        configuration.SeenFtueLevel = this.updatedFtueLevel;
+        configuration.SeenFtueLevels = this.currentFtueLevels;
         configuration.QueueSave();
     }
 
@@ -360,11 +360,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
                             this.apiBumpExplainerTexture.Value.ImGuiHandle,
                             this.apiBumpExplainerTexture.Value.Size);
                         
-                        if (this.currentFtueLevel < FtueLevels.AutoUpdateBehavior)
+                        if (!this.currentFtueLevels.TryGetValue(FtueLevels.AutoUpdate.Name, out var autoUpdateLevel) || autoUpdateLevel < FtueLevels.AutoUpdate.AutoUpdateInitial)
                         {
                             if (DrawNextButton(State.AskAutoUpdate))
                             {
-                                this.updatedFtueLevel = this.currentFtueLevel = FtueLevels.AutoUpdateBehavior;
+                                this.currentFtueLevels[FtueLevels.AutoUpdate.Name] = FtueLevels.AutoUpdate.AutoUpdateInitial;
                             }
                         }
                         else
@@ -520,7 +520,10 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
     private static class FtueLevels
     {
-        public const int Default = 1;
-        public const int AutoUpdateBehavior = 2;
+        public static class AutoUpdate
+        {
+            public const string Name = "AutoUpdate";
+            public const int AutoUpdateInitial = 1;
+        }
     }
 }

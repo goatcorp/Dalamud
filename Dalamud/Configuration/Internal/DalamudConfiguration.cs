@@ -80,10 +80,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public string? LastVersion { get; set; } = null;
 
     /// <summary>
-    /// Gets or sets a value indicating the last seen FTUE version.
-    /// Unused for now, added to prevent existing users from seeing level 0 FTUE.
+    /// Gets or sets a dictionary of seen FTUE levels.
     /// </summary>
-    public int SeenFtueLevel { get; set; } = 1;
+    public Dictionary<string, int> SeenFtueLevels { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the last loaded Dalamud version.
