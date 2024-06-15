@@ -384,7 +384,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                                                                 "You can always update your plugins manually by clicking the update button in the plugin list. " +
                                                                 "You can also opt into updates for specific plugins by right-clicking them and selecting \"Always auto-update\"."));
                         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
-                                                                "Dalamud will never bother you about updates while you are not idle."));
+                                                                "Dalamud will only notify you about updates while you are idle."));
                         
                         ImGuiHelpers.ScaledDummy(15);
                         
