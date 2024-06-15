@@ -3,8 +3,6 @@
 using CheapLoc;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
-using Dalamud.Plugin.Internal.AutoUpdate;
-
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
@@ -21,8 +19,9 @@ public class SettingsTabGeneral : SettingsTab
             Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."),
             c => c.GeneralChatType,
             (v, c) => c.GeneralChatType = v,
-            validity: (v) =>
+            warning: v =>
             {
+                // TODO: Maybe actually implement UI for the validity check...
                 if (v == XivChatType.None)
                     return Loc.Localize("DalamudSettingsChannelNone", "Do not pick \"None\".");
 
