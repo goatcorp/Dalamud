@@ -726,7 +726,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingAll;
                 
                 var toUpdate = this.pluginListUpdatable
-                                   .Where(x => x.InstalledPlugin.IsLoaded)
+                                   .Where(x => x.InstalledPlugin.IsWantedByAnyProfile)
                                    .ToList();
 
                 Task.Run(() => pluginManager.UpdatePluginsAsync(toUpdate, false))

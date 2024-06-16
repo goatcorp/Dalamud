@@ -274,10 +274,10 @@ internal class AutoUpdateManager : IServiceType
         });
 
         var progress = new Progress<PluginManager.PluginUpdateProgress>();
-        progress.ProgressChanged += (_, progress) =>
+        progress.ProgressChanged += (_, updateProgress) =>
         {
-            notification.Content = Locs.NotificationContentUpdating(progress.CurrentPluginManifest.Name);
-            notification.Progress = (float)progress.PluginsProcessed / progress.TotalPlugins;
+            notification.Content = Locs.NotificationContentUpdating(updateProgress.CurrentPluginManifest.Name);
+            notification.Progress = (float)updateProgress.PluginsProcessed / updateProgress.TotalPlugins;
         };
         
         var pluginStates = await this.pluginManager.UpdatePluginsAsync(updatablePlugins, this.isDryRun.Value, true, progress);
