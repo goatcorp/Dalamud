@@ -14,7 +14,6 @@ namespace Dalamud.Interface;
 /// <summary>
 /// Class responsible for managing elements in the title screen menu.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
 {
@@ -188,7 +187,6 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
 /// Plugin-scoped version of a TitleScreenMenu service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<ITitleScreenMenu>]

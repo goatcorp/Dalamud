@@ -16,7 +16,6 @@ namespace Dalamud.Game.ClientState.GamePad;
 /// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IGamepadState>]

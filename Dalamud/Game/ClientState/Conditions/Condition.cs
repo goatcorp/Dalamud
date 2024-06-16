@@ -9,7 +9,6 @@ namespace Dalamud.Game.ClientState.Conditions;
 /// <summary>
 /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed class Condition : IInternalDisposableService, ICondition
 {
@@ -138,7 +137,6 @@ internal sealed class Condition : IInternalDisposableService, ICondition
 /// Plugin-scoped version of a Condition service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<ICondition>]

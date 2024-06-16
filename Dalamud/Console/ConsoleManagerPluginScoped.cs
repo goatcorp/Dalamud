@@ -15,7 +15,6 @@ namespace Dalamud.Console;
 /// Plugin-scoped version of the console service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IConsole>]

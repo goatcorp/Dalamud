@@ -13,7 +13,6 @@ namespace Dalamud.Game.ClientState.Fates;
 /// This collection represents the currently available Fate events.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IFateTable>]

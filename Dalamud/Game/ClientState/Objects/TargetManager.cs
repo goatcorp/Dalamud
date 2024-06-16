@@ -10,7 +10,6 @@ namespace Dalamud.Game.ClientState.Objects;
 /// Get and set various kinds of targets for the player.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<ITargetManager>]

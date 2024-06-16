@@ -14,7 +14,6 @@ namespace Dalamud.Game.Gui.PartyFinder;
 /// <summary>
 /// This class handles interacting with the native PartyFinder window.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
@@ -127,7 +126,6 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
 /// A scoped variant of the PartyFinderGui service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IPartyFinderGui>]

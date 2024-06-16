@@ -21,7 +21,6 @@ namespace Dalamud.Interface.Textures.Internal;
 
 /// <summary>Plugin-scoped version of <see cref="TextureManager"/>.</summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<ITextureProvider>]

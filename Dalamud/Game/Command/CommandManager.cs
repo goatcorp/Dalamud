@@ -18,7 +18,6 @@ namespace Dalamud.Game.Command;
 /// <summary>
 /// This class manages registered in-game slash commands.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed class CommandManager : IInternalDisposableService, ICommandManager
 {
@@ -176,7 +175,6 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
 /// Plugin-scoped version of a AddonLifecycle service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<ICommandManager>]

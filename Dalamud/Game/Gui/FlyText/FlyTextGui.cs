@@ -15,7 +15,6 @@ namespace Dalamud.Game.Gui.FlyText;
 /// <summary>
 /// This class facilitates interacting with and creating native in-game "fly text".
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 {
@@ -273,7 +272,6 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 /// Plugin scoped version of FlyTextGui.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IFlyTextGui>]

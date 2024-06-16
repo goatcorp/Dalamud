@@ -23,7 +23,6 @@ namespace Dalamud.Game.ClientState.Keys;
 /// index &amp; 3 = short key press (ephemeral).
 /// </remarks>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IKeyState>]

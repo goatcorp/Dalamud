@@ -13,7 +13,6 @@ namespace Dalamud.Logging;
 /// Implementation of <see cref="IPluginLog"/>.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IPluginLog>]
