@@ -7,7 +7,7 @@ namespace Dalamud.Game.Network.Structures;
 /// <summary>
 /// This class represents the current market board offerings from a game network packet.
 /// </summary>
-public class MarketBoardCurrentOfferings
+public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
 {
     private MarketBoardCurrentOfferings()
     {
@@ -16,7 +16,10 @@ public class MarketBoardCurrentOfferings
     /// <summary>
     /// Gets the list of individual item listings.
     /// </summary>
-    public List<MarketBoardItemListing> ItemListings { get; } = new();
+    IReadOnlyList<IMarketBoardItemListing> IMarketBoardCurrentOfferings.ItemListings => this.InternalItemListings;
+
+    internal List<MarketBoardItemListing> InternalItemListings { get; set; } = new List<MarketBoardItemListing>();
+
 
     /// <summary>
     /// Gets the listing end index.
@@ -45,6 +48,8 @@ public class MarketBoardCurrentOfferings
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
 
+        var listings = new List<MarketBoardItemListing>();
+
         for (var i = 0; i < 10; i++)
         {
             var listingEntry = new MarketBoardItemListing();
@@ -64,6 +69,8 @@ public class MarketBoardCurrentOfferings
             reader.ReadUInt16(); // durability
             reader.ReadUInt16(); // spiritbond
 
+            var materiaList = new List<IItemMateria>();
+
             for (var materiaIndex = 0; materiaIndex < 5; materiaIndex++)
             {
                 var materiaVal = reader.ReadUInt16();
@@ -74,8 +81,10 @@ public class MarketBoardCurrentOfferings
                 };
 
                 if (materiaEntry.MateriaId != 0)
-                    listingEntry.Materia.Add(materiaEntry);
+                    materiaList.Add(materiaEntry);
             }
+
+            listingEntry.Materia = materiaList;
 
             reader.ReadUInt16();
             reader.ReadUInt32();
@@ -92,9 +101,10 @@ public class MarketBoardCurrentOfferings
             reader.ReadUInt32();
 
             if (listingEntry.CatalogId != 0)
-                output.ItemListings.Add(listingEntry);
+                listings.Add(listingEntry);
         }
 
+        output.InternalItemListings = listings;
         output.ListingIndexEnd = reader.ReadByte();
         output.ListingIndexStart = reader.ReadByte();
         output.RequestId = reader.ReadUInt16();
@@ -105,7 +115,7 @@ public class MarketBoardCurrentOfferings
     /// <summary>
     /// This class represents the current market board offering of a single item from the <see cref="MarketBoardCurrentOfferings"/> network packet.
     /// </summary>
-    public class MarketBoardItemListing
+    public class MarketBoardItemListing : IMarketBoardItemListing
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MarketBoardItemListing"/> class.
@@ -118,6 +128,9 @@ public class MarketBoardCurrentOfferings
         /// Gets the artisan ID.
         /// </summary>
         public ulong ArtisanId { get; internal set; }
+
+        /// <inheritdoc/>
+        public uint ItemId => this.CatalogId;
 
         /// <summary>
         /// Gets the catalog ID.
@@ -147,7 +160,7 @@ public class MarketBoardCurrentOfferings
         /// <summary>
         /// Gets the list of materia attached to this item.
         /// </summary>
-        public List<ItemMateria> Materia { get; } = new();
+        public IReadOnlyList<IItemMateria> Materia { get; internal set; } = new List<IItemMateria>();
 
         /// <summary>
         /// Gets the amount of attached materia.
@@ -202,7 +215,7 @@ public class MarketBoardCurrentOfferings
         /// <summary>
         /// This represents the materia slotted to an <see cref="MarketBoardItemListing"/>.
         /// </summary>
-        public class ItemMateria
+        public class ItemMateria : IItemMateria
         {
             /// <summary>
             /// Initializes a new instance of the <see cref="ItemMateria"/> class.
@@ -223,3 +236,132 @@ public class MarketBoardCurrentOfferings
         }
     }
 }
+
+/// <summary>
+/// An interface that represents the current market board offerings.
+/// </summary>
+public interface IMarketBoardCurrentOfferings
+{
+    /// <summary>
+    /// Gets the list of individual item listings.
+    /// </summary>
+    IReadOnlyList<IMarketBoardItemListing> ItemListings { get; }
+
+    /// <summary>
+    /// Gets the listing end index.
+    /// </summary>
+    int ListingIndexEnd { get; }
+
+    /// <summary>
+    /// Gets the listing start index.
+    /// </summary>
+    int ListingIndexStart { get; }
+
+    /// <summary>
+    /// Gets the request ID.
+    /// </summary>
+    int RequestId { get; }
+}
+
+/// <summary>
+/// An interface that represents the current market board offering of a single item from the <see cref="IMarketBoardCurrentOfferings"/>.
+/// </summary>
+public interface IMarketBoardItemListing
+{
+    /// <summary>
+    /// Gets the artisan ID.
+    /// </summary>
+    ulong ArtisanId { get; }
+
+    /// <summary>
+    /// Gets the item ID.
+    /// </summary>
+    uint ItemId { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the item is HQ.
+    /// </summary>
+    bool IsHq { get; }
+
+    /// <summary>
+    /// Gets the item quantity.
+    /// </summary>
+    uint ItemQuantity { get; }
+
+    /// <summary>
+    /// Gets the time this offering was last reviewed.
+    /// </summary>
+    DateTime LastReviewTime { get; }
+
+    /// <summary>
+    /// Gets the listing ID.
+    /// </summary>
+    ulong ListingId { get; }
+
+    /// <summary>
+    /// Gets the list of materia attached to this item.
+    /// </summary>
+    IReadOnlyList<IItemMateria> Materia { get; }
+
+    /// <summary>
+    /// Gets the amount of attached materia.
+    /// </summary>
+    int MateriaCount { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this item is on a mannequin.
+    /// </summary>
+    bool OnMannequin { get; }
+
+    /// <summary>
+    /// Gets the player name.
+    /// </summary>
+    string PlayerName { get; }
+
+    /// <summary>
+    /// Gets the price per unit.
+    /// </summary>
+    uint PricePerUnit { get; }
+
+    /// <summary>
+    /// Gets the city ID of the retainer selling the item.
+    /// </summary>
+    int RetainerCityId { get; }
+
+    /// <summary>
+    /// Gets the ID of the retainer selling the item.
+    /// </summary>
+    ulong RetainerId { get; }
+
+    /// <summary>
+    /// Gets the name of the retainer.
+    /// </summary>
+    string RetainerName { get; }
+
+    /// <summary>
+    /// Gets the stain or applied dye of the item.
+    /// </summary>
+    int StainId { get; }
+
+    /// <summary>
+    /// Gets the total tax.
+    /// </summary>
+    uint TotalTax { get; }
+}
+
+/// <summary>
+/// An interface that represents the materia slotted to an <see cref="IMarketBoardItemListing"/>.
+/// </summary>
+public interface IItemMateria
+{
+    /// <summary>
+    /// Gets the materia index.
+    /// </summary>
+    int Index { get; }
+
+    /// <summary>
+    /// Gets the materia ID.
+    /// </summary>
+    int MateriaId { get; }
+}
+

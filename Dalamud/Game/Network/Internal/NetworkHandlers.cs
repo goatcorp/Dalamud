@@ -209,6 +209,18 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private event Action<nint>? MarketBoardPurchaseRequestSent;
 
+    public IObservable<MarketBoardPurchase> MbPurchaseObservable => this.mbPurchaseObservable;
+
+    public IObservable<MarketBoardHistory> MbHistoryObservable => this.mbHistoryObservable;
+
+    public IObservable<MarketTaxRates> MbTaxesObservable => this.mbTaxesObservable;
+
+    public IObservable<MarketBoardItemRequest> MbItemRequestObservable => this.mbItemRequestObservable;
+
+    public IObservable<MarketBoardCurrentOfferings> MbOfferingsObservable => this.mbOfferingsObservable;
+
+    public IObservable<MarketBoardPurchaseHandler> MbPurchaseSentObservable => this.mbPurchaseSentObservable;
+
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
@@ -301,7 +313,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private IObservable<List<MarketBoardCurrentOfferings.MarketBoardItemListing>> OnMarketBoardListingsBatch(
         IObservable<MarketBoardItemRequest> start)
     {
-        var offeringsObservable = this.mbOfferingsObservable.Publish().RefCount();
+        var offeringsObservable = this.MbOfferingsObservable.Publish().RefCount();
 
         void LogEndObserved(MarketBoardCurrentOfferings offerings)
         {
@@ -315,7 +327,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Verbose(
                 "Observed element of request {RequestId} with {NumListings} listings",
                 offerings.RequestId,
-                offerings.ItemListings.Count);
+                offerings.InternalItemListings.Count);
         }
 
         IObservable<MarketBoardCurrentOfferings> UntilBatchEnd(MarketBoardItemRequest request)
@@ -327,7 +339,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
 
             return offeringsObservable
-                   .Where(offerings => offerings.ItemListings.All(l => l.CatalogId == request.CatalogId))
+                   .Where(offerings => offerings.InternalItemListings.All(l => l.CatalogId == request.CatalogId))
                    .Skip(totalPackets - 1)
                    .Do(LogEndObserved);
         }
@@ -343,7 +355,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                        new List<MarketBoardCurrentOfferings.MarketBoardItemListing>(),
                        (agg, next) =>
                        {
-                           agg.AddRange(next.ItemListings);
+                           agg.AddRange(next.InternalItemListings);
                            return agg;
                        }));
     }
@@ -351,14 +363,14 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private IObservable<List<MarketBoardHistory.MarketBoardHistoryListing>> OnMarketBoardSalesBatch(
         IObservable<MarketBoardItemRequest> start)
     {
-        var historyObservable = this.mbHistoryObservable.Publish().RefCount();
+        var historyObservable = this.MbHistoryObservable.Publish().RefCount();
 
         void LogHistoryObserved(MarketBoardHistory history)
         {
             Log.Verbose(
                 "Observed history for item {CatalogId} with {NumSales} sales",
                 history.CatalogId,
-                history.HistoryListings.Count);
+                history.InternalHistoryListings.Count);
         }
 
         IObservable<MarketBoardHistory> UntilBatchEnd(MarketBoardItemRequest request)
@@ -379,7 +391,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                        new List<MarketBoardHistory.MarketBoardHistoryListing>(),
                        (agg, next) =>
                        {
-                           agg.AddRange(next.HistoryListings);
+                           agg.AddRange(next.InternalHistoryListings);
                            return agg;
                        }));
     }
@@ -394,7 +406,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                 request.AmountToArrive);
         }
 
-        var startObservable = this.mbItemRequestObservable
+        var startObservable = this.MbItemRequestObservable
                                   .Where(request => request.Ok).Do(LogStartObserved)
                                   .Publish()
                                   .RefCount();
@@ -450,7 +462,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private IDisposable HandleMarketTaxRates()
     {
-        return this.mbTaxesObservable
+        return this.MbTaxesObservable
                    .Where(this.ShouldUpload)
                    .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
@@ -476,8 +488,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private IDisposable HandleMarketBoardPurchaseHandler()
     {
-        return this.mbPurchaseSentObservable
-                   .Zip(this.mbPurchaseObservable)
+        return this.MbPurchaseSentObservable
+                   .Zip(this.MbPurchaseObservable)
                    .Where(this.ShouldUpload)
                    .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
@@ -544,7 +556,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     {
         try
         {
-            if (eventId == 7 && responseId == 8)
+            // Event ID 0 covers the crystarium, 7 covers all other cities
+            if (eventId is 7 or 0 && responseId == 8)
                 this.MarketBoardTaxesReceived?.InvokeSafely((nint)args);
         }
         catch (Exception ex)

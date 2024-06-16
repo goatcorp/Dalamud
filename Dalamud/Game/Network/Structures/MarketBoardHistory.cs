@@ -7,7 +7,7 @@ namespace Dalamud.Game.Network.Structures;
 /// <summary>
 /// This class represents the market board history from a game network packet.
 /// </summary>
-public class MarketBoardHistory
+public class MarketBoardHistory : IMarketBoardHistory
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MarketBoardHistory"/> class.
@@ -26,10 +26,17 @@ public class MarketBoardHistory
     /// </summary>
     public uint CatalogId2 { get; private set; }
 
+    public uint ItemId => this.CatalogId;
+
     /// <summary>
-    /// Gets the list of individual item history listings.
+    /// Gets the list of individual item listings.
     /// </summary>
-    public List<MarketBoardHistoryListing> HistoryListings { get; } = new();
+    IReadOnlyList<IMarketBoardHistoryListing> IMarketBoardHistory.HistoryListings => this.InternalHistoryListings;
+
+    /// <summary>
+    /// Gets or sets a list of individual item listings.
+    /// </summary>
+    internal List<MarketBoardHistoryListing> InternalHistoryListings { get; set; } = new List<MarketBoardHistoryListing>();
 
     /// <summary>
     /// Read a <see cref="MarketBoardHistory"/> object from memory.
@@ -53,6 +60,7 @@ public class MarketBoardHistory
             return output;
         }
 
+        var historyListings = new List<MarketBoardHistoryListing>();
         for (var i = 0; i < 20; i++)
         {
             var listingEntry = new MarketBoardHistoryListing
@@ -69,11 +77,13 @@ public class MarketBoardHistory
             listingEntry.BuyerName = Encoding.UTF8.GetString(reader.ReadBytes(33)).TrimEnd('\u0000');
             listingEntry.NextCatalogId = reader.ReadUInt32();
 
-            output.HistoryListings.Add(listingEntry);
+            historyListings.Add(listingEntry);
 
             if (listingEntry.NextCatalogId == 0)
                 break;
         }
+
+        output.InternalHistoryListings = historyListings;
 
         return output;
     }
@@ -81,7 +91,7 @@ public class MarketBoardHistory
     /// <summary>
     /// This class represents the market board history of a single item from the <see cref="MarketBoardHistory"/> network packet.
     /// </summary>
-    public class MarketBoardHistoryListing
+    public class MarketBoardHistoryListing : IMarketBoardHistoryListing
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MarketBoardHistoryListing"/> class.
@@ -125,4 +135,56 @@ public class MarketBoardHistory
         /// </summary>
         public uint SalePrice { get; internal set; }
     }
+}
+
+/// <summary>
+/// An interface that represents the market board history from the game.
+/// </summary>
+public interface IMarketBoardHistory
+{
+    /// <summary>
+    /// Gets the item ID.
+    /// </summary>
+    uint ItemId { get; }
+
+    /// <summary>
+    /// Gets the list of individual item history listings.
+    /// </summary>
+    IReadOnlyList<IMarketBoardHistoryListing> HistoryListings { get; }
+}
+
+/// <summary>
+/// An interface that represents the market board history of a single item from <see cref="IMarketBoardHistory"/>.
+/// </summary>
+public interface IMarketBoardHistoryListing
+{
+    /// <summary>
+    /// Gets the buyer's name.
+    /// </summary>
+    string BuyerName { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the item is HQ.
+    /// </summary>
+    bool IsHq { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the item is on a mannequin.
+    /// </summary>
+    bool OnMannequin { get; }
+
+    /// <summary>
+    /// Gets the time of purchase.
+    /// </summary>
+    DateTime PurchaseTime { get; }
+
+    /// <summary>
+    /// Gets the quantity.
+    /// </summary>
+    uint Quantity { get; }
+
+    /// <summary>
+    /// Gets the sale price.
+    /// </summary>
+    uint SalePrice { get; }
 }
