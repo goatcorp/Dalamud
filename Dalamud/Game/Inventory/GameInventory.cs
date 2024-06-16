@@ -17,7 +17,6 @@ namespace Dalamud.Game.Inventory;
 /// <summary>
 /// This class provides events for the players in-game inventory.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal class GameInventory : IInternalDisposableService
 {
@@ -346,7 +345,6 @@ internal class GameInventory : IInternalDisposableService
 /// Plugin-scoped version of a GameInventory service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameInventory>]

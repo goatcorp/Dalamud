@@ -18,7 +18,6 @@ namespace Dalamud.Game.Addon.Lifecycle;
 /// <summary>
 /// This class provides events for in-game addon lifecycles.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonLifecycle : IInternalDisposableService
 {
@@ -386,7 +385,6 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 /// Plugin-scoped version of a AddonLifecycle service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IAddonLifecycle>]

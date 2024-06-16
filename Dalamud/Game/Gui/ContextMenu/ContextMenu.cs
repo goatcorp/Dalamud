@@ -25,7 +25,6 @@ namespace Dalamud.Game.Gui.ContextMenu;
 /// <summary>
 /// This class handles interacting with the game's (right-click) context menu.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextMenu
 {
@@ -497,7 +496,6 @@ original:
 /// Plugin-scoped version of a <see cref="ContextMenu"/> service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IContextMenu>]

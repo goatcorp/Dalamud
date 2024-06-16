@@ -15,7 +15,6 @@ namespace Dalamud.Game.ClientState.Party;
 /// This collection represents the actors present in your party or alliance.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IPartyList>]

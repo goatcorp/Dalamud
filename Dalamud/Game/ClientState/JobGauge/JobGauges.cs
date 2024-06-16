@@ -14,7 +14,6 @@ namespace Dalamud.Game.ClientState.JobGauge;
 /// This class converts in-memory Job gauge data to structs.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IJobGauges>]

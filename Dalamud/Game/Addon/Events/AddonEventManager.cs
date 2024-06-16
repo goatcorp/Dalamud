@@ -17,7 +17,6 @@ namespace Dalamud.Game.Addon.Events;
 /// <summary>
 /// Service provider for addon event management.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal unsafe class AddonEventManager : IInternalDisposableService
 {
@@ -199,7 +198,6 @@ internal unsafe class AddonEventManager : IInternalDisposableService
 /// Plugin-scoped version of a AddonEventManager service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IAddonEventManager>]

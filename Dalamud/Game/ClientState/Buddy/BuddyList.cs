@@ -16,7 +16,6 @@ namespace Dalamud.Game.ClientState.Buddy;
 /// It does not include the local player.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IBuddyList>]

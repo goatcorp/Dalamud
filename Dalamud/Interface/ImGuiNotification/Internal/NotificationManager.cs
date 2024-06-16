@@ -16,7 +16,6 @@ using ImGuiNET;
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>Class handling notifications/toasts in ImGui.</summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal class NotificationManager : INotificationManager, IInternalDisposableService
 {
@@ -123,7 +122,6 @@ internal class NotificationManager : INotificationManager, IInternalDisposableSe
 
 /// <summary>Plugin-scoped version of a <see cref="NotificationManager"/> service.</summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<INotificationManager>]

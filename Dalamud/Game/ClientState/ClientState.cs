@@ -23,7 +23,6 @@ namespace Dalamud.Game.ClientState;
 /// <summary>
 /// This class represents the state of the game client at the time of access.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed class ClientState : IInternalDisposableService, IClientState
 {
@@ -203,7 +202,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 /// Plugin-scoped version of a GameConfig service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IClientState>]

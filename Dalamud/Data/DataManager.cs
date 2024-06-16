@@ -18,7 +18,6 @@ namespace Dalamud.Data;
 /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IDataManager>]

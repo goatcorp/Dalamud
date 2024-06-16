@@ -14,7 +14,6 @@ namespace Dalamud.Game.ClientState.Aetherytes;
 /// This collection represents the list of available Aetherytes in the Teleport window.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IAetheryteList>]

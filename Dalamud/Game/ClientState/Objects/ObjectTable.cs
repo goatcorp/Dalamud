@@ -23,7 +23,6 @@ namespace Dalamud.Game.ClientState.Objects;
 /// This collection represents the currently spawned FFXIV game objects.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IObjectTable>]

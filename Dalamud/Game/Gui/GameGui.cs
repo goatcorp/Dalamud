@@ -26,7 +26,6 @@ namespace Dalamud.Game.Gui;
 /// <summary>
 /// A class handling many aspects of the in-game UI.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 {
@@ -516,7 +515,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 /// Plugin-scoped version of a AddonLifecycle service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameGui>]
