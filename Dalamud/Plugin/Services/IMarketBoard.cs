@@ -1,6 +1,6 @@
-﻿namespace Dalamud.Plugin.Services;
+﻿using Dalamud.Game.Network.Structures;
 
-using Game.Network.Structures;
+namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// Provides access to market board related events as the client receives/sends them.

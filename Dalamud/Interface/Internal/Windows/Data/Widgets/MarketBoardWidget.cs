@@ -1,16 +1,13 @@
 ﻿using System.Collections.Concurrent;
+using System.Globalization;
 
+using Dalamud.Game.MarketBoard;
+using Dalamud.Game.Network.Structures;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
-
-using System.Globalization;
-
-using Game.MarketBoard;
-using Game.Network.Structures;
 
 /// <summary>
 /// Widget to display market board events.

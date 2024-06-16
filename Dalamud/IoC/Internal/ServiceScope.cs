@@ -27,7 +27,6 @@ internal interface IServiceScope : IDisposable
     /// <summary>
     /// Inject <see cref="PluginInterfaceAttribute" /> interfaces into public or static properties on the provided object.
     /// The properties have to be marked with the <see cref="PluginServiceAttribute" />.
-    /// The properties can be marked with the <see cref="RequiredVersionAttribute" /> to lock down versions.
     /// </summary>
     /// <param name="instance">The object instance.</param>
     /// <param name="scopedObjects">Scoped objects to be injected.</param>

@@ -29,13 +29,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 {
     private readonly IMarketBoardUploader uploader;
 
-    private readonly IObservable<MarketBoardPurchase> mbPurchaseObservable;
-    private readonly IObservable<MarketBoardHistory> mbHistoryObservable;
-    private readonly IObservable<MarketTaxRates> mbTaxesObservable;
-    private readonly IObservable<MarketBoardItemRequest> mbItemRequestObservable;
-    private readonly IObservable<MarketBoardCurrentOfferings> mbOfferingsObservable;
-    private readonly IObservable<MarketBoardPurchaseHandler> mbPurchaseSentObservable;
-
     private readonly IDisposable handleMarketBoardItemRequest;
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
@@ -68,7 +61,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
         this.CfPop = _ => { };
 
-        this.mbPurchaseObservable = Observable.Create<MarketBoardPurchase>(observer =>
+        this.MbPurchaseObservable = Observable.Create<MarketBoardPurchase>(observer =>
         {
             this.MarketBoardPurchaseReceived += Observe;
             return () => { this.MarketBoardPurchaseReceived -= Observe; };
@@ -79,7 +72,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbHistoryObservable = Observable.Create<MarketBoardHistory>(observer =>
+        this.MbHistoryObservable = Observable.Create<MarketBoardHistory>(observer =>
         {
             this.MarketBoardHistoryReceived += Observe;
             return () => { this.MarketBoardHistoryReceived -= Observe; };
@@ -90,7 +83,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbTaxesObservable = Observable.Create<MarketTaxRates>(observer =>
+        this.MbTaxesObservable = Observable.Create<MarketTaxRates>(observer =>
         {
             this.MarketBoardTaxesReceived += Observe;
             return () => { this.MarketBoardTaxesReceived -= Observe; };
@@ -102,7 +95,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbItemRequestObservable = Observable.Create<MarketBoardItemRequest>(observer =>
+        this.MbItemRequestObservable = Observable.Create<MarketBoardItemRequest>(observer =>
         {
             this.MarketBoardItemRequestStartReceived += Observe;
             return () => this.MarketBoardItemRequestStartReceived -= Observe;
@@ -113,7 +106,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbOfferingsObservable = Observable.Create<MarketBoardCurrentOfferings>(observer =>
+        this.MbOfferingsObservable = Observable.Create<MarketBoardCurrentOfferings>(observer =>
         {
             this.MarketBoardOfferingsReceived += Observe;
             return () => { this.MarketBoardOfferingsReceived -= Observe; };
@@ -124,7 +117,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbPurchaseSentObservable = Observable.Create<MarketBoardPurchaseHandler>(observer =>
+        this.MbPurchaseSentObservable = Observable.Create<MarketBoardPurchaseHandler>(observer =>
         {
             this.MarketBoardPurchaseRequestSent += Observe;
             return () => { this.MarketBoardPurchaseRequestSent -= Observe; };
@@ -209,17 +202,35 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private event Action<nint>? MarketBoardPurchaseRequestSent;
 
-    public IObservable<MarketBoardPurchase> MbPurchaseObservable => this.mbPurchaseObservable;
+    /// <summary>
+    /// Gets an observable to track marketboard purchase events.
+    /// </summary>
+    public IObservable<MarketBoardPurchase> MbPurchaseObservable { get; }
 
-    public IObservable<MarketBoardHistory> MbHistoryObservable => this.mbHistoryObservable;
+    /// <summary>
+    /// Gets an observable to track marketboard history events.
+    /// </summary>
+    public IObservable<MarketBoardHistory> MbHistoryObservable { get; }
 
-    public IObservable<MarketTaxRates> MbTaxesObservable => this.mbTaxesObservable;
+    /// <summary>
+    /// Gets an observable to track marketboard tax events.
+    /// </summary>
+    public IObservable<MarketTaxRates> MbTaxesObservable { get; }
 
-    public IObservable<MarketBoardItemRequest> MbItemRequestObservable => this.mbItemRequestObservable;
+    /// <summary>
+    /// Gets an observable to track marketboard item request events.
+    /// </summary>
+    public IObservable<MarketBoardItemRequest> MbItemRequestObservable { get; }
 
-    public IObservable<MarketBoardCurrentOfferings> MbOfferingsObservable => this.mbOfferingsObservable;
+    /// <summary>
+    /// Gets an observable to track marketboard offerings events.
+    /// </summary>
+    public IObservable<MarketBoardCurrentOfferings> MbOfferingsObservable { get; }
 
-    public IObservable<MarketBoardPurchaseHandler> MbPurchaseSentObservable => this.mbPurchaseSentObservable;
+    /// <summary>
+    /// Gets an observable to track marketboard purchase request events.
+    /// </summary>
+    public IObservable<MarketBoardPurchaseHandler> MbPurchaseSentObservable { get; }
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.

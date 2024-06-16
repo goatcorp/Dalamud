@@ -152,7 +152,7 @@ public static class ColorHelpers
     /// <summary>
     /// Performs a swap of endianness
     /// Exmaple:
-    /// (FFXIV) RGBA to ABGR (ImGui)
+    /// (FFXIV) RGBA to ABGR (ImGui).
     /// </summary>
     /// <param name="rgba">Color value in byte order X Y Z W.</param>
     /// <returns>Endian swapped color value with new byte order W Z Y X.</returns>

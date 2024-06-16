@@ -20,7 +20,7 @@ internal unsafe class AddonEventEntry
     /// <summary>
     /// Gets the pointer to the addons AtkUnitBase.
     /// </summary>
-    required public nint Addon { get; init; }
+    public required nint Addon { get; init; }
 
     /// <summary>
     /// Gets the name of the addon this args referrers to.

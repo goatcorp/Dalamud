@@ -1,15 +1,14 @@
-﻿namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
-
-using System.Globalization;
+﻿using System.Globalization;
 using System.Linq;
 
-using Game.MarketBoard;
-using Game.Network.Structures;
-
+using Dalamud.Game.MarketBoard;
+using Dalamud.Game.Network.Structures;
 using ImGuiNET;
 
+namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+
 /// <summary>
-/// Tests the various market board events
+/// Tests the various market board events.
 /// </summary>
 internal class MarketBoardAgingStep : IAgingStep
 {
@@ -182,6 +181,7 @@ internal class MarketBoardAgingStep : IAgingStep
                         return SelfTestStepResult.Fail;
                     }
                 }
+
                 break;
             case SubStep.Done:
                 return SelfTestStepResult.Pass;

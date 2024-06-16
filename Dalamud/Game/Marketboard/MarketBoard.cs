@@ -1,16 +1,14 @@
-﻿using Dalamud.IoC;
+﻿using Dalamud.Game.Network.Internal;
+using Dalamud.Game.Network.Structures;
+using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
 namespace Dalamud.Game.MarketBoard;
 
-using Network.Internal;
-using Network.Structures;
-
 /// <summary>
-/// This class provides access to market board events
+/// This class provides access to market board events.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal class MarketBoard : IInternalDisposableService, IMarketBoard
 {
@@ -85,7 +83,6 @@ internal class MarketBoard : IInternalDisposableService, IMarketBoard
 /// Plugin scoped version of MarketBoard.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IMarketBoard>]

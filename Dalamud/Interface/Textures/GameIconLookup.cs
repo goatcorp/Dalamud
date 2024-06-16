@@ -5,7 +5,7 @@ namespace Dalamud.Interface.Textures;
 /// <summary>Represents a lookup for a game icon.</summary>
 public readonly record struct GameIconLookup
 {
-    /// <summary>Initializes a new instance of the <see cref="GameIconLookup"/> class.</summary>
+    /// <summary>Initializes a new instance of the <see cref="GameIconLookup"/> struct.</summary>
     /// <param name="iconId">The icon ID.</param>
     /// <param name="itemHq">Whether the HQ icon is requested, where HQ is in the context of items.</param>
     /// <param name="hiRes">Whether the high-resolution icon is requested.</param>
@@ -17,11 +17,7 @@ public readonly record struct GameIconLookup
         this.HiRes = hiRes;
         this.Language = language;
     }
-
-    public static implicit operator GameIconLookup(int iconId) => new(checked((uint)iconId));
-
-    public static implicit operator GameIconLookup(uint iconId) => new(iconId);
-
+    
     /// <summary>Gets the icon ID.</summary>
     public uint IconId { get; init; }
 
@@ -38,6 +34,10 @@ public readonly record struct GameIconLookup
     /// </para>
     /// </remarks>
     public ClientLanguage? Language { get; init; }
+
+    public static implicit operator GameIconLookup(int iconId) => new(checked((uint)iconId));
+
+    public static implicit operator GameIconLookup(uint iconId) => new(iconId);
 
     /// <inheritdoc/>
     public override string ToString()
