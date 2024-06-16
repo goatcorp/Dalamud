@@ -1,6 +1,8 @@
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Data;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui;
@@ -122,6 +124,27 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     /// Gets client state address resolver.
     /// </summary>
     internal ClientStateAddressResolver AddressResolver => this.address;
+    
+    /// <inheritdoc/>
+    public bool IsClientIdle(out ConditionFlag blockingFlag)
+    {
+        blockingFlag = 0;
+        if (this.LocalPlayer is null) return true;
+        
+        var condition = Service<Conditions.Condition>.GetNullable();
+        
+        var blockingConditions = condition.AsReadOnlySet().Except([
+            ConditionFlag.NormalConditions, 
+            ConditionFlag.Jumping, 
+            ConditionFlag.Mounted, 
+            ConditionFlag.UsingParasol]);
+
+        blockingFlag = blockingConditions.FirstOrDefault();
+        return blockingFlag == 0;
+    }
+    
+    /// <inheritdoc/>
+    public bool IsClientIdle() => this.IsClientIdle(out _);
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
@@ -268,6 +291,12 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
     /// <inheritdoc/>
     public bool IsGPosing => this.clientStateService.IsGPosing;
+
+    /// <inheritdoc/>
+    public bool IsClientIdle(out ConditionFlag blockingFlag) => this.clientStateService.IsClientIdle(out blockingFlag);
+
+    /// <inheritdoc/>
+    public bool IsClientIdle() => this.clientStateService.IsClientIdle();
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using System.Collections.Generic;
+
+using Dalamud.Game.ClientState.Conditions;
 
 namespace Dalamud.Plugin.Services;
 
@@ -38,6 +40,12 @@ public interface ICondition
     
     /// <inheritdoc cref="this[int]"/>
     public bool this[ConditionFlag flag] => this[(int)flag];
+    
+    /// <summary>
+    /// Convert the conditions array to a set of all set condition flags.
+    /// </summary>
+    /// <returns>Returns a set.</returns>
+    public IReadOnlySet<ConditionFlag> AsReadOnlySet();
 
     /// <summary>
     /// Check if any condition flags are set.
@@ -51,4 +59,26 @@ public interface ICondition
     /// <returns>Whether any single provided flag is set.</returns>
     /// <param name="flags">The condition flags to check.</param>
     public bool Any(params ConditionFlag[] flags);
+
+    /// <summary>
+    /// Check that the specified condition flags are *not* present in the current conditions.
+    /// </summary>
+    /// <param name="except">The array of flags to check.</param>
+    /// <returns>Returns false if any of the listed conditions are present, true otherwise.</returns>
+    public bool AnyExcept(params ConditionFlag[] except);
+
+    /// <summary>
+    /// Check that *only* any of the condition flags specified are set.
+    /// </summary>
+    /// <param name="other">The array of flags to check.</param>
+    /// <returns>Returns a bool.</returns>
+    public bool OnlyAny(params ConditionFlag[] other);
+
+    /// <summary>
+    /// Check that *only* the specified flags are set. Unlike <see cref="OnlyAny"/>, this method requires that all the
+    /// specified flags are set and no others are present.
+    /// </summary>
+    /// <param name="other">The array of flags to check.</param>
+    /// <returns>Returns a bool.</returns>
+    public bool EqualTo(params ConditionFlag[] other);
 }

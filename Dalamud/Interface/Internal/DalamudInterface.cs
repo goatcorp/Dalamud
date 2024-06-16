@@ -211,6 +211,15 @@ internal class DalamudInterface : IInternalDisposableService
         set => this.isImGuiDrawDevMenu = value;
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the plugin installer is open.
+    /// </summary>
+    public bool IsPluginInstallerOpen
+    {
+        get => this.pluginWindow.IsOpen;
+        set => this.pluginWindow.IsOpen = value;
+    }
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {

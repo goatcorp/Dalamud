@@ -495,6 +495,9 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private char HandleImmDetour(IntPtr framework, char a2, byte a3)
     {
         var result = this.handleImmHook.Original(framework, a2, a3);
+        if (!ImGuiHelpers.IsImGuiInitialized)
+            return result;
+
         return ImGui.GetIO().WantTextInput
                    ? (char)0
                    : result;

@@ -1,3 +1,4 @@
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 
 namespace Dalamud.Plugin.Services;
@@ -81,4 +82,19 @@ public interface IClientState
     /// Gets a value indicating whether the client is currently in Group Pose (GPose) mode. 
     /// </summary>
     public bool IsGPosing { get; }
+
+    /// <summary>
+    /// Check whether the client is currently "idle". This means a player is not logged in, or is notctively in combat
+    /// or doing anything that we may not want to disrupt.
+    /// </summary>
+    /// <param name="blockingFlag">An outvar containing the first observed condition blocking the "idle" state. 0 if idle.</param>
+    /// <returns>Returns true if the client is idle, false otherwise.</returns>
+    public bool IsClientIdle(out ConditionFlag blockingFlag);
+
+    /// <summary>
+    /// Check whether the client is currently "idle". This means a player is not logged in, or is notctively in combat
+    /// or doing anything that we may not want to disrupt.
+    /// </summary>
+    /// <returns>Returns true if the client is idle, false otherwise.</returns>
+    public bool IsClientIdle() => this.IsClientIdle(out _);
 }
