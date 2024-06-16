@@ -11,8 +11,8 @@ public interface INameplatesGui
     /// <summary>
     /// Will be executed when the the Game wants to update the content of a nameplate with the details of the Player.
     /// </summary>
-    /// <param name="eventArgs">Provides some infos about the current updating Nameplate.</param>
-    public delegate void OnNameplateUpdateDelegate(INameplateObject eventArgs);
+    /// <param name="nameplateObject">Provides some infos about the current updating Nameplate.</param>
+    public delegate void OnNameplateUpdateDelegate(INameplateObject nameplateObject);
     
     /// <summary>
     /// Will be executed when the the Game wants to update the content of a nameplate with the details of the Player.
