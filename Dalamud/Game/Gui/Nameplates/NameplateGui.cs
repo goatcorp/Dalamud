@@ -31,7 +31,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
-    [Signature("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B 5C 24 ?? 45 38 BE", DetourName = nameof(SetPlayerNameplateDetourDelegate))]
+    [Signature("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B 5C 24 ?? 45 38 BE", DetourName = nameof(HandleSetPlayerNameplateDetour))]
     private readonly Hook<SetPlayerNameplateDetourDelegate> setPlayerNameplateDetourHook;
     private nint namePlatePtr;
 
