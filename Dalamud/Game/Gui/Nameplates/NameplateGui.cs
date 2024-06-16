@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Addon.Lifecycle;
@@ -9,7 +8,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Gui.Nameplates.Model;
 using Dalamud.Hooking;
 using Dalamud.IoC.Internal;
-using Dalamud.Memory;
+using Dalamud.Utility.Signatures;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -32,8 +31,8 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
-    private readonly NameplateGuiAddressResolver hookAddresses;
-    private readonly Hook<SetPlayerNameplateDetourDelegate>? setPlayerNameplateDetourHook;
+    [Signature("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B 5C 24 ?? 45 38 BE", DetourName = nameof(SetPlayerNameplateDetourDelegate))]
+    private readonly Hook<SetPlayerNameplateDetourDelegate> setPlayerNameplateDetourHook;
     private nint namePlatePtr;
 
     /// <summary>
@@ -46,12 +45,8 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         this.addonLifecycle.RegisterListener(new AddonLifecycleEventListener(AddonEvent.PostSetup, "NamePlate", this.AddonLifecycle_Event));
         this.addonLifecycle.RegisterListener(new AddonLifecycleEventListener(AddonEvent.PreFinalize, "NamePlate", this.AddonLifecycle_Event));
 
-        // Address resolver
-        this.hookAddresses = new();
-        this.hookAddresses.Setup(sigScanner);
-
         // Hooks
-        this.setPlayerNameplateDetourHook = Hook<SetPlayerNameplateDetourDelegate>.FromAddress(this.hookAddresses.SetPlayerNameplateDetour, this.HandleSetPlayerNameplateDetour);
+        SignatureHelper.Initialize(this);
         this.setPlayerNameplateDetourHook.Enable();
     }
 
