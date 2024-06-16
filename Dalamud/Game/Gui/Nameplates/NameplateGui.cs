@@ -23,9 +23,15 @@ namespace Dalamud.Game.Gui.Nameplates;
 [ServiceManager.EarlyLoadedService]
 internal class NameplateGui : IInternalDisposableService, INameplatesGui
 {
-    private readonly GameGui gameGui;
-    private readonly ObjectTable objectTable;
-    private readonly AddonLifecycle addonLifecycle;
+    [ServiceManager.ServiceDependency]
+    private readonly GameGui gameGui = Service<GameGui>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
+
     private readonly NameplateGuiAddressResolver hookAddresses;
     private readonly Hook<SetPlayerNameplateDetourDelegate>? setPlayerNameplateDetourHook;
     private nint namePlatePtr;
@@ -36,11 +42,6 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
     [ServiceManager.ServiceConstructor]
     private NameplateGui(TargetSigScanner sigScanner)
     {
-        // Services
-        this.gameGui = Service<GameGui>.Get();
-        this.objectTable = Service<ObjectTable>.Get();
-        this.addonLifecycle = Service<AddonLifecycle>.Get();
-
         // Pointers
         this.addonLifecycle.RegisterListener(new AddonLifecycleEventListener(AddonEvent.PostSetup, "NamePlate", this.AddonLifecycle_Event));
         this.addonLifecycle.RegisterListener(new AddonLifecycleEventListener(AddonEvent.PreFinalize, "NamePlate", this.AddonLifecycle_Event));
