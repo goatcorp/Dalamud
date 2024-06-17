@@ -228,7 +228,11 @@ internal class AutoUpdateManager : IServiceType
             throw new InvalidOperationException("Already showing a notification");
         
         this.updateNotification = this.notificationManager.AddNotification(notification);
-        this.updateNotification.Dismiss += _ => this.updateNotification = null;
+        this.updateNotification.Dismiss += _ =>
+        {
+            this.updateNotification = null;
+            this.lastUpdateCheckTime = DateTime.Now;
+        };
         
         return this.updateNotification!;
     }
@@ -444,7 +448,7 @@ internal class AutoUpdateManager : IServiceType
             => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "There are {0} plugins that can be updated."), numUpdates);
         
         public static string NotificationContentUpdatesAvailableMinimized(int numUpdates)
-            => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "{0} updates available."), numUpdates);
+            => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "{0} plugin updates"), numUpdates);
         
         public static string NotificationContentPreparingToUpdate(int numPlugins)
             => string.Format(Loc.Localize("AutoUpdatePreparingToUpdate", "Preparing to update {0} plugins..."), numPlugins);
