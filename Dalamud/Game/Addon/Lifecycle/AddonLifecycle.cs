@@ -45,7 +45,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
-        this.disallowedReceiveEventAddress = (nint)this.address.AtkUnitBase->VirtualTable->ReceiveEvent;
+        this.disallowedReceiveEventAddress = (nint)AtkUnitBase.StaticVirtualTablePointer->ReceiveEvent;
 
         this.onAddonSetupHook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup, this.OnAddonSetup);
         this.onAddonSetup2Hook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup2, this.OnAddonSetup);
@@ -66,6 +66,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
     private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
 
+    // Note, use AtkUnitManager.Delegates.RefreshAddon once https://github.com/aers/FFXIVClientStructs/pull/926 has been merged into dalamud
     private delegate byte AddonOnRefreshDelegate(AtkUnitManager* unitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values);
     
     /// <summary>
