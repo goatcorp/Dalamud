@@ -142,9 +142,30 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             {
                 if (node.HasChanged)
                 {
-                    var str = new Utf8String(node.Text.Encode());
-                    node.Pointer = (nint)str.StringPtr;
-                    ptrToFree.Add(str);
+                    if (node.Pointer == node.PointerOrig)
+                    {
+                        // Create new string
+                        var str = new Utf8String(node.Text.Encode());
+                        node.Pointer = (nint)str.StringPtr;
+                        ptrToFree.Add(str);
+                    }
+
+                    // Copy back known node properties
+                    switch (node.Name)
+                    {
+                        case NameplateNodeName.Title:
+                            titlePtr = node.Pointer;
+                            break;
+                        case NameplateNodeName.Name:
+                            namePtr = node.Pointer;
+                            break;
+                        case NameplateNodeName.FreeCompany:
+                            freeCompanyPtr = node.Pointer;
+                            break;
+                        case NameplateNodeName.Prefix:
+                            prefixPtr = node.Pointer;
+                            break;
+                    }
                 }
             }
         }
