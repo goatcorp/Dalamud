@@ -428,27 +428,27 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             case PluginInstallerOpenKind.AllPlugins:
                 // Plugins group
-                this.categoryManager.CurrentGroupIdx = 2;
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Available;
                 // All category
-                this.categoryManager.CurrentCategoryIdx = 0;
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
                 break;
             case PluginInstallerOpenKind.InstalledPlugins:
                 // Installed group
-                this.categoryManager.CurrentGroupIdx = 1;
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed;
                 // All category
-                this.categoryManager.CurrentCategoryIdx = 0;
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
                 break;
             case PluginInstallerOpenKind.UpdateablePlugins:
                 // Installed group
-                this.categoryManager.CurrentGroupIdx = 1;
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed;
                 // Updateable category
-                this.categoryManager.CurrentCategoryIdx = 15;
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.UpdateablePlugins;
                 break;
             case PluginInstallerOpenKind.Changelogs:
                 // Changelog group
-                this.categoryManager.CurrentGroupIdx = 3;
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Changelog;
                 // Plugins category
-                this.categoryManager.CurrentCategoryIdx = 2;
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
@@ -611,7 +611,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
 
         var isProfileManager =
-            this.categoryManager.CurrentGroupIdx == 1 && this.categoryManager.CurrentCategoryIdx == 2;
+            this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Installed &&
+            this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.PluginProfiles;
 
         // Disable search if profile editor
         using (ImRaii.Disabled(isProfileManager))
@@ -641,7 +642,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Disable sort if changelogs or profile editor
-        using (ImRaii.Disabled(this.categoryManager.CurrentGroupIdx == 3 || isProfileManager))
+        using (ImRaii.Disabled(this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Changelog || isProfileManager))
         {
             ImGui.SameLine();
             ImGui.SetCursorPosY(downShift);
@@ -781,9 +782,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                                 Service<PluginManager>.Get().PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
                                 notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, NotificationType.Success);
 
-                                var installedGroupIdx = this.categoryManager.GroupList.TakeWhile(
-                                    x => x.GroupKind != PluginCategoryManager.GroupKind.Installed).Count();
-                                this.categoryManager.CurrentGroupIdx = installedGroupIdx;
+                                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed;
                             }
                             else if (this.updatePluginCount == 0)
                             {
@@ -1373,29 +1372,29 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        for (var groupIdx = 0; groupIdx < this.categoryManager.GroupList.Length; groupIdx++)
+        foreach (var groupInfo in this.categoryManager.GroupList)
         {
-            var groupInfo = this.categoryManager.GroupList[groupIdx];
             var canShowGroup = (groupInfo.GroupKind != PluginCategoryManager.GroupKind.DevTools) || this.hasDevPlugins;
             if (!canShowGroup)
             {
                 continue;
             }
 
-            ImGui.SetNextItemOpen(groupIdx == this.categoryManager.CurrentGroupIdx);
-            if (ImGui.CollapsingHeader(groupInfo.Name, groupIdx == this.categoryManager.CurrentGroupIdx ? ImGuiTreeNodeFlags.OpenOnDoubleClick : ImGuiTreeNodeFlags.None))
+            var isCurrent = groupInfo.GroupKind == this.categoryManager.CurrentGroupKind;
+            ImGui.SetNextItemOpen(isCurrent);
+            if (ImGui.CollapsingHeader(groupInfo.Name, isCurrent ? ImGuiTreeNodeFlags.OpenOnDoubleClick : ImGuiTreeNodeFlags.None))
             {
-                if (this.categoryManager.CurrentGroupIdx != groupIdx)
+                if (!isCurrent)
                 {
-                    this.categoryManager.CurrentGroupIdx = groupIdx;
+                    this.categoryManager.CurrentGroupKind = groupInfo.GroupKind;
                 }
 
                 ImGui.Indent();
                 var categoryItemSize = new Vector2(ImGui.GetContentRegionAvail().X - (5 * ImGuiHelpers.GlobalScale), ImGui.GetTextLineHeight());
-                for (var categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
+                foreach (var categoryKind in groupInfo.Categories)
                 {
-                    var categoryInfo = Array.Find(this.categoryManager.CategoryList, x => x.CategoryId == groupInfo.Categories[categoryIdx]);
-
+                    var categoryInfo = this.categoryManager.CategoryList.First(x => x.CategoryKind == categoryKind);
+                        
                     switch (categoryInfo.Condition)
                     {
                         case PluginCategoryManager.CategoryInfo.AppearCondition.None:
@@ -1409,15 +1408,15 @@ internal class PluginInstallerWindow : Window, IDisposable
                             throw new ArgumentOutOfRangeException();
                     }
 
-                    var hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryId);
+                    var hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryKind);
                     if (hasSearchHighlight)
                     {
                         ImGui.PushStyleColor(ImGuiCol.Text, colorSearchHighlight);
                     }
 
-                    if (ImGui.Selectable(categoryInfo.Name, this.categoryManager.CurrentCategoryIdx == categoryIdx, ImGuiSelectableFlags.None, categoryItemSize))
+                    if (ImGui.Selectable(categoryInfo.Name, this.categoryManager.CurrentCategoryKind == categoryKind, ImGuiSelectableFlags.None, categoryItemSize))
                     {
-                        this.categoryManager.CurrentCategoryIdx = categoryIdx;
+                        this.categoryManager.CurrentCategoryKind = categoryKind;
                     }
 
                     if (hasSearchHighlight)
@@ -1427,11 +1426,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
 
                 ImGui.Unindent();
-
-                if (groupIdx != this.categoryManager.GroupList.Length - 1)
-                {
-                    ImGuiHelpers.ScaledDummy(5);
-                }
+                ImGuiHelpers.ScaledDummy(5);
             }
         }
     }
@@ -1467,7 +1462,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
 
-        var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
+        var groupInfo = this.categoryManager.CurrentGroup;
         if (this.categoryManager.IsContentDirty)
         {
             // reset opened list of collapsibles when switching between categories
@@ -1484,13 +1479,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             case PluginCategoryManager.GroupKind.DevTools:
                 // this one is never sorted and remains in hardcoded order from group ctor
-                switch (this.categoryManager.CurrentCategoryIdx)
+                switch (this.categoryManager.CurrentCategoryKind)
                 {
-                    case 0:
+                    case PluginCategoryManager.CategoryKind.DevInstalled:
                         this.DrawInstalledPluginList(InstalledPluginListFilter.Dev);
                         break;
 
-                    case 1:
+                    case PluginCategoryManager.CategoryKind.IconTester:
                         this.DrawImageTester();
                         break;
 
@@ -1501,21 +1496,21 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 break;
             case PluginCategoryManager.GroupKind.Installed:
-                switch (this.categoryManager.CurrentCategoryIdx)
+                switch (this.categoryManager.CurrentCategoryKind)
                 {
-                    case 0:
+                    case PluginCategoryManager.CategoryKind.All:
                         this.DrawInstalledPluginList(InstalledPluginListFilter.None);
                         break;
 
-                    case 1:
+                    case PluginCategoryManager.CategoryKind.IsTesting:
                         this.DrawInstalledPluginList(InstalledPluginListFilter.Testing);
                         break;
                     
-                    case 2:
+                    case PluginCategoryManager.CategoryKind.UpdateablePlugins:
                         this.DrawInstalledPluginList(InstalledPluginListFilter.Updateable);
                         break;
 
-                    case 3:
+                    case PluginCategoryManager.CategoryKind.PluginProfiles:
                         this.profileManagerWidget.Draw();
                         break;
                     
@@ -1526,18 +1521,22 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 break;
             case PluginCategoryManager.GroupKind.Changelog:
-                switch (this.categoryManager.CurrentCategoryIdx)
+                switch (this.categoryManager.CurrentCategoryKind)
                 {
-                    case 0:
+                    case PluginCategoryManager.CategoryKind.All:
                         this.DrawChangelogList(true, true);
                         break;
 
-                    case 1:
+                    case PluginCategoryManager.CategoryKind.DalamudChangelogs:
                         this.DrawChangelogList(true, false);
                         break;
 
-                    case 2:
+                    case PluginCategoryManager.CategoryKind.PluginChangelogs:
                         this.DrawChangelogList(false, true);
+                        break;
+                    
+                    default:
+                        ImGui.TextUnformatted("You found a quiet category. Please don't wake it up.");
                         break;
                 }
 
