@@ -18,20 +18,4 @@ public interface INameplatesGui
     /// Will be executed when the the Game wants to update the content of a nameplate with the details of the Player.
     /// </summary>
     abstract event OnNameplateUpdateDelegate OnNameplateUpdate;
-
-    /// <summary>
-    /// Tries to find a <see cref="GameObject"/> of the given type by a given <see cref="NameplateObject"/>.
-    /// </summary>
-    /// <typeparam name="T">The type you want to get.</typeparam>
-    /// <param name="nameplateObject">The nameplate object to get from.</param>
-    /// <returns>Returns a <see cref="GameObject"/> null if failed.</returns>
-    abstract T? GetNameplateGameObject<T>(INameplateObject nameplateObject) where T : GameObject;
-
-    /// <summary>
-    /// Tries to find a <see cref="GameObject"/> of the given type by a given nameplate object pointer.
-    /// </summary>
-    /// <typeparam name="T">The type you want to get.</typeparam>
-    /// <param name="nameplateObjectPtr">The nameplate object pointer to get from.</param>
-    /// <returns>Returns a <see cref="GameObject"/> null if failed.</returns>
-    abstract T? GetNameplateGameObject<T>(IntPtr nameplateObjectPtr) where T : GameObject;
 }

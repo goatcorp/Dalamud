@@ -3,10 +3,14 @@ using System.IO;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
+using Dalamud.Game.Gui.Nameplates;
+using Dalamud.Game.Gui.Nameplates.Model;
 using Dalamud.Interface.Windowing;
+using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.CorePlugin
@@ -76,6 +80,9 @@ namespace Dalamud.CorePlugin
                 Service<CommandManager>.Get().AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
 
                 log.Information("CorePlugin ctor!");
+
+                this.NameplateService = Service<NameplateGui>.Get();
+                this.NameplateService.OnNameplateUpdate += this.NameplateService_OnNameplateUpdate;
             }
             catch (Exception ex)
             {
@@ -83,10 +90,35 @@ namespace Dalamud.CorePlugin
             }
         }
 
+        private void NameplateService_OnNameplateUpdate(INameplateObject nameplateObject)
+        {
+            var nodeTitle = nameplateObject.Nameplate.GetNode(NameplateNodeName.Title);
+            nodeTitle.Text = "Titel";
+            nodeTitle.HasChanged = true;
+
+            nameplateObject.Nameplate.GetNode(NameplateNodeName.FreeCompany).Text = "FC";
+            nameplateObject.Nameplate.GetNode(NameplateNodeName.FreeCompany).HasChanged = true;
+
+            var nodeName = nameplateObject.Nameplate.GetNode(NameplateNodeName.Name);
+            nodeName.Text = "Name";
+            nodeName.HasChanged = true;
+
+            nameplateObject.Nameplate.GetNode(NameplateNodeName.Prefix).Text = "Prefix";
+            nameplateObject.Nameplate.GetNode(NameplateNodeName.Prefix).HasChanged = true;
+
+            nameplateObject.Nameplate.IconID = NameplateStatusIcons.Busy;
+            nameplateObject.Nameplate.IsTitleAboveName = true;
+            nameplateObject.Nameplate.IsTitleVisible = this.isTitleVisible;
+        }
+
+        private bool isTitleVisible = true;
+
         /// <summary>
         /// Gets the plugin interface.
         /// </summary>
         internal IDalamudPluginInterface Interface { get; private set; }
+
+        internal INameplatesGui NameplateService { get; private set; }
 
         /// <inheritdoc/>
         public void Dispose()
@@ -96,6 +128,8 @@ namespace Dalamud.CorePlugin
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
+
+            this.NameplateService.OnNameplateUpdate -= this.NameplateService_OnNameplateUpdate;
         }
 
         /// <summary>
@@ -135,6 +169,9 @@ namespace Dalamud.CorePlugin
         private void OnCommand(string command, string args)
         {
             this.pluginLog.Information("Command called!");
+
+            if (args == "false")
+                this.isTitleVisible = false;
 
             // this.window.IsOpen = true;
         }
