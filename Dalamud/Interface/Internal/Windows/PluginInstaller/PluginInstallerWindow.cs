@@ -141,7 +141,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     public PluginInstallerWindow(PluginImageCache imageCache, DalamudConfiguration configuration)
         : base(
             Locs.WindowTitle + (configuration.DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
-            ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar)
+            ImGuiWindowFlags.NoScrollbar)
     {
         this.IsOpen = true;
         this.imageCache = imageCache;
