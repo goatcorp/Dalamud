@@ -8,16 +8,9 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Gui.Nameplates.Model;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
-using Dalamud.IoC.Internal;
-using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Utility.Signatures;
 
-using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using TerraFX.Interop.Windows;
 
 namespace Dalamud.Game.Gui.Nameplates;
 
@@ -66,28 +59,39 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
         this.setPlayerNameplateDetourHook.Dispose();
     }
 
-    /// <inheritdoc/>
-    public T? GetNameplateGameObject<T>(INameplateObject nameplateObject) where T : GameObject
-    {
-        return this.GetNameplateGameObject<T>(nameplateObject.Pointer);
-    }
-
-    /// <inheritdoc/>
-    public T? GetNameplateGameObject<T>(nint nameplateObjectPtr) where T : GameObject
+    /// <summary>
+    /// Gets the index of a given nameplate.
+    /// </summary>
+    /// <param name="nameplateObjectPtr">The nameplate object pointer where you want the index from.</param>
+    /// <returns>Returns the index for the given nameplate.</returns>
+    public long GetNameplateIndex(nint nameplateObjectPtr)
     {
         // Get the nameplate object array
         var nameplateObjectArrayPtrPtr = this.namePlatePtr + Marshal.OffsetOf(typeof(AddonNamePlate), nameof(AddonNamePlate.NamePlateObjectArray)).ToInt32();
         var nameplateObjectArrayPtr = Marshal.ReadIntPtr(nameplateObjectArrayPtrPtr);
 
         if (nameplateObjectArrayPtr == nint.Zero)
-            return null;
+            return -1;
 
         // Determine the index of the nameplate object within the nameplate object array
         var namePlateObjectSize = Marshal.SizeOf(typeof(AddonNamePlate.NamePlateObject));
         var namePlateObjectPtr0 = nameplateObjectArrayPtr + namePlateObjectSize * 0;
         var namePlateIndex = (nameplateObjectPtr.ToInt64() - namePlateObjectPtr0.ToInt64()) / namePlateObjectSize;
-        
+
         if (namePlateIndex < 0 || namePlateIndex >= AddonNamePlate.NumNamePlateObjects)
+            return -1;
+
+        return namePlateIndex;
+    }
+
+    /// <summary>
+    /// Gets the corresponding <see cref="GameObject"/> for the nameplate by its index.
+    /// </summary>
+    /// <param name="namePlateIndex">The index of the namplate where you want to get the <see cref="GameObject"/> for.</param>
+    /// <returns>Returns the corresponding <see cref="GameObject"/> for the nameplate.</returns>
+    public GameObject? GetNameplateGameObject(long namePlateIndex)
+    {
+        if (namePlateIndex == -1)
             return null;
 
         // Get the nameplate info
@@ -100,7 +104,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
 
         // Return the object for its object id
         var objectId = namePlateInfo.ObjectId.ObjectId;
-        return this.objectTable.SearchById(objectId) as T;
+        return this.objectTable.SearchById(objectId);
     }
 
     private void AddonLifecycle_Event(AddonEvent type, AddonArgs args)
@@ -154,19 +158,15 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
                     {
                         case NameplateNodeName.Title:
                             titlePtr = this.PluginAllocate(node.Text);
-                            //MemoryHelper.WriteSeString(titlePtr, node.Text);
                             break;
                         case NameplateNodeName.Name:
                             namePtr = this.PluginAllocate(node.Text);
-                            //MemoryHelper.WriteSeString(namePtr, node.Text);
                             break;
                         case NameplateNodeName.FreeCompany:
                             freeCompanyPtr = this.PluginAllocate(node.Text);
-                            //MemoryHelper.WriteSeString(freeCompanyPtr, node.Text);
                             break;
                         case NameplateNodeName.Prefix:
                             prefixPtr = this.PluginAllocate(node.Text);
-                            //MemoryHelper.WriteSeString(prefixPtr, node.Text);
                             break;
                     }
                 }

@@ -1,3 +1,5 @@
+using Dalamud.Game.ClientState.Objects.Types;
+
 namespace Dalamud.Game.Gui.Nameplates.Model;
 
 /// <summary>
@@ -14,4 +16,14 @@ public interface INameplateObject
     /// Gets the nameplate info for this object.
     /// </summary>
     nint Pointer { get; }
+
+    /// <summary>
+    /// Gets the index of this nameplate.
+    /// </summary>
+    long NameplateIndex { get; }
+
+    /// <summary>
+    /// Gets the corresponding <see cref="ClientState.Objects.Types.GameObject"/> for this nameplate.
+    /// </summary>
+    GameObject? GameObject { get; }
 }
