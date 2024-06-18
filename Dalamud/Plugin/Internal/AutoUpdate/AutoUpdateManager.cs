@@ -128,6 +128,17 @@ internal class AutoUpdateManager : IServiceType
             _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null),
         };
     }
+    
+    private static void DrawOpenInstallerNotificationButton(bool primary, IActiveNotification notification)
+    {
+        if (primary ?
+                DalamudComponents.PrimaryButton(Locs.NotificationButtonOpenPluginInstaller) :
+                DalamudComponents.SecondaryButton(Locs.NotificationButtonOpenPluginInstaller))
+        {
+            Service<DalamudInterface>.Get().OpenPluginInstallerTo(PluginInstallerOpenKind.UpdateablePlugins);
+            notification.DismissNow();
+        }
+    }
 
     private void OnUpdate(IFramework framework)
     {
@@ -293,11 +304,7 @@ internal class AutoUpdateManager : IServiceType
         notification.DrawActions += _ =>
         {
             ImGuiHelpers.ScaledDummy(2);
-            if (DalamudComponents.PrimaryButton(Locs.NotificationButtonOpenPluginInstaller))
-            {
-                Service<DalamudInterface>.Get().OpenPluginInstaller();
-                notification.DismissNow();
-            }
+            DrawOpenInstallerNotificationButton(true, notification);
         };
         
         // Update the notification to show the final state
@@ -356,11 +363,7 @@ internal class AutoUpdateManager : IServiceType
             }
 
             ImGui.SameLine();
-            if (DalamudComponents.SecondaryButton(Locs.NotificationButtonOpenPluginInstaller))
-            {
-                Service<DalamudInterface>.Get().OpenPluginInstaller();
-                notification.DismissNow();
-            }
+            DrawOpenInstallerNotificationButton(false, notification);
         };
     }
     
