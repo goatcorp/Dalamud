@@ -7,9 +7,9 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 internal class NameplateInfo : INameplateInfo
 {
     /// <summary>
-    /// Gets or sets a list with all nameplate nodes.
+    /// Gets a list with all nameplate nodes.
     /// </summary>
-    public List<NameplateNode> Nodes { get; set; } = [];
+    public List<NameplateNode> Nodes { get; } = [];
 
     /// <inheritdoc/>
     public bool IsTitleAboveName { get; set; }
