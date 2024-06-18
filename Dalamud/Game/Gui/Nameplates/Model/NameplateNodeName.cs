@@ -28,5 +28,5 @@ public enum NameplateNodeName
     /// <summary>
     /// Gets or sets the prefix text. Mostly used for the job name shortcuts or some status icons that can be shown within a text.
     /// </summary>
-    Prefix
+    Prefix,
 }

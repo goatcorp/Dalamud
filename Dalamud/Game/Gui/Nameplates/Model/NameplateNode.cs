@@ -13,12 +13,12 @@ internal class NameplateNode(nint pointer, NameplateNodeName name) : INameplateN
     private SeString? text;
 
     /// <inheritdoc/>
-    public nint Pointer { get; set; }
+    public nint Pointer { get; set; } = pointer;
 
     /// <inheritdoc/>
     public SeString Text
     {
-        get => this.text ??= MemoryHelper.ReadSeStringNullTerminated(pointer);
+        get => this.text ??= MemoryHelper.ReadSeStringNullTerminated(this.PointerOrig);
         set => this.text = value;
     }
 
@@ -27,4 +27,9 @@ internal class NameplateNode(nint pointer, NameplateNodeName name) : INameplateN
 
     /// <inheritdoc/>
     public NameplateNodeName Name { get; } = name;
+
+    /// <summary>
+    /// Gets the original pointer.
+    /// </summary>
+    internal nint PointerOrig { get; } = pointer;
 }
