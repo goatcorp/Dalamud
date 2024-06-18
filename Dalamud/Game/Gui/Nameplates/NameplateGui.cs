@@ -6,19 +6,24 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Gui.Nameplates.Model;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Memory;
 using Dalamud.Utility.Signatures;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using TerraFX.Interop.Windows;
 
 namespace Dalamud.Game.Gui.Nameplates;
 
 /// <summary>
 /// This class handles interacting with native Nameplate update events and management.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal class NameplateGui : IInternalDisposableService, INameplatesGui
 {
@@ -108,7 +113,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
 
     private unsafe nint HandleSetPlayerNameplateDetour(nint playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, nint titlePtr, nint namePtr, nint freeCompanyPtr, nint prefixPtr, int iconId)
     {
-        var ptrToFree = new List<Utf8String>();
+        var ptrToFree = new List<nint>();
 
         if (this.OnNameplateUpdate != null)
         {
@@ -121,10 +126,12 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             };
 
             // Add known nameplate nodes
-            nameplateInfo.Nodes.Add(new(titlePtr, NameplateNodeName.Title));
-            nameplateInfo.Nodes.Add(new(namePtr, NameplateNodeName.Name));
-            nameplateInfo.Nodes.Add(new(freeCompanyPtr, NameplateNodeName.FreeCompany));
-            nameplateInfo.Nodes.Add(new(prefixPtr, NameplateNodeName.Prefix));
+            nameplateInfo.Nodes.AddRange([
+                new(titlePtr, NameplateNodeName.Title),
+                new(namePtr, NameplateNodeName.Name),
+                new(freeCompanyPtr, NameplateNodeName.FreeCompany),
+                new(prefixPtr, NameplateNodeName.Prefix)
+            ]);
 
             // Create new nameplate object
             var namePlateObj = new NameplateObject(playerNameplateObjectPtr, nameplateInfo);
@@ -142,28 +149,24 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             {
                 if (node.HasChanged)
                 {
-                    if (node.Pointer == node.PointerOrig)
-                    {
-                        // Create new string
-                        var str = new Utf8String(node.Text.Encode());
-                        node.Pointer = (nint)str.StringPtr;
-                        ptrToFree.Add(str);
-                    }
-
                     // Copy back known node properties
                     switch (node.Name)
                     {
                         case NameplateNodeName.Title:
-                            titlePtr = node.Pointer;
+                            titlePtr = this.PluginAllocate(node.Text);
+                            //MemoryHelper.WriteSeString(titlePtr, node.Text);
                             break;
                         case NameplateNodeName.Name:
-                            namePtr = node.Pointer;
+                            namePtr = this.PluginAllocate(node.Text);
+                            //MemoryHelper.WriteSeString(namePtr, node.Text);
                             break;
                         case NameplateNodeName.FreeCompany:
-                            freeCompanyPtr = node.Pointer;
+                            freeCompanyPtr = this.PluginAllocate(node.Text);
+                            //MemoryHelper.WriteSeString(freeCompanyPtr, node.Text);
                             break;
                         case NameplateNodeName.Prefix:
-                            prefixPtr = node.Pointer;
+                            prefixPtr = this.PluginAllocate(node.Text);
+                            //MemoryHelper.WriteSeString(prefixPtr, node.Text);
                             break;
                     }
                 }
@@ -182,9 +185,27 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             iconId);
 
         // Free pointers
-        ptrToFree.ForEach(n => n.Dtor(false));
+        ptrToFree.ForEach(this.PluginFree);
 
         // Return result
         return result;
+    }
+
+    private nint PluginAllocate(SeString seString)
+    {
+        return this.PluginAllocate(seString.Encode());
+    }
+
+    private nint PluginAllocate(byte[] bytes)
+    {
+        var pointer = Marshal.AllocHGlobal(bytes.Length + 1);
+        Marshal.Copy(bytes, 0, pointer, bytes.Length);
+        Marshal.WriteByte(pointer, bytes.Length, 0);
+        return pointer;
+    }
+
+    private void PluginFree(nint ptr)
+    {
+        Marshal.FreeHGlobal(ptr);
     }
 }

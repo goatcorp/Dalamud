@@ -8,11 +8,6 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 public interface INameplateNode
 {
     /// <summary>
-    /// Gets the pointer for the nameplate node.
-    /// </summary>
-    nint Pointer { get; }
-
-    /// <summary>
     /// Gets or sets the text for the nameplate node.
     /// </summary>
     SeString Text { get; set; }
