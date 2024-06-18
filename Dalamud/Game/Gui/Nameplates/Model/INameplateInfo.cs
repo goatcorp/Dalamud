@@ -24,15 +24,15 @@ public interface INameplateInfo
     NameplateStatusIcons IconID { get; set; }
 
     /// <summary>
-    /// Searches for a node by a given common name.
+    /// Searches for an element by a given common name.
     /// </summary>
-    /// <param name="name">The common namplate node name to serch for.<br/>Note: <see cref="NameplateNodeName.Unknown"/> is not supported.</param>
-    /// <returns>Returns the found node, or null if nohting has been found.</returns>
-    INameplateNode? GetNode(NameplateNodeName name);
+    /// <param name="name">The common namplate element name to serch for.<br/>Note: <see cref="NameplateElementName.Unknown"/> is not supported.</param>
+    /// <returns>Returns the found element, or null if nohting has been found.</returns>
+    INameplateElement? GetElement(NameplateElementName name);
 
     /// <summary>
-    /// Gets all available nameplate nodes.
+    /// Gets all available nameplate elements.
     /// </summary>
-    /// <returns>Returns an array of all nameplate nodes.</returns>
-    INameplateNode[] GetAllNodes();
+    /// <returns>Returns an array of all nameplate element.</returns>
+    INameplateElement[] GetAllElement();
 }
