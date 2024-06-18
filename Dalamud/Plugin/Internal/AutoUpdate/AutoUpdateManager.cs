@@ -445,18 +445,24 @@ internal class AutoUpdateManager : IServiceType
         public static string NotificationContentUpdatesFailedMinimized => Loc.Localize("AutoUpdateUpdatesFailedContentMinimized", "Plugins failed to update.");
         
         public static string NotificationContentUpdatesAvailable(int numUpdates)
-            => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "There are {0} plugins that can be updated."), numUpdates);
+            => numUpdates == 1 ?
+                   Loc.Localize("AutoUpdateUpdatesAvailableContentSingular", "There is a plugin that can be updated.") : 
+                   string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContentPlural", "There are {0} plugins that can be updated."), numUpdates);
         
         public static string NotificationContentUpdatesAvailableMinimized(int numUpdates)
-            => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "{0} plugin updates"), numUpdates);
+            => numUpdates == 1 ?
+                   Loc.Localize("AutoUpdateUpdatesAvailableContentMinimizedSingular", "1 plugin update available") : 
+                   string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContentMinimizedPlural", "{0} plugin updates available"), numUpdates);
         
         public static string NotificationContentPreparingToUpdate(int numPlugins)
-            => string.Format(Loc.Localize("AutoUpdatePreparingToUpdate", "Preparing to update {0} plugins..."), numPlugins);
+            => numPlugins == 1 ?
+                   Loc.Localize("AutoUpdatePreparingToUpdateSingular", "Preparing to update 1 plugin...") : 
+                   string.Format(Loc.Localize("AutoUpdatePreparingToUpdatePlural", "Preparing to update {0} plugins..."), numPlugins);
         
         public static string NotificationContentUpdating(string name)
             => string.Format(Loc.Localize("AutoUpdateUpdating", "Updating {0}..."), name);
         
         public static string NotificationContentFailedPlugins(IEnumerable<string> failedPlugins)
-            => string.Format(Loc.Localize("AutoUpdateFailedPlugins", "Failed plugins: {0}"), string.Join(", ", failedPlugins));
+            => string.Format(Loc.Localize("AutoUpdateFailedPlugins", "Failed plugin(s): {0}"), string.Join(", ", failedPlugins));
     }
 }
