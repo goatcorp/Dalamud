@@ -3,19 +3,19 @@ using Dalamud.Game.Text.SeStringHandling;
 namespace Dalamud.Game.Gui.Nameplates.Model;
 
 /// <summary>
-/// Represents a nameplate text node.
+/// Represents a nameplate text element.
 /// </summary>
-public interface INameplateNode
+public interface INameplateElement
 {
     /// <summary>
-    /// Gets or sets the text for the nameplate node.
+    /// Gets or sets the text for the nameplate element.
     /// </summary>
     SeString Text { get; set; }
 
     /// <summary>
-    /// Gets the name for this nameplate node. If the node is not common, it is <see cref="NameplateNodeName.Unknown"/>.
+    /// Gets the name for this nameplate element. If the element is not common, it is <see cref="NameplateElementName.Unknown"/>.
     /// </summary>
-    NameplateNodeName Name { get; }
+    NameplateElementName Name { get; }
 
     /// <summary>
     /// Gets or sets a value indicating whether <see cref="Text"/> has been changed.

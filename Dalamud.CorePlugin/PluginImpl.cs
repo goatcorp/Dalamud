@@ -92,19 +92,19 @@ namespace Dalamud.CorePlugin
 
         private void NameplateService_OnNameplateUpdate(INameplateObject nameplateObject)
         {
-            var nodeTitle = nameplateObject.Nameplate.GetNode(NameplateNodeName.Title);
+            var nodeTitle = nameplateObject.Nameplate.GetElement(NameplateElementName.Title);
             nodeTitle.Text = "Titel";
             nodeTitle.HasChanged = true;
 
-            nameplateObject.Nameplate.GetNode(NameplateNodeName.FreeCompany).Text = "FC";
-            nameplateObject.Nameplate.GetNode(NameplateNodeName.FreeCompany).HasChanged = true;
+            nameplateObject.Nameplate.GetElement(NameplateElementName.FreeCompany).Text = "FC";
+            nameplateObject.Nameplate.GetElement(NameplateElementName.FreeCompany).HasChanged = true;
 
-            var nodeName = nameplateObject.Nameplate.GetNode(NameplateNodeName.Name);
+            var nodeName = nameplateObject.Nameplate.GetElement(NameplateElementName.Name);
             nodeName.Text = "Name";
             nodeName.HasChanged = true;
 
-            nameplateObject.Nameplate.GetNode(NameplateNodeName.Prefix).Text = "Prefix";
-            nameplateObject.Nameplate.GetNode(NameplateNodeName.Prefix).HasChanged = true;
+            nameplateObject.Nameplate.GetElement(NameplateElementName.Prefix).Text = "Prefix";
+            nameplateObject.Nameplate.GetElement(NameplateElementName.Prefix).HasChanged = true;
 
             nameplateObject.Nameplate.IconID = NameplateStatusIcons.Busy;
             nameplateObject.Nameplate.IsTitleAboveName = true;

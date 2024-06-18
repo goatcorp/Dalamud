@@ -7,9 +7,9 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 internal class NameplateInfo : INameplateInfo
 {
     /// <summary>
-    /// Gets a list with all nameplate nodes.
+    /// Gets a list with all nameplate element.
     /// </summary>
-    public List<NameplateNode> Nodes { get; } = [];
+    public List<NameplateElement> Elements { get; } = [];
 
     /// <inheritdoc/>
     public bool IsTitleAboveName { get; set; }
@@ -21,17 +21,17 @@ internal class NameplateInfo : INameplateInfo
     public NameplateStatusIcons IconID { get; set; }
 
     /// <inheritdoc/>
-    public INameplateNode? GetNode(NameplateNodeName name)
+    public INameplateElement? GetElement(NameplateElementName name)
     {
-        if (name == NameplateNodeName.Unknown)
+        if (name == NameplateElementName.Unknown)
             return null;
 
-        return this.Nodes.FirstOrDefault(n => n.Name == name);
+        return this.Elements.FirstOrDefault(n => n.Name == name);
     }
 
     /// <inheritdoc/>
-    public INameplateNode[] GetAllNodes()
+    public INameplateElement[] GetAllElement()
     {
-        return [.. this.Nodes];
+        return [.. this.Elements];
     }
 }

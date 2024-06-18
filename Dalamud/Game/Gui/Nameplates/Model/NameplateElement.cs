@@ -1,16 +1,14 @@
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
 
-using FFXIVClientStructs.FFXIV.Client.System.String;
-
 namespace Dalamud.Game.Gui.Nameplates.Model;
 
 /// <summary>
-/// Represents a nameplate text node.
+/// Represents a nameplate text element.
 /// </summary>
-/// <param name="pointer">The pointer for the nameplate node.</param>
-/// <param name="name">The name for the nameplate node.</param>
-internal class NameplateNode(nint pointer, NameplateNodeName name) : INameplateNode
+/// <param name="pointer">The pointer for the nameplate element.</param>
+/// <param name="name">The name for the nameplate element.</param>
+internal class NameplateElement(nint pointer, NameplateElementName name) : INameplateElement
 {
     private SeString? text;
 
@@ -30,5 +28,5 @@ internal class NameplateNode(nint pointer, NameplateNodeName name) : INameplateN
     public bool HasChanged { get; set; }
 
     /// <inheritdoc/>
-    public NameplateNodeName Name { get; } = name;
+    public NameplateElementName Name { get; } = name;
 }

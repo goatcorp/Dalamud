@@ -129,12 +129,12 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
                 IconID = (NameplateStatusIcons)iconId,
             };
 
-            // Add known nameplate nodes
-            nameplateInfo.Nodes.AddRange([
-                new(titlePtr, NameplateNodeName.Title),
-                new(namePtr, NameplateNodeName.Name),
-                new(freeCompanyPtr, NameplateNodeName.FreeCompany),
-                new(prefixPtr, NameplateNodeName.Prefix)
+            // Add known nameplate elements
+            nameplateInfo.Elements.AddRange([
+                new(titlePtr, NameplateElementName.Title),
+                new(namePtr, NameplateElementName.Name),
+                new(freeCompanyPtr, NameplateElementName.FreeCompany),
+                new(prefixPtr, NameplateElementName.Prefix)
             ]);
 
             // Create new nameplate object
@@ -148,25 +148,25 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             isTitleVisible = nameplateInfo.IsTitleVisible;
             iconId = (int)nameplateInfo.IconID;
 
-            // Handle changed nodes
-            foreach (var node in nameplateInfo.Nodes)
+            // Handle changed elements
+            foreach (var element in nameplateInfo.Elements)
             {
-                if (node.HasChanged)
+                if (element.HasChanged)
                 {
-                    // Copy back known node properties
-                    switch (node.Name)
+                    // Copy back known element properties
+                    switch (element.Name)
                     {
-                        case NameplateNodeName.Title:
-                            titlePtr = this.PluginAllocate(node.Text);
+                        case NameplateElementName.Title:
+                            titlePtr = this.PluginAllocate(element.Text);
                             break;
-                        case NameplateNodeName.Name:
-                            namePtr = this.PluginAllocate(node.Text);
+                        case NameplateElementName.Name:
+                            namePtr = this.PluginAllocate(element.Text);
                             break;
-                        case NameplateNodeName.FreeCompany:
-                            freeCompanyPtr = this.PluginAllocate(node.Text);
+                        case NameplateElementName.FreeCompany:
+                            freeCompanyPtr = this.PluginAllocate(element.Text);
                             break;
-                        case NameplateNodeName.Prefix:
-                            prefixPtr = this.PluginAllocate(node.Text);
+                        case NameplateElementName.Prefix:
+                            prefixPtr = this.PluginAllocate(element.Text);
                             break;
                     }
                 }
