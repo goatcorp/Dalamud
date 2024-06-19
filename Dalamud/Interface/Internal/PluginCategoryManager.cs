@@ -16,46 +16,49 @@ internal class PluginCategoryManager
     /// <summary>
     /// First categoryId for tag based categories.
     /// </summary>
-    public const int FirstTagBasedCategoryId = 100;
+    private const int FirstTagBasedCategoryId = 100;
 
     private readonly CategoryInfo[] categoryList =
-    {
-        new(0, "special.all", () => Locs.Category_All),
-        new(1, "special.isTesting", () => Locs.Category_IsTesting, CategoryInfo.AppearCondition.DoPluginTest),
-        new(2, "special.availableForTesting", () => Locs.Category_AvailableForTesting, CategoryInfo.AppearCondition.DoPluginTest),
-        new(10, "special.devInstalled", () => Locs.Category_DevInstalled),
-        new(11, "special.devIconTester", () => Locs.Category_IconTester),
-        new(12, "special.dalamud", () => Locs.Category_Dalamud),
-        new(13, "special.plugins", () => Locs.Category_Plugins),
-        new(14, "special.profiles", () => Locs.Category_PluginProfiles),
-        new(FirstTagBasedCategoryId + 0, "other", () => Locs.Category_Other),
-        new(FirstTagBasedCategoryId + 1, "jobs", () => Locs.Category_Jobs),
-        new(FirstTagBasedCategoryId + 2, "ui", () => Locs.Category_UI),
-        new(FirstTagBasedCategoryId + 3, "minigames", () => Locs.Category_MiniGames),
-        new(FirstTagBasedCategoryId + 4, "inventory", () => Locs.Category_Inventory),
-        new(FirstTagBasedCategoryId + 5, "sound", () => Locs.Category_Sound),
-        new(FirstTagBasedCategoryId + 6, "social", () => Locs.Category_Social),
-        new(FirstTagBasedCategoryId + 7, "utility", () => Locs.Category_Utility),
+    [
+        new(CategoryKind.All, "special.all", () => Locs.Category_All),
+        new(CategoryKind.IsTesting, "special.isTesting", () => Locs.Category_IsTesting, CategoryInfo.AppearCondition.DoPluginTest),
+        new(CategoryKind.AvailableForTesting, "special.availableForTesting", () => Locs.Category_AvailableForTesting, CategoryInfo.AppearCondition.DoPluginTest),
+        new(CategoryKind.DevInstalled, "special.devInstalled", () => Locs.Category_DevInstalled),
+        new(CategoryKind.IconTester, "special.devIconTester", () => Locs.Category_IconTester),
+        new(CategoryKind.DalamudChangelogs, "special.dalamud", () => Locs.Category_Dalamud),
+        new(CategoryKind.PluginChangelogs, "special.plugins", () => Locs.Category_Plugins),
+        new(CategoryKind.PluginProfiles, "special.profiles", () => Locs.Category_PluginProfiles),
+        new(CategoryKind.UpdateablePlugins, "special.updateable", () => Locs.Category_UpdateablePlugins),
+
+        // Tag-driven categories
+        new(CategoryKind.Other, "other", () => Locs.Category_Other),
+        new(CategoryKind.Jobs, "jobs", () => Locs.Category_Jobs),
+        new(CategoryKind.Ui, "ui", () => Locs.Category_UI),
+        new(CategoryKind.MiniGames, "minigames", () => Locs.Category_MiniGames),
+        new(CategoryKind.Inventory, "inventory", () => Locs.Category_Inventory),
+        new(CategoryKind.Sound, "sound", () => Locs.Category_Sound),
+        new(CategoryKind.Social, "social", () => Locs.Category_Social),
+        new(CategoryKind.Utility, "utility", () => Locs.Category_Utility)
 
         // order doesn't matter, all tag driven categories should have Id >= FirstTagBasedCategoryId
-    };
+    ];
 
     private GroupInfo[] groupList =
-    {
-        new(GroupKind.DevTools, () => Locs.Group_DevTools, 10, 11),
-        new(GroupKind.Installed, () => Locs.Group_Installed, 0, 1, 14),
-        new(GroupKind.Available, () => Locs.Group_Available, 0),
-        new(GroupKind.Changelog, () => Locs.Group_Changelog, 0, 12, 13),
+    [
+        new(GroupKind.DevTools, () => Locs.Group_DevTools, CategoryKind.DevInstalled, CategoryKind.IconTester),
+        new(GroupKind.Installed, () => Locs.Group_Installed, CategoryKind.All, CategoryKind.IsTesting, CategoryKind.UpdateablePlugins, CategoryKind.PluginProfiles),
+        new(GroupKind.Available, () => Locs.Group_Available, CategoryKind.All),
+        new(GroupKind.Changelog, () => Locs.Group_Changelog, CategoryKind.All, CategoryKind.DalamudChangelogs, CategoryKind.PluginChangelogs)
 
         // order important, used for drawing, keep in sync with defaults for currentGroupIdx
-    };
+    ];
 
     private int currentGroupIdx = 2;
-    private int currentCategoryIdx = 0;
+    private CategoryKind currentCategoryKind = CategoryKind.All;
     private bool isContentDirty;
 
-    private Dictionary<PluginManifest, int[]> mapPluginCategories = new();
-    private List<int> highlightedCategoryIds = new();
+    private Dictionary<PluginManifest, CategoryKind[]> mapPluginCategories = new();
+    private List<CategoryKind> highlightedCategoryKinds = new();
 
     /// <summary>
     /// Type of category group.
@@ -84,6 +87,97 @@ internal class PluginCategoryManager
     }
 
     /// <summary>
+    /// Type of category.
+    /// </summary>
+    public enum CategoryKind
+    {
+        /// <summary>
+        /// All plugins.
+        /// </summary>
+        All = 0,
+        
+        /// <summary>
+        /// Plugins currently being tested.
+        /// </summary>
+        IsTesting = 1,
+        
+        /// <summary>
+        /// Plugins available for testing.
+        /// </summary>
+        AvailableForTesting = 2,
+        
+        /// <summary>
+        /// Installed dev plugins.
+        /// </summary>
+        DevInstalled = 10,
+        
+        /// <summary>
+        /// Icon tester.
+        /// </summary>
+        IconTester = 11,
+        
+        /// <summary>
+        /// Changelogs for Dalamud.
+        /// </summary>
+        DalamudChangelogs = 12,
+        
+        /// <summary>
+        /// Changelogs for plugins.
+        /// </summary>
+        PluginChangelogs = 13,
+        
+        /// <summary>
+        /// Change plugin profiles.
+        /// </summary>
+        PluginProfiles = 14,
+        
+        /// <summary>
+        /// Updateable plugins.
+        /// </summary>
+        UpdateablePlugins = 15,
+        
+        /// <summary>
+        /// Plugins tagged as "other".
+        /// </summary>
+        Other = FirstTagBasedCategoryId + 0,
+        
+        /// <summary>
+        /// Plugins tagged as "jobs".
+        /// </summary>
+        Jobs = FirstTagBasedCategoryId + 1,
+        
+        /// <summary>
+        /// Plugins tagged as "ui".
+        /// </summary>
+        Ui = FirstTagBasedCategoryId + 2,
+        
+        /// <summary>
+        /// Plugins tagged as "minigames".
+        /// </summary>
+        MiniGames = FirstTagBasedCategoryId + 3,
+        
+        /// <summary>
+        /// Plugins tagged as "inventory".
+        /// </summary>
+        Inventory = FirstTagBasedCategoryId + 4,
+        
+        /// <summary>
+        /// Plugins tagged as "sound".
+        /// </summary>
+        Sound = FirstTagBasedCategoryId + 5,
+        
+        /// <summary>
+        /// Plugins tagged as "social".
+        /// </summary>
+        Social = FirstTagBasedCategoryId + 6,
+        
+        /// <summary>
+        /// Plugins tagged as "utility".
+        /// </summary>
+        Utility = FirstTagBasedCategoryId + 7,
+    }
+
+    /// <summary>
     /// Gets the list of all known categories.
     /// </summary>
     public CategoryInfo[] CategoryList => this.categoryList;
@@ -92,39 +186,50 @@ internal class PluginCategoryManager
     /// Gets the list of all known UI groups.
     /// </summary>
     public GroupInfo[] GroupList => this.groupList;
-
+    
     /// <summary>
-    /// Gets or sets current group.
+    /// Gets or sets the current group kind.
     /// </summary>
-    public int CurrentGroupIdx
+    public GroupKind CurrentGroupKind
     {
-        get => this.currentGroupIdx;
+        get => this.groupList[this.currentGroupIdx].GroupKind;
         set
         {
-            if (this.currentGroupIdx != value)
+            var newIdx = Array.FindIndex(this.groupList, x => x.GroupKind == value);
+            if (newIdx >= 0)
             {
-                this.currentGroupIdx = value;
-                this.currentCategoryIdx = 0;
+                this.currentGroupIdx = newIdx;
+                this.currentCategoryKind = this.CurrentGroup.Categories.First();
                 this.isContentDirty = true;
             }
         }
     }
-
+    
     /// <summary>
-    /// Gets or sets current category, index in current Group.Categories array.
+    /// Gets information about currently selected group.
     /// </summary>
-    public int CurrentCategoryIdx
+    public GroupInfo CurrentGroup => this.groupList[this.currentGroupIdx];
+    
+    /// <summary>
+    /// Gets or sets the current category kind.
+    /// </summary>
+    public CategoryKind CurrentCategoryKind
     {
-        get => this.currentCategoryIdx;
+        get => this.currentCategoryKind;
         set
         {
-            if (this.currentCategoryIdx != value)
+            if (this.currentCategoryKind != value)
             {
-                this.currentCategoryIdx = value;
+                this.currentCategoryKind = value;
                 this.isContentDirty = true;
             }
         }
     }
+    
+    /// <summary>
+    /// Gets information about currently selected category.
+    /// </summary>
+    public CategoryInfo CurrentCategory => this.categoryList.First(x => x.CategoryKind == this.currentCategoryKind);
 
     /// <summary>
     /// Gets a value indicating whether current group + category selection changed recently.
@@ -133,13 +238,12 @@ internal class PluginCategoryManager
     public bool IsContentDirty => this.isContentDirty;
 
     /// <summary>
-    /// Gets a value indicating whether <see cref="CurrentCategoryIdx"/> and <see cref="CurrentGroupIdx"/> are valid.
+    /// Gets a value indicating whether <see cref="CurrentCategoryKind"/> and <see cref="CurrentGroupKind"/> are valid.
     /// </summary>
     public bool IsSelectionValid =>
         (this.currentGroupIdx >= 0) &&
         (this.currentGroupIdx < this.groupList.Length) &&
-        (this.currentCategoryIdx >= 0) &&
-        (this.currentCategoryIdx < this.groupList[this.currentGroupIdx].Categories.Count);
+        this.groupList[this.currentGroupIdx].Categories.Contains(this.currentCategoryKind);
 
     /// <summary>
     /// Rebuild available categories based on currently available plugins.
@@ -151,10 +255,10 @@ internal class PluginCategoryManager
         this.mapPluginCategories.Clear();
 
         var groupAvail = Array.Find(this.groupList, x => x.GroupKind == GroupKind.Available);
-        var prevCategoryIds = new List<int>();
+        var prevCategoryIds = new List<CategoryKind>();
         prevCategoryIds.AddRange(groupAvail.Categories);
 
-        var categoryList = new List<int>();
+        var categoryList = new List<CategoryKind>();
         var allCategoryIndices = new List<int>();
 
         foreach (var manifest in availablePlugins)
@@ -170,10 +274,10 @@ internal class PluginCategoryManager
                     var matchIdx = Array.FindIndex(this.CategoryList, x => x.Tag.Equals(tag, StringComparison.InvariantCultureIgnoreCase));
                     if (matchIdx >= 0)
                     {
-                        var categoryId = this.CategoryList[matchIdx].CategoryId;
-                        if (categoryId >= FirstTagBasedCategoryId)
+                        var categoryKind = this.CategoryList[matchIdx].CategoryKind;
+                        if ((int)categoryKind >= FirstTagBasedCategoryId)
                         {
-                            categoryList.Add(categoryId);
+                            categoryList.Add(categoryKind);
 
                             if (!allCategoryIndices.Contains(matchIdx))
                             {
@@ -185,7 +289,7 @@ internal class PluginCategoryManager
             }
 
             if (PluginManager.HasTestingVersion(manifest) || manifest.IsTestingExclusive)
-                categoryList.Add(2);
+                categoryList.Add(CategoryKind.AvailableForTesting);
 
             // always add, even if empty
             this.mapPluginCategories.Add(manifest, categoryList.ToArray());
@@ -203,11 +307,11 @@ internal class PluginCategoryManager
 
         foreach (var categoryIdx in allCategoryIndices)
         {
-            groupAvail.Categories.Add(this.CategoryList[categoryIdx].CategoryId);
+            groupAvail.Categories.Add(this.CategoryList[categoryIdx].CategoryKind);
         }
 
         // compare with prev state and mark as dirty if needed
-        var noCategoryChanges = Enumerable.SequenceEqual(prevCategoryIds, groupAvail.Categories);
+        var noCategoryChanges = prevCategoryIds.SequenceEqual(groupAvail.Categories);
         if (!noCategoryChanges)
         {
             this.isContentDirty = true;
@@ -228,20 +332,20 @@ internal class PluginCategoryManager
         {
             var groupInfo = this.groupList[this.currentGroupIdx];
 
-            var includeAll = (this.currentCategoryIdx == 0) || (groupInfo.GroupKind != GroupKind.Available);
+            var includeAll = (this.currentCategoryKind == CategoryKind.All) || (groupInfo.GroupKind != GroupKind.Available);
             if (includeAll)
             {
                 result.AddRange(plugins);
             }
             else
             {
-                var selectedCategoryInfo = Array.Find(this.categoryList, x => x.CategoryId == groupInfo.Categories[this.currentCategoryIdx]);
+                var selectedCategoryInfo = Array.Find(this.categoryList, x => x.CategoryKind == this.currentCategoryKind);
 
                 foreach (var plugin in plugins)
                 {
                     if (this.mapPluginCategories.TryGetValue(plugin, out var pluginCategoryIds))
                     {
-                        var matchIdx = Array.IndexOf(pluginCategoryIds, selectedCategoryInfo.CategoryId);
+                        var matchIdx = Array.IndexOf(pluginCategoryIds, selectedCategoryInfo.CategoryKind);
                         if (matchIdx >= 0)
                         {
                             result.Add(plugin);
@@ -269,20 +373,19 @@ internal class PluginCategoryManager
     /// <param name="plugins">List of plugins whose categories should be highlighted.</param>
     public void SetCategoryHighlightsForPlugins(IEnumerable<PluginManifest> plugins)
     {
-        this.highlightedCategoryIds.Clear();
+        ArgumentNullException.ThrowIfNull(plugins);
+        
+        this.highlightedCategoryKinds.Clear();
 
-        if (plugins != null)
+        foreach (var entry in plugins)
         {
-            foreach (var entry in plugins)
+            if (this.mapPluginCategories.TryGetValue(entry, out var pluginCategories))
             {
-                if (this.mapPluginCategories.TryGetValue(entry, out var pluginCategories))
+                foreach (var categoryKind in pluginCategories)
                 {
-                    foreach (var categoryId in pluginCategories)
+                    if (!this.highlightedCategoryKinds.Contains(categoryKind))
                     {
-                        if (!this.highlightedCategoryIds.Contains(categoryId))
-                        {
-                            this.highlightedCategoryIds.Add(categoryId);
-                        }
+                        this.highlightedCategoryKinds.Add(categoryKind);
                     }
                 }
             }
@@ -292,9 +395,9 @@ internal class PluginCategoryManager
     /// <summary>
     /// Checks if category should be highlighted.
     /// </summary>
-    /// <param name="categoryId">CategoryId to check.</param>
+    /// <param name="categoryKind">CategoryKind to check.</param>
     /// <returns>true if highlight is needed.</returns>
-    public bool IsCategoryHighlighted(int categoryId) => this.highlightedCategoryIds.Contains(categoryId);
+    public bool IsCategoryHighlighted(CategoryKind categoryKind) => this.highlightedCategoryKinds.Contains(categoryKind);
 
     private IEnumerable<string> GetCategoryTagsForManifest(PluginManifest pluginManifest)
     {
@@ -314,7 +417,7 @@ internal class PluginCategoryManager
         /// <summary>
         /// Unique Id number of category, tag match based should be greater of equal <see cref="FirstTagBasedCategoryId"/>.
         /// </summary>
-        public int CategoryId;
+        public CategoryKind CategoryKind;
 
         /// <summary>
         /// Tag from plugin manifest to match.
@@ -326,13 +429,13 @@ internal class PluginCategoryManager
         /// <summary>
         /// Initializes a new instance of the <see cref="CategoryInfo"/> struct.
         /// </summary>
-        /// <param name="categoryId">Unique id of category.</param>
+        /// <param name="categoryKind">Kind of the category.</param>
         /// <param name="tag">Tag to match.</param>
         /// <param name="nameFunc">Function returning localized name of category.</param>
         /// <param name="condition">Condition to be checked when deciding whether this category should be shown.</param>
-        public CategoryInfo(int categoryId, string tag, Func<string> nameFunc, AppearCondition condition = AppearCondition.None)
+        public CategoryInfo(CategoryKind categoryKind, string tag, Func<string> nameFunc, AppearCondition condition = AppearCondition.None)
         {
-            this.CategoryId = categoryId;
+            this.CategoryKind = categoryKind;
             this.Tag = tag;
             this.nameFunc = nameFunc;
             this.Condition = condition;
@@ -378,7 +481,7 @@ internal class PluginCategoryManager
         /// <summary>
         /// List of categories in container.
         /// </summary>
-        public List<int> Categories;
+        public List<CategoryKind> Categories;
 
         private Func<string> nameFunc;
 
@@ -388,7 +491,7 @@ internal class PluginCategoryManager
         /// <param name="groupKind">Type of group.</param>
         /// <param name="nameFunc">Function returning localized name of category.</param>
         /// <param name="categories">List of category Ids to hardcode.</param>
-        public GroupInfo(GroupKind groupKind, Func<string> nameFunc, params int[] categories)
+        public GroupInfo(GroupKind groupKind, Func<string> nameFunc, params CategoryKind[] categories)
         {
             this.GroupKind = groupKind;
             this.nameFunc = nameFunc;
@@ -432,6 +535,8 @@ internal class PluginCategoryManager
 
         public static string Category_PluginProfiles => Loc.Localize("InstallerCategoryPluginProfiles", "Plugin Collections");
 
+        public static string Category_UpdateablePlugins => Loc.Localize("InstallerCategoryCanBeUpdated", "Can be updated");
+        
         public static string Category_Other => Loc.Localize("InstallerCategoryOther", "Other");
 
         public static string Category_Jobs => Loc.Localize("InstallerCategoryJobs", "Jobs");

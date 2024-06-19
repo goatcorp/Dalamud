@@ -142,7 +142,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     public PluginInstallerWindow(PluginImageCache imageCache, DalamudConfiguration configuration)
         : base(
             Locs.WindowTitle + (configuration.DoPluginTest ? Locs.WindowTitleMod_Testing : string.Empty) + "###XlPluginInstaller",
-            ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar)
+            ImGuiWindowFlags.NoScrollbar)
     {
         this.IsOpen = true;
         this.imageCache = imageCache;
@@ -222,6 +222,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         IsTesting = 1 << 6,
     }
 
+    private enum InstalledPluginListFilter
+    {
+        None,
+        Testing,
+        Updateable,
+        Dev,
+    }
+    
     private bool AnyOperationInProgress => this.installStatus == OperationStatus.InProgress ||
                                            this.updateStatus == OperationStatus.InProgress ||
                                            this.enableDisableStatus == OperationStatus.InProgress;
@@ -421,21 +429,27 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             case PluginInstallerOpenKind.AllPlugins:
                 // Plugins group
-                this.categoryManager.CurrentGroupIdx = 2;
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Available;
                 // All category
-                this.categoryManager.CurrentCategoryIdx = 0;
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
                 break;
             case PluginInstallerOpenKind.InstalledPlugins:
                 // Installed group
-                this.categoryManager.CurrentGroupIdx = 1;
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed;
                 // All category
-                this.categoryManager.CurrentCategoryIdx = 0;
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
+                break;
+            case PluginInstallerOpenKind.UpdateablePlugins:
+                // Installed group
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed;
+                // Updateable category
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.UpdateablePlugins;
                 break;
             case PluginInstallerOpenKind.Changelogs:
                 // Changelog group
-                this.categoryManager.CurrentGroupIdx = 3;
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Changelog;
                 // Plugins category
-                this.categoryManager.CurrentCategoryIdx = 2;
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
@@ -598,7 +612,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPosX(windowSize.X - sortSelectWidth - (style.ItemSpacing.X * 2) - searchInputWidth - searchClearButtonWidth);
 
         var isProfileManager =
-            this.categoryManager.CurrentGroupIdx == 1 && this.categoryManager.CurrentCategoryIdx == 2;
+            this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Installed &&
+            this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.PluginProfiles;
 
         // Disable search if profile editor
         using (ImRaii.Disabled(isProfileManager))
@@ -628,7 +643,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
 
         // Disable sort if changelogs or profile editor
-        using (ImRaii.Disabled(this.categoryManager.CurrentGroupIdx == 3 || isProfileManager))
+        using (ImRaii.Disabled(this.categoryManager.CurrentGroupKind == PluginCategoryManager.GroupKind.Changelog || isProfileManager))
         {
             ImGui.SameLine();
             ImGui.SetCursorPosY(downShift);
@@ -727,7 +742,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.loadingIndicatorKind = LoadingIndicatorKind.UpdatingAll;
                 
                 var toUpdate = this.pluginListUpdatable
-                                   .Where(x => x.InstalledPlugin.IsLoaded)
+                                   .Where(x => x.InstalledPlugin.IsWantedByAnyProfile)
                                    .ToList();
 
                 Task.Run(() => pluginManager.UpdatePluginsAsync(toUpdate, false))
@@ -768,9 +783,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                                 Service<PluginManager>.Get().PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
                                 notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, NotificationType.Success);
 
-                                var installedGroupIdx = this.categoryManager.GroupList.TakeWhile(
-                                    x => x.GroupKind != PluginCategoryManager.GroupKind.Installed).Count();
-                                this.categoryManager.CurrentGroupIdx = installedGroupIdx;
+                                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed;
                             }
                             else if (this.updatePluginCount == 0)
                             {
@@ -1216,7 +1229,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (proxy.LocalPlugin != null)
             {
-                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, true);
+                var update = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == proxy.LocalPlugin);
+                this.DrawInstalledPlugin(proxy.LocalPlugin, i++, proxy.RemoteManifest, update);
             }
             else if (proxy.RemoteManifest != null)
             {
@@ -1226,8 +1240,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.PopID();
         }
     }
-
-    private void DrawInstalledPluginList(bool filterTesting)
+    
+    private void DrawInstalledPluginList(InstalledPluginListFilter filter)
     {
         var pluginList = this.pluginListInstalled;
         var manager = Service<PluginManager>.Get();
@@ -1248,47 +1262,57 @@ internal class PluginInstallerWindow : Window, IDisposable
             return;
         }
 
+        var drewAny = false;
         var i = 0;
         foreach (var plugin in filteredList)
         {
-            if (filterTesting && !manager.HasTestingOptIn(plugin.Manifest))
+            if (filter == InstalledPluginListFilter.Testing && !manager.HasTestingOptIn(plugin.Manifest))
                 continue;
+            
+            // Find applicable update and manifest, if we have them
+            AvailablePluginUpdate? update = null;
+            RemotePluginManifest? remoteManifest = null;
 
-            // Find the applicable remote manifest
-            var remoteManifest = this.pluginListAvailable
-                                 .FirstOrDefault(rm => rm.InternalName == plugin.Manifest.InternalName &&
-                                                       rm.RepoUrl == plugin.Manifest.RepoUrl);
+            if (filter != InstalledPluginListFilter.Dev)
+            {
+                update = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin);
+                if (filter == InstalledPluginListFilter.Updateable && update == null)
+                    continue;
 
-            this.DrawInstalledPlugin(plugin, i++, remoteManifest);
+                // Find the applicable remote manifest
+                remoteManifest = this.pluginListAvailable
+                                         .FirstOrDefault(rm => rm.InternalName == plugin.Manifest.InternalName &&
+                                                               rm.RepoUrl == plugin.Manifest.RepoUrl);
+            }
+            else if (!plugin.IsDev)
+            {
+                continue;
+            }
+            
+            this.DrawInstalledPlugin(plugin, i++, remoteManifest, update);
+            drewAny = true;
         }
-    }
-
-    private void DrawInstalledDevPluginList()
-    {
-        var pluginList = this.pluginListInstalled
-                             .Where(plugin => plugin.IsDev)
-                             .ToList();
-
-        if (pluginList.Count == 0)
+        
+        if (!drewAny)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoInstalled);
-            return;
-        }
+            var text = filter switch
+            {
+                InstalledPluginListFilter.None => Locs.TabBody_NoPluginsInstalled,
+                InstalledPluginListFilter.Testing => Locs.TabBody_NoPluginsTesting,
+                InstalledPluginListFilter.Updateable => Locs.TabBody_NoPluginsUpdateable,
+                InstalledPluginListFilter.Dev => Locs.TabBody_NoPluginsDev,
+                _ => throw new ArgumentException(null, nameof(filter)),
+            };
+            
+            ImGuiHelpers.ScaledDummy(60);
 
-        var filteredList = pluginList
-                           .Where(plugin => !this.IsManifestFiltered(plugin.Manifest))
-                           .ToList();
-
-        if (filteredList.Count == 0)
-        {
-            ImGui.TextColored(ImGuiColors.DalamudGrey2, Locs.TabBody_SearchNoMatching);
-            return;
-        }
-
-        var i = 0;
-        foreach (var plugin in filteredList)
-        {
-            this.DrawInstalledPlugin(plugin, i++, null);
+            using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+            {
+                foreach (var line in text.Split('\n'))
+                {
+                    ImGuiHelpers.CenteredText(line);
+                }
+            }
         }
     }
 
@@ -1349,29 +1373,29 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        for (var groupIdx = 0; groupIdx < this.categoryManager.GroupList.Length; groupIdx++)
+        foreach (var groupInfo in this.categoryManager.GroupList)
         {
-            var groupInfo = this.categoryManager.GroupList[groupIdx];
             var canShowGroup = (groupInfo.GroupKind != PluginCategoryManager.GroupKind.DevTools) || this.hasDevPlugins;
             if (!canShowGroup)
             {
                 continue;
             }
 
-            ImGui.SetNextItemOpen(groupIdx == this.categoryManager.CurrentGroupIdx);
-            if (ImGui.CollapsingHeader(groupInfo.Name, groupIdx == this.categoryManager.CurrentGroupIdx ? ImGuiTreeNodeFlags.OpenOnDoubleClick : ImGuiTreeNodeFlags.None))
+            var isCurrent = groupInfo.GroupKind == this.categoryManager.CurrentGroupKind;
+            ImGui.SetNextItemOpen(isCurrent);
+            if (ImGui.CollapsingHeader(groupInfo.Name, isCurrent ? ImGuiTreeNodeFlags.OpenOnDoubleClick : ImGuiTreeNodeFlags.None))
             {
-                if (this.categoryManager.CurrentGroupIdx != groupIdx)
+                if (!isCurrent)
                 {
-                    this.categoryManager.CurrentGroupIdx = groupIdx;
+                    this.categoryManager.CurrentGroupKind = groupInfo.GroupKind;
                 }
 
                 ImGui.Indent();
                 var categoryItemSize = new Vector2(ImGui.GetContentRegionAvail().X - (5 * ImGuiHelpers.GlobalScale), ImGui.GetTextLineHeight());
-                for (var categoryIdx = 0; categoryIdx < groupInfo.Categories.Count; categoryIdx++)
+                foreach (var categoryKind in groupInfo.Categories)
                 {
-                    var categoryInfo = Array.Find(this.categoryManager.CategoryList, x => x.CategoryId == groupInfo.Categories[categoryIdx]);
-
+                    var categoryInfo = this.categoryManager.CategoryList.First(x => x.CategoryKind == categoryKind);
+                        
                     switch (categoryInfo.Condition)
                     {
                         case PluginCategoryManager.CategoryInfo.AppearCondition.None:
@@ -1385,15 +1409,15 @@ internal class PluginInstallerWindow : Window, IDisposable
                             throw new ArgumentOutOfRangeException();
                     }
 
-                    var hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryId);
+                    var hasSearchHighlight = this.categoryManager.IsCategoryHighlighted(categoryInfo.CategoryKind);
                     if (hasSearchHighlight)
                     {
                         ImGui.PushStyleColor(ImGuiCol.Text, colorSearchHighlight);
                     }
 
-                    if (ImGui.Selectable(categoryInfo.Name, this.categoryManager.CurrentCategoryIdx == categoryIdx, ImGuiSelectableFlags.None, categoryItemSize))
+                    if (ImGui.Selectable(categoryInfo.Name, this.categoryManager.CurrentCategoryKind == categoryKind, ImGuiSelectableFlags.None, categoryItemSize))
                     {
-                        this.categoryManager.CurrentCategoryIdx = categoryIdx;
+                        this.categoryManager.CurrentCategoryKind = categoryKind;
                     }
 
                     if (hasSearchHighlight)
@@ -1403,11 +1427,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
 
                 ImGui.Unindent();
-
-                if (groupIdx != this.categoryManager.GroupList.Length - 1)
-                {
-                    ImGuiHelpers.ScaledDummy(5);
-                }
+                ImGuiHelpers.ScaledDummy(5);
             }
         }
     }
@@ -1443,7 +1463,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, ImGuiHelpers.ScaledVector2(1, 3));
 
-        var groupInfo = this.categoryManager.GroupList[this.categoryManager.CurrentGroupIdx];
+        var groupInfo = this.categoryManager.CurrentGroup;
         if (this.categoryManager.IsContentDirty)
         {
             // reset opened list of collapsibles when switching between categories
@@ -1460,52 +1480,64 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             case PluginCategoryManager.GroupKind.DevTools:
                 // this one is never sorted and remains in hardcoded order from group ctor
-                switch (this.categoryManager.CurrentCategoryIdx)
+                switch (this.categoryManager.CurrentCategoryKind)
                 {
-                    case 0:
-                        this.DrawInstalledDevPluginList();
+                    case PluginCategoryManager.CategoryKind.DevInstalled:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Dev);
                         break;
 
-                    case 1:
+                    case PluginCategoryManager.CategoryKind.IconTester:
                         this.DrawImageTester();
                         break;
 
                     default:
-                        // umm, there's nothing else, keep handled set and just skip drawing...
+                        ImGui.TextUnformatted("You found a mysterious category. Please keep it to yourself.");
                         break;
                 }
 
                 break;
             case PluginCategoryManager.GroupKind.Installed:
-                switch (this.categoryManager.CurrentCategoryIdx)
+                switch (this.categoryManager.CurrentCategoryKind)
                 {
-                    case 0:
-                        this.DrawInstalledPluginList(false);
+                    case PluginCategoryManager.CategoryKind.All:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.None);
                         break;
 
-                    case 1:
-                        this.DrawInstalledPluginList(true);
+                    case PluginCategoryManager.CategoryKind.IsTesting:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Testing);
+                        break;
+                    
+                    case PluginCategoryManager.CategoryKind.UpdateablePlugins:
+                        this.DrawInstalledPluginList(InstalledPluginListFilter.Updateable);
                         break;
 
-                    case 2:
+                    case PluginCategoryManager.CategoryKind.PluginProfiles:
                         this.profileManagerWidget.Draw();
+                        break;
+                    
+                    default:
+                        ImGui.TextUnformatted("You found a secret category. Please feel a sense of pride and accomplishment.");
                         break;
                 }
 
                 break;
             case PluginCategoryManager.GroupKind.Changelog:
-                switch (this.categoryManager.CurrentCategoryIdx)
+                switch (this.categoryManager.CurrentCategoryKind)
                 {
-                    case 0:
+                    case PluginCategoryManager.CategoryKind.All:
                         this.DrawChangelogList(true, true);
                         break;
 
-                    case 1:
+                    case PluginCategoryManager.CategoryKind.DalamudChangelogs:
                         this.DrawChangelogList(true, false);
                         break;
 
-                    case 2:
+                    case PluginCategoryManager.CategoryKind.PluginChangelogs:
                         this.DrawChangelogList(false, true);
+                        break;
+                    
+                    default:
+                        ImGui.TextUnformatted("You found a quiet category. Please don't wake it up.");
                         break;
                 }
 
@@ -2358,7 +2390,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawInstalledPlugin(LocalPlugin plugin, int index, RemotePluginManifest? remoteManifest, bool showInstalled = false)
+    private void DrawInstalledPlugin(LocalPlugin plugin, int index, RemotePluginManifest? remoteManifest, AvailablePluginUpdate? availablePluginUpdate, bool showInstalled = false)
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var commandManager = Service<CommandManager>.Get();
@@ -2416,8 +2448,6 @@ internal class PluginInstallerWindow : Window, IDisposable
             label += Locs.PluginTitleMod_UnloadError;
             trouble = true;
         }
-
-        var availablePluginUpdate = this.pluginListUpdatable.FirstOrDefault(up => up.InstalledPlugin == plugin);
 
         // Dev plugins can never update
         if (plugin.IsDev)
@@ -3576,7 +3606,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         if (string.IsNullOrEmpty(this.searchText))
         {
-            this.categoryManager.SetCategoryHighlightsForPlugins(null);
+            this.categoryManager.SetCategoryHighlightsForPlugins(Array.Empty<RemotePluginManifest>());
 
             // Reset here for good measure, as we're returning from a search
             this.openPluginCollapsibles.Clear();
@@ -3717,7 +3747,16 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string TabBody_DownloadFailed => Loc.Localize("InstallerDownloadFailed", "Download failed.");
 
         public static string TabBody_SafeMode => Loc.Localize("InstallerSafeMode", "Dalamud is running in Plugin Safe Mode, restart to activate plugins.");
-
+        
+        public static string TabBody_NoPluginsTesting => Loc.Localize("InstallerNoPluginsTesting", "You aren't testing any plugins at the moment!\nYou can opt in to testing versions in the plugin context menu.");
+        
+        public static string TabBody_NoPluginsInstalled =>
+            string.Format(Loc.Localize("InstallerNoPluginsInstalled", "You don't have any plugins installed yet!\nYou can install them from the \"{0}\" tab."), PluginCategoryManager.Locs.Category_All);
+        
+        public static string TabBody_NoPluginsUpdateable => Loc.Localize("InstallerNoPluginsUpdate", "No plugins have updates available at the moment.");
+        
+        public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them some the settings.");
+        
         #endregion
 
         #region Search text

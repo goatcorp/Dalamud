@@ -483,6 +483,7 @@ internal class LocalPlugin : IDisposable
             {
                 case PluginState.Unloaded:
                     throw new InvalidPluginOperationException($"Unable to unload {this.Name}, already unloaded");
+                case PluginState.DependencyResolutionFailed:
                 case PluginState.UnloadError:
                     if (!this.IsDev)
                     {
@@ -501,31 +502,42 @@ internal class LocalPlugin : IDisposable
             }
 
             this.State = PluginState.Unloading;
-            Log.Information($"Unloading {this.DllFile.Name}");
+            Log.Information("Unloading {PluginName}", this.InternalName);
 
-            if (this.manifest.CanUnloadAsync || framework == null)
-                this.instance?.Dispose();
-            else
-                await framework.RunOnFrameworkThread(() => this.instance?.Dispose());
-
-            this.instance = null;
-            this.UnloadAndDisposeState();
-
-            if (!reloading)
+            try
             {
-                if (waitBeforeLoaderDispose && this.loader != null)
-                    await Task.Delay(configuration.PluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault);
-                this.loader?.Dispose();
-                this.loader = null;
+                if (this.manifest.CanUnloadAsync || framework == null)
+                    this.instance?.Dispose();
+                else
+                    await framework.RunOnFrameworkThread(() => this.instance?.Dispose());
+            }
+            catch (Exception e)
+            {
+                this.State = PluginState.UnloadError;
+                Log.Error(e, "Could not unload {PluginName}, error in plugin dispose", this.InternalName);
+                return;
+            }
+            finally
+            {
+                this.instance = null;
+                this.UnloadAndDisposeState();
+                
+                if (!reloading)
+                {
+                    if (waitBeforeLoaderDispose && this.loader != null)
+                        await Task.Delay(configuration.PluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault);
+                    this.loader?.Dispose();
+                    this.loader = null;
+                }
             }
 
             this.State = PluginState.Unloaded;
-            Log.Information($"Finished unloading {this.DllFile.Name}");
+            Log.Information("Finished unloading {PluginName}", this.InternalName);
         }
         catch (Exception ex)
         {
             this.State = PluginState.UnloadError;
-            Log.Error(ex, $"Error while unloading {this.Name}");
+            Log.Error(ex, "Error while unloading {PluginName}", this.InternalName);
 
             throw;
         }

@@ -14,6 +14,11 @@ public enum PluginInstallerOpenKind
     /// Open to the "Installed Plugins" page.
     /// </summary>
     InstalledPlugins,
+    
+    /// <summary>
+    /// Open to the "Can be updated" page.
+    /// </summary>
+    UpdateablePlugins,
 
     /// <summary>
     /// Open to the "Changelogs" page.
