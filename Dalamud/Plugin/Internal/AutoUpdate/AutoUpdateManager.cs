@@ -11,6 +11,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.EventArgs;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.DesignSystem;
@@ -40,7 +41,13 @@ internal class AutoUpdateManager : IServiceType
     /// <summary>
     /// Time we should wait between scheduled update checks.
     /// </summary>
-    private static readonly TimeSpan TimeBetweenUpdateChecks = TimeSpan.FromHours(1.5);
+    private static readonly TimeSpan TimeBetweenUpdateChecks = TimeSpan.FromHours(2);
+    
+    /// <summary>
+    /// Time we should wait between scheduled update checks if the user has dismissed the notification,
+    /// instead of updating. We don't want to spam the user with notifications.
+    /// </summary>
+    private static readonly TimeSpan TimeBetweenUpdateChecksIfDismissed = TimeSpan.FromHours(12);
 
     /// <summary>
     /// Time we should wait after unblocking to nag the user.
@@ -63,12 +70,13 @@ internal class AutoUpdateManager : IServiceType
     private readonly IConsoleVariable<bool> isDryRun;
     
     private DateTime? loginTime;
-    private DateTime? lastUpdateCheckTime;
+    private DateTime? nextUpdateCheckTime;
     private DateTime? unblockedSince;
     
     private bool hasStartedInitialUpdateThisSession;
 
     private IActiveNotification? updateNotification;
+    private bool notificationHasStartedUpdate; // Used to track if the user has started an update from the notification.
     
     private Task? autoUpdateTask;
     
@@ -96,7 +104,7 @@ internal class AutoUpdateManager : IServiceType
         });
         console.AddCommand("dalamud.autoupdate.force_check", "Force a check for updates", () =>
         {
-            this.lastUpdateCheckTime = DateTime.Now - TimeBetweenUpdateChecks;
+            this.nextUpdateCheckTime = DateTime.Now + TimeSpan.FromSeconds(5);
             return true;
         });
     }
@@ -129,13 +137,13 @@ internal class AutoUpdateManager : IServiceType
         };
     }
     
-    private static void DrawOpenInstallerNotificationButton(bool primary, IActiveNotification notification)
+    private static void DrawOpenInstallerNotificationButton(bool primary, PluginInstallerOpenKind kind, IActiveNotification notification)
     {
         if (primary ?
                 DalamudComponents.PrimaryButton(Locs.NotificationButtonOpenPluginInstaller) :
                 DalamudComponents.SecondaryButton(Locs.NotificationButtonOpenPluginInstaller))
         {
-            Service<DalamudInterface>.Get().OpenPluginInstallerTo(PluginInstallerOpenKind.UpdateablePlugins);
+            Service<DalamudInterface>.Get().OpenPluginInstallerTo(kind);
             notification.DismissNow();
         }
     }
@@ -182,11 +190,9 @@ internal class AutoUpdateManager : IServiceType
         //    the only time we actually install updates automatically.
         if (!this.hasStartedInitialUpdateThisSession && DateTime.Now > this.loginTime.Value.Add(UpdateTimeAfterLogin))
         {
-            this.lastUpdateCheckTime = DateTime.Now;
             this.hasStartedInitialUpdateThisSession = true;
             
             var currentlyUpdatablePlugins = this.GetAvailablePluginUpdates(DecideUpdateListingRestriction(behavior));
-
             if (currentlyUpdatablePlugins.Count == 0)
             {
                 this.IsAutoUpdateComplete = true;
@@ -198,12 +204,13 @@ internal class AutoUpdateManager : IServiceType
             if (behavior == AutoUpdateBehavior.OnlyNotify)
             {
                 // List all plugins in the notification
-                Log.Verbose("Ran initial update, notifying for {Num} plugins", currentlyUpdatablePlugins.Count);
+                Log.Verbose("Running initial auto-update, notifying for {Num} plugins", currentlyUpdatablePlugins.Count);
                 this.NotifyUpdatesAreAvailable(currentlyUpdatablePlugins);
                 return;
             }
 
-            Log.Verbose("Ran initial update, updating {Num} plugins", currentlyUpdatablePlugins.Count);
+            Log.Verbose("Running initial auto-update, updating {Num} plugins", currentlyUpdatablePlugins.Count);
+            this.notificationHasStartedUpdate = true;
             this.KickOffAutoUpdates(currentlyUpdatablePlugins);
             return;
         }
@@ -211,10 +218,13 @@ internal class AutoUpdateManager : IServiceType
         // 2. Continuously check for updates while the game is running. We run these every once in a while and
         //    will only show a notification here that lets people start the update or open the installer.
         if (this.config.CheckPeriodicallyForUpdates &&
-            this.lastUpdateCheckTime != null &&
-            DateTime.Now - this.lastUpdateCheckTime > TimeBetweenUpdateChecks &&
+            this.nextUpdateCheckTime != null &&
+            DateTime.Now > this.nextUpdateCheckTime &&
             this.updateNotification == null)
         {
+            this.nextUpdateCheckTime = null;
+            
+            Log.Verbose("Starting periodic update check");
             this.pluginManager.ReloadPluginMastersAsync()
                 .ContinueWith(
                     t =>
@@ -228,8 +238,6 @@ internal class AutoUpdateManager : IServiceType
                             this.GetAvailablePluginUpdates(
                                 DecideUpdateListingRestriction(behavior)));
                     });
-
-            this.lastUpdateCheckTime = DateTime.Now;
         }
     }
 
@@ -238,20 +246,34 @@ internal class AutoUpdateManager : IServiceType
         if (this.updateNotification != null)
             throw new InvalidOperationException("Already showing a notification");
         
+        if (this.notificationHasStartedUpdate)
+            throw new InvalidOperationException("Lost track of notification state"); 
+        
         this.updateNotification = this.notificationManager.AddNotification(notification);
         this.updateNotification.Dismiss += _ =>
         {
             this.updateNotification = null;
-            this.lastUpdateCheckTime = DateTime.Now;
+
+            // If the user just clicked off the notification, we don't want to bother them again for quite a while.
+            if (this.notificationHasStartedUpdate)
+            {
+                this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
+                Log.Verbose("User started update, next check at {Time}", this.nextUpdateCheckTime);
+            }
+            else
+            {
+                this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecksIfDismissed;
+                Log.Verbose("User dismissed update notification, next check at {Time}", this.nextUpdateCheckTime);
+            }
         };
         
         return this.updateNotification!;
     }
 
-    private void KickOffAutoUpdates(ICollection<AvailablePluginUpdate> updatablePlugins)
+    private void KickOffAutoUpdates(ICollection<AvailablePluginUpdate> updatablePlugins, IActiveNotification? notification = null)
     {
         this.autoUpdateTask =
-            Task.Run(() => this.RunAutoUpdates(updatablePlugins))
+            Task.Run(() => this.RunAutoUpdates(updatablePlugins, notification))
                 .ContinueWith(t =>
                 {
                     if (t.IsFaulted)
@@ -268,25 +290,23 @@ internal class AutoUpdateManager : IServiceType
                 });
     }
 
-    private async Task RunAutoUpdates(ICollection<AvailablePluginUpdate> updatablePlugins)
+    private async Task RunAutoUpdates(ICollection<AvailablePluginUpdate> updatablePlugins, IActiveNotification? notification = null)
     {
         Log.Information("Found {UpdatablePluginsCount} plugins to update", updatablePlugins.Count);
 
         if (updatablePlugins.Count == 0)
             return;
 
-        var notification = this.GetBaseNotification(new Notification
-        {
-            Title = Locs.NotificationTitleUpdatingPlugins,
-            Content = Locs.NotificationContentPreparingToUpdate(updatablePlugins.Count),
-            Type = NotificationType.Info,
-            InitialDuration = TimeSpan.MaxValue,
-            ShowIndeterminateIfNoExpiry = false,
-            UserDismissable = false,
-            Progress = 0,
-            Icon = INotificationIcon.From(FontAwesomeIcon.Download),
-            Minimized = false,
-        });
+        notification ??= this.GetBaseNotification(new Notification());
+        notification.Title = Locs.NotificationTitleUpdatingPlugins;
+        notification.Content = Locs.NotificationContentPreparingToUpdate(updatablePlugins.Count);
+        notification.Type = NotificationType.Info;
+        notification.InitialDuration = TimeSpan.MaxValue;
+        notification.ShowIndeterminateIfNoExpiry = false;
+        notification.UserDismissable = false;
+        notification.Progress = 0;
+        notification.Icon = INotificationIcon.From(FontAwesomeIcon.Download);
+        notification.Minimized = false;
 
         var progress = new Progress<PluginManager.PluginUpdateProgress>();
         progress.ProgressChanged += (_, updateProgress) =>
@@ -304,7 +324,7 @@ internal class AutoUpdateManager : IServiceType
         notification.DrawActions += _ =>
         {
             ImGuiHelpers.ScaledDummy(2);
-            DrawOpenInstallerNotificationButton(true, notification);
+            DrawOpenInstallerNotificationButton(true, PluginInstallerOpenKind.InstalledPlugins, notification);
         };
         
         // Update the notification to show the final state
@@ -340,6 +360,8 @@ internal class AutoUpdateManager : IServiceType
     {
         if (updatablePlugins.Count == 0)
             return;
+        
+        this.notificationHasStartedUpdate = false;
 
         var notification = this.GetBaseNotification(new Notification
         {
@@ -352,19 +374,22 @@ internal class AutoUpdateManager : IServiceType
             Icon = INotificationIcon.From(FontAwesomeIcon.Download),
         });
 
-        notification.DrawActions += _ =>
+        void DrawNotificationContent(INotificationDrawArgs args)
         {
             ImGuiHelpers.ScaledDummy(2);
 
             if (DalamudComponents.PrimaryButton(Locs.NotificationButtonUpdate))
             {
-                this.KickOffAutoUpdates(updatablePlugins);
-                notification.DismissNow();
+                notification.DrawActions -= DrawNotificationContent;
+                this.KickOffAutoUpdates(updatablePlugins, notification);
+                this.notificationHasStartedUpdate = true;
             }
 
             ImGui.SameLine();
-            DrawOpenInstallerNotificationButton(false, notification);
-        };
+            DrawOpenInstallerNotificationButton(false, PluginInstallerOpenKind.UpdateablePlugins, notification);
+        }
+
+        notification.DrawActions += DrawNotificationContent;
     }
     
     private List<AvailablePluginUpdate> GetAvailablePluginUpdates(UpdateListingRestriction restriction)
