@@ -3573,7 +3573,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         if (string.IsNullOrEmpty(this.searchText))
         {
-            this.categoryManager.SetCategoryHighlightsForPlugins(null);
+            this.categoryManager.SetCategoryHighlightsForPlugins(Array.Empty<RemotePluginManifest>());
 
             // Reset here for good measure, as we're returning from a search
             this.openPluginCollapsibles.Clear();

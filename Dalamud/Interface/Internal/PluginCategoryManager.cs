@@ -373,6 +373,8 @@ internal class PluginCategoryManager
     /// <param name="plugins">List of plugins whose categories should be highlighted.</param>
     public void SetCategoryHighlightsForPlugins(IEnumerable<PluginManifest> plugins)
     {
+        ArgumentNullException.ThrowIfNull(plugins);
+        
         this.highlightedCategoryKinds.Clear();
 
         foreach (var entry in plugins)
