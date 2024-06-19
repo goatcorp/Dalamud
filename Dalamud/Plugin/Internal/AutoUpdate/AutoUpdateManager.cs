@@ -127,6 +127,17 @@ internal class AutoUpdateManager : IServiceType
             _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null),
         };
     }
+    
+    private static void DrawOpenInstallerNotificationButton(bool primary, IActiveNotification notification)
+    {
+        if (primary ?
+                DalamudComponents.PrimaryButton(Locs.NotificationButtonOpenPluginInstaller) :
+                DalamudComponents.SecondaryButton(Locs.NotificationButtonOpenPluginInstaller))
+        {
+            Service<DalamudInterface>.Get().OpenPluginInstallerTo(PluginInstallerOpenKind.UpdateablePlugins);
+            notification.DismissNow();
+        }
+    }
 
     private void OnUpdate(IFramework framework)
     {
@@ -227,7 +238,11 @@ internal class AutoUpdateManager : IServiceType
             throw new InvalidOperationException("Already showing a notification");
         
         this.updateNotification = this.notificationManager.AddNotification(notification);
-        this.updateNotification.Dismiss += _ => this.updateNotification = null;
+        this.updateNotification.Dismiss += _ =>
+        {
+            this.updateNotification = null;
+            this.lastUpdateCheckTime = DateTime.Now;
+        };
         
         return this.updateNotification!;
     }
@@ -273,10 +288,10 @@ internal class AutoUpdateManager : IServiceType
         });
 
         var progress = new Progress<PluginManager.PluginUpdateProgress>();
-        progress.ProgressChanged += (_, progress) =>
+        progress.ProgressChanged += (_, updateProgress) =>
         {
-            notification.Content = Locs.NotificationContentUpdating(progress.CurrentPluginManifest.Name);
-            notification.Progress = (float)progress.PluginsProcessed / progress.TotalPlugins;
+            notification.Content = Locs.NotificationContentUpdating(updateProgress.CurrentPluginManifest.Name);
+            notification.Progress = (float)updateProgress.PluginsProcessed / updateProgress.TotalPlugins;
         };
         
         var pluginStates = await this.pluginManager.UpdatePluginsAsync(updatablePlugins, this.isDryRun.Value, true, progress);
@@ -288,11 +303,7 @@ internal class AutoUpdateManager : IServiceType
         notification.DrawActions += _ =>
         {
             ImGuiHelpers.ScaledDummy(2);
-            if (DalamudComponents.PrimaryButton(Locs.NotificationButtonOpenPluginInstaller))
-            {
-                Service<DalamudInterface>.Get().OpenPluginInstaller();
-                notification.DismissNow();
-            }
+            DrawOpenInstallerNotificationButton(true, notification);
         };
         
         // Update the notification to show the final state
@@ -351,11 +362,7 @@ internal class AutoUpdateManager : IServiceType
             }
 
             ImGui.SameLine();
-            if (DalamudComponents.SecondaryButton(Locs.NotificationButtonOpenPluginInstaller))
-            {
-                Service<DalamudInterface>.Get().OpenPluginInstaller();
-                notification.DismissNow();
-            }
+            DrawOpenInstallerNotificationButton(false, notification);
         };
     }
     
@@ -440,18 +447,24 @@ internal class AutoUpdateManager : IServiceType
         public static string NotificationContentUpdatesFailedMinimized => Loc.Localize("AutoUpdateUpdatesFailedContentMinimized", "Plugins failed to update.");
         
         public static string NotificationContentUpdatesAvailable(int numUpdates)
-            => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "There are {0} plugins that can be updated."), numUpdates);
+            => numUpdates == 1 ?
+                   Loc.Localize("AutoUpdateUpdatesAvailableContentSingular", "There is a plugin that can be updated.") : 
+                   string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContentPlural", "There are {0} plugins that can be updated."), numUpdates);
         
         public static string NotificationContentUpdatesAvailableMinimized(int numUpdates)
-            => string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContent", "{0} updates available."), numUpdates);
+            => numUpdates == 1 ?
+                   Loc.Localize("AutoUpdateUpdatesAvailableContentMinimizedSingular", "1 plugin update available") : 
+                   string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContentMinimizedPlural", "{0} plugin updates available"), numUpdates);
         
         public static string NotificationContentPreparingToUpdate(int numPlugins)
-            => string.Format(Loc.Localize("AutoUpdatePreparingToUpdate", "Preparing to update {0} plugins..."), numPlugins);
+            => numPlugins == 1 ?
+                   Loc.Localize("AutoUpdatePreparingToUpdateSingular", "Preparing to update 1 plugin...") : 
+                   string.Format(Loc.Localize("AutoUpdatePreparingToUpdatePlural", "Preparing to update {0} plugins..."), numPlugins);
         
         public static string NotificationContentUpdating(string name)
             => string.Format(Loc.Localize("AutoUpdateUpdating", "Updating {0}..."), name);
         
         public static string NotificationContentFailedPlugins(IEnumerable<string> failedPlugins)
-            => string.Format(Loc.Localize("AutoUpdateFailedPlugins", "Failed plugins: {0}"), string.Join(", ", failedPlugins));
+            => string.Format(Loc.Localize("AutoUpdateFailedPlugins", "Failed plugin(s): {0}"), string.Join(", ", failedPlugins));
     }
 }
