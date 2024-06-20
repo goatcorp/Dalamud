@@ -185,7 +185,8 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
             iconId);
 
         // Free pointers
-        ptrToFree.ForEach(this.PluginFree);
+        if (ptrToFree.Count > 0)
+            ptrToFree.ForEach(this.PluginFree);
 
         // Return result
         return result;
