@@ -64,10 +64,10 @@ internal static class PluginValidator
         if (!plugin.IsLoaded)
             throw new InvalidOperationException("Plugin must be loaded to validate.");
         
-        if (!plugin.DalamudInterface!.UiBuilder.HasConfigUi)
+        if (!plugin.DalamudInterface!.LocalUiBuilder.HasConfigUi)
             problems.Add(new NoConfigUiProblem());
         
-        if (!plugin.DalamudInterface.UiBuilder.HasMainUi)
+        if (!plugin.DalamudInterface.LocalUiBuilder.HasMainUi)
             problems.Add(new NoMainUiProblem());
 
         var cmdManager = Service<CommandManager>.Get();

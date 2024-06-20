@@ -36,6 +36,7 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
 {
     private readonly LocalPlugin plugin;
     private readonly PluginConfigurations configs;
+    private readonly UiBuilder uiBuilder;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudPluginInterface"/> class.
@@ -52,7 +53,7 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
         var dataManager = Service<DataManager>.Get();
         var localization = Service<Localization>.Get();
 
-        this.UiBuilder = new(plugin, plugin.Name);
+        this.UiBuilder = this.uiBuilder = new(plugin, plugin.Name);
 
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
@@ -80,7 +81,6 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
         localization.LocalizationChanged += this.OnLocalizationChanged;
         configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
     }
-
 
     /// <summary>
     /// Event that gets fired when loc is changed
@@ -172,7 +172,7 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
     /// <summary>
     /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
     /// </summary>
-    public UiBuilder UiBuilder { get; private set; }
+    public IUiBuilder UiBuilder { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
@@ -203,6 +203,11 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
     /// Gets a list of installed plugins along with their current state.
     /// </summary>
     public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.EffectiveVersion));
+
+    /// <summary>
+    /// Gets the <see cref="UiBuilder"/> internal implementation.
+    /// </summary>
+    internal UiBuilder LocalUiBuilder => this.uiBuilder;
 
     /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
@@ -500,7 +505,7 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
         Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
         Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
         Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
-        this.UiBuilder.DisposeInternal();
+        this.uiBuilder.DisposeInternal();
     }
 
     /// <summary>

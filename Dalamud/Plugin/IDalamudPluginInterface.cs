@@ -17,6 +17,9 @@ using Dalamud.Plugin.Ipc.Internal;
 
 namespace Dalamud.Plugin;
 
+/// <summary>
+/// This interface acts as an interface to various objects needed to interact with Dalamud and the game.
+/// </summary>
 public interface IDalamudPluginInterface
 {
     /// <summary>
@@ -122,7 +125,7 @@ public interface IDalamudPluginInterface
     /// <summary>
     /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
     /// </summary>
-    UiBuilder UiBuilder { get; }
+    IUiBuilder UiBuilder { get; }
 
     /// <summary>
     /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
