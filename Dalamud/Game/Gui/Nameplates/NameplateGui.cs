@@ -109,7 +109,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
 
     private void AddonLifecycle_Event(AddonEvent type, AddonArgs args)
     {
-        if (type == AddonEvent.PreFinalize)
+        if (type == AddonEvent.PostSetup)
             this.namePlatePtr = args.Addon;
         else if (type == AddonEvent.PreFinalize)
             this.namePlatePtr = nint.Zero;
