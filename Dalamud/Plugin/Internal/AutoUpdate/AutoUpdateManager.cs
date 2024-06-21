@@ -136,13 +136,13 @@ internal class AutoUpdateManager : IServiceType
         };
     }
     
-    private static void DrawOpenInstallerNotificationButton(bool primary, IActiveNotification notification)
+    private static void DrawOpenInstallerNotificationButton(bool primary, PluginInstallerOpenKind kind, IActiveNotification notification)
     {
         if (primary ?
                 DalamudComponents.PrimaryButton(Locs.NotificationButtonOpenPluginInstaller) :
                 DalamudComponents.SecondaryButton(Locs.NotificationButtonOpenPluginInstaller))
         {
-            Service<DalamudInterface>.Get().OpenPluginInstallerTo(PluginInstallerOpenKind.UpdateablePlugins);
+            Service<DalamudInterface>.Get().OpenPluginInstallerTo(kind);
             notification.DismissNow();
         }
     }
@@ -252,7 +252,18 @@ internal class AutoUpdateManager : IServiceType
         this.updateNotification.Dismiss += _ =>
         {
             this.updateNotification = null;
-            this.lastUpdateCheckTime = DateTime.Now;
+
+            // If the user just clicked off the notification, we don't want to bother them again for quite a while.
+            if (this.notificationHasStartedUpdate)
+            {
+                this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
+                Log.Verbose("User started update, next check at {Time}", this.nextUpdateCheckTime);
+            }
+            else
+            {
+                this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecksIfDismissed;
+                Log.Verbose("User dismissed update notification, next check at {Time}", this.nextUpdateCheckTime);
+            }
         };
         
         return this.updateNotification!;
@@ -312,7 +323,7 @@ internal class AutoUpdateManager : IServiceType
         notification.DrawActions += _ =>
         {
             ImGuiHelpers.ScaledDummy(2);
-            DrawOpenInstallerNotificationButton(true, notification);
+            DrawOpenInstallerNotificationButton(true, PluginInstallerOpenKind.InstalledPlugins, notification);
         };
         
         // Update the notification to show the final state
@@ -374,8 +385,10 @@ internal class AutoUpdateManager : IServiceType
             }
 
             ImGui.SameLine();
-            DrawOpenInstallerNotificationButton(false, notification);
-        };
+            DrawOpenInstallerNotificationButton(false, PluginInstallerOpenKind.UpdateablePlugins, notification);
+        }
+
+        notification.DrawActions += DrawNotificationContent;
     }
     
     private List<AvailablePluginUpdate> GetAvailablePluginUpdates(UpdateListingRestriction restriction)
