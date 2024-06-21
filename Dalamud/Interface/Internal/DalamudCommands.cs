@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 using CheapLoc;
@@ -142,6 +143,13 @@ internal class DalamudCommands : IServiceType
         {
             HelpMessage = "ImGui DEBUG",
             ShowInHelp = false,
+        });
+
+        commandManager.AddHandler("/xlcopylog", new CommandInfo(this.OnCopyLogCommand)
+        {
+            HelpMessage = Loc.Localize(
+                "DalamudCopyLogHelp",
+                "Copy the dalamud.log file to your clipboard."),
         });
     }
 
@@ -405,5 +413,18 @@ internal class DalamudCommands : IServiceType
     private void OnOpenProfilerCommand(string command, string arguments)
     {
         Service<DalamudInterface>.Get().ToggleProfilerWindow();
+    }
+
+    private void OnCopyLogCommand(string command, string arguments)
+    {
+        var chatGui = Service<ChatGui>.Get();
+        var logPath = Path.Join(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "XIVLauncher",
+            "dalamud.log");
+        var message = Util.CopyFilesToClipboard([logPath])
+                          ? Loc.Localize("DalamudLogCopySuccess", "Log file copied to clipboard.")
+                          : Loc.Localize("DalamudLogCopyFailure", "Could not copy log file to clipboard.");
+        chatGui.Print(message);
     }
 }
