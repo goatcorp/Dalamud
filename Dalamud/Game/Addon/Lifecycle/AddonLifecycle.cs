@@ -36,7 +36,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
     private readonly CallHook<AtkUnitBase.Delegates.Draw> onAddonDrawHook;
     private readonly CallHook<AtkUnitBase.Delegates.Update> onAddonUpdateHook;
-    private readonly Hook<AddonOnRefreshDelegate> onAddonRefreshHook;
+    private readonly Hook<AtkUnitManager.Delegates.RefreshAddon> onAddonRefreshHook;
     private readonly CallHook<AtkUnitBase.Delegates.OnRequestedUpdate> onAddonRequestedUpdateHook;
 
     [ServiceManager.ServiceConstructor]
@@ -47,12 +47,14 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
         this.disallowedReceiveEventAddress = (nint)AtkUnitBase.StaticVirtualTablePointer->ReceiveEvent;
 
+        var refreshAddonAddress = (nint)AtkStage.Instance()->RaptureAtkUnitManager->AtkUnitManager.VirtualTable->RefreshAddon;
+
         this.onAddonSetupHook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup, this.OnAddonSetup);
         this.onAddonSetup2Hook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup2, this.OnAddonSetup);
         this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
         this.onAddonDrawHook = new CallHook<AtkUnitBase.Delegates.Draw>(this.address.AddonDraw, this.OnAddonDraw);
         this.onAddonUpdateHook = new CallHook<AtkUnitBase.Delegates.Update>(this.address.AddonUpdate, this.OnAddonUpdate);
-        this.onAddonRefreshHook = Hook<AddonOnRefreshDelegate>.FromAddress(this.address.AddonOnRefresh, this.OnAddonRefresh);
+        this.onAddonRefreshHook = Hook<AtkUnitManager.Delegates.RefreshAddon>.FromAddress(refreshAddonAddress, this.OnAddonRefresh);
         this.onAddonRequestedUpdateHook = new CallHook<AtkUnitBase.Delegates.OnRequestedUpdate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
 
         this.onAddonSetupHook.Enable();
@@ -66,9 +68,6 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
     private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
 
-    // Note, use AtkUnitManager.Delegates.RefreshAddon once https://github.com/aers/FFXIVClientStructs/pull/926 has been merged into dalamud
-    private delegate byte AddonOnRefreshDelegate(AtkUnitManager* unitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values);
-    
     /// <summary>
     /// Gets a list of all AddonLifecycle ReceiveEvent Listener Hooks.
     /// </summary>
@@ -324,9 +323,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         this.InvokeListenersSafely(AddonEvent.PostUpdate, arg);
     }
 
-    private byte OnAddonRefresh(AtkUnitManager* atkUnitManager, AtkUnitBase* addon, uint valueCount, AtkValue* values)
+    private bool OnAddonRefresh(AtkUnitManager* thisPtr, AtkUnitBase* addon, uint valueCount, AtkValue* values)
     {
-        byte result = 0;
+        var result = false;
 
         using var returner = this.argsPool.Rent(out AddonRefreshArgs arg);
         arg.AddonInternal = (nint)addon;
@@ -338,7 +337,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
         try
         {
-            result = this.onAddonRefreshHook.Original(atkUnitManager, addon, valueCount, values);
+            result = this.onAddonRefreshHook.Original(thisPtr, addon, valueCount, values);
         }
         catch (Exception e)
         {

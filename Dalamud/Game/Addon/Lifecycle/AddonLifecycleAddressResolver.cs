@@ -40,11 +40,6 @@ internal unsafe class AddonLifecycleAddressResolver : BaseAddressResolver
     /// Gets the address of the addon onRequestedUpdate hook invoked by virtual function call.
     /// </summary>
     public nint AddonOnRequestedUpdate { get; private set; }
-    
-    /// <summary>
-    /// Gets the address of AtkUnitManager_vf10 which triggers addon onRefresh.
-    /// </summary>
-    public nint AddonOnRefresh { get; private set; }
 
     /// <summary>
     /// Scan for and setup any configured address pointers.
@@ -58,6 +53,5 @@ internal unsafe class AddonLifecycleAddressResolver : BaseAddressResolver
         this.AddonDraw = sig.ScanText("FF 90 ?? ?? ?? ?? 83 EB 01 79 C1");
         this.AddonUpdate = sig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF");
         this.AddonOnRequestedUpdate = sig.ScanText("FF 90 98 01 00 00 48 8B 5C 24 30 48 83 C4 20");
-        this.AddonOnRefresh = sig.ScanText("48 89 5C 24 08 57 48 83 EC 20 41 8B F8 48 8B DA");
     }
 }
