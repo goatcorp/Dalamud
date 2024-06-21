@@ -47,14 +47,12 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
         this.disallowedReceiveEventAddress = (nint)AtkUnitBase.StaticVirtualTablePointer->ReceiveEvent;
 
-        var refreshAddonAddress = (nint)AtkStage.Instance()->RaptureAtkUnitManager->AtkUnitManager.VirtualTable->RefreshAddon;
-
         this.onAddonSetupHook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup, this.OnAddonSetup);
         this.onAddonSetup2Hook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup2, this.OnAddonSetup);
         this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
         this.onAddonDrawHook = new CallHook<AtkUnitBase.Delegates.Draw>(this.address.AddonDraw, this.OnAddonDraw);
         this.onAddonUpdateHook = new CallHook<AtkUnitBase.Delegates.Update>(this.address.AddonUpdate, this.OnAddonUpdate);
-        this.onAddonRefreshHook = Hook<AtkUnitManager.Delegates.RefreshAddon>.FromAddress(refreshAddonAddress, this.OnAddonRefresh);
+        this.onAddonRefreshHook = Hook<AtkUnitManager.Delegates.RefreshAddon>.FromAddress(this.address.AddonOnRefresh, this.OnAddonRefresh);
         this.onAddonRequestedUpdateHook = new CallHook<AtkUnitBase.Delegates.OnRequestedUpdate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
 
         this.onAddonSetupHook.Enable();
@@ -71,12 +69,12 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <summary>
     /// Gets a list of all AddonLifecycle ReceiveEvent Listener Hooks.
     /// </summary>
-    internal List<AddonLifecycleReceiveEventListener> ReceiveEventListeners { get; } = new();
+    internal List<AddonLifecycleReceiveEventListener> ReceiveEventListeners { get; } = [];
     
     /// <summary>
     /// Gets a list of all AddonLifecycle Event Listeners.
     /// </summary>
-    internal List<AddonLifecycleEventListener> EventListeners { get; } = new();
+    internal List<AddonLifecycleEventListener> EventListeners { get; } = [];
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
