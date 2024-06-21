@@ -1003,9 +1003,6 @@ internal class PluginManager : IInternalDisposableService
                 if (plugin.InstalledPlugin.IsDev)
                     continue;
 
-                if (!plugin.InstalledPlugin.IsWantedByAnyProfile)
-                    continue;
-
                 if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
                     continue;
 
