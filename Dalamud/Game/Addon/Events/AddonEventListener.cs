@@ -25,8 +25,8 @@ internal unsafe class AddonEventListener : IDisposable
         this.eventListener = (AtkEventListener*)Marshal.AllocHGlobal(sizeof(AtkEventListener));
         this.eventListener->VirtualTable = (AtkEventListener.AtkEventListenerVirtualTable*)Marshal.AllocHGlobal(sizeof(void*) * 3);
         this.eventListener->VirtualTable->Dtor = (delegate* unmanaged<AtkEventListener*, byte, void>)(delegate* unmanaged<void>)&NullSub;
-        this.eventListener->VirtualTable->ReceiveGlobalEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, nint, void>)(delegate* unmanaged<void>)&NullSub;
-        this.eventListener->VirtualTable->ReceiveEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, nint, void>)Marshal.GetFunctionPointerForDelegate(this.receiveEventDelegate);
+        this.eventListener->VirtualTable->ReceiveGlobalEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, AtkEventData*, void>)(delegate* unmanaged<void>)&NullSub;
+        this.eventListener->VirtualTable->ReceiveEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, AtkEventData*, void>)Marshal.GetFunctionPointerForDelegate(this.receiveEventDelegate);
     }
 
     /// <summary>
@@ -35,9 +35,9 @@ internal unsafe class AddonEventListener : IDisposable
     /// <param name="self">Pointer to the event listener.</param>
     /// <param name="eventType">Event type.</param>
     /// <param name="eventParam">Unique Id for this event.</param>
-    /// <param name="eventData">Event Data.</param>
-    /// <param name="unknown">Unknown Parameter.</param>
-    public delegate void ReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, nint unknown);
+    /// <param name="eventPtr">Pointer to the AtkEvent.</param>
+    /// <param name="eventDataPtr">Pointer to the AtkEventData.</param>
+    public delegate void ReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventPtr, AtkEventData* eventDataPtr);
   
     /// <summary>
     /// Gets the address of this listener.
