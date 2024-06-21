@@ -7,6 +7,10 @@ concurrency:
 jobs:
   build:
     name: Build on Windows
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
     runs-on: windows-2022
     steps:
       - name: Checkout Dalamud
@@ -40,6 +44,17 @@ jobs:
         run: .\sign.ps1 .\bin\Release
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
+      - name: Attest Build
+        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            bin/Release/hashes.json
+            bin/Release/Dalamud.dll
+            bin/Release/DalamudCrashHandler.exe
+            bin/Release/Dalamud.*.dll
+            bin/Release/Dalamud.*.exe
+            bin/Release/FFXIVClientStructs.dll
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
