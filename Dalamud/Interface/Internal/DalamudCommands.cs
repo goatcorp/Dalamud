@@ -466,6 +466,7 @@ internal class DalamudCommands : IServiceType
             }
             else
             {
+                hGlobal.Dispose();
                 chatGui.Print(string.Format(Loc.Localize("DalamudLogCopyFailure", "Could not copy log file to clipboard."), "default"));
             }
         }
