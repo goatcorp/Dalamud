@@ -60,5 +60,4 @@ internal unsafe class AddonLifecycleAddressResolver : BaseAddressResolver
         this.AddonOnRequestedUpdate = sig.ScanText("FF 90 98 01 00 00 48 8B 5C 24 30 48 83 C4 20");
         this.AddonOnRefresh = sig.ScanText("48 89 5C 24 08 57 48 83 EC 20 41 8B F8 48 8B DA");
     }
-
 }
