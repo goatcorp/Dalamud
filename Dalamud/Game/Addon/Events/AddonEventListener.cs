@@ -35,9 +35,9 @@ internal unsafe class AddonEventListener : IDisposable
     /// <param name="self">Pointer to the event listener.</param>
     /// <param name="eventType">Event type.</param>
     /// <param name="eventParam">Unique Id for this event.</param>
-    /// <param name="eventPtr">Pointer to an AtkEvent.</param>
-    /// <param name="eventData">Pointer to the event's data.</param>
-    public delegate void ReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventPtr, AtkEventData* eventData);
+    /// <param name="eventPtr">Pointer to the AtkEvent.</param>
+    /// <param name="eventDataPtr">Pointer to the AtkEventData.</param>
+    public delegate void ReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventPtr, AtkEventData* eventDataPtr);
   
     /// <summary>
     /// Gets the address of this listener.
