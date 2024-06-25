@@ -592,7 +592,7 @@ public abstract class Window
                 drawList.AddCircleFilled(GetCenter(bb) + new Vector2(0.0f, -0.5f), (fontSize * 0.5f) + 1.0f, bgCol);
             
             var offset = button.IconOffset * ImGuiHelpers.GlobalScale;
-            drawList.AddText(InterfaceManager.IconFont, (float)(fontSize * 0.8),  new Vector2(bb.X + offset.X, bb.Y + offset.Y), textCol, button.Icon.ToIconString());
+            drawList.AddText(InterfaceManager.IconFontFixedWidth, (float)(fontSize * 0.8),  new Vector2(bb.X + offset.X, bb.Y + offset.Y), textCol, button.Icon.ToIconString());
             
             if (hovered)
                 button.ShowTooltip?.Invoke();
