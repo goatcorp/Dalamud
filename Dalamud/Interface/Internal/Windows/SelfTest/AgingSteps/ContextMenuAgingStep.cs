@@ -270,8 +270,22 @@ internal class ContextMenuAgingStep : IAgingStep
                     b.AppendLine(string.Join(", ", materias));
 
                 b.Append($"Dye/Stain: ");
-                if (item.Stain != 0)
-                    b.AppendLine($"{this.stainSheet.GetRow(item.Stain)?.Name.ToDalamudString() ?? "Unknown"} ({item.Stain})");
+                for (var i = 0; i < item.Stains.Length; i++)
+                {
+                    var stainId = item.Stains[i];
+                    if (stainId != 0)
+                    {
+                        var stainName = this.stainSheet.GetRow(stainId)?.Name.ToDalamudString().ToString() ?? "Unknown";
+                        b.AppendLine($"  Stain {i + 1}: {stainName} ({stainId})");
+                    }
+                    else
+                    {
+                        b.AppendLine($"  Stain {i + 1}: None");
+                    }
+                }
+
+                if (item.Stains[0] != 0)
+                    b.AppendLine($"{this.stainSheet.GetRow(item.Stains[0])?.Name.ToDalamudString() ?? "Unknown"} ({item.Stains[0]})");
                 else
                     b.AppendLine("None");
 
