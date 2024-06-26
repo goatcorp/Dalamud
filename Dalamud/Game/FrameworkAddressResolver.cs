@@ -32,7 +32,7 @@ internal sealed class FrameworkAddressResolver : BaseAddressResolver
             scanner.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B 3D ?? ?? ?? ?? 48 8B D9 48 85 FF");
 
         this.FreeAddress =
-            scanner.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B D9 48 8B 0D ?? ?? ?? ??");
+            scanner.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B D9 48 8B 0D ?? ?? ?? ?? 48 85 C9");
 
         this.TickAddress =
             scanner.ScanText("40 53 48 83 EC 20 FF 81 ?? ?? ?? ?? 48 8B D9 48 8D 4C 24 ??");

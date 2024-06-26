@@ -24,6 +24,6 @@ internal class FlyTextGuiAddressResolver : BaseAddressResolver
     protected override void Setup64Bit(ISigScanner sig)
     {
         this.AddFlyText = sig.ScanText("E8 ?? ?? ?? ?? FF C7 41 D1 C7");
-        this.CreateFlyText = sig.ScanText("40 53 55 41 56 48 83 EC 40 48 63 EA");
+        this.CreateFlyText = sig.ScanText("E8 ?? ?? ?? ?? 48 8B F8 48 85 C0 0F 84 ?? ?? ?? ?? 48 8B 18");
     }
 }
