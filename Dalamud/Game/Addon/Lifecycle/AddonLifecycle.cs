@@ -106,6 +106,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
+        // TODO: Service is currently non-functional pending DT changes. NOP'd.
+        return;
+        
         this.framework.RunOnTick(() =>
         {
             this.EventListeners.Add(listener);
@@ -128,6 +131,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
+        // TODO: Service is currently non-functional pending DT changes. NOP'd.
+        return;
+        
         // Set removed state to true immediately, then lazily remove it from the EventListeners list on next Framework Update.
         listener.Removed = true;
         
