@@ -51,7 +51,7 @@ internal class NetworkHandlersAddressResolver : BaseAddressResolver
         
         // TODO: I know this is a CC. I want things working for now. (KW)
         this.MarketBoardHistoryPacketHandler = scanner.ScanText(
-            "40 53 48 83 EC 20 48 8B 0D ?? ?? ?? ?? 48 8B DA E8 ?? ?? ?? ?? 48 85 C0 74 2F 4C 8B 00 48 8B C8 41 FF 90 18 01 00 00 48 8B C8 BA 0B 00 00 00 E8 ?? ?? ?? ?? 48 85 C0 74 10 48 8B D3 48 8B C8 48 83 C4 20 5B E9 ?? ?? ?? ?? 48 83 C4 20 5B C3 CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC 40 54");
+            "40 53 48 83 EC 20 48 8B 0D ?? ?? ?? ?? 48 8B DA E8 ?? ?? ?? ?? 48 85 C0 74 2F 4C 8B 00 48 8B C8 41 FF 90 18 01 00 00 48 8B C8 BA 0B 00 00 00 E8 ?? ?? ?? ?? 48 85 C0 74 10 48 8B D3 48 8B C8 48 83 C4 20 5B E9 ?? ?? ?? ?? 48 83 C4 20 5B C3 CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC CC 40 53");
         this.MarketBoardPurchasePacketHandler =
             scanner.ScanText("40 55 56 41 56 48 8B EC 48 83 EC ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 ?? 48 8B 0D ?? ?? ?? ?? 4C 8B F2");
         this.CustomTalkEventResponsePacketHandler =

@@ -43,6 +43,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle(TargetSigScanner sigScanner)
     {
+        // TODO: Service is currently non-functional pending DT changes. NOP'd.
+        return;
+        
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
@@ -82,13 +85,14 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.onAddonSetupHook.Dispose();
-        this.onAddonSetup2Hook.Dispose();
-        this.onAddonFinalizeHook.Dispose();
-        this.onAddonDrawHook.Dispose();
-        this.onAddonUpdateHook.Dispose();
-        this.onAddonRefreshHook.Dispose();
-        this.onAddonRequestedUpdateHook.Dispose();
+        // TODO: Service is currently non-functional pending DT changes. 
+        // this.onAddonSetupHook.Dispose();
+        // this.onAddonSetup2Hook.Dispose();
+        // this.onAddonFinalizeHook.Dispose();
+        // this.onAddonDrawHook.Dispose();
+        // this.onAddonUpdateHook.Dispose();
+        // this.onAddonRefreshHook.Dispose();
+        // this.onAddonRequestedUpdateHook.Dispose();
 
         foreach (var receiveEventListener in this.ReceiveEventListeners)
         {
