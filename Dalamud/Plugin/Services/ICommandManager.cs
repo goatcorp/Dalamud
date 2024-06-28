@@ -27,7 +27,7 @@ public interface ICommandManager
     /// <param name="command">The command to dispatch.</param>
     /// <param name="argument">The provided arguments.</param>
     /// <param name="info">A <see cref="CommandInfo"/> object describing this command.</param>
-    public void DispatchCommand(string command, string argument, ICommandInfo info);
+    public void DispatchCommand(string command, string argument, CommandInfo info);
 
     /// <summary>
     /// Add a command handler, which you can use to add your own custom commands to the in-game chat.
@@ -35,7 +35,7 @@ public interface ICommandManager
     /// <param name="command">The command to register.</param>
     /// <param name="info">A <see cref="CommandInfo"/> object describing the command.</param>
     /// <returns>If adding was successful.</returns>
-    public bool AddHandler(string command, ICommandInfo info);
+    public bool AddHandler(string command, CommandInfo info);
 
     /// <summary>
     /// Remove a command from the command handlers.

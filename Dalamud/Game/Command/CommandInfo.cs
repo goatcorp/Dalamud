@@ -3,7 +3,7 @@ namespace Dalamud.Game.Command;
 /// <summary>
 /// This class describes a registered command.
 /// </summary>
-internal sealed class CommandInfo : ICommandInfo
+public sealed class CommandInfo : ICommandInfo
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandInfo"/> class.
