@@ -68,12 +68,6 @@ public class SettingsTabGeneral : SettingsTab
             c => c.DoButtonsSystemMenu,
             (v, c) => c.DoButtonsSystemMenu = v),
 
-        new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingsEnableRmtFiltering", "Enable RMT Filtering"),
-            Loc.Localize("DalamudSettingsEnableRmtFilteringMsgHint", "Enable Dalamud's built-in RMT ad filtering."),
-            c => !c.DisableRmtFiltering,
-            (v, c) => c.DisableRmtFiltering = !v),
-
         new GapSettingsEntry(5),
 
         new SettingsEntry<bool>(

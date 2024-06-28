@@ -345,11 +345,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether or not the user has seen the profiles tutorial.
     /// </summary>
     public bool ProfilesHasSeenTutorial { get; set; } = false;
-    
-    /// <summary>
-    /// Gets or sets a value indicating whether or not Dalamud RMT filtering should be disabled.
-    /// </summary>
-    public bool DisableRmtFiltering { get; set; }
 
     /// <summary>
     /// Gets or sets the order of DTR elements, by title.
