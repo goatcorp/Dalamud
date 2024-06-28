@@ -8,11 +8,6 @@ namespace Dalamud.Game.ClientState.Objects;
 public interface ITargetManager
 {
     /// <summary>
-    /// Gets the address of the target manager.
-    /// </summary>
-    public nint Address { get; }
-
-    /// <summary>
     /// Gets or sets the current target.
     /// Set to null to clear the target.
     /// </summary>

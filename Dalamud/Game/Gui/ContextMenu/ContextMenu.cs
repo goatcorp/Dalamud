@@ -151,7 +151,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         values[0].ChangeType(ValueType.UInt);
         values[0].UInt = 0;
         values[1].ChangeType(ValueType.String);
-        values[1].SetString(name.Encode().NullTerminate());
+        values[1].SetManagedString(name.Encode().NullTerminate());
         values[2].ChangeType(ValueType.Int);
         values[2].Int = x;
         values[3].ChangeType(ValueType.Int);
@@ -231,7 +231,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                 submenuMask |= 1u << i;
 
             nameData[i].ChangeType(ValueType.String);
-            nameData[i].SetString(this.GetPrefixedName(item).Encode().NullTerminate());
+            nameData[i].SetManagedString(this.GetPrefixedName(item).Encode().NullTerminate());
         }
 
         for (var i = 0; i < prefixMenuSize; ++i)

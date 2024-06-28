@@ -47,11 +47,11 @@ internal unsafe class AddonLifecycleAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.AddonSetup = sig.ScanText("FF 90 ?? ?? ?? ?? 48 8B 93 ?? ?? ?? ?? 80 8B");
-        this.AddonSetup2 = sig.ScanText("FF 90 ?? ?? ?? ?? 48 8B 03 48 8B CB 80 8B");
-        this.AddonFinalize = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 7C 24 ?? 41 8B C6");
-        this.AddonDraw = sig.ScanText("FF 90 ?? ?? ?? ?? 83 EB 01 79 C1");
-        this.AddonUpdate = sig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF");
+        this.AddonSetup = sig.ScanText("41 FF D1 48 8B 93 ?? ?? ?? ?? 80 8B"); // TODO: verify
+        this.AddonSetup2 = sig.ScanText("41 FF D1 48 8B 03 48 8B CB");         // TODO: verify
+        this.AddonFinalize = sig.ScanText("E8 ?? ?? ?? ?? 48 83 EF 01 75 D5");
+        this.AddonDraw = sig.ScanText("FF 90 ?? ?? ?? ?? 83 EB 01 79 C4 48 81 EF ?? ?? ?? ?? 48 83 ED 01");
+        this.AddonUpdate = sig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF ?? ?? ?? ?? 45 33 D2");
         this.AddonOnRequestedUpdate = sig.ScanText("FF 90 98 01 00 00 48 8B 5C 24 30 48 83 C4 20");
     }
 }

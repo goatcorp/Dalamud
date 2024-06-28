@@ -13,6 +13,6 @@ internal class PartyFinderAddressResolver : BaseAddressResolver
     /// <inheritdoc/>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.ReceiveListing = sig.ScanText("40 53 41 57 48 83 EC 28 48 8B D9");
+        this.ReceiveListing = sig.ScanText("40 53 41 57 48 83 EC ?? 48 8B D9 4C 8B FA");
     }
 }

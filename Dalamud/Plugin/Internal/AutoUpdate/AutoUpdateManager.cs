@@ -365,7 +365,7 @@ internal class AutoUpdateManager : IServiceType
         var notification = this.GetBaseNotification(new Notification
         {
             Title = Locs.NotificationTitleUpdatesAvailable,
-            Content = Locs.NotificationContentUpdatesAvailable(updatablePlugins.Count),
+            Content = Locs.NotificationContentUpdatesAvailable(updatablePlugins),
             MinimizedText = Locs.NotificationContentUpdatesAvailableMinimized(updatablePlugins.Count),
             Type = NotificationType.Info,
             InitialDuration = TimeSpan.MaxValue,
@@ -470,11 +470,18 @@ internal class AutoUpdateManager : IServiceType
         public static string NotificationContentUpdatesFailed => Loc.Localize("AutoUpdateUpdatesFailedContent", "Some plugins failed to update. Please check the plugin installer for more information.");
         
         public static string NotificationContentUpdatesFailedMinimized => Loc.Localize("AutoUpdateUpdatesFailedContentMinimized", "Plugins failed to update.");
-        
-        public static string NotificationContentUpdatesAvailable(int numUpdates)
-            => numUpdates == 1 ?
-                   Loc.Localize("AutoUpdateUpdatesAvailableContentSingular", "There is a plugin that can be updated.") : 
-                   string.Format(Loc.Localize("AutoUpdateUpdatesAvailableContentPlural", "There are {0} plugins that can be updated."), numUpdates);
+
+        public static string NotificationContentUpdatesAvailable(ICollection<AvailablePluginUpdate> updatablePlugins)
+            => (updatablePlugins.Count == 1
+                    ? Loc.Localize(
+                        "AutoUpdateUpdatesAvailableContentSingular",
+                        "There is a plugin that can be updated:")
+                    : string.Format(
+                        Loc.Localize(
+                            "AutoUpdateUpdatesAvailableContentPlural",
+                            "There are {0} plugins that can be updated:"),
+                        updatablePlugins.Count))
+               + "\n\n" + string.Join(",", updatablePlugins.Select(x => x.InstalledPlugin.Manifest.Name));
         
         public static string NotificationContentUpdatesAvailableMinimized(int numUpdates)
             => numUpdates == 1 ?

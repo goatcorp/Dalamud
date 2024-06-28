@@ -241,7 +241,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             else
             {
                 // If we want the node hidden, shift it up, to prevent collision conflicts
-                data.TextNode->AtkResNode.SetY(-collisionNode->Height * dtr->RootNode->ScaleX);
+                data.TextNode->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
             }
         }
     }
@@ -303,10 +303,10 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         var targetX = minX - (this.configuration.DtrSwapDirection ? 0 : additionalWidth);
         var targetWidth = (ushort)(nativeWidth + additionalWidth);
 
-        if (collisionNode->Width != targetWidth || collisionNode->X != targetX)
+        if (collisionNode->Width != targetWidth || Math.Abs(collisionNode->X - targetX) > 0.0001)
         {
             collisionNode->SetWidth(targetWidth);
-            collisionNode->SetX(targetX);
+            collisionNode->SetXFloat(targetX);
         }
 
         // If we are drawing backwards, we should start from the right side of the native nodes.

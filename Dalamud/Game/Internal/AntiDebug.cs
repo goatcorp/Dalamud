@@ -22,7 +22,7 @@ internal sealed class AntiDebug : IInternalDisposableService
     {
         try
         {
-            this.debugCheckAddress = sigScanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 11 41");
+            this.debugCheckAddress = sigScanner.ScanText("FF 15 ?? ?? ?? ?? 33 C9 8B F8");
         }
         catch (KeyNotFoundException)
         {

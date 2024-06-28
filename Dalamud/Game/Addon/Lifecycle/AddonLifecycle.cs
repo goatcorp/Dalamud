@@ -43,6 +43,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle(TargetSigScanner sigScanner)
     {
+        // TODO: Service is currently non-functional pending DT changes. NOP'd.
+        return;
+        
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
@@ -82,13 +85,14 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.onAddonSetupHook.Dispose();
-        this.onAddonSetup2Hook.Dispose();
-        this.onAddonFinalizeHook.Dispose();
-        this.onAddonDrawHook.Dispose();
-        this.onAddonUpdateHook.Dispose();
-        this.onAddonRefreshHook.Dispose();
-        this.onAddonRequestedUpdateHook.Dispose();
+        // TODO: Service is currently non-functional pending DT changes. 
+        // this.onAddonSetupHook.Dispose();
+        // this.onAddonSetup2Hook.Dispose();
+        // this.onAddonFinalizeHook.Dispose();
+        // this.onAddonDrawHook.Dispose();
+        // this.onAddonUpdateHook.Dispose();
+        // this.onAddonRefreshHook.Dispose();
+        // this.onAddonRequestedUpdateHook.Dispose();
 
         foreach (var receiveEventListener in this.ReceiveEventListeners)
         {
@@ -102,6 +106,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
+        // TODO: Service is currently non-functional pending DT changes. NOP'd.
+        return;
+        
         this.framework.RunOnTick(() =>
         {
             this.EventListeners.Add(listener);
@@ -124,6 +131,9 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
+        // TODO: Service is currently non-functional pending DT changes. NOP'd.
+        return;
+        
         // Set removed state to true immediately, then lazily remove it from the EventListeners list on next Framework Update.
         listener.Removed = true;
         
