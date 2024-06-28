@@ -36,7 +36,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     internal event Action? EntryListChange;
 
     /// <inheritdoc/>
-    public IReadOnlyList<TitleScreenMenuEntry> Entries
+    public IReadOnlyList<IReadOnlyTitleScreenMenuEntry> Entries
     {
         get
         {
@@ -50,8 +50,32 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
         }
     }
 
-    /// <inheritdoc/>
-    public TitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
+    /// <summary>
+    /// Gets the list of entries in the title screen menu.
+    /// </summary>
+    public IReadOnlyList<ITitleScreenMenuEntry> PluginEntries
+    {
+        get
+        {
+            lock (this.entries)
+            {
+                if (!this.entries.Any())
+                    return Array.Empty<TitleScreenMenuEntry>();
+
+                return this.entriesView ??= this.entries.OrderByDescending(x => x.IsInternal).ToArray();
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Adds a new entry to the title screen menu.
+    /// </summary>
+    /// <param name="text">The text to show.</param>
+    /// <param name="texture">The texture to show.</param>
+    /// <param name="onTriggered">The action to execute when the option is selected.</param>
+    /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
+    /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
+    public ITitleScreenMenuEntry AddPluginEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
         {
@@ -78,7 +102,27 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     }
 
     /// <inheritdoc/>
-    public TitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
+    public IReadOnlyTitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
+    {
+        return this.AddPluginEntry(text, texture, onTriggered);
+    }
+
+    /// <inheritdoc/>
+    public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
+    {
+        return this.AddPluginEntry(priority, text, texture, onTriggered);
+    }
+
+    /// <summary>
+    /// Adds a new entry to the title screen menu.
+    /// </summary>
+    /// <param name="priority">Priority of the entry.</param>
+    /// <param name="text">The text to show.</param>
+    /// <param name="texture">The texture to show.</param>
+    /// <param name="onTriggered">The action to execute when the option is selected.</param>
+    /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
+    /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
+    public ITitleScreenMenuEntry AddPluginEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
     {
         if (texture.Height != TextureSize || texture.Width != TextureSize)
         {
@@ -101,11 +145,11 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     }
 
     /// <inheritdoc/>
-    public void RemoveEntry(TitleScreenMenuEntry entry)
+    public void RemoveEntry(IReadOnlyTitleScreenMenuEntry entry)
     {
         lock (this.entries)
         {
-            this.entries.Remove(entry);
+            this.entries.RemoveAll(pluginEntry => pluginEntry == entry);
             this.entriesView = null;
         }
 
@@ -196,10 +240,10 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
     [ServiceManager.ServiceDependency]
     private readonly TitleScreenMenu titleScreenMenuService = Service<TitleScreenMenu>.Get();
     
-    private readonly List<TitleScreenMenuEntry> pluginEntries = new();
+    private readonly List<IReadOnlyTitleScreenMenuEntry> pluginEntries = new();
 
     /// <inheritdoc/>
-    public IReadOnlyList<TitleScreenMenuEntry>? Entries => this.titleScreenMenuService.Entries;
+    public IReadOnlyList<IReadOnlyTitleScreenMenuEntry>? Entries => this.titleScreenMenuService.Entries;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -211,25 +255,25 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
     }
     
     /// <inheritdoc/>
-    public TitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
+    public IReadOnlyTitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
     {
-        var entry = this.titleScreenMenuService.AddEntry(text, texture, onTriggered);
+        var entry = this.titleScreenMenuService.AddPluginEntry(text, texture, onTriggered);
         this.pluginEntries.Add(entry);
 
         return entry;
     }
     
     /// <inheritdoc/>
-    public TitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
+    public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
     {
-        var entry = this.titleScreenMenuService.AddEntry(priority, text, texture, onTriggered);
+        var entry = this.titleScreenMenuService.AddPluginEntry(priority, text, texture, onTriggered);
         this.pluginEntries.Add(entry);
 
         return entry;
     }
     
     /// <inheritdoc/>
-    public void RemoveEntry(TitleScreenMenuEntry entry)
+    public void RemoveEntry(IReadOnlyTitleScreenMenuEntry entry)
     {
         this.pluginEntries.Remove(entry);
         this.titleScreenMenuService.RemoveEntry(entry);

@@ -5,7 +5,7 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 /// <summary>
 /// This class represents a battle NPC.
 /// </summary>
-public unsafe class BattleNpc : BattleChara
+internal unsafe class BattleNpc : BattleChara, IBattleNpc
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BattleNpc"/> class.
@@ -24,4 +24,15 @@ public unsafe class BattleNpc : BattleChara
 
     /// <inheritdoc/>
     public override ulong TargetObjectId => this.Struct->Character.TargetId;
+}
+
+/// <summary>
+/// A interface that represents a battle NPC.
+/// </summary>
+internal interface IBattleNpc
+{
+    /// <summary>
+    /// Gets the BattleNpc <see cref="BattleNpcSubKind" /> of this BattleNpc.
+    /// </summary>
+    BattleNpcSubKind BattleNpcKind { get; }
 }

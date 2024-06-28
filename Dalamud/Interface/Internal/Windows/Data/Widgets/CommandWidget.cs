@@ -56,8 +56,8 @@ internal class CommandWidget : IDataWindowWidget
                              ? commands.OrderBy(kv => kv.Key).ToArray()
                              : commands.OrderByDescending(kv => kv.Key).ToArray(),
                     1 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                             ? commands.OrderBy(kv => kv.Value.LoaderAssemblyName).ToArray()
-                             : commands.OrderByDescending(kv => kv.Value.LoaderAssemblyName).ToArray(),
+                             ? commands.OrderBy(kv => commandManager.GetHandlerAssemblyName(kv.Key, kv.Value)).ToArray()
+                             : commands.OrderByDescending(kv => commandManager.GetHandlerAssemblyName(kv.Key, kv.Value)).ToArray(),
                     _ => commands,
                 };
             }
@@ -70,7 +70,7 @@ internal class CommandWidget : IDataWindowWidget
                 ImGui.Text(command.Key);
             
                 ImGui.TableNextColumn();
-                ImGui.Text(command.Value.LoaderAssemblyName);
+                ImGui.Text(commandManager.GetHandlerAssemblyName(command.Key, command.Value));
             
                 ImGui.TableNextColumn();
                 ImGui.TextWrapped(command.Value.HelpMessage);

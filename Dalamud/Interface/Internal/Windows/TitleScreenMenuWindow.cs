@@ -147,7 +147,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             return;
         
         var scale = ImGui.GetIO().FontGlobalScale;
-        var entries = this.titleScreenMenu.Entries;
+        var entries = this.titleScreenMenu.PluginEntries;
 
         var hovered = ImGui.IsWindowHovered(
             ImGuiHoveredFlags.RootAndChildWindows |
@@ -283,7 +283,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     }
 
     private bool DrawEntry(
-        TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
+        ITitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
     {
         using var fontScopeDispose = this.myFontHandle.Value.Push();
 

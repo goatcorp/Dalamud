@@ -71,7 +71,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     public int Length => ObjectTableLength;
 
     /// <inheritdoc/>
-    public GameObject? this[int index]
+    public IGameObject? this[int index]
     {
         get
         {
@@ -82,7 +82,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     }
 
     /// <inheritdoc/>
-    public GameObject? SearchById(ulong gameObjectId)
+    public IGameObject? SearchById(ulong gameObjectId)
     {
         _ = this.WarnMultithreadedUsage();
 
@@ -107,7 +107,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     }
 
     /// <inheritdoc/>
-    public unsafe GameObject? CreateObjectReference(nint address)
+    public unsafe IGameObject? CreateObjectReference(nint address)
     {
         _ = this.WarnMultithreadedUsage();
 
@@ -216,7 +216,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 internal sealed partial class ObjectTable
 {
     /// <inheritdoc/>
-    public IEnumerator<GameObject> GetEnumerator()
+    public IEnumerator<IGameObject> GetEnumerator()
     {
         // If something's trying to enumerate outside the framework thread, we use the ObjectPool.
         if (this.WarnMultithreadedUsage())
@@ -246,7 +246,7 @@ internal sealed partial class ObjectTable
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-    private sealed class Enumerator : IEnumerator<GameObject>, IResettable
+    private sealed class Enumerator : IEnumerator<IGameObject>, IResettable
     {
         private readonly int slotId;
         private ObjectTable? owner;
@@ -261,7 +261,7 @@ internal sealed partial class ObjectTable
             this.slotId = slotId;
         }
 
-        public GameObject Current { get; private set; } = null!;
+        public IGameObject Current { get; private set; } = null!;
 
         object IEnumerator.Current => this.Current;
 

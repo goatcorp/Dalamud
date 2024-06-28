@@ -6,7 +6,7 @@ namespace Dalamud.Game.ClientState.Objects.Types;
 /// <summary>
 /// This class represents the battle characters.
 /// </summary>
-public unsafe class BattleChara : Character
+internal unsafe class BattleChara : Character, IBattleChara
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BattleChara"/> class.
@@ -18,40 +18,80 @@ public unsafe class BattleChara : Character
     {
     }
 
+    /// <inheritdoc/>
+    public StatusList StatusList => new(this.Struct->GetStatusManager());
+
+    /// <inheritdoc/>
+    public bool IsCasting => this.Struct->GetCastInfo()->IsCasting > 0;
+
+    /// <inheritdoc/>
+    public bool IsCastInterruptible => this.Struct->GetCastInfo()->Interruptible > 0;
+
+    /// <inheritdoc/>
+    public byte CastActionType => (byte)this.Struct->GetCastInfo()->ActionType;
+
+    /// <inheritdoc/>
+    public uint CastActionId => this.Struct->GetCastInfo()->ActionId;
+
+    /// <inheritdoc/>
+    public ulong CastTargetObjectId => this.Struct->GetCastInfo()->TargetId;
+
+    /// <inheritdoc/>
+    public float CurrentCastTime => this.Struct->GetCastInfo()->CurrentCastTime;
+
+    /// <inheritdoc/>
+    [Api10ToDo("Rename so it is not confused with AdjustedTotalCastTime")]
+    public float TotalCastTime => this.Struct->GetCastInfo()->TotalCastTime;
+
+    /// <inheritdoc/>
+    [Api10ToDo("Rename so it is not confused with TotalCastTime")]
+    public float AdjustedTotalCastTime => this.Struct->GetCastInfo()->AdjustedTotalCastTime;
+
+    /// <summary>
+    /// Gets the underlying structure.
+    /// </summary>
+    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)this.Address;
+}
+
+/// <summary>
+/// Interface representing a battle character.
+/// </summary>
+public interface IBattleChara : ICharacter
+{
     /// <summary>
     /// Gets the current status effects.
     /// </summary>
-    public StatusList StatusList => new(this.Struct->GetStatusManager());
+    public StatusList StatusList { get; }
 
     /// <summary>
     /// Gets a value indicating whether the chara is currently casting.
     /// </summary>
-    public bool IsCasting => this.Struct->GetCastInfo()->IsCasting > 0;
+    public bool IsCasting { get; }
 
     /// <summary>
     /// Gets a value indicating whether the cast is interruptible.
     /// </summary>
-    public bool IsCastInterruptible => this.Struct->GetCastInfo()->Interruptible > 0;
+    public bool IsCastInterruptible { get; }
 
     /// <summary>
     /// Gets the spell action type of the spell being cast by the actor.
     /// </summary>
-    public byte CastActionType => (byte)this.Struct->GetCastInfo()->ActionType;
+    public byte CastActionType { get; }
 
     /// <summary>
     /// Gets the spell action ID of the spell being cast by the actor.
     /// </summary>
-    public uint CastActionId => this.Struct->GetCastInfo()->ActionId;
+    public uint CastActionId { get; }
 
     /// <summary>
     /// Gets the object ID of the target currently being cast at by the chara.
     /// </summary>
-    public ulong CastTargetObjectId => this.Struct->GetCastInfo()->TargetId;
+    public ulong CastTargetObjectId { get; }
 
     /// <summary>
     /// Gets the current casting time of the spell being cast by the chara.
     /// </summary>
-    public float CurrentCastTime => this.Struct->GetCastInfo()->CurrentCastTime;
+    public float CurrentCastTime { get; }
 
     /// <summary>
     /// Gets the total casting time of the spell being cast by the chara.
@@ -60,8 +100,7 @@ public unsafe class BattleChara : Character
     /// This can only be a portion of the total cast for some actions.
     /// Use AdjustedTotalCastTime if you always need the total cast time.
     /// </remarks>
-    [Api10ToDo("Rename so it is not confused with AdjustedTotalCastTime")]
-    public float TotalCastTime => this.Struct->GetCastInfo()->TotalCastTime;
+    public float TotalCastTime { get; }
 
     /// <summary>
     /// Gets the <see cref="TotalCastTime"/> plus any adjustments from the game, such as Action offset 2B. Used for display purposes.
@@ -69,11 +108,5 @@ public unsafe class BattleChara : Character
     /// <remarks>
     /// This is the actual total cast time for all actions.
     /// </remarks>
-    [Api10ToDo("Rename so it is not confused with TotalCastTime")]
-    public float AdjustedTotalCastTime => this.Struct->GetCastInfo()->AdjustedTotalCastTime;
-
-    /// <summary>
-    /// Gets the underlying structure.
-    /// </summary>
-    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)this.Address;
+    public float AdjustedTotalCastTime { get; }
 }

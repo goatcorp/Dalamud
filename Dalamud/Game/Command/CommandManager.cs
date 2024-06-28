@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using Dalamud.Console;
@@ -23,7 +24,8 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
 {
     private static readonly ModuleLog Log = new("Command");
 
-    private readonly ConcurrentDictionary<string, CommandInfo> commandMap = new();
+    private readonly ConcurrentDictionary<string, ICommandInfo> commandMap = new();
+    private readonly ConcurrentDictionary<(string, ICommandInfo), string> commandAssemblyNameMap = new();
     private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
     private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
     private readonly Regex commandRegexDe = new(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
@@ -54,7 +56,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     }
 
     /// <inheritdoc/>
-    public ReadOnlyDictionary<string, CommandInfo> Commands => new(this.commandMap);
+    public ReadOnlyDictionary<string, ICommandInfo> Commands => new(this.commandMap);
 
     /// <inheritdoc/>
     public bool ProcessCommand(string content)
@@ -100,7 +102,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     }
 
     /// <inheritdoc/>
-    public void DispatchCommand(string command, string argument, CommandInfo info)
+    public void DispatchCommand(string command, string argument, ICommandInfo info)
     {
         try
         {
@@ -111,9 +113,31 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
             Log.Error(ex, "Error while dispatching command {CommandName} (Argument: {Argument})", command, argument);
         }
     }
+    
+    /// <inheritdoc/>
+    public bool AddHandler(string command, ICommandInfo info, string loaderAssemblyName = "")
+    {
+        if (info == null)
+            throw new ArgumentNullException(nameof(info), "Command handler is null.");
+
+        if (!this.commandMap.TryAdd(command, info))
+        {
+            Log.Error("Command {CommandName} is already registered.", command);
+            return false;
+        }
+        
+        if (!this.commandAssemblyNameMap.TryAdd((command, info), loaderAssemblyName))
+        {
+            this.commandMap.Remove(command, out _);
+            Log.Error("Command {CommandName} is already registered in the assembly name map.", command);
+            return false;
+        }
+
+        return true;
+    }
 
     /// <inheritdoc/>
-    public bool AddHandler(string command, CommandInfo info)
+    public bool AddHandler(string command, ICommandInfo info)
     {
         if (info == null)
             throw new ArgumentNullException(nameof(info), "Command handler is null.");
@@ -131,6 +155,32 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     public bool RemoveHandler(string command)
     {
         return this.commandMap.Remove(command, out _);
+    }
+
+    /// <summary>
+    /// Returns the assembly name from which the command was added or blank if added internally.
+    /// </summary>
+    /// <param name="command">The command.</param>
+    /// <param name="commandInfo">A ICommandInfo object.</param>
+    /// <returns>The name of the assembly.</returns>
+    public string GetHandlerAssemblyName(string command, ICommandInfo commandInfo)
+    {
+        if (this.commandAssemblyNameMap.TryGetValue((command, commandInfo), out var assemblyName))
+        {
+            return assemblyName;
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Returns a list of commands given a specified assembly name.
+    /// </summary>
+    /// <param name="assemblyName">The name of the assembly.</param>
+    /// <returns>A list of commands and their associated activation string.</returns>
+    public List<KeyValuePair<(string, ICommandInfo), string>> GetHandlersByAssemblyName(string assemblyName)
+    {
+        return this.commandAssemblyNameMap.Where(c => c.Value == assemblyName).ToList();
     }
 
     /// <inheritdoc/>
@@ -199,7 +249,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     }
     
     /// <inheritdoc/>
-    public ReadOnlyDictionary<string, CommandInfo> Commands => this.commandManagerService.Commands;
+    public ReadOnlyDictionary<string, ICommandInfo> Commands => this.commandManagerService.Commands;
     
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -217,16 +267,15 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         => this.commandManagerService.ProcessCommand(content);
 
     /// <inheritdoc/>
-    public void DispatchCommand(string command, string argument, CommandInfo info)
+    public void DispatchCommand(string command, string argument, ICommandInfo info)
         => this.commandManagerService.DispatchCommand(command, argument, info);
     
     /// <inheritdoc/>
-    public bool AddHandler(string command, CommandInfo info)
+    public bool AddHandler(string command, ICommandInfo info)
     {
         if (!this.pluginRegisteredCommands.Contains(command))
         {
-            info.LoaderAssemblyName = this.pluginInfo.InternalName;
-            if (this.commandManagerService.AddHandler(command, info))
+            if (this.commandManagerService.AddHandler(command, info, this.pluginInfo.InternalName))
             {
                 this.pluginRegisteredCommands.Add(command);
                 return true;

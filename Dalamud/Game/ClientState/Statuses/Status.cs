@@ -59,7 +59,7 @@ public unsafe class Status
     /// <remarks>
     /// This iterates the actor table, it should be used with care.
     /// </remarks>
-    public GameObject? SourceObject => Service<ObjectTable>.Get().SearchById(this.SourceId);
+    public IGameObject? SourceObject => Service<ObjectTable>.Get().SearchById(this.SourceId);
 
     private FFXIVClientStructs.FFXIV.Client.Game.Status* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Status*)this.Address;
 }

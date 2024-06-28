@@ -11,7 +11,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 /// <summary>
 /// Base class for <see cref="IContextMenu"/> menu args.
 /// </summary>
-public abstract unsafe class MenuArgs
+internal abstract unsafe class MenuArgs : IMenuArgs
 {
     private IReadOnlySet<nint>? eventInterfaces;
 
@@ -36,6 +36,51 @@ public abstract unsafe class MenuArgs
             _ => throw new ArgumentException("Invalid context menu type", nameof(type)),
         };
     }
+
+    /// <inheritdoc/>
+    public string? AddonName { get; }
+
+    /// <inheritdoc/>
+    public nint AddonPtr { get; }
+
+    /// <inheritdoc/>
+    public nint AgentPtr { get; }
+
+    /// <inheritdoc/>
+    public ContextMenuType MenuType { get; }
+
+    /// <inheritdoc/>
+    public MenuTarget Target { get; }
+
+    /// <inheritdoc/>
+    public IReadOnlySet<nint> EventInterfaces 
+    {
+        get
+        {
+            if (this.MenuType is ContextMenuType.Default)
+            {
+                return this.eventInterfaces ?? new HashSet<nint>();
+            }
+            else
+            {
+                throw new InvalidOperationException("Not a default context menu");
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Interface representing a context menus args.
+/// </summary>
+public interface IMenuArgs
+{
+    /// <summary>
+    /// Gets a list of AtkEventInterface pointers associated with the context menu.
+    /// Only available with <see cref="ContextMenuType.Default"/>.
+    /// Almost always an agent pointer. You can use this to find out what type of context menu it is.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the context menu is not a <see cref="ContextMenuType.Default"/>.</exception>
+    public IReadOnlySet<nint> EventInterfaces { get; }
 
     /// <summary>
     /// Gets the name of the addon that opened the context menu.
@@ -63,25 +108,4 @@ public abstract unsafe class MenuArgs
     /// <see cref="ContextMenuType.Inventory"/> signifies a <see cref="MenuTargetInventory"/>.
     /// </summary>
     public MenuTarget Target { get; }
-
-    /// <summary>
-    /// Gets a list of AtkEventInterface pointers associated with the context menu.
-    /// Only available with <see cref="ContextMenuType.Default"/>.
-    /// Almost always an agent pointer. You can use this to find out what type of context menu it is.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the context menu is not a <see cref="ContextMenuType.Default"/>.</exception>
-    public IReadOnlySet<nint> EventInterfaces 
-    {
-        get
-        {
-            if (this.MenuType is ContextMenuType.Default)
-            {
-                return this.eventInterfaces ?? new HashSet<nint>();
-            }
-            else
-            {
-                throw new InvalidOperationException("Not a default context menu");
-            }
-        }
-    }
 }

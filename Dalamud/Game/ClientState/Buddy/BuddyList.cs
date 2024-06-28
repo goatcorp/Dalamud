@@ -56,7 +56,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     }
 
     /// <inheritdoc/>
-    public BuddyMember? CompanionBuddy
+    public IBuddyMember? CompanionBuddy
     {
         get
         {
@@ -66,7 +66,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     }
 
     /// <inheritdoc/>
-    public BuddyMember? PetBuddy
+    public IBuddyMember? PetBuddy
     {
         get
         {
@@ -85,7 +85,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     private unsafe FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy* BuddyListStruct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy*)this.BuddyListAddress;
 
     /// <inheritdoc/>
-    public BuddyMember? this[int index]
+    public IBuddyMember? this[int index]
     {
         get
         {
@@ -116,7 +116,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     }
 
     /// <inheritdoc/>
-    public BuddyMember? CreateBuddyMemberReference(IntPtr address)
+    public IBuddyMember? CreateBuddyMemberReference(IntPtr address)
     {
         if (this.clientState.LocalContentId == 0)
             return null;
@@ -138,10 +138,10 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
 internal sealed partial class BuddyList
 {
     /// <inheritdoc/>
-    int IReadOnlyCollection<BuddyMember>.Count => this.Length;
+    int IReadOnlyCollection<IBuddyMember>.Count => this.Length;
 
     /// <inheritdoc/>
-    public IEnumerator<BuddyMember> GetEnumerator()
+    public IEnumerator<IBuddyMember> GetEnumerator()
     {
         for (var i = 0; i < this.Length; i++)
         {

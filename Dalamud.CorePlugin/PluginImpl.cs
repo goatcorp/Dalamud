@@ -73,7 +73,7 @@ namespace Dalamud.CorePlugin
                     Log.Information($"CorePlugin : DefaultFontHandle.ImFontChanged called {fc}");
                 };
 
-                Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = "Access the plugin." });
+                Service<CommandManager>.Get().AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
 
                 log.Information("CorePlugin ctor!");
             }

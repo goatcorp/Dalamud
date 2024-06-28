@@ -8,7 +8,7 @@ namespace Dalamud.Game.Gui.ContextMenu;
 /// <summary>
 /// Callback args used when a menu item is opened.
 /// </summary>
-public sealed unsafe class MenuOpenedArgs : MenuArgs
+internal sealed unsafe class MenuOpenedArgs : MenuArgs, IMenuOpenedArgs
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MenuOpenedArgs"/> class.
@@ -26,10 +26,19 @@ public sealed unsafe class MenuOpenedArgs : MenuArgs
 
     private Action<MenuItem> OnAddMenuItem { get; }
 
+    /// <inheritdoc/>
+    public void AddMenuItem(MenuItem item) =>
+        this.OnAddMenuItem(item);
+}
+
+/// <summary>
+/// An interface representing the callback args used when a menu item is opened.
+/// </summary>
+public interface IMenuOpenedArgs : IMenuArgs
+{
     /// <summary>
     /// Adds a custom menu item to the context menu.
     /// </summary>
     /// <param name="item">The menu item to add.</param>
-    public void AddMenuItem(MenuItem item) =>
-        this.OnAddMenuItem(item);
+    void AddMenuItem(MenuItem item);
 }

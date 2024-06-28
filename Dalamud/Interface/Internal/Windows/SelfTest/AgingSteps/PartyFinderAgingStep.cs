@@ -51,7 +51,7 @@ internal class PartyFinderAgingStep : IAgingStep
         }
     }
 
-    private void PartyFinderOnReceiveListing(PartyFinderListing listing, PartyFinderListingEventArgs args)
+    private void PartyFinderOnReceiveListing(IPartyFinderListing listing, IPartyFinderListingEventArgs args)
     {
         this.hasPassed = true;
     }

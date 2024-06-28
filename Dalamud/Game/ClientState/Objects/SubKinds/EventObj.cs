@@ -5,7 +5,7 @@ namespace Dalamud.Game.ClientState.Objects.SubKinds;
 /// <summary>
 /// This class represents an EventObj.
 /// </summary>
-public unsafe class EventObj : GameObject
+internal unsafe class EventObj : GameObject
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EventObj"/> class.

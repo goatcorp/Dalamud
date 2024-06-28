@@ -71,10 +71,11 @@ internal static class PluginValidator
             problems.Add(new NoMainUiProblem());
 
         var cmdManager = Service<CommandManager>.Get();
-        foreach (var cmd in cmdManager.Commands.Where(x => x.Value.LoaderAssemblyName == plugin.InternalName && x.Value.ShowInHelp))
+        
+        foreach (var cmd in cmdManager.GetHandlersByAssemblyName(plugin.InternalName).Where(c => c.Key.Item2.ShowInHelp))
         {
-            if (string.IsNullOrEmpty(cmd.Value.HelpMessage))
-                problems.Add(new CommandWithoutHelpTextProblem(cmd.Key));
+            if (string.IsNullOrEmpty(cmd.Key.Item2.HelpMessage))
+                problems.Add(new CommandWithoutHelpTextProblem(cmd.Value));
         }
         
         if (plugin.Manifest.Tags == null || plugin.Manifest.Tags.Count == 0)
