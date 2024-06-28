@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using Dalamud.Common;
 using Dalamud.Console;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;

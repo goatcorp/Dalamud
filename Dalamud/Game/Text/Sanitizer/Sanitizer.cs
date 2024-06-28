@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Common;
+
 namespace Dalamud.Game.Text.Sanitizer;
 
 /// <summary>

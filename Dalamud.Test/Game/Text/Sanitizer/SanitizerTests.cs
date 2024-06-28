@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+
+using Dalamud.Common;
+
 using Xunit;
 
 // ReSharper disable StringLiteralTypo
