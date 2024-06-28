@@ -29,7 +29,7 @@ internal unsafe class BattleNpc : BattleChara, IBattleNpc
 /// <summary>
 /// A interface that represents a battle NPC.
 /// </summary>
-internal interface IBattleNpc : IBattleChara
+public interface IBattleNpc : IBattleChara
 {
     /// <summary>
     /// Gets the BattleNpc <see cref="BattleNpcSubKind" /> of this BattleNpc.
