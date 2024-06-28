@@ -1,4 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle;
 
@@ -47,8 +47,7 @@ internal unsafe class AddonLifecycleAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.AddonSetup = sig.ScanText("41 FF D1 48 8B 93 ?? ?? ?? ?? 80 8B"); // TODO: verify
-        this.AddonSetup2 = sig.ScanText("41 FF D1 48 8B 03 48 8B CB");         // TODO: verify
+        this.AddonSetup = sig.ScanText("4C 8B 88 ?? ?? ?? ?? 66 44 39 BB");
         this.AddonFinalize = sig.ScanText("E8 ?? ?? ?? ?? 48 83 EF 01 75 D5");
         this.AddonDraw = sig.ScanText("FF 90 ?? ?? ?? ?? 83 EB 01 79 C4 48 81 EF ?? ?? ?? ?? 48 83 ED 01");
         this.AddonUpdate = sig.ScanText("FF 90 ?? ?? ?? ?? 40 88 AF ?? ?? ?? ?? 45 33 D2");
