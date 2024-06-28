@@ -3,20 +3,20 @@ namespace Dalamud.Game.Command;
 /// <summary>
 /// This class describes a registered command.
 /// </summary>
-public sealed class CommandInfo : ICommandInfo
+public sealed class CommandInfo : IReadOnlyCommandInfo
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="CommandInfo"/> class.
     /// Create a new CommandInfo with the provided handler.
     /// </summary>
     /// <param name="handler">The method to call when the command is run.</param>
-    public CommandInfo(ICommandInfo.HandlerDelegate handler)
+    public CommandInfo(IReadOnlyCommandInfo.HandlerDelegate handler)
     {
         this.Handler = handler;
     }
 
     /// <inheritdoc/>
-    public ICommandInfo.HandlerDelegate Handler { get; }
+    public IReadOnlyCommandInfo.HandlerDelegate Handler { get; }
 
     /// <inheritdoc/>
     public string HelpMessage { get; set; } = string.Empty;
@@ -28,7 +28,7 @@ public sealed class CommandInfo : ICommandInfo
 /// <summary>
 /// Interface representing a registered command.
 /// </summary>
-public interface ICommandInfo
+public interface IReadOnlyCommandInfo
 {
     /// <summary>
     /// The function to be executed when the command is dispatched.
@@ -43,12 +43,12 @@ public interface ICommandInfo
     HandlerDelegate Handler { get; }
 
     /// <summary>
-    /// Gets or sets the help message for this command.
+    /// Gets the help message for this command.
     /// </summary>
-    string HelpMessage { get; set; }
+    string HelpMessage { get; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether if this command should be shown in the help output.
+    /// Gets a value indicating whether if this command should be shown in the help output.
     /// </summary>
-    bool ShowInHelp { get; set; }
+    bool ShowInHelp { get; }
 }

@@ -24,8 +24,8 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
 {
     private static readonly ModuleLog Log = new("Command");
 
-    private readonly ConcurrentDictionary<string, ICommandInfo> commandMap = new();
-    private readonly ConcurrentDictionary<(string, ICommandInfo), string> commandAssemblyNameMap = new();
+    private readonly ConcurrentDictionary<string, IReadOnlyCommandInfo> commandMap = new();
+    private readonly ConcurrentDictionary<(string, IReadOnlyCommandInfo), string> commandAssemblyNameMap = new();
     private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
     private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
     private readonly Regex commandRegexDe = new(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
@@ -56,7 +56,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     }
 
     /// <inheritdoc/>
-    public ReadOnlyDictionary<string, ICommandInfo> Commands => new(this.commandMap);
+    public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => new(this.commandMap);
 
     /// <inheritdoc/>
     public bool ProcessCommand(string content)
@@ -102,7 +102,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     }
 
     /// <inheritdoc/>
-    public void DispatchCommand(string command, string argument, ICommandInfo info)
+    public void DispatchCommand(string command, string argument, IReadOnlyCommandInfo info)
     {
         try
         {
@@ -115,7 +115,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     }
     
     /// <inheritdoc/>
-    public bool AddHandler(string command, ICommandInfo info, string loaderAssemblyName = "")
+    public bool AddHandler(string command, CommandInfo info, string loaderAssemblyName = "")
     {
         if (info == null)
             throw new ArgumentNullException(nameof(info), "Command handler is null.");
@@ -137,7 +137,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     }
 
     /// <inheritdoc/>
-    public bool AddHandler(string command, ICommandInfo info)
+    public bool AddHandler(string command, CommandInfo info)
     {
         if (info == null)
             throw new ArgumentNullException(nameof(info), "Command handler is null.");
@@ -163,7 +163,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     /// <param name="command">The command.</param>
     /// <param name="commandInfo">A ICommandInfo object.</param>
     /// <returns>The name of the assembly.</returns>
-    public string GetHandlerAssemblyName(string command, ICommandInfo commandInfo)
+    public string GetHandlerAssemblyName(string command, IReadOnlyCommandInfo commandInfo)
     {
         if (this.commandAssemblyNameMap.TryGetValue((command, commandInfo), out var assemblyName))
         {
@@ -178,7 +178,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     /// </summary>
     /// <param name="assemblyName">The name of the assembly.</param>
     /// <returns>A list of commands and their associated activation string.</returns>
-    public List<KeyValuePair<(string, ICommandInfo), string>> GetHandlersByAssemblyName(string assemblyName)
+    public List<KeyValuePair<(string, IReadOnlyCommandInfo), string>> GetHandlersByAssemblyName(string assemblyName)
     {
         return this.commandAssemblyNameMap.Where(c => c.Value == assemblyName).ToList();
     }
@@ -249,7 +249,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     }
     
     /// <inheritdoc/>
-    public ReadOnlyDictionary<string, ICommandInfo> Commands => this.commandManagerService.Commands;
+    public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => this.commandManagerService.Commands;
     
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -267,11 +267,11 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         => this.commandManagerService.ProcessCommand(content);
 
     /// <inheritdoc/>
-    public void DispatchCommand(string command, string argument, ICommandInfo info)
+    public void DispatchCommand(string command, string argument, IReadOnlyCommandInfo info)
         => this.commandManagerService.DispatchCommand(command, argument, info);
     
     /// <inheritdoc/>
-    public bool AddHandler(string command, ICommandInfo info)
+    public bool AddHandler(string command, CommandInfo info)
     {
         if (!this.pluginRegisteredCommands.Contains(command))
         {
