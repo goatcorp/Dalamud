@@ -32,8 +32,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     private readonly nint disallowedReceiveEventAddress;
     
     private readonly AddonLifecycleAddressResolver address;
-    private readonly CallHook<AtkUnitBase.Delegates.OnSetup> onAddonSetupHook;
-    private readonly CallHook<AtkUnitBase.Delegates.OnSetup> onAddonSetup2Hook;
+    private readonly AddonSetupHook<AtkUnitBase.Delegates.OnSetup> onAddonSetupHook;
     private readonly Hook<AddonFinalizeDelegate> onAddonFinalizeHook;
     private readonly CallHook<AtkUnitBase.Delegates.Draw> onAddonDrawHook;
     private readonly CallHook<AtkUnitBase.Delegates.Update> onAddonUpdateHook;
@@ -43,9 +42,6 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private AddonLifecycle(TargetSigScanner sigScanner)
     {
-        // TODO: Service is currently non-functional pending DT changes. NOP'd.
-        return;
-        
         this.address = new AddonLifecycleAddressResolver();
         this.address.Setup(sigScanner);
 
@@ -53,8 +49,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 
         var refreshAddonAddress = (nint)RaptureAtkUnitManager.StaticVirtualTablePointer->RefreshAddon;
 
-        this.onAddonSetupHook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup, this.OnAddonSetup);
-        this.onAddonSetup2Hook = new CallHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup2, this.OnAddonSetup);
+        this.onAddonSetupHook = new AddonSetupHook<AtkUnitBase.Delegates.OnSetup>(this.address.AddonSetup, this.OnAddonSetup);
         this.onAddonFinalizeHook = Hook<AddonFinalizeDelegate>.FromAddress(this.address.AddonFinalize, this.OnAddonFinalize);
         this.onAddonDrawHook = new CallHook<AtkUnitBase.Delegates.Draw>(this.address.AddonDraw, this.OnAddonDraw);
         this.onAddonUpdateHook = new CallHook<AtkUnitBase.Delegates.Update>(this.address.AddonUpdate, this.OnAddonUpdate);
@@ -62,7 +57,6 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         this.onAddonRequestedUpdateHook = new CallHook<AtkUnitBase.Delegates.OnRequestedUpdate>(this.address.AddonOnRequestedUpdate, this.OnRequestedUpdate);
 
         this.onAddonSetupHook.Enable();
-        this.onAddonSetup2Hook.Enable();
         this.onAddonFinalizeHook.Enable();
         this.onAddonDrawHook.Enable();
         this.onAddonUpdateHook.Enable();
@@ -85,14 +79,12 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        // TODO: Service is currently non-functional pending DT changes. 
-        // this.onAddonSetupHook.Dispose();
-        // this.onAddonSetup2Hook.Dispose();
-        // this.onAddonFinalizeHook.Dispose();
-        // this.onAddonDrawHook.Dispose();
-        // this.onAddonUpdateHook.Dispose();
-        // this.onAddonRefreshHook.Dispose();
-        // this.onAddonRequestedUpdateHook.Dispose();
+        this.onAddonSetupHook.Dispose();
+        this.onAddonFinalizeHook.Dispose();
+        this.onAddonDrawHook.Dispose();
+        this.onAddonUpdateHook.Dispose();
+        this.onAddonRefreshHook.Dispose();
+        this.onAddonRequestedUpdateHook.Dispose();
 
         foreach (var receiveEventListener in this.ReceiveEventListeners)
         {
@@ -106,9 +98,6 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to register.</param>
     internal void RegisterListener(AddonLifecycleEventListener listener)
     {
-        // TODO: Service is currently non-functional pending DT changes. NOP'd.
-        return;
-        
         this.framework.RunOnTick(() =>
         {
             this.EventListeners.Add(listener);
@@ -131,9 +120,6 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     /// <param name="listener">The listener to unregister.</param>
     internal void UnregisterListener(AddonLifecycleEventListener listener)
     {
-        // TODO: Service is currently non-functional pending DT changes. NOP'd.
-        return;
-        
         // Set removed state to true immediately, then lazily remove it from the EventListeners list on next Framework Update.
         listener.Removed = true;
         
