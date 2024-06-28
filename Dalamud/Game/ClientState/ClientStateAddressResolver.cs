@@ -51,11 +51,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     public IntPtr KeyboardStateIndexArray { get; private set; }
 
     /// <summary>
-    /// Gets the address of the target manager.
-    /// </summary>
-    public IntPtr TargetManager { get; private set; }
-
-    /// <summary>
     /// Gets the address of the condition flag array.
     /// </summary>
     public IntPtr ConditionFlags { get; private set; }
@@ -99,9 +94,7 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
         this.KeyboardStateIndexArray = sig.ScanText("0F B6 94 33 ?? ?? ?? ?? 84 D2") + 0x4;
 
         this.ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 8B D3 E8 ?? ?? ?? ?? 32 C0 48 83 C4 20");
-
-        this.TargetManager = sig.GetStaticAddressFromSig("41 89 44 24 ?? 48 8B 05 ?? ?? ?? ??", 8);
-
+        
         this.GamepadPoll = sig.ScanText("40 55 53 57 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 44 0F 29 B4 24");
     }
 }

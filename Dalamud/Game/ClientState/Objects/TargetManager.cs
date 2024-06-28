@@ -2,6 +2,8 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
+
 #pragma warning disable CS0618
 
 namespace Dalamud.Game.ClientState.Objects;
@@ -17,21 +19,12 @@ namespace Dalamud.Game.ClientState.Objects;
 internal sealed unsafe class TargetManager : IServiceType, ITargetManager
 {
     [ServiceManager.ServiceDependency]
-    private readonly ClientState clientState = Service<ClientState>.Get();
-
-    [ServiceManager.ServiceDependency]
     private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
-
-    private readonly ClientStateAddressResolver address;
-
+    
     [ServiceManager.ServiceConstructor]
     private TargetManager()
     {
-        this.address = this.clientState.AddressResolver;
     }
-
-    /// <inheritdoc/>
-    public IntPtr Address => this.address.TargetManager;
 
     /// <inheritdoc/>
     public GameObject? Target
@@ -82,5 +75,5 @@ internal sealed unsafe class TargetManager : IServiceType, ITargetManager
         set => Struct->MouseOverNameplateTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
-    private FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem*)this.Address;
+    private TargetSystem* Struct => TargetSystem.Instance();
 }
