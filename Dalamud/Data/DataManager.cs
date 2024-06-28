@@ -1,6 +1,7 @@
 using System.IO;
 using System.Threading;
 
+using Dalamud.Game;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;

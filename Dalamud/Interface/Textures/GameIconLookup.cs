@@ -1,5 +1,7 @@
 using System.Text;
 
+using Dalamud.Game;
+
 namespace Dalamud.Interface.Textures;
 
 /// <summary>Represents a lookup for a game icon.</summary>
