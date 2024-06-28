@@ -38,25 +38,25 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     }
 
     /// <inheritdoc/>
-    public int Length => this.GroupManagerStruct->MemberCount;
+    public int Length => this.GroupManagerStruct->MainGroup.MemberCount;
 
     /// <inheritdoc/>
-    public uint PartyLeaderIndex => this.GroupManagerStruct->PartyLeaderIndex;
+    public uint PartyLeaderIndex => this.GroupManagerStruct->MainGroup.PartyLeaderIndex;
 
     /// <inheritdoc/>
-    public bool IsAlliance => this.GroupManagerStruct->AllianceFlags > 0;
+    public bool IsAlliance => this.GroupManagerStruct->MainGroup.AllianceFlags > 0;
 
     /// <inheritdoc/>
     public IntPtr GroupManagerAddress => this.address.GroupManager;
 
     /// <inheritdoc/>
-    public IntPtr GroupListAddress => (IntPtr)Unsafe.AsPointer(ref GroupManagerStruct->PartyMembers[0]);
+    public IntPtr GroupListAddress => (IntPtr)Unsafe.AsPointer(ref GroupManagerStruct->MainGroup.PartyMembers[0]);
 
     /// <inheritdoc/>
-    public IntPtr AllianceListAddress => (IntPtr)Unsafe.AsPointer(ref this.GroupManagerStruct->AllianceMembers[0]);
+    public IntPtr AllianceListAddress => (IntPtr)Unsafe.AsPointer(ref this.GroupManagerStruct->MainGroup.AllianceMembers[0]);
 
     /// <inheritdoc/>
-    public long PartyId => this.GroupManagerStruct->PartyId;
+    public long PartyId => this.GroupManagerStruct->MainGroup.PartyId;
 
     private static int PartyMemberSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Group.PartyMember>();
 
