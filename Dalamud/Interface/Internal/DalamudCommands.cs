@@ -50,6 +50,7 @@ internal class DalamudCommands : IServiceType
         commandManager.AddHandler("/xlmute", new CommandInfo(this.OnBadWordsAddCommand)
         {
             HelpMessage = Loc.Localize("DalamudMuteHelp", "Mute a word or sentence from appearing in chat. Usage: /xlmute <word or sentence>"),
+            ShowInHelp = false,
         });
 
         commandManager.AddHandler("/xlmutelist", new CommandInfo(this.OnBadWordsListCommand)
@@ -198,21 +199,9 @@ internal class DalamudCommands : IServiceType
     private void OnBadWordsAddCommand(string command, string arguments)
     {
         var chatGui = Service<ChatGui>.Get();
-        var configuration = Service<DalamudConfiguration>.Get();
 
-        configuration.BadWords ??= new List<string>();
-
-        if (string.IsNullOrEmpty(arguments))
-        {
-            chatGui.Print(Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
-            return;
-        }
-
-        configuration.BadWords.Add(arguments);
-
-        configuration.QueueSave();
-
-        chatGui.Print(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
+        chatGui.PrintError(Loc.Localize("DalamudMuteListDeprecation", "The built-in Dalamud bad word list is deprecated and no new words can be added. " +
+                                                                      "Please use a plugin for this functionality."));
     }
 
     private void OnBadWordsListCommand(string command, string arguments)
