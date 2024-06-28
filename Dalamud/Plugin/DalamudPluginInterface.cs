@@ -211,22 +211,12 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
     internal UiBuilder LocalUiBuilder => this.uiBuilder;
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
-    /// </summary>
-    /// <returns>Returns false if the DalamudInterface was null.</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public bool OpenPluginInstaller()
-    {
-        return this.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins, this.plugin.InternalName);
-    }
-
-    /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/>, with an optional search term.
     /// </summary>
     /// <param name="openTo">The page to open the installer to. Defaults to the "All Plugins" page.</param>
     /// <param name="searchText">An optional search text to input in the search box.</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string searchText = null)
+    public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string? searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -235,7 +225,7 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
         }
 
         dalamudInterface.OpenPluginInstallerTo(openTo);
-        dalamudInterface.SetPluginInstallerSearchText(searchText);
+        dalamudInterface.SetPluginInstallerSearchText(searchText ?? string.Empty);
 
         return true;
     }
@@ -246,7 +236,7 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
     /// <param name="openTo">The tab to open the settings to. Defaults to the "General" tab.</param>
     /// <param name="searchText">An optional search text to input in the search box.</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string searchText = null)
+    public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string? searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -255,7 +245,7 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
         }
 
         dalamudInterface.OpenSettingsTo(openTo);
-        dalamudInterface.SetSettingsSearchText(searchText);
+        dalamudInterface.SetSettingsSearchText(searchText ?? string.Empty);
 
         return true;
     }

@@ -158,18 +158,12 @@ public interface IDalamudPluginInterface
     IEnumerable<IExposedPlugin> InstalledPlugins { get; }
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
-    /// </summary>
-    /// <returns>Returns false if the DalamudInterface was null.</returns>
-    bool OpenPluginInstaller();
-
-    /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/>, with an optional search term.
     /// </summary>
     /// <param name="openTo">The page to open the installer to. Defaults to the "All Plugins" page.</param>
     /// <param name="searchText">An optional search text to input in the search box.</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string searchText = null);
+    bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string? searchText = null);
 
     /// <summary>
     /// Opens the <see cref="SettingsWindow"/>, with an optional search term.
@@ -177,7 +171,7 @@ public interface IDalamudPluginInterface
     /// <param name="openTo">The tab to open the settings to. Defaults to the "General" tab.</param>
     /// <param name="searchText">An optional search text to input in the search box.</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string searchText = null);
+    bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string? searchText = null);
 
     /// <summary>
     /// Opens the dev menu bar.
