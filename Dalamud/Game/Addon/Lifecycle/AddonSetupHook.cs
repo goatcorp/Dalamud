@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 using Reloaded.Hooks.Definitions;
 
-namespace Dalamud.Hooking.Internal;
+namespace Dalamud.Game.Addon.Lifecycle;
 
 /// <summary>
 /// This class represents a callsite hook used to replace the address of the OnSetup function in r9.
