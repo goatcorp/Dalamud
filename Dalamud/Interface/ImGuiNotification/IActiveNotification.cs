@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Interface.ImGuiNotification.EventArgs;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface.ImGuiNotification;
 

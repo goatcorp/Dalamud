@@ -1,15 +1,10 @@
 using System.Numerics;
 
-using Dalamud.Interface.Textures;
-using Dalamud.Interface.Textures.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 
 using TerraFX.Interop.Windows;
 
-// ReSharper disable once CheckNamespace
-namespace Dalamud.Interface.Internal;
-// TODO(api10): fix namespace maybe?
+namespace Dalamud.Interface.Textures.TextureWraps;
 
 /// <summary>
 /// Base TextureWrap interface for all Dalamud-owned texture wraps.

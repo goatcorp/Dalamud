@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;

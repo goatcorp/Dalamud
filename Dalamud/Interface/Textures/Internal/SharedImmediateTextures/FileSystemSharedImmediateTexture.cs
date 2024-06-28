@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 

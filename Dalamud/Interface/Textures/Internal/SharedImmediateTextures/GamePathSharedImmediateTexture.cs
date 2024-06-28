@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Data;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 using Lumina.Data.Files;
 
