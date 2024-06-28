@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Plugin.Services;
 
