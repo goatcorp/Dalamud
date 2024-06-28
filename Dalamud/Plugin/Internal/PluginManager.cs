@@ -1638,6 +1638,13 @@ internal class PluginManager : IInternalDisposableService
                 loadPlugin = false;
             }
 
+            // Never automatically load outdated dev plugins.
+            if (devPlugin.IsOutdated)
+            {
+                loadPlugin = false;
+                Log.Warning("DevPlugin {Name} is outdated, not loading automatically - update DalamudPackager or SDK!", plugin.Manifest.InternalName);
+            }
+
             plugin = devPlugin;
         }
 

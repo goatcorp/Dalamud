@@ -2779,7 +2779,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress;
 
         // Disable everything if the plugin is outdated
-        disabled = disabled || (plugin.IsOutdated && !pluginManager.LoadAllApiLevels) || plugin.IsBanned;
+        disabled = disabled || (plugin.IsOutdated && !pluginManager.LoadAllApiLevels && !plugin.IsDev) || plugin.IsBanned;
 
         // Disable everything if the plugin is orphaned
         // Control will immediately be disabled once the plugin is disabled

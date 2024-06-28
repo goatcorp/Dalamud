@@ -93,6 +93,9 @@ internal static class PluginValidator
         if (string.IsNullOrEmpty(plugin.Manifest.Author))
             problems.Add(new NoAuthorProblem());
         
+        if (plugin.IsOutdated)
+            problems.Add(new WrongApiLevelProblem());
+            
         return problems;
     }
 
@@ -191,5 +194,18 @@ internal static class PluginValidator
 
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "Your plugin does not have an author in its manifest.";
+    }
+
+    /// <summary>
+    /// Representing a problem where a plugin has an outdated API level.
+    /// </summary>
+    public class WrongApiLevelProblem : IValidationProblem
+    {
+        /// <inheritdoc/>
+        public ValidationSeverity Severity => ValidationSeverity.Fatal;
+
+        /// <inheritdoc/>
+        public string GetLocalizedDescription() => "Your plugin specifies an outdated API level. " +
+                                                   "Please update it by updating DalamudPackager or Dalamud.NET.Sdk.";
     }
 }

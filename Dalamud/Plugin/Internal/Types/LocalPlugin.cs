@@ -319,7 +319,8 @@ internal class LocalPlugin : IDisposable
             if (this.manifest.ApplicableVersion < dalamud.StartInfo.GameVersion)
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, game is newer than applicable version {this.manifest.ApplicableVersion}");
 
-            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
+            // We want to allow loading dev plugins with a lower API level than the current Dalamud API level, for ease of development
+            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels && !this.IsDev)
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.EffectiveApiLevel}");
 
             // We might want to throw here?
