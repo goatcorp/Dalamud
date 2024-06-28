@@ -40,12 +40,10 @@ internal unsafe class BattleChara : Character, IBattleChara
     public float CurrentCastTime => this.Struct->GetCastInfo()->CurrentCastTime;
 
     /// <inheritdoc/>
-    [Api10ToDo("Rename so it is not confused with AdjustedTotalCastTime")]
-    public float TotalCastTime => this.Struct->GetCastInfo()->TotalCastTime;
+    public float BaseCastTime => this.Struct->GetCastInfo()->BaseCastTime;
 
     /// <inheritdoc/>
-    [Api10ToDo("Rename so it is not confused with TotalCastTime")]
-    public float AdjustedTotalCastTime => this.Struct->GetCastInfo()->AdjustedTotalCastTime;
+    public float TotalCastTime => this.Struct->GetCastInfo()->TotalCastTime;
 
     /// <summary>
     /// Gets the underlying structure.
@@ -94,19 +92,16 @@ public interface IBattleChara : ICharacter
     public float CurrentCastTime { get; }
 
     /// <summary>
-    /// Gets the total casting time of the spell being cast by the chara.
+    /// Gets the base casting time of the spell being cast by the chara.
     /// </summary>
     /// <remarks>
     /// This can only be a portion of the total cast for some actions.
-    /// Use AdjustedTotalCastTime if you always need the total cast time.
+    /// Use TotalCastTime if you always need the total cast time.
     /// </remarks>
-    public float TotalCastTime { get; }
+    public float BaseCastTime { get; }
 
     /// <summary>
-    /// Gets the <see cref="TotalCastTime"/> plus any adjustments from the game, such as Action offset 2B. Used for display purposes.
+    /// Gets the <see cref="BaseCastTime"/> plus any adjustments from the game, such as Action offset 2B. Used for display purposes.
     /// </summary>
-    /// <remarks>
-    /// This is the actual total cast time for all actions.
-    /// </remarks>
-    public float AdjustedTotalCastTime { get; }
+    public float TotalCastTime { get; }
 }
