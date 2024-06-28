@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-using Dalamud.Common;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Memory;
 

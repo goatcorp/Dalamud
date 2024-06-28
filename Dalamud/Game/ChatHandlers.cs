@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
-
-using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;

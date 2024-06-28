@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using Dalamud.Common;
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility;

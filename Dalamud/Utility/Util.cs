@@ -28,8 +28,6 @@ using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
 
-using Dalamud.Common;
-
 using HWND = Windows.Win32.Foundation.HWND;
 using Win32_PInvoke = Windows.Win32.PInvoke;
 

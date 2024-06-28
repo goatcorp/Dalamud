@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 
-using Dalamud.Common;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;

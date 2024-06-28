@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Dalamud.Common;
 using Dalamud.Plugin.Services;
 
 namespace Dalamud.Interface.Textures.Internal;
