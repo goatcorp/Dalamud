@@ -202,7 +202,8 @@ public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposabl
     /// <summary>
     /// Gets a list of installed plugins along with their current state.
     /// </summary>
-    public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.EffectiveVersion));
+    public IEnumerable<IExposedPlugin> InstalledPlugins =>
+        Service<PluginManager>.Get().InstalledPlugins.Select(p => new ExposedPlugin(p));
 
     /// <summary>
     /// Gets the <see cref="UiBuilder"/> internal implementation.

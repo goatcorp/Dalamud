@@ -155,7 +155,7 @@ public interface IDalamudPluginInterface
     /// <summary>
     /// Gets a list of installed plugins along with their current state.
     /// </summary>
-    IEnumerable<InstalledPluginState> InstalledPlugins { get; }
+    IEnumerable<IExposedPlugin> InstalledPlugins { get; }
 
     /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
