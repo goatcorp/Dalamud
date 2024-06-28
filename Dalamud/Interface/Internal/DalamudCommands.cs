@@ -401,11 +401,11 @@ internal class DalamudCommands : IServiceType
         {
             if (im.IsDispatchingEvents)
             {
-                plugin.DalamudInterface?.UiBuilder.NotifyShowUi();
+                plugin.DalamudInterface?.LocalUiBuilder.NotifyShowUi();
             }
             else
             {
-                plugin.DalamudInterface?.UiBuilder.NotifyHideUi();
+                plugin.DalamudInterface?.LocalUiBuilder.NotifyHideUi();
             }
         }
     }

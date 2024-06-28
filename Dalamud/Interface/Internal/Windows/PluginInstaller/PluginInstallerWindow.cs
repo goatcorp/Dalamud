@@ -3052,8 +3052,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private void DrawOpenPluginSettingsButton(LocalPlugin plugin)
     {
-        var hasMainUi = plugin.DalamudInterface?.UiBuilder.HasMainUi ?? false;
-        var hasConfig = plugin.DalamudInterface?.UiBuilder.HasConfigUi ?? false;
+        var hasMainUi = plugin.DalamudInterface?.LocalUiBuilder.HasMainUi ?? false;
+        var hasConfig = plugin.DalamudInterface?.LocalUiBuilder.HasConfigUi ?? false;
         if (hasMainUi)
         {
             ImGui.SameLine();
@@ -3061,7 +3061,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 try
                 {
-                    plugin.DalamudInterface.UiBuilder.OpenMain();
+                    plugin.DalamudInterface.LocalUiBuilder.OpenMain();
                 }
                 catch (Exception ex)
                 {
@@ -3088,7 +3088,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 try
                 {
-                    plugin.DalamudInterface.UiBuilder.OpenConfig();
+                    plugin.DalamudInterface.LocalUiBuilder.OpenConfig();
                 }
                 catch (Exception ex)
                 {

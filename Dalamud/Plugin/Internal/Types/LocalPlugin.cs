@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
@@ -242,7 +243,8 @@ internal class LocalPlugin : IDisposable
             this.instance = null;
         }
 
-        this.DalamudInterface?.DisposeInternal();
+        this.DalamudInterface?.Dispose();
+
         this.DalamudInterface = null;
 
         this.ServiceScope?.Dispose();
@@ -438,7 +440,7 @@ internal class LocalPlugin : IDisposable
             {
                 this.State = PluginState.LoadError;
                 this.UnloadAndDisposeState();
-                
+
                 Log.Error(
                     "Error while loading {PluginName}, failed to bind and call the plugin constructor", this.InternalName);
                 return;
@@ -691,13 +693,13 @@ internal class LocalPlugin : IDisposable
             throw new InvalidPluginException(this.DllFile);
         }
     }
-    
+
     private void UnloadAndDisposeState()
     {
         if (this.instance != null)
             throw new InvalidOperationException("Plugin instance should be disposed at this point");
-        
-        this.DalamudInterface?.DisposeInternal();
+
+        this.DalamudInterface?.Dispose();
         this.DalamudInterface = null;
 
         this.ServiceScope?.Dispose();
