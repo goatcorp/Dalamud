@@ -634,6 +634,9 @@ internal class LocalPlugin : IDisposable
         config.IsUnloadable = true;
         config.LoadInMemory = true;
         config.PreferSharedTypes = false;
+        
+        config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
+        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
 
         // Make sure that plugins do not load their own Dalamud assembly.
         // We do not pin this recursively; if a plugin loads its own assembly of Dalamud, it is always wrong,
