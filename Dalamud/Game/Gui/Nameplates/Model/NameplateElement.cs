@@ -7,8 +7,8 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 /// Represents a nameplate text element.
 /// </summary>
 /// <param name="pointer">The pointer for the nameplate element.</param>
-/// <param name="name">The name for the nameplate element.</param>
-internal class NameplateElement(nint pointer, NameplateElementName name) : INameplateElement
+/// <param name="type">The type for the nameplate element.</param>
+internal class NameplateElement(nint pointer, NameplateElementType type) : INameplateElement
 {
     private SeString? text;
 
@@ -28,5 +28,5 @@ internal class NameplateElement(nint pointer, NameplateElementName name) : IName
     public bool HasChanged { get; set; }
 
     /// <inheritdoc/>
-    public NameplateElementName Name { get; } = name;
+    public NameplateElementType Type { get; } = type;
 }

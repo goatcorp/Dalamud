@@ -21,12 +21,12 @@ internal class NameplateInfo : INameplateInfo
     public NameplateStatusIcons IconID { get; set; }
 
     /// <inheritdoc/>
-    public INameplateElement? GetElement(NameplateElementName name)
+    public INameplateElement? GetElement(NameplateElementType type)
     {
-        if (name == NameplateElementName.Unknown)
+        if (type == NameplateElementType.Unknown)
             return null;
 
-        return this.Elements.FirstOrDefault(n => n.Name == name);
+        return this.Elements.FirstOrDefault(n => n.Type == type);
     }
 
     /// <inheritdoc/>

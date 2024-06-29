@@ -13,9 +13,9 @@ public interface INameplateElement
     SeString Text { get; set; }
 
     /// <summary>
-    /// Gets the name for this nameplate element. If the element is not common, it is <see cref="NameplateElementName.Unknown"/>.
+    /// Gets the type for this nameplate element. If the element is not common, it is <see cref="NameplateElementType.Unknown"/>.
     /// </summary>
-    NameplateElementName Name { get; }
+    NameplateElementType Type { get; }
 
     /// <summary>
     /// Gets or sets a value indicating whether <see cref="Text"/> has been changed.
