@@ -123,6 +123,34 @@ public interface IUiBuilder
     IFontSpec DefaultFontSpec { get; }
 
     /// <summary>
+    /// Gets the default Dalamud font size in points.
+    /// </summary>
+    public float FontDefaultSizePt { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud font size in pixels.
+    /// </summary>
+    public float FontDefaultSizePx { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud font - supporting all game languages and icons.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    public ImFontPtr FontDefault { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    public ImFontPtr FontIcon { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud monospaced font based on Inconsolata Regular.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    public ImFontPtr FontMono { get; }
+
+    /// <summary>
     /// Gets the game's active Direct3D device.
     /// </summary>
     // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
@@ -379,6 +407,21 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// Gets the default font specifications.
     /// </summary>
     public IFontSpec DefaultFontSpec => Service<FontAtlasFactory>.Get().DefaultFontSpec;
+
+    /// <inheritdoc/>
+    public float FontDefaultSizePt => Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePt;
+
+    /// <inheritdoc/>
+    public float FontDefaultSizePx => Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx;
+
+    /// <inheritdoc/>
+    public ImFontPtr FontDefault => InterfaceManager.DefaultFont;
+
+    /// <inheritdoc/>
+    public ImFontPtr FontIcon => InterfaceManager.IconFont;
+
+    /// <inheritdoc/>
+    public ImFontPtr FontMono => InterfaceManager.MonoFont;
 
     /// <summary>
     /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
