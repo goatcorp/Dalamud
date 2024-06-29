@@ -22,7 +22,8 @@ internal sealed class AntiDebug : IInternalDisposableService
     {
         try
         {
-            this.debugCheckAddress = sigScanner.ScanText("FF 15 ?? ?? ?? ?? 33 C9 8B F8");
+            // This sig has to be the call site in Framework_Tick
+            this.debugCheckAddress = sigScanner.ScanText("FF 15 ?? ?? ?? ?? 85 C0 74 13 41");
         }
         catch (KeyNotFoundException)
         {
