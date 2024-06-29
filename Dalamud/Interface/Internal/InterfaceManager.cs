@@ -128,28 +128,28 @@ internal class InterfaceManager : IInternalDisposableService
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
     public static ImFontPtr DefaultFont =>
-        WhenFontsReady().DefaultFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+        WhenFontsReady()?.DefaultFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault) ?? ImGui.GetIO().FontDefault;
 
     /// <summary>
     /// Gets an included FontAwesome icon font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
     public static ImFontPtr IconFont =>
-        WhenFontsReady().IconFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+        WhenFontsReady()?.IconFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault) ?? ImGui.GetIO().FontDefault;
 
     /// <summary>
     /// Gets an included FontAwesome icon font with fixed width.
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
     public static ImFontPtr IconFontFixedWidth =>
-        WhenFontsReady().IconFontFixedWidthHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+        WhenFontsReady()?.IconFontFixedWidthHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault) ?? ImGui.GetIO().FontDefault;
 
     /// <summary>
     /// Gets an included monospaced font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
     public static ImFontPtr MonoFont =>
-        WhenFontsReady().MonoFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+        WhenFontsReady()?.MonoFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault) ?? ImGui.GetIO().FontDefault;
 
     /// <summary>
     /// Gets the default font handle.
@@ -247,7 +247,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <summary>
     /// Gets the font build task.
     /// </summary>
-    public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
+    public Task FontBuildTask => WhenFontsReady()!.dalamudAtlas!.BuildTask;
 
     /// <summary>Gets the number of calls to <see cref="PresentDetour"/> so far.</summary>
     /// <remarks>
@@ -468,11 +468,18 @@ internal class InterfaceManager : IInternalDisposableService
                     sizeof(int))).CheckError();
     }
 
-    private static InterfaceManager WhenFontsReady()
+    private static InterfaceManager? WhenFontsReady()
     {
         var im = Service<InterfaceManager>.GetNullable();
-        if (im?.dalamudAtlas is not { } atlas)
+        if (im == null)
+        {
+            return null;
+        }
+
+        if (im.dalamudAtlas is not { } atlas)
+        {
             throw new InvalidOperationException($"Tried to access fonts before {nameof(ContinueConstruction)} call.");
+        }
 
         if (!atlas.HasBuiltAtlas)
             atlas.BuildTask.GetAwaiter().GetResult();
