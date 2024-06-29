@@ -5,6 +5,8 @@ using System.Numerics;
 using CheapLoc;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game;
+using Dalamud.Game.Gui;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -17,6 +19,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
+using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -39,7 +42,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
 • The Dalamud/plugin installer UI has been refreshed
 ";
 
+    private static readonly TimeSpan TitleScreenWaitTime = TimeSpan.FromSeconds(0.5f); 
+
     private readonly TitleScreenMenuWindow tsmWindow;
+
+    private readonly GameGui gameGui;
 
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
     private readonly IFontAtlas privateAtlas;
@@ -53,19 +60,19 @@ internal sealed class ChangelogWindow : Window, IDisposable
         Point2 = new Vector2(2f),
     };
     
-    private readonly InOutCubic bodyFade = new(TimeSpan.FromSeconds(1.3f))
+    private readonly InOutCubic bodyFade = new(TimeSpan.FromSeconds(0.8f))
     {
         Point1 = Vector2.Zero,
         Point2 = Vector2.One,
     };
     
-    private readonly InOutCubic titleFade = new(TimeSpan.FromSeconds(1f))
+    private readonly InOutCubic titleFade = new(TimeSpan.FromSeconds(0.5f))
     {
         Point1 = Vector2.Zero,
         Point2 = Vector2.One,
     };
     
-    private readonly InOutCubic fadeOut = new(TimeSpan.FromSeconds(0.8f))
+    private readonly InOutCubic fadeOut = new(TimeSpan.FromSeconds(0.5f))
     {
         Point1 = Vector2.One,
         Point2 = Vector2.Zero,
@@ -82,6 +89,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
     
     private Dictionary<string, int> currentFtueLevels = new();
 
+    private DateTime? isEligibleSince;
+    private bool openedThroughEligibility;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ChangelogWindow"/> class.
     /// </summary>
@@ -91,9 +101,13 @@ internal sealed class ChangelogWindow : Window, IDisposable
     public ChangelogWindow(
         TitleScreenMenuWindow tsmWindow,
         FontAtlasFactory fontAtlasFactory,
-        DalamudAssetManager assets)
+        DalamudAssetManager assets,
+        GameGui gameGui,
+        Framework framework)
         : base("What's new in Dalamud?##ChangelogWindow", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse, true)
     {
+        this.gameGui = gameGui;
+        
         this.tsmWindow = tsmWindow;
         this.Namespace = "DalamudChangelogWindow";
         this.privateAtlas = this.scopedFinalizer.Add(
@@ -108,6 +122,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
         // If we are going to show a changelog, make sure we have the font ready, otherwise it will hitch
         if (WarrantsChangelog())
             _ = this.bannerFont.Value;
+        
+        framework.Update += this.FrameworkOnUpdate;
+        this.scopedFinalizer.Add(() => framework.Update -= this.FrameworkOnUpdate);
     }
 
     private enum State
@@ -517,6 +534,41 @@ internal sealed class ChangelogWindow : Window, IDisposable
     /// </summary>
     public void Dispose()
     {
+    }
+    
+    private void FrameworkOnUpdate(IFramework unused)
+    {
+        if (!WarrantsChangelog())
+            return;
+
+        if (this.IsOpen)
+            return;
+
+        if (this.openedThroughEligibility)
+            return;
+        
+        var isEligible = this.gameGui.GetAddonByName("_TitleMenu", 1) != IntPtr.Zero;
+
+        var charaSelect = this.gameGui.GetAddonByName("CharaSelect", 1);
+        var charaMake = this.gameGui.GetAddonByName("CharaMake", 1);
+        var titleDcWorldMap = this.gameGui.GetAddonByName("TitleDCWorldMap", 1);
+        if (charaMake != IntPtr.Zero || charaSelect != IntPtr.Zero || titleDcWorldMap != IntPtr.Zero)
+            isEligible = false;
+
+        if (this.isEligibleSince == null && isEligible)
+        {
+            this.isEligibleSince = DateTime.Now;
+        }
+        else if (this.isEligibleSince != null && !isEligible)
+        {
+            this.isEligibleSince = null;
+        }
+        
+        if (this.isEligibleSince != null && DateTime.Now - this.isEligibleSince > TitleScreenWaitTime)
+        {
+            this.IsOpen = true;
+            this.openedThroughEligibility = true;
+        }
     }
 
     private static class FtueLevels

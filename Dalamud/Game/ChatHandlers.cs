@@ -199,11 +199,6 @@ internal class ChatHandlers : IServiceType
                 Type = XivChatType.Notice,
             });
 
-            if (ChangelogWindow.WarrantsChangelog())
-            {
-                dalamudInterface.OpenChangelogWindow();
-            }
-
             this.configuration.LastVersion = assemblyVersion;
             this.configuration.QueueSave();
         }
