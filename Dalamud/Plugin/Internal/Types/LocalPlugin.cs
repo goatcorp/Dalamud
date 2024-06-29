@@ -634,15 +634,18 @@ internal class LocalPlugin : IDisposable
         config.IsUnloadable = true;
         config.LoadInMemory = true;
         config.PreferSharedTypes = false;
-        
-        config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
-        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
 
         // Make sure that plugins do not load their own Dalamud assembly.
         // We do not pin this recursively; if a plugin loads its own assembly of Dalamud, it is always wrong,
         // but plugins may load other versions of assemblies that Dalamud depends on.
         config.SharedAssemblies.Add((typeof(EntryPoint).Assembly.GetName(), false));
         config.SharedAssemblies.Add((typeof(Common.DalamudStartInfo).Assembly.GetName(), false));
+        
+        // Pin Lumina since we expose it as an API surface. Before anyone removes this again, please see #1598.
+        // Changes to Lumina should be upstreamed if feasible, and if there is a desire to re-add unpinned Lumina we
+        // will need to put this behind some kind of feature flag somewhere.
+        config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
+        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
     }
 
     private void EnsureLoader()
