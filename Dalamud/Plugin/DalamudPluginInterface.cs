@@ -25,13 +25,13 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
-using Dalamud.Utility;
 
 namespace Dalamud.Plugin;
 
 /// <summary>
 /// This class acts as an interface to various objects needed to interact with Dalamud and the game.
 /// </summary>
+[Obsolete("Please use IDalamudPluginInterface instead.")]
 public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposable
 {
     private readonly LocalPlugin plugin;
