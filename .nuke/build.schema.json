@@ -43,6 +43,10 @@
             "VSCode"
           ]
         },
+        "IsDocsBuild": {
+          "type": "boolean",
+          "description": "Whether we are building for documentation - emits generated files"
+        },
         "NoLogo": {
           "type": "boolean",
           "description": "Disables displaying the NUKE logo"
