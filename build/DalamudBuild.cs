@@ -7,7 +7,6 @@ using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
-using Serilog;
 
 [UnsetVisualStudioEnvironmentVariables]
 public class DalamudBuild : NukeBuild
@@ -22,9 +21,6 @@ public class DalamudBuild : NukeBuild
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
-
-    [Parameter("Whether we are building for documentation - emits generated files")]
-    readonly bool IsDocsBuild = false;
 
     [Solution] Solution Solution;
     [GitRepository] GitRepository GitRepository;
@@ -59,30 +55,15 @@ public class DalamudBuild : NukeBuild
             DotNetTasks.DotNetRestore(s => s
                 .SetProjectFile(Solution));
         });
-    
+
     Target CompileDalamud => _ => _
         .DependsOn(Restore)
         .Executes(() =>
         {
-            DotNetTasks.DotNetBuild(s =>
-            {
-                s = s
-                       .SetProjectFile(DalamudProjectFile)
-                       .SetConfiguration(Configuration)
-                       .EnableNoRestore();
-
-                // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
-                // TODO: This fails every build after this because of redefinitions...
-                if (IsDocsBuild)
-                { 
-                    Log.Warning("Building for documentation, emitting compiler generated files. This can cause issues on Windows due to path-length limitations");
-                    s = s
-                        .SetProperty("EmitCompilerGeneratedFiles", "true")
-                        .SetProperty("CompilerGeneratedFilesOutputPath", "Generated");
-                }
-
-                return s;
-            });
+            DotNetTasks.DotNetBuild(s => s
+                .SetProjectFile(DalamudProjectFile)
+                .SetConfiguration(Configuration)
+                .EnableNoRestore());
         });
 
     Target CompileDalamudBoot => _ => _
