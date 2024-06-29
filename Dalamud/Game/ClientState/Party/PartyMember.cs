@@ -13,7 +13,7 @@ namespace Dalamud.Game.ClientState.Party;
 /// <summary>
 /// This class represents a party member in the group manager.
 /// </summary>
-public unsafe class PartyMember : IPartyMember
+internal unsafe class PartyMember : IPartyMember
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyMember"/> class.
