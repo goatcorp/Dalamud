@@ -80,9 +80,6 @@ namespace Dalamud.CorePlugin
                 Service<CommandManager>.Get().AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
 
                 log.Information("CorePlugin ctor!");
-
-                this.NameplateService = Service<NameplateGui>.Get();
-                this.NameplateService.OnNameplateUpdate += this.NameplateService_OnNameplateUpdate;
             }
             catch (Exception ex)
             {
@@ -90,35 +87,10 @@ namespace Dalamud.CorePlugin
             }
         }
 
-        private void NameplateService_OnNameplateUpdate(INameplateObject nameplateObject)
-        {
-            var nodeTitle = nameplateObject.Nameplate.GetElement(NameplateElementName.Title);
-            nodeTitle.Text = "Titel";
-            nodeTitle.HasChanged = true;
-
-            nameplateObject.Nameplate.GetElement(NameplateElementName.FreeCompany).Text = "FC";
-            nameplateObject.Nameplate.GetElement(NameplateElementName.FreeCompany).HasChanged = true;
-
-            var nodeName = nameplateObject.Nameplate.GetElement(NameplateElementName.Name);
-            nodeName.Text = "Name";
-            nodeName.HasChanged = true;
-
-            nameplateObject.Nameplate.GetElement(NameplateElementName.Prefix).Text = "Prefix";
-            nameplateObject.Nameplate.GetElement(NameplateElementName.Prefix).HasChanged = true;
-
-            nameplateObject.Nameplate.IconID = NameplateStatusIcons.Busy;
-            nameplateObject.Nameplate.IsTitleAboveName = true;
-            nameplateObject.Nameplate.IsTitleVisible = this.isTitleVisible;
-        }
-
-        private bool isTitleVisible = true;
-
         /// <summary>
         /// Gets the plugin interface.
         /// </summary>
         internal IDalamudPluginInterface Interface { get; private set; }
-
-        internal INameplatesGui NameplateService { get; private set; }
 
         /// <inheritdoc/>
         public void Dispose()
@@ -128,8 +100,6 @@ namespace Dalamud.CorePlugin
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
-
-            this.NameplateService.OnNameplateUpdate -= this.NameplateService_OnNameplateUpdate;
         }
 
         /// <summary>
@@ -169,9 +139,6 @@ namespace Dalamud.CorePlugin
         private void OnCommand(string command, string args)
         {
             this.pluginLog.Information("Command called!");
-
-            if (args == "false")
-                this.isTitleVisible = false;
 
             // this.window.IsOpen = true;
         }
