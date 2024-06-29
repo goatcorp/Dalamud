@@ -31,6 +31,8 @@ internal class NameplateGui : IInternalDisposableService, INameplateGui
 
     [Signature("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B 5C 24 ?? 45 38 BE", DetourName = nameof(HandleSetPlayerNameplateDetour))]
     private readonly Hook<SetPlayerNameplateDetourDelegate> setPlayerNameplateDetourHook;
+    private readonly AddonLifecycleEventListener listenerPostSetup;
+    private readonly AddonLifecycleEventListener listenerPreFinalize;
     private nint namePlatePtr;
 
     /// <summary>
@@ -40,8 +42,10 @@ internal class NameplateGui : IInternalDisposableService, INameplateGui
     private NameplateGui(TargetSigScanner sigScanner)
     {
         // Pointers
-        this.addonLifecycle.RegisterListener(new AddonLifecycleEventListener(AddonEvent.PostSetup, "NamePlate", this.AddonLifecycle_Event));
-        this.addonLifecycle.RegisterListener(new AddonLifecycleEventListener(AddonEvent.PreFinalize, "NamePlate", this.AddonLifecycle_Event));
+        this.listenerPostSetup = new AddonLifecycleEventListener(AddonEvent.PostSetup, "NamePlate", this.AddonLifecycle_PostSetup);
+        this.listenerPreFinalize = new AddonLifecycleEventListener(AddonEvent.PreFinalize, "NamePlate", this.AddonLifecycle_PreFinalize);
+        this.addonLifecycle.RegisterListener(this.listenerPostSetup);
+        this.addonLifecycle.RegisterListener(this.listenerPreFinalize);
 
         // Hooks
         SignatureHelper.Initialize(this);
@@ -57,6 +61,8 @@ internal class NameplateGui : IInternalDisposableService, INameplateGui
     public void DisposeService()
     {
         this.setPlayerNameplateDetourHook.Dispose();
+        this.addonLifecycle.UnregisterListener(this.listenerPostSetup);
+        this.addonLifecycle.UnregisterListener(this.listenerPreFinalize);
     }
 
     /// <summary>
@@ -107,11 +113,15 @@ internal class NameplateGui : IInternalDisposableService, INameplateGui
         return this.objectTable.SearchById(objectId);
     }
 
-    private void AddonLifecycle_Event(AddonEvent type, AddonArgs args)
+    private void AddonLifecycle_PostSetup(AddonEvent type, AddonArgs args)
     {
         if (type == AddonEvent.PostSetup)
             this.namePlatePtr = args.Addon;
-        else if (type == AddonEvent.PreFinalize)
+    }
+
+    private void AddonLifecycle_PreFinalize(AddonEvent type, AddonArgs args)
+    {
+        if (type == AddonEvent.PreFinalize)
             this.namePlatePtr = nint.Zero;
     }
 
