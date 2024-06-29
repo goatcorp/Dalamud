@@ -97,6 +97,8 @@ internal sealed class ChangelogWindow : Window, IDisposable
     /// <param name="tsmWindow">TSM window.</param>
     /// <param name="fontAtlasFactory">An instance of <see cref="FontAtlasFactory"/>.</param>
     /// <param name="assets">An instance of <see cref="DalamudAssetManager"/>.</param>
+    /// <param name="gameGui">An instance of <see cref="GameGui"/>.</param>
+    /// <param name="framework">An instance of <see cref="Framework"/>.</param>
     public ChangelogWindow(
         TitleScreenMenuWindow tsmWindow,
         FontAtlasFactory fontAtlasFactory,

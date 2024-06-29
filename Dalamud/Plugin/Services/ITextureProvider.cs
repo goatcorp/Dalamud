@@ -175,7 +175,7 @@ public interface ITextureProvider
     /// <remarks>
     /// <para>The following functions support the files of the container types pointed by yielded values.</para>
     /// <ul>
-    /// <li><see cref="GetFromFile"/></li>
+    /// <li><see cref="GetFromFile(string)"/> and <see cref="GetFromFile(FileInfo)"/></li>
     /// <li><see cref="GetFromManifestResource"/></li>
     /// <li><see cref="CreateFromImageAsync(ReadOnlyMemory{byte},string?,CancellationToken)"/></li>
     /// <li><see cref="CreateFromImageAsync(Stream,bool,string?,CancellationToken)"/></li>

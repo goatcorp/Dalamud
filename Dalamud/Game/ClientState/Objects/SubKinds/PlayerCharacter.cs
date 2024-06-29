@@ -11,6 +11,22 @@ using Lumina.Excel.GeneratedSheets;
 namespace Dalamud.Game.ClientState.Objects.SubKinds;
 
 /// <summary>
+/// Interface representing a player character.
+/// </summary>
+public interface IPlayerCharacter : IBattleChara
+{
+    /// <summary>
+    /// Gets the current <see cref="ExcelResolver{T}">world</see> of the character.
+    /// </summary>
+    ExcelResolver<World> CurrentWorld { get; }
+
+    /// <summary>
+    /// Gets the home <see cref="ExcelResolver{T}">world</see> of the character.
+    /// </summary>
+    ExcelResolver<World> HomeWorld { get; }
+}
+
+/// <summary>
 /// This class represents a player character.
 /// </summary>
 internal unsafe class PlayerCharacter : BattleChara, IPlayerCharacter
@@ -26,29 +42,13 @@ internal unsafe class PlayerCharacter : BattleChara, IPlayerCharacter
     }
 
     /// <inheritdoc/>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.World> CurrentWorld => new(this.Struct->CurrentWorld);
+    public ExcelResolver<World> CurrentWorld => new(this.Struct->CurrentWorld);
 
     /// <inheritdoc/>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.World> HomeWorld => new(this.Struct->HomeWorld);
+    public ExcelResolver<World> HomeWorld => new(this.Struct->HomeWorld);
 
     /// <summary>
     /// Gets the target actor ID of the PlayerCharacter.
     /// </summary>
     public override ulong TargetObjectId => this.Struct->LookAt.Controller.Params[0].TargetParam.TargetId;
-}
-
-/// <summary>
-/// Interface representing a player character.
-/// </summary>
-public interface IPlayerCharacter : IBattleChara
-{
-    /// <summary>
-    /// Gets the current <see cref="ExcelResolver{T}">world</see> of the character.
-    /// </summary>
-    unsafe ExcelResolver<Lumina.Excel.GeneratedSheets.World> CurrentWorld { get; }
-
-    /// <summary>
-    /// Gets the home <see cref="ExcelResolver{T}">world</see> of the character.
-    /// </summary>
-    unsafe ExcelResolver<Lumina.Excel.GeneratedSheets.World> HomeWorld { get; }
 }

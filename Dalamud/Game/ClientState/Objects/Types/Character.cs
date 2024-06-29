@@ -9,91 +9,6 @@ using Lumina.Excel.GeneratedSheets;
 namespace Dalamud.Game.ClientState.Objects.Types;
 
 /// <summary>
-/// This class represents the base for non-static entities.
-/// </summary>
-internal unsafe class Character : GameObject, ICharacter
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Character"/> class.
-    /// This represents a non-static entity.
-    /// </summary>
-    /// <param name="address">The address of this character in memory.</param>
-    internal Character(IntPtr address)
-        : base(address)
-    {
-    }
-
-    /// <inheritdoc/>
-    public uint CurrentHp => this.Struct->CharacterData.Health;
-
-    /// <inheritdoc/>
-    public uint MaxHp => this.Struct->CharacterData.MaxHealth;
-
-    /// <inheritdoc/>
-    public uint CurrentMp => this.Struct->CharacterData.Mana;
-
-    /// <inheritdoc/>
-    public uint MaxMp => this.Struct->CharacterData.MaxMana;
-
-    /// <inheritdoc/>
-    public uint CurrentGp => this.Struct->CharacterData.GatheringPoints;
-
-    /// <inheritdoc/>
-    public uint MaxGp => this.Struct->CharacterData.MaxGatheringPoints;
-
-    /// <inheritdoc/>
-    public uint CurrentCp => this.Struct->CharacterData.CraftingPoints;
-
-    /// <inheritdoc/>
-    public uint MaxCp => this.Struct->CharacterData.MaxCraftingPoints;
-
-    /// <inheritdoc/>
-    public byte ShieldPercentage => this.Struct->CharacterData.ShieldValue;
-
-    /// <inheritdoc/>
-    public ExcelResolver<ClassJob> ClassJob => new(this.Struct->CharacterData.ClassJob);
-
-    /// <inheritdoc/>
-    public byte Level => this.Struct->CharacterData.Level;
-
-    /// <inheritdoc/>
-    public byte[] Customize => this.Struct->DrawData.CustomizeData.Data.ToArray();
-
-    /// <inheritdoc/>
-    public SeString CompanyTag => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->FreeCompanyTag[0]), 6);
-
-    /// <summary>
-    /// Gets the target object ID of the character.
-    /// </summary>
-    public override ulong TargetObjectId => this.Struct->TargetId;
-
-    /// <inheritdoc/>
-    public uint NameId => this.Struct->NameId;
-
-    /// <inheritdoc/>
-    public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->CharacterData.OnlineStatus);
-
-    /// <summary>
-    /// Gets the status flags.
-    /// </summary>
-    public StatusFlags StatusFlags =>
-        (this.Struct->IsHostile ? StatusFlags.Hostile : StatusFlags.None) |
-        (this.Struct->InCombat ? StatusFlags.InCombat : StatusFlags.None) |
-        (this.Struct->IsWeaponDrawn ? StatusFlags.WeaponOut : StatusFlags.None) |
-        (this.Struct->IsOffhandDrawn ? StatusFlags.OffhandOut : StatusFlags.None) |
-        (this.Struct->IsPartyMember ? StatusFlags.PartyMember : StatusFlags.None) |
-        (this.Struct->IsAllianceMember ? StatusFlags.AllianceMember : StatusFlags.None) |
-        (this.Struct->IsFriend ? StatusFlags.Friend : StatusFlags.None) |
-        (this.Struct->IsCasting ? StatusFlags.IsCasting : StatusFlags.None);
-
-    /// <summary>
-    /// Gets the underlying structure.
-    /// </summary>
-    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct =>
-        (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
-}
-
-/// <summary>
 /// Interface representing a character.
 /// </summary>
 public interface ICharacter : IGameObject
@@ -178,4 +93,89 @@ public interface ICharacter : IGameObject
     /// Gets the status flags.
     /// </summary>
     public StatusFlags StatusFlags { get; }
+}
+
+/// <summary>
+/// This class represents the base for non-static entities.
+/// </summary>
+internal unsafe class Character : GameObject, ICharacter
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Character"/> class.
+    /// This represents a non-static entity.
+    /// </summary>
+    /// <param name="address">The address of this character in memory.</param>
+    internal Character(IntPtr address)
+        : base(address)
+    {
+    }
+
+    /// <inheritdoc/>
+    public uint CurrentHp => this.Struct->CharacterData.Health;
+
+    /// <inheritdoc/>
+    public uint MaxHp => this.Struct->CharacterData.MaxHealth;
+
+    /// <inheritdoc/>
+    public uint CurrentMp => this.Struct->CharacterData.Mana;
+
+    /// <inheritdoc/>
+    public uint MaxMp => this.Struct->CharacterData.MaxMana;
+
+    /// <inheritdoc/>
+    public uint CurrentGp => this.Struct->CharacterData.GatheringPoints;
+
+    /// <inheritdoc/>
+    public uint MaxGp => this.Struct->CharacterData.MaxGatheringPoints;
+
+    /// <inheritdoc/>
+    public uint CurrentCp => this.Struct->CharacterData.CraftingPoints;
+
+    /// <inheritdoc/>
+    public uint MaxCp => this.Struct->CharacterData.MaxCraftingPoints;
+
+    /// <inheritdoc/>
+    public byte ShieldPercentage => this.Struct->CharacterData.ShieldValue;
+
+    /// <inheritdoc/>
+    public ExcelResolver<ClassJob> ClassJob => new(this.Struct->CharacterData.ClassJob);
+
+    /// <inheritdoc/>
+    public byte Level => this.Struct->CharacterData.Level;
+
+    /// <inheritdoc/>
+    public byte[] Customize => this.Struct->DrawData.CustomizeData.Data.ToArray();
+
+    /// <inheritdoc/>
+    public SeString CompanyTag => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->FreeCompanyTag[0]), 6);
+
+    /// <summary>
+    /// Gets the target object ID of the character.
+    /// </summary>
+    public override ulong TargetObjectId => this.Struct->TargetId;
+
+    /// <inheritdoc/>
+    public uint NameId => this.Struct->NameId;
+
+    /// <inheritdoc/>
+    public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->CharacterData.OnlineStatus);
+
+    /// <summary>
+    /// Gets the status flags.
+    /// </summary>
+    public StatusFlags StatusFlags =>
+        (this.Struct->IsHostile ? StatusFlags.Hostile : StatusFlags.None) |
+        (this.Struct->InCombat ? StatusFlags.InCombat : StatusFlags.None) |
+        (this.Struct->IsWeaponDrawn ? StatusFlags.WeaponOut : StatusFlags.None) |
+        (this.Struct->IsOffhandDrawn ? StatusFlags.OffhandOut : StatusFlags.None) |
+        (this.Struct->IsPartyMember ? StatusFlags.PartyMember : StatusFlags.None) |
+        (this.Struct->IsAllianceMember ? StatusFlags.AllianceMember : StatusFlags.None) |
+        (this.Struct->IsFriend ? StatusFlags.Friend : StatusFlags.None) |
+        (this.Struct->IsCasting ? StatusFlags.IsCasting : StatusFlags.None);
+
+    /// <summary>
+    /// Gets the underlying structure.
+    /// </summary>
+    protected internal new FFXIVClientStructs.FFXIV.Client.Game.Character.Character* Struct =>
+        (FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)this.Address;
 }

@@ -72,9 +72,9 @@ internal static class PluginValidator
 
         var cmdManager = Service<CommandManager>.Get();
         
-        foreach (var cmd in cmdManager.GetHandlersByAssemblyName(plugin.InternalName).Where(c => c.Key.Item2.ShowInHelp))
+        foreach (var cmd in cmdManager.GetHandlersByAssemblyName(plugin.InternalName).Where(c => c.Key.CommandInfo.ShowInHelp))
         {
-            if (string.IsNullOrEmpty(cmd.Key.Item2.HelpMessage))
+            if (string.IsNullOrEmpty(cmd.Key.CommandInfo.HelpMessage))
                 problems.Add(new CommandWithoutHelpTextProblem(cmd.Value));
         }
         

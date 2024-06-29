@@ -111,6 +111,19 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         }
     }
 
+    /// <summary>
+    /// Gets the name with the given prefix.
+    /// </summary>
+    /// <param name="menuItem">The menu item to prefix.</param>
+    /// <returns>The prefixed name.</returns>
+    internal SeString GetPrefixedName(IMenuItem menuItem) =>
+        menuItem.Prefix is { } prefix
+            ? new SeStringBuilder()
+              .AddUiForeground($"{prefix.ToIconString()} ", menuItem.PrefixColor)
+              .Append(menuItem.Name)
+              .Build()
+            : menuItem.Name;
+
     private AtkValue* ExpandContextMenuArray(Span<AtkValue> oldValues, int newSize)
     {
         // if the array has enough room, don't reallocate
@@ -253,17 +266,6 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
         offsetData[sizeHeaderIdx].UInt += (uint)items.Count;
     }
-    
-    /// <summary>
-    /// Gets the name with the given prefix.
-    /// </summary>
-    internal SeString GetPrefixedName(IMenuItem menuItem) =>
-        menuItem.Prefix is { } prefix
-            ? new SeStringBuilder()
-              .AddUiForeground($"{prefix.ToIconString()} ", menuItem.PrefixColor)
-              .Append(menuItem.Name)
-              .Build()
-            : menuItem.Name;
 
     private void SetupContextMenu(IReadOnlyList<IMenuItem> items, ref int valueCount, ref AtkValue* values)
     {

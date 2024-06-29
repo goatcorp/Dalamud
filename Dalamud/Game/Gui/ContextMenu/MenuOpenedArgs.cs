@@ -6,6 +6,18 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.Game.Gui.ContextMenu;
 
 /// <summary>
+/// An interface representing the callback args used when a menu item is opened.
+/// </summary>
+public interface IMenuOpenedArgs : IMenuArgs
+{
+    /// <summary>
+    /// Adds a custom menu item to the context menu.
+    /// </summary>
+    /// <param name="item">The menu item to add.</param>
+    void AddMenuItem(MenuItem item);
+}
+
+/// <summary>
 /// Callback args used when a menu item is opened.
 /// </summary>
 internal sealed unsafe class MenuOpenedArgs : MenuArgs, IMenuOpenedArgs
@@ -29,16 +41,4 @@ internal sealed unsafe class MenuOpenedArgs : MenuArgs, IMenuOpenedArgs
     /// <inheritdoc/>
     public void AddMenuItem(MenuItem item) =>
         this.OnAddMenuItem(item);
-}
-
-/// <summary>
-/// An interface representing the callback args used when a menu item is opened.
-/// </summary>
-public interface IMenuOpenedArgs : IMenuArgs
-{
-    /// <summary>
-    /// Adds a custom menu item to the context menu.
-    /// </summary>
-    /// <param name="item">The menu item to add.</param>
-    void AddMenuItem(MenuItem item);
 }

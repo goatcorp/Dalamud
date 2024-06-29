@@ -114,22 +114,28 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
         }
     }
     
-    /// <inheritdoc/>
-    public bool AddHandler(string command, CommandInfo info, string loaderAssemblyName = "")
+    /// <summary>
+    /// Add a command handler, which you can use to add your own custom commands to the in-game chat.
+    /// </summary>
+    /// <param name="command">The command to register.</param>
+    /// <param name="info">A <see cref="CommandInfo"/> object describing the command.</param>
+    /// <param name="loaderAssemblyName">Assembly name of the plugin that added this command.</param>
+    /// <returns>If adding was successful.</returns>
+    public bool AddHandler(string command, CommandInfo info, string loaderAssemblyName)
     {
         if (info == null)
             throw new ArgumentNullException(nameof(info), "Command handler is null.");
 
         if (!this.commandMap.TryAdd(command, info))
         {
-            Log.Error("Command {CommandName} is already registered.", command);
+            Log.Error("Command {CommandName} is already registered", command);
             return false;
         }
         
         if (!this.commandAssemblyNameMap.TryAdd((command, info), loaderAssemblyName))
         {
             this.commandMap.Remove(command, out _);
-            Log.Error("Command {CommandName} is already registered in the assembly name map.", command);
+            Log.Error("Command {CommandName} is already registered in the assembly name map", command);
             return false;
         }
 
@@ -178,7 +184,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     /// </summary>
     /// <param name="assemblyName">The name of the assembly.</param>
     /// <returns>A list of commands and their associated activation string.</returns>
-    public List<KeyValuePair<(string, IReadOnlyCommandInfo), string>> GetHandlersByAssemblyName(string assemblyName)
+    public List<KeyValuePair<(string Command, IReadOnlyCommandInfo CommandInfo), string>> GetHandlersByAssemblyName(string assemblyName)
     {
         return this.commandAssemblyNameMap.Where(c => c.Value == assemblyName).ToList();
     }

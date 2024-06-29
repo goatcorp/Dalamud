@@ -4,53 +4,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 namespace Dalamud.Game.ClientState.Aetherytes;
 
 /// <summary>
-/// Class representing an aetheryte entry available to the game.
-/// </summary>
-internal sealed class AetheryteEntry : IAetheryteEntry
-{
-    private readonly TeleportInfo data;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AetheryteEntry"/> class.
-    /// </summary>
-    /// <param name="data">Data read from the Aetheryte List.</param>
-    internal AetheryteEntry(TeleportInfo data)
-    {
-        this.data = data;
-    }
-
-    /// <inheritdoc />
-    public uint AetheryteId => this.data.AetheryteId;
-
-    /// <inheritdoc />
-    public uint TerritoryId => this.data.TerritoryId;
-
-    /// <inheritdoc />
-    public byte SubIndex => this.data.SubIndex;
-
-    /// <inheritdoc />
-    public byte Ward => this.data.Ward;
-
-    /// <inheritdoc />
-    public byte Plot => this.data.Plot;
-
-    /// <inheritdoc />
-    public uint GilCost => this.data.GilCost;
-
-    /// <inheritdoc />
-    public bool IsFavourite => this.data.IsFavourite != 0;
-
-    /// <inheritdoc />
-    public bool IsSharedHouse => this.data.IsSharedHouse;
-
-    /// <inheritdoc />
-    public bool IsApartment => this.data.IsApartment;
-
-    /// <inheritdoc />
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.Aetheryte> AetheryteData => new(this.AetheryteId);
-}
-
-/// <summary>
 /// Interface representing an aetheryte entry available to the game.
 /// </summary>
 public interface IAetheryteEntry
@@ -106,3 +59,49 @@ public interface IAetheryteEntry
     ExcelResolver<Lumina.Excel.GeneratedSheets.Aetheryte> AetheryteData { get; }
 }
 
+/// <summary>
+/// Class representing an aetheryte entry available to the game.
+/// </summary>
+internal sealed class AetheryteEntry : IAetheryteEntry
+{
+    private readonly TeleportInfo data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AetheryteEntry"/> class.
+    /// </summary>
+    /// <param name="data">Data read from the Aetheryte List.</param>
+    internal AetheryteEntry(TeleportInfo data)
+    {
+        this.data = data;
+    }
+
+    /// <inheritdoc />
+    public uint AetheryteId => this.data.AetheryteId;
+
+    /// <inheritdoc />
+    public uint TerritoryId => this.data.TerritoryId;
+
+    /// <inheritdoc />
+    public byte SubIndex => this.data.SubIndex;
+
+    /// <inheritdoc />
+    public byte Ward => this.data.Ward;
+
+    /// <inheritdoc />
+    public byte Plot => this.data.Plot;
+
+    /// <inheritdoc />
+    public uint GilCost => this.data.GilCost;
+
+    /// <inheritdoc />
+    public bool IsFavourite => this.data.IsFavourite != 0;
+
+    /// <inheritdoc />
+    public bool IsSharedHouse => this.data.IsSharedHouse;
+
+    /// <inheritdoc />
+    public bool IsApartment => this.data.IsApartment;
+
+    /// <inheritdoc />
+    public ExcelResolver<Lumina.Excel.GeneratedSheets.Aetheryte> AetheryteData => new(this.AetheryteId);
+}

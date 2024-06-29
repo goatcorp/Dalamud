@@ -8,6 +8,119 @@ using Dalamud.Memory;
 namespace Dalamud.Game.ClientState.Objects.Types;
 
 /// <summary>
+/// Interface representing a game object.
+/// </summary>
+public interface IGameObject : IEquatable<IGameObject>
+{
+    /// <summary>
+    /// Gets the name of this <see cref="GameObject" />.
+    /// </summary>
+    public SeString Name { get; }
+
+    /// <summary>
+    /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
+    /// this specific object. This ID is used to reference specific objects on the local client (e.g. for targeting).
+    ///
+    /// Not to be confused with <see cref="EntityId"/>.
+    /// </summary>
+    public ulong GameObjectId { get; }
+
+    /// <summary>
+    /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.
+    ///
+    /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
+    /// </summary>
+    public uint EntityId { get; }
+
+    /// <summary>
+    /// Gets the data ID for linking to other respective game data.
+    /// </summary>
+    public uint DataId { get; }
+
+    /// <summary>
+    /// Gets the ID of this GameObject's owner.
+    /// </summary>
+    public uint OwnerId { get; }
+
+    /// <summary>
+    /// Gets the index of this object in the object table.
+    /// </summary>
+    public ushort ObjectIndex { get; }
+
+    /// <summary>
+    /// Gets the entity kind of this <see cref="GameObject" />.
+    /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
+    /// </summary>
+    public ObjectKind ObjectKind { get; }
+
+    /// <summary>
+    /// Gets the sub kind of this Actor.
+    /// </summary>
+    public byte SubKind { get; }
+
+    /// <summary>
+    /// Gets the X distance from the local player in yalms.
+    /// </summary>
+    public byte YalmDistanceX { get; }
+
+    /// <summary>
+    /// Gets the Y distance from the local player in yalms.
+    /// </summary>
+    public byte YalmDistanceZ { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the object is dead or alive.
+    /// </summary>
+    public bool IsDead { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the object is targetable.
+    /// </summary>
+    public bool IsTargetable { get; }
+
+    /// <summary>
+    /// Gets the position of this <see cref="GameObject" />.
+    /// </summary>
+    public Vector3 Position { get; }
+
+    /// <summary>
+    /// Gets the rotation of this <see cref="GameObject" />.
+    /// This ranges from -pi to pi radians.
+    /// </summary>
+    public float Rotation { get; }
+
+    /// <summary>
+    /// Gets the hitbox radius of this <see cref="GameObject" />.
+    /// </summary>
+    public float HitboxRadius { get; }
+
+    /// <summary>
+    /// Gets the current target of the game object.
+    /// </summary>
+    public ulong TargetObjectId { get; }
+
+    /// <summary>
+    /// Gets the target object of the game object.
+    /// </summary>
+    /// <remarks>
+    /// This iterates the actor table, it should be used with care.
+    /// </remarks>
+    // TODO: Fix for non-networked GameObjects
+    public IGameObject? TargetObject { get; }
+
+    /// <summary>
+    /// Gets the address of the game object in memory.
+    /// </summary>
+    public IntPtr Address { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this actor is still valid in memory.
+    /// </summary>
+    /// <returns>True or false.</returns>
+    public bool IsValid();
+}
+
+/// <summary>
 /// This class represents a GameObject in FFXIV.
 /// </summary>
 internal partial class GameObject
@@ -22,14 +135,9 @@ internal partial class GameObject
     }
 
     /// <summary>
-    /// Gets the address of the game object in memory.
+    /// Gets or sets the address of the game object in memory.
     /// </summary>
     public IntPtr Address { get; internal set; }
-
-    /// <summary>
-    /// Gets the Dalamud instance.
-    /// </summary>
-    private protected Dalamud Dalamud { get; }
 
     /// <summary>
     /// This allows you to <c>if (obj) {...}</c> to check for validity.
@@ -147,117 +255,4 @@ internal unsafe partial class GameObject : IGameObject
 
     /// <inheritdoc/>
     public override string ToString() => $"{this.GameObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
-}
-
-/// <summary>
-/// Interface representing a game object.
-/// </summary>
-public interface IGameObject : IEquatable<IGameObject>
-{
-    /// <summary>
-    /// Gets the name of this <see cref="GameObject" />.
-    /// </summary>
-    public SeString Name { get; }
-
-    /// <summary>
-    /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
-    /// this specific object. This ID is used to reference specific objects on the local client (e.g. for targeting).
-    ///
-    /// Not to be confused with <see cref="EntityId"/>.
-    /// </summary>
-    public ulong GameObjectId { get; }
-
-    /// <summary>
-    /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.
-    ///
-    /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
-    /// </summary>
-    public uint EntityId { get; }
-
-    /// <summary>
-    /// Gets the data ID for linking to other respective game data.
-    /// </summary>
-    public uint DataId { get; }
-
-    /// <summary>
-    /// Gets the ID of this GameObject's owner.
-    /// </summary>
-    public uint OwnerId { get; }
-
-    /// <summary>
-    /// Gets the index of this object in the object table.
-    /// </summary>
-    public ushort ObjectIndex { get; }
-
-    /// <summary>
-    /// Gets the entity kind of this <see cref="GameObject" />.
-    /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
-    /// </summary>
-    public ObjectKind ObjectKind { get; }
-
-    /// <summary>
-    /// Gets the sub kind of this Actor.
-    /// </summary>
-    public byte SubKind { get; }
-
-    /// <summary>
-    /// Gets the X distance from the local player in yalms.
-    /// </summary>
-    public byte YalmDistanceX { get; }
-
-    /// <summary>
-    /// Gets the Y distance from the local player in yalms.
-    /// </summary>
-    public byte YalmDistanceZ { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether the object is dead or alive.
-    /// </summary>
-    public bool IsDead { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether the object is targetable.
-    /// </summary>
-    public bool IsTargetable { get; }
-
-    /// <summary>
-    /// Gets the position of this <see cref="GameObject" />.
-    /// </summary>
-    public Vector3 Position { get; }
-
-    /// <summary>
-    /// Gets the rotation of this <see cref="GameObject" />.
-    /// This ranges from -pi to pi radians.
-    /// </summary>
-    public float Rotation { get; }
-
-    /// <summary>
-    /// Gets the hitbox radius of this <see cref="GameObject" />.
-    /// </summary>
-    public float HitboxRadius { get; }
-
-    /// <summary>
-    /// Gets the current target of the game object.
-    /// </summary>
-    public ulong TargetObjectId { get; }
-
-    /// <summary>
-    /// Gets the target object of the game object.
-    /// </summary>
-    /// <remarks>
-    /// This iterates the actor table, it should be used with care.
-    /// </remarks>
-    // TODO: Fix for non-networked GameObjects
-    public IGameObject? TargetObject { get; }
-
-    /// <summary>
-    /// Gets the address of the game object in memory.
-    /// </summary>
-    public IntPtr Address { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether this actor is still valid in memory.
-    /// </summary>
-    /// <returns>True or false.</returns>
-    public bool IsValid();
 }
