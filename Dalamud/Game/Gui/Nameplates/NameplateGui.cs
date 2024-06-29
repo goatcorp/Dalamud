@@ -18,7 +18,7 @@ namespace Dalamud.Game.Gui.Nameplates;
 /// This class handles interacting with native Nameplate update events and management.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class NameplateGui : IInternalDisposableService, INameplatesGui
+internal class NameplateGui : IInternalDisposableService, INameplateGui
 {
     [ServiceManager.ServiceDependency]
     private readonly GameGui gameGui = Service<GameGui>.Get();
@@ -51,7 +51,7 @@ internal class NameplateGui : IInternalDisposableService, INameplatesGui
     private unsafe delegate nint SetPlayerNameplateDetourDelegate(nint playerNameplateObjectPtr, bool isTitleAboveName, bool isTitleVisible, nint titlePtr, nint namePtr, nint freeCompanyPtr, nint prefix, int iconId);
 
     /// <inheritdoc/>
-    public event INameplatesGui.OnNameplateUpdateDelegate OnNameplateUpdate;
+    public event INameplateGui.OnNameplateUpdateDelegate OnNameplateUpdate;
 
     /// <inheritdoc/>
     public void DisposeService()

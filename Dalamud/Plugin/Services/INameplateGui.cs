@@ -6,7 +6,7 @@ namespace Dalamud.Game.Gui.Nameplates;
 /// <summary>
 /// This class handles interacting with native Nameplate update events and management.
 /// </summary>
-public interface INameplatesGui
+public interface INameplateGui
 {
     /// <summary>
     /// Will be executed when the the Game wants to update the content of a nameplate with the details of the Player.
