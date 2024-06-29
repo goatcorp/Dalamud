@@ -208,7 +208,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// Gets the stain or applied dye of the item.
         /// </summary>
         [Obsolete("Universalis Compatibility", false)]
-        public int StainId => this.StainId1;
+        public int StainId => (this.StainId2 << 8) | this.StainId1;
 
         /// <summary>
         /// Gets the first stain or applied dye of the item.
