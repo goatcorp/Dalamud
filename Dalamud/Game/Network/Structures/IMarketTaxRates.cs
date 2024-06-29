@@ -8,40 +8,50 @@ public interface IMarketTaxRates
     /// <summary>
     /// Gets the category of this ResultDialog packet.
     /// </summary>
-    uint Category { get; }
+    public uint Category { get; }
 
     /// <summary>
     /// Gets the tax rate in Limsa Lominsa.
     /// </summary>
-    uint LimsaLominsaTax { get; }
+    public uint LimsaLominsaTax { get; }
 
     /// <summary>
     /// Gets the tax rate in Gridania.
     /// </summary>
-    uint GridaniaTax { get; }
+    public uint GridaniaTax { get; }
 
     /// <summary>
     /// Gets the tax rate in Ul'dah.
     /// </summary>
-    uint UldahTax { get; }
+    public uint UldahTax { get; }
 
     /// <summary>
     /// Gets the tax rate in Ishgard.
     /// </summary>
-    uint IshgardTax { get; }
+    public uint IshgardTax { get; }
 
     /// <summary>
     /// Gets the tax rate in Kugane.
     /// </summary>
-    uint KuganeTax { get; }
+    public uint KuganeTax { get; }
 
     /// <summary>
     /// Gets the tax rate in the Crystarium.
     /// </summary>
-    uint CrystariumTax { get; }
+    public uint CrystariumTax { get; }
 
     /// <summary>
     /// Gets the tax rate in the Crystarium.
     /// </summary>
-    uint SharlayanTax { get; }
+    public uint SharlayanTax { get; }
+
+    /// <summary>
+    /// Gets the tax rate in Tuliyollal.
+    /// </summary>
+    public uint TuliyollalTax { get; }
+
+    /// <summary>
+    /// Gets until when these values are valid.
+    /// </summary>
+    public DateTime ValidUntil { get; }
 }

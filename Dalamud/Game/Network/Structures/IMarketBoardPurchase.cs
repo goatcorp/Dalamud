@@ -9,10 +9,10 @@ public interface IMarketBoardPurchase
     /// <summary>
     /// Gets the item ID of the item that was purchased.
     /// </summary>
-    uint CatalogId { get; }
+    public uint CatalogId { get; }
 
     /// <summary>
     /// Gets the quantity of the item that was purchased.
     /// </summary>
-    uint ItemQuantity { get; }
+    public uint ItemQuantity { get; }
 }

@@ -10,12 +10,12 @@ public interface IMarketBoardHistory
     /// <summary>
     /// Gets the item ID.
     /// </summary>
-    uint ItemId { get; }
+    public uint ItemId { get; }
 
     /// <summary>
     /// Gets the list of individual item history listings.
     /// </summary>
-    IReadOnlyList<IMarketBoardHistoryListing> HistoryListings { get; }
+    public IReadOnlyList<IMarketBoardHistoryListing> HistoryListings { get; }
 }
 
 /// <summary>
@@ -26,30 +26,30 @@ public interface IMarketBoardHistoryListing
     /// <summary>
     /// Gets the buyer's name.
     /// </summary>
-    string BuyerName { get; }
+    public string BuyerName { get; }
 
     /// <summary>
     /// Gets a value indicating whether the item is HQ.
     /// </summary>
-    bool IsHq { get; }
+    public bool IsHq { get; }
 
     /// <summary>
     /// Gets a value indicating whether the item is on a mannequin.
     /// </summary>
-    bool OnMannequin { get; }
+    public bool OnMannequin { get; }
 
     /// <summary>
     /// Gets the time of purchase.
     /// </summary>
-    DateTime PurchaseTime { get; }
+    public DateTime PurchaseTime { get; }
 
     /// <summary>
     /// Gets the quantity.
     /// </summary>
-    uint Quantity { get; }
+    public uint Quantity { get; }
 
     /// <summary>
     /// Gets the sale price.
     /// </summary>
-    uint SalePrice { get; }
+    public uint SalePrice { get; }
 }

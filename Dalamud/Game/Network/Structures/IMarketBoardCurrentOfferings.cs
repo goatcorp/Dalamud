@@ -13,19 +13,9 @@ public interface IMarketBoardCurrentOfferings
     IReadOnlyList<IMarketBoardItemListing> ItemListings { get; }
 
     /// <summary>
-    /// Gets the listing end index.
-    /// </summary>
-    int ListingIndexEnd { get; }
-
-    /// <summary>
-    /// Gets the listing start index.
-    /// </summary>
-    int ListingIndexStart { get; }
-
-    /// <summary>
     /// Gets the request ID.
     /// </summary>
-    int RequestId { get; }
+    public int RequestId { get; }
 }
 
 /// <summary>
@@ -36,82 +26,95 @@ public interface IMarketBoardItemListing
     /// <summary>
     /// Gets the artisan ID.
     /// </summary>
-    ulong ArtisanId { get; }
+    public ulong ArtisanId { get; }
 
     /// <summary>
     /// Gets the item ID.
     /// </summary>
-    uint ItemId { get; }
+    public uint ItemId { get; }
 
     /// <summary>
     /// Gets a value indicating whether the item is HQ.
     /// </summary>
-    bool IsHq { get; }
+    public bool IsHq { get; }
 
     /// <summary>
     /// Gets the item quantity.
     /// </summary>
-    uint ItemQuantity { get; }
+    public uint ItemQuantity { get; }
 
     /// <summary>
     /// Gets the time this offering was last reviewed.
     /// </summary>
-    DateTime LastReviewTime { get; }
+    [Obsolete("Universalis Compatibility, contains a fake value", false)]
+    public DateTime LastReviewTime { get; }
 
     /// <summary>
     /// Gets the listing ID.
     /// </summary>
-    ulong ListingId { get; }
+    public ulong ListingId { get; }
 
     /// <summary>
     /// Gets the list of materia attached to this item.
     /// </summary>
-    IReadOnlyList<IItemMateria> Materia { get; }
+    public IReadOnlyList<IItemMateria> Materia { get; }
 
     /// <summary>
     /// Gets the amount of attached materia.
     /// </summary>
-    int MateriaCount { get; }
+    public int MateriaCount { get; }
 
     /// <summary>
     /// Gets a value indicating whether this item is on a mannequin.
     /// </summary>
-    bool OnMannequin { get; }
+    public bool OnMannequin { get; }
 
     /// <summary>
     /// Gets the player name.
     /// </summary>
-    string PlayerName { get; }
+    [Obsolete("Universalis Compatibility, contains a fake value", false)]
+    public string PlayerName { get; }
 
     /// <summary>
     /// Gets the price per unit.
     /// </summary>
-    uint PricePerUnit { get; }
+    public uint PricePerUnit { get; }
 
     /// <summary>
     /// Gets the city ID of the retainer selling the item.
     /// </summary>
-    int RetainerCityId { get; }
+    public int RetainerCityId { get; }
 
     /// <summary>
     /// Gets the ID of the retainer selling the item.
     /// </summary>
-    ulong RetainerId { get; }
+    public ulong RetainerId { get; }
 
     /// <summary>
     /// Gets the name of the retainer.
     /// </summary>
-    string RetainerName { get; }
+    public string RetainerName { get; }
 
     /// <summary>
     /// Gets the stain or applied dye of the item.
     /// </summary>
-    int StainId { get; }
+    [Obsolete("Universalis Compatibility, use Stain1Id and Stain2Id", false)]
+    public int StainId { get; }
+
+    /// <summary>
+    /// Gets the first stain or applied dye of the item.
+    /// </summary>
+    public int Stain1Id { get; }
+
+    /// <summary>
+    /// Gets the second stain or applied dye of the item.
+    /// </summary>
+    public int Stain2Id { get; }
 
     /// <summary>
     /// Gets the total tax.
     /// </summary>
-    uint TotalTax { get; }
+    public uint TotalTax { get; }
 }
 
 /// <summary>

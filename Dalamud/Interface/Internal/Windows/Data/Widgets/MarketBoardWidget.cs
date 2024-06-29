@@ -54,7 +54,7 @@ internal class MarketBoardWidget : IDataWindowWidget
     public void Load()
     {
         this.trackMarketBoard = false;
-        this.trackedEvents = 0;
+        this.trackedEvents = 1;
         this.marketBoardHistoryQueue.Clear();
         this.marketBoardPurchaseRequestsQueue.Clear();
         this.marketBoardPurchasesQueue.Clear();
@@ -114,7 +114,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                 {
                     if (tabItem)
                     {
-                        ImGuiTable.DrawTable(string.Empty, this.marketBoardCurrentOfferingsQueue, this.DrawMarketBoardCurrentOfferings, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Item ID", "Quantity", "Is HQ?", "Price Per Unit", "Buyer Name", "Retainer Name", "Last Review Time");
+                        ImGuiTable.DrawTable(string.Empty, this.marketBoardCurrentOfferingsQueue, this.DrawMarketBoardCurrentOfferings, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Item ID", "Quantity", "Is HQ?", "Price Per Unit", "Retainer Name");
                     }
                 }
 
@@ -130,7 +130,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                 {
                     if (tabItem)
                     {
-                        ImGuiTable.DrawTable(string.Empty, this.marketBoardPurchaseRequestsQueue, this.DrawMarketBoardPurchaseRequests, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Item ID", "Quantity", "Price Per Unit", "Listing ID", "Retainer ID");
+                        ImGuiTable.DrawTable(string.Empty, this.marketBoardPurchaseRequestsQueue, this.DrawMarketBoardPurchaseRequests, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Item ID", "Is HQ?", "Quantity", "Price Per Unit", "Total Tax", "City ID", "Listing ID", "Retainer ID");
                     }
                 }
 
@@ -138,7 +138,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                 {
                     if (tabItem)
                     {
-                        ImGuiTable.DrawTable(string.Empty, this.marketTaxRatesQueue, this.DrawMarketTaxRates, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Uldah", "Limsa Lominsa", "Gridania", "Ishgard", "Kugane", "Crystarium", "Sharlayan");
+                        ImGuiTable.DrawTable(string.Empty, this.marketTaxRatesQueue, this.DrawMarketTaxRates, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg, "Uldah", "Limsa Lominsa", "Gridania", "Ishgard", "Kugane", "Crystarium", "Sharlayan", "Tuliyollal", "Valid Until");
                     }
                 }
             }
@@ -237,13 +237,7 @@ internal class MarketBoardWidget : IDataWindowWidget
         ImGui.TextUnformatted(data.Listing.PricePerUnit.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.PlayerName);
-
-        ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.Listing.RetainerName);
-
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.LastReviewTime.ToString(CultureInfo.InvariantCulture));
     }
 
     private void DrawMarketBoardPurchases(IMarketBoardPurchase data)
@@ -261,10 +255,19 @@ internal class MarketBoardWidget : IDataWindowWidget
         ImGui.TextUnformatted(data.CatalogId.ToString());
 
         ImGui.TableNextColumn();
+        ImGui.TextUnformatted(data.IsHq.ToString());
+
+        ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.ItemQuantity.ToString());
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.PricePerUnit.ToString());
+
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(data.TotalTax.ToString());
+
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(data.RetainerCityId.ToString());
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.ListingId.ToString());
@@ -295,5 +298,11 @@ internal class MarketBoardWidget : IDataWindowWidget
 
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(data.SharlayanTax.ToString());
+
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(data.TuliyollalTax.ToString());
+
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(data.ValidUntil.ToString(CultureInfo.InvariantCulture));
     }
 }

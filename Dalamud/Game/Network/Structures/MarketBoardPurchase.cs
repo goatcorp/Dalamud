@@ -27,7 +27,7 @@ public class MarketBoardPurchase : IMarketBoardPurchase
     /// </summary>
     /// <param name="dataPtr">A pointer to a struct containing market board purchase information from the server.</param>
     /// <returns>An object representing the data read.</returns>
-    public static unsafe MarketBoardPurchase Read(IntPtr dataPtr)
+    public static unsafe MarketBoardPurchase Read(nint dataPtr)
     {
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
@@ -35,7 +35,7 @@ public class MarketBoardPurchase : IMarketBoardPurchase
         var output = new MarketBoardPurchase();
 
         output.CatalogId = reader.ReadUInt32();
-        stream.Position += 4;
+        reader.ReadBytes(0x4); // Padding
         output.ItemQuantity = reader.ReadUInt32();
 
         return output;
