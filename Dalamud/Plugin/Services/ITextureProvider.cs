@@ -212,6 +212,15 @@ public interface ITextureProvider
     /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
     /// </remarks>
     ISharedImmediateTexture GetFromFile(string path);
+    
+    /// <summary>Gets a shared texture corresponding to the given file on the filesystem.</summary>
+    /// <param name="file">The file on the filesystem to load.</param>
+    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    /// <remarks>
+    /// <para>This function does not throw exceptions.</para>
+    /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
+    /// </remarks>
+    ISharedImmediateTexture GetFromFile(FileInfo file);
 
     /// <summary>Gets a shared texture corresponding to the given file of the assembly manifest resources.</summary>
     /// <param name="assembly">The assembly containing manifest resources.</param>

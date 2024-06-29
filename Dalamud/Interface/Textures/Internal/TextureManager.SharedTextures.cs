@@ -26,6 +26,10 @@ internal sealed partial class TextureManager
     /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromFile(string path) =>
         this.Shared.GetFromFile(path);
+    
+    /// <inheritdoc/>
+    ISharedImmediateTexture ITextureProvider.GetFromFile(FileInfo file) =>
+        this.Shared.GetFromFile(file);
 
     /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromManifestResource(Assembly assembly, string name) =>
@@ -97,13 +101,18 @@ internal sealed partial class TextureManager
             this.gameDict.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder)
                 .PublicUseInstance;
 
-        /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
+        /// <inheritdoc cref="ITextureProvider.GetFromFile(string)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromFile(string path) =>
-            this.fileDict.GetOrAdd(path, FileSystemSharedImmediateTexture.CreatePlaceholder)
+            this.GetFromFile(new FileInfo(path));
+        
+        /// <inheritdoc cref="ITextureProvider.GetFromFile(FileInfo)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SharedImmediateTexture.PureImpl GetFromFile(FileInfo file) =>
+            this.fileDict.GetOrAdd(file.FullName, FileSystemSharedImmediateTexture.CreatePlaceholder)
                 .PublicUseInstance;
 
-        /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
+        /// <inheritdoc cref="ITextureProvider.GetFromManifestResource"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromManifestResource(Assembly assembly, string name) =>
             this.manifestResourceDict.GetOrAdd(

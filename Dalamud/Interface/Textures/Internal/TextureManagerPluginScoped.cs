@@ -289,6 +289,14 @@ internal sealed class TextureManagerPluginScoped
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }
+    
+    /// <inheritdoc/>
+    public ISharedImmediateTexture GetFromFile(FileInfo file)
+    {
+        var shared = this.ManagerOrThrow.Shared.GetFromFile(file);
+        shared.AddOwnerPlugin(this.plugin);
+        return shared;
+    }
 
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromManifestResource(Assembly assembly, string name)
