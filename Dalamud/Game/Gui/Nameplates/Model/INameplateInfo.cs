@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Dalamud.Game.Gui.Nameplates.Model;
 
 /// <summary>
@@ -26,9 +24,9 @@ public interface INameplateInfo
     /// <summary>
     /// Searches for an element by a given common name.
     /// </summary>
-    /// <param name="name">The common namplate element name to serch for.<br/>Note: <see cref="NameplateElementName.Unknown"/> is not supported.</param>
+    /// <param name="type">The common namplate element type to serch for.<br/>Note: <see cref="NameplateElementType.Unknown"/> is not supported.</param>
     /// <returns>Returns the found element, or null if nohting has been found.</returns>
-    INameplateElement? GetElement(NameplateElementName name);
+    INameplateElement? GetElement(NameplateElementType type);
 
     /// <summary>
     /// Gets all available nameplate elements.

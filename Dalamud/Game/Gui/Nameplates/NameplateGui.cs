@@ -131,10 +131,10 @@ internal class NameplateGui : IInternalDisposableService, INameplateGui
 
             // Add known nameplate elements
             nameplateInfo.Elements.AddRange([
-                new(titlePtr, NameplateElementName.Title),
-                new(namePtr, NameplateElementName.Name),
-                new(freeCompanyPtr, NameplateElementName.FreeCompany),
-                new(prefixPtr, NameplateElementName.Prefix)
+                new(titlePtr, NameplateElementType.Title),
+                new(namePtr, NameplateElementType.Name),
+                new(freeCompanyPtr, NameplateElementType.FreeCompany),
+                new(prefixPtr, NameplateElementType.Prefix)
             ]);
 
             // Create new nameplate object
@@ -154,18 +154,18 @@ internal class NameplateGui : IInternalDisposableService, INameplateGui
                 if (element.HasChanged)
                 {
                     // Copy back known element properties
-                    switch (element.Name)
+                    switch (element.Type)
                     {
-                        case NameplateElementName.Title:
+                        case NameplateElementType.Title:
                             titlePtr = this.PluginAllocate(element.Text);
                             break;
-                        case NameplateElementName.Name:
+                        case NameplateElementType.Name:
                             namePtr = this.PluginAllocate(element.Text);
                             break;
-                        case NameplateElementName.FreeCompany:
+                        case NameplateElementType.FreeCompany:
                             freeCompanyPtr = this.PluginAllocate(element.Text);
                             break;
-                        case NameplateElementName.Prefix:
+                        case NameplateElementType.Prefix:
                             prefixPtr = this.PluginAllocate(element.Text);
                             break;
                     }

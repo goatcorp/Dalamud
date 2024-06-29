@@ -3,7 +3,7 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 /// <summary>
 /// The known usage for an element.
 /// </summary>
-public enum NameplateElementName
+public enum NameplateElementType
 {
     /// <summary>
     /// An unknown element, maybe a custom one.
