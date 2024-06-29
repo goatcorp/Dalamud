@@ -68,8 +68,8 @@ public class MarketBoardHistory : IMarketBoardHistory
                 BuyerName = Encoding.UTF8.GetString(reader.ReadBytes(0x20)).TrimEnd('\u0000'),
             };
 
-            // Skip the next 0xE padding bytes
-            reader.ReadBytes(0xE);
+            // Skip padding
+            reader.ReadBytes(0x2);
 
             historyListings.Add(listingEntry);
         }

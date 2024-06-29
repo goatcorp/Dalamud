@@ -17,7 +17,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
     /// Gets the list of individual item listings.
     /// </summary>
     IReadOnlyList<IMarketBoardItemListing> IMarketBoardCurrentOfferings.ItemListings => this.InternalItemListings;
-    
+
     /// <summary>
     /// Gets the listing end index.
     /// </summary>
@@ -32,7 +32,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
     /// Gets the request ID.
     /// </summary>
     public int RequestId { get; internal set; }
-    
+
     /// <summary>
     /// Gets or sets the internal read-write list of marketboard item listings.
     /// </summary>
@@ -43,7 +43,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
     /// </summary>
     /// <param name="dataPtr">Address to read.</param>
     /// <returns>A new <see cref="MarketBoardCurrentOfferings"/> object.</returns>
-    public static unsafe MarketBoardCurrentOfferings Read(IntPtr dataPtr)
+    public static unsafe MarketBoardCurrentOfferings Read(nint dataPtr)
     {
         var output = new MarketBoardCurrentOfferings();
 
@@ -60,19 +60,17 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
             listingEntry.RetainerId = reader.ReadUInt64();
             listingEntry.RetainerOwnerId = reader.ReadUInt64();
             listingEntry.ArtisanId = reader.ReadUInt64();
+
             listingEntry.PricePerUnit = reader.ReadUInt32();
             listingEntry.TotalTax = reader.ReadUInt32();
             listingEntry.ItemQuantity = reader.ReadUInt32();
             listingEntry.CatalogId = reader.ReadUInt32();
-            listingEntry.LastReviewTime = DateTimeOffset.UtcNow.AddSeconds(-reader.ReadUInt16()).DateTime;
 
-            reader.ReadUInt16(); // container
-            reader.ReadUInt32(); // slot
+            reader.ReadUInt16(); // Slot
             reader.ReadUInt16(); // durability
             reader.ReadUInt16(); // spiritbond
 
             var materiaList = new List<IItemMateria>();
-
             for (var materiaIndex = 0; materiaIndex < 5; materiaIndex++)
             {
                 var materiaVal = reader.ReadUInt16();
@@ -88,19 +86,20 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
 
             listingEntry.Materia = materiaList;
 
-            reader.ReadUInt16();
-            reader.ReadUInt32();
+            reader.ReadBytes(0x6); // Padding
 
-            listingEntry.RetainerName = Encoding.UTF8.GetString(reader.ReadBytes(32)).TrimEnd('\u0000');
-            listingEntry.PlayerName = Encoding.UTF8.GetString(reader.ReadBytes(32)).TrimEnd('\u0000');
+            listingEntry.RetainerName = Encoding.UTF8.GetString(reader.ReadBytes(0x20)).TrimEnd('\u0000');
+            reader.ReadBytes(0x20); // Empty Buffer, was PlayerName pre 7.0
+
             listingEntry.IsHq = reader.ReadBoolean();
             listingEntry.MateriaCount = reader.ReadByte();
             listingEntry.OnMannequin = reader.ReadBoolean();
             listingEntry.RetainerCityId = reader.ReadByte();
-            listingEntry.StainId = reader.ReadUInt16();
 
-            reader.ReadUInt16();
-            reader.ReadUInt32();
+            listingEntry.StainId1 = reader.ReadByte();
+            listingEntry.StainId2 = reader.ReadByte();
+
+            reader.ReadBytes(0x2); // Pading
 
             if (listingEntry.CatalogId != 0)
                 listings.Add(listingEntry);
@@ -152,7 +151,8 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// <summary>
         /// Gets the time this offering was last reviewed.
         /// </summary>
-        public DateTime LastReviewTime { get; internal set; }
+        [Obsolete("Universalis Compatibility", false)]
+        public DateTime LastReviewTime { get; internal set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Gets the listing ID.
@@ -207,7 +207,18 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// <summary>
         /// Gets the stain or applied dye of the item.
         /// </summary>
-        public int StainId { get; internal set; }
+        [Obsolete("Universalis Compatibility", false)]
+        public int StainId => this.StainId1;
+
+        /// <summary>
+        /// Gets the first stain or applied dye of the item.
+        /// </summary>
+        public int StainId1 { get; internal set; }
+
+        /// <summary>
+        /// Gets the second stain or applied dye of the item.
+        /// </summary>
+        public int StainId2 { get; internal set; }
 
         /// <summary>
         /// Gets the total tax.
