@@ -44,12 +44,6 @@ public interface IMarketBoardItemListing
     public uint ItemQuantity { get; }
 
     /// <summary>
-    /// Gets the time this offering was last reviewed.
-    /// </summary>
-    [Obsolete("Universalis Compatibility, contains a fake value", false)]
-    public DateTime LastReviewTime { get; }
-
-    /// <summary>
     /// Gets the listing ID.
     /// </summary>
     public ulong ListingId { get; }
@@ -70,12 +64,6 @@ public interface IMarketBoardItemListing
     public bool OnMannequin { get; }
 
     /// <summary>
-    /// Gets the player name.
-    /// </summary>
-    [Obsolete("Universalis Compatibility, contains a fake value", false)]
-    public string PlayerName { get; }
-
-    /// <summary>
     /// Gets the price per unit.
     /// </summary>
     public uint PricePerUnit { get; }
@@ -94,12 +82,6 @@ public interface IMarketBoardItemListing
     /// Gets the name of the retainer.
     /// </summary>
     public string RetainerName { get; }
-
-    /// <summary>
-    /// Gets the stain or applied dye of the item.
-    /// </summary>
-    [Obsolete("Universalis Compatibility, use Stain1Id and Stain2Id", false)]
-    public int StainId { get; }
 
     /// <summary>
     /// Gets the first stain or applied dye of the item.

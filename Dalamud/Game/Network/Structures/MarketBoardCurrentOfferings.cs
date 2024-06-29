@@ -142,7 +142,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// Gets the time this offering was last reviewed.
         /// </summary>
         [Obsolete("Universalis Compatibility, contains a fake value", false)]
-        public DateTime LastReviewTime { get; internal set; } = DateTime.UtcNow;
+        internal DateTime LastReviewTime { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Gets the listing ID.
@@ -168,7 +168,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// Gets the player name.
         /// </summary>
         [Obsolete("Universalis Compatibility, contains a fake value", false)]
-        public string PlayerName { get; internal set; } = string.Empty;
+        internal string PlayerName { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets the price per unit.
@@ -199,7 +199,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
         /// Gets the stain or applied dye of the item.
         /// </summary>
         [Obsolete("Universalis Compatibility, use Stain1Id and Stain2Id", false)]
-        public int StainId => (this.Stain2Id << 8) | this.Stain1Id;
+        internal int StainId => (this.Stain2Id << 8) | this.Stain1Id;
 
         /// <summary>
         /// Gets the first stain or applied dye of the item.
