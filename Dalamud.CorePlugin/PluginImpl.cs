@@ -3,14 +3,10 @@ using System.IO;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
-using Dalamud.Game.Gui.Nameplates;
-using Dalamud.Game.Gui.Nameplates.Model;
 using Dalamud.Interface.Windowing;
-using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-
 using Serilog;
 
 namespace Dalamud.CorePlugin
