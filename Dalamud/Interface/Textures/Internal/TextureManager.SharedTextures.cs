@@ -137,7 +137,7 @@ internal sealed partial class TextureManager
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string GetIconPathByValue(GameIconLookup lookup) =>
-            this.textureManager.TryGetIconPath(lookup, out var path) ? path : throw new FileNotFoundException();
+            this.textureManager.TryGetIconPath(lookup, out var path) ? path : throw new IconNotFoundException(lookup);
 
         private void FrameworkOnUpdate(IFramework unused)
         {
