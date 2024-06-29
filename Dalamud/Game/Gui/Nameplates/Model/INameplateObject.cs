@@ -15,7 +15,7 @@ public interface INameplateObject
     /// <summary>
     /// Gets the nameplate info for this object.
     /// </summary>
-    nint Pointer { get; }
+    nint Address { get; }
 
     /// <summary>
     /// Gets the index of this nameplate.
