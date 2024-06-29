@@ -34,7 +34,7 @@ public class MarketBoardHistory : IMarketBoardHistory
     /// <summary>
     /// Gets the list of individual item listings.
     /// </summary>
-    IReadOnlyList<IMarketBoardHistoryListing> IMarketBoardHistory.HistoryListings => this.InternalHistoryListings;
+    public IReadOnlyList<IMarketBoardHistoryListing> HistoryListings => this.InternalHistoryListings;
 
     /// <summary>
     /// Gets or sets a list of individual item listings.
