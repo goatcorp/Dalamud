@@ -31,8 +31,7 @@ namespace Dalamud.Plugin;
 /// <summary>
 /// This class acts as an interface to various objects needed to interact with Dalamud and the game.
 /// </summary>
-[Obsolete("Please use IDalamudPluginInterface instead.")]
-public sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposable
+internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposable
 {
     private readonly LocalPlugin plugin;
     private readonly PluginConfigurations configs;
