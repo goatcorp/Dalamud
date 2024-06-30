@@ -11,7 +11,7 @@ using ImGuiNET;
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
-/// Widget to display resolved .text sigs.
+/// Widget to display resolved CS addresses
 /// </summary>
 internal class ClientStructWidget : IDataWindowWidget
 {
