@@ -75,7 +75,7 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
                 // DXGISwapChain::handle_device_loss =>df DXGISwapChain::Present => DXGISwapChain::runtime_present
 
                 var scanner = new SigScanner(processModule);
-                var runtimePresentSig = "F6 C2 01 0F 85 ?? ?? ?? ??"; // NOTE: This sig is from reshade's DLL, normally dxgi.dll.
+                var runtimePresentSig = "E8 ?? ?? ?? ?? 44 0F B6 55 ??"; // NOTE: This sig is from reshade's DLL, normally dxgi.dll.
 
                 try
                 {
