@@ -72,10 +72,10 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
                 // reshade master@4232872 RVA
                 // var p = processModule.BaseAddress + 0x82C7E0; // DXGISwapChain::Present
                 // var p = processModule.BaseAddress + 0x82FAC0; // DXGISwapChain::runtime_present
-                // DXGISwapChain::handle_device_loss => DXGISwapChain::Present => DXGISwapChain::runtime_present
+                // DXGISwapChain::handle_device_loss =>df DXGISwapChain::Present => DXGISwapChain::runtime_present
 
                 var scanner = new SigScanner(processModule);
-                var runtimePresentSig = "F6 C2 01 0F 85 88"; // NOTE: This sig is from reshade's DLL, normally dxgi.dll.
+                var runtimePresentSig = "F6 C2 01 0F 85 ?? ?? ?? ??"; // NOTE: This sig is from reshade's DLL, normally dxgi.dll.
 
                 try
                 {
