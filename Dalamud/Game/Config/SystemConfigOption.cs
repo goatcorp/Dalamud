@@ -843,6 +843,62 @@ public enum SystemConfigOption
     GlareRepresentation_DX11,
 
     /// <summary>
+    /// System option with the internal name DynamicRezoThreshold.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("DynamicRezoThreshold", ConfigType.UInt)]
+    DynamicRezoThreshold,
+
+    /// <summary>
+    /// System option with the internal name GraphicsRezoScale.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GraphicsRezoScale", ConfigType.UInt)]
+    GraphicsRezoScale,
+
+    /// <summary>
+    /// System option with the internal name GraphicsRezoUpscaleType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GraphicsRezoUpscaleType", ConfigType.UInt)]
+    GraphicsRezoUpscaleType,
+
+    /// <summary>
+    /// System option with the internal name GrassEnableDynamicInterference.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GrassEnableDynamicInterference", ConfigType.UInt)]
+    GrassEnableDynamicInterference,
+
+    /// <summary>
+    /// System option with the internal name ShadowBgLOD.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("ShadowBgLOD", ConfigType.UInt)]
+    ShadowBgLOD,
+
+    /// <summary>
+    /// System option with the internal name TextureRezoType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("TextureRezoType", ConfigType.UInt)]
+    TextureRezoType,
+
+    /// <summary>
+    /// System option with the internal name ShadowLightValidType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("ShadowLightValidType", ConfigType.UInt)]
+    ShadowLightValidType,
+
+    /// <summary>
+    /// System option with the internal name DynamicRezoEnableCutScene.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("DynamicRezoEnableCutScene", ConfigType.UInt)]
+    DynamicRezoEnableCutScene,
+
+    /// <summary>
     /// System option with the internal name UiSystemEnlarge.
     /// This option is a UInt.
     /// </summary>
