@@ -22,6 +22,8 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;
 
+using Serilog;
+
 /// <summary>
 /// Class responsible for drawing the main plugin window.
 /// </summary>
@@ -166,6 +168,23 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     if (!entry.IsShowConditionSatisfied())
                         continue;
 
+                    if (entry.Texture.TryGetWrap(out var textureWrap, out var exception))
+                    {
+                        if (textureWrap.Width != 64 && textureWrap.Height != 64)
+                        {
+                            Log.Error("Texture provided for ITitleScreenMenuEntry must be 64x64. Entry will be removed.");
+                            this.titleScreenMenu.RemoveEntry(entry);
+                            continue;
+                        }
+                    }
+
+                    if (exception != null)
+                    {
+                        Log.Error(exception, "An exception occurred while attempting to get the texture wrap for a ITitleScreenMenuEntry. Entry will be removed.");
+                        this.titleScreenMenu.RemoveEntry(entry);
+                        continue;
+                    }
+
                     if (!this.moveEasings.TryGetValue(entry.Id, out var moveEasing))
                     {
                         moveEasing = new InOutQuint(TimeSpan.FromMilliseconds(400));
@@ -239,6 +258,23 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     {
                         if (!entry.IsShowConditionSatisfied())
                             continue;
+
+                        if (entry.Texture.TryGetWrap(out var textureWrap, out var exception))
+                        {
+                            if (textureWrap.Width != 64 && textureWrap.Height != 64)
+                            {
+                                Log.Error($"Texture provided for ITitleScreenMenuEntry {entry.Name} must be 64x64. Entry will be removed.");
+                                this.titleScreenMenu.RemoveEntry(entry);
+                                continue;
+                            }
+                        }
+
+                        if (exception != null)
+                        {
+                            Log.Error(exception, $"An exception occurred while attempting to get the texture wrap for ITitleScreenMenuEntry {entry.Name}. Entry will be removed.");
+                            this.titleScreenMenu.RemoveEntry(entry);
+                            continue;
+                        }
 
                         var finalPos = (i + 1) * this.shadeTexture.Value.Height * scale;
 
@@ -355,7 +391,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
         }
 
-        // Wrap should always be valid at this point due to us trying to get the wrap in IsShowConditionSatisfied
+        // Wrap should always be valid at this point due to us checking the validity of the image each frame
         var dalamudTextureWrap = entry.Texture.GetWrapOrEmpty();
         ImGui.Image(dalamudTextureWrap.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize * scale));
         if (overrideAlpha || isFirst)

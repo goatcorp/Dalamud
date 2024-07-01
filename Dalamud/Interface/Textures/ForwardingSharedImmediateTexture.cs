@@ -1,23 +1,23 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Storage.Assets;
 
-namespace Dalamud.Storage.Assets;
+namespace Dalamud.Interface.Textures;
 
 /// <summary>
-/// Wraps a dalamud asset texture allowing interoperability with certain services.
+/// Wraps a dalamud texture allowing interoperability with certain services. Only use this if you need to provide a texture that has been created or rented as a ISharedImmediateTexture.
 /// </summary>
-internal class DalamudAssetTexture : ISharedImmediateTexture
+public class ForwardingSharedImmediateTexture : ISharedImmediateTexture
 {
     private readonly IDalamudTextureWrap textureWrap;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DalamudAssetTexture"/> class.
+    /// Initializes a new instance of the <see cref="ForwardingSharedImmediateTexture"/> class.
     /// </summary>
     /// <param name="textureWrap">A textureWrap loaded by <see cref="DalamudAssetManager"/>.</param>
-    internal DalamudAssetTexture(IDalamudTextureWrap textureWrap)
+    public ForwardingSharedImmediateTexture(IDalamudTextureWrap textureWrap)
     {
         this.textureWrap = textureWrap;
     }

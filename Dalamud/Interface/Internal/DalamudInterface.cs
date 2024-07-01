@@ -25,6 +25,7 @@ using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -166,16 +167,16 @@ internal class DalamudInterface : IInternalDisposableService
             {
                 titleScreenMenu.AddEntryCore(
                     Loc.Localize("TSMDalamudPlugins", "Plugin Installer"),
-                    new DalamudAssetTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
+                    new ForwardingSharedImmediateTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
                     this.OpenPluginInstaller);
                 titleScreenMenu.AddEntryCore(
                     Loc.Localize("TSMDalamudSettings", "Dalamud Settings"),
-                    new DalamudAssetTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
+                    new ForwardingSharedImmediateTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
                     this.OpenSettings);
 
                 titleScreenMenu.AddEntryCore(
                     "Toggle Dev Menu",
-                    new DalamudAssetTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
+                    new ForwardingSharedImmediateTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
                     () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
                     VirtualKey.SHIFT);
 
@@ -183,7 +184,7 @@ internal class DalamudInterface : IInternalDisposableService
                 {
                     titleScreenMenu.AddEntryCore(
                         Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
-                        new DalamudAssetTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
+                        new ForwardingSharedImmediateTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
                         () => this.isImGuiDrawDevMenu = true);
                 }
             });
