@@ -9,7 +9,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-    logging::start_file_logging("dalamud.injector.boot.log", true);
+    // Take care: don't redirect stderr/out here, we need to write our pid to stdout for XL to read
+    logging::start_file_logging("dalamud.injector.boot.log", false);
     logging::I("Dalamud Injector, (c) 2021 XIVLauncher Contributors");
     logging::I("Built at : " __DATE__ "@" __TIME__);
 
