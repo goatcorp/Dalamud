@@ -13,6 +13,8 @@ using Serilog;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
+using Textures;
+
 /// <summary>Represents an active notification.</summary>
 internal sealed partial class ActiveNotification : IActiveNotification
 {
@@ -22,9 +24,6 @@ internal sealed partial class ActiveNotification : IActiveNotification
     private readonly Easing hideEasing;
     private readonly Easing progressEasing;
     private readonly Easing expandoEasing;
-
-    /// <summary>Whether to call <see cref="IDisposable.Dispose"/> on <see cref="DisposeInternal"/>.</summary>
-    private bool hasIconTextureOwnership;
 
     /// <summary>Gets the time of starting to count the timer for the expiration.</summary>
     private DateTime lastInterestTime;
@@ -119,31 +118,10 @@ internal sealed partial class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap? IconTexture
+    public ISharedImmediateTexture? IconTexture
     {
         get => this.underlyingNotification.IconTexture;
-        set => this.IconTextureTask = value is null ? null : Task.FromResult(value);
-    }
-
-    /// <inheritdoc/>
-    public Task<IDalamudTextureWrap?>? IconTextureTask
-    {
-        get => this.underlyingNotification.IconTextureTask;
-        set
-        {
-            // Do nothing if the value did not change.
-            if (this.underlyingNotification.IconTextureTask == value)
-                return;
-
-            if (this.hasIconTextureOwnership)
-            {
-                _ = this.underlyingNotification.IconTextureTask?.ToContentDisposedTask(true);
-                this.underlyingNotification.IconTextureTask = null;
-                this.hasIconTextureOwnership = false;
-            }
-
-            this.underlyingNotification.IconTextureTask = value;
-        }
+        set => this.underlyingNotification.IconTexture = value;
     }
 
     /// <inheritdoc/>
@@ -266,36 +244,9 @@ internal sealed partial class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
-    public void SetIconTexture(IDalamudTextureWrap? textureWrap) =>
-        this.SetIconTexture(textureWrap, false);
-
-    /// <inheritdoc/>
-    public void SetIconTexture(IDalamudTextureWrap? textureWrap, bool leaveOpen) =>
-        this.SetIconTexture(textureWrap is null ? null : Task.FromResult(textureWrap), leaveOpen);
-
-    /// <inheritdoc/>
-    public void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask) =>
-        this.SetIconTexture(textureWrapTask, false);
-
-    /// <inheritdoc/>
-    public void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask, bool leaveOpen)
+    public void SetIconTexture(ISharedImmediateTexture? texture)
     {
-        // If we're requested to replace the texture with the same texture, do nothing.
-        if (this.underlyingNotification.IconTextureTask == textureWrapTask)
-            return;
-
-        if (this.DismissReason is not null)
-        {
-            if (!leaveOpen)
-                textureWrapTask?.ToContentDisposedTask(true);
-            return;
-        }
-
-        if (this.hasIconTextureOwnership)
-            _ = this.underlyingNotification.IconTextureTask?.ToContentDisposedTask(true);
-
-        this.hasIconTextureOwnership = !leaveOpen;
-        this.underlyingNotification.IconTextureTask = textureWrapTask;
+        this.underlyingNotification.IconTexture = texture;
     }
 
     /// <summary>Removes non-Dalamud invocation targets from events.</summary>
@@ -317,10 +268,8 @@ internal sealed partial class ActiveNotification : IActiveNotification
         if (this.Icon is { } previousIcon && !IsOwnedByDalamud(previousIcon.GetType()))
             this.Icon = null;
 
-        // Clear the texture if we don't have the ownership.
-        // The texture probably was owned by the plugin being unloaded in such case.
-        if (!this.hasIconTextureOwnership)
-            this.IconTextureTask = null;
+        if (this.IconTexture is { } previousTexture && !IsOwnedByDalamud(previousTexture.GetType()))
+            this.IconTexture = null;
 
         this.isInitiatorUnloaded = true;
         this.UserDismissable = true;
@@ -400,13 +349,6 @@ internal sealed partial class ActiveNotification : IActiveNotification
     /// <summary>Clears the resources associated with this instance of <see cref="ActiveNotification"/>.</summary>
     internal void DisposeInternal()
     {
-        if (this.hasIconTextureOwnership)
-        {
-            _ = this.underlyingNotification.IconTextureTask?.ToContentDisposedTask(true);
-            this.underlyingNotification.IconTextureTask = null;
-            this.hasIconTextureOwnership = false;
-        }
-
         this.Dismiss = null;
         this.Click = null;
         this.DrawActions = null;

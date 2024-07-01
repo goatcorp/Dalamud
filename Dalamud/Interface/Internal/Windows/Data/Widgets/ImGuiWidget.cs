@@ -15,6 +15,8 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
+using Textures;
+
 /// <summary>
 /// Widget for displaying ImGui test.
 /// </summary>
@@ -144,8 +146,6 @@ internal class ImGuiWidget : IDataWindowWidget
             "Action Bar (always on if not user dismissable for the example)",
             ref this.notificationTemplate.ActionBar);
 
-        ImGui.Checkbox("Leave Textures Open", ref this.notificationTemplate.LeaveTexturesOpen);
-
         if (ImGui.Button("Add notification"))
         {
             var text =
@@ -212,35 +212,37 @@ internal class ImGuiWidget : IDataWindowWidget
             switch (this.notificationTemplate.IconInt)
             {
                 case 5:
-                    n.SetIconTexture(
-                        DisposeLoggingTextureWrap.Wrap(
-                            dam.GetDalamudTextureWrap(
-                                Enum.Parse<DalamudAsset>(
-                                    NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt]))),
-                        this.notificationTemplate.LeaveTexturesOpen);
-                    break;
-                case 6:
-                    n.SetIconTexture(
-                        dam.GetDalamudTextureWrapAsync(
-                               Enum.Parse<DalamudAsset>(
-                                   NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt]))
-                           .ContinueWith(
-                               r => r.IsCompletedSuccessfully
-                                        ? Task.FromResult<IDalamudTextureWrap>(DisposeLoggingTextureWrap.Wrap(r.Result))
-                                        : r).Unwrap(),
-                        this.notificationTemplate.LeaveTexturesOpen);
+                    var textureWrap = DisposeLoggingTextureWrap.Wrap(
+                        dam.GetDalamudTextureWrap(
+                            Enum.Parse<DalamudAsset>(
+                                NotificationTemplate.AssetSources[this.notificationTemplate.IconAssetInt])));
+
+                    if (textureWrap != null)
+                    {
+                        n.SetIconTexture(
+                            new ForwardingSharedImmediateTexture(textureWrap));
+                    }
+
                     break;
                 case 7:
-                    n.SetIconTexture(
-                        DisposeLoggingTextureWrap.Wrap(
-                            tm.Shared.GetFromGame(this.notificationTemplate.IconText).GetWrapOrDefault()),
-                        this.notificationTemplate.LeaveTexturesOpen);
+                    var textureWrap2 = DisposeLoggingTextureWrap.Wrap(
+                        tm.Shared.GetFromGame(this.notificationTemplate.IconText).GetWrapOrDefault());
+                    if (textureWrap2 != null)
+                    {
+                        n.SetIconTexture(
+                            new ForwardingSharedImmediateTexture(textureWrap2));
+                    }
+
                     break;
                 case 8:
-                    n.SetIconTexture(
-                        DisposeLoggingTextureWrap.Wrap(
-                            tm.Shared.GetFromFile(this.notificationTemplate.IconText).GetWrapOrDefault()),
-                        this.notificationTemplate.LeaveTexturesOpen);
+                    var textureWrap3 = DisposeLoggingTextureWrap.Wrap(
+                        tm.Shared.GetFromFile(this.notificationTemplate.IconText).GetWrapOrDefault());
+                    if (textureWrap3 != null)
+                    {
+                        n.SetIconTexture(
+                            new ForwardingSharedImmediateTexture(textureWrap3));
+                    }
+
                     break;
             }
 
@@ -303,15 +305,15 @@ internal class ImGuiWidget : IDataWindowWidget
                 };
             }
         }
-        
+
         ImGui.SameLine();
         if (ImGui.Button("Replace images using setter"))
         {
             foreach (var n in this.notifications)
             {
                 var i = (uint)Random.Shared.NextInt64(0, 200000);
-                n.IconTexture = DisposeLoggingTextureWrap.Wrap(
-                    Service<TextureManager>.Get().Shared.GetFromGameIcon(new(i)).GetWrapOrDefault());
+
+                n.IconTexture = Service<TextureManager>.Get().Shared.GetFromGameIcon(new(i, false, false));
             }
         }
     }
