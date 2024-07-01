@@ -355,7 +355,9 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
         }
 
-        ImGui.Image(entry.Texture.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize * scale));
+        // Wrap should always be valid at this point due to us trying to get the wrap in IsShowConditionSatisfied
+        var dalamudTextureWrap = entry.Texture.GetWrapOrEmpty();
+        ImGui.Image(dalamudTextureWrap.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize * scale));
         if (overrideAlpha || isFirst)
         {
             ImGui.PopStyleVar();
@@ -369,7 +371,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         var textHeight = ImGui.GetTextLineHeightWithSpacing();
         var cursor = ImGui.GetCursorPos();
 
-        cursor.Y += (entry.Texture.Height * scale / 2) - (textHeight / 2);
+        cursor.Y += (dalamudTextureWrap.Height * scale / 2) - (textHeight / 2);
 
         if (overrideAlpha)
         {
@@ -394,7 +396,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             ImGui.PopStyleVar();
         }
 
-        initialCursor.Y += entry.Texture.Height * scale;
+        initialCursor.Y += dalamudTextureWrap.Height * scale;
         ImGui.SetCursorPos(initialCursor);
 
         return isHover;

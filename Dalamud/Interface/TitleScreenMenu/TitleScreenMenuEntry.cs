@@ -9,6 +9,8 @@ using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface;
 
+using Textures;
+
 /// <summary>
 /// A interface representing an entry in the title screen menu.
 /// </summary>
@@ -64,7 +66,7 @@ public interface IReadOnlyTitleScreenMenuEntry
     /// <summary>
     /// Gets the texture of this entry.
     /// </summary>
-    IDalamudTextureWrap Texture { get; }
+    ISharedImmediateTexture Texture { get; }
 }
 
 /// <summary>
@@ -87,7 +89,7 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
         Assembly? callingAssembly,
         ulong priority,
         string text,
-        IDalamudTextureWrap texture,
+        ISharedImmediateTexture texture,
         Action onTriggered,
         IEnumerable<VirtualKey>? showConditionKeys = null)
     {
@@ -106,7 +108,7 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
     public string Name { get; set; }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap Texture { get; set; }
+    public ISharedImmediateTexture Texture { get; set; }
         
     /// <inheritdoc/>
     public bool IsInternal { get; set; }
@@ -151,7 +153,8 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
     /// </summary>
     /// <returns>True if met.</returns>
     public bool IsShowConditionSatisfied() =>
-        this.ShowConditionKeys.All(x => Service<KeyState>.GetNullable()?[x] is true);
+        this.ShowConditionKeys.All(x => Service<KeyState>.GetNullable()?[x] is true) 
+        && this.Texture.TryGetWrap(out var textureWrap, out _) && textureWrap.Width == 64 && textureWrap.Height == 64;
 
     /// <summary>
     /// Trigger the action associated with this entry.
