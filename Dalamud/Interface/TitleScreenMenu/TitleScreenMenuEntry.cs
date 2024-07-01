@@ -153,8 +153,7 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
     /// </summary>
     /// <returns>True if met.</returns>
     public bool IsShowConditionSatisfied() =>
-        this.ShowConditionKeys.All(x => Service<KeyState>.GetNullable()?[x] is true) 
-        && this.Texture.TryGetWrap(out var textureWrap, out _) && textureWrap.Width == 64 && textureWrap.Height == 64;
+        this.ShowConditionKeys.All(x => Service<KeyState>.GetNullable()?[x] is true);
 
     /// <summary>
     /// Trigger the action associated with this entry.
