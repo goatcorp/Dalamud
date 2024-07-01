@@ -189,10 +189,20 @@ public interface ITextureProvider
     /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
     /// <remarks>
     /// <para>This function is under the effect of <see cref="ITextureSubstitutionProvider.GetSubstitutedPath"/>.</para>
-    /// <para>This function does not throw exceptions.</para>
     /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
     /// </remarks>
     ISharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup);
+    
+    /// <summary>Gets a shared texture corresponding to the given game resource icon specifier.</summary>
+    /// <remarks>
+    /// <para>This function does not throw exceptions.</para>
+    /// <para>This function is under the effect of <see cref="ITextureSubstitutionProvider.GetSubstitutedPath"/>.</para>
+    /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
+    /// </remarks>
+    /// <param name="lookup">A game icon specifier.</param>
+    /// <param name="texture">The resulting <see cref="ISharedImmediateTexture"/>.</param>
+    /// <returns>Whether or not the lookup succeeded.</returns>
+    bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture);
 
     /// <summary>Gets a shared texture corresponding to the given path to a game resource.</summary>
     /// <param name="path">A path to a game resource.</param>

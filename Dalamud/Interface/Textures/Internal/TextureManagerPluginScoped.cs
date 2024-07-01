@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -274,6 +275,20 @@ internal sealed class TextureManagerPluginScoped
         return shared;
     }
 
+    /// <inheritdoc/>
+    public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture)
+    {
+        if (this.ManagerOrThrow.Shared.TryGetFromGameIcon(lookup, out var shared))
+        {
+            shared.AddOwnerPlugin(this.plugin);
+            texture = shared;
+            return true;
+        }
+
+        texture = null;
+        return false;
+    }
+    
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromGame(string path)
     {
