@@ -166,16 +166,16 @@ internal class DalamudInterface : IInternalDisposableService
             {
                 titleScreenMenu.AddEntryCore(
                     Loc.Localize("TSMDalamudPlugins", "Plugin Installer"),
-                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    new DalamudAssetTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
                     this.OpenPluginInstaller);
                 titleScreenMenu.AddEntryCore(
                     Loc.Localize("TSMDalamudSettings", "Dalamud Settings"),
-                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    new DalamudAssetTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
                     this.OpenSettings);
 
                 titleScreenMenu.AddEntryCore(
                     "Toggle Dev Menu",
-                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    new DalamudAssetTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
                     () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
                     VirtualKey.SHIFT);
 
@@ -183,7 +183,7 @@ internal class DalamudInterface : IInternalDisposableService
                 {
                     titleScreenMenu.AddEntryCore(
                         Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
-                        dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                        new DalamudAssetTexture(dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall)),
                         () => this.isImGuiDrawDevMenu = true);
                 }
             });
