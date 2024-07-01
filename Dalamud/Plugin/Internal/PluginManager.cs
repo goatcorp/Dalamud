@@ -554,14 +554,14 @@ internal class PluginManager : IInternalDisposableService
                 var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
                 if (!manifestFile.Exists)
                 {
-                    Log.Information("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                    Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
                     continue;
                 }
             
                 var manifest = LocalPluginManifest.Load(manifestFile);
                 if (manifest == null)
                 {
-                    Log.Information("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                    Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
                     continue;
                 }
 
@@ -816,14 +816,14 @@ internal class PluginManager : IInternalDisposableService
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
             if (!manifestFile.Exists)
             {
-                Log.Information("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
                 continue;
             }
             
             var manifest = LocalPluginManifest.Load(manifestFile);
             if (manifest == null)
             {
-                Log.Information("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
                 continue;
             }
 
