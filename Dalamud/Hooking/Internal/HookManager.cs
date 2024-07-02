@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 using Dalamud.Logging.Internal;
@@ -17,6 +18,7 @@ namespace Dalamud.Hooking.Internal;
 internal class HookManager : IInternalDisposableService
 {
     /// <summary>
+    /// Logger shared with <see cref="CastingHook{T, TBase}"/>.
     /// Logger shared with <see cref="Unhooker"/>.
     /// </summary>
     internal static readonly ModuleLog Log = new("HM");
@@ -27,34 +29,36 @@ internal class HookManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Gets sync root object for hook enabling/disabling.
+    /// Gets sync root object for all hook operations.
     /// </summary>
-    internal static object HookEnableSyncRoot { get; } = new();
+    internal static object HookSyncRoot { get; } = new();
 
     /// <summary>
-    /// Gets a static list of tracked and registered hooks.
+    /// Gets a static dictionary of tracked and registered hooks.
+    /// The caller must hold the global hook lock when accessing this dictionary.
     /// </summary>
-    internal static ConcurrentDictionary<Guid, HookInfo> TrackedHooks { get; } = new();
+    internal static Dictionary<Guid, HookInfo> Hooks { get; } = [];
 
     /// <summary>
-    /// Gets a static dictionary of unhookers for a hooked address.
+    /// Gets a static dictionary that maps hooked addresses to their corresponding unhooker.
+    /// The caller must hold the global hook lock when accessing this dictionary.
     /// </summary>
-    internal static ConcurrentDictionary<IntPtr, Unhooker> Unhookers { get; } = new();
+    internal static Dictionary<nint, Unhooker> Unhookers { get; } = [];
 
     /// <summary>
-    /// Gets a static dictionary of the number of hooks on a given address.
+    /// Gets a static dictionary that maps hooked addresses to their corresponding hook stacker.
     /// </summary>
-    internal static ConcurrentDictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
+    internal static ConcurrentDictionary<nint, IDalamudHook> HookStackTracker { get; } = [];
 
     /// <summary>
     /// Creates a new Unhooker instance for the provided address if no such unhooker was already registered, or returns
     /// an existing instance if the address was registered previously. By default, the unhooker will restore between 0
     /// and 0x32 bytes depending on the detected size of the hook. To specify the minimum and maximum bytes restored
-    /// manually, use <see cref="RegisterUnhooker(System.IntPtr, int, int)"/>.
+    /// manually, use <see cref="RegisterUnhooker(nint, int, int)"/>.
     /// </summary>
     /// <param name="address">The address of the instruction.</param>
     /// <returns>A new Unhooker instance.</returns>
-    public static Unhooker RegisterUnhooker(IntPtr address)
+    public static Unhooker RegisterUnhooker(nint address)
     {
         return RegisterUnhooker(address, 0, 0x32);
     }
@@ -67,26 +71,99 @@ internal class HookManager : IInternalDisposableService
     /// <param name="minBytes">The minimum amount of bytes to restore when unhooking.</param>
     /// <param name="maxBytes">The maximum amount of bytes to restore when unhooking.</param>
     /// <returns>A new Unhooker instance.</returns>
-    public static Unhooker RegisterUnhooker(IntPtr address, int minBytes, int maxBytes)
+    public static Unhooker RegisterUnhooker(nint address, int minBytes, int maxBytes)
     {
-        Log.Verbose($"Registering hook at 0x{address.ToInt64():X} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
-        return Unhookers.GetOrAdd(address, _ => new Unhooker(address, minBytes, maxBytes));
+        lock (HookSyncRoot)
+        {
+            Log.Verbose($"Registering hook at 0x{address.ToInt64():X} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
+            if (!Unhookers.TryGetValue(address, out var unhooker))
+            {
+                unhooker = new Unhooker(address, minBytes, maxBytes);
+                Unhookers[address] = unhooker;
+            }
+
+            return unhooker;
+        }
     }
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        RevertHooks();
-        TrackedHooks.Clear();
-        Unhookers.Clear();
+        lock (HookSyncRoot)
+        {
+            RevertHooks();
+            Hooks.Clear();
+            Unhookers.Clear();
+            HookStackTracker.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Creates a hook. The hook constructor will only be called if the given address is not already hooked.
+    /// Otherwise stacks the hook on top of the existing one. The backend name will always be determined
+    /// by the first hook added at the specified address.
+    /// This will create a hook inside the priority band specified.
+    /// Dalamud internal hooks will always run first before normal priority, but after high-priority hooks.
+    /// </summary>
+    /// <typeparam name="T">Delegate of the hook.</typeparam>
+    /// <param name="address">A memory address to install a hook.</param>
+    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="hookConstructor">Function that takes a delegate and creates a backend hook, if needed.</param>
+    /// <param name="priority">Priority band of the hook.</param>
+    /// <param name="precedence">Precendence of the hook. Positive values will lead to the hook having higher effective
+    /// raw priority (called earlier), and negative values lead to lower effective raw priority (called later).</param>
+    /// <param name="callingAssembly">Calling assembly.</param>
+    /// <returns>The hook with the supplied parameters.</returns>
+    internal static Hook<T> CreateHook<T>(nint address, T detour, Func<T, Hook<T>> hookConstructor, HookPriority priority, int precedence, Assembly callingAssembly) where T : Delegate
+    {
+        var rawPriority = (byte)0;
+
+        static byte CalculateRawPriority(int precedence, int precedenceRange, int lowestPriority)
+        {
+            var basePriority = lowestPriority + precedenceRange;
+
+            if (precedence < -precedenceRange)
+            {
+                Log.Warning($"Clamping precedence to {-precedenceRange}; hook precendence should fall between [{-precedenceRange}, {precedenceRange}], was {precedence}");
+                precedence = -precedenceRange;
+            }
+
+            if (precedence > precedenceRange)
+            {
+                Log.Warning($"Clamping precedence to {precedenceRange}; hook precendence should fall between [{-precedenceRange}, {precedenceRange}], was {precedence}");
+                precedence = precedenceRange;
+            }
+
+            return (byte)(basePriority + precedence);
+        }
+
+        switch (priority)
+        {
+            case HookPriority.AfterNotify:
+                rawPriority = 0;
+                break;
+            case HookPriority.NormalPriority:
+                var isDalamudHook = callingAssembly == Assembly.GetExecutingAssembly();
+                rawPriority = CalculateRawPriority(precedence, isDalamudHook ? 32 : 63, isDalamudHook ? 127 : 1);
+                break;
+            case HookPriority.HighPriority:
+                rawPriority = CalculateRawPriority(precedence, 31, 192);
+                break;
+            case HookPriority.BeforeNotify:
+                rawPriority = 255;
+                break;
+        }
+
+        return CreateHook<T>(address, detour, hookConstructor, rawPriority, callingAssembly);
     }
 
     /// <summary>
     /// Follow a JMP or Jcc instruction to the next logical location.
+    /// The caller must hold the global hook lock.
     /// </summary>
     /// <param name="address">Address of the instruction.</param>
     /// <returns>The address referenced by the jmp.</returns>
-    internal static IntPtr FollowJmp(IntPtr address)
+    internal static nint FollowJmp(nint address)
     {
         while (true)
         {
@@ -154,6 +231,59 @@ internal class HookManager : IInternalDisposableService
         return address;
     }
 
+    /// <summary>
+    /// Creates a hook. The hook constructor will only be called if the given address is not already hooked.
+    /// Otherwise stacks the hook on top of the existing one. The backend name will always be determined
+    /// by the first hook added at the specified address.
+    /// </summary>
+    /// <param name="address">A memory address to install a hook.</param>
+    /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
+    /// <param name="hookConstructor">Function that takes a delegate and creates a backend hook, if needed.</param>
+    /// <param name="rawPriority">Raw priority of the hook.</param>
+    /// <param name ="callingAssembly"> Calling assembly.</param>
+    /// <returns>The hook with the supplied parameters.</returns>
+    private static Hook<T> CreateHook<T>(nint address, T detour, Func<T, Hook<T>> hookConstructor, byte rawPriority, Assembly callingAssembly) where T : Delegate
+    {
+        lock (HookSyncRoot)
+        {
+            if (!HookStackTracker.TryGetValue(address, out var hookStacker))
+            {
+                hookStacker = new HookStacker<T>(address);
+                var backendDetour = (hookStacker as HookStacker<T>).BackendDelegate;
+                (hookStacker as HookStacker<T>).SetBackend(hookConstructor(backendDetour));
+            }
+
+            var hookStackerType = hookStacker.GetType().GetGenericArguments()[0];
+
+            if (hookStackerType == typeof(T))
+            {
+                var hook = new HollowHook<T>(address, hookStacker as HookStacker<T>);
+                var hookInfo = new HookInfo(hook, detour, callingAssembly, rawPriority);
+                (hookStacker as HookStacker<T>).Add(hookInfo);
+                Hooks.TryAdd(Guid.NewGuid(), hookInfo);
+                return hook;
+            }
+            else
+            {
+                Log.Debug($"Stacking hook of type {typeof(T).Name} onto {hookStackerType} at address {address}");
+                var baseHookType = typeof(HollowHook<>).MakeGenericType(hookStackerType);
+                var baseHook = Activator.CreateInstance(baseHookType, address, hookStacker);
+                var hookType = typeof(CastingHook<,>).MakeGenericType(typeof(T), hookStackerType);
+                var hook = Activator.CreateInstance(hookType, address, baseHook, detour);
+                var baseDetour = hookType.GetMethod("GetBaseHookDetour").Invoke(hook, []);
+                var baseHookInfo = new HookInfo((IDalamudHook)baseHook, (Delegate)baseDetour, callingAssembly, rawPriority);
+                hookStacker.GetType().GetMethod("Add").Invoke(hookStacker, [baseHookInfo]);
+                var hookInfo = new HookInfo((IDalamudHook)hook, detour, callingAssembly, rawPriority);
+                Hooks.TryAdd(Guid.NewGuid(), hookInfo);
+                return hook as Hook<T>;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reverts all Hooks.
+    /// The caller must hold the global hook lock.
+    /// </summary>
     private static void RevertHooks()
     {
         foreach (var unhooker in Unhookers.Values)
