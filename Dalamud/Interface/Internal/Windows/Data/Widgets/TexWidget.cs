@@ -525,7 +525,6 @@ internal class TexWidget : IDataWindowWidget
         ImGui.TableSetupColumn("Source", ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupColumn("RefCount", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("RefCount__").X);
         ImGui.TableSetupColumn("SelfRef", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("00.000___").X);
-        ImGui.TableSetupColumn("CanRevive", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("CanRevive__").X);
         ImGui.TableSetupColumn(
             "Actions",
             ImGuiTableColumnFlags.WidthFixed,
@@ -581,9 +580,6 @@ internal class TexWidget : IDataWindowWidget
 
                     ImGui.TableNextColumn();
                     this.TextCopiable(remain <= 0 ? "-" : $"{remain:00.000}", true, true);
-
-                    ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(texture.HasRevivalPossibility ? "Yes" : "No");
 
                     ImGui.TableNextColumn();
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
