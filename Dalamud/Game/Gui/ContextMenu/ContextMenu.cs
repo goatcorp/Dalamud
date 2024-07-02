@@ -32,7 +32,8 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
     private readonly Hook<AtkModuleVf22OpenAddonByAgentDelegate> atkModuleVf22OpenAddonByAgentHook;
     private readonly Hook<AddonContextMenuOnMenuSelectedDelegate> addonContextMenuOnMenuSelectedHook;
-    private readonly uint addonContextSubNameId;
+
+    private uint? addonContextSubNameId;
 
     [ServiceManager.ServiceConstructor]
     private ContextMenu()
@@ -40,9 +41,6 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         var raptureAtkModuleVtable = (nint*)RaptureAtkModule.StaticVirtualTablePointer;
         this.atkModuleVf22OpenAddonByAgentHook = Hook<AtkModuleVf22OpenAddonByAgentDelegate>.FromAddress(raptureAtkModuleVtable[22], this.AtkModuleVf22OpenAddonByAgentDetour);
         this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVirtualTablePointer->OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
-
-        var addonContextSubNameId = RaptureAtkModule.Instance()->AddonNames.FindIndex(s => s.EqualToString("AddonContextSub"));
-        this.addonContextSubNameId = checked((uint)addonContextSubNameId);
 
         this.atkModuleVf22OpenAddonByAgentHook.Enable();
         this.addonContextMenuOnMenuSelectedHook.Enable();
@@ -76,6 +74,20 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     private List<int> MenuCallbackIds { get; } = [];
 
     private IReadOnlyList<IMenuItem>? SubmenuItems { get; set; }
+
+    private uint AddonContextSubNameId
+    {
+        get
+        {
+            if (this.addonContextSubNameId is not uint id)
+            {
+                id = checked((uint)RaptureAtkModule.Instance()->AddonNames.FindIndex(s => s.EqualToString("AddonContextSub")));
+                this.addonContextSubNameId = id;
+            }
+
+            return id;
+        }
+    }
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -433,14 +445,14 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             case ContextMenuType.Default:
                 {
                     var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
-                    module->OpenAddon(this.addonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 71, checked((ushort)ownerAddonId), 4);
+                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 71, checked((ushort)ownerAddonId), 4);
                     break;
                 }
 
             case ContextMenuType.Inventory:
                 {
                     var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
-                    module->OpenAddon(this.addonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 0, checked((ushort)ownerAddonId), 4);
+                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 0, checked((ushort)ownerAddonId), 4);
                     break;
                 }
 
