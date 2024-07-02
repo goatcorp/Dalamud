@@ -12,6 +12,8 @@ using Dalamud.Utility;
 
 namespace Dalamud.Interface;
 
+using Textures;
+
 /// <summary>
 /// Class responsible for managing elements in the title screen menu.
 /// </summary>
@@ -76,13 +78,8 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    public ITitleScreenMenuEntry AddPluginEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
+    public ITitleScreenMenuEntry AddPluginEntry(string text, ISharedImmediateTexture texture, Action onTriggered)
     {
-        if (texture.Height != TextureSize || texture.Width != TextureSize)
-        {
-            throw new ArgumentException("Texture must be 64x64");
-        }
-
         TitleScreenMenuEntry entry;
         lock (this.entries)
         {
@@ -103,13 +100,13 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     }
 
     /// <inheritdoc/>
-    public IReadOnlyTitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
+    public IReadOnlyTitleScreenMenuEntry AddEntry(string text, ISharedImmediateTexture texture, Action onTriggered)
     {
         return this.AddPluginEntry(text, texture, onTriggered);
     }
 
     /// <inheritdoc/>
-    public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
+    public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, ISharedImmediateTexture texture, Action onTriggered)
     {
         return this.AddPluginEntry(priority, text, texture, onTriggered);
     }
@@ -123,13 +120,8 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    public ITitleScreenMenuEntry AddPluginEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
+    public ITitleScreenMenuEntry AddPluginEntry(ulong priority, string text, ISharedImmediateTexture texture, Action onTriggered)
     {
-        if (texture.Height != TextureSize || texture.Width != TextureSize)
-        {
-            throw new ArgumentException("Texture must be 64x64");
-        }
-
         TitleScreenMenuEntry entry;
         lock (this.entries)
         {
@@ -166,13 +158,8 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="TitleScreenMenu"/> object that can be used to manage the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    internal TitleScreenMenuEntry AddEntryCore(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
+    internal TitleScreenMenuEntry AddEntryCore(ulong priority, string text, ISharedImmediateTexture texture, Action onTriggered)
     {
-        if (texture.Height != TextureSize || texture.Width != TextureSize)
-        {
-            throw new ArgumentException("Texture must be 64x64");
-        }
-
         TitleScreenMenuEntry entry;
         lock (this.entries)
         {
@@ -199,15 +186,10 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
     internal TitleScreenMenuEntry AddEntryCore(
         string text,
-        IDalamudTextureWrap texture,
+        ISharedImmediateTexture texture,
         Action onTriggered,
         params VirtualKey[] showConditionKeys)
     {
-        if (texture.Height != TextureSize || texture.Width != TextureSize)
-        {
-            throw new ArgumentException("Texture must be 64x64");
-        }
-
         TitleScreenMenuEntry entry;
         lock (this.entries)
         {
@@ -256,7 +238,7 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
     }
     
     /// <inheritdoc/>
-    public IReadOnlyTitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered)
+    public IReadOnlyTitleScreenMenuEntry AddEntry(string text, ISharedImmediateTexture texture, Action onTriggered)
     {
         var entry = this.titleScreenMenuService.AddPluginEntry(text, texture, onTriggered);
         this.pluginEntries.Add(entry);
@@ -265,7 +247,7 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
     }
     
     /// <inheritdoc/>
-    public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered)
+    public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, ISharedImmediateTexture texture, Action onTriggered)
     {
         var entry = this.titleScreenMenuService.AddPluginEntry(priority, text, texture, onTriggered);
         this.pluginEntries.Add(entry);

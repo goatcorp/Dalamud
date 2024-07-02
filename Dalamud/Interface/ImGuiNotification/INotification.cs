@@ -6,6 +6,8 @@ using Dalamud.Plugin.Services;
 
 namespace Dalamud.Interface.ImGuiNotification;
 
+using Textures;
+
 /// <summary>Represents a notification.</summary>
 /// <remarks>Not to be implemented by plugins.</remarks>
 public interface INotification
@@ -29,8 +31,8 @@ public interface INotification
     /// <summary>Gets or sets a texture wrap that will be used in place of <see cref="Icon"/> if set.</summary>
     /// <remarks>
     /// <para>A texture wrap set via this property will <b>NOT</b> be disposed when the notification is dismissed.
-    /// Use <see cref="IActiveNotification.SetIconTexture(IDalamudTextureWrap?)"/> or
-    /// <see cref="IActiveNotification.SetIconTexture(Task{IDalamudTextureWrap?}?)"/> to use a texture, after calling
+    /// Use <see cref="IActiveNotification.SetIconTexture(ISharedImmediateTexture?)"/> or
+    /// <see cref="IActiveNotification.SetIconTexture(Task{ISharedImmediateTexture?}?)"/> to use a texture, after calling
     /// <see cref="INotificationManager.AddNotification"/>. Call either of those functions with <c>null</c> to revert
     /// the effective icon back to this property.</para>
     /// <para>This property and <see cref="IconTextureTask"/> are bound together. If the task is not <c>null</c> but
@@ -38,19 +40,7 @@ public interface INotification
     /// the property will return <c>null</c>. Setting this property will set <see cref="IconTextureTask"/> to a new
     /// completed <see cref="Task{TResult}"/> with the new value as its result.</para>
     /// </remarks>
-    public IDalamudTextureWrap? IconTexture { get; set; }
-
-    /// <summary>Gets or sets a task that results in a texture wrap that will be used in place of <see cref="Icon"/> if
-    /// available.</summary>
-    /// <remarks>
-    /// <para>A texture wrap set via this property will <b>NOT</b> be disposed when the notification is dismissed.
-    /// Use <see cref="IActiveNotification.SetIconTexture(IDalamudTextureWrap?)"/> or
-    /// <see cref="IActiveNotification.SetIconTexture(Task{IDalamudTextureWrap?}?)"/> to use a texture, after calling
-    /// <see cref="INotificationManager.AddNotification"/>. Call either of those functions with <c>null</c> to revert
-    /// the effective icon back to this property.</para>
-    /// <para>This property and <see cref="IconTexture"/> are bound together.</para>
-    /// </remarks>
-    Task<IDalamudTextureWrap?>? IconTextureTask { get; set; }
+    public ISharedImmediateTexture? IconTexture { get; set; }
 
     /// <summary>Gets or sets the hard expiry.</summary>
     /// <remarks>
