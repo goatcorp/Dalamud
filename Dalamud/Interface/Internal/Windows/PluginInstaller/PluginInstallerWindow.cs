@@ -423,6 +423,17 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         return false;
     }
+    
+    private static void EnsureHaveTestingOptIn(IPluginManifest manifest)
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        
+        if (configuration.PluginTestingOptIns.Any(x => x.InternalName == manifest.InternalName))
+            return;
+        
+        configuration.PluginTestingOptIns.Add(new PluginTestingOptIn(manifest.InternalName));
+        configuration.QueueSave();
+    }
 
     private void SetOpenPage(PluginInstallerOpenKind kind)
     {
@@ -456,7 +467,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
         }
     }
-
+    
     private void DrawProgressOverlay()
     {
         var pluginManager = Service<PluginManager>.Get();
@@ -782,7 +793,13 @@ internal class PluginInstallerWindow : Window, IDisposable
                             if (this.updatePluginCount > 0)
                             {
                                 Service<PluginManager>.Get().PrintUpdatedPlugins(this.updatedPlugins, Locs.PluginUpdateHeader_Chatbox);
-                                notifications.AddNotification(Locs.Notifications_UpdatesInstalled(this.updatePluginCount), Locs.Notifications_UpdatesInstalledTitle, NotificationType.Success);
+                                notifications.AddNotification(new Notification
+                                {
+                                    Title = Locs.Notifications_UpdatesInstalledTitle,
+                                    Content = Locs.Notifications_UpdatesInstalled(this.updatedPlugins),
+                                    Type = NotificationType.Success,
+                                    Icon = INotificationIcon.From(FontAwesomeIcon.Download),
+                                });
 
                                 this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Installed;
                             }
@@ -2257,7 +2274,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (useTesting || manifest.IsTestingExclusive)
             flags |= PluginHeaderFlags.IsTesting;
         
-        if (this.DrawPluginCollapsingHeader(label, null, manifest, flags, () => this.DrawAvailablePluginContextMenu(manifest), index))
+        if (this.DrawPluginCollapsingHeader(label, null, manifest, flags, () => this.DrawAvailablePluginContextMenu(manifest, effectiveApiLevel), index))
         {
             if (!wasSeen)
                 configuration.SeenPluginInternalName.Add(manifest.InternalName);
@@ -2335,13 +2352,28 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PopID();
     }
 
-    private void DrawAvailablePluginContextMenu(PluginManifest manifest)
+    private void DrawAvailablePluginContextMenu(RemotePluginManifest manifest, int effectiveApiLevel)
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
+        var hasTestingVersionAvailable = configuration.DoPluginTest &&
+                                         PluginManager.HasTestingVersion(manifest) &&
+                                         manifest.TestingDalamudApiLevel == effectiveApiLevel;
+
         if (ImGui.BeginPopupContextItem("ItemContextMenu"))
         {
+            if (hasTestingVersionAvailable)
+            {
+                if (ImGui.Selectable(Locs.PluginContext_InstallTestingVersion))
+                {
+                    EnsureHaveTestingOptIn(manifest);
+                    this.StartInstall(manifest, true);
+                }
+                
+                ImGui.Separator();
+            }
+
             if (ImGui.Selectable(Locs.PluginContext_MarkAllSeen))
             {
                 configuration.SeenPluginInternalName.AddRange(this.pluginListAvailable.Select(x => x.InternalName));
@@ -2725,7 +2757,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     }
                     else
                     {
-                        configuration.PluginTestingOptIns!.Add(new PluginTestingOptIn(plugin.Manifest.InternalName));
+                        EnsureHaveTestingOptIn(plugin.Manifest);
                     }
 
                     configuration.QueueSave();
@@ -3818,6 +3850,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginContext_TestingOptIn => Loc.Localize("InstallerTestingOptIn", "Receive plugin testing versions");
 
+        public static string PluginContext_InstallTestingVersion => Loc.Localize("InstallerInstallTestingVersion", "Install testing version");
+        
         public static string PluginContext_MarkAllSeen => Loc.Localize("InstallerMarkAllSeen", "Mark all as seen");
 
         public static string PluginContext_HidePlugin => Loc.Localize("InstallerHidePlugin", "Hide from installer");
@@ -3941,7 +3975,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string Notifications_UpdatesInstalledTitle => Loc.Localize("NotificationsUpdatesInstalledTitle", "Updates installed!");
 
-        public static string Notifications_UpdatesInstalled(int count) => Loc.Localize("NotificationsUpdatesInstalled", "Updates for {0} of your plugins were installed.").Format(count);
+        public static string Notifications_UpdatesInstalled(List<PluginUpdateStatus> updates)
+            => Loc.Localize("NotificationsUpdatesInstalled", "Updates for {0} of your plugins were installed.\n\n{1}")
+                  .Format(updates.Count, string.Join(", ", updates.Select(x => x.InternalName)));
 
         public static string Notifications_PluginDisabledTitle => Loc.Localize("NotificationsPluginDisabledTitle", "Plugin disabled!");
 
