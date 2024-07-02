@@ -410,6 +410,9 @@ internal sealed partial class ActiveNotification
         if (this.Icon?.DrawIcon(minCoord, maxCoord, iconColor) is true)
             return;
 
+        if (NotificationUtilities.DrawIconFrom(minCoord, maxCoord, this.IconSharedImmediateTexture?.GetWrapOrDefault()))
+            return;
+
         if (NotificationUtilities.DrawIconFrom(
                 minCoord,
                 maxCoord,
