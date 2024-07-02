@@ -125,6 +125,11 @@ public record DalamudStartInfo
     public bool BootEnableEtw { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not GC Server should be enabled.
+    /// </summary>
+    public bool BootEnableGcServer { get; set; }
+
+    /// <summary>
     /// Gets or sets a value choosing the OpenProcess hookmode.
     /// </summary>
     public int BootDotnetOpenProcessHookMode { get; set; }
