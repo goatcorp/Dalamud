@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface.ImGuiNotification;
@@ -28,6 +28,9 @@ public sealed record Notification : INotification
 
     /// <inheritdoc/>
     public INotificationIcon? Icon { get; set; }
+
+    /// <inheritdoc/>
+    public ISharedImmediateTexture? IconSharedImmediateTexture { get; set; }
 
     /// <inheritdoc/>
     public IDalamudTextureWrap? IconTexture

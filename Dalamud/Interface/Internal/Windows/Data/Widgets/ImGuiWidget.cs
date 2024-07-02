@@ -100,13 +100,13 @@ internal class ImGuiWidget : IDataWindowWidget
                     NotificationTemplate.AssetSources,
                     NotificationTemplate.AssetSources.Length);
                 break;
-            case 3 or 7:
+            case 3 or 7 or 9:
                 ImGui.InputText(
                     "Game Path##iconText",
                     ref this.notificationTemplate.IconText,
                     255);
                 break;
-            case 4 or 8:
+            case 4 or 8 or 10:
                 ImGui.InputText(
                     "File Path##iconText",
                     ref this.notificationTemplate.IconText,
@@ -201,6 +201,12 @@ internal class ImGuiWidget : IDataWindowWidget
                                                   : this.notificationTemplate.IconText[0])),
                         3 => INotificationIcon.FromGame(this.notificationTemplate.IconText),
                         4 => INotificationIcon.FromFile(this.notificationTemplate.IconText),
+                        _ => null,
+                    },
+                    IconSharedImmediateTexture = this.notificationTemplate.IconInt switch
+                    {
+                        9 => Service<TextureManager>.Get().Shared.GetFromGame(this.notificationTemplate.IconText),
+                        10 => Service<TextureManager>.Get().Shared.GetFromFile(this.notificationTemplate.IconText),
                         _ => null,
                     },
                 });
@@ -360,6 +366,8 @@ internal class ImGuiWidget : IDataWindowWidget
             "TextureWrap from DalamudAssets(Async)",
             "TextureWrap from GamePath",
             "TextureWrap from FilePath",
+            "ISharedImmediateTexture from GamePath",
+            "ISharedImmediateTexture from FilePath",
         };
 
         public static readonly string[] AssetSources =
