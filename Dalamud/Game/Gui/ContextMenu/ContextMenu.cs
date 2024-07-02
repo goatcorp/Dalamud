@@ -30,22 +30,23 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 {
     private static readonly ModuleLog Log = new("ContextMenu");
 
-    private readonly Hook<RaptureAtkModuleOpenAddonByAgentDelegate> raptureAtkModuleOpenAddonByAgentHook;
+    private readonly Hook<AtkModuleVf22OpenAddonByAgentDelegate> atkModuleVf22OpenAddonByAgentHook;
     private readonly Hook<AddonContextMenuOnMenuSelectedDelegate> addonContextMenuOnMenuSelectedHook;
-    private readonly RaptureAtkModuleOpenAddonDelegate raptureAtkModuleOpenAddon;
+
+    private uint? addonContextSubNameId;
 
     [ServiceManager.ServiceConstructor]
     private ContextMenu()
     {
-        this.raptureAtkModuleOpenAddonByAgentHook = Hook<RaptureAtkModuleOpenAddonByAgentDelegate>.FromAddress((nint)RaptureAtkModule.Addresses.OpenAddonByAgent.Value, this.RaptureAtkModuleOpenAddonByAgentDetour);
+        var raptureAtkModuleVtable = (nint*)RaptureAtkModule.StaticVirtualTablePointer;
+        this.atkModuleVf22OpenAddonByAgentHook = Hook<AtkModuleVf22OpenAddonByAgentDelegate>.FromAddress(raptureAtkModuleVtable[22], this.AtkModuleVf22OpenAddonByAgentDetour);
         this.addonContextMenuOnMenuSelectedHook = Hook<AddonContextMenuOnMenuSelectedDelegate>.FromAddress((nint)AddonContextMenu.StaticVirtualTablePointer->OnMenuSelected, this.AddonContextMenuOnMenuSelectedDetour);
-        this.raptureAtkModuleOpenAddon = Marshal.GetDelegateForFunctionPointer<RaptureAtkModuleOpenAddonDelegate>((nint)RaptureAtkModule.Addresses.OpenAddon.Value);
 
-        this.raptureAtkModuleOpenAddonByAgentHook.Enable();
+        this.atkModuleVf22OpenAddonByAgentHook.Enable();
         this.addonContextMenuOnMenuSelectedHook.Enable();
     }
 
-    private delegate ushort RaptureAtkModuleOpenAddonByAgentDelegate(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId);
+    private delegate ushort AtkModuleVf22OpenAddonByAgentDelegate(AtkModule* module, byte* addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8);
     
     private delegate bool AddonContextMenuOnMenuSelectedDelegate(AddonContextMenu* addon, int selectedIdx, byte a3);
     
@@ -54,7 +55,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     /// <inheritdoc/>
     public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
 
-    private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = new();
+    private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
     private object MenuItemsLock { get; } = new();
 
@@ -64,15 +65,29 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
     private List<IMenuItem>? SelectedItems { get; set; }
 
-    private HashSet<nint> SelectedEventInterfaces { get; } = new();
+    private HashSet<nint> SelectedEventInterfaces { get; } = [];
 
     private AtkUnitBase* SelectedParentAddon { get; set; }
 
     // -1 -> -inf: native items
     // 0 -> inf: selected items
-    private List<int> MenuCallbackIds { get; } = new();
+    private List<int> MenuCallbackIds { get; } = [];
 
     private IReadOnlyList<IMenuItem>? SubmenuItems { get; set; }
+
+    private uint AddonContextSubNameId
+    {
+        get
+        {
+            if (this.addonContextSubNameId is not uint id)
+            {
+                id = checked((uint)RaptureAtkModule.Instance()->AddonNames.FindIndex(s => s.EqualToString("AddonContextSub")));
+                this.addonContextSubNameId = id;
+            }
+
+            return id;
+        }
+    }
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -85,7 +100,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         if (submenu->IsVisible)
             submenu->FireCallbackInt(-1);
 
-        this.raptureAtkModuleOpenAddonByAgentHook.Dispose();
+        this.atkModuleVf22OpenAddonByAgentHook.Dispose();
         this.addonContextMenuOnMenuSelectedHook.Dispose();
     }
 
@@ -95,7 +110,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         lock (this.MenuItemsLock)
         {
             if (!this.MenuItems.TryGetValue(menuType, out var items))
-                this.MenuItems[menuType] = items = new();
+                this.MenuItems[menuType] = items = [];
             items.Add(item);
         }
     }
@@ -160,7 +175,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         // 7: UInt = 1
 
         valueCount = 8;
-        var values = this.ExpandContextMenuArray(Span<AtkValue>.Empty, valueCount);
+        var values = this.ExpandContextMenuArray([], valueCount);
         values[0].ChangeType(ValueType.UInt);
         values[0].UInt = 0;
         values[1].ChangeType(ValueType.String);
@@ -200,7 +215,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             valueCount = (nativeMenuSize + items.Count) * (hasAnyDisabled ? 2 : 1) + headerCount);
         var offsetData = new Span<AtkValue>(values, headerCount);
         var nameData = new Span<AtkValue>(values + headerCount, nativeMenuSize + items.Count);
-        var disabledData = hasAnyDisabled ? new Span<AtkValue>(values + headerCount + nativeMenuSize + items.Count, nativeMenuSize + items.Count) : Span<AtkValue>.Empty;
+        var disabledData = hasAnyDisabled ? new Span<AtkValue>(values + headerCount + nativeMenuSize + items.Count, nativeMenuSize + items.Count) : [];
 
         var returnMask = offsetData[returnHeaderIdx].UInt;
         var submenuMask = offsetData[submenuHeaderIdx].UInt;
@@ -308,7 +323,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         this.SetupGenericMenu(8, 0, 6, 5, items, ref valueCount, ref values);
     }
 
-    private ushort RaptureAtkModuleOpenAddonByAgentDetour(RaptureAtkModule* module, byte* addonName, AtkUnitBase* addon, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, ushort parentAddonId)
+    private ushort AtkModuleVf22OpenAddonByAgentDetour(AtkModule* module, byte* addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8)
     {
         var oldValues = values;
 
@@ -316,7 +331,8 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         {
             this.MenuCallbackIds.Clear();
             this.SelectedAgent = agent;
-            this.SelectedParentAddon = module->RaptureAtkUnitManager.GetAddonById(parentAddonId);
+            var unitManager = RaptureAtkUnitManager.Instance();
+            this.SelectedParentAddon = unitManager->GetAddonById(unitManager->GetAddonByName(addonName)->ContextMenuParentId);
             this.SelectedEventInterfaces.Clear();
             if (this.SelectedAgent == AgentInventoryContext.Instance())
             {
@@ -353,7 +369,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                     if (this.MenuItems.TryGetValue(menuType, out var items))
                         this.SelectedItems = new(items);
                     else
-                        this.SelectedItems = new();
+                        this.SelectedItems = [];
                 }
 
                 var args = new MenuOpenedArgs(this.SelectedItems.Add, this.SelectedParentAddon, this.SelectedAgent, this.SelectedMenuType.Value, this.SelectedEventInterfaces);
@@ -383,7 +399,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             this.MenuCallbackIds.Clear();
         }
 
-        var ret = this.raptureAtkModuleOpenAddonByAgentHook.Original(module, addonName, addon, valueCount, values, agent, a7, parentAddonId);
+        var ret = this.atkModuleVf22OpenAddonByAgentHook.Original(module, addonName, valueCount, values, agent, a7, a8);
         if (values != oldValues)
             this.FreeExpandedContextMenuArray(values, valueCount);
         return ret;
@@ -429,14 +445,14 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             case ContextMenuType.Default:
                 {
                     var ownerAddonId = ((AgentContext*)this.SelectedAgent)->OwnerAddon;
-                    this.raptureAtkModuleOpenAddon(module, 445, (uint)valueCount, values, this.SelectedAgent, 71, checked((ushort)ownerAddonId), 4);
+                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 71, checked((ushort)ownerAddonId), 4);
                     break;
                 }
 
             case ContextMenuType.Inventory:
                 {
                     var ownerAddonId = ((AgentInventoryContext*)this.SelectedAgent)->OwnerAddonId;
-                    this.raptureAtkModuleOpenAddon(module, 445, (uint)valueCount, values, this.SelectedAgent, 0, checked((ushort)ownerAddonId), 4);
+                    module->OpenAddon(this.AddonContextSubNameId, (uint)valueCount, values, this.SelectedAgent, 0, checked((ushort)ownerAddonId), 4);
                     break;
                 }
 
@@ -526,7 +542,7 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
     /// <inheritdoc/>
     public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
 
-    private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = new();
+    private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
     private object MenuItemsLock { get; } = new();
 
@@ -553,7 +569,7 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
         lock (this.MenuItemsLock)
         {
             if (!this.MenuItems.TryGetValue(menuType, out var items))
-                this.MenuItems[menuType] = items = new();
+                this.MenuItems[menuType] = items = [];
             items.Add(item);
         }
 
