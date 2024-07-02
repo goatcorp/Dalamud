@@ -124,6 +124,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private PluginSortKind sortKind = PluginSortKind.Alphabetical;
     private string filterText = Locs.SortBy_Alphabetical;
+    private bool adaptiveSort = true;
 
     private OperationStatus installStatus = OperationStatus.Idle;
     private OperationStatus updateStatus = OperationStatus.Idle;
@@ -208,6 +209,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         NotInstalled,
         EnabledDisabled,
         ProfileOrNot,
+        SearchScore,
     }
     
     [Flags] 
@@ -280,6 +282,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (!this.isSearchTextPrefilled) this.searchText = string.Empty;
         this.sortKind = PluginSortKind.Alphabetical;
         this.filterText = Locs.SortBy_Alphabetical;
+        this.adaptiveSort = true;
 
         if (this.updateStatus == OperationStatus.Complete || this.updateStatus == OperationStatus.Idle)
         {
@@ -588,6 +591,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var sortByTextWidth = ImGui.CalcTextSize(sortByText).X;
         var sortSelectables = new (string Localization, PluginSortKind SortKind)[]
         {
+            (Locs.SortBy_SearchScore, PluginSortKind.SearchScore),
             (Locs.SortBy_Alphabetical, PluginSortKind.Alphabetical),
             (Locs.SortBy_DownloadCounts, PluginSortKind.DownloadCount),
             (Locs.SortBy_LastUpdate, PluginSortKind.LastUpdate),
@@ -640,7 +644,29 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             if (searchTextChanged)
+            {
+                if (this.adaptiveSort)
+                {
+                    if (string.IsNullOrWhiteSpace(this.searchText))
+                    {
+                        this.sortKind = PluginSortKind.Alphabetical;
+                        this.filterText = Locs.SortBy_Alphabetical;
+                    }
+                    else
+                    {
+                        this.sortKind = PluginSortKind.SearchScore;
+                        this.filterText = Locs.SortBy_SearchScore;
+                    }
+
+                    this.ResortPlugins();
+                }
+                else if (this.sortKind == PluginSortKind.SearchScore)
+                {
+                    this.ResortPlugins();
+                }
+
                 this.UpdateCategoriesOnSearchChange(prevSearchText);
+            }
         }
 
         // Disable sort if changelogs or profile editor
@@ -653,10 +679,14 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 foreach (var selectable in sortSelectables)
                 {
+                    if (selectable.SortKind == PluginSortKind.SearchScore && string.IsNullOrWhiteSpace(this.searchText))
+                        continue;
+
                     if (ImGui.Selectable(selectable.Localization))
                     {
                         this.sortKind = selectable.SortKind;
                         this.filterText = selectable.Localization;
+                        this.adaptiveSort = false;
 
                         lock (this.listLock)
                         {
@@ -3461,8 +3491,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool IsManifestFiltered(IPluginManifest manifest)
     {
-        var searchString = this.searchText.ToLowerInvariant();
-        var matcher = new FuzzyMatcher(searchString, MatchMode.FuzzyParts);
         var hasSearchString = !string.IsNullOrWhiteSpace(this.searchText);
         var oldApi = (manifest.TestingDalamudApiLevel == null
                             || manifest.TestingDalamudApiLevel < PluginManager.DalamudApiLevel)
@@ -3472,12 +3500,30 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (oldApi && !hasSearchString && !installed)
             return true;
 
-        return hasSearchString && !(
-                                       (!manifest.Name.IsNullOrEmpty() && matcher.Matches(manifest.Name.ToLowerInvariant()) > 0) ||
-                                       (!manifest.InternalName.IsNullOrEmpty() && matcher.Matches(manifest.InternalName.ToLowerInvariant()) > 0) ||
-                                       (!manifest.Author.IsNullOrEmpty() && matcher.Matches(manifest.Author.ToLowerInvariant()) > 0) ||
-                                       (!manifest.Punchline.IsNullOrEmpty() && manifest.Punchline.ToLowerInvariant().Contains(searchString)) ||
-                                       (manifest.Tags != null && matcher.MatchesAny(manifest.Tags.Select(term => term.ToLowerInvariant()).ToArray()) > 0));
+        if (!hasSearchString)
+            return false;
+
+        return this.GetManifestSearchScore(manifest) < 1;
+    }
+
+    private int GetManifestSearchScore(IPluginManifest manifest)
+    {
+        var searchString = this.searchText.ToLowerInvariant();
+        var matcher = new FuzzyMatcher(searchString, MatchMode.FuzzyParts);
+        var scores = new List<int> { 0 };
+
+        if (!manifest.Name.IsNullOrEmpty())
+            scores.Add(matcher.Matches(manifest.Name.ToLowerInvariant()) * 110);
+        if (!manifest.InternalName.IsNullOrEmpty())
+            scores.Add(matcher.Matches(manifest.InternalName.ToLowerInvariant()) * 105);
+        if (!manifest.Author.IsNullOrEmpty())
+            scores.Add(matcher.Matches(manifest.Author.ToLowerInvariant()) * 100);
+        if (!manifest.Punchline.IsNullOrEmpty())
+            scores.Add(matcher.Matches(manifest.Punchline.ToLowerInvariant()) * 100);
+        if (manifest.Tags != null)
+            scores.Add(matcher.MatchesAny(manifest.Tags.ToArray()) * 100);
+
+        return scores.Max();
     }
 
     private (bool IsInstalled, LocalPlugin Plugin) IsManifestInstalled(IPluginManifest? manifest)
@@ -3577,6 +3623,10 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 var profman = Service<ProfileManager>.Get();
                 this.pluginListInstalled.Sort((p1, p2) => profman.IsInDefaultProfile(p1.EffectiveWorkingPluginId).CompareTo(profman.IsInDefaultProfile(p2.EffectiveWorkingPluginId)));
+                break;
+            case PluginSortKind.SearchScore:
+                this.pluginListAvailable = this.pluginListAvailable.OrderByDescending(this.GetManifestSearchScore).ThenBy(m => m.Name).ToList();
+                this.pluginListInstalled = this.pluginListInstalled.OrderByDescending(p => this.GetManifestSearchScore(p.Manifest)).ThenBy(m => m.Name).ToList();
                 break;
             default:
                 throw new InvalidEnumArgumentException("Unknown plugin sort type.");
@@ -3722,6 +3772,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         #endregion
 
         #region SortBy
+
+        public static string SortBy_SearchScore => Loc.Localize("InstallerSearchScore", "Search score");
 
         public static string SortBy_Alphabetical => Loc.Localize("InstallerAlphabetical", "Alphabetical");
 
