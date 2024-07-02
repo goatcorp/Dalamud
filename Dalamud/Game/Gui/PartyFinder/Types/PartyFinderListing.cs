@@ -58,7 +58,7 @@ public interface IPartyFinderListing
     /// <summary>
     /// Gets the lower bits of the player's content ID.
     /// </summary>
-    uint ContentIdLower { get; }
+    ulong ContentId { get; }
 
     /// <summary>
     /// Gets the name of the player hosting this listing.
@@ -130,6 +130,11 @@ public interface IPartyFinderListing
     /// Gets the number of player slots this listing is recruiting for.
     /// </summary>
     byte SlotsAvailable { get; }
+
+    /// <summary>
+    /// Gets the number of player slots filled.
+    /// </summary>
+    byte SlotsFilled { get; }
 
     /// <summary>
     /// Gets the time at which the server this listings is on last restarted for a patch/hotfix.
@@ -208,7 +213,7 @@ internal class PartyFinderListing : IPartyFinderListing
         this.jobsPresent = listing.JobsPresent;
 
         this.Id = listing.Id;
-        this.ContentIdLower = listing.ContentIdLower;
+        this.ContentId = listing.ContentId;
         this.Name = SeString.Parse(listing.Name.TakeWhile(b => b != 0).ToArray());
         this.Description = SeString.Parse(listing.Description.TakeWhile(b => b != 0).ToArray());
         this.World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.World));
@@ -223,6 +228,7 @@ internal class PartyFinderListing : IPartyFinderListing
         this.MinimumItemLevel = listing.MinimumItemLevel;
         this.Parties = listing.NumParties;
         this.SlotsAvailable = listing.NumSlots;
+        this.SlotsFilled = listing.NumSlotsFilled;
         this.LastPatchHotfixTimestamp = listing.LastPatchHotfixTimestamp;
         this.JobsPresent = listing.JobsPresent
                                   .Select(id => new Lazy<ClassJob>(
@@ -236,7 +242,7 @@ internal class PartyFinderListing : IPartyFinderListing
     public uint Id { get; }
 
     /// <inheritdoc/>
-    public uint ContentIdLower { get; }
+    public ulong ContentId { get; }
 
     /// <inheritdoc/>
     public SeString Name { get; }
@@ -279,6 +285,9 @@ internal class PartyFinderListing : IPartyFinderListing
 
     /// <inheritdoc/>
     public byte SlotsAvailable { get; }
+
+    /// <inheritdoc/>
+    public byte SlotsFilled { get; }
 
     /// <inheritdoc/>
     public uint LastPatchHotfixTimestamp { get; }
@@ -325,5 +334,5 @@ internal class PartyFinderListing : IPartyFinderListing
     public bool this[SearchAreaFlags flag] => this.searchArea == 0 || (this.searchArea & (uint)flag) > 0;
 
     #endregion
-
 }
+
