@@ -57,7 +57,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     /// <inheritdoc/>
     public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
 
-    private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = new();
+    private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
     private object MenuItemsLock { get; } = new();
 
@@ -67,13 +67,13 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
 
     private List<IMenuItem>? SelectedItems { get; set; }
 
-    private HashSet<nint> SelectedEventInterfaces { get; } = new();
+    private HashSet<nint> SelectedEventInterfaces { get; } = [];
 
     private AtkUnitBase* SelectedParentAddon { get; set; }
 
     // -1 -> -inf: native items
     // 0 -> inf: selected items
-    private List<int> MenuCallbackIds { get; } = new();
+    private List<int> MenuCallbackIds { get; } = [];
 
     private IReadOnlyList<IMenuItem>? SubmenuItems { get; set; }
 
@@ -98,7 +98,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         lock (this.MenuItemsLock)
         {
             if (!this.MenuItems.TryGetValue(menuType, out var items))
-                this.MenuItems[menuType] = items = new();
+                this.MenuItems[menuType] = items = [];
             items.Add(item);
         }
     }
@@ -163,7 +163,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
         // 7: UInt = 1
 
         valueCount = 8;
-        var values = this.ExpandContextMenuArray(Span<AtkValue>.Empty, valueCount);
+        var values = this.ExpandContextMenuArray([], valueCount);
         values[0].ChangeType(ValueType.UInt);
         values[0].UInt = 0;
         values[1].ChangeType(ValueType.String);
@@ -203,7 +203,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
             valueCount = (nativeMenuSize + items.Count) * (hasAnyDisabled ? 2 : 1) + headerCount);
         var offsetData = new Span<AtkValue>(values, headerCount);
         var nameData = new Span<AtkValue>(values + headerCount, nativeMenuSize + items.Count);
-        var disabledData = hasAnyDisabled ? new Span<AtkValue>(values + headerCount + nativeMenuSize + items.Count, nativeMenuSize + items.Count) : Span<AtkValue>.Empty;
+        var disabledData = hasAnyDisabled ? new Span<AtkValue>(values + headerCount + nativeMenuSize + items.Count, nativeMenuSize + items.Count) : [];
 
         var returnMask = offsetData[returnHeaderIdx].UInt;
         var submenuMask = offsetData[submenuHeaderIdx].UInt;
@@ -357,7 +357,7 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
                     if (this.MenuItems.TryGetValue(menuType, out var items))
                         this.SelectedItems = new(items);
                     else
-                        this.SelectedItems = new();
+                        this.SelectedItems = [];
                 }
 
                 var args = new MenuOpenedArgs(this.SelectedItems.Add, this.SelectedParentAddon, this.SelectedAgent, this.SelectedMenuType.Value, this.SelectedEventInterfaces);
@@ -530,7 +530,7 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
     /// <inheritdoc/>
     public event IContextMenu.OnMenuOpenedDelegate? OnMenuOpened;
 
-    private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = new();
+    private Dictionary<ContextMenuType, List<IMenuItem>> MenuItems { get; } = [];
 
     private object MenuItemsLock { get; } = new();
 
@@ -557,7 +557,7 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
         lock (this.MenuItemsLock)
         {
             if (!this.MenuItems.TryGetValue(menuType, out var items))
-                this.MenuItems[menuType] = items = new();
+                this.MenuItems[menuType] = items = [];
             items.Add(item);
         }
 
