@@ -9,6 +9,8 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -20,6 +22,7 @@ using SharpDX;
 
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace Dalamud.Game.Gui;
 
@@ -32,8 +35,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private static readonly ModuleLog Log = new("GameGui");
     
     private readonly GameGuiAddressResolver address;
-
-    private readonly GetMatrixSingletonDelegate getMatrixSingleton;
 
     private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
     private readonly Hook<HandleItemHoverDelegate> handleItemHoverHook;
@@ -70,8 +71,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.handleImmHook = Hook<HandleImmDelegate>.FromAddress(this.address.HandleImm, this.HandleImmDetour);
 
-        this.getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(this.address.GetMatrixSingleton);
-        
         this.toggleUiHideHook = Hook<ToggleUiHideDelegate>.FromAddress(this.address.ToggleUiHide, this.ToggleUiHideDetour);
 
         this.utf8StringFromSequenceHook = Hook<Utf8StringFromSequenceDelegate>.FromAddress(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
@@ -85,11 +84,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.handleActionOutHook.Enable();
         this.utf8StringFromSequenceHook.Enable();
     }
-
-    // Marshaled delegates
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate IntPtr GetMatrixSingletonDelegate();
 
     // Hooked delegates
 
@@ -178,23 +172,29 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out bool inView)
     {
-        // Get base object with matrices
-        var matrixSingleton = this.getMatrixSingleton();
-
         // Read current ViewProjectionMatrix plus game window size
         var windowPos = ImGuiHelpers.MainViewport.Pos;
-        var viewProjectionMatrix = *(Matrix4x4*)(matrixSingleton + 0x1b4);
+        var viewProjectionMatrix = Control.Instance()->ViewProjectionMatrix;
         var device = Device.Instance();
         float width = device->Width;
         float height = device->Height;
 
-        var pCoords = Vector3.Transform(worldPos, viewProjectionMatrix);
-        screenPos = new Vector2(pCoords.X / MathF.Abs(pCoords.Z), pCoords.Y / MathF.Abs(pCoords.Z));
+        var pCoords = Vector4.Transform(new Vector4(worldPos, 1.0f), viewProjectionMatrix);
+        var inFront = pCoords.W > 0.0f;
+
+        if (Math.Abs(pCoords.W) < float.Epsilon)
+        {
+            screenPos = Vector2.Zero;
+            inView = false;
+            return false;
+        }
+        
+        pCoords *= MathF.Abs(1.0f / pCoords.W);
+        screenPos = new Vector2(pCoords.X, pCoords.Y);
 
         screenPos.X = (0.5f * width * (screenPos.X + 1f)) + windowPos.X;
         screenPos.Y = (0.5f * height * (1f - screenPos.Y)) + windowPos.Y;
 
-        var inFront = pCoords.Z > 0;
         inView = inFront &&
                  screenPos.X > windowPos.X && screenPos.X < windowPos.X + width &&
                  screenPos.Y > windowPos.Y && screenPos.Y < windowPos.Y + height;
@@ -216,53 +216,17 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
             worldPos = default;
             return false;
         }
-
-        // Get base object with matrices
-        var matrixSingleton = this.getMatrixSingleton();
-
-        // Read current ViewProjectionMatrix plus game window size
-        var viewProjectionMatrix = default(Matrix);
-        var rawMatrix = (float*)(matrixSingleton + 0x1b4).ToPointer();
-
-        for (var i = 0; i < 16; i++, rawMatrix++)
-            viewProjectionMatrix[i] = *rawMatrix;
-
-        var width = *rawMatrix;
-        var height = *(rawMatrix + 1);
-
-        viewProjectionMatrix.Invert();
-
-        var localScreenPos = new SharpDX.Vector2(screenPos.X - windowPos.X, screenPos.Y - windowPos.Y);
-        var screenPos3D = new SharpDX.Vector3
+        
+        var camera = FFXIVClientStructs.FFXIV.Client.Graphics.Scene.CameraManager.Instance()->CurrentCamera;
+        if (camera == null)
         {
-            X = (localScreenPos.X / width * 2.0f) - 1.0f,
-            Y = -((localScreenPos.Y / height * 2.0f) - 1.0f),
-            Z = 0,
-        };
-
-        SharpDX.Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPos);
-
-        screenPos3D.Z = 1;
-        SharpDX.Vector3.TransformCoordinate(ref screenPos3D, ref viewProjectionMatrix, out var camPosOne);
-
-        var clipPos = camPosOne - camPos;
-        clipPos.Normalize();
-
-        // This array is larger than necessary because it contains more info than we currently use
-        var worldPosArray = default(RaycastHit);
-
-        // Theory: this is some kind of flag on what type of things the ray collides with
-        var unknown = stackalloc int[3]
-        {
-            0x4000,
-            0x4000,
-            0x0,
-        };
-
-        var isSuccess = BGCollisionModule.Raycast2(camPos.ToSystem(), clipPos.ToSystem(), rayDistance, &worldPosArray, unknown);
-        worldPos = worldPosArray.Point;
-
-        return isSuccess;
+            worldPos = Vector3.Zero;
+            return false;
+        }
+        var ray = camera->ScreenPointToRay(screenPos);
+        var result = BGCollisionModule.RaycastMaterialFilter(ray.Origin, ray.Direction, out var hit);
+        worldPos = hit.Point;
+        return result;
     }
 
     /// <inheritdoc/>
