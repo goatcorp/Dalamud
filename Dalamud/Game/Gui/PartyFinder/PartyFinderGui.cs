@@ -18,7 +18,7 @@ namespace Dalamud.Game.Gui.PartyFinder;
 internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
     private readonly PartyFinderAddressResolver address;
-    private readonly IntPtr memory;
+    private readonly nint memory;
 
     private readonly Hook<ReceiveListingDelegate> receiveListingHook;
 
@@ -39,7 +39,7 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ReceiveListingDelegate(IntPtr managerPtr, IntPtr data);
+    private delegate void ReceiveListingDelegate(nint managerPtr, nint data);
 
     /// <inheritdoc/>
     public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
@@ -61,7 +61,7 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
         }
     }
 
-    private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)
+    private void HandleReceiveListingDetour(nint managerPtr, nint data)
     {
         try
         {
@@ -75,7 +75,7 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
         this.receiveListingHook.Original(managerPtr, data);
     }
 
-    private void HandleListingEvents(IntPtr data)
+    private void HandleListingEvents(nint data)
     {
         var dataPtr = data + 0x10;
 
