@@ -3,56 +3,85 @@ namespace Dalamud.Game.Gui.PartyFinder.Types;
 /// <summary>
 /// Category flags for the <see cref="PartyFinderGui"/> class.
 /// </summary>
-public enum DutyCategory
+public enum DutyCategory : ushort
 {
     /// <summary>
-    /// The duty category.
+    /// The none category.
     /// </summary>
-    Duty = 0,
+    None = 0,
+
+    /// <summary>
+    /// The duty roulette category.
+    /// </summary>
+    DutyRoulette = 1 << 1,
+
+    /// <summary>
+    /// The dungeons category.
+    /// </summary>
+    Dungeon = 1 << 2,
+
+    /// <summary>
+    /// The guildhests category.
+    /// </summary>
+    Guildhest = 1 << 3,
+
+    /// <summary>
+    /// The trials category.
+    /// </summary>
+    Trial = 1 << 4,
+
+    /// <summary>
+    /// The raids category.
+    /// </summary>
+    Raid = 1 << 5,
+
+    /// <summary>
+    /// The high-end duty category.
+    /// </summary>
+    HighEndDuty = 1 << 6,
+
+    /// <summary>
+    /// The pvp category.
+    /// </summary>
+    PvP = 1 << 7,
 
     /// <summary>
     /// The gold saucer category.
     /// </summary>
-    GoldSaucer = 1 << 0,
+    GoldSaucer = 1 << 8,
 
     /// <summary>
-    /// The fate category.
+    /// The fates category.
     /// </summary>
-    Fates = 1 << 1,
+    Fate = 1 << 9,
 
     /// <summary>
-    /// The treasure hunt category.
+    /// The treasure hunts category.
     /// </summary>
-    TreasureHunt = 1 << 2,
+    TreasureHunt = 1 << 10,
 
     /// <summary>
-    /// The hunt category.
+    /// The hunts category.
     /// </summary>
-    TheHunt = 1 << 3,
+    TheHunt = 1 << 11,
 
     /// <summary>
     /// The gathering forays category.
     /// </summary>
-    GatheringForays = 1 << 4,
+    GatheringForay = 1 << 12,
 
     /// <summary>
     /// The deep dungeons category.
     /// </summary>
-    DeepDungeons = 1 << 5,
-
-    /// <summary>
-    /// The adventuring forays category.
-    /// </summary>
-    [Obsolete("Adventuring Forays have been renamed to Field Operations")]
-    AdventuringForays = 1 << 6,
+    DeepDungeon = 1 << 13,
 
     /// <summary>
     /// The field operations category.
     /// </summary>
-    FieldOperations = 1 << 6,
+    FieldOperation = 1 << 14,
 
     /// <summary>
     /// The variant and criterion dungeons category.
     /// </summary>
-    VariantAndCriterionDungeons = 1 << 7,
+    VariantAndCriterionDungeon = 1 << 15,
 }

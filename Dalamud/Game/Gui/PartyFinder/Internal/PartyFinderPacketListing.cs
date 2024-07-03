@@ -22,9 +22,9 @@ internal unsafe struct PartyFinderPacketListing
     internal ulong ContentId;
 
     private fixed byte padding4[4];
-    internal byte Category;
+    internal ushort Category;
 
-    private fixed byte padding5[3];
+    private fixed byte padding5[2];
     internal ushort Duty;
     internal byte DutyType;
 
