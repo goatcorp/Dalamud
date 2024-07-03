@@ -159,7 +159,7 @@ internal sealed partial class TextureManager
         {
             if (this.gameDict.TryRemove(path, out var r))
             {
-                if (r.ReleaseSelfReference(true) != 0 || r.HasRevivalPossibility)
+                if (r.ReleaseSelfReference(true) != 0)
                 {
                     lock (this.invalidatedTextures)
                         this.invalidatedTextures.Add(r);
@@ -201,7 +201,7 @@ internal sealed partial class TextureManager
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool TextureFinalReleasePredicate(SharedImmediateTexture v) =>
-                v.ContentQueried && v.ReleaseSelfReference(false) == 0 && !v.HasRevivalPossibility;
+                v.ContentQueried && v.ReleaseSelfReference(false) == 0;
         }
     }
 }

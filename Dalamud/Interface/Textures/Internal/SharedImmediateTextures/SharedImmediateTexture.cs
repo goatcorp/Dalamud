@@ -29,7 +29,6 @@ internal abstract class SharedImmediateTexture
     private bool resourceReleased;
     private int refCount;
     private long selfReferenceExpiry;
-    private IDalamudTextureWrap? availableOnAccessWrapForApi9;
     private CancellationTokenSource? cancellationTokenSource;
     private NotOwnedTextureWrap? nonOwningWrap;
 
@@ -67,10 +66,6 @@ internal abstract class SharedImmediateTexture
     /// <summary>Gets the source path. Debug use only.</summary>
     public string SourcePathForDebug { get; }
 
-    /// <summary>Gets a value indicating whether this instance of <see cref="SharedImmediateTexture"/> supports revival.
-    /// </summary>
-    public bool HasRevivalPossibility => this.RevivalPossibility?.TryGetTarget(out _) is true;
-
     /// <summary>Gets or sets the underlying texture wrap.</summary>
     public Task<IDalamudTextureWrap>? UnderlyingWrap { get; set; }
 
@@ -90,16 +85,6 @@ internal abstract class SharedImmediateTexture
     /// <summary>Gets a cancellation token for cancelling load.
     /// Intended to be called from implementors' constructors and <see cref="LoadUnderlyingWrap"/>.</summary>
     protected CancellationToken LoadCancellationToken => this.cancellationTokenSource?.Token ?? default;
-
-    /// <summary>Gets or sets a weak reference to an object that demands this objects to be alive.</summary>
-    /// <remarks>
-    /// TextureManager must keep references to all shared textures, regardless of whether textures' contents are
-    /// flushed, because API9 functions demand that the returned textures may be stored so that they can used anytime,
-    /// possibly reviving a dead-inside object. The object referenced by this property is given out to such use cases,
-    /// which gets created from <see cref="GetAvailableOnAccessWrapForApi9"/>. If this no longer points to an alive
-    /// object, and <see cref="availableOnAccessWrapForApi9"/> is null, then this object is not used from API9 use case.
-    /// </remarks>
-    private WeakReference<IDalamudTextureWrap>? RevivalPossibility { get; set; }
 
     /// <inheritdoc/>
     public int AddRef() => this.TryAddRef(out var newRefCount) switch
@@ -180,7 +165,6 @@ internal abstract class SharedImmediateTexture
             if (exp != Interlocked.CompareExchange(ref this.selfReferenceExpiry, SelfReferenceExpiryExpired, exp))
                 continue;
 
-            this.availableOnAccessWrapForApi9 = null;
             return this.Release();
         }
     }
@@ -253,35 +237,6 @@ internal abstract class SharedImmediateTexture
         }
 
         return new RefCountableWrappingTextureWrap(dtw, this);
-    }
-
-    /// <summary>Gets a texture wrap which ensures that the values will be populated on access.</summary>
-    /// <returns>The texture wrap, or null if failed.</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public IDalamudTextureWrap? GetAvailableOnAccessWrapForApi9()
-    {
-        if (this.availableOnAccessWrapForApi9 is not null)
-            return this.availableOnAccessWrapForApi9;
-
-        lock (this.reviveLock)
-        {
-            if (this.availableOnAccessWrapForApi9 is not null)
-                return this.availableOnAccessWrapForApi9;
-
-            if (this.RevivalPossibility?.TryGetTarget(out this.availableOnAccessWrapForApi9) is true)
-                return this.availableOnAccessWrapForApi9;
-
-            var newRefTask = this.RentAsync(this.LoadCancellationToken);
-            newRefTask.Wait(this.LoadCancellationToken);
-            if (!newRefTask.IsCompletedSuccessfully)
-                return null;
-            newRefTask.Result.Dispose();
-
-            this.availableOnAccessWrapForApi9 = new AvailableOnAccessTextureWrap(this);
-            this.RevivalPossibility = new(this.availableOnAccessWrapForApi9);
-        }
-
-        return this.availableOnAccessWrapForApi9;
     }
 
     /// <summary>Adds a plugin to <see cref="ownerPlugins"/>, in a thread-safe way.</summary>
@@ -383,9 +338,6 @@ internal abstract class SharedImmediateTexture
                     throw;
                 }
 
-                if (this.RevivalPossibility?.TryGetTarget(out var target) is true)
-                    this.availableOnAccessWrapForApi9 = target;
-
                 Interlocked.Increment(ref this.refCount);
                 this.resourceReleased = false;
                 return IRefCountable.RefCountResult.StillAlive;
@@ -467,12 +419,6 @@ internal abstract class SharedImmediateTexture
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task<IDalamudTextureWrap> RentAsync(CancellationToken cancellationToken = default) =>
             this.inner.RentAsync(cancellationToken);
-
-        /// <inheritdoc cref="SharedImmediateTexture.GetAvailableOnAccessWrapForApi9"/>
-        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IDalamudTextureWrap? GetAvailableOnAccessWrapForApi9() =>
-            this.inner.GetAvailableOnAccessWrapForApi9();
 
         /// <inheritdoc cref="SharedImmediateTexture.AddOwnerPlugin"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -560,58 +506,6 @@ internal abstract class SharedImmediateTexture
                 this.innerWrap = null;
                 ownerCopy.Release();
             }
-        }
-    }
-
-    /// <summary>A texture wrap that revives and waits for the underlying texture as needed on every access.</summary>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    private sealed class AvailableOnAccessTextureWrap : ForwardingTextureWrap
-    {
-        private readonly SharedImmediateTexture inner;
-
-        /// <summary>Initializes a new instance of the <see cref="AvailableOnAccessTextureWrap"/> class.</summary>
-        /// <param name="inner">The shared texture.</param>
-        public AvailableOnAccessTextureWrap(SharedImmediateTexture inner) => this.inner = inner;
-
-        /// <inheritdoc/>
-        public override IDalamudTextureWrap CreateWrapSharingLowLevelResource()
-        {
-            this.inner.AddRef();
-            try
-            {
-                if (!this.inner.TryGetWrapCore(out var wrap, out _))
-                {
-                    this.inner.UnderlyingWrap?.Wait();
-
-                    if (!this.inner.TryGetWrapCore(out wrap, out _))
-                    {
-                        // Calling dispose on Empty4x4 is a no-op, so we can just return that.
-                        this.inner.Release();
-                        return Service<DalamudAssetManager>.Get().Empty4X4;
-                    }
-                }
-
-                return new RefCountableWrappingTextureWrap(wrap, this.inner);
-            }
-            catch
-            {
-                this.inner.Release();
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public override string ToString() => $"{nameof(AvailableOnAccessTextureWrap)}({this.inner})";
-
-        /// <inheritdoc/>
-        protected override bool TryGetWrap(out IDalamudTextureWrap? wrap)
-        {
-            if (this.inner.TryGetWrapCore(out var t, out _))
-                wrap = t;
-
-            this.inner.UnderlyingWrap?.Wait();
-            wrap = this.inner.nonOwningWrap ?? Service<DalamudAssetManager>.Get().Empty4X4;
-            return true;
         }
     }
 }
