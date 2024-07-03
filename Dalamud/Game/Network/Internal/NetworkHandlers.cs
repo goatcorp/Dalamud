@@ -315,7 +315,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "CfPopDetour threw an exception");   
+            Log.Error(ex, "CfPopDetour threw an exception");
         }
 
         return result;
@@ -350,7 +350,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
 
             return offeringsObservable
-                   .Where(offerings => offerings.InternalItemListings.All(l => l.CatalogId == request.CatalogId))
+                   .Where(offerings => offerings.InternalItemListings.All(l => l.CatalogId != 0))
                    .Skip(totalPackets - 1)
                    .Do(LogEndObserved);
         }
@@ -387,7 +387,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         IObservable<MarketBoardHistory> UntilBatchEnd(MarketBoardItemRequest request)
         {
             return historyObservable
-                   .Where(history => history.CatalogId == request.CatalogId)
+                   .Where(history => history.CatalogId != 0)
                    .Take(1);
         }
 
@@ -411,10 +411,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     {
         void LogStartObserved(MarketBoardItemRequest request)
         {
-            Log.Verbose(
-                "Observed start of request for item#{CatalogId} with {NumListings} expected listings",
-                request.CatalogId,
-                request.AmountToArrive);
+            Log.Verbose("Observed start of request for item with {NumListings} expected listings", request.AmountToArrive);
         }
 
         var startObservable = this.MbItemRequestObservable
@@ -442,23 +439,18 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         ICollection<MarketBoardHistory.MarketBoardHistoryListing> sales,
         ICollection<MarketBoardCurrentOfferings.MarketBoardItemListing> listings)
     {
+        var catalogId = listings.FirstOrDefault()?.CatalogId ?? 0;
         if (listings.Count != request.AmountToArrive)
         {
             Log.Error(
                 "Wrong number of Market Board listings received for request: {ListingsCount} != {RequestAmountToArrive} item#{RequestCatalogId}",
-                listings.Count, request.AmountToArrive, request.CatalogId);
-            return;
-        }
-
-        if (listings.Any(listing => listing.CatalogId != request.CatalogId))
-        {
-            Log.Error("Received listings with mismatched item IDs for item#{RequestCatalogId}", request.CatalogId);
+                listings.Count, request.AmountToArrive, catalogId);
             return;
         }
 
         Log.Verbose(
             "Market Board request resolved, starting upload: item#{CatalogId} listings#{ListingsObserved} sales#{SalesObserved}",
-            request.CatalogId,
+            catalogId,
             listings.Count,
             sales.Count);
 
@@ -545,7 +537,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketPurchasePacketHandler threw an exception");
         }
-        
+
         return this.mbPurchaseHook.OriginalDisposeSafe(a1, packetData);
     }
 
@@ -559,7 +551,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketHistoryPacketDetour threw an exception");
         }
-        
+
         return this.mbHistoryHook.OriginalDisposeSafe(a1, packetData, a3, a4);
     }
 
@@ -589,7 +581,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketItemRequestStartDetour threw an exception");
         }
-        
+
         return this.mbItemRequestStartHook.OriginalDisposeSafe(a1, packetRef);
     }
 
@@ -603,7 +595,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketBoardOfferingsDetour threw an exception");
         }
-        
+
         return this.mbOfferingsHook.OriginalDisposeSafe(a1, packetRef);
     }
 
@@ -617,7 +609,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketBoardSendPurchaseRequestDetour threw an exception");
         }
-        
+
         return this.mbSendPurchaseRequestHook.OriginalDisposeSafe(infoProxyItemSearch);
     }
 }

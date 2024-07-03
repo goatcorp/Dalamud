@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,9 +48,9 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         {
             WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
             UploaderId = uploader.ToString(),
-            ItemId = request.CatalogId,
-            Listings = new List<UniversalisItemListingsEntry>(),
-            Sales = new List<UniversalisHistoryEntry>(),
+            ItemId = request.Listings.FirstOrDefault()?.CatalogId ?? 0,
+            Listings = [],
+            Sales = [],
         };
 
         foreach (var marketBoardItemListing in request.Listings)
@@ -105,7 +106,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         // ====================================================================================
 
-        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.CatalogId);
+        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.Listings.FirstOrDefault()?.CatalogId ?? 0);
     }
 
     /// <inheritdoc/>
