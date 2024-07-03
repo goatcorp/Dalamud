@@ -268,6 +268,9 @@ internal sealed partial class ActiveNotification : IActiveNotification
         if (this.Icon is { } previousIcon && !IsOwnedByDalamud(previousIcon.GetType()))
             this.Icon = null;
 
+        if (this.IconTexture is { } iconTexture && iconTexture.TryGetWrap(out var wrap, out _) && !IsOwnedByDalamud(wrap.GetType()))
+            this.IconTexture = null;
+
         this.isInitiatorUnloaded = true;
         this.UserDismissable = true;
         this.ExtensionDurationSinceLastInterest = NotificationConstants.DefaultDuration;
