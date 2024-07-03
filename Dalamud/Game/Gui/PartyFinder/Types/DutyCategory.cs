@@ -51,7 +51,7 @@ public enum DutyCategory : ushort
     GoldSaucer = 1 << 8,
 
     /// <summary>
-    /// The fates category.
+    /// The FATEs category.
     /// </summary>
     Fate = 1 << 9,
 

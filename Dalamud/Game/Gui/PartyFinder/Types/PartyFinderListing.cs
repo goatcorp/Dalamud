@@ -56,7 +56,7 @@ public interface IPartyFinderListing
     uint Id { get; }
 
     /// <summary>
-    /// Gets the lower bits of the player's content ID.
+    /// Gets the player's unique content ID.
     /// </summary>
     ulong ContentId { get; }
 
