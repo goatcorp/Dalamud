@@ -2274,7 +2274,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (useTesting || manifest.IsTestingExclusive)
             flags |= PluginHeaderFlags.IsTesting;
         
-        if (this.DrawPluginCollapsingHeader(label, null, manifest, flags, () => this.DrawAvailablePluginContextMenu(manifest, effectiveApiLevel), index))
+        if (this.DrawPluginCollapsingHeader(label, null, manifest, flags, () => this.DrawAvailablePluginContextMenu(manifest), index))
         {
             if (!wasSeen)
                 configuration.SeenPluginInternalName.Add(manifest.InternalName);
@@ -2352,14 +2352,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PopID();
     }
 
-    private void DrawAvailablePluginContextMenu(RemotePluginManifest manifest, int effectiveApiLevel)
+    private void DrawAvailablePluginContextMenu(RemotePluginManifest manifest)
     {
         var configuration = Service<DalamudConfiguration>.Get();
         var pluginManager = Service<PluginManager>.Get();
 
         var hasTestingVersionAvailable = configuration.DoPluginTest &&
-                                         PluginManager.HasTestingVersion(manifest) &&
-                                         manifest.TestingDalamudApiLevel == effectiveApiLevel;
+                                         PluginManager.HasTestingVersion(manifest);
 
         if (ImGui.BeginPopupContextItem("ItemContextMenu"))
         {

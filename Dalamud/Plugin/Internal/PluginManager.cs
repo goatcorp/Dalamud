@@ -281,7 +281,8 @@ internal class PluginManager : IInternalDisposableService
 
         if (hasTv)
         {
-            return tv > av;
+            return tv > av &&
+                   manifest.TestingDalamudApiLevel == DalamudApiLevel;
         }
 
         return false;
