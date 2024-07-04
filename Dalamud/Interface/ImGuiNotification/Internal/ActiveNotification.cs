@@ -118,10 +118,24 @@ internal sealed partial class ActiveNotification : IActiveNotification
     }
 
     /// <inheritdoc/>
-    public ISharedImmediateTexture? IconTexture
+    public ISharedImmediateTexture? ImmediateIconTexture
+    {
+        get => this.underlyingNotification.ImmediateIconTexture;
+        set => this.underlyingNotification.ImmediateIconTexture = value;
+    }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap? IconTexture
     {
         get => this.underlyingNotification.IconTexture;
         set => this.underlyingNotification.IconTexture = value;
+    }
+
+    /// <inheritdoc/>
+    public Task<IDalamudTextureWrap?>? IconTextureTask
+    {
+        get => this.underlyingNotification.IconTextureTask;
+        set => this.underlyingNotification.IconTextureTask = value;
     }
 
     /// <inheritdoc/>
@@ -246,7 +260,38 @@ internal sealed partial class ActiveNotification : IActiveNotification
     /// <inheritdoc/>
     public void SetIconTexture(ISharedImmediateTexture? sharedImmediateTexture)
     {
-        this.underlyingNotification.IconTexture = sharedImmediateTexture;
+        this.underlyingNotification.ImmediateIconTexture = sharedImmediateTexture;
+    }
+
+
+    /// <inheritdoc/>
+    [Obsolete("Will be removed in API11")]
+    public void SetIconTexture(IDalamudTextureWrap? textureWrap)
+    {
+        this.SetIconTexture(textureWrap != null ? new ForwardingSharedImmediateTexture(textureWrap) : null);
+    }
+
+    /// <inheritdoc/>
+    [Obsolete("Will be removed in API11")]
+    public void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask)
+    {
+        var result = textureWrapTask?.Result;
+        this.SetIconTexture(result != null ? new ForwardingSharedImmediateTexture(result) : null);
+    }
+
+    /// <inheritdoc/>
+    [Obsolete("Will be removed in API11")]
+    public void SetIconTexture(IDalamudTextureWrap? textureWrap, bool leaveOpen)
+    {
+        this.SetIconTexture(textureWrap != null ? new ForwardingSharedImmediateTexture(textureWrap) : null);
+    }
+
+    /// <inheritdoc/>
+    [Obsolete("Will be removed in API11")]
+    public void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask, bool leaveOpen)
+    {
+        var result = textureWrapTask?.Result;
+        this.SetIconTexture(result != null ? new ForwardingSharedImmediateTexture(result) : null);
     }
 
     /// <summary>Removes non-Dalamud invocation targets from events.</summary>
@@ -268,8 +313,9 @@ internal sealed partial class ActiveNotification : IActiveNotification
         if (this.Icon is { } previousIcon && !IsOwnedByDalamud(previousIcon.GetType()))
             this.Icon = null;
 
-        if (this.IconTexture is { } iconTexture && iconTexture.TryGetWrap(out var wrap, out _) && !IsOwnedByDalamud(wrap.GetType()))
-            this.IconTexture = null;
+
+        if (this.ImmediateIconTexture is { } iconTexture && (!IsOwnedByDalamud(iconTexture.GetType()) || (iconTexture.TryGetWrap(out var wrap, out _) && !IsOwnedByDalamud(wrap.GetType()))))
+            this.ImmediateIconTexture = null;
 
         this.isInitiatorUnloaded = true;
         this.UserDismissable = true;

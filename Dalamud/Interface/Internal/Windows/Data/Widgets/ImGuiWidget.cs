@@ -313,7 +313,7 @@ internal class ImGuiWidget : IDataWindowWidget
             {
                 var i = (uint)Random.Shared.NextInt64(0, 200000);
 
-                n.IconTexture = Service<TextureManager>.Get().Shared.GetFromGameIcon(new(i, false, false));
+                n.ImmediateIconTexture = Service<TextureManager>.Get().Shared.GetFromGameIcon(new(i, false, false));
             }
         }
     }

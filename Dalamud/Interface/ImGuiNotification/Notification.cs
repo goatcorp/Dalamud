@@ -32,7 +32,33 @@ public sealed record Notification : INotification
     public INotificationIcon? Icon { get; set; }
 
     /// <inheritdoc/>
-    public ISharedImmediateTexture? IconTexture { get; set; }
+    public ISharedImmediateTexture? ImmediateIconTexture { get; set; }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap? IconTexture
+    {
+        get => this.ImmediateIconTexture?.GetWrapOrDefault();
+        set => this.ImmediateIconTexture = value != null ? new ForwardingSharedImmediateTexture(value) : null;
+    }
+
+    /// <inheritdoc/>
+    public Task<IDalamudTextureWrap?>? IconTextureTask
+    {
+        get => Task.FromResult(this.ImmediateIconTexture?.GetWrapOrDefault());
+
+        set
+        {
+            if (value == null)
+            {
+                this.ImmediateIconTexture = null;
+            }
+            else
+            {
+                var dalamudTextureWrap = value.Result;
+                this.ImmediateIconTexture = dalamudTextureWrap == null ? null : new ForwardingSharedImmediateTexture(dalamudTextureWrap);
+            }
+        }
+    }
 
     /// <inheritdoc/>
     public DateTime HardExpiry { get; set; } = DateTime.MaxValue;

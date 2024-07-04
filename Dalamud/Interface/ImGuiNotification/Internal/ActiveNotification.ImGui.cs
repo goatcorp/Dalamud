@@ -404,7 +404,7 @@ internal sealed partial class ActiveNotification
         var maxCoord = minCoord + size;
         var iconColor = this.Type.ToColor();
 
-        if (NotificationUtilities.DrawIconFrom(minCoord, maxCoord, this.IconTexture))
+        if (NotificationUtilities.DrawIconFrom(minCoord, maxCoord, this.ImmediateIconTexture))
             return;
 
         if (this.Icon?.DrawIcon(minCoord, maxCoord, iconColor) is true)

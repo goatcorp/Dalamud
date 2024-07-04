@@ -16,7 +16,7 @@ public class ForwardingSharedImmediateTexture : ISharedImmediateTexture
     /// <summary>
     /// Initializes a new instance of the <see cref="ForwardingSharedImmediateTexture"/> class.
     /// </summary>
-    /// <param name="textureWrap">A textureWrap loaded by <see cref="DalamudAssetManager"/>.</param>
+    /// <param name="textureWrap">A textureWrap that has been created or provided by RentAsync.</param>
     public ForwardingSharedImmediateTexture(IDalamudTextureWrap textureWrap)
     {
         this.textureWrap = textureWrap;
