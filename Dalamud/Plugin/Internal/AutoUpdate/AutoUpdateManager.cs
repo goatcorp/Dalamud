@@ -190,14 +190,12 @@ internal class AutoUpdateManager : IServiceType
         {
             this.hasStartedInitialUpdateThisSession = true;
             
-            // Schedule the next update check immediately. No matter what the result of this initial update is, we'll
-            // have the next one queued up (or provide the user the ability to defer).
-            this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
-            
             var currentlyUpdatablePlugins = this.GetAvailablePluginUpdates(DecideUpdateListingRestriction(behavior));
             if (currentlyUpdatablePlugins.Count == 0)
             {
                 this.IsAutoUpdateComplete = true;
+                this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
+                
                 return;
             }
             
@@ -236,10 +234,6 @@ internal class AutoUpdateManager : IServiceType
                         this.NotifyUpdatesAreAvailable(
                             this.GetAvailablePluginUpdates(
                                 DecideUpdateListingRestriction(behavior)));
-                        
-                        // Schedule the next update check opportunistically.
-                        this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
-                        Log.Verbose("Scheduled next auto update check for {Time}", this.nextUpdateCheckTime);
                     });
         }
     }
@@ -250,7 +244,15 @@ internal class AutoUpdateManager : IServiceType
             throw new InvalidOperationException("Already showing a notification");
         
         this.updateNotification = this.notificationManager.AddNotification(notification);
-        
+
+        this.updateNotification.Dismiss += _ =>
+        {
+            this.updateNotification = null;
+            
+            // Schedule the next update opportunistically for when this closes.
+            this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
+        };
+
         return this.updateNotification!;
     }
 
@@ -372,8 +374,8 @@ internal class AutoUpdateManager : IServiceType
 
         notification.DrawActions += DrawNotificationContent;
 
-        // If the user dismisses the notification, we don't want to spam them with notifications. Schedule the next one
-        // relatively far out, overwriting the earlier sets.
+        // If the user dismisses the notification, we don't want to spam them with notifications. Schedule the next
+        // auto update further out. Since this is registered after the initial OnDismiss, this should take precedence.
         notification.Dismiss += args =>
         {
             if (args.Reason != NotificationDismissReason.Manual) return;
