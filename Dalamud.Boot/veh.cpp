@@ -249,6 +249,12 @@ LONG WINAPI vectored_exception_handler(EXCEPTION_POINTERS* ex)
     {
         // pass
     }
+    else if (ex->ExceptionRecord->ExceptionCode == 0x406D1388)
+    {
+        // VS thread namer - just let these run; they aren't a problem.
+        // https://learn.microsoft.com/en-us/visualstudio/debugger/tips-for-debugging-threads
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
     else
     {
         if (!is_whitelist_exception(ex->ExceptionRecord->ExceptionCode))
