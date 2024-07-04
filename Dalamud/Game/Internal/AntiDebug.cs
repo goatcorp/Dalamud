@@ -13,8 +13,8 @@ namespace Dalamud.Game.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed class AntiDebug : IInternalDisposableService
 {
-    private readonly byte[] nop = new byte[] { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
-    private byte[] original;
+    private readonly byte[] nop = [0x31, 0xC0, 0x90, 0x90, 0x90, 0x90];
+    private byte[]? original;
     private IntPtr debugCheckAddress;
 
     [ServiceManager.ServiceConstructor]
@@ -44,8 +44,8 @@ internal sealed class AntiDebug : IInternalDisposableService
     }
 
     /// <summary>Finalizes an instance of the <see cref="AntiDebug"/> class.</summary>
-    ~AntiDebug() => this.Disable();
-
+    ~AntiDebug() => ((IInternalDisposableService)this).DisposeService();
+    
     /// <summary>
     /// Gets a value indicating whether the anti-debugging is enabled.
     /// </summary>
