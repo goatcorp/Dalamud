@@ -45,7 +45,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
     private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
     private readonly Dictionary<Guid, InOutCubic> logoEasings = new();
-    
+
     private readonly IConsoleVariable<bool> showTsm;
 
     private InOutCubic? fadeOutEasing;
@@ -168,7 +168,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     if (!entry.IsShowConditionSatisfied())
                         continue;
 
-                    if (entry.Texture.TryGetWrap(out var textureWrap, out var exception))
+                    if (entry.ImmediateTexture.TryGetWrap(out var textureWrap, out var exception))
                     {
                         if (textureWrap.Width != 64 && textureWrap.Height != 64)
                         {
@@ -259,7 +259,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                         if (!entry.IsShowConditionSatisfied())
                             continue;
 
-                        if (entry.Texture.TryGetWrap(out var textureWrap, out var exception))
+                        if (entry.ImmediateTexture.TryGetWrap(out var textureWrap, out var exception))
                         {
                             if (textureWrap.Width != 64 && textureWrap.Height != 64)
                             {
@@ -392,7 +392,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         }
 
         // Wrap should always be valid at this point due to us checking the validity of the image each frame
-        var dalamudTextureWrap = entry.Texture.GetWrapOrEmpty();
+        var dalamudTextureWrap = entry.ImmediateTexture.GetWrapOrEmpty();
         ImGui.Image(dalamudTextureWrap.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize * scale));
         if (overrideAlpha || isFirst)
         {

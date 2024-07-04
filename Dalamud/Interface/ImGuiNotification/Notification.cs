@@ -62,6 +62,7 @@ public sealed record Notification : INotification
                     Log.Error(
                         exception,
                         $"[{nameof(Notification)}: IconTextureTask provided threw exception.");
+                    this.ImmediateIconTexture = null;
                 }
             }
         }

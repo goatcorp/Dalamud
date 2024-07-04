@@ -66,7 +66,13 @@ public interface IReadOnlyTitleScreenMenuEntry
     /// <summary>
     /// Gets the texture of this entry.
     /// </summary>
-    ISharedImmediateTexture Texture { get; }
+    [Obsolete("Will be removed in API11")]
+    IDalamudTextureWrap Texture { get; }
+
+    /// <summary>
+    /// Gets the immediate texture of this entry.
+    /// </summary>
+    ISharedImmediateTexture ImmediateTexture { get; }
 }
 
 /// <summary>
@@ -96,7 +102,7 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
         this.CallingAssembly = callingAssembly;
         this.Priority = priority;
         this.Name = text;
-        this.Texture = texture;
+        this.ImmediateTexture = texture;
         this.onTriggered = onTriggered;
         this.ShowConditionKeys = (showConditionKeys ?? Array.Empty<VirtualKey>()).ToImmutableSortedSet();
     }
@@ -108,7 +114,10 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
     public string Name { get; set; }
 
     /// <inheritdoc/>
-    public ISharedImmediateTexture Texture { get; set; }
+    public IDalamudTextureWrap Texture => this.ImmediateTexture.GetWrapOrEmpty();
+
+    /// <inheritdoc/>
+    public ISharedImmediateTexture ImmediateTexture { get; set; }
         
     /// <inheritdoc/>
     public bool IsInternal { get; set; }
