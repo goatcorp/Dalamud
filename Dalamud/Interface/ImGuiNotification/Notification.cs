@@ -1,13 +1,11 @@
 using System.Threading.Tasks;
 
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
+using Serilog;
 
 namespace Dalamud.Interface.ImGuiNotification;
-
-using Textures;
-
 /// <summary>Represents a blueprint for a notification.</summary>
 public sealed record Notification : INotification
 {
@@ -54,8 +52,17 @@ public sealed record Notification : INotification
             }
             else
             {
-                var dalamudTextureWrap = value.Result;
-                this.ImmediateIconTexture = dalamudTextureWrap == null ? null : new ForwardingSharedImmediateTexture(dalamudTextureWrap);
+                try
+                {
+                    var dalamudTextureWrap = value.Result;
+                    this.ImmediateIconTexture = dalamudTextureWrap == null ? null : new ForwardingSharedImmediateTexture(dalamudTextureWrap);
+                }
+                catch (Exception exception)
+                {
+                    Log.Error(
+                        exception,
+                        $"[{nameof(Notification)}: IconTextureTask provided threw exception.");
+                }
             }
         }
     }
