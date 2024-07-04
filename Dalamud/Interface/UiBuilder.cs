@@ -694,10 +694,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.ShowUi?.InvokeSafely();
         }
 
-        // just in case, if something goes wrong, prevent drawing; otherwise it probably will crash.
-        if (!this.FontAtlas.BuildTask.IsCompletedSuccessfully)
-            return;
-
         ImGui.PushID(this.namespaceName);
         if (DoStats)
         {
