@@ -23,6 +23,8 @@ using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.UI;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;
@@ -229,6 +231,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
     public override void PostDraw()
     {
         ImGui.PopStyleVar(3);
+        
+        this.ResetMovieTimer();
+        
         base.PostDraw();
     }
 
@@ -570,6 +575,23 @@ internal sealed class ChangelogWindow : Window, IDisposable
             this.IsOpen = true;
             this.openedThroughEligibility = true;
         }
+    }
+    
+    private unsafe void ResetMovieTimer()
+    {
+        var uiModule = UIModule.Instance();
+        if (uiModule == null)
+            return;
+
+        var agentModule = uiModule->GetAgentModule();
+        if (agentModule == null)
+            return;
+
+        var agentLobby = agentModule->GetAgentLobby();
+        if (agentLobby == null)
+            return;
+
+        agentLobby->IdleTime = 0;
     }
 
     private static class FtueLevels
