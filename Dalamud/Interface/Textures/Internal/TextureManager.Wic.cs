@@ -247,13 +247,15 @@ internal sealed partial class TextureManager
                 fixed (Guid* piidWicImagingFactory = &IID.IID_IWICImagingFactory)
                 fixed (Guid* pclsidWicImagingFactory2 = &CLSID.CLSID_WICImagingFactory2)
                 fixed (Guid* piidWicImagingFactory2 = &IID.IID_IWICImagingFactory2)
+                fixed (IWICImagingFactory** ppWicFactory = &this.wicFactory.GetPinnableReference())
+                fixed (IWICImagingFactory2** ppWicFactory2 = &this.wicFactory2.GetPinnableReference())
                 {
                     if (CoCreateInstance(
                             pclsidWicImagingFactory2,
                             null,
                             (uint)CLSCTX.CLSCTX_INPROC_SERVER,
                             piidWicImagingFactory2,
-                            (void**)this.wicFactory2.GetAddressOf()).SUCCEEDED)
+                            (void**)ppWicFactory2).SUCCEEDED)
                     {
                         this.wicFactory2.As(ref this.wicFactory).ThrowOnError();
                     }
@@ -264,7 +266,7 @@ internal sealed partial class TextureManager
                             null,
                             (uint)CLSCTX.CLSCTX_INPROC_SERVER,
                             piidWicImagingFactory,
-                            (void**)this.wicFactory.GetAddressOf()).ThrowOnError();
+                            (void**)ppWicFactory).ThrowOnError();
                     }
                 }
             }
