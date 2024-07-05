@@ -3571,4 +3571,11 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("PvPFrontlinesGCFree", ConfigType.UInt)]
     PvPFrontlinesGCFree,
+
+    /// <summary>
+    /// System option with the internal name PadMode.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("PadMode", ConfigType.UInt)]
+    PadMode,
 }
