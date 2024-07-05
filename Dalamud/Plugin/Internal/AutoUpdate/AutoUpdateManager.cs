@@ -75,7 +75,6 @@ internal class AutoUpdateManager : IServiceType
     private bool hasStartedInitialUpdateThisSession;
 
     private IActiveNotification? updateNotification;
-    private bool notificationHasStartedUpdate; // Used to track if the user has started an update from the notification.
     
     private Task? autoUpdateTask;
     
@@ -195,6 +194,8 @@ internal class AutoUpdateManager : IServiceType
             if (currentlyUpdatablePlugins.Count == 0)
             {
                 this.IsAutoUpdateComplete = true;
+                this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
+                
                 return;
             }
             
@@ -209,7 +210,6 @@ internal class AutoUpdateManager : IServiceType
             }
 
             Log.Verbose("Running initial auto-update, updating {Num} plugins", currentlyUpdatablePlugins.Count);
-            this.notificationHasStartedUpdate = true;
             this.KickOffAutoUpdates(currentlyUpdatablePlugins);
             return;
         }
@@ -221,8 +221,6 @@ internal class AutoUpdateManager : IServiceType
             DateTime.Now > this.nextUpdateCheckTime &&
             this.updateNotification == null)
         {
-            this.nextUpdateCheckTime = null;
-            
             Log.Verbose("Starting periodic update check");
             this.pluginManager.ReloadPluginMastersAsync()
                 .ContinueWith(
@@ -245,27 +243,16 @@ internal class AutoUpdateManager : IServiceType
         if (this.updateNotification != null)
             throw new InvalidOperationException("Already showing a notification");
         
-        if (this.notificationHasStartedUpdate)
-            throw new InvalidOperationException("Lost track of notification state"); 
-        
         this.updateNotification = this.notificationManager.AddNotification(notification);
+
         this.updateNotification.Dismiss += _ =>
         {
             this.updateNotification = null;
-
-            // If the user just clicked off the notification, we don't want to bother them again for quite a while.
-            if (this.notificationHasStartedUpdate)
-            {
-                this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
-                Log.Verbose("User started update, next check at {Time}", this.nextUpdateCheckTime);
-            }
-            else
-            {
-                this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecksIfDismissed;
-                Log.Verbose("User dismissed update notification, next check at {Time}", this.nextUpdateCheckTime);
-            }
+            
+            // Schedule the next update opportunistically for when this closes.
+            this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
         };
-        
+
         return this.updateNotification!;
     }
 
@@ -360,8 +347,6 @@ internal class AutoUpdateManager : IServiceType
         if (updatablePlugins.Count == 0)
             return;
         
-        this.notificationHasStartedUpdate = false;
-
         var notification = this.GetBaseNotification(new Notification
         {
             Title = Locs.NotificationTitleUpdatesAvailable,
@@ -381,7 +366,6 @@ internal class AutoUpdateManager : IServiceType
             {
                 notification.DrawActions -= DrawNotificationContent;
                 this.KickOffAutoUpdates(updatablePlugins, notification);
-                this.notificationHasStartedUpdate = true;
             }
 
             ImGui.SameLine();
@@ -389,6 +373,16 @@ internal class AutoUpdateManager : IServiceType
         }
 
         notification.DrawActions += DrawNotificationContent;
+
+        // If the user dismisses the notification, we don't want to spam them with notifications. Schedule the next
+        // auto update further out. Since this is registered after the initial OnDismiss, this should take precedence.
+        notification.Dismiss += args =>
+        {
+            if (args.Reason != NotificationDismissReason.Manual) return;
+            
+            this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecksIfDismissed;
+            Log.Verbose("User dismissed update notification, next check at {Time}", this.nextUpdateCheckTime);
+        };
     }
     
     private List<AvailablePluginUpdate> GetAvailablePluginUpdates(UpdateListingRestriction restriction)
