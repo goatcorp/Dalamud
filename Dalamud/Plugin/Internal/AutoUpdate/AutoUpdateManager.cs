@@ -230,10 +230,21 @@ internal class AutoUpdateManager : IServiceType
                         {
                             Log.Error(t.Exception!, "Failed to reload plugin masters for auto-update");
                         }
-                        
-                        this.NotifyUpdatesAreAvailable(
-                            this.GetAvailablePluginUpdates(
-                                DecideUpdateListingRestriction(behavior)));
+
+                        var updatable = this.GetAvailablePluginUpdates(
+                            DecideUpdateListingRestriction(behavior));
+
+                        if (updatable.Count > 0)
+                        {
+                            this.NotifyUpdatesAreAvailable(updatable);
+                        }
+                        else
+                        {
+                            this.nextUpdateCheckTime = DateTime.Now + TimeBetweenUpdateChecks;
+                            Log.Verbose(
+                                "Auto update found nothing to do, next update at {Time}", 
+                                this.nextUpdateCheckTime);
+                        }
                     });
         }
     }
