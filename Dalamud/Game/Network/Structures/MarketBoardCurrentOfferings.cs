@@ -16,7 +16,7 @@ public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
     /// <summary>
     /// Gets the list of individual item listings.
     /// </summary>
-    IReadOnlyList<IMarketBoardItemListing> IMarketBoardCurrentOfferings.ItemListings => this.InternalItemListings;
+    public IReadOnlyList<IMarketBoardItemListing> ItemListings => this.InternalItemListings;
 
     /// <summary>
     /// Gets the request ID.
