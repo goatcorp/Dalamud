@@ -270,7 +270,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
             case State.Hide:
             {
-                if (this.DrawEntry(entries[0], true, false, true, true, false))
+                if (entries.Count > 0 && this.DrawEntry(entries[0], true, false, true, true, false))
                 {
                     this.state = State.Show;
                 }
