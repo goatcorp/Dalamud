@@ -43,10 +43,10 @@ public enum CardType : byte
     /// <summary>
     /// The Lord of Crowns card.
     /// </summary>
-    LORD = 0x70,
+    LORD = 7,
 
     /// <summary>
     /// The Lady of Crowns card.
     /// </summary>
-    LADY = 0x80,
+    LADY = 8,
 }
