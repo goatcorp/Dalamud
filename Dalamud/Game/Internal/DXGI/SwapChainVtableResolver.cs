@@ -134,8 +134,12 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
                                 fileInfo.FileVersion ?? "Unknown",
                                 reShadeDxgiPresent.ToString("X"));
 
-                this.Present = reShadeDxgiPresent;
-                this.IsReshade = true;
+                if (reShadeDxgiPresent != IntPtr.Zero)
+                {
+                    this.Present = reShadeDxgiPresent;
+                    this.IsReshade = true;
+                }
+
                 break;
             }
             catch (Exception e)
