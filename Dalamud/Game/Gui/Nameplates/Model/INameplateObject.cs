@@ -25,5 +25,5 @@ public interface INameplateObject
     /// <summary>
     /// Gets the corresponding <see cref="ClientState.Objects.Types.GameObject"/> for this nameplate.
     /// </summary>
-    GameObject? GameObject { get; }
+    IGameObject? GameObject { get; }
 }

@@ -10,7 +10,7 @@ namespace Dalamud.Game.Gui.Nameplates.Model;
 internal class NameplateObject(IntPtr address, INameplateInfo info) : INameplateObject
 {
     private long? nameplateIndex = null;
-    private GameObject? gameObject = null;
+    private IGameObject? gameObject = null;
 
     /// <inheritdoc/>
     public nint Address { get; } = address;
@@ -25,7 +25,7 @@ internal class NameplateObject(IntPtr address, INameplateInfo info) : INameplate
     }
 
     /// <inheritdoc/>
-    public GameObject? GameObject
+    public IGameObject? GameObject
     {
         get => this.gameObject ??= Service<NameplateGui>.Get().GetNameplateGameObject(this.NameplateIndex);
     }

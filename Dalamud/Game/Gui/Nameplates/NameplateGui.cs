@@ -95,7 +95,7 @@ internal class NameplateGui : IInternalDisposableService, INameplateGui
     /// </summary>
     /// <param name="namePlateIndex">The index of the namplate where you want to get the <see cref="GameObject"/> for.</param>
     /// <returns>Returns the corresponding <see cref="GameObject"/> for the nameplate.</returns>
-    public GameObject? GetNameplateGameObject(long namePlateIndex)
+    public IGameObject? GetNameplateGameObject(long namePlateIndex)
     {
         if (namePlateIndex == -1)
             return null;
