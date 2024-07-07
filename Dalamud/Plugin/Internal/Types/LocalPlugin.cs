@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
-using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
@@ -15,7 +14,6 @@ using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types.Manifest;
-using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Types;
 
@@ -43,7 +41,7 @@ internal class LocalPlugin : IDisposable
     private PluginLoader? loader;
     private Assembly? pluginAssembly;
     private Type? pluginType;
-    private IDalamudPlugin? instance;
+    private object? instance;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalPlugin"/> class.
@@ -56,7 +54,6 @@ internal class LocalPlugin : IDisposable
         {
             // Could this be done another way? Sure. It is an extremely common source
             // of errors in the log through, and should never be loaded as a plugin.
-            Log.Error($"Not a plugin: {dllFile.FullName}");
             throw new InvalidPluginException(dllFile);
         }
 
@@ -228,33 +225,19 @@ internal class LocalPlugin : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        var framework = Service<Framework>.GetNullable();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        var didPluginDispose = false;
-        if (this.instance != null)
+        // TODO: Would it not be safer to just call UnloadAsync() here?
+        var needsDispose = this.instance != null;
+        if (needsDispose)
         {
-            didPluginDispose = true;
-            if (this.manifest.CanUnloadAsync || framework == null)
-                this.instance.Dispose();
-            else
-                framework.RunOnFrameworkThread(() => this.instance.Dispose()).Wait();
-
-            this.instance = null;
+            this.UnloadAndDisposeInstanceAsync().Wait();
+            this.UnloadAndDisposeState();
+            
+            if (this.loader != null)
+                Thread.Sleep(configuration.PluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault);
         }
 
-        this.DalamudInterface?.Dispose();
-
-        this.DalamudInterface = null;
-
-        this.ServiceScope?.Dispose();
-        this.ServiceScope = null;
-
-        this.pluginType = null;
-        this.pluginAssembly = null;
-
-        if (this.loader != null && didPluginDispose)
-            Thread.Sleep(configuration.PluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault);
         this.loader?.Dispose();
     }
 
@@ -336,32 +319,31 @@ internal class LocalPlugin : IDisposable
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name} as a load policy forbids it");
 
             this.State = PluginState.Loading;
-            Log.Information($"Loading {this.DllFile.Name}");
+            Log.Information("Now loading {InternalName} at {DllFile}", this.InternalName, this.DllFile.FullName);
             
             this.EnsureLoader();
-
+            
             if (this.DllFile.DirectoryName != null &&
                 File.Exists(Path.Combine(this.DllFile.DirectoryName, "Dalamud.dll")))
             {
+                // ReSharper disable LogMessageIsSentenceProblem
                 Log.Error(
-                    "==== IMPORTANT MESSAGE TO {0}, THE DEVELOPER OF {1} ====",
+                    "==== IMPORTANT MESSAGE TO {Author}, THE DEVELOPER OF {Plugin} ====",
                     this.manifest.Author!,
                     this.manifest.InternalName);
-                Log.Error(
-                    "YOU ARE INCLUDING DALAMUD DEPENDENCIES IN YOUR BUILDS!!!");
-                Log.Error(
-                    "You may not be able to load your plugin. \"<Private>False</Private>\" needs to be set in your csproj.");
-                Log.Error(
-                    "If you are using ILMerge, do not merge anything other than your direct dependencies.");
+                Log.Error("YOU ARE INCLUDING DALAMUD DEPENDENCIES IN YOUR BUILDS!!!");
+                Log.Error("You may not be able to load your plugin. \"<Private>False</Private>\" needs to be set in your csproj.");
+                Log.Error("If you are using ILMerge, do not merge anything other than your direct dependencies.");
                 Log.Error("Do not merge FFXIVClientStructs.Generators.dll.");
-                Log.Error(
-                    "Please refer to https://github.com/goatcorp/Dalamud/discussions/603 for more information.");
+                Log.Error("Please refer to https://github.com/goatcorp/Dalamud/discussions/603 for more information.");
+                // ReSharper restore LogMessageIsSentenceProblem
             }
 
             this.HasEverStartedLoad = true;
-
-            this.loader ??= PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);
-
+            
+            if (this.loader == null)
+                throw new Exception("Loader is null");
+            
             if (reloading || this.IsDev)
             {
                 if (this.IsDev)
@@ -377,17 +359,20 @@ internal class LocalPlugin : IDisposable
                 this.loader.Reload();
             }
 
-            // Load the assembly
-            this.pluginAssembly ??= this.loader.LoadDefaultAssembly();
+            if (this.pluginAssembly == null)
+                throw new Exception("Plugin assembly is null");
+            
+            if (this.pluginType == null)
+                throw new Exception("Plugin type is null");
 
-            this.AssemblyName = this.pluginAssembly.GetName();
-
+            if (this.AssemblyName == null)
+                throw new Exception("Assembly name is null");
+            
             // Find the plugin interface implementation. It is guaranteed to exist after checking in the ctor.
-            this.pluginType ??= this.pluginAssembly.GetTypes()
-                                    .First(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            this.pluginType ??= FindPluginImpl(this.pluginAssembly);
 
             // Check for any loaded plugins with the same assembly name
-            var assemblyName = this.pluginAssembly.GetName().Name;
+            var assemblyName = this.AssemblyName.Name;
             foreach (var otherPlugin in pluginManager.InstalledPlugins)
             {
                 // During hot-reloading, this plugin will be in the plugin list, and the instance will have been disposed
@@ -399,8 +384,6 @@ internal class LocalPlugin : IDisposable
                 if (otherPluginAssemblyName == assemblyName && otherPluginAssemblyName != null)
                 {
                     this.State = PluginState.Unloaded;
-                    Log.Debug($"Duplicate assembly: {this.Name}");
-
                     throw new DuplicatePluginException(assemblyName);
                 }
             }
@@ -417,17 +400,34 @@ internal class LocalPlugin : IDisposable
 
             try
             {
-                if (this.manifest.LoadSync && this.manifest.LoadRequiredState is 0 or 1)
+                if (this.pluginType.IsAssignableTo(typeof(IAsyncDalamudPlugin)))
                 {
-                    this.instance = await framework.RunOnFrameworkThread(
-                                        () => this.ServiceScope.CreateAsync(
-                                            this.pluginType!,
-                                            this.DalamudInterface!)) as IDalamudPlugin;
+                    var asyncInstance =
+                        await this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!) as IAsyncDalamudPlugin;
+
+                    this.instance = asyncInstance;
+                    
+                    // Caught below, so we just check here
+                    if (asyncInstance != null)
+                        await asyncInstance.LoadAsync();
                 }
                 else
                 {
-                    this.instance =
-                        await this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!) as IDalamudPlugin;
+                    if (this.manifest.LoadSync && this.manifest.LoadRequiredState is 0 or 1)
+                    {
+                        var newInstance = await framework.RunOnFrameworkThread(
+                                                             () => this.ServiceScope.CreateAsync(
+                                                                 this.pluginType!,
+                                                                 this.DalamudInterface!))
+                                                         .ConfigureAwait(false);
+                    
+                        this.instance = newInstance as IDalamudPlugin;
+                    }
+                    else
+                    {
+                        this.instance =
+                            await this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!) as IDalamudPlugin;
+                    }
                 }
             }
             catch (Exception ex)
@@ -455,7 +455,7 @@ internal class LocalPlugin : IDisposable
 
             // If a precondition fails, don't record it as an error, as it isn't really. 
             if (ex is PluginPreconditionFailedException)
-                Log.Warning(ex.Message);
+                Log.Warning(ex, "Precondition failed while loading {PluginName}", this.InternalName);
             else
                 Log.Error(ex, "Error while loading {PluginName}", this.InternalName);
 
@@ -477,7 +477,6 @@ internal class LocalPlugin : IDisposable
     public async Task UnloadAsync(bool reloading = false, bool waitBeforeLoaderDispose = true)
     {
         var configuration = Service<DalamudConfiguration>.Get();
-        var framework = Service<Framework>.GetNullable();
 
         await this.pluginLoadStateLock.WaitAsync();
         try
@@ -509,10 +508,7 @@ internal class LocalPlugin : IDisposable
 
             try
             {
-                if (this.manifest.CanUnloadAsync || framework == null)
-                    this.instance?.Dispose();
-                else
-                    await framework.RunOnFrameworkThread(() => this.instance?.Dispose());
+                await this.UnloadAndDisposeInstanceAsync();
             }
             catch (Exception e)
             {
@@ -628,6 +624,13 @@ internal class LocalPlugin : IDisposable
     protected virtual void OnPreReload()
     {
     }
+    
+    private static Type? FindPluginImpl(Assembly assembly)
+    {
+        return assembly.GetTypes().FirstOrDefault(
+            type => type.IsAssignableTo(typeof(IDalamudPlugin)) ||
+                    type.IsAssignableTo(typeof(IAsyncDalamudPlugin)));
+    }
 
     private static void SetupLoaderConfig(LoaderConfig config)
     {
@@ -667,6 +670,7 @@ internal class LocalPlugin : IDisposable
         try
         {
             this.pluginAssembly = this.loader.LoadDefaultAssembly();
+            this.AssemblyName = this.pluginAssembly.GetName();
         }
         catch (Exception ex)
         {
@@ -674,19 +678,19 @@ internal class LocalPlugin : IDisposable
             this.pluginType = null;
             this.loader.Dispose();
 
-            Log.Error(ex, $"Not a plugin: {this.DllFile.FullName}");
+            Log.Error(ex, "Not a plugin: {DllFile}", this.DllFile.FullName);
             throw new InvalidPluginException(this.DllFile);
         }
 
         try
         {
-            this.pluginType = this.pluginAssembly.GetTypes().FirstOrDefault(type => type.IsAssignableTo(typeof(IDalamudPlugin)));
+            this.pluginType = FindPluginImpl(this.pluginAssembly);
         }
         catch (ReflectionTypeLoadException ex)
         {
-            Log.Error(ex, $"Could not load one or more types when searching for IDalamudPlugin: {this.DllFile.FullName}");
-            // Something blew up when parsing types, but we still want to look for IDalamudPlugin. Let Load() handle the error.
-            this.pluginType = ex.Types.FirstOrDefault(type => type != null && type.IsAssignableTo(typeof(IDalamudPlugin)));
+            Log.Error(ex, "Could not load one or more types when searching for IDalamudPlugin for {InternalName} ({DllFile})",
+                this.InternalName, this.DllFile.FullName);
+            throw;
         }
 
         if (this.pluginType == default)
@@ -695,11 +699,34 @@ internal class LocalPlugin : IDisposable
             this.pluginType = null;
             this.loader.Dispose();
 
-            Log.Error($"Nothing inherits from IDalamudPlugin: {this.DllFile.FullName}");
+            Log.Error("Nothing inherits from IDalamudPlugin in {DllFile}", this.DllFile.FullName);
             throw new InvalidPluginException(this.DllFile);
         }
     }
 
+    private async Task UnloadAndDisposeInstanceAsync()
+    {
+        var framework = Service<Framework>.Get();
+        
+        switch (this.instance)
+        {
+            // Async plugins always unload async.
+            case IAsyncDalamudPlugin asyncInstance:
+                await asyncInstance.DisposeAsync();
+                break;
+                    
+            // Sync plugins that can unload async will unload async, if we are in off the main thread.
+            case IDalamudPlugin syncInstance when this.manifest.CanUnloadAsync || framework == null:
+                syncInstance.Dispose();
+                break;
+                    
+            // Otherwise, we need to run the dispose on the main thread for legacy reasons.
+            case IDalamudPlugin syncInstance:
+                await framework.RunOnFrameworkThread(() => syncInstance.Dispose()).ConfigureAwait(false);
+                break;
+        }
+    }
+    
     private void UnloadAndDisposeState()
     {
         if (this.instance != null)
