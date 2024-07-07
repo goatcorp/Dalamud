@@ -119,6 +119,16 @@ internal class AutoUpdateManager : IServiceType
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
     
+    /// <summary>
+    /// Gets the time of the next scheduled update check.
+    /// </summary>
+    public DateTime? NextUpdateCheckTime => this.nextUpdateCheckTime;
+    
+    /// <summary>
+    /// Gets the time the auto-update was unblocked.
+    /// </summary>
+    public DateTime? UnblockedSince => this.unblockedSince;
+    
     private static UpdateListingRestriction DecideUpdateListingRestriction(AutoUpdateBehavior behavior)
     {
         return behavior switch

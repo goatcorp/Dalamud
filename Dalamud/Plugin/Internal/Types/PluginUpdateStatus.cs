@@ -33,6 +33,11 @@ internal class PluginUpdateStatus
         FailedLoad,
         
         /// <summary>
+        /// The updated plugin is already up to date.
+        /// </summary>
+        AlreadyUpToDate,
+        
+        /// <summary>
         /// The update succeeded.
         /// </summary>
         Success,
