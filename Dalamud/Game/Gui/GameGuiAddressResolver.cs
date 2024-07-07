@@ -39,6 +39,7 @@ internal sealed class GameGuiAddressResolver : BaseAddressResolver
     /// Gets the address of the native HandleImm method.
     /// </summary>
     public IntPtr HandleImm { get; private set; }
+
     /// <summary>
     /// Gets the address of the native ToggleUiHide method.
     /// </summary>

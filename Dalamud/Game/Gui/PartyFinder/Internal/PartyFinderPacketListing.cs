@@ -64,13 +64,7 @@ internal unsafe struct PartyFinderPacketListing
     private fixed byte description[192];
 
     private fixed byte padding14[4];
-
-    internal bool IsNull()
-    {
-        // a valid party finder must have at least one slot set
-        return this.Slots.All(slot => slot == 0);
-    }
-
+    
     #region Helper
 
     internal ulong[] Slots
@@ -118,4 +112,10 @@ internal unsafe struct PartyFinderPacketListing
     }
 
     #endregion
+
+    internal bool IsNull()
+    {
+        // a valid party finder must have at least one slot set
+        return this.Slots.All(slot => slot == 0);
+    }
 }
