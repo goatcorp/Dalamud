@@ -419,10 +419,12 @@ internal class LocalPlugin : IDisposable
             {
                 if (this.manifest.LoadSync && this.manifest.LoadRequiredState is 0 or 1)
                 {
-                    this.instance = await framework.RunOnFrameworkThread(
+                    var newInstance = await framework.RunOnFrameworkThread(
                                         () => this.ServiceScope.CreateAsync(
                                             this.pluginType!,
-                                            this.DalamudInterface!)) as IDalamudPlugin;
+                                            this.DalamudInterface!)).ConfigureAwait(false);
+                    
+                    this.instance = newInstance as IDalamudPlugin;
                 }
                 else
                 {
@@ -512,7 +514,7 @@ internal class LocalPlugin : IDisposable
                 if (this.manifest.CanUnloadAsync || framework == null)
                     this.instance?.Dispose();
                 else
-                    await framework.RunOnFrameworkThread(() => this.instance?.Dispose());
+                    await framework.RunOnFrameworkThread(() => this.instance?.Dispose()).ConfigureAwait(false);
             }
             catch (Exception e)
             {
