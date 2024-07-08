@@ -496,7 +496,7 @@ internal class AutoUpdateManager : IServiceType
                             "AutoUpdateUpdatesAvailableContentPlural",
                             "There are {0} plugins that can be updated:"),
                         updatablePlugins.Count))
-               + "\n\n" + string.Join(",", updatablePlugins.Select(x => x.InstalledPlugin.Manifest.Name));
+               + "\n\n" + string.Join(", ", updatablePlugins.Select(x => x.InstalledPlugin.Manifest.Name));
         
         public static string NotificationContentUpdatesAvailableMinimized(int numUpdates)
             => numUpdates == 1 ?
