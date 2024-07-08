@@ -222,9 +222,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
         this.SizeCondition = ImGuiCond.Always;
         
         // Center the window on the main viewport
+        var viewportPos = ImGuiHelpers.MainViewport.Pos;
         var viewportSize = ImGuiHelpers.MainViewport.Size;
         var windowSize = this.Size!.Value * ImGuiHelpers.GlobalScale;
-        ImGui.SetNextWindowPos(new Vector2(viewportSize.X / 2 - windowSize.X / 2, viewportSize.Y / 2 - windowSize.Y / 2));
+        ImGui.SetNextWindowPos(new Vector2(viewportPos.X + viewportSize.X / 2 - windowSize.X / 2, viewportPos.Y + viewportSize.Y / 2 - windowSize.Y / 2));
+        //ImGui.SetNextWindowPos(new Vector2(viewportSize.X / 2 - windowSize.X / 2, viewportSize.Y / 2 - windowSize.Y / 2));
     }
 
     /// <inheritdoc/>

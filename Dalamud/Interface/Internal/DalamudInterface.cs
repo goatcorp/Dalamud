@@ -565,7 +565,7 @@ internal class DalamudInterface : IInternalDisposableService
         using var style2 = ImRaii.PushStyle(ImGuiStyleVar.WindowBorderSize, 0f);
         using var color = ImRaii.PushColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0));
 
-        ImGui.SetNextWindowPos(new Vector2(0, 0));
+        ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos);
         ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
         ImGuiHelpers.ForceNextWindowMainViewport();
 
