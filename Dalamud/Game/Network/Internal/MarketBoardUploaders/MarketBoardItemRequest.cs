@@ -16,7 +16,7 @@ internal class MarketBoardItemRequest
 
     /// <summary>
     /// Gets the request status. Nonzero statuses are errors.
-    /// Known values: default=0; rate limited=0x70000003
+    /// Known values: default=0; rate limited=0x70000003.
     /// </summary>
     public uint Status { get; private set; }
 

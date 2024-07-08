@@ -995,20 +995,16 @@ internal class PluginManager : IInternalDisposableService
         var totalPlugins = toUpdate.Count;
         var processedPlugins = 0;
 
-        // Prevent collection was modified errors
-        lock (this.pluginListLock)
+        foreach (var plugin in toUpdate)
         {
-            foreach (var plugin in toUpdate)
-            {
-                // Can't update that!
-                if (plugin.InstalledPlugin.IsDev)
-                    continue;
+            // Can't update that!
+            if (plugin.InstalledPlugin.IsDev)
+                continue;
 
-                if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
-                    continue;
+            if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
+                continue;
 
-                updateTasks.Add(UpdateSinglePluginWithProgressAsync(plugin));
-            }
+            updateTasks.Add(UpdateSinglePluginWithProgressAsync(plugin));
         }
 
         var updatedList = await Task.WhenAll(updateTasks);
@@ -1065,6 +1061,18 @@ internal class PluginManager : IInternalDisposableService
             Status = PluginUpdateStatus.StatusKind.Success,
             HasChangelog = !metadata.UpdateManifest.Changelog.IsNullOrWhitespace(),
         };
+        
+        // Check if this plugin is already up to date (=> AvailablePluginUpdate was stale)
+        lock (this.installedPluginsList)
+        {
+            var matchedPlugin = this.installedPluginsList.FirstOrDefault(x => x.EffectiveWorkingPluginId == workingPluginId);
+            if (matchedPlugin?.EffectiveVersion == metadata.EffectiveVersion)
+            {
+                Log.Information("Plugin {Name} is already up to date", plugin.Manifest.Name);
+                updateStatus.Status = PluginUpdateStatus.StatusKind.AlreadyUpToDate;
+                return updateStatus;
+            }
+        }
 
         if (!dryRun)
         {
@@ -1457,7 +1465,7 @@ internal class PluginManager : IInternalDisposableService
             // ignored, since the plugin may be loaded already
         }
 
-        Log.Debug($"Extracting to {outputDir}");
+        Log.Debug("Extracting to {OutputDir}", outputDir);
 
         using (var archive = new ZipArchive(zipStream))
         {

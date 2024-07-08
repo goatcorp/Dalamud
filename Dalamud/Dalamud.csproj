@@ -67,6 +67,7 @@
     <ItemGroup>
         <PackageReference Include="BitFaster.Caching" Version="2.4.1" />
         <PackageReference Include="CheapLoc" Version="1.1.8" />
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4" PrivateAssets="all" />
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
@@ -141,8 +142,11 @@
 
     <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Release'">
         <!-- write the hash to the temp file.-->
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
+        </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-parse" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudFullGitCommitHash" />
         </Exec>
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
@@ -192,6 +196,10 @@
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
                 <_Parameter2>$(BuildHashClientStructs)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(DalamudFullGitCommitHash)' != ''">
+                <_Parameter1>FullGitHash</_Parameter1>
+                <_Parameter2>$(DalamudFullGitCommitHash)</_Parameter2>
             </AssemblyAttributes>
         </ItemGroup>
         <!-- writes the attribute to the customAssemblyInfo file -->

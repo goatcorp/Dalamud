@@ -540,6 +540,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
     /// </summary>
     public void Dispose()
     {
+        this.scopedFinalizer.Dispose();
     }
     
     private void FrameworkOnUpdate(IFramework unused)

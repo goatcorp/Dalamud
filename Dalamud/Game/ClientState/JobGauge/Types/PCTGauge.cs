@@ -20,47 +20,47 @@ public unsafe class PCTGauge : JobGaugeBase<PictomancerGauge>
     }
 
     /// <summary>
-    /// Tracks use of subjective pallete
+    /// Gets the use of subjective pallete.
     /// </summary>
     public byte PalleteGauge => Struct->PalleteGauge;
 
     /// <summary>
-    /// Number of paint the player has.
+    /// Gets the amount of paint the player has.
     /// </summary>
     public byte Paint => Struct->Paint;
     
     /// <summary>
-    /// Creature Motif Stack
+    /// Gets a value indicating whether or not a creature motif is drawn.
     /// </summary>
     public bool CreatureMotifDrawn => Struct->CreatureMotifDrawn;
 
     /// <summary>
-    /// Weapon Motif Stack
+    /// Gets a value indicating whether or not a weapon motif is drawn.
     /// </summary>
     public bool WeaponMotifDrawn => Struct->WeaponMotifDrawn;
 
     /// <summary>
-    /// Landscape Motif Stack
+    /// Gets a value indicating whether or not a landscape motif is drawn.
     /// </summary>
     public bool LandscapeMotifDrawn => Struct->LandscapeMotifDrawn;
 
     /// <summary>
-    /// Moogle Portrait Stack
+    /// Gets a value indicating whether or not a moogle portrait is ready.
     /// </summary>
     public bool MooglePortraitReady => Struct->MooglePortraitReady;
     
     /// <summary>
-    /// Madeen Portrait Stack
+    /// Gets a value indicating whether or not a madeen portrait is ready.
     /// </summary>
     public bool MadeenPortraitReady => Struct->MadeenPortraitReady;
 
     /// <summary>
-    /// Which creature flags are present.
+    /// Gets which creature flags are present.
     /// </summary>
     public CreatureFlags CreatureFlags => (CreatureFlags)Struct->CreatureFlags;
 
     /// <summary>
-    /// Which canvas flags are present.
+    /// Gets which canvas flags are present.
     /// </summary>
     public CanvasFlags CanvasFlags => (CanvasFlags)Struct->CanvasFlags;
 }
