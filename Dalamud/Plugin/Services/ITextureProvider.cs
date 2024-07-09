@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
@@ -231,6 +231,15 @@ public interface ITextureProvider
     /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
     /// </remarks>
     ISharedImmediateTexture GetFromFile(FileInfo file);
+
+    /// <summary>Gets a shared texture corresponding to the given file on the filesystem.</summary>
+    /// <param name="fullPath">The file on the filesystem to load. Requires a full path.</param>
+    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    /// <remarks>
+    /// <para>This function does not throw exceptions.</para>
+    /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
+    /// </remarks>
+    ISharedImmediateTexture GetFromFileAbsolute(string fullPath);
 
     /// <summary>Gets a shared texture corresponding to the given file of the assembly manifest resources.</summary>
     /// <param name="assembly">The assembly containing manifest resources.</param>
