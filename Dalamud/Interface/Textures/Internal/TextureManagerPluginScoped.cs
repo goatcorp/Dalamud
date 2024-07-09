@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -6,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -21,7 +23,6 @@ namespace Dalamud.Interface.Textures.Internal;
 
 /// <summary>Plugin-scoped version of <see cref="TextureManager"/>.</summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<ITextureProvider>]
@@ -275,6 +276,20 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture)
+    {
+        if (this.ManagerOrThrow.Shared.TryGetFromGameIcon(lookup, out var shared))
+        {
+            shared.AddOwnerPlugin(this.plugin);
+            texture = shared;
+            return true;
+        }
+
+        texture = null;
+        return false;
+    }
+    
+    /// <inheritdoc/>
     public ISharedImmediateTexture GetFromGame(string path)
     {
         var shared = this.ManagerOrThrow.Shared.GetFromGame(path);
@@ -286,6 +301,14 @@ internal sealed class TextureManagerPluginScoped
     public ISharedImmediateTexture GetFromFile(string path)
     {
         var shared = this.ManagerOrThrow.Shared.GetFromFile(path);
+        shared.AddOwnerPlugin(this.plugin);
+        return shared;
+    }
+    
+    /// <inheritdoc/>
+    public ISharedImmediateTexture GetFromFile(FileInfo file)
+    {
+        var shared = this.ManagerOrThrow.Shared.GetFromFile(file);
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }

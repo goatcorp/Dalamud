@@ -44,6 +44,7 @@ internal class SelfTestWindow : Window
             new HandledExceptionAgingStep(),
             new DutyStateAgingStep(),
             new GameConfigAgingStep(),
+            new MarketBoardAgingStep(),
             new LogoutEventAgingStep(),
         };
 

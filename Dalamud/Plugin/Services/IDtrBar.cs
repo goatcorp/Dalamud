@@ -24,8 +24,7 @@ public interface IDtrBar
     /// <param name="text">The text the entry shows.</param>
     /// <returns>The entry object used to update, hide and remove the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when an entry with the specified title exists.</exception>
-    [Api10ToDo("Return IDtrBarEntry instead of DtrBarEntry")]
-    public DtrBarEntry Get(string title, SeString? text = null);
+    public IDtrBarEntry Get(string title, SeString? text = null);
 
     /// <summary>
     /// Removes a DTR bar entry from the system.

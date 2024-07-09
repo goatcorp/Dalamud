@@ -13,7 +13,6 @@ namespace Dalamud.Game.Config;
 /// <summary>
 /// This class represents the game's configuration.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 {
@@ -243,7 +242,6 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 /// Plugin-scoped version of a GameConfig service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameConfig>]

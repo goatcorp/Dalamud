@@ -7,7 +7,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This collection represents the list of available Aetherytes in the Teleport window.
 /// </summary>
-public interface IAetheryteList : IReadOnlyCollection<AetheryteEntry>
+public interface IAetheryteList : IReadOnlyCollection<IAetheryteEntry>
 {
     /// <summary>
     /// Gets the amount of Aetherytes the local player has unlocked.
@@ -19,5 +19,5 @@ public interface IAetheryteList : IReadOnlyCollection<AetheryteEntry>
     /// </summary>
     /// <param name="index">Index.</param>
     /// <returns>A <see cref="AetheryteEntry"/> at the specified index.</returns>
-    public AetheryteEntry? this[int index] { get; }
+    public IAetheryteEntry? this[int index] { get; }
 }

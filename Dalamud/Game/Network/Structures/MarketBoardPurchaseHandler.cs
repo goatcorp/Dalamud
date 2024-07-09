@@ -6,7 +6,7 @@ namespace Dalamud.Game.Network.Structures;
 /// Represents market board purchase information. This message is sent from the
 /// client when a purchase is made at a market board.
 /// </summary>
-public class MarketBoardPurchaseHandler
+public class MarketBoardPurchaseHandler : IMarketBoardPurchaseHandler
 {
     private MarketBoardPurchaseHandler()
     {
@@ -38,23 +38,44 @@ public class MarketBoardPurchaseHandler
     public uint PricePerUnit { get; private set; }
 
     /// <summary>
+    /// Gets a value indicating whether the item is HQ.
+    /// </summary>
+    public bool IsHq { get; private set; }
+
+    /// <summary>
+    /// Gets the total tax.
+    /// </summary>
+    public uint TotalTax { get; private set; }
+
+    /// <summary>
+    /// Gets the city ID of the retainer selling the item.
+    /// </summary>
+    public int RetainerCityId { get; private set; }
+
+    /// <summary>
     /// Reads market board purchase information from the struct at the provided pointer.
     /// </summary>
     /// <param name="dataPtr">A pointer to a struct containing market board purchase information from the client.</param>
     /// <returns>An object representing the data read.</returns>
-    public static unsafe MarketBoardPurchaseHandler Read(IntPtr dataPtr)
+    public static unsafe MarketBoardPurchaseHandler Read(nint dataPtr)
     {
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
 
-        var output = new MarketBoardPurchaseHandler
-        {
-            RetainerId = reader.ReadUInt64(),
-            ListingId = reader.ReadUInt64(),
-            CatalogId = reader.ReadUInt32(),
-            ItemQuantity = reader.ReadUInt32(),
-            PricePerUnit = reader.ReadUInt32(),
-        };
+        var output = new MarketBoardPurchaseHandler();
+
+        output.RetainerId = reader.ReadUInt64();
+        output.ListingId = reader.ReadUInt64();
+
+        output.CatalogId = reader.ReadUInt32();
+        output.ItemQuantity = reader.ReadUInt32();
+        output.PricePerUnit = reader.ReadUInt32();
+        output.TotalTax = reader.ReadUInt32();
+
+        reader.ReadUInt16(); // Slot
+
+        output.IsHq = reader.ReadBoolean();
+        output.RetainerCityId = reader.ReadByte();
 
         return output;
     }

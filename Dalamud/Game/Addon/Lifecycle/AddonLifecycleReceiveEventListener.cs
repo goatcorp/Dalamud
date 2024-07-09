@@ -3,7 +3,6 @@
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -29,39 +28,46 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
     internal AddonLifecycleReceiveEventListener(AddonLifecycle service, string addonName, nint receiveEventAddress)
     {
         this.AddonLifecycle = service;
-        this.AddonNames = new List<string> { addonName };
-        this.Hook = Hook<AddonReceiveEventDelegate>.FromAddress(receiveEventAddress, this.OnReceiveEvent);
+        this.AddonNames = [addonName];
+        this.FunctionAddress = receiveEventAddress;
     }
-
-    /// <summary>
-    /// Addon Receive Event Function delegate.
-    /// </summary>
-    /// <param name="addon">Addon Pointer.</param>
-    /// <param name="eventType">Event Type.</param>
-    /// <param name="eventParam">Unique Event ID.</param>
-    /// <param name="atkEvent">Event Data.</param>
-    /// <param name="a5">Unknown.</param>
-    public delegate void AddonReceiveEventDelegate(AtkUnitBase* addon, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, nint a5);
 
     /// <summary>
     /// Gets the list of addons that use this receive event hook.
     /// </summary>
     public List<string> AddonNames { get; init; }
-    
+
     /// <summary>
-    /// Gets the address of the registered hook.
+    /// Gets the address of the ReceiveEvent function as provided by the vtable on setup.
     /// </summary>
-    public nint HookAddress => this.Hook?.Address ?? nint.Zero;
+    public nint FunctionAddress { get; init; }
     
     /// <summary>
     /// Gets the contained hook for these addons.
     /// </summary>
-    public Hook<AddonReceiveEventDelegate>? Hook { get; init; }
+    public Hook<AtkUnitBase.Delegates.ReceiveEvent>? Hook { get; private set; }
     
     /// <summary>
     /// Gets or sets the Reference to AddonLifecycle service instance.
     /// </summary>
     private AddonLifecycle AddonLifecycle { get; set; }
+
+    /// <summary>
+    /// Try to hook and enable this receive event handler.
+    /// </summary>
+    public void TryEnable()
+    {
+        this.Hook ??= Hook<AtkUnitBase.Delegates.ReceiveEvent>.FromAddress(this.FunctionAddress, this.OnReceiveEvent);
+        this.Hook?.Enable();
+    }
+    
+    /// <summary>
+    /// Disable the hook for this receive event handler.
+    /// </summary>
+    public void Disable()
+    {
+        this.Hook?.Disable();
+    }
 
     /// <inheritdoc/>
     public void Dispose()
@@ -69,13 +75,13 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
         this.Hook?.Dispose();
     }
 
-    private void OnReceiveEvent(AtkUnitBase* addon, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, nint data)
+    private void OnReceiveEvent(AtkUnitBase* addon, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, AtkEventData* atkEventData)
     {
         // Check that we didn't get here through a call to another addons handler.
         var addonName = addon->NameString;
         if (!this.AddonNames.Contains(addonName))
         {
-            this.Hook!.Original(addon, eventType, eventParam, atkEvent, data);
+            this.Hook!.Original(addon, eventType, eventParam, atkEvent, atkEventData);
             return;
         }
 
@@ -84,16 +90,16 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
         arg.AtkEventType = (byte)eventType;
         arg.EventParam = eventParam;
         arg.AtkEvent = (IntPtr)atkEvent;
-        arg.Data = data;
+        arg.Data = (nint)atkEventData;
         this.AddonLifecycle.InvokeListenersSafely(AddonEvent.PreReceiveEvent, arg);
         eventType = (AtkEventType)arg.AtkEventType;
         eventParam = arg.EventParam;
         atkEvent = (AtkEvent*)arg.AtkEvent;
-        data = arg.Data;
+        atkEventData = (AtkEventData*)arg.Data;
         
         try
         {
-            this.Hook!.Original(addon, eventType, eventParam, atkEvent, data);
+            this.Hook!.Original(addon, eventType, eventParam, atkEvent, atkEventData);
         }
         catch (Exception e)
         {

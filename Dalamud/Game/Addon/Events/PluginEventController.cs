@@ -184,15 +184,15 @@ internal unsafe class PluginEventController : IDisposable
         this.EventListener.UnregisterEvent(atkResNode, eventType, eventEntry.ParamKey);
     }
     
-    private void PluginEventListHandler(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, IntPtr unknown)
+    private void PluginEventListHandler(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventPtr, AtkEventData* eventDataPtr)
     {
         try
         {
-            if (eventData is null) return;
+            if (eventPtr is null) return;
             if (this.Events.FirstOrDefault(handler => handler.ParamKey == eventParam) is not { } eventInfo) return;
             
             // We stored the AtkUnitBase* in EventData->Node, and EventData->Target contains the node that triggered the event.
-            eventInfo.Handler.Invoke((AddonEventType)eventType, (nint)eventData->Node, (nint)eventData->Target);
+            eventInfo.Handler.Invoke((AddonEventType)eventType, (nint)eventPtr->Node, (nint)eventPtr->Target);
         }
         catch (Exception exception)
         {

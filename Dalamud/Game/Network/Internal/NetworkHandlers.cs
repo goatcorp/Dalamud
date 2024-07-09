@@ -29,13 +29,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 {
     private readonly IMarketBoardUploader uploader;
 
-    private readonly IObservable<MarketBoardPurchase> mbPurchaseObservable;
-    private readonly IObservable<MarketBoardHistory> mbHistoryObservable;
-    private readonly IObservable<MarketTaxRates> mbTaxesObservable;
-    private readonly IObservable<MarketBoardItemRequest> mbItemRequestObservable;
-    private readonly IObservable<MarketBoardCurrentOfferings> mbOfferingsObservable;
-    private readonly IObservable<MarketBoardPurchaseHandler> mbPurchaseSentObservable;
-
     private readonly IDisposable handleMarketBoardItemRequest;
     private readonly IDisposable handleMarketTaxRates;
     private readonly IDisposable handleMarketBoardPurchaseHandler;
@@ -68,7 +61,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
         this.CfPop = _ => { };
 
-        this.mbPurchaseObservable = Observable.Create<MarketBoardPurchase>(observer =>
+        this.MbPurchaseObservable = Observable.Create<MarketBoardPurchase>(observer =>
         {
             this.MarketBoardPurchaseReceived += Observe;
             return () => { this.MarketBoardPurchaseReceived -= Observe; };
@@ -79,7 +72,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbHistoryObservable = Observable.Create<MarketBoardHistory>(observer =>
+        this.MbHistoryObservable = Observable.Create<MarketBoardHistory>(observer =>
         {
             this.MarketBoardHistoryReceived += Observe;
             return () => { this.MarketBoardHistoryReceived -= Observe; };
@@ -90,7 +83,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbTaxesObservable = Observable.Create<MarketTaxRates>(observer =>
+        this.MbTaxesObservable = Observable.Create<MarketTaxRates>(observer =>
         {
             this.MarketBoardTaxesReceived += Observe;
             return () => { this.MarketBoardTaxesReceived -= Observe; };
@@ -102,7 +95,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbItemRequestObservable = Observable.Create<MarketBoardItemRequest>(observer =>
+        this.MbItemRequestObservable = Observable.Create<MarketBoardItemRequest>(observer =>
         {
             this.MarketBoardItemRequestStartReceived += Observe;
             return () => this.MarketBoardItemRequestStartReceived -= Observe;
@@ -113,7 +106,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbOfferingsObservable = Observable.Create<MarketBoardCurrentOfferings>(observer =>
+        this.MbOfferingsObservable = Observable.Create<MarketBoardCurrentOfferings>(observer =>
         {
             this.MarketBoardOfferingsReceived += Observe;
             return () => { this.MarketBoardOfferingsReceived -= Observe; };
@@ -124,7 +117,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
         });
 
-        this.mbPurchaseSentObservable = Observable.Create<MarketBoardPurchaseHandler>(observer =>
+        this.MbPurchaseSentObservable = Observable.Create<MarketBoardPurchaseHandler>(observer =>
         {
             this.MarketBoardPurchaseRequestSent += Observe;
             return () => { this.MarketBoardPurchaseRequestSent -= Observe; };
@@ -210,6 +203,36 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private event Action<nint>? MarketBoardPurchaseRequestSent;
 
     /// <summary>
+    /// Gets an observable to track marketboard purchase events.
+    /// </summary>
+    public IObservable<MarketBoardPurchase> MbPurchaseObservable { get; }
+
+    /// <summary>
+    /// Gets an observable to track marketboard history events.
+    /// </summary>
+    public IObservable<MarketBoardHistory> MbHistoryObservable { get; }
+
+    /// <summary>
+    /// Gets an observable to track marketboard tax events.
+    /// </summary>
+    public IObservable<MarketTaxRates> MbTaxesObservable { get; }
+
+    /// <summary>
+    /// Gets an observable to track marketboard item request events.
+    /// </summary>
+    public IObservable<MarketBoardItemRequest> MbItemRequestObservable { get; }
+
+    /// <summary>
+    /// Gets an observable to track marketboard offerings events.
+    /// </summary>
+    public IObservable<MarketBoardCurrentOfferings> MbOfferingsObservable { get; }
+
+    /// <summary>
+    /// Gets an observable to track marketboard purchase request events.
+    /// </summary>
+    public IObservable<MarketBoardPurchaseHandler> MbPurchaseSentObservable { get; }
+
+    /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
     void IInternalDisposableService.DisposeService()
@@ -292,7 +315,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "CfPopDetour threw an exception");   
+            Log.Error(ex, "CfPopDetour threw an exception");
         }
 
         return result;
@@ -301,7 +324,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private IObservable<List<MarketBoardCurrentOfferings.MarketBoardItemListing>> OnMarketBoardListingsBatch(
         IObservable<MarketBoardItemRequest> start)
     {
-        var offeringsObservable = this.mbOfferingsObservable.Publish().RefCount();
+        var offeringsObservable = this.MbOfferingsObservable.Publish().RefCount();
 
         void LogEndObserved(MarketBoardCurrentOfferings offerings)
         {
@@ -315,7 +338,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Verbose(
                 "Observed element of request {RequestId} with {NumListings} listings",
                 offerings.RequestId,
-                offerings.ItemListings.Count);
+                offerings.InternalItemListings.Count);
         }
 
         IObservable<MarketBoardCurrentOfferings> UntilBatchEnd(MarketBoardItemRequest request)
@@ -327,7 +350,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             }
 
             return offeringsObservable
-                   .Where(offerings => offerings.ItemListings.All(l => l.CatalogId == request.CatalogId))
+                   .Where(offerings => offerings.InternalItemListings.All(l => l.CatalogId != 0))
                    .Skip(totalPackets - 1)
                    .Do(LogEndObserved);
         }
@@ -343,7 +366,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                        new List<MarketBoardCurrentOfferings.MarketBoardItemListing>(),
                        (agg, next) =>
                        {
-                           agg.AddRange(next.ItemListings);
+                           agg.AddRange(next.InternalItemListings);
                            return agg;
                        }));
     }
@@ -351,20 +374,20 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private IObservable<List<MarketBoardHistory.MarketBoardHistoryListing>> OnMarketBoardSalesBatch(
         IObservable<MarketBoardItemRequest> start)
     {
-        var historyObservable = this.mbHistoryObservable.Publish().RefCount();
+        var historyObservable = this.MbHistoryObservable.Publish().RefCount();
 
         void LogHistoryObserved(MarketBoardHistory history)
         {
             Log.Verbose(
                 "Observed history for item {CatalogId} with {NumSales} sales",
                 history.CatalogId,
-                history.HistoryListings.Count);
+                history.InternalHistoryListings.Count);
         }
 
         IObservable<MarketBoardHistory> UntilBatchEnd(MarketBoardItemRequest request)
         {
             return historyObservable
-                   .Where(history => history.CatalogId == request.CatalogId)
+                   .Where(history => history.CatalogId != 0)
                    .Take(1);
         }
 
@@ -379,7 +402,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                        new List<MarketBoardHistory.MarketBoardHistoryListing>(),
                        (agg, next) =>
                        {
-                           agg.AddRange(next.HistoryListings);
+                           agg.AddRange(next.InternalHistoryListings);
                            return agg;
                        }));
     }
@@ -388,13 +411,10 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     {
         void LogStartObserved(MarketBoardItemRequest request)
         {
-            Log.Verbose(
-                "Observed start of request for item#{CatalogId} with {NumListings} expected listings",
-                request.CatalogId,
-                request.AmountToArrive);
+            Log.Verbose("Observed start of request for item with {NumListings} expected listings", request.AmountToArrive);
         }
 
-        var startObservable = this.mbItemRequestObservable
+        var startObservable = this.MbItemRequestObservable
                                   .Where(request => request.Ok).Do(LogStartObserved)
                                   .Publish()
                                   .RefCount();
@@ -419,23 +439,18 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         ICollection<MarketBoardHistory.MarketBoardHistoryListing> sales,
         ICollection<MarketBoardCurrentOfferings.MarketBoardItemListing> listings)
     {
+        var catalogId = listings.FirstOrDefault()?.CatalogId ?? 0;
         if (listings.Count != request.AmountToArrive)
         {
             Log.Error(
                 "Wrong number of Market Board listings received for request: {ListingsCount} != {RequestAmountToArrive} item#{RequestCatalogId}",
-                listings.Count, request.AmountToArrive, request.CatalogId);
-            return;
-        }
-
-        if (listings.Any(listing => listing.CatalogId != request.CatalogId))
-        {
-            Log.Error("Received listings with mismatched item IDs for item#{RequestCatalogId}", request.CatalogId);
+                listings.Count, request.AmountToArrive, catalogId);
             return;
         }
 
         Log.Verbose(
             "Market Board request resolved, starting upload: item#{CatalogId} listings#{ListingsObserved} sales#{SalesObserved}",
-            request.CatalogId,
+            catalogId,
             listings.Count,
             sales.Count);
 
@@ -450,7 +465,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private IDisposable HandleMarketTaxRates()
     {
-        return this.mbTaxesObservable
+        return this.MbTaxesObservable
                    .Where(this.ShouldUpload)
                    .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
@@ -476,8 +491,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private IDisposable HandleMarketBoardPurchaseHandler()
     {
-        return this.mbPurchaseSentObservable
-                   .Zip(this.mbPurchaseObservable)
+        return this.MbPurchaseSentObservable
+                   .Zip(this.MbPurchaseObservable)
                    .Where(this.ShouldUpload)
                    .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
@@ -522,7 +537,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketPurchasePacketHandler threw an exception");
         }
-        
+
         return this.mbPurchaseHook.OriginalDisposeSafe(a1, packetData);
     }
 
@@ -536,7 +551,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketHistoryPacketDetour threw an exception");
         }
-        
+
         return this.mbHistoryHook.OriginalDisposeSafe(a1, packetData, a3, a4);
     }
 
@@ -544,7 +559,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     {
         try
         {
-            if (eventId == 7 && responseId == 8)
+            // Event ID 0 covers the crystarium, 7 covers all other cities
+            if (eventId is 7 or 0 && responseId == 8)
                 this.MarketBoardTaxesReceived?.InvokeSafely((nint)args);
         }
         catch (Exception ex)
@@ -565,7 +581,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketItemRequestStartDetour threw an exception");
         }
-        
+
         return this.mbItemRequestStartHook.OriginalDisposeSafe(a1, packetRef);
     }
 
@@ -579,7 +595,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketBoardOfferingsDetour threw an exception");
         }
-        
+
         return this.mbOfferingsHook.OriginalDisposeSafe(a1, packetRef);
     }
 
@@ -593,7 +609,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         {
             Log.Error(ex, "MarketBoardSendPurchaseRequestDetour threw an exception");
         }
-        
+
         return this.mbSendPurchaseRequestHook.OriginalDisposeSafe(infoProxyItemSearch);
     }
 }

@@ -20,12 +20,30 @@ internal sealed partial class TextureManager
         this.Shared.GetFromGameIcon(lookup);
 
     /// <inheritdoc/>
+    bool ITextureProvider.TryGetFromGameIcon(
+        in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture)
+    {
+        if (this.Shared.TryGetFromGameIcon(lookup, out var pureImpl))
+        {
+            texture = pureImpl;
+            return true;
+        }
+
+        texture = null;
+        return false;
+    }
+
+    /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromGame(string path) =>
         this.Shared.GetFromGame(path);
 
     /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromFile(string path) =>
         this.Shared.GetFromFile(path);
+    
+    /// <inheritdoc/>
+    ISharedImmediateTexture ITextureProvider.GetFromFile(FileInfo file) =>
+        this.Shared.GetFromFile(file);
 
     /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromManifestResource(Assembly assembly, string name) =>
@@ -90,6 +108,24 @@ internal sealed partial class TextureManager
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromGameIcon(in GameIconLookup lookup) =>
             this.GetFromGame(this.lookupCache.GetOrAdd(lookup, this.GetIconPathByValue));
+        
+        /// <inheritdoc cref="ITextureProvider.TryGetFromGameIcon"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out SharedImmediateTexture.PureImpl? texture)
+        {
+            texture = null;
+
+            if (!this.lookupCache.TryGet(lookup, out var path))
+            {
+                if (!this.textureManager.TryGetIconPath(lookup, out path))
+                    return false;
+                
+                this.lookupCache.AddOrUpdate(lookup, path);
+            }
+            
+            texture = this.GetFromGame(path);
+            return texture != null;
+        }
 
         /// <inheritdoc cref="ITextureProvider.GetFromGame"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -97,13 +133,18 @@ internal sealed partial class TextureManager
             this.gameDict.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder)
                 .PublicUseInstance;
 
-        /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
+        /// <inheritdoc cref="ITextureProvider.GetFromFile(string)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromFile(string path) =>
-            this.fileDict.GetOrAdd(path, FileSystemSharedImmediateTexture.CreatePlaceholder)
+            this.GetFromFile(new FileInfo(path));
+        
+        /// <inheritdoc cref="ITextureProvider.GetFromFile(FileInfo)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SharedImmediateTexture.PureImpl GetFromFile(FileInfo file) =>
+            this.fileDict.GetOrAdd(file.FullName, FileSystemSharedImmediateTexture.CreatePlaceholder)
                 .PublicUseInstance;
 
-        /// <inheritdoc cref="ITextureProvider.GetFromFile"/>
+        /// <inheritdoc cref="ITextureProvider.GetFromManifestResource"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromManifestResource(Assembly assembly, string name) =>
             this.manifestResourceDict.GetOrAdd(
@@ -118,7 +159,7 @@ internal sealed partial class TextureManager
         {
             if (this.gameDict.TryRemove(path, out var r))
             {
-                if (r.ReleaseSelfReference(true) != 0 || r.HasRevivalPossibility)
+                if (r.ReleaseSelfReference(true) != 0)
                 {
                     lock (this.invalidatedTextures)
                         this.invalidatedTextures.Add(r);
@@ -128,7 +169,7 @@ internal sealed partial class TextureManager
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string GetIconPathByValue(GameIconLookup lookup) =>
-            this.textureManager.TryGetIconPath(lookup, out var path) ? path : throw new FileNotFoundException();
+            this.textureManager.TryGetIconPath(lookup, out var path) ? path : throw new IconNotFoundException(lookup);
 
         private void FrameworkOnUpdate(IFramework unused)
         {
@@ -160,7 +201,7 @@ internal sealed partial class TextureManager
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static bool TextureFinalReleasePredicate(SharedImmediateTexture v) =>
-                v.ContentQueried && v.ReleaseSelfReference(false) == 0 && !v.HasRevivalPossibility;
+                v.ContentQueried && v.ReleaseSelfReference(false) == 0;
         }
     }
 }

@@ -124,7 +124,7 @@ internal sealed partial class ActiveNotification
             if (this.Click is null)
             {
                 if (this.UserDismissable && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                    this.DismissNow(NotificationDismissReason.Manual);
+                    this.Minimized = !this.Minimized;
             }
             else
             {
@@ -277,12 +277,12 @@ internal sealed partial class ActiveNotification
 
             if (this.underlyingNotification.Minimized)
             {
-                if (this.DrawIconButton(FontAwesomeIcon.ChevronDown, rtOffset, height, drawActionButtons))
+                if (this.DrawIconButton(FontAwesomeIcon.ChevronUp, rtOffset, height, drawActionButtons))
                     this.Minimized = false;
             }
             else
             {
-                if (this.DrawIconButton(FontAwesomeIcon.ChevronUp, rtOffset, height, drawActionButtons))
+                if (this.DrawIconButton(FontAwesomeIcon.ChevronDown, rtOffset, height, drawActionButtons))
                     this.Minimized = true;
             }
 

@@ -8,6 +8,7 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;

@@ -58,7 +58,10 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
         var modules = Process.GetCurrentProcess().Modules;
         foreach (ProcessModule processModule in modules)
         {
-            if (processModule.FileName != null && processModule.FileName.EndsWith("game\\dxgi.dll"))
+            if (processModule.FileName == null || !processModule.FileName.EndsWith("game\\dxgi.dll"))
+                continue;
+            
+            try
             {
                 var fileInfo = FileVersionInfo.GetVersionInfo(processModule.FileName);
 
@@ -67,43 +70,82 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
 
                 if (!fileInfo.FileDescription.Contains("GShade") && !fileInfo.FileDescription.Contains("ReShade"))
                     break;
-
+     
+                // warning: these comments may no longer be accurate.
                 // reshade master@4232872 RVA
                 // var p = processModule.BaseAddress + 0x82C7E0; // DXGISwapChain::Present
                 // var p = processModule.BaseAddress + 0x82FAC0; // DXGISwapChain::runtime_present
-
-                // DXGISwapChain::handle_device_loss => DXGISwapChain::Present => DXGISwapChain::runtime_present
+                // DXGISwapChain::handle_device_loss =>df DXGISwapChain::Present => DXGISwapChain::runtime_present
+                // 5.2+ - F6 C2 01 0F 85
+                // 6.0+ - F6 C2 01 0F 85 88
 
                 var scanner = new SigScanner(processModule);
-                var runtimePresentSig = "F6 C2 01 0F 85 ?? ?? ?? ??";
+                var reShadeDxgiPresent = IntPtr.Zero;
 
-                try
+                if (fileInfo.FileVersion?.StartsWith("6.") == true)
                 {
-                    // Looks like this sig only works for GShade 4
-                    if (fileInfo.FileDescription?.Contains("GShade 4.") == true)
+                    // No Addon
+                    if (scanner.TryScanText("F6 C2 01 0F 85 A8", out reShadeDxgiPresent)) 
                     {
-                        Log.Verbose("Hooking present for GShade 4");
-                        runtimePresentSig = "E8 ?? ?? ?? ?? 45 0F B6 5E ??";
+                        Log.Information("Hooking present for ReShade 6 No-Addon");
+                    }
+
+                    // Addon
+                    else if (scanner.TryScanText("F6 C2 01 0F 85 88", out reShadeDxgiPresent)) 
+                    {
+                        Log.Information("Hooking present for ReShade 6 Addon");
+                    }
+                            
+                    // Fallback
+                    else
+                    {
+                        Log.Error("Failed to get ReShade 6 DXGISwapChain::on_present offset!");
                     }
                 }
-                catch (Exception ex)
+
+                // Looks like this sig only works for GShade 4
+                if (reShadeDxgiPresent == IntPtr.Zero && fileInfo.FileDescription?.Contains("GShade 4.") == true)
                 {
-                    Log.Error(ex, "Failed to get reshade version info - falling back to default DXGISwapChain::runtime_present signature");
+                    if (scanner.TryScanText("E8 ?? ?? ?? ?? 45 0F B6 5E ??", out reShadeDxgiPresent))
+                    {
+                        Log.Information("Hooking present for GShade 4");
+                    }
+                    else
+                    {
+                        Log.Error("Failed to find GShade 4 DXGISwapChain::on_present offset!");
+                    }
                 }
 
-                try
+                if (reShadeDxgiPresent == IntPtr.Zero)
                 {
-                    var p = scanner.ScanText(runtimePresentSig);
-                    Log.Information($"ReShade DLL: {processModule.FileName} with DXGISwapChain::runtime_present at {p:X}");
+                    if (scanner.TryScanText("F6 C2 01 0F 85", out reShadeDxgiPresent))
+                    {
+                        Log.Information("Hooking present for ReShade with fallback 5.X sig");
+                    }
+                    else
+                    {
+                        Log.Error("Failed to find ReShade DXGISwapChain::on_present offset with fallback sig!");
+                    }
+                }
 
-                    this.Present = p;
+                Log.Information("ReShade DLL: {FileName} ({Info} - {Version}) with DXGISwapChain::on_present at {Address}",
+                                processModule.FileName,
+                                fileInfo.FileDescription ?? "Unknown",
+                                fileInfo.FileVersion ?? "Unknown",
+                                reShadeDxgiPresent.ToString("X"));
+
+                if (reShadeDxgiPresent != IntPtr.Zero)
+                {
+                    this.Present = reShadeDxgiPresent;
                     this.IsReshade = true;
-                    break;
                 }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Could not find reshade DXGISwapChain::runtime_present offset!");
-                }
+
+                break;
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed to get ReShade version info");
+                break;
             }
         }
 

@@ -184,7 +184,10 @@ public sealed class EntryPoint
                 InitSymbolHandler(info);
 
             var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
-            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", Util.GetGitHash(), Util.GetGitHashClientStructs(), FFXIVClientStructs.Interop.Resolver.Version);
+            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", 
+                            Util.GetGitHash(), 
+                            Util.GetGitHashClientStructs(), 
+                            FFXIVClientStructs.ThisAssembly.Git.Commits);
 
             dalamud.WaitForUnload();
 

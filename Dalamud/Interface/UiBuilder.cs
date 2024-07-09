@@ -24,10 +24,220 @@ using SharpDX.Direct3D11;
 namespace Dalamud.Interface;
 
 /// <summary>
+/// This interface represents the Dalamud UI that is drawn on top of the game.
+/// It can be used to draw custom windows and overlays.
+/// </summary>
+public interface IUiBuilder
+{
+    /// <summary>
+    /// The event that gets called when Dalamud is ready to draw your windows or overlays.
+    /// When it is called, you can use static ImGui calls.
+    /// </summary>
+    event Action? Draw;
+
+    /// <summary>
+    /// The event that is called when the game's DirectX device is requesting you to resize your buffers.
+    /// </summary>
+    event Action? ResizeBuffers;
+
+    /// <summary>
+    /// Event that is fired when the plugin should open its configuration interface.
+    /// </summary>
+    event Action? OpenConfigUi;
+
+    /// <summary>
+    /// Event that is fired when the plugin should open its main interface.
+    /// </summary>
+    event Action? OpenMainUi;
+
+    /// <summary>
+    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
+    /// These may be fired consecutively.
+    /// </summary>
+    event Action? ShowUi;
+
+    /// <summary>
+    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
+    /// These may be fired consecutively.
+    /// </summary>
+    event Action? HideUi;
+
+    /// <summary>
+    /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddDalamudDefaultFont(UiBuilder.DefaultFontSizePx)));
+    /// </code>
+    /// </remarks>
+    IFontHandle DefaultFontHandle { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddFontAwesomeIconFont(new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// // or use
+    ///         tk => tk.AddFontAwesomeIconFont(new() { SizePx = UiBuilder.DefaultFontSizePx })));
+    /// </code>
+    /// </remarks>
+    IFontHandle IconFontHandle { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud monospaced font based on Inconsolata Regular.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddDalamudAssetFont(
+    ///             DalamudAsset.InconsolataRegular,
+    ///             new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// // or use
+    ///             new() { SizePx = UiBuilder.DefaultFontSizePx })));
+    /// </code>
+    /// </remarks>
+    IFontHandle MonoFontHandle { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 free solid with a fixed width and vertically centered glyphs.
+    /// </summary>
+    IFontHandle IconFontFixedWidthHandle { get; }
+
+    /// <summary>
+    /// Gets the default font specifications.
+    /// </summary>
+    IFontSpec DefaultFontSpec { get; }
+
+    /// <summary>
+    /// Gets the game's active Direct3D device.
+    /// </summary>
+    Device Device { get; }
+
+    /// <summary>
+    /// Gets the game's main window handle.
+    /// </summary>
+    IntPtr WindowHandlePtr { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
+    /// </summary>
+    bool DisableAutomaticUiHide { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the user toggles the UI.
+    /// </summary>
+    bool DisableUserUiHide { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this plugin should hide its UI automatically during cutscenes.
+    /// </summary>
+    bool DisableCutsceneUiHide { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this plugin should hide its UI automatically while gpose is active.
+    /// </summary>
+    bool DisableGposeUiHide { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+    /// </summary>
+    bool OverrideGameCursor { get; set; }
+
+    /// <summary>
+    /// Gets the count of Draw calls made since plugin creation.
+    /// </summary>
+    ulong FrameCount { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not a cutscene is playing.
+    /// </summary>
+    bool CutsceneActive { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin should modify the game's interface at this time.
+    /// </summary>
+    bool ShouldModifyUi { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether UI functions can be used.
+    /// </summary>
+    bool UiPrepared { get; }
+
+    /// <summary>
+    /// Gets the plugin-private font atlas.
+    /// </summary>
+    IFontAtlas FontAtlas { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not to use "reduced motion". This usually means that you should use less
+    /// intrusive animations, or disable them entirely.
+    /// </summary>
+    bool ShouldUseReducedMotion { get; }
+
+    /// <summary>
+    /// Loads an ULD file that can load textures containing multiple icons in a single texture.
+    /// </summary>
+    /// <param name="uldPath">The path of the requested ULD file.</param>
+    /// <returns>A wrapper around said ULD file.</returns>
+    UldWrapper LoadUld(string uldPath);
+
+    /// <summary>
+    /// Waits for UI to become available for use.
+    /// </summary>
+    /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+    Task WaitForUi();
+
+    /// <summary>
+    /// Waits for UI to become available for use.
+    /// </summary>
+    /// <param name="func">Function to call.</param>
+    /// <param name="runInFrameworkThread">Specifies whether to call the function from the framework thread.</param>
+    /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+    /// <typeparam name="T">Return type.</typeparam>
+    Task<T> RunWhenUiPrepared<T>(Func<T> func, bool runInFrameworkThread = false);
+
+    /// <summary>
+    /// Waits for UI to become available for use.
+    /// </summary>
+    /// <param name="func">Function to call.</param>
+    /// <param name="runInFrameworkThread">Specifies whether to call the function from the framework thread.</param>
+    /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+    /// <typeparam name="T">Return type.</typeparam>
+    Task<T> RunWhenUiPrepared<T>(Func<Task<T>> func, bool runInFrameworkThread = false);
+
+    /// <summary>
+    /// Creates an isolated <see cref="IFontAtlas"/>.
+    /// </summary>
+    /// <param name="autoRebuildMode">Specify when and how to rebuild this atlas.</param>
+    /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
+    /// <param name="debugName">Name for debugging purposes.</param>
+    /// <returns>A new instance of <see cref="IFontAtlas"/>.</returns>
+    /// <remarks>
+    /// Use this to create extra font atlases, if you want to create and dispose fonts without having to rebuild all
+    /// other fonts together.<br />
+    /// If <paramref name="autoRebuildMode"/> is not <see cref="FontAtlasAutoRebuildMode.OnNewFrame"/>,
+    /// the font rebuilding functions must be called manually.
+    /// </remarks>
+    IFontAtlas CreateFontAtlas(
+        FontAtlasAutoRebuildMode autoRebuildMode,
+        bool isGlobalScaled = true,
+        string? debugName = null);
+}
+
+/// <summary>
 /// This class represents the Dalamud UI that is drawn on top of the game.
 /// It can be used to draw custom windows and overlays.
 /// </summary>
-public sealed class UiBuilder : IDisposable
+public sealed class UiBuilder : IDisposable, IUiBuilder
 {
     private readonly LocalPlugin plugin;
     private readonly Stopwatch stopwatch;
@@ -84,37 +294,22 @@ public sealed class UiBuilder : IDisposable
         }
     }
 
-    /// <summary>
-    /// The event that gets called when Dalamud is ready to draw your windows or overlays.
-    /// When it is called, you can use static ImGui calls.
-    /// </summary>
+    /// <inheritdoc/>
     public event Action? Draw;
 
-    /// <summary>
-    /// The event that is called when the game's DirectX device is requesting you to resize your buffers.
-    /// </summary>
+    /// <inheritdoc/>
     public event Action? ResizeBuffers;
 
-    /// <summary>
-    /// Event that is fired when the plugin should open its configuration interface.
-    /// </summary>
+    /// <inheritdoc/>
     public event Action? OpenConfigUi;
 
-    /// <summary>
-    /// Event that is fired when the plugin should open its main interface.
-    /// </summary>
+    /// <inheritdoc/>
     public event Action? OpenMainUi;
 
-    /// <summary>
-    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
-    /// These may be fired consecutively.
-    /// </summary>
+    /// <inheritdoc/>
     public event Action? ShowUi;
 
-    /// <summary>
-    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
-    /// These may be fired consecutively.
-    /// </summary>
+    /// <inheritdoc/>
     public event Action? HideUi;
 
     /// <summary>
@@ -498,10 +693,6 @@ public sealed class UiBuilder : IDisposable
             this.lastFrameUiHideState = false;
             this.ShowUi?.InvokeSafely();
         }
-
-        // just in case, if something goes wrong, prevent drawing; otherwise it probably will crash.
-        if (!this.FontAtlas.BuildTask.IsCompletedSuccessfully)
-            return;
 
         ImGui.PushID(this.namespaceName);
         if (DoStats)

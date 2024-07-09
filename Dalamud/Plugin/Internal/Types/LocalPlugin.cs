@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Internal;
 using Dalamud.IoC.Internal;
@@ -242,7 +243,8 @@ internal class LocalPlugin : IDisposable
             this.instance = null;
         }
 
-        this.DalamudInterface?.DisposeInternal();
+        this.DalamudInterface?.Dispose();
+
         this.DalamudInterface = null;
 
         this.ServiceScope?.Dispose();
@@ -319,7 +321,8 @@ internal class LocalPlugin : IDisposable
             if (this.manifest.ApplicableVersion < dalamud.StartInfo.GameVersion)
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, game is newer than applicable version {this.manifest.ApplicableVersion}");
 
-            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels)
+            // We want to allow loading dev plugins with a lower API level than the current Dalamud API level, for ease of development
+            if (this.manifest.EffectiveApiLevel < PluginManager.DalamudApiLevel && !pluginManager.LoadAllApiLevels && !this.IsDev)
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name}, incompatible API level {this.manifest.EffectiveApiLevel}");
 
             // We might want to throw here?
@@ -416,10 +419,12 @@ internal class LocalPlugin : IDisposable
             {
                 if (this.manifest.LoadSync && this.manifest.LoadRequiredState is 0 or 1)
                 {
-                    this.instance = await framework.RunOnFrameworkThread(
+                    var newInstance = await framework.RunOnFrameworkThread(
                                         () => this.ServiceScope.CreateAsync(
                                             this.pluginType!,
-                                            this.DalamudInterface!)) as IDalamudPlugin;
+                                            this.DalamudInterface!)).ConfigureAwait(false);
+                    
+                    this.instance = newInstance as IDalamudPlugin;
                 }
                 else
                 {
@@ -437,7 +442,7 @@ internal class LocalPlugin : IDisposable
             {
                 this.State = PluginState.LoadError;
                 this.UnloadAndDisposeState();
-                
+
                 Log.Error(
                     "Error while loading {PluginName}, failed to bind and call the plugin constructor", this.InternalName);
                 return;
@@ -483,6 +488,7 @@ internal class LocalPlugin : IDisposable
             {
                 case PluginState.Unloaded:
                     throw new InvalidPluginOperationException($"Unable to unload {this.Name}, already unloaded");
+                case PluginState.DependencyResolutionFailed:
                 case PluginState.UnloadError:
                     if (!this.IsDev)
                     {
@@ -501,31 +507,42 @@ internal class LocalPlugin : IDisposable
             }
 
             this.State = PluginState.Unloading;
-            Log.Information($"Unloading {this.DllFile.Name}");
+            Log.Information("Unloading {PluginName}", this.InternalName);
 
-            if (this.manifest.CanUnloadAsync || framework == null)
-                this.instance?.Dispose();
-            else
-                await framework.RunOnFrameworkThread(() => this.instance?.Dispose());
-
-            this.instance = null;
-            this.UnloadAndDisposeState();
-
-            if (!reloading)
+            try
             {
-                if (waitBeforeLoaderDispose && this.loader != null)
-                    await Task.Delay(configuration.PluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault);
-                this.loader?.Dispose();
-                this.loader = null;
+                if (this.manifest.CanUnloadAsync || framework == null)
+                    this.instance?.Dispose();
+                else
+                    await framework.RunOnFrameworkThread(() => this.instance?.Dispose()).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                this.State = PluginState.UnloadError;
+                Log.Error(e, "Could not unload {PluginName}, error in plugin dispose", this.InternalName);
+                return;
+            }
+            finally
+            {
+                this.instance = null;
+                this.UnloadAndDisposeState();
+                
+                if (!reloading)
+                {
+                    if (waitBeforeLoaderDispose && this.loader != null)
+                        await Task.Delay(configuration.PluginWaitBeforeFree ?? PluginManager.PluginWaitBeforeFreeDefault);
+                    this.loader?.Dispose();
+                    this.loader = null;
+                }
             }
 
             this.State = PluginState.Unloaded;
-            Log.Information($"Finished unloading {this.DllFile.Name}");
+            Log.Information("Finished unloading {PluginName}", this.InternalName);
         }
         catch (Exception ex)
         {
             this.State = PluginState.UnloadError;
-            Log.Error(ex, $"Error while unloading {this.Name}");
+            Log.Error(ex, "Error while unloading {PluginName}", this.InternalName);
 
             throw;
         }
@@ -625,6 +642,12 @@ internal class LocalPlugin : IDisposable
         // but plugins may load other versions of assemblies that Dalamud depends on.
         config.SharedAssemblies.Add((typeof(EntryPoint).Assembly.GetName(), false));
         config.SharedAssemblies.Add((typeof(Common.DalamudStartInfo).Assembly.GetName(), false));
+        
+        // Pin Lumina since we expose it as an API surface. Before anyone removes this again, please see #1598.
+        // Changes to Lumina should be upstreamed if feasible, and if there is a desire to re-add unpinned Lumina we
+        // will need to put this behind some kind of feature flag somewhere.
+        config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
+        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
     }
 
     private void EnsureLoader()
@@ -678,13 +701,13 @@ internal class LocalPlugin : IDisposable
             throw new InvalidPluginException(this.DllFile);
         }
     }
-    
+
     private void UnloadAndDisposeState()
     {
         if (this.instance != null)
             throw new InvalidOperationException("Plugin instance should be disposed at this point");
-        
-        this.DalamudInterface?.DisposeInternal();
+
+        this.DalamudInterface?.Dispose();
         this.DalamudInterface = null;
 
         this.ServiceScope?.Dispose();

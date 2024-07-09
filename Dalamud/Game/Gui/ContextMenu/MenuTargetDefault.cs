@@ -36,7 +36,7 @@ public sealed unsafe class MenuTargetDefault : MenuTarget
     /// <summary>
     /// Gets the target object.
     /// </summary>
-    public GameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
+    public IGameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
 
     /// <summary>
     /// Gets the content id of the target.

@@ -115,7 +115,7 @@ internal sealed class Dalamud : IServiceType
         NativeFunctions.SetUnhandledExceptionFilter(this.DefaultExceptionFilter);
         Log.Debug($"SE default exception filter at {this.DefaultExceptionFilter.ToInt64():X}");
 
-        var debugSig = "40 55 53 56 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 48 83 3D ?? ?? ?? ?? ??";
+        var debugSig = "40 55 53 57 48 8D AC 24 70 AD FF FF";
         this.DebugExceptionFilter = Service<TargetSigScanner>.Get().ScanText(debugSig);
         Log.Debug($"SE debug exception filter at {this.DebugExceptionFilter.ToInt64():X}");
     }

@@ -3,9 +3,20 @@ using Dalamud.Game.ClientState.Objects.Enums;
 namespace Dalamud.Game.ClientState.Objects.Types;
 
 /// <summary>
+/// A interface that represents a battle NPC.
+/// </summary>
+public interface IBattleNpc : IBattleChara
+{
+    /// <summary>
+    /// Gets the BattleNpc <see cref="BattleNpcSubKind" /> of this BattleNpc.
+    /// </summary>
+    BattleNpcSubKind BattleNpcKind { get; }
+}
+
+/// <summary>
 /// This class represents a battle NPC.
 /// </summary>
-public unsafe class BattleNpc : BattleChara
+internal unsafe class BattleNpc : BattleChara, IBattleNpc
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BattleNpc"/> class.

@@ -18,7 +18,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     [FieldOffset(0)]
     internal readonly InventoryItem InternalItem;
 
-    private const int StructSizeInBytes = 0x38;
+    private const int StructSizeInBytes = 0x40;
 
     /// <summary>
     /// The view of the backing data, in <see cref="ulong"/>.
@@ -132,7 +132,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the color used for this item.
     /// </summary>
-    public byte Stain => this.InternalItem.Stain;
+    public ReadOnlySpan<ushort> Stains => new(Unsafe.AsPointer(ref this.InternalItem.Stains[0]), 2);
 
     /// <summary>
     /// Gets the glamour id for this item.

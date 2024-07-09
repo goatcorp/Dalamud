@@ -64,17 +64,18 @@ internal static class PluginValidator
         if (!plugin.IsLoaded)
             throw new InvalidOperationException("Plugin must be loaded to validate.");
         
-        if (!plugin.DalamudInterface!.UiBuilder.HasConfigUi)
+        if (!plugin.DalamudInterface!.LocalUiBuilder.HasConfigUi)
             problems.Add(new NoConfigUiProblem());
         
-        if (!plugin.DalamudInterface.UiBuilder.HasMainUi)
+        if (!plugin.DalamudInterface.LocalUiBuilder.HasMainUi)
             problems.Add(new NoMainUiProblem());
 
         var cmdManager = Service<CommandManager>.Get();
-        foreach (var cmd in cmdManager.Commands.Where(x => x.Value.LoaderAssemblyName == plugin.InternalName && x.Value.ShowInHelp))
+        
+        foreach (var cmd in cmdManager.GetHandlersByAssemblyName(plugin.InternalName).Where(c => c.Key.CommandInfo.ShowInHelp))
         {
-            if (string.IsNullOrEmpty(cmd.Value.HelpMessage))
-                problems.Add(new CommandWithoutHelpTextProblem(cmd.Key));
+            if (string.IsNullOrEmpty(cmd.Key.CommandInfo.HelpMessage))
+                problems.Add(new CommandWithoutHelpTextProblem(cmd.Value));
         }
         
         if (plugin.Manifest.Tags == null || plugin.Manifest.Tags.Count == 0)
@@ -92,6 +93,9 @@ internal static class PluginValidator
         if (string.IsNullOrEmpty(plugin.Manifest.Author))
             problems.Add(new NoAuthorProblem());
         
+        if (plugin.IsOutdated)
+            problems.Add(new WrongApiLevelProblem());
+            
         return problems;
     }
 
@@ -190,5 +194,18 @@ internal static class PluginValidator
 
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "Your plugin does not have an author in its manifest.";
+    }
+
+    /// <summary>
+    /// Representing a problem where a plugin has an outdated API level.
+    /// </summary>
+    public class WrongApiLevelProblem : IValidationProblem
+    {
+        /// <inheritdoc/>
+        public ValidationSeverity Severity => ValidationSeverity.Fatal;
+
+        /// <inheritdoc/>
+        public string GetLocalizedDescription() => "Your plugin specifies an outdated API level. " +
+                                                   "Please update it by updating DalamudPackager or Dalamud.NET.Sdk.";
     }
 }

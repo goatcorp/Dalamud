@@ -7,7 +7,7 @@ namespace Dalamud.Game.Network.Structures;
 /// <summary>
 /// This class represents the current market board offerings from a game network packet.
 /// </summary>
-public class MarketBoardCurrentOfferings
+public class MarketBoardCurrentOfferings : IMarketBoardCurrentOfferings
 {
     private MarketBoardCurrentOfferings()
     {
@@ -16,17 +16,7 @@ public class MarketBoardCurrentOfferings
     /// <summary>
     /// Gets the list of individual item listings.
     /// </summary>
-    public List<MarketBoardItemListing> ItemListings { get; } = new();
-
-    /// <summary>
-    /// Gets the listing end index.
-    /// </summary>
-    public int ListingIndexEnd { get; internal set; }
-
-    /// <summary>
-    /// Gets the listing start index.
-    /// </summary>
-    public int ListingIndexStart { get; internal set; }
+    public IReadOnlyList<IMarketBoardItemListing> ItemListings => this.InternalItemListings;
 
     /// <summary>
     /// Gets the request ID.
@@ -34,16 +24,23 @@ public class MarketBoardCurrentOfferings
     public int RequestId { get; internal set; }
 
     /// <summary>
+    /// Gets or sets the internal read-write list of marketboard item listings.
+    /// </summary>
+    internal List<MarketBoardItemListing> InternalItemListings { get; set; } = [];
+
+    /// <summary>
     /// Read a <see cref="MarketBoardCurrentOfferings"/> object from memory.
     /// </summary>
     /// <param name="dataPtr">Address to read.</param>
     /// <returns>A new <see cref="MarketBoardCurrentOfferings"/> object.</returns>
-    public static unsafe MarketBoardCurrentOfferings Read(IntPtr dataPtr)
+    public static unsafe MarketBoardCurrentOfferings Read(nint dataPtr)
     {
         var output = new MarketBoardCurrentOfferings();
 
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
+
+        var listings = new List<MarketBoardItemListing>();
 
         for (var i = 0; i < 10; i++)
         {
@@ -53,17 +50,17 @@ public class MarketBoardCurrentOfferings
             listingEntry.RetainerId = reader.ReadUInt64();
             listingEntry.RetainerOwnerId = reader.ReadUInt64();
             listingEntry.ArtisanId = reader.ReadUInt64();
+
             listingEntry.PricePerUnit = reader.ReadUInt32();
             listingEntry.TotalTax = reader.ReadUInt32();
             listingEntry.ItemQuantity = reader.ReadUInt32();
             listingEntry.CatalogId = reader.ReadUInt32();
-            listingEntry.LastReviewTime = DateTimeOffset.UtcNow.AddSeconds(-reader.ReadUInt16()).DateTime;
 
-            reader.ReadUInt16(); // container
-            reader.ReadUInt32(); // slot
-            reader.ReadUInt16(); // durability
-            reader.ReadUInt16(); // spiritbond
+            reader.ReadUInt16(); // Slot
+            reader.ReadUInt16(); // Durability
+            reader.ReadUInt16(); // Spiritbond
 
+            var materiaList = new List<IItemMateria>();
             for (var materiaIndex = 0; materiaIndex < 5; materiaIndex++)
             {
                 var materiaVal = reader.ReadUInt16();
@@ -74,29 +71,33 @@ public class MarketBoardCurrentOfferings
                 };
 
                 if (materiaEntry.MateriaId != 0)
-                    listingEntry.Materia.Add(materiaEntry);
+                    materiaList.Add(materiaEntry);
             }
 
-            reader.ReadUInt16();
-            reader.ReadUInt32();
+            listingEntry.Materia = materiaList;
 
-            listingEntry.RetainerName = Encoding.UTF8.GetString(reader.ReadBytes(32)).TrimEnd('\u0000');
-            listingEntry.PlayerName = Encoding.UTF8.GetString(reader.ReadBytes(32)).TrimEnd('\u0000');
+            reader.ReadBytes(0x6); // Padding
+
+            listingEntry.RetainerName = Encoding.UTF8.GetString(reader.ReadBytes(0x20)).TrimEnd('\u0000');
+            reader.ReadBytes(0x20); // Empty Buffer, was PlayerName pre 7.0
+
             listingEntry.IsHq = reader.ReadBoolean();
             listingEntry.MateriaCount = reader.ReadByte();
             listingEntry.OnMannequin = reader.ReadBoolean();
             listingEntry.RetainerCityId = reader.ReadByte();
-            listingEntry.StainId = reader.ReadUInt16();
 
-            reader.ReadUInt16();
-            reader.ReadUInt32();
+            listingEntry.Stain1Id = reader.ReadByte();
+            listingEntry.Stain2Id = reader.ReadByte();
+
+            reader.ReadBytes(0x4); // Padding
 
             if (listingEntry.CatalogId != 0)
-                output.ItemListings.Add(listingEntry);
+                listings.Add(listingEntry);
         }
 
-        output.ListingIndexEnd = reader.ReadByte();
-        output.ListingIndexStart = reader.ReadByte();
+        output.InternalItemListings = listings;
+        reader.ReadByte(); // Was ListingIndexEnd
+        reader.ReadByte(); // Was ListingIndexStart
         output.RequestId = reader.ReadUInt16();
 
         return output;
@@ -105,7 +106,7 @@ public class MarketBoardCurrentOfferings
     /// <summary>
     /// This class represents the current market board offering of a single item from the <see cref="MarketBoardCurrentOfferings"/> network packet.
     /// </summary>
-    public class MarketBoardItemListing
+    public class MarketBoardItemListing : IMarketBoardItemListing
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MarketBoardItemListing"/> class.
@@ -118,6 +119,9 @@ public class MarketBoardCurrentOfferings
         /// Gets the artisan ID.
         /// </summary>
         public ulong ArtisanId { get; internal set; }
+
+        /// <inheritdoc/>
+        public uint ItemId => this.CatalogId;
 
         /// <summary>
         /// Gets the catalog ID.
@@ -135,11 +139,6 @@ public class MarketBoardCurrentOfferings
         public uint ItemQuantity { get; internal set; }
 
         /// <summary>
-        /// Gets the time this offering was last reviewed.
-        /// </summary>
-        public DateTime LastReviewTime { get; internal set; }
-
-        /// <summary>
         /// Gets the listing ID.
         /// </summary>
         public ulong ListingId { get; internal set; }
@@ -147,7 +146,7 @@ public class MarketBoardCurrentOfferings
         /// <summary>
         /// Gets the list of materia attached to this item.
         /// </summary>
-        public List<ItemMateria> Materia { get; } = new();
+        public IReadOnlyList<IItemMateria> Materia { get; internal set; } = new List<IItemMateria>();
 
         /// <summary>
         /// Gets the amount of attached materia.
@@ -158,11 +157,6 @@ public class MarketBoardCurrentOfferings
         /// Gets a value indicating whether this item is on a mannequin.
         /// </summary>
         public bool OnMannequin { get; internal set; }
-
-        /// <summary>
-        /// Gets the player name.
-        /// </summary>
-        public string PlayerName { get; internal set; }
 
         /// <summary>
         /// Gets the price per unit.
@@ -190,19 +184,42 @@ public class MarketBoardCurrentOfferings
         public ulong RetainerOwnerId { get; internal set; }
 
         /// <summary>
-        /// Gets the stain or applied dye of the item.
+        /// Gets the first stain or applied dye of the item.
         /// </summary>
-        public int StainId { get; internal set; }
+        public int Stain1Id { get; internal set; }
+
+        /// <summary>
+        /// Gets the second stain or applied dye of the item.
+        /// </summary>
+        public int Stain2Id { get; internal set; }
 
         /// <summary>
         /// Gets the total tax.
         /// </summary>
         public uint TotalTax { get; internal set; }
+        
+        /// <summary>
+        /// Gets or sets the time this offering was last reviewed.
+        /// </summary>
+        [Obsolete("Universalis Compatibility, contains a fake value", false)]
+        internal DateTime LastReviewTime { get; set; } = DateTime.UtcNow;
+        
+        /// <summary>
+        /// Gets the stain or applied dye of the item.
+        /// </summary>
+        [Obsolete("Universalis Compatibility, use Stain1Id and Stain2Id", false)]
+        internal int StainId => (this.Stain2Id << 8) | this.Stain1Id;
+        
+        /// <summary>
+        /// Gets or sets the player name.
+        /// </summary>
+        [Obsolete("Universalis Compatibility, contains a fake value", false)]
+        internal string PlayerName { get; set; } = string.Empty;
 
         /// <summary>
         /// This represents the materia slotted to an <see cref="MarketBoardItemListing"/>.
         /// </summary>
-        public class ItemMateria
+        public class ItemMateria : IItemMateria
         {
             /// <summary>
             /// Initializes a new instance of the <see cref="ItemMateria"/> class.

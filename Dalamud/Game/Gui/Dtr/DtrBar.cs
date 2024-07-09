@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,7 +21,6 @@ namespace Dalamud.Game.Gui.Dtr;
 /// <summary>
 /// Class used to interface with the server info bar.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 {
@@ -78,7 +77,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.entries;
     
     /// <inheritdoc/>
-    public DtrBarEntry Get(string title, SeString? text = null)
+    public IDtrBarEntry Get(string title, SeString? text = null)
     {
         if (this.entries.Any(x => x.Title == title) || this.newEntries.Any(x => x.Title == title))
             throw new ArgumentException("An entry with the same title already exists.");
@@ -242,7 +241,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             else
             {
                 // If we want the node hidden, shift it up, to prevent collision conflicts
-                data.TextNode->AtkResNode.SetY(-collisionNode->Height * dtr->RootNode->ScaleX);
+                data.TextNode->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
             }
         }
     }
@@ -274,7 +273,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         foreach (var index in Enumerable.Range(0, addon->UldManager.NodeListCount))
         {
             var node = addon->UldManager.NodeList[index];
-            if (node->IsVisible)
+            if (node->IsVisible())
             {
                 var nodeId = node->NodeId;
                 var nodeType = node->Type;
@@ -289,7 +288,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     additionalWidth += node->Width + this.configuration.DtrSpacing;
                 }
                 else if ((nodeType == NodeType.Res || (ushort)nodeType >= 1000) &&
-                         (node->ChildNode == null || node->ChildNode->IsVisible))
+                         (node->ChildNode == null || node->ChildNode->IsVisible()))
                 {
                     // Native top-level node. These are are either res nodes or button components.
                     // Both the node and its child (if it has one) must be visible for the node to be counted.
@@ -304,10 +303,10 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         var targetX = minX - (this.configuration.DtrSwapDirection ? 0 : additionalWidth);
         var targetWidth = (ushort)(nativeWidth + additionalWidth);
 
-        if (collisionNode->Width != targetWidth || collisionNode->X != targetX)
+        if (collisionNode->Width != targetWidth || Math.Abs(collisionNode->X - targetX) > 0.0001)
         {
             collisionNode->SetWidth(targetWidth);
-            collisionNode->SetX(targetX);
+            collisionNode->SetXFloat(targetX);
         }
 
         // If we are drawing backwards, we should start from the right side of the native nodes.
@@ -492,7 +491,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 /// Plugin-scoped version of a AddonEventManager service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
+
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IDtrBar>]
@@ -502,7 +501,7 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
     [ServiceManager.ServiceDependency]
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
 
-    private readonly Dictionary<string, DtrBarEntry> pluginEntries = new();
+    private readonly Dictionary<string, IDtrBarEntry> pluginEntries = new();
     
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.dtrBarService.Entries;
@@ -519,7 +518,7 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
     }
 
     /// <inheritdoc/>
-    public DtrBarEntry Get(string title, SeString? text = null)
+    public IDtrBarEntry Get(string title, SeString? text = null)
     {
         // If we already have a known entry for this plugin, return it.
         if (this.pluginEntries.TryGetValue(title, out var existingEntry)) return existingEntry;

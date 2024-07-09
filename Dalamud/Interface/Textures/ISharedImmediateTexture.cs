@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface.Textures;
@@ -63,8 +64,17 @@ public interface ISharedImmediateTexture
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
     bool TryGetWrap([NotNullWhen(true)] out IDalamudTextureWrap? texture, out Exception? exception);
 
-    /// <summary>Creates a new instance of <see cref="IDalamudTextureWrap"/> holding a new reference to this texture.
-    /// The returned texture is guaranteed to be available until <see cref="IDisposable.Dispose"/> is called.</summary>
+    /// <summary>
+    /// <para>
+    /// Creates a new instance of <see cref="IDalamudTextureWrap"/> holding a new reference to this texture.
+    /// The returned texture is guaranteed to be available until <see cref="IDisposable.Dispose"/> is called.
+    /// </para>
+    /// <para>
+    /// <b>WARNING!</b> Usually, this method should be a "last resort"/compatibility wrapper for old code that does not
+    /// directly support <see cref="ISharedImmediateTexture"/> directly. Prefer using any of the other methods if possible,
+    /// and <b>DO NOT CACHE</b> the resulting texture wrap from those functions.
+    /// </para>
+    /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task{TResult}"/> containing the loaded texture on success.</returns>
     /// <remarks>

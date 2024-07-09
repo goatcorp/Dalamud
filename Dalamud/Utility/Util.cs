@@ -25,6 +25,11 @@ using Lumina.Excel.GeneratedSheets;
 using Serilog;
 using TerraFX.Interop.Windows;
 using Windows.Win32.Storage.FileSystem;
+using Windows.Win32.System.Memory;
+using Windows.Win32.System.Ole;
+
+using HWND = Windows.Win32.Foundation.HWND;
+using Win32_PInvoke = Windows.Win32.PInvoke;
 
 namespace Dalamud.Utility;
 
@@ -265,7 +270,7 @@ public static class Util
     /// </summary>
     /// <param name="go">The GameObject to show.</param>
     /// <param name="autoExpand">Whether or not the struct should start as expanded.</param>
-    public static unsafe void ShowGameObjectStruct(GameObject go, bool autoExpand = true)
+    public static unsafe void ShowGameObjectStruct(IGameObject go, bool autoExpand = true)
     {
         switch (go)
         {
@@ -275,8 +280,8 @@ public static class Util
             case Character chara:
                 ShowStruct(chara.Struct, autoExpand);
                 break;
-            default:
-                ShowStruct(go.Struct, autoExpand);
+            case GameObject gameObject:
+                ShowStruct(gameObject.Struct, autoExpand);
                 break;
         }
     }
@@ -734,6 +739,40 @@ public static class Util
             // ignore
         }
     }
+    
+    /// <summary>
+    /// Print formatted IGameObject Information to ImGui.
+    /// </summary>
+    /// <param name="actor">IGameObject to Display.</param>
+    /// <param name="tag">Display Tag.</param>
+    /// <param name="resolveGameData">If the IGameObjects data should be resolved.</param>
+    internal static void PrintGameObject(IGameObject actor, string tag, bool resolveGameData)
+    {
+        var actorString =
+            $"{actor.Address.ToInt64():X}:{actor.GameObjectId:X}[{tag}] - {actor.ObjectKind} - {actor.Name} - X{actor.Position.X} Y{actor.Position.Y} Z{actor.Position.Z} D{actor.YalmDistanceX} R{actor.Rotation} - Target: {actor.TargetObjectId:X}\n";
+
+        if (actor is Npc npc)
+            actorString += $"       DataId: {npc.DataId}  NameId:{npc.NameId}\n";
+
+        if (actor is ICharacter chara)
+        {
+            actorString +=
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.GameData?.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+        }
+
+        if (actor is IPlayerCharacter pc)
+        {
+            actorString +=
+                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.GameData?.Name : pc.HomeWorld.Id.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.GameData?.Name : pc.CurrentWorld.Id.ToString())} FC: {pc.CompanyTag}\n";
+        }
+
+        ImGui.TextUnformatted(actorString);
+        ImGui.SameLine();
+        if (ImGui.Button($"C##{actor.Address.ToInt64()}"))
+        {
+            ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
+        }
+    }
 
     /// <summary>
     /// Print formatted GameObject Information to ImGui.
@@ -767,6 +806,69 @@ public static class Util
         {
             ImGui.SetClipboardText(actor.Address.ToInt64().ToString("X"));
         }
+    }
+
+    /// <summary>
+    /// Copy files to the clipboard as if they were copied in Explorer.
+    /// </summary>
+    /// <param name="paths">Full paths to files to be copied.</param>
+    /// <returns>Returns true on success.</returns>
+    internal static unsafe bool CopyFilesToClipboard(IEnumerable<string> paths)
+    {
+        var pathBytes = paths
+                        .Select(Encoding.Unicode.GetBytes)
+                        .ToArray();
+        var pathBytesSize = pathBytes
+                            .Select(bytes => bytes.Length)
+                            .Sum();
+        var sizeWithTerminators = pathBytesSize + (pathBytes.Length * 2);
+
+        var dropFilesSize = sizeof(DROPFILES);
+        var hGlobal = Win32_PInvoke.GlobalAlloc_SafeHandle(
+            GLOBAL_ALLOC_FLAGS.GHND,
+            // struct size + size of encoded strings + null terminator for each
+            // string + two null terminators for end of list
+            (uint)(dropFilesSize + sizeWithTerminators + 4));
+        var dropFiles = (DROPFILES*)Win32_PInvoke.GlobalLock(hGlobal);
+
+        *dropFiles = default;
+        dropFiles->fWide = true;
+        dropFiles->pFiles = (uint)dropFilesSize;
+
+        var pathLoc = (byte*)((nint)dropFiles + dropFilesSize);
+        foreach (var bytes in pathBytes)
+        {
+            // copy the encoded strings
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                pathLoc![i] = bytes[i];
+            }
+
+            // null terminate
+            pathLoc![bytes.Length] = 0;
+            pathLoc[bytes.Length + 1] = 0;
+            pathLoc += bytes.Length + 2;
+        }
+
+        // double null terminator for end of list
+        for (var i = 0; i < 4; i++)
+        {
+            pathLoc![i] = 0;
+        }
+
+        Win32_PInvoke.GlobalUnlock(hGlobal);
+
+        if (Win32_PInvoke.OpenClipboard(HWND.Null))
+        {
+            Win32_PInvoke.SetClipboardData(
+                (uint)CLIPBOARD_FORMAT.CF_HDROP,
+                hGlobal);
+            Win32_PInvoke.CloseClipboard();
+            return true;
+        }
+
+        hGlobal.Dispose();
+        return false;
     }
 
     private static void ShowSpanProperty(ulong addr, IList<string> path, PropertyInfo p, object obj)

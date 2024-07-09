@@ -5,9 +5,63 @@ using Dalamud.Game.ClientState.Resolvers;
 namespace Dalamud.Game.ClientState.Buddy;
 
 /// <summary>
+/// Interface representing represents a buddy such as the chocobo companion, summoned pets, squadron groups and trust parties.
+/// </summary>
+public interface IBuddyMember
+{
+    /// <summary>
+    /// Gets the address of the buddy in memory.
+    /// </summary>
+    IntPtr Address { get; }
+
+    /// <summary>
+    /// Gets the object ID of this buddy.
+    /// </summary>
+    uint ObjectId { get; }
+
+    /// <summary>
+    /// Gets the actor associated with this buddy.
+    /// </summary>
+    /// <remarks>
+    /// This iterates the actor table, it should be used with care.
+    /// </remarks>
+    IGameObject? GameObject { get; }
+
+    /// <summary>
+    /// Gets the current health of this buddy.
+    /// </summary>
+    uint CurrentHP { get; }
+
+    /// <summary>
+    /// Gets the maximum health of this buddy.
+    /// </summary>
+    uint MaxHP { get; }
+
+    /// <summary>
+    /// Gets the data ID of this buddy.
+    /// </summary>
+    uint DataID { get; }
+
+    /// <summary>
+    /// Gets the Mount data related to this buddy. It should only be used with companion buddies.
+    /// </summary>
+    ExcelResolver<Lumina.Excel.GeneratedSheets.Mount> MountData { get; }
+
+    /// <summary>
+    /// Gets the Pet data related to this buddy. It should only be used with pet buddies.
+    /// </summary>
+    ExcelResolver<Lumina.Excel.GeneratedSheets.Pet> PetData { get; }
+
+    /// <summary>
+    /// Gets the Trust data related to this buddy. It should only be used with battle buddies.
+    /// </summary>
+    ExcelResolver<Lumina.Excel.GeneratedSheets.DawnGrowMember> TrustData { get; }
+}
+
+/// <summary>
 /// This class represents a buddy such as the chocobo companion, summoned pets, squadron groups and trust parties.
 /// </summary>
-public unsafe class BuddyMember
+internal unsafe class BuddyMember : IBuddyMember
 {
     [ServiceManager.ServiceDependency]
     private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
@@ -21,52 +75,31 @@ public unsafe class BuddyMember
         this.Address = address;
     }
 
-    /// <summary>
-    /// Gets the address of the buddy in memory.
-    /// </summary>
+    /// <inheritdoc />
     public IntPtr Address { get; }
 
-    /// <summary>
-    /// Gets the object ID of this buddy.
-    /// </summary>
+    /// <inheritdoc />
     public uint ObjectId => this.Struct->EntityId;
 
-    /// <summary>
-    /// Gets the actor associated with this buddy.
-    /// </summary>
-    /// <remarks>
-    /// This iterates the actor table, it should be used with care.
-    /// </remarks>
-    public GameObject? GameObject => this.objectTable.SearchById(this.ObjectId);
+    /// <inheritdoc />
+    public IGameObject? GameObject => this.objectTable.SearchById(this.ObjectId);
 
-    /// <summary>
-    /// Gets the current health of this buddy.
-    /// </summary>
+    /// <inheritdoc />
     public uint CurrentHP => this.Struct->CurrentHealth;
 
-    /// <summary>
-    /// Gets the maximum health of this buddy.
-    /// </summary>
+    /// <inheritdoc />
     public uint MaxHP => this.Struct->MaxHealth;
 
-    /// <summary>
-    /// Gets the data ID of this buddy.
-    /// </summary>
+    /// <inheritdoc />
     public uint DataID => this.Struct->DataId;
 
-    /// <summary>
-    /// Gets the Mount data related to this buddy. It should only be used with companion buddies.
-    /// </summary>
+    /// <inheritdoc />
     public ExcelResolver<Lumina.Excel.GeneratedSheets.Mount> MountData => new(this.DataID);
 
-    /// <summary>
-    /// Gets the Pet data related to this buddy. It should only be used with pet buddies.
-    /// </summary>
+    /// <inheritdoc />
     public ExcelResolver<Lumina.Excel.GeneratedSheets.Pet> PetData => new(this.DataID);
 
-    /// <summary>
-    /// Gets the Trust data related to this buddy. It should only be used with battle buddies.
-    /// </summary>
+    /// <inheritdoc />
     public ExcelResolver<Lumina.Excel.GeneratedSheets.DawnGrowMember> TrustData => new(this.DataID);
 
     private FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember* Struct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember*)this.Address;

@@ -17,7 +17,6 @@ namespace Dalamud.Hooking.Internal;
 /// Plugin-scoped version of service used to create hooks.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameInteropProvider>]

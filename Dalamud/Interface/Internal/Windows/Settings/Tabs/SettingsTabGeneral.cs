@@ -20,7 +20,7 @@ public class SettingsTabGeneral : SettingsTab
             Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."),
             c => c.GeneralChatType,
             (v, c) => c.GeneralChatType = v,
-            warning: (v) =>
+            warning: v =>
             {
                 // TODO: Maybe actually implement UI for the validity check...
                 if (v == XivChatType.None)
@@ -63,22 +63,10 @@ public class SettingsTabGeneral : SettingsTab
             (v, c) => c.PrintPluginsWelcomeMsg = v),
 
         new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingsAutoUpdatePlugins", "Auto-update plugins"),
-            Loc.Localize("DalamudSettingsAutoUpdatePluginsMsgHint", "Automatically update plugins when logging in with a character."),
-            c => c.AutoUpdatePlugins,
-            (v, c) => c.AutoUpdatePlugins = v),
-
-        new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingsSystemMenu", "Dalamud buttons in system menu"),
             Loc.Localize("DalamudSettingsSystemMenuMsgHint", "Add buttons for Dalamud plugins and settings to the system menu."),
             c => c.DoButtonsSystemMenu,
             (v, c) => c.DoButtonsSystemMenu = v),
-
-        new SettingsEntry<bool>(
-            Loc.Localize("DalamudSettingsEnableRmtFiltering", "Enable RMT Filtering"),
-            Loc.Localize("DalamudSettingsEnableRmtFilteringMsgHint", "Enable Dalamud's built-in RMT ad filtering."),
-            c => !c.DisableRmtFiltering,
-            (v, c) => c.DisableRmtFiltering = !v),
 
         new GapSettingsEntry(5),
 

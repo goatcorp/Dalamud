@@ -43,6 +43,7 @@ internal class DataWindow : Window, IDisposable
         new IconBrowserWidget(),
         new ImGuiWidget(),
         new KeyStateWidget(),
+        new MarketBoardWidget(),
         new NetworkMonitorWidget(),
         new ObjectTableWidget(),
         new PartyListWidget(),

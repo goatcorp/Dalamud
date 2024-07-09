@@ -15,12 +15,8 @@ internal class MarketBoardItemRequest
     }
 
     /// <summary>
-    /// Gets the catalog ID.
-    /// </summary>
-    public uint CatalogId { get; private set; }
-
-    /// <summary>
     /// Gets the request status. Nonzero statuses are errors.
+    /// Known values: default=0; rate limited=0x70000003.
     /// </summary>
     public uint Status { get; private set; }
 
@@ -32,44 +28,33 @@ internal class MarketBoardItemRequest
     /// <summary>
     /// Gets the amount to arrive.
     /// </summary>
-    public byte AmountToArrive { get; private set; }
+    public uint AmountToArrive { get; private set; }
 
     /// <summary>
     /// Gets the offered item listings.
     /// </summary>
-    public List<MarketBoardCurrentOfferings.MarketBoardItemListing> Listings { get; } = new();
+    public List<MarketBoardCurrentOfferings.MarketBoardItemListing> Listings { get; } = [];
 
     /// <summary>
     /// Gets the historical item listings.
     /// </summary>
-    public List<MarketBoardHistory.MarketBoardHistoryListing> History { get; } = new();
-
-    /// <summary>
-    /// Gets or sets the listing request ID.
-    /// </summary>
-    public int ListingsRequestId { get; set; } = -1;
-
-    /// <summary>
-    /// Gets a value indicating whether the upload is complete.
-    /// </summary>
-    public bool IsDone => this.Listings.Count == this.AmountToArrive && this.History.Count != 0;
+    public List<MarketBoardHistory.MarketBoardHistoryListing> History { get; } = [];
 
     /// <summary>
     /// Read a packet off the wire.
     /// </summary>
     /// <param name="dataPtr">Packet data.</param>
     /// <returns>An object representing the data read.</returns>
-    public static unsafe MarketBoardItemRequest Read(IntPtr dataPtr)
+    public static unsafe MarketBoardItemRequest Read(nint dataPtr)
     {
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
 
-        var output = new MarketBoardItemRequest();
-
-        output.CatalogId = reader.ReadUInt32();
-        output.Status = reader.ReadUInt32();
-        stream.Position += 0x3;
-        output.AmountToArrive = reader.ReadByte();
+        var output = new MarketBoardItemRequest
+        {
+            Status = reader.ReadUInt32(),
+            AmountToArrive = reader.ReadUInt32(),
+        };
 
         return output;
     }

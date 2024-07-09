@@ -14,12 +14,11 @@ namespace Dalamud.Game.Gui.PartyFinder;
 /// <summary>
 /// This class handles interacting with the native PartyFinder window.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
     private readonly PartyFinderAddressResolver address;
-    private readonly IntPtr memory;
+    private readonly nint memory;
 
     private readonly Hook<ReceiveListingDelegate> receiveListingHook;
 
@@ -40,7 +39,7 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ReceiveListingDelegate(IntPtr managerPtr, IntPtr data);
+    private delegate void ReceiveListingDelegate(nint managerPtr, nint data);
 
     /// <inheritdoc/>
     public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
@@ -62,7 +61,7 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
         }
     }
 
-    private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)
+    private void HandleReceiveListingDetour(nint managerPtr, nint data)
     {
         try
         {
@@ -76,7 +75,7 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
         this.receiveListingHook.Original(managerPtr, data);
     }
 
-    private void HandleListingEvents(IntPtr data)
+    private void HandleListingEvents(nint data)
     {
         var dataPtr = data + 0x10;
 
@@ -127,7 +126,6 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
 /// A scoped variant of the PartyFinderGui service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IPartyFinderGui>]
@@ -156,5 +154,5 @@ internal class PartyFinderGuiPluginScoped : IInternalDisposableService, IPartyFi
         this.ReceiveListing = null;
     }
 
-    private void ReceiveListingForward(PartyFinderListing listing, PartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
+    private void ReceiveListingForward(IPartyFinderListing listing, IPartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
 }

@@ -51,11 +51,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     public IntPtr KeyboardStateIndexArray { get; private set; }
 
     /// <summary>
-    /// Gets the address of the target manager.
-    /// </summary>
-    public IntPtr TargetManager { get; private set; }
-
-    /// <summary>
     /// Gets the address of the condition flag array.
     /// </summary>
     public IntPtr ConditionFlags { get; private set; }
@@ -83,14 +78,14 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
 
         this.BuddyList = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 45 84 E4 75 1A F6 45 12 04");
 
-        this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F9 44 0F B7 41 ??");
+        this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F1 44 0F B7 41");
 
         this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 77 71");
 
-        this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 05 ?? ?? ?? ?? 48 39 07");
+        this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 0D ?? ?? ?? ?? 48 8D 57 08");
         this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 33 ED") + 0x8;
 
-        this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 48 8B F9 66 89 91 ?? ?? ?? ??");
+        this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 57 48 83 EC 20 0F B7 DA");
 
         // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
         // lea   rcx, ds:1DB9F74h[rax*4]          KeyboardState
@@ -98,10 +93,8 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
         this.KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
         this.KeyboardStateIndexArray = sig.ScanText("0F B6 94 33 ?? ?? ?? ?? 84 D2") + 0x4;
 
-        this.ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 41 8D 50 77 E8 ?? ?? ?? ?? 48 8B 5C 24");
-
-        this.TargetManager = sig.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? FF 50 ?? 48 85 DB");
-
-        this.GamepadPoll = sig.ScanText("40 ?? 57 41 ?? 48 81 EC ?? ?? ?? ?? 44 0F ?? ?? ?? ?? ?? ?? ?? 48 8B");
+        this.ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 8B D3 E8 ?? ?? ?? ?? 32 C0 48 83 C4 20");
+        
+        this.GamepadPoll = sig.ScanText("40 55 53 57 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 44 0F 29 B4 24");
     }
 }

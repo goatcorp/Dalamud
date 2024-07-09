@@ -14,7 +14,6 @@ namespace Dalamud.Game.ClientState.Aetherytes;
 /// This collection represents the list of available Aetherytes in the Teleport window.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IAetheryteList>]
@@ -50,7 +49,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
     }
 
     /// <inheritdoc/>
-    public AetheryteEntry? this[int index]
+    public IAetheryteEntry? this[int index]
     {
         get
         {
@@ -85,7 +84,7 @@ internal sealed partial class AetheryteList
     public int Count => this.Length;
 
     /// <inheritdoc/>
-    public IEnumerator<AetheryteEntry> GetEnumerator()
+    public IEnumerator<IAetheryteEntry> GetEnumerator()
     {
         for (var i = 0; i < this.Length; i++)
         {

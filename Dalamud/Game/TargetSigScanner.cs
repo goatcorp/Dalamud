@@ -10,7 +10,6 @@ namespace Dalamud.Game;
 /// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ProvidedService]
 #pragma warning disable SA1015
 [ResolveVia<ISigScanner>]

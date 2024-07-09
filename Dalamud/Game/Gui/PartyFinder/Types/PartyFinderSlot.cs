@@ -8,14 +8,14 @@ namespace Dalamud.Game.Gui.PartyFinder.Types;
 /// </summary>
 public class PartyFinderSlot
 {
-    private readonly uint accepting;
+    private readonly ulong accepting;
     private JobFlags[] listAccepting;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyFinderSlot"/> class.
     /// </summary>
     /// <param name="accepting">The flag value of accepted jobs.</param>
-    internal PartyFinderSlot(uint accepting)
+    internal PartyFinderSlot(ulong accepting)
     {
         this.accepting = accepting;
     }

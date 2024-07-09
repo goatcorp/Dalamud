@@ -22,7 +22,6 @@ namespace Dalamud.Game.Gui;
 /// <summary>
 /// This class handles interacting with the native chat UI.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
@@ -419,7 +418,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 /// Plugin scoped version of ChatGui.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IChatGui>]

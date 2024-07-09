@@ -9,7 +9,6 @@ using System.Reflection;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
-using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
@@ -20,24 +19,23 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
-using Dalamud.Utility;
-
-using static Dalamud.Interface.Internal.Windows.PluginInstaller.PluginInstallerWindow;
 
 namespace Dalamud.Plugin;
 
 /// <summary>
 /// This class acts as an interface to various objects needed to interact with Dalamud and the game.
 /// </summary>
-public sealed class DalamudPluginInterface : IDisposable
+internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposable
 {
     private readonly LocalPlugin plugin;
     private readonly PluginConfigurations configs;
+    private readonly UiBuilder uiBuilder;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudPluginInterface"/> class.
@@ -54,7 +52,7 @@ public sealed class DalamudPluginInterface : IDisposable
         var dataManager = Service<DataManager>.Get();
         var localization = Service<Localization>.Get();
 
-        this.UiBuilder = new(plugin, plugin.Name);
+        this.UiBuilder = this.uiBuilder = new(plugin, plugin.Name);
 
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
@@ -84,27 +82,14 @@ public sealed class DalamudPluginInterface : IDisposable
     }
 
     /// <summary>
-    /// Delegate for localization change with two-letter iso lang code.
-    /// </summary>
-    /// <param name="langCode">The new language code.</param>
-    public delegate void LanguageChangedDelegate(string langCode);
-
-    /// <summary>
-    /// Delegate for events that listen to changes to the list of active plugins.
-    /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
-
-    /// <summary>
     /// Event that gets fired when loc is changed
     /// </summary>
-    public event LanguageChangedDelegate LanguageChanged;
+    public event IDalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
 
     /// <summary>
     /// Event that is fired when the active list of plugins is changed.
     /// </summary>
-    public event ActivePluginsChangedDelegate ActivePluginsChanged;
+    public event IDalamudPluginInterface.ActivePluginsChangedDelegate? ActivePluginsChanged;
 
     /// <summary>
     /// Gets the reason this plugin was loaded.
@@ -114,7 +99,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a value indicating whether or not auto-updates have already completed this session.
     /// </summary>
-    public bool IsAutoUpdateComplete => Service<ChatHandlers>.Get().IsAutoUpdateComplete;
+    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.Get().IsAutoUpdateComplete;
 
     /// <summary>
     /// Gets the repository from which this plugin was installed.
@@ -186,7 +171,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
     /// </summary>
-    public UiBuilder UiBuilder { get; private set; }
+    public IUiBuilder UiBuilder { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
@@ -216,17 +201,13 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a list of installed plugins along with their current state.
     /// </summary>
-    public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.EffectiveVersion));
+    public IEnumerable<IExposedPlugin> InstalledPlugins =>
+        Service<PluginManager>.Get().InstalledPlugins.Select(p => new ExposedPlugin(p));
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
+    /// Gets the <see cref="UiBuilder"/> internal implementation.
     /// </summary>
-    /// <returns>Returns false if the DalamudInterface was null.</returns>
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public bool OpenPluginInstaller()
-    {
-        return this.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins, this.plugin.InternalName);
-    }
+    internal UiBuilder LocalUiBuilder => this.uiBuilder;
 
     /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/>, with an optional search term.
@@ -234,7 +215,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <param name="openTo">The page to open the installer to. Defaults to the "All Plugins" page.</param>
     /// <param name="searchText">An optional search text to input in the search box.</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string searchText = null)
+    public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string? searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -243,7 +224,7 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         dalamudInterface.OpenPluginInstallerTo(openTo);
-        dalamudInterface.SetPluginInstallerSearchText(searchText);
+        dalamudInterface.SetPluginInstallerSearchText(searchText ?? string.Empty);
 
         return true;
     }
@@ -254,7 +235,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <param name="openTo">The tab to open the settings to. Defaults to the "General" tab.</param>
     /// <param name="searchText">An optional search text to input in the search box.</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string searchText = null)
+    public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string? searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -263,7 +244,7 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         dalamudInterface.OpenSettingsTo(openTo);
-        dalamudInterface.SetSettingsSearchText(searchText);
+        dalamudInterface.SetSettingsSearchText(searchText ?? string.Empty);
 
         return true;
     }
@@ -507,26 +488,14 @@ public sealed class DalamudPluginInterface : IDisposable
 
     #endregion
 
-    /// <inheritdoc cref="Dispose"/>
-    void IDisposable.Dispose()
-    {
-    }
-
-    /// <summary>This function will do nothing. Dalamud will dispose this object on plugin unload.</summary>
-    [Obsolete("This function will do nothing. Dalamud will dispose this object on plugin unload.", true)]
-    public void Dispose()
-    {
-        // ignored
-    }
-
     /// <summary>Unregister the plugin and dispose all references.</summary>
     /// <remarks>Dalamud internal use only.</remarks>
-    internal void DisposeInternal()
+    public void Dispose()
     {
         Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
         Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
         Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
-        this.UiBuilder.DisposeInternal();
+        this.uiBuilder.DisposeInternal();
     }
 
     /// <summary>

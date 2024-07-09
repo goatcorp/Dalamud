@@ -5,10 +5,11 @@
         <PlatformTarget>x64</PlatformTarget>
         <Platforms>x64;AnyCPU</Platforms>
         <LangVersion>12.0</LangVersion>
+        <EnableWindowsTargeting>True</EnableWindowsTargeting>
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>9.1.0.10</DalamudVersion>
+        <DalamudVersion>10.0.0.2</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
@@ -66,11 +67,12 @@
     <ItemGroup>
         <PackageReference Include="BitFaster.Caching" Version="2.4.1" />
         <PackageReference Include="CheapLoc" Version="1.1.8" />
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4" PrivateAssets="all" />
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
-        <PackageReference Include="Lumina" Version="3.17.0" />
-        <PackageReference Include="Lumina.Excel" Version="6.5.2" />
+        <PackageReference Include="Lumina" Version="4.1.0" />
+        <PackageReference Include="Lumina.Excel" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
         <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
           <PrivateAssets>all</PrivateAssets>
@@ -140,8 +142,11 @@
 
     <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Release'">
         <!-- write the hash to the temp file.-->
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
+        </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-parse" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudFullGitCommitHash" />
         </Exec>
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
@@ -191,6 +196,10 @@
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
                 <_Parameter2>$(BuildHashClientStructs)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(DalamudFullGitCommitHash)' != ''">
+                <_Parameter1>FullGitHash</_Parameter1>
+                <_Parameter2>$(DalamudFullGitCommitHash)</_Parameter2>
             </AssemblyAttributes>
         </ItemGroup>
         <!-- writes the attribute to the customAssemblyInfo file -->

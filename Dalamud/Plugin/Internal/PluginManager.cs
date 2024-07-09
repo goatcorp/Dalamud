@@ -281,7 +281,8 @@ internal class PluginManager : IInternalDisposableService
 
         if (hasTv)
         {
-            return tv > av;
+            return tv > av &&
+                   manifest.TestingDalamudApiLevel == DalamudApiLevel;
         }
 
         return false;
@@ -554,14 +555,14 @@ internal class PluginManager : IInternalDisposableService
                 var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
                 if (!manifestFile.Exists)
                 {
-                    Log.Information("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                    Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
                     continue;
                 }
             
                 var manifest = LocalPluginManifest.Load(manifestFile);
                 if (manifest == null)
                 {
-                    Log.Information("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                    Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
                     continue;
                 }
 
@@ -816,14 +817,14 @@ internal class PluginManager : IInternalDisposableService
             var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
             if (!manifestFile.Exists)
             {
-                Log.Information("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
+                Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
                 continue;
             }
             
             var manifest = LocalPluginManifest.Load(manifestFile);
             if (manifest == null)
             {
-                Log.Information("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
+                Log.Error("Could not deserialize manifest for DLL at {DllPath}", dllFile.FullName);
                 continue;
             }
 
@@ -977,33 +978,33 @@ internal class PluginManager : IInternalDisposableService
     /// <summary>
     /// Update all non-dev plugins.
     /// </summary>
-    /// <param name="ignoreDisabled">Ignore disabled plugins.</param>
+    /// <param name="toUpdate">List of plugins to update.</param>
     /// <param name="dryRun">Perform a dry run, don't install anything.</param>
     /// <param name="autoUpdate">If this action was performed as part of an auto-update.</param>
+    /// <param name="progress">An <see cref="IProgress{T}"/> implementation to receive progress updates about the installation status.</param>
     /// <returns>Success or failure and a list of updated plugin metadata.</returns>
-    public async Task<IEnumerable<PluginUpdateStatus>> UpdatePluginsAsync(bool ignoreDisabled, bool dryRun, bool autoUpdate = false)
+    public async Task<IEnumerable<PluginUpdateStatus>> UpdatePluginsAsync(
+        ICollection<AvailablePluginUpdate> toUpdate,
+        bool dryRun,
+        bool autoUpdate = false,
+        IProgress<PluginUpdateProgress>? progress = null)
     {
         Log.Information("Starting plugin update");
 
         var updateTasks = new List<Task<PluginUpdateStatus>>();
+        var totalPlugins = toUpdate.Count;
+        var processedPlugins = 0;
 
-        // Prevent collection was modified errors
-        lock (this.pluginListLock)
+        foreach (var plugin in toUpdate)
         {
-            foreach (var plugin in this.updatablePluginsList)
-            {
-                // Can't update that!
-                if (plugin.InstalledPlugin.IsDev)
-                    continue;
+            // Can't update that!
+            if (plugin.InstalledPlugin.IsDev)
+                continue;
 
-                if (!plugin.InstalledPlugin.IsWantedByAnyProfile && ignoreDisabled)
-                    continue;
+            if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
+                continue;
 
-                if (plugin.InstalledPlugin.Manifest.ScheduledForDeletion)
-                    continue;
-
-                updateTasks.Add(this.UpdateSinglePluginAsync(plugin, false, dryRun));
-            }
+            updateTasks.Add(UpdateSinglePluginWithProgressAsync(plugin));
         }
 
         var updatedList = await Task.WhenAll(updateTasks);
@@ -1013,9 +1014,26 @@ internal class PluginManager : IInternalDisposableService
             autoUpdate ? PluginListInvalidationKind.AutoUpdate : PluginListInvalidationKind.Update,
             updatedList.Select(x => x.InternalName));
 
-        Log.Information("Plugin update OK. {updateCount} plugins updated.", updatedList.Length);
+        Log.Information("Plugin update OK. {UpdateCount} plugins updated", updatedList.Length);
 
         return updatedList;
+
+        async Task<PluginUpdateStatus> UpdateSinglePluginWithProgressAsync(AvailablePluginUpdate plugin)
+        {
+            var result = await this.UpdateSinglePluginAsync(plugin, false, dryRun);
+
+            // Update the progress
+            if (progress != null)
+            {
+                var newProcessedAmount = Interlocked.Increment(ref processedPlugins);
+                progress.Report(new PluginUpdateProgress(
+                                    newProcessedAmount,
+                                    totalPlugins,
+                                    plugin.InstalledPlugin.Manifest));
+            }
+
+            return result;
+        }
     }
 
     /// <summary>
@@ -1043,6 +1061,18 @@ internal class PluginManager : IInternalDisposableService
             Status = PluginUpdateStatus.StatusKind.Success,
             HasChangelog = !metadata.UpdateManifest.Changelog.IsNullOrWhitespace(),
         };
+        
+        // Check if this plugin is already up to date (=> AvailablePluginUpdate was stale)
+        lock (this.installedPluginsList)
+        {
+            var matchedPlugin = this.installedPluginsList.FirstOrDefault(x => x.EffectiveWorkingPluginId == workingPluginId);
+            if (matchedPlugin?.EffectiveVersion == metadata.EffectiveVersion)
+            {
+                Log.Information("Plugin {Name} is already up to date", plugin.Manifest.Name);
+                updateStatus.Status = PluginUpdateStatus.StatusKind.AlreadyUpToDate;
+                return updateStatus;
+            }
+        }
 
         if (!dryRun)
         {
@@ -1435,7 +1465,7 @@ internal class PluginManager : IInternalDisposableService
             // ignored, since the plugin may be loaded already
         }
 
-        Log.Debug($"Extracting to {outputDir}");
+        Log.Debug("Extracting to {OutputDir}", outputDir);
 
         using (var archive = new ZipArchive(zipStream))
         {
@@ -1615,6 +1645,13 @@ internal class PluginManager : IInternalDisposableService
                 Log.Verbose("DevPlugin {Name} disabled and !StartOnBoot => disable", plugin.Manifest.InternalName);
                 await this.profileManager.DefaultProfile.AddOrUpdateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, false, false);
                 loadPlugin = false;
+            }
+
+            // Never automatically load outdated dev plugins.
+            if (devPlugin.IsOutdated)
+            {
+                loadPlugin = false;
+                Log.Warning("DevPlugin {Name} is outdated, not loading automatically - update DalamudPackager or SDK!", plugin.Manifest.InternalName);
             }
 
             plugin = devPlugin;
@@ -1831,6 +1868,11 @@ internal class PluginManager : IInternalDisposableService
             Log.Error(ex, "Plugin load failed");
         }
     }
+    
+    /// <summary>
+    /// Class representing progress of an update operation.
+    /// </summary>
+    public record PluginUpdateProgress(int PluginsProcessed, int TotalPlugins, IPluginManifest CurrentPluginManifest);
     
     /// <summary>
     /// Simple class that tracks the internal names and public names of plugins that we are planning to load at startup,

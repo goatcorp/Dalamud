@@ -14,6 +14,11 @@ public enum PluginInstallerOpenKind
     /// Open to the "Installed Plugins" page.
     /// </summary>
     InstalledPlugins,
+    
+    /// <summary>
+    /// Open to the "Can be updated" page.
+    /// </summary>
+    UpdateablePlugins,
 
     /// <summary>
     /// Open to the "Changelogs" page.
@@ -35,6 +40,11 @@ public enum SettingsOpenKind
     /// Open to the "Look &#038; Feel" page.
     /// </summary>
     LookAndFeel,
+    
+    /// <summary>
+    /// Open to the "Auto Updates" page.
+    /// </summary>
+    AutoUpdates,
 
     /// <summary>
     /// Open to the "Server Info Bar" page.

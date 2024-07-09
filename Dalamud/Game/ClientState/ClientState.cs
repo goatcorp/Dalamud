@@ -1,6 +1,8 @@
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Data;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui;
@@ -23,7 +25,6 @@ namespace Dalamud.Game.ClientState;
 /// <summary>
 /// This class represents the state of the game client at the time of access.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal sealed class ClientState : IInternalDisposableService, IClientState
 {
@@ -102,7 +103,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     }
 
     /// <inheritdoc/>
-    public PlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as PlayerCharacter;
+    public IPlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as IPlayerCharacter;
 
     /// <inheritdoc/>
     public ulong LocalContentId => (ulong)Marshal.ReadInt64(this.address.LocalContentId);
@@ -123,6 +124,27 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     /// Gets client state address resolver.
     /// </summary>
     internal ClientStateAddressResolver AddressResolver => this.address;
+    
+    /// <inheritdoc/>
+    public bool IsClientIdle(out ConditionFlag blockingFlag)
+    {
+        blockingFlag = 0;
+        if (this.LocalPlayer is null) return true;
+        
+        var condition = Service<Conditions.Condition>.GetNullable();
+        
+        var blockingConditions = condition.AsReadOnlySet().Except([
+            ConditionFlag.NormalConditions, 
+            ConditionFlag.Jumping, 
+            ConditionFlag.Mounted, 
+            ConditionFlag.UsingParasol]);
+
+        blockingFlag = blockingConditions.FirstOrDefault();
+        return blockingFlag == 0;
+    }
+    
+    /// <inheritdoc/>
+    public bool IsClientIdle() => this.IsClientIdle(out _);
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
@@ -203,7 +225,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 /// Plugin-scoped version of a GameConfig service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IClientState>]
@@ -254,7 +275,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     public uint MapId => this.clientStateService.MapId;
 
     /// <inheritdoc/>
-    public PlayerCharacter? LocalPlayer => this.clientStateService.LocalPlayer;
+    public IPlayerCharacter? LocalPlayer => this.clientStateService.LocalPlayer;
 
     /// <inheritdoc/>
     public ulong LocalContentId => this.clientStateService.LocalContentId;
@@ -270,6 +291,12 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
     /// <inheritdoc/>
     public bool IsGPosing => this.clientStateService.IsGPosing;
+
+    /// <inheritdoc/>
+    public bool IsClientIdle(out ConditionFlag blockingFlag) => this.clientStateService.IsClientIdle(out blockingFlag);
+
+    /// <inheritdoc/>
+    public bool IsClientIdle() => this.clientStateService.IsClientIdle();
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

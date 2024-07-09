@@ -10,6 +10,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -147,7 +148,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             return;
         
         var scale = ImGui.GetIO().FontGlobalScale;
-        var entries = this.titleScreenMenu.Entries;
+        var entries = this.titleScreenMenu.PluginEntries;
 
         var hovered = ImGui.IsWindowHovered(
             ImGuiHoveredFlags.RootAndChildWindows |
@@ -269,7 +270,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
             case State.Hide:
             {
-                if (this.DrawEntry(entries[0], true, false, true, true, false))
+                if (entries.Count > 0 && this.DrawEntry(entries[0], true, false, true, true, false))
                 {
                     this.state = State.Show;
                 }
@@ -283,7 +284,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     }
 
     private bool DrawEntry(
-        TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
+        ITitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
     {
         using var fontScopeDispose = this.myFontHandle.Value.Push();
 
