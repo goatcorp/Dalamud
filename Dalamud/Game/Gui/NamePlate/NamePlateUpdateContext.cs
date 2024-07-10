@@ -59,6 +59,7 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     {
         this.ObjectTable = objectTable;
         this.RaptureAtkModule = FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkModule.Instance();
+        this.Ui3DModule = UIModule.Instance()->GetUI3DModule();
         this.ResetState(args);
     }
 
@@ -97,6 +98,11 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     /// Gets the RaptureAtkModule.
     /// </summary>
     internal RaptureAtkModule* RaptureAtkModule { get; }
+
+    /// <summary>
+    /// Gets the Ui3DModule.
+    /// </summary>
+    internal UI3DModule* Ui3DModule { get; }
 
     /// <summary>
     /// Gets the ObjectTable.

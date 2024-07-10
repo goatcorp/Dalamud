@@ -102,7 +102,7 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     /// <returns>A span containing the free company tag without its surrounding quote characters.</returns>
     internal static ReadOnlySpan<byte> StripFreeCompanyTagQuotes(ReadOnlySpan<byte> text)
     {
-        if (text.Length > 4 && text[..3].SequenceEqual(" «"u8) && text[^2..].SequenceEqual("»"u8))
+        if (text.Length > 4 && text.StartsWith(" «"u8) && text.EndsWith("»"u8))
         {
             return text[3..^2];
         }
@@ -118,7 +118,7 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     /// <returns>A span containing the title without its surrounding quote characters.</returns>
     internal static ReadOnlySpan<byte> StripTitleQuotes(ReadOnlySpan<byte> text)
     {
-        if (text.Length > 5 && text[..3].SequenceEqual("《"u8) && text[^3..].SequenceEqual("》"u8))
+        if (text.Length > 5 && text.StartsWith("《"u8) && text.EndsWith("》"u8))
         {
             return text[3..^3];
         }
