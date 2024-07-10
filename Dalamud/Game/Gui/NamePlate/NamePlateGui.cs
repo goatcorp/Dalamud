@@ -94,6 +94,38 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
         this.addonLifecycle.UnregisterListener(this.preRequestedUpdateListener);
     }
 
+    /// <summary>
+    /// Strips the surrounding quotes from a free company tag. If the quotes are not present in the expected location,
+    /// no modifications will be made.
+    /// </summary>
+    /// <param name="text">A quoted free company tag.</param>
+    /// <returns>A span containing the free company tag without its surrounding quote characters.</returns>
+    internal static ReadOnlySpan<byte> StripFreeCompanyTagQuotes(ReadOnlySpan<byte> text)
+    {
+        if (text.Length > 4 && text[..3].SequenceEqual(" «"u8) && text[^2..].SequenceEqual("»"u8))
+        {
+            return text[3..^2];
+        }
+
+        return text;
+    }
+
+    /// <summary>
+    /// Strips the surrounding quotes from a title. If the quotes are not present in the expected location, no
+    /// modifications will be made.
+    /// </summary>
+    /// <param name="text">A quoted title.</param>
+    /// <returns>A span containing the title without its surrounding quote characters.</returns>
+    internal static ReadOnlySpan<byte> StripTitleQuotes(ReadOnlySpan<byte> text)
+    {
+        if (text.Length > 5 && text[..3].SequenceEqual("《"u8) && text[^3..].SequenceEqual("》"u8))
+        {
+            return text[3..^3];
+        }
+
+        return text;
+    }
+
     private static nint CreateEmptyStringPointer()
     {
         var pointer = Marshal.AllocHGlobal(1);

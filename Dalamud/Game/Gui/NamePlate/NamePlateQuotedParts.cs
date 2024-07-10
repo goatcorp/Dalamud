@@ -51,12 +51,12 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
         if (this.TextWrap is { Item1: var left, Item2: var right })
         {
             sb.Append(left);
-            sb.Append(this.Text ?? handler.GetFieldAsSeString(field));
+            sb.Append(this.Text ?? this.GetStrippedField(handler));
             sb.Append(right);
         }
         else
         {
-            sb.Append(this.Text ?? handler.GetFieldAsSeString(field));
+            sb.Append(this.Text ?? this.GetStrippedField(handler));
         }
 
         if (this.RightQuote is not null)
@@ -69,5 +69,13 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
         }
 
         handler.SetField(field, sb.Build());
+    }
+
+    private SeString GetStrippedField(NamePlateUpdateHandler handler)
+    {
+        return SeString.Parse(
+            isFreeCompany
+                ? NamePlateGui.StripFreeCompanyTagQuotes(handler.GetFieldAsSpan(field))
+                : NamePlateGui.StripTitleQuotes(handler.GetFieldAsSpan(field)));
     }
 }

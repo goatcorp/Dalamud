@@ -16,21 +16,28 @@ public interface INamePlateInfoView
     SeString Name { get; }
 
     /// <summary>
-    /// Gets the displayed free company tag for this nameplate according to the nameplate info object.
+    /// Gets the displayed free company tag for this nameplate according to the nameplate info object. For this field,
+    /// the quote characters which appear on either side of the title are NOT included.
     /// </summary>
     SeString FreeCompanyTag { get; }
 
     /// <summary>
-    /// Gets the displayed title for this nameplate according to the nameplate info object. In this field, the quote
+    /// Gets the displayed free company tag for this nameplate according to the nameplate info object. For this field,
+    /// the quote characters which appear on either side of the title ARE included.
+    /// </summary>
+    SeString QuotedFreeCompanyTag { get; }
+
+    /// <summary>
+    /// Gets the displayed title for this nameplate according to the nameplate info object. For this field, the quote
     /// characters which appear on either side of the title are NOT included.
     /// </summary>
     SeString Title { get; }
 
     /// <summary>
-    /// Gets the displayed title for this nameplate according to the nameplate info object. In this field, the quote
+    /// Gets the displayed title for this nameplate according to the nameplate info object. For this field, the quote
     /// characters which appear on either side of the title ARE included.
     /// </summary>
-    SeString DisplayTitle { get; }
+    SeString QuotedTitle { get; }
 
     /// <summary>
     /// Gets the displayed level text for this nameplate according to the nameplate info object.
@@ -63,21 +70,26 @@ internal unsafe class NamePlateInfoView(RaptureAtkModule.NamePlateInfo* info) : 
 {
     private SeString? name;
     private SeString? freeCompanyTag;
+    private SeString? quotedFreeCompanyTag;
     private SeString? title;
-    private SeString? displayTitle;
+    private SeString? quotedTitle;
     private SeString? levelText;
 
     /// <inheritdoc/>
     public SeString Name => this.name ??= SeString.Parse(info->Name);
 
     /// <inheritdoc/>
-    public SeString FreeCompanyTag => this.freeCompanyTag ??= SeString.Parse(info->FcName);
+    public SeString FreeCompanyTag => this.freeCompanyTag ??=
+                                          SeString.Parse(NamePlateGui.StripFreeCompanyTagQuotes(info->FcName));
+
+    /// <inheritdoc/>
+    public SeString QuotedFreeCompanyTag => this.quotedFreeCompanyTag ??= SeString.Parse(info->FcName);
 
     /// <inheritdoc/>
     public SeString Title => this.title ??= SeString.Parse(info->Title);
 
     /// <inheritdoc/>
-    public SeString DisplayTitle => this.displayTitle ??= SeString.Parse(info->DisplayTitle);
+    public SeString QuotedTitle => this.quotedTitle ??= SeString.Parse(info->DisplayTitle);
 
     /// <inheritdoc/>
     public SeString LevelText => this.levelText ??= SeString.Parse(info->LevelText);
