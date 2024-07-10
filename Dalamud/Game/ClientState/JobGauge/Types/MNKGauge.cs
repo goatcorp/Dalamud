@@ -37,6 +37,21 @@ public unsafe class MNKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     public Nadi Nadi => (Nadi)this.Struct->Nadi;
 
     /// <summary>
+    /// Gets the amount of available Opo-opo Fury stacks.
+    /// </summary>
+    public int OpoOpoFury => this.Struct->OpoOpoStacks;
+    
+    /// <summary>
+    /// Gets the amount of available Raptor Fury stacks.
+    /// </summary>
+    public int RaptorFury => this.Struct->RaptorStacks;
+
+    /// <summary>
+    /// Gets the amount of available Coeurl Fury stacks.
+    /// </summary>
+    public int CoeurlFury => this.Struct->CoeurlStacks;
+
+    /// <summary>
     /// Gets the time remaining that Blitz is active.
     /// </summary>
     public ushort BlitzTimeRemaining => this.Struct->BlitzTimeRemaining;
