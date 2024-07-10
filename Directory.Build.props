@@ -1,0 +1,12 @@
+<!-- Code analysis settings for all Dalamud projects. -->
+<Project>
+    <!--
+    <ItemGroup Label="Code Analysis">
+        <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
+        <AdditionalFiles Include="$(MSBuildThisFileDirectory)tools\BannedSymbols.txt" />
+    </ItemGroup>
+    <PropertyGroup Label="Code Analysis">
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)tools\dalamud.ruleset</CodeAnalysisRuleSet>
+    </PropertyGroup>
+    -->
+</Project>
