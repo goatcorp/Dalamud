@@ -138,7 +138,7 @@ public class Localization : IServiceType
     /// <param name="langCode">The language code to set up the UI language with.</param>
     public void SetupWithLangCode(string langCode)
     {
-        if (langCode.ToLower() == FallbackLangCode)
+        if (langCode.Equals(FallbackLangCode, StringComparison.InvariantCultureIgnoreCase))
         {
             this.SetupWithFallbacks();
             return;

@@ -475,7 +475,7 @@ internal unsafe class UiDebug
                 var name = unitBase->NameString;
                 if (searching)
                 {
-                    if (name == null || !name.ToLower().Contains(searchStr.ToLower())) continue;
+                    if (name == null || !name.ToLowerInvariant().Contains(searchStr.ToLowerInvariant())) continue;
                 }
 
                 noResults = false;

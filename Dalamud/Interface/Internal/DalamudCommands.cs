@@ -350,10 +350,10 @@ internal class DalamudCommands : IServiceType
         var configuration = Service<DalamudConfiguration>.Get();
         var localization = Service<Localization>.Get();
 
-        if (Localization.ApplicableLangCodes.Contains(arguments.ToLower()) || arguments.ToLower() == "en")
+        if (Localization.ApplicableLangCodes.Contains(arguments.ToLowerInvariant()) || arguments.ToLowerInvariant() == "en")
         {
-            localization.SetupWithLangCode(arguments.ToLower());
-            configuration.LanguageOverride = arguments.ToLower();
+            localization.SetupWithLangCode(arguments.ToLowerInvariant());
+            configuration.LanguageOverride = arguments.ToLowerInvariant();
 
             chatGui.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
         }
