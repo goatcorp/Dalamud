@@ -9,6 +9,12 @@ namespace Dalamud.Game.Gui.NamePlate;
 public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany)
 {
     /// <summary>
+    /// Gets or sets the opening and closing SeStrings which will wrap the entire contents, which can be used to apply
+    /// colors or styling to the entire field.
+    /// </summary>
+    public (SeString, SeString)? OuterWrap { get; set; }
+
+    /// <summary>
     /// Gets or sets the opening quote string which appears before the text and opening text-wrap.
     /// </summary>
     public SeString? LeftQuote { get; set; }
@@ -39,6 +45,11 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             return;
 
         var sb = new SeStringBuilder();
+        if (this.OuterWrap is { Item1: var outerLeft })
+        {
+            sb.Append(outerLeft);
+        }
+
         if (this.LeftQuote is not null)
         {
             sb.Append(this.LeftQuote);
@@ -66,6 +77,11 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
         else
         {
             sb.Append(isFreeCompany ? "»" : "》");
+        }
+
+        if (this.OuterWrap is { Item2: var outerRight })
+        {
+            sb.Append(outerRight);
         }
 
         handler.SetField(field, sb.Build());
