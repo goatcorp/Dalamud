@@ -1,8 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -93,7 +97,7 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
     {
         if (device is null)
             throw new NullReferenceException();
-        
+
         this.wicEasy = new();
         try
         {
@@ -233,37 +237,58 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
         this.SupportsTextureFormat((DXGI_FORMAT)format);
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromFile(string path, [CallerMemberName] string debugName = "")
-    {
-        using var stream = WicEasyExtensions.CreateStreamFromFile(path);
-        return this.LoadImage(stream, debugName);
-    }
+    public bool SupportsTextureFormatForRenderTarget(int format) =>
+        this.SupportsTextureFormat(
+            (DXGI_FORMAT)format,
+            D3D12_FORMAT_SUPPORT1.D3D12_FORMAT_SUPPORT1_TEXTURE2D |
+            D3D12_FORMAT_SUPPORT1.D3D12_FORMAT_SUPPORT1_RENDER_TARGET);
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromBytes(
+    public IDalamudTextureWrap CreateTexture2D(
         ReadOnlySpan<byte> data,
-        [CallerMemberName] string debugName = "")
-    {
-        using var stream = default(ComPtr<IWICStream>);
-        this.wicEasy.Factory->CreateStream(stream.ReleaseAndGetAddressOf()).ThrowOnError();
-        fixed (byte* pData = data)
-        {
-            stream.Get()->InitializeFromMemory(pData, (uint)data.Length).ThrowOnError();
-            return this.LoadImage((IStream*)stream.Get());
-        }
-    }
+        RawImageSpecification specs,
+        bool cpuRead,
+        bool cpuWrite,
+        bool allowRenderTarget,
+        [CallerMemberName] string debugName = "") =>
+        this.imguiRenderer.CreateTexture2D(
+            data,
+            specs,
+            false,
+            false,
+            allowRenderTarget,
+            debugName);
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromRaw(
-        ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
-        [CallerMemberName] string debugName = "")
+    public IDalamudTextureWrap CreateTextureFromImGuiViewport(
+        ImGuiViewportTextureArgs args,
+        LocalPlugin? ownerPlugin,
+        string? debugName = null,
+        CancellationToken cancellationToken = default) =>
+        this.imguiRenderer.CreateTextureFromImGuiViewport(args, ownerPlugin, debugName, cancellationToken);
+
+    /// <inheritdoc/>
+    public RawImageSpecification GetTextureSpecification(IDalamudTextureWrap texture) =>
+        this.imguiRenderer.GetTextureSpecification(texture);
+
+    /// <inheritdoc/>
+    public byte[] GetTextureData(IDalamudTextureWrap texture, out RawImageSpecification specification) =>
+        this.imguiRenderer.GetTextureData(texture, out specification);
+
+    /// <inheritdoc/>
+    public IntPtr GetTextureResource(IDalamudTextureWrap texture) => this.imguiRenderer.GetTextureResource(texture);
+
+    /// <inheritdoc/>
+    public void DrawTextureToTexture(
+        IDalamudTextureWrap target,
+        Vector2 targetUv0,
+        Vector2 targetUv1,
+        IDalamudTextureWrap source,
+        Vector2 sourceUv0,
+        Vector2 sourceUv1,
+        bool copyAlphaOnly = false)
     {
-        fixed (void* pData = data)
-            return this.LoadImageRaw(pData, pitch, width, height, (DXGI_FORMAT)format, debugName);
+        throw new NotImplementedException();
     }
 
     /// <inheritdoc cref="Dx11Renderer.CreateTexturePipeline"/>
@@ -317,56 +342,8 @@ internal sealed unsafe class Dx12Win32Scene : IWin32Scene
             return false;
 
         return (data.Support1 & formatSupport1) == formatSupport1
-                && (data.Support2 & formatSupport2) == formatSupport2;
+               && (data.Support2 & formatSupport2) == formatSupport2;
     }
-
-    /// <summary>
-    /// Loads an image from an <see cref="IStream"/>. The ownership is not transferred.
-    /// </summary>
-    /// <param name="stream">The stream.</param>
-    /// <param name="debugName">The debug name.</param>
-    /// <returns>The loaded image.</returns>
-    public IDalamudTextureWrap LoadImage(IStream* stream, [CallerMemberName] string debugName = "")
-    {
-        using var source = this.wicEasy.CreateBitmapSource(stream);
-
-        var dxgiFormat = source.Get()->GetPixelFormat().ToDxgiFormat();
-        if (dxgiFormat == DXGI_FORMAT.DXGI_FORMAT_UNKNOWN || !this.SupportsTextureFormat(dxgiFormat))
-        {
-            using var converted = this.wicEasy.ConvertPixelFormat(source, GUID.GUID_WICPixelFormat32bppBGRA);
-            converted.Swap(&source);
-            dxgiFormat = DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
-        }
-
-        using var bitmap = default(ComPtr<IWICBitmap>);
-        if (source.CopyTo(&bitmap).FAILED)
-            this.wicEasy.CreateBitmap(source).Swap(&bitmap);
-        
-        using var l = bitmap.Get()->LockBits(WICBitmapLockFlags.WICBitmapLockRead, out var pb, out _, out _);
-        uint stride, width, height;
-        l.Get()->GetStride(&stride).ThrowOnError();
-        l.Get()->GetSize(&width, &height).ThrowOnError();
-        return this.LoadImageRaw(pb, (int)stride, (int)width, (int)height, dxgiFormat);
-    }
-
-    /// <summary>
-    /// Load an image from a span of bytes of specified format.
-    /// </summary>
-    /// <param name="data">The data to load.</param>
-    /// <param name="pitch">The pitch(stride) in bytes.</param>
-    /// <param name="width">The width in pixels.</param>
-    /// <param name="height">The height in pixels.</param>
-    /// <param name="dxgiFormat">Format of the texture.</param>
-    /// <param name="debugName">The debug name.</param>
-    /// <returns>A texture, ready to use in ImGui.</returns>
-    public IDalamudTextureWrap LoadImageRaw(
-        void* data,
-        int pitch,
-        int width,
-        int height,
-        DXGI_FORMAT dxgiFormat,
-        [CallerMemberName] string debugName = "") =>
-        this.imguiRenderer.LoadTexture(new(data, pitch * height), pitch, width, height, (int)dxgiFormat);
 
     private void ReleaseUnmanagedResources()
     {

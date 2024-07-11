@@ -1,6 +1,10 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Plugin.Internal.Types;
 
 namespace Dalamud.ImGuiScene;
 
@@ -78,45 +82,53 @@ internal interface IImGuiScene : IDisposable
     void InvalidateFonts();
 
     /// <summary>
-    /// Check whether the current backend supports the given texture format.
+    /// Check whether the current backend supports the given texture format for shader input.
     /// </summary>
     /// <param name="format">DXGI format to check.</param>
     /// <returns>Whether it is supported.</returns>
     public bool SupportsTextureFormat(int format);
 
     /// <summary>
-    /// Loads an image from a file.
+    /// Check whether the current backend supports the given texture format for rendering to.
     /// </summary>
-    /// <param name="path">The path to file.</param>
-    /// <param name="debugName">The debug name.</param>
-    /// <returns>The loaded image.</returns>
-    IDalamudTextureWrap CreateTexture2DFromFile(string path, [CallerMemberName] string debugName = "");
+    /// <param name="format">DXGI format to check.</param>
+    /// <returns>Whether it is supported.</returns>
+    public bool SupportsTextureFormatForRenderTarget(int format);
 
-    /// <summary>
-    /// Loads an image from memory. The image must be in a contained format, such as .png, .jpg, and etc.
-    /// </summary>
-    /// <param name="data">The data of the image.</param>
-    /// <param name="debugName">The debug name.</param>
-    /// <returns>The loaded image.</returns>
-    IDalamudTextureWrap CreateTexture2DFromBytes(ReadOnlySpan<byte> data, [CallerMemberName] string debugName = "");
-
-    /// <summary>
-    /// Load an image from a span of bytes of specified format.
-    /// </summary>
-    /// <param name="data">The data to load.</param>
-    /// <param name="pitch">The pitch(stride) in bytes.</param>
-    /// <param name="width">The width in pixels.</param>
-    /// <param name="height">The height in pixels.</param>
-    /// <param name="format">Format of the texture.</param>
-    /// <param name="debugName">The debug name.</param>
-    /// <returns>A texture, ready to use in ImGui.</returns>
-    IDalamudTextureWrap CreateTexture2DFromRaw(
+    /// <inheritdoc cref="IImGuiRenderer.CreateTexture2D"/>
+    IDalamudTextureWrap CreateTexture2D(
         ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
+        RawImageSpecification specs,
+        bool cpuRead,
+        bool cpuWrite,
+        bool allowRenderTarget,
         [CallerMemberName] string debugName = "");
+
+    /// <inheritdoc cref="IImGuiRenderer.CreateTextureFromImGuiViewport"/>
+    IDalamudTextureWrap CreateTextureFromImGuiViewport(
+        ImGuiViewportTextureArgs args,
+        LocalPlugin? ownerPlugin,
+        string? debugName = null,
+        CancellationToken cancellationToken = default);
+
+    /// <inheritdoc cref="IImGuiRenderer.GetTextureSpecification"/>
+    RawImageSpecification GetTextureSpecification(IDalamudTextureWrap texture);
+
+    /// <inheritdoc cref="IImGuiRenderer.GetTextureData"/>
+    byte[] GetTextureData(IDalamudTextureWrap texture, out RawImageSpecification specification);
+
+    /// <inheritdoc cref="IImGuiRenderer.GetTextureResource"/>
+    nint GetTextureResource(IDalamudTextureWrap texture);
+
+    /// <inheritdoc cref="IImGuiRenderer.DrawTextureToTexture"/>
+    void DrawTextureToTexture(
+        IDalamudTextureWrap target,
+        Vector2 targetUv0,
+        Vector2 targetUv1,
+        IDalamudTextureWrap source,
+        Vector2 sourceUv0,
+        Vector2 sourceUv1,
+        bool copyAlphaOnly = false);
 
     /// <inheritdoc cref="IImGuiRenderer.SetTexturePipeline"/>
     void SetTexturePipeline(IDalamudTextureWrap textureHandle, ITexturePipelineWrap? pipelineHandle);

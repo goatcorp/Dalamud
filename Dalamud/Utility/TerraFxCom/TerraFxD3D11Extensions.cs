@@ -62,4 +62,14 @@ internal static class TerraFxD3D11Extensions
         texture.Get()->GetDesc(&desc);
         return desc;
     }
+    
+    /// <summary>Gets the descriptor for a <see cref="ID3D11Texture2D"/>.</summary>
+    /// <param name="texture">Texture.</param>
+    /// <returns>Texture descriptor.</returns>
+    public static unsafe D3D11_TEXTURE2D_DESC GetDesc(ref this ID3D11Texture2D texture)
+    {
+        var desc = default(D3D11_TEXTURE2D_DESC);
+        texture.GetDesc(&desc);
+        return desc;
+    }
 }

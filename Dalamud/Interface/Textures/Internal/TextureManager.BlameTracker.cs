@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
@@ -43,16 +42,13 @@ internal sealed partial class TextureManager
 
     /// <summary>Gets the list containing all the loaded textures from plugins.</summary>
     /// <remarks>Returned value must be used inside a lock.</remarks>
-    public List<IBlameableDalamudTextureWrap> BlameTracker { get; } = new();
+    public List<IBlameableDalamudTextureWrap> BlameTracker { get; } = [];
 
     /// <summary>Gets the blame for a texture wrap.</summary>
     /// <param name="textureWrap">The texture wrap.</param>
     /// <returns>The blame, if it exists.</returns>
-    public unsafe IBlameableDalamudTextureWrap? GetBlame(IDalamudTextureWrap textureWrap)
-    {
-        using var wrapAux = new WrapAux(textureWrap, true);
-        return BlameTag.Get(wrapAux.ResPtr);
-    }
+    public unsafe IBlameableDalamudTextureWrap? GetBlame(IDalamudTextureWrap textureWrap) =>
+        BlameTag.Get((IUnknown*)this.Scene.GetTextureResource(textureWrap));
 
     /// <summary>Puts a plugin on blame for a texture.</summary>
     /// <param name="textureWrap">The texture.</param>
@@ -73,8 +69,7 @@ internal sealed partial class TextureManager
             return textureWrap;
         }
 
-        using var wrapAux = new WrapAux(textureWrap, true);
-        var blame = BlameTag.GetOrCreate(wrapAux.ResPtr, out var isNew);
+        var blame = BlameTag.GetOrCreate((IUnknown*)this.Scene.GetTextureResource(textureWrap), out var isNew);
 
         if (ownerPlugin is not null)
         {
@@ -110,8 +105,7 @@ internal sealed partial class TextureManager
             return textureWrap;
         }
 
-        using var wrapAux = new WrapAux(textureWrap, true);
-        var blame = BlameTag.GetOrCreate(wrapAux.ResPtr, out var isNew);
+        var blame = BlameTag.GetOrCreate((IUnknown*)this.Scene.GetTextureResource(textureWrap), out var isNew);
         blame.Name = name.Length <= 1024 ? name : $"{name[..1024]}...";
 
         if (isNew)

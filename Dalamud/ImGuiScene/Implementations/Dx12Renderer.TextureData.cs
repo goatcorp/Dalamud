@@ -3,13 +3,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 using TerraFX.Interop;
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
-
-using Win32 = TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.ImGuiScene.Implementations;
 

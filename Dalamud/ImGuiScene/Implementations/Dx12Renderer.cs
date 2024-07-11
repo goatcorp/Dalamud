@@ -6,10 +6,13 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -333,17 +336,16 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
     }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap LoadTexture(
+    public IDalamudTextureWrap CreateTexture2D(
         ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
+        RawImageSpecification specs,
+        bool cpuRead, bool cpuWrite,
+        bool allowRenderTarget,
         [CallerMemberName] string debugName = "")
     {
         try
         {
-            return this.textureManager.CreateTexture(data, pitch, width, height, (DXGI_FORMAT)format, debugName);
+            return this.textureManager.CreateTexture(data, specs, debugName);
         }
         catch (COMException e) when (e.HResult == unchecked((int)0x887a0005))
         {
@@ -352,6 +354,40 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
                 e);
         }
     }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap CreateTextureFromImGuiViewport(
+        ImGuiViewportTextureArgs args,
+        LocalPlugin? ownerPlugin,
+        string? debugName = null,
+        CancellationToken cancellationToken = default) =>
+        throw new NotImplementedException();
+
+    /// <inheritdoc/>
+    public RawImageSpecification GetTextureSpecification(IDalamudTextureWrap texture)
+    {
+        var td = TextureData.AttachFromAddress(texture.ImGuiHandle);
+        return new(td.Width, td.Height, (int)td.Format);
+    }
+
+    /// <inheritdoc/>
+    public byte[] GetTextureData(IDalamudTextureWrap texture, out RawImageSpecification specification) =>
+        throw new NotImplementedException();
+
+    /// <inheritdoc/>
+    public nint GetTextureResource(IDalamudTextureWrap texture) =>
+        (nint)TextureData.AttachFromAddress(texture.ImGuiHandle).Texture;
+
+    /// <inheritdoc/>
+    public void DrawTextureToTexture(
+        IDalamudTextureWrap target,
+        Vector2 targetUv0,
+        Vector2 targetUv1,
+        IDalamudTextureWrap source,
+        Vector2 sourceUv0,
+        Vector2 sourceUv1,
+        bool copyAlphaOnly = false) =>
+        throw new NotImplementedException();
 
     private void RenderDrawDataInternal(ViewportFrame frameData, ImDrawDataPtr drawData, ID3D12GraphicsCommandList* ctx)
     {
@@ -421,7 +457,7 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
                 // Skip the draw if nothing would be visible
                 if (clipRect.left >= clipRect.right || clipRect.top >= clipRect.bottom)
                     continue;
-                
+
                 ctx->RSSetScissorRects(1, &clipRect);
 
                 if (cmd.UserCallback == nint.Zero)
@@ -477,12 +513,12 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
                 out var height,
                 out var bytespp);
 
-            var tex = this.LoadTexture(
+            var tex = this.CreateTexture2D(
                 new(fontPixels, width * height * bytespp),
-                width * bytespp,
-                width,
-                height,
-                (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
+                new(width, height, DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM, width * bytespp),
+                false,
+                false,
+                false,
                 $"Font#{textureIndex}");
             io.Fonts.SetTexID(textureIndex, tex.ImGuiHandle);
             this.fontTextures.Add(tex);

@@ -31,9 +31,22 @@ public record struct RawImageSpecification
         this.DxgiFormat = dxgiFormat;
     }
 
+    /// <inheritdoc cref="RawImageSpecification(int,int,int,int)"/>
+    internal RawImageSpecification(int width, int height, DXGI_FORMAT dxgiFormat, int pitch = -1)
+    : this(width, height, (int)dxgiFormat, pitch)
+    {
+    }
+
     /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> struct.</summary>
     /// <param name="desc">The source texture description.</param>
     internal RawImageSpecification(in D3D11_TEXTURE2D_DESC desc)
+        : this((int)desc.Width, (int)desc.Height, (int)desc.Format)
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="RawImageSpecification"/> struct.</summary>
+    /// <param name="desc">The source texture description.</param>
+    internal RawImageSpecification(in D3D12_RESOURCE_DESC desc)
         : this((int)desc.Width, (int)desc.Height, (int)desc.Format)
     {
     }

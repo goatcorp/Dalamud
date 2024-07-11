@@ -1,14 +1,13 @@
-using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -26,13 +25,13 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
 {
     private readonly Dx12Win32Scene scene12;
     private readonly ComPtr<ID3D11ShaderResourceView>[] shaderResourceViewsD3D11;
+    private readonly D3D11RectangleDrawer drawsOneSquare;
     private ComPtr<IDXGISwapChain> swapChainPossiblyWrapped;
     private ComPtr<IDXGISwapChain> swapChain;
     private ComPtr<ID3D11Device1> device11;
     private ComPtr<ID3D11DeviceContext> deviceContext;
     private ComPtr<ID3D11RenderTargetView> rtv;
     private ComPtr<ID3D12Device> device12;
-    private DrawsOneSquare drawsOneSquare;
 
     private int targetWidth;
     private int targetHeight;
@@ -89,12 +88,14 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
                     (void**)ppDevice).ThrowOnError();
             }
 
-            this.drawsOneSquare.Setup(this.device11);
+            this.drawsOneSquare = new();
+            this.drawsOneSquare.Setup(this.device11.Get());
             this.scene12 = new(this.device12, this.WindowHandle, this.targetWidth, this.targetHeight);
             this.shaderResourceViewsD3D11 = new ComPtr<ID3D11ShaderResourceView>[this.scene12.Renderer.NumBackBuffers];
         }
         catch
         {
+            this.drawsOneSquare?.Dispose();
             this.ReleaseUnmanagedResources();
             throw;
         }
@@ -163,6 +164,7 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
     /// <inheritdoc/>
     public void Dispose()
     {
+        this.drawsOneSquare.Dispose();
         this.ReleaseUnmanagedResources();
         this.scene12.Dispose();
         GC.SuppressFinalize(this);
@@ -200,7 +202,15 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
 
         var prtv = this.rtv.Get();
         this.deviceContext.Get()->OMSetRenderTargets(1, &prtv, null);
-        this.drawsOneSquare.Draw(this.deviceContext, srv, this.targetWidth, this.targetHeight);
+        this.drawsOneSquare.Draw(
+            this.deviceContext,
+            this.rtv.Get(),
+            Vector2.Zero,
+            Vector2.One,
+            srv,
+            Vector2.Zero,
+            Vector2.One,
+            false);
         this.deviceContext.Get()->OMSetRenderTargets(0, null, null);
     }
 
@@ -252,24 +262,54 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
     public bool SupportsTextureFormat(int format) => this.scene12.SupportsTextureFormat(format);
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromFile(string path, [CallerMemberName] string debugName = "") =>
-        this.scene12.CreateTexture2DFromFile(path, debugName);
+    public bool SupportsTextureFormatForRenderTarget(int format) =>
+        this.scene12.SupportsTextureFormatForRenderTarget(format);
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromBytes(
+    public IDalamudTextureWrap CreateTexture2D(
         ReadOnlySpan<byte> data,
+        RawImageSpecification specs,
+        bool cpuRead,
+        bool cpuWrite,
+        bool allowRenderTarget,
         [CallerMemberName] string debugName = "") =>
-        this.scene12.CreateTexture2DFromBytes(data, debugName);
+        this.scene12.CreateTexture2D(
+            data,
+            specs,
+            cpuRead,
+            cpuWrite,
+            allowRenderTarget,
+            debugName);
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap CreateTexture2DFromRaw(
-        ReadOnlySpan<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
-        [CallerMemberName] string debugName = "") =>
-        this.scene12.CreateTexture2DFromRaw(data, pitch, width, height, format, debugName);
+    public IDalamudTextureWrap CreateTextureFromImGuiViewport(
+        ImGuiViewportTextureArgs args,
+        LocalPlugin? ownerPlugin,
+        string? debugName = null,
+        CancellationToken cancellationToken = default) =>
+        this.scene12.CreateTextureFromImGuiViewport(args, ownerPlugin, debugName, cancellationToken);
+
+    /// <inheritdoc/>
+    public RawImageSpecification GetTextureSpecification(IDalamudTextureWrap texture) =>
+        this.scene12.GetTextureSpecification(texture);
+
+    /// <inheritdoc/>
+    public byte[] GetTextureData(IDalamudTextureWrap texture, out RawImageSpecification specification) =>
+        this.scene12.GetTextureData(texture, out specification);
+
+    /// <inheritdoc/>
+    public IntPtr GetTextureResource(IDalamudTextureWrap texture) => this.scene12.GetTextureResource(texture);
+
+    /// <inheritdoc/>
+    public void DrawTextureToTexture(
+        IDalamudTextureWrap target,
+        Vector2 targetUv0,
+        Vector2 targetUv1,
+        IDalamudTextureWrap source,
+        Vector2 sourceUv0,
+        Vector2 sourceUv1,
+        bool copyAlphaOnly = false) =>
+        this.scene12.DrawTextureToTexture(target, targetUv0, targetUv1, source, sourceUv0, sourceUv1, copyAlphaOnly);
 
     /// <inheritdoc cref="Dx12Win32Scene.CreateTexturePipeline"/>
     public ITexturePipelineWrap CreateTexturePipeline(
@@ -297,223 +337,5 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
         this.device12.Reset();
         this.drawsOneSquare.Dispose();
         this.swapChainPossiblyWrapped.Dispose();
-    }
-
-    private struct DrawsOneSquare : IDisposable
-    {
-        private ComPtr<ID3D11SamplerState> sampler;
-        private ComPtr<ID3D11VertexShader> vertexShader;
-        private ComPtr<ID3D11PixelShader> pixelShader;
-        private ComPtr<ID3D11InputLayout> inputLayout;
-        private ComPtr<ID3D11Buffer> vertexConstantBuffer;
-        private ComPtr<ID3D11BlendState> blendState;
-        private ComPtr<ID3D11RasterizerState> rasterizerState;
-        private ComPtr<ID3D11Buffer> vertexBuffer;
-        private ComPtr<ID3D11Buffer> indexBuffer;
-
-        public void Setup(ID3D11Device1* device)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-
-            // Create the vertex shader
-            if (this.vertexShader.IsEmpty() || this.inputLayout.IsEmpty())
-            {
-                using var stream = assembly.GetManifestResourceStream("imgui-vertex.hlsl.bytes")!;
-                var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-                stream.ReadExactly(array, 0, (int)stream.Length);
-                fixed (byte* pArray = array)
-                fixed (ID3D11VertexShader** ppShader = &this.vertexShader.GetPinnableReference())
-                fixed (ID3D11InputLayout** ppInputLayout = &this.inputLayout.GetPinnableReference())
-                fixed (void* pszPosition = "POSITION"u8)
-                fixed (void* pszTexCoord = "TEXCOORD"u8)
-                fixed (void* pszColor = "COLOR"u8)
-                {
-                    device->CreateVertexShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-
-                    var ied = stackalloc D3D11_INPUT_ELEMENT_DESC[]
-                    {
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszPosition,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszTexCoord,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                        new()
-                        {
-                            SemanticName = (sbyte*)pszColor,
-                            Format = DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
-                            AlignedByteOffset = uint.MaxValue,
-                        },
-                    };
-                    device->CreateInputLayout(ied, 3, pArray, (nuint)stream.Length, ppInputLayout).ThrowOnError();
-                }
-
-                ArrayPool<byte>.Shared.Return(array);
-            }
-
-            // Create the constant buffer
-            if (this.vertexConstantBuffer.IsEmpty())
-            {
-                var bufferDesc = new D3D11_BUFFER_DESC(
-                    (uint)sizeof(Matrix4x4),
-                    (uint)D3D11_BIND_FLAG.D3D11_BIND_CONSTANT_BUFFER,
-                    D3D11_USAGE.D3D11_USAGE_IMMUTABLE);
-                var data = Matrix4x4.Identity;
-                var subr = new D3D11_SUBRESOURCE_DATA { pSysMem = &data };
-                fixed (ID3D11Buffer** ppBuffer = &this.vertexConstantBuffer.GetPinnableReference())
-                    device->CreateBuffer(&bufferDesc, &subr, ppBuffer).ThrowOnError();
-            }
-
-            // Create the pixel shader
-            if (this.pixelShader.IsEmpty())
-            {
-                using var stream = assembly.GetManifestResourceStream("imgui-frag.hlsl.bytes")!;
-                var array = ArrayPool<byte>.Shared.Rent((int)stream.Length);
-                stream.ReadExactly(array, 0, (int)stream.Length);
-                fixed (byte* pArray = array)
-                fixed (ID3D11PixelShader** ppShader = &this.pixelShader.GetPinnableReference())
-                    device->CreatePixelShader(pArray, (nuint)stream.Length, null, ppShader).ThrowOnError();
-
-                ArrayPool<byte>.Shared.Return(array);
-            }
-
-            // Create the blending setup
-            if (this.blendState.IsEmpty())
-            {
-                var blendStateDesc = new D3D11_BLEND_DESC
-                {
-                    RenderTarget =
-                    {
-                        e0 =
-                        {
-                            BlendEnable = true,
-                            SrcBlend = D3D11_BLEND.D3D11_BLEND_SRC_ALPHA,
-                            DestBlend = D3D11_BLEND.D3D11_BLEND_INV_SRC_ALPHA,
-                            BlendOp = D3D11_BLEND_OP.D3D11_BLEND_OP_ADD,
-                            SrcBlendAlpha = D3D11_BLEND.D3D11_BLEND_INV_SRC_ALPHA,
-                            DestBlendAlpha = D3D11_BLEND.D3D11_BLEND_ZERO,
-                            BlendOpAlpha = D3D11_BLEND_OP.D3D11_BLEND_OP_ADD,
-                            RenderTargetWriteMask = (byte)D3D11_COLOR_WRITE_ENABLE.D3D11_COLOR_WRITE_ENABLE_ALL,
-                        },
-                    },
-                };
-                fixed (ID3D11BlendState** ppBlendState = &this.blendState.GetPinnableReference())
-                    device->CreateBlendState(&blendStateDesc, ppBlendState).ThrowOnError();
-            }
-
-            // Create the rasterizer state
-            if (this.rasterizerState.IsEmpty())
-            {
-                var rasterizerDesc = new D3D11_RASTERIZER_DESC
-                {
-                    FillMode = D3D11_FILL_MODE.D3D11_FILL_SOLID,
-                    CullMode = D3D11_CULL_MODE.D3D11_CULL_NONE,
-                };
-                fixed (ID3D11RasterizerState** ppRasterizerState = &this.rasterizerState.GetPinnableReference())
-                    device->CreateRasterizerState(&rasterizerDesc, ppRasterizerState).ThrowOnError();
-            }
-
-            // Create the font sampler
-            if (this.sampler.IsEmpty())
-            {
-                var samplerDesc = new D3D11_SAMPLER_DESC(
-                    D3D11_FILTER.D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-                    D3D11_TEXTURE_ADDRESS_MODE.D3D11_TEXTURE_ADDRESS_WRAP,
-                    D3D11_TEXTURE_ADDRESS_MODE.D3D11_TEXTURE_ADDRESS_WRAP,
-                    D3D11_TEXTURE_ADDRESS_MODE.D3D11_TEXTURE_ADDRESS_WRAP,
-                    0f,
-                    0,
-                    D3D11_COMPARISON_FUNC.D3D11_COMPARISON_ALWAYS,
-                    null,
-                    0,
-                    0);
-                fixed (ID3D11SamplerState** ppSampler = &this.sampler.GetPinnableReference())
-                    device->CreateSamplerState(&samplerDesc, ppSampler).ThrowOnError();
-            }
-
-            if (this.vertexBuffer.IsEmpty())
-            {
-                var data = stackalloc ImDrawVert[]
-                {
-                    new() { col = uint.MaxValue, pos = new(-1, 1), uv = new(0, 0) },
-                    new() { col = uint.MaxValue, pos = new(-1, -1), uv = new(0, 1) },
-                    new() { col = uint.MaxValue, pos = new(1, 1), uv = new(1, 0) },
-                    new() { col = uint.MaxValue, pos = new(1, -1), uv = new(1, 1) },
-                };
-                var desc = new D3D11_BUFFER_DESC(
-                    (uint)(sizeof(ImDrawVert) * 4),
-                    (uint)D3D11_BIND_FLAG.D3D11_BIND_VERTEX_BUFFER,
-                    D3D11_USAGE.D3D11_USAGE_IMMUTABLE);
-                var subr = new D3D11_SUBRESOURCE_DATA { pSysMem = data };
-                var buffer = default(ID3D11Buffer*);
-                device->CreateBuffer(&desc, &subr, &buffer).ThrowOnError();
-                this.vertexBuffer.Attach(buffer);
-            }
-
-            if (this.indexBuffer.IsEmpty())
-            {
-                var data = stackalloc ushort[] { 0, 1, 2, 1, 2, 3 };
-                var desc = new D3D11_BUFFER_DESC(
-                    sizeof(ushort) * 6,
-                    (uint)D3D11_BIND_FLAG.D3D11_BIND_INDEX_BUFFER,
-                    D3D11_USAGE.D3D11_USAGE_IMMUTABLE);
-                var subr = new D3D11_SUBRESOURCE_DATA { pSysMem = data };
-                var buffer = default(ID3D11Buffer*);
-                device->CreateBuffer(&desc, &subr, &buffer).ThrowOnError();
-                this.indexBuffer.Attach(buffer);
-            }
-        }
-
-        public void Draw(ID3D11DeviceContext* ctx, ID3D11ShaderResourceView* srv, int width, int height)
-        {
-            ctx->IASetInputLayout(this.inputLayout);
-            var buffer = this.vertexBuffer.Get();
-            var stride = (uint)sizeof(ImDrawVert);
-            var offset = 0u;
-            ctx->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
-            ctx->IASetIndexBuffer(this.indexBuffer, DXGI_FORMAT.DXGI_FORMAT_R16_UINT, 0);
-            ctx->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY.D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-            var viewport = new D3D11_VIEWPORT(0, 0, width, height);
-            ctx->RSSetState(this.rasterizerState);
-            ctx->RSSetViewports(1, &viewport);
-
-            var blendColor = default(Vector4);
-            ctx->OMSetBlendState(this.blendState, (float*)&blendColor, 0xffffffff);
-            ctx->OMSetDepthStencilState(null, 0);
-
-            ctx->VSSetShader(this.vertexShader.Get(), null, 0);
-            buffer = this.vertexConstantBuffer.Get();
-            ctx->VSSetConstantBuffers(0, 1, &buffer);
-
-            ctx->PSSetShader(this.pixelShader, null, 0);
-            var simp = this.sampler.Get();
-            ctx->PSSetSamplers(0, 1, &simp);
-            ctx->PSSetShaderResources(0, 1, &srv);
-            ctx->GSSetShader(null, null, 0);
-            ctx->HSSetShader(null, null, 0);
-            ctx->DSSetShader(null, null, 0);
-            ctx->CSSetShader(null, null, 0);
-            ctx->DrawIndexed(6, 0, 0);
-        }
-
-        public void Dispose()
-        {
-            this.sampler.Reset();
-            this.vertexShader.Reset();
-            this.pixelShader.Reset();
-            this.inputLayout.Reset();
-            this.vertexConstantBuffer.Reset();
-            this.blendState.Reset();
-            this.rasterizerState.Reset();
-            this.vertexBuffer.Reset();
-            this.indexBuffer.Reset();
-        }
     }
 }

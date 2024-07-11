@@ -19,8 +19,6 @@ using ImGuiNET;
 
 using TerraFX.Interop.DirectX;
 
-using TerraFX.Interop.DirectX;
-
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
 /// <summary>

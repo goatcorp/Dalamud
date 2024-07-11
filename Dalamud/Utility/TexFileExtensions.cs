@@ -15,7 +15,7 @@ namespace Dalamud.Utility;
 public static class TexFileExtensions
 {
     /// <summary>
-    /// Returns the image data formatted for <see cref="IImGuiScene.CreateTexture2DFromRaw"/>,
+    /// Returns the image data formatted for <see cref="IImGuiScene.CreateTexture2D"/>,
     /// using <see cref="DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM"/>.<br />
     /// <b>Consider using <see cref="TexFile.ImageData"/> with <see cref="DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM"/>.</b>
     /// </summary>

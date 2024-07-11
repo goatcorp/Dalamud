@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 using Dalamud.ImGuiScene.Helpers;
+using Dalamud.Interface.Textures;
 using Dalamud.Utility;
 
 using TerraFX.Interop.DirectX;
@@ -80,14 +81,14 @@ internal unsafe partial class Dx12Renderer
                         },
                         $"{nameof(TextureManager)}.{nameof(this.commandQueuePool)}[{i}]"),
                     queuePoolCapacity);
-                
+
                 this.commandListPool = new(
                     i => new(
                         device,
                         D3D12_COMMAND_LIST_TYPE.D3D12_COMMAND_LIST_TYPE_COPY,
                         $"{nameof(TextureManager)}.{nameof(this.commandListPool)}[{i}]"),
                     queuePoolCapacity);
-                
+
                 this.flushTempList = new(queuePoolCapacity);
                 this.activeQueues1 = new(queuePoolCapacity);
                 this.activeQueues2 = new(queuePoolCapacity);
@@ -140,10 +141,7 @@ internal unsafe partial class Dx12Renderer
 
         public TextureWrap CreateTexture(
             ReadOnlySpan<byte> data,
-            int pitch,
-            int width,
-            int height,
-            DXGI_FORMAT format,
+            RawImageSpecification specs,
             string debugName)
         {
             uint numRows;
@@ -158,11 +156,11 @@ internal unsafe partial class Dx12Renderer
                 {
                     Dimension = D3D12_RESOURCE_DIMENSION.D3D12_RESOURCE_DIMENSION_TEXTURE2D,
                     Alignment = D3D12.D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT,
-                    Width = (ulong)width,
-                    Height = (uint)height,
+                    Width = (ulong)specs.Width,
+                    Height = (uint)specs.Height,
                     DepthOrArraySize = 1,
                     MipLevels = 1,
-                    Format = format,
+                    Format = specs.Format,
                     SampleDesc = { Count = 1, Quality = 0 },
                     Layout = D3D12_TEXTURE_LAYOUT.D3D12_TEXTURE_LAYOUT_UNKNOWN,
                     Flags = D3D12_RESOURCE_FLAGS.D3D12_RESOURCE_FLAG_NONE,
@@ -171,7 +169,7 @@ internal unsafe partial class Dx12Renderer
 
             ulong cbRow;
             this.device.Get()->GetCopyableFootprints(&resDesc, 0, 1, 0, null, &numRows, &cbRow, null);
-            if (pitch == (int)cbRow)
+            if (specs.Pitch == (int)cbRow)
             {
                 uploadPitch = ((checked((int)cbRow) + D3D12.D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) - 1) &
                               ~(D3D12.D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
@@ -180,8 +178,8 @@ internal unsafe partial class Dx12Renderer
             else
             {
                 throw new ArgumentException(
-                    $"The provided pitch {pitch} does not match the calculated pitch of {cbRow}.",
-                    nameof(pitch));
+                    $"The provided pitch {specs.Pitch} does not match the calculated pitch of {cbRow}.",
+                    nameof(specs));
             }
 
             // Upload texture to graphics system
@@ -203,7 +201,7 @@ internal unsafe partial class Dx12Renderer
                 },
                 D3D12_RESOURCE_STATES.D3D12_RESOURCE_STATE_GENERIC_READ,
                 debugName: debugName).Swap(&uploadBuffer);
-            
+
             try
             {
                 void* mapped;
@@ -213,8 +211,8 @@ internal unsafe partial class Dx12Renderer
                 var target = new Span<byte>(mapped, uploadSize);
                 for (var y = 0; y < numRows; y++)
                 {
-                    source[..pitch].CopyTo(target);
-                    source = source[pitch..];
+                    source[..specs.Pitch].CopyTo(target);
+                    source = source[specs.Pitch..];
                     target = target[uploadPitch..];
                 }
             }
@@ -223,7 +221,13 @@ internal unsafe partial class Dx12Renderer
                 uploadBuffer.Get()->Unmap(0, null);
             }
 
-            using var texData = new TextureData(format, width, height, uploadPitch, texture, uploadBuffer);
+            using var texData = new TextureData(
+                specs.Format,
+                specs.Width,
+                specs.Height,
+                uploadPitch,
+                texture,
+                uploadBuffer);
 
             // deal with completed ones in the active queue, so that the following TryRent is more likely to succeed.
             lock (this.uploadListLock)
@@ -330,7 +334,7 @@ internal unsafe partial class Dx12Renderer
             {
                 lock (this.uploadListLock)
                     (this.activeQueues2, this.activeQueues1) = (this.activeQueues1, this.activeQueues2);
-            
+
                 using (var waiter = this.eventPool.Rent())
                 {
                     foreach (var x in this.activeQueues2)
@@ -339,10 +343,10 @@ internal unsafe partial class Dx12Renderer
                         x.Dispose();
                     }
                 }
-            
+
                 this.activeQueues2.Clear();
             }
-            
+
             this.uploadHeap.ClearEmptyHeaps();
             this.textureHeap.ClearEmptyHeaps();
         }

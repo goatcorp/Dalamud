@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
@@ -39,20 +38,18 @@ internal sealed partial class TextureManager
     {
         try
         {
-            if (wrap is null)
-                throw new NullReferenceException($"{nameof(wrap)} cannot be null.");
-            if (stream is null)
-                throw new NullReferenceException($"{nameof(stream)} cannot be null.");
+            ArgumentNullException.ThrowIfNull(wrap);
+            ArgumentNullException.ThrowIfNull(stream);
 
             using var istream = ManagedIStream.Create(stream, true);
-            using var wrapAux = new WrapAux(wrap, true);
 
+            var sourceFormat = this.Scene.GetTextureSpecification(wrap).Format;
             var dxgiFormat =
-                WicManager.GetCorrespondingWicPixelFormat(wrapAux.Desc.Format, out _, out _)
-                    ? wrapAux.Desc.Format
+                WicManager.GetCorrespondingWicPixelFormat(sourceFormat, out _, out _)
+                    ? sourceFormat
                     : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
 
-            var (specs, bytes) = await this.GetRawImageAsync(wrapAux, new() { Format = dxgiFormat }, cancellationToken)
+            var (specs, bytes) = await this.GetRawImageAsync(wrap, new() { Format = dxgiFormat }, cancellationToken)
                                            .ConfigureAwait(false);
 
             await Task.Run(
@@ -85,12 +82,9 @@ internal sealed partial class TextureManager
     {
         try
         {
-            if (wrap is null)
-                throw new NullReferenceException($"{nameof(wrap)} cannot be null.");
-            if (path is null)
-                throw new NullReferenceException($"{nameof(path)} cannot be null.");
+            ArgumentNullException.ThrowIfNull(wrap);
+            ArgumentNullException.ThrowIfNull(path);
 
-            using var wrapAux = new WrapAux(wrap, true);
             var pathTemp = Util.GetTempFileNameForFileReplacement(path);
             var trashfire = new List<Exception>();
             try
@@ -101,13 +95,14 @@ internal sealed partial class TextureManager
                            FileAccess.Write,
                            FileShare.None))
                 {
+                    var sourceFormat = this.Scene.GetTextureSpecification(wrap).Format;
                     var dxgiFormat =
-                        WicManager.GetCorrespondingWicPixelFormat(wrapAux.Desc.Format, out _, out _)
-                            ? wrapAux.Desc.Format
+                        WicManager.GetCorrespondingWicPixelFormat(sourceFormat, out _, out _)
+                            ? sourceFormat
                             : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
 
                     var (specs, bytes) = await this.GetRawImageAsync(
-                                             wrapAux,
+                                             wrap,
                                              new() { Format = dxgiFormat },
                                              cancellationToken).ConfigureAwait(false);
 

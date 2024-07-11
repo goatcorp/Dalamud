@@ -6,20 +6,18 @@ using System.Threading.Tasks;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.ImGuiScene;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
-using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-using Dalamud.Utility.TerraFxCom;
 
 using Lumina.Data;
 using Lumina.Data.Files;
 
 using TerraFX.Interop.DirectX;
-using TerraFX.Interop.Windows;
 
 namespace Dalamud.Interface.Textures.Internal;
 
@@ -52,39 +50,25 @@ internal sealed partial class TextureManager
     private SharedTextureManager? sharedTextureManager;
     private WicManager? wicManager;
     private bool disposing;
-    private ComPtr<ID3D11Device> device;
 
     [ServiceManager.ServiceConstructor]
-    private unsafe TextureManager(InterfaceManager.InterfaceManagerWithScene withScene)
+    private TextureManager(InterfaceManager.InterfaceManagerWithScene withScene)
     {
         using var failsafe = new DisposeSafety.ScopedFinalizer();
-        failsafe.Add(this.device = new((ID3D11Device*)withScene.Manager.Device!.NativePointer));
         failsafe.Add(this.dynamicPriorityTextureLoader = new(Math.Max(1, Environment.ProcessorCount - 1)));
         failsafe.Add(this.sharedTextureManager = new(this));
         failsafe.Add(this.wicManager = new(this));
-        failsafe.Add(this.simpleDrawer = new());
         this.framework.Update += this.BlameTrackerUpdate;
         failsafe.Add(() => this.framework.Update -= this.BlameTrackerUpdate);
-        this.simpleDrawer.Setup(this.device.Get());
 
         failsafe.Cancel();
     }
-
-    /// <summary>Finalizes an instance of the <see cref="TextureManager"/> class.</summary>
-    ~TextureManager() => this.ReleaseUnmanagedResources();
 
     /// <summary>Gets the dynamic-priority queue texture loader.</summary>
     public DynamicPriorityQueueLoader DynamicPriorityTextureLoader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => this.dynamicPriorityTextureLoader ?? throw new ObjectDisposedException(nameof(TextureManager));
-    }
-
-    /// <summary>Gets a simpler drawer.</summary>
-    public SimpleDrawerImpl SimpleDrawer
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => this.simpleDrawer ?? throw new ObjectDisposedException(nameof(TextureManager));
     }
 
     /// <summary>Gets the shared texture manager.</summary>
@@ -101,6 +85,9 @@ internal sealed partial class TextureManager
         get => this.wicManager ?? throw new ObjectDisposedException(nameof(TextureManager));
     }
 
+    /// <summary>Gets the active instance of <see cref="IImGuiScene"/>.</summary>
+    internal IImGuiScene Scene => this.interfaceManager.Scene ?? throw new InvalidOperationException("Not yet ready.");
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -110,11 +97,8 @@ internal sealed partial class TextureManager
         this.disposing = true;
 
         Interlocked.Exchange(ref this.dynamicPriorityTextureLoader, null)?.Dispose();
-        Interlocked.Exchange(ref this.simpleDrawer, null)?.Dispose();
         Interlocked.Exchange(ref this.sharedTextureManager, null)?.Dispose();
         Interlocked.Exchange(ref this.wicManager, null)?.Dispose();
-        this.ReleaseUnmanagedResources();
-        GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc/>
@@ -223,49 +207,21 @@ internal sealed partial class TextureManager
     }
 
     /// <inheritdoc/>
-    public unsafe IDalamudTextureWrap CreateEmpty(
+    public IDalamudTextureWrap CreateEmpty(
         RawImageSpecification specs,
         bool cpuRead,
         bool cpuWrite,
         string? debugName = null)
     {
-        if (cpuRead && cpuWrite)
-            throw new ArgumentException("cpuRead and cpuWrite cannot be set at the same time.");
-
-        var cpuaf = default(D3D11_CPU_ACCESS_FLAG);
-        if (cpuRead)
-            cpuaf |= D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ;
-        if (cpuWrite)
-            cpuaf |= D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_WRITE;
-
-        D3D11_USAGE usage;
-        if (cpuRead)
-            usage = D3D11_USAGE.D3D11_USAGE_STAGING;
-        else if (cpuWrite)
-            usage = D3D11_USAGE.D3D11_USAGE_DYNAMIC;
-        else
-            usage = D3D11_USAGE.D3D11_USAGE_DEFAULT;
-        
-        using var texture = this.device.CreateTexture2D(
-            new()
-            {
-                Width = (uint)specs.Width,
-                Height = (uint)specs.Height,
-                MipLevels = 1,
-                ArraySize = 1,
-                Format = specs.Format,
-                SampleDesc = new(1, 0),
-                Usage = usage,
-                BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE,
-                CPUAccessFlags = (uint)cpuaf,
-                MiscFlags = 0,
-            });
-        using var view = this.device.CreateShaderResourceView(
-            texture,
-            new(texture, D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D));
-
-        var wrap = new UnknownTextureWrap((IUnknown*)view.Get(), specs.Width, specs.Height, true);
-        this.BlameSetName(wrap, debugName ?? $"{nameof(this.CreateEmpty)}({specs})");
+        debugName ??= $"{nameof(this.CreateEmpty)}({specs})";
+        var wrap = this.Scene.CreateTexture2D(
+            default,
+            specs,
+            cpuRead,
+            cpuWrite,
+            true,
+            debugName);
+        this.BlameSetName(wrap, debugName);
         return wrap;
     }
 
@@ -274,53 +230,27 @@ internal sealed partial class TextureManager
         this.IsDxgiFormatSupported((DXGI_FORMAT)dxgiFormat);
 
     /// <inheritdoc cref="ITextureProvider.IsDxgiFormatSupported"/>
-    public unsafe bool IsDxgiFormatSupported(DXGI_FORMAT dxgiFormat)
+    public bool IsDxgiFormatSupported(DXGI_FORMAT dxgiFormat)
     {
-        D3D11_FORMAT_SUPPORT supported;
-        if (this.device.Get()->CheckFormatSupport(dxgiFormat, (uint*)&supported).FAILED)
-            return false;
-
-        const D3D11_FORMAT_SUPPORT required = D3D11_FORMAT_SUPPORT.D3D11_FORMAT_SUPPORT_TEXTURE2D;
-        return (supported & required) == required;
+        if (this.interfaceManager.Scene is not { } scene)
+            throw new InvalidOperationException("Not yet ready.");
+        return scene.SupportsTextureFormat((int)dxgiFormat);
     }
 
     /// <inheritdoc cref="ITextureProvider.CreateFromRaw"/>
-    internal unsafe IDalamudTextureWrap NoThrottleCreateFromRaw(
+    internal IDalamudTextureWrap NoThrottleCreateFromRaw(
         RawImageSpecification specs,
         ReadOnlySpan<byte> bytes)
     {
-        var texd = new D3D11_TEXTURE2D_DESC
-        {
-            Width = (uint)specs.Width,
-            Height = (uint)specs.Height,
-            MipLevels = 1,
-            ArraySize = 1,
-            Format = specs.Format,
-            SampleDesc = new(1, 0),
-            Usage = D3D11_USAGE.D3D11_USAGE_IMMUTABLE,
-            BindFlags = (uint)D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE,
-            CPUAccessFlags = 0,
-            MiscFlags = 0,
-        };
-        using var texture = default(ComPtr<ID3D11Texture2D>);
-        fixed (void* dataPtr = bytes)
-        {
-            var subrdata = new D3D11_SUBRESOURCE_DATA { pSysMem = dataPtr, SysMemPitch = (uint)specs.Pitch };
-            this.device.Get()->CreateTexture2D(&texd, &subrdata, texture.GetAddressOf()).ThrowOnError();
-        }
-
-        var viewDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC
-        {
-            Format = texd.Format,
-            ViewDimension = D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D,
-            Texture2D = new() { MipLevels = texd.MipLevels },
-        };
-        using var view = default(ComPtr<ID3D11ShaderResourceView>);
-        this.device.Get()->CreateShaderResourceView((ID3D11Resource*)texture.Get(), &viewDesc, view.GetAddressOf())
-            .ThrowOnError();
-
-        var wrap = new UnknownTextureWrap((IUnknown*)view.Get(), specs.Width, specs.Height, true);
-        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromRaw)}({specs}, {bytes.Length:n0})");
+        var debugName = $"{nameof(this.NoThrottleCreateFromRaw)}({specs}, {bytes.Length:n0})";
+        var wrap = this.Scene.CreateTexture2D(
+            bytes,
+            specs,
+            false,
+            false,
+            true,
+            debugName);
+        this.BlameSetName(wrap, debugName);
         return wrap;
     }
 
@@ -373,8 +303,6 @@ internal sealed partial class TextureManager
         this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({fileBytes.Length:n0})");
         return wrap;
     }
-
-    private void ReleaseUnmanagedResources() => this.device.Reset();
 
     /// <summary>Runs the given action in IDXGISwapChain.Present immediately or waiting as needed.</summary>
     /// <param name="action">The action to run.</param>

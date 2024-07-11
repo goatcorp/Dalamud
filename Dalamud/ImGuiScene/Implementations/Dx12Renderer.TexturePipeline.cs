@@ -1,12 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.ImGuiScene.Helpers;
 using Dalamud.Utility;
-
-using FFXIVClientStructs.FFXIV.Common.Math;
 
 using TerraFX.Interop;
 using TerraFX.Interop.DirectX;

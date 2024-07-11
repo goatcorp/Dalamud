@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.ImGuiScene.Helpers;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 using TerraFX.Interop;
 using TerraFX.Interop.DirectX;
@@ -27,11 +27,13 @@ internal unsafe partial class Dx11Renderer
         public static readonly Guid MyGuid =
             new(0x72fe3f82, 0x3ffc, 0x4be9, 0xb0, 0x08, 0x4a, 0xef, 0x7a, 0x94, 0x2f, 0x55);
 
+        private ComPtr<ID3D11Texture2D> tex2D;
         private ComPtr<ID3D11ShaderResourceView> srv;
         private TexturePipeline? customPipeline;
 
-        public TextureData(ID3D11ShaderResourceView* srv, int width, int height)
+        public TextureData(ID3D11Texture2D* tex2D, ID3D11ShaderResourceView* srv, int width, int height)
         {
+            this.tex2D = new(tex2D);
             this.srv = new(srv);
             this.Width = width;
             this.Height = height;
@@ -55,6 +57,8 @@ internal unsafe partial class Dx11Renderer
             }
         }
 
+        public ID3D11Texture2D* Resource => this.tex2D;
+
         public ID3D11ShaderResourceView* ShaderResourceView => this.srv;
 
         protected override void* DynamicCast(in Guid iid) =>
@@ -62,6 +66,7 @@ internal unsafe partial class Dx11Renderer
 
         protected override void FinalRelease()
         {
+            this.tex2D.Reset();
             this.srv.Reset();
             this.customPipeline?.Dispose();
             this.customPipeline = null;
