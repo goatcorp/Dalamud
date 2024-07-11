@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.ImGuiScene;
@@ -35,9 +34,6 @@ internal sealed partial class TextureManager
     private readonly Dalamud dalamud = Service<Dalamud>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
-
-    [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
 
     [ServiceManager.ServiceDependency]
@@ -58,8 +54,6 @@ internal sealed partial class TextureManager
         failsafe.Add(this.dynamicPriorityTextureLoader = new(Math.Max(1, Environment.ProcessorCount - 1)));
         failsafe.Add(this.sharedTextureManager = new(this));
         failsafe.Add(this.wicManager = new(this));
-        this.framework.Update += this.BlameTrackerUpdate;
-        failsafe.Add(() => this.framework.Update -= this.BlameTrackerUpdate);
 
         failsafe.Cancel();
     }
@@ -110,10 +104,10 @@ internal sealed partial class TextureManager
             null,
             ct => Task.Run(
                 () =>
-                    this.BlameSetName(
-                        this.NoThrottleCreateFromImage(bytes.ToArray(), ct),
-                        debugName ??
-                        $"{nameof(this.CreateFromImageAsync)}({bytes.Length:n0}b)"),
+                    this.NoThrottleCreateFromImage(
+                        bytes.ToArray(),
+                        debugName ?? $"{nameof(this.CreateFromImageAsync)}({bytes.Length:n0}b)",
+                        ct),
                 ct),
             cancellationToken);
 
@@ -129,10 +123,10 @@ internal sealed partial class TextureManager
             {
                 await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
                 await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                return this.BlameSetName(
-                    this.NoThrottleCreateFromImage(ms.GetBuffer(), ct),
-                    debugName ??
-                    $"{nameof(this.CreateFromImageAsync)}(stream)");
+                return this.NoThrottleCreateFromImage(
+                    ms.GetBuffer(),
+                    debugName ?? $"{nameof(this.CreateFromImageAsync)}(stream)",
+                    ct);
             },
             cancellationToken,
             leaveOpen ? null : stream);
@@ -143,8 +137,9 @@ internal sealed partial class TextureManager
         RawImageSpecification specs,
         ReadOnlySpan<byte> bytes,
         string? debugName = null) =>
-        this.BlameSetName(
-            this.NoThrottleCreateFromRaw(specs, bytes),
+        this.NoThrottleCreateFromRaw(
+            specs,
+            bytes,
             debugName ?? $"{nameof(this.CreateFromRaw)}({specs}, {bytes.Length:n0})");
 
     /// <inheritdoc/>
@@ -156,10 +151,10 @@ internal sealed partial class TextureManager
         this.DynamicPriorityTextureLoader.LoadAsync(
             null,
             _ => Task.FromResult(
-                this.BlameSetName(
-                    this.NoThrottleCreateFromRaw(specs, bytes.Span),
-                    debugName ??
-                    $"{nameof(this.CreateFromRawAsync)}({specs}, {bytes.Length:n0})")),
+                this.NoThrottleCreateFromRaw(
+                    specs,
+                    bytes.Span,
+                    debugName ?? $"{nameof(this.CreateFromRawAsync)}({specs}, {bytes.Length:n0})")),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -175,19 +170,17 @@ internal sealed partial class TextureManager
             {
                 await using var ms = stream.CanSeek ? new MemoryStream((int)stream.Length) : new();
                 await stream.CopyToAsync(ms, ct).ConfigureAwait(false);
-                return this.BlameSetName(
-                    this.NoThrottleCreateFromRaw(specs, ms.GetBuffer().AsSpan(0, (int)ms.Length)),
-                    debugName ??
-                    $"{nameof(this.CreateFromRawAsync)}({specs}, stream)");
+                return this.NoThrottleCreateFromRaw(
+                    specs,
+                    ms.GetBuffer().AsSpan(0, (int)ms.Length),
+                    debugName ?? $"{nameof(this.CreateFromRawAsync)}({specs}, stream)");
             },
             cancellationToken,
             leaveOpen ? null : stream);
 
     /// <inheritdoc/>
     public IDalamudTextureWrap CreateFromTexFile(TexFile file) =>
-        this.BlameSetName(
-            this.CreateFromTexFileAsync(file).Result,
-            $"{nameof(this.CreateFromTexFile)}({nameof(file)})");
+        this.CreateFromTexFileAsync(file, $"{nameof(this.CreateFromTexFile)}({nameof(file)})").Result;
 
     /// <inheritdoc/>
     public Task<IDalamudTextureWrap> CreateFromTexFileAsync(
@@ -198,8 +191,8 @@ internal sealed partial class TextureManager
         return this.DynamicPriorityTextureLoader.LoadAsync(
             null,
             _ => Task.FromResult(
-                this.BlameSetName(
-                    this.NoThrottleCreateFromTexFile(file),
+                this.NoThrottleCreateFromTexFile(
+                    file,
                     debugName ?? $"{nameof(this.CreateFromTexFile)}({ForceNullable(file.FilePath)?.Path})")),
             cancellationToken);
 
@@ -211,19 +204,14 @@ internal sealed partial class TextureManager
         RawImageSpecification specs,
         bool cpuRead,
         bool cpuWrite,
-        string? debugName = null)
-    {
-        debugName ??= $"{nameof(this.CreateEmpty)}({specs})";
-        var wrap = this.Scene.CreateTexture2D(
+        string? debugName = null) =>
+        this.Scene.CreateTexture2D(
             default,
             specs,
             cpuRead,
             cpuWrite,
             true,
-            debugName);
-        this.BlameSetName(wrap, debugName);
-        return wrap;
-    }
+            debugName ?? $"{nameof(this.CreateEmpty)}({specs})");
 
     /// <inheritdoc/>
     bool ITextureProvider.IsDxgiFormatSupported(int dxgiFormat) =>
@@ -240,25 +228,22 @@ internal sealed partial class TextureManager
     /// <inheritdoc cref="ITextureProvider.CreateFromRaw"/>
     internal IDalamudTextureWrap NoThrottleCreateFromRaw(
         RawImageSpecification specs,
-        ReadOnlySpan<byte> bytes)
-    {
-        var debugName = $"{nameof(this.NoThrottleCreateFromRaw)}({specs}, {bytes.Length:n0})";
-        var wrap = this.Scene.CreateTexture2D(
+        ReadOnlySpan<byte> bytes,
+        string? debugName = null) =>
+        this.Scene.CreateTexture2D(
             bytes,
             specs,
             false,
             false,
-            true,
-            debugName);
-        this.BlameSetName(wrap, debugName);
-        return wrap;
-    }
+            false,
+            debugName ?? $"{nameof(this.NoThrottleCreateFromRaw)}({specs}, {bytes.Length:n0})");
 
     /// <summary>Creates a texture from the given <see cref="TexFile"/>. Skips the load throttler; intended to be used
     /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
     /// <param name="file">The data.</param>
+    /// <param name="debugName">Name for debugging.</param>
     /// <returns>The loaded texture.</returns>
-    internal IDalamudTextureWrap NoThrottleCreateFromTexFile(TexFile file)
+    internal IDalamudTextureWrap NoThrottleCreateFromTexFile(TexFile file, string? debugName = null)
     {
         ObjectDisposedException.ThrowIf(this.disposing, this);
 
@@ -271,8 +256,10 @@ internal sealed partial class TextureManager
             buffer = buffer.Filter(0, 0, TexFile.TextureFormat.B8G8R8A8);
         }
 
-        var wrap = this.NoThrottleCreateFromRaw(new(buffer.Width, buffer.Height, dxgiFormat), buffer.RawData);
-        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({ForceNullable(file.FilePath).Path})");
+        var wrap = this.NoThrottleCreateFromRaw(
+            new(buffer.Width, buffer.Height, dxgiFormat),
+            buffer.RawData,
+            debugName ?? $"{nameof(this.NoThrottleCreateFromTexFile)}({ForceNullable(file.FilePath).Path})");
         return wrap;
 
         static T? ForceNullable<T>(T s) => s;
@@ -281,8 +268,9 @@ internal sealed partial class TextureManager
     /// <summary>Creates a texture from the given <paramref name="fileBytes"/>, trying to interpret it as a
     /// <see cref="TexFile"/>.</summary>
     /// <param name="fileBytes">The file bytes.</param>
+    /// <param name="debugName">Name for debugging.</param>
     /// <returns>The loaded texture.</returns>
-    internal IDalamudTextureWrap NoThrottleCreateFromTexFile(ReadOnlySpan<byte> fileBytes)
+    internal IDalamudTextureWrap NoThrottleCreateFromTexFile(ReadOnlySpan<byte> fileBytes, string? debugName = null)
     {
         ObjectDisposedException.ThrowIf(this.disposing, this);
 
@@ -293,15 +281,15 @@ internal sealed partial class TextureManager
         var tf = new TexFile();
         typeof(TexFile).GetProperty(nameof(tf.Data))!.GetSetMethod(true)!.Invoke(
             tf,
-            new object?[] { bytesArray });
+            [bytesArray]);
         typeof(TexFile).GetProperty(nameof(tf.Reader))!.GetSetMethod(true)!.Invoke(
             tf,
-            new object?[] { new LuminaBinaryReader(bytesArray) });
+            [new LuminaBinaryReader(bytesArray)]);
         // Note: FileInfo and FilePath are not used from TexFile; skip it.
 
-        var wrap = this.NoThrottleCreateFromTexFile(tf);
-        this.BlameSetName(wrap, $"{nameof(this.NoThrottleCreateFromTexFile)}({fileBytes.Length:n0})");
-        return wrap;
+        return this.NoThrottleCreateFromTexFile(
+            tf,
+            debugName ?? $"{nameof(this.NoThrottleCreateFromTexFile)}({fileBytes.Length:n0})");
     }
 
     /// <summary>Runs the given action in IDXGISwapChain.Present immediately or waiting as needed.</summary>

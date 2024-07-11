@@ -162,11 +162,6 @@ internal unsafe partial class Dx11Renderer
                 srvTemp.Swap(ref this.srv);
                 rtvTemp.Swap(ref this.rtv);
                 texTemp.Swap(ref this.tex);
-
-                Service<TextureManager>.Get().Blame(this, this.ownerPlugin);
-                Service<TextureManager>.Get().BlameSetName(
-                    this,
-                    this.debugName ?? $"{nameof(ViewportTextureWrap)}({this.args})");
             }
 
             // context.Get()->CopyResource((ID3D11Resource*)this.tex.Get(), (ID3D11Resource*)backBuffer.Get());

@@ -110,6 +110,13 @@ internal interface IImGuiRenderer : IDisposable
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Wraps an existing native texture.
+    /// </summary>
+    /// <param name="handle">Handle to a native texture.</param>
+    /// <returns>Wrapped object.</returns>
+    IDalamudTextureWrap WrapFromTextureResource(nint handle);
+
+    /// <summary>
     /// Gets the specification of a texture.
     /// </summary>
     /// <param name="texture">The texture to obtain data about.</param>

@@ -174,15 +174,19 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         bool copyAlphaOnly = false)
     {
         var sourceSrv = TextureData.AttachFromAddress(source.ImGuiHandle).ShaderResourceView;
+
         using var targetResource =
             new ComPtr<ID3D11Resource>((ID3D11Resource*)TextureData.AttachFromAddress(target.ImGuiHandle).Resource);
         using var targetTex2D = default(ComPtr<ID3D11Texture2D>);
+        targetResource.As(&targetTex2D).ThrowOnError();
+
         using var targetRtv = default(ComPtr<ID3D11RenderTargetView>);
         var targetRtvDesc = new D3D11_RENDER_TARGET_VIEW_DESC(
             targetTex2D,
             D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
         this.device.Get()->CreateRenderTargetView(targetResource.Get(), &targetRtvDesc, targetRtv.GetAddressOf())
             .ThrowOnError();
+
         this.rectangleDrawer.Draw(
             this.context,
             targetRtv,
@@ -366,6 +370,37 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             t.Dispose();
             throw;
         }
+    }
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap WrapFromTextureResource(nint handle)
+    {
+        var unk = new ComPtr<IUnknown>((IUnknown*)handle);
+        using var tex2D = default(ComPtr<ID3D11Texture2D>);
+        using var srv = default(ComPtr<ID3D11ShaderResourceView>);
+        using var rtv = default(ComPtr<ID3D11RenderTargetView>);
+        if (unk.As(&tex2D).SUCCEEDED)
+        {
+            var desc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
+                tex2D,
+                D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
+            this.device.Get()->CreateShaderResourceView((ID3D11Resource*)tex2D.Get(), &desc, srv.GetAddressOf())
+                .ThrowOnError();
+            var texDesc = tex2D.Get()->GetDesc();
+            return TextureWrap.TakeOwnership(new(tex2D, srv, (int)texDesc.Width, (int)texDesc.Height));
+        }
+        
+        if (unk.As(&srv).SUCCEEDED)
+        {
+            using var res = default(ComPtr<ID3D11Resource>);
+            srv.Get()->GetResource(res.GetAddressOf());
+            res.As(&tex2D).ThrowOnError();
+            var texDesc = tex2D.Get()->GetDesc();
+            return TextureWrap.TakeOwnership(new(tex2D, srv, (int)texDesc.Width, (int)texDesc.Height));
+        }
+
+        throw new NotSupportedException(
+            "Given object, assumed as IUnknown, failed to QueryInterface both as ID3D11Texture2D and ID3D11ShaderResourceView.");
     }
 
     /// <inheritdoc/>

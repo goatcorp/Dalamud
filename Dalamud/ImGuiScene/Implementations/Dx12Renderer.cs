@@ -364,6 +364,9 @@ internal unsafe partial class Dx12Renderer : IImGuiRenderer
         throw new NotImplementedException();
 
     /// <inheritdoc/>
+    public IDalamudTextureWrap WrapFromTextureResource(IntPtr handle) => throw new NotImplementedException();
+
+    /// <inheritdoc/>
     public RawImageSpecification GetTextureSpecification(IDalamudTextureWrap texture)
     {
         var td = TextureData.AttachFromAddress(texture.ImGuiHandle);

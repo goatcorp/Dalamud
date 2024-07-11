@@ -290,6 +290,10 @@ internal unsafe class Dx12OnDx11Win32Scene : IWin32Scene
         this.scene12.CreateTextureFromImGuiViewport(args, ownerPlugin, debugName, cancellationToken);
 
     /// <inheritdoc/>
+    public IDalamudTextureWrap WrapFromTextureResource(nint handle) =>
+        this.scene12.WrapFromTextureResource(handle);
+
+    /// <inheritdoc/>
     public RawImageSpecification GetTextureSpecification(IDalamudTextureWrap texture) =>
         this.scene12.GetTextureSpecification(texture);
 

@@ -1,7 +1,6 @@
 using System.Threading;
 
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.Internal;
 using Dalamud.Utility;
 
 using TerraFX.Interop.Windows;
@@ -52,8 +51,7 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
     }
 
     /// <inheritdoc/>
-    public override string ToString() =>
-        $"{nameof(UnknownTextureWrap)}({Service<TextureManager>.GetNullable()?.GetBlame(this)?.Name ?? $"{this.imGuiHandle:X}"})";
+    public override string ToString() => $"{nameof(UnknownTextureWrap)}({this.imGuiHandle:X})";
 
     /// <summary>Actually dispose the wrapped texture.</summary>
     void IDeferredDisposable.RealDispose()

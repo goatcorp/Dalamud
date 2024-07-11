@@ -48,15 +48,11 @@ internal sealed partial class TextureManager
         CancellationToken cancellationToken = default) =>
         this.DynamicPriorityTextureLoader.LoadAsync(
             null,
-            async _ =>
-            {
-                var outWrap = await this.NoThrottleCreateFromExistingTextureAsync(wrap, args);
-                this.BlameSetName(
-                    outWrap,
-                    debugName ??
-                    $"{nameof(this.CreateFromExistingTextureAsync)}({wrap}, {args})");
-                return outWrap;
-            },
+            _ => this.NoThrottleCreateFromExistingTextureAsync(
+                wrap,
+                args,
+                debugName ??
+                $"{nameof(this.CreateFromExistingTextureAsync)}({wrap}, {args})"),
             cancellationToken,
             leaveWrapOpen ? null : wrap);
 
@@ -100,16 +96,18 @@ internal sealed partial class TextureManager
         cancellationToken.ThrowIfCancellationRequested();
 
         // ID3D11DeviceContext is not a threadsafe resource, and it must be used from the UI thread.
-        return await this.RunDuringPresent(() =>
-        {
-            var data = this.Scene.GetTextureData(tex2D, out var specs);
-            return (specs, data);
-        });
+        return await this.RunDuringPresent(
+                   () =>
+                   {
+                       var data = this.Scene.GetTextureData(tex2D, out var specs);
+                       return (specs, data);
+                   });
     }
 
     private async Task<IDalamudTextureWrap> NoThrottleCreateFromExistingTextureAsync(
         IDalamudTextureWrap source,
-        TextureModificationArgs args)
+        TextureModificationArgs args,
+        string? debugName = null)
     {
         args.ThrowOnInvalidValues();
 
@@ -126,7 +124,8 @@ internal sealed partial class TextureManager
             new(args.NewWidth, args.NewHeight, args.Format),
             false,
             false,
-            true);
+            true,
+            debugName ?? $"{nameof(this.NoThrottleCreateFromExistingTextureAsync)}({args})");
         try
         {
             var dam = await Service<DalamudAssetManager>.GetAsync();

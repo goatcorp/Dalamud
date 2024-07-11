@@ -162,10 +162,12 @@ internal sealed partial class TextureManager
     /// <summary>Creates a texture from the given bytes of an image file. Skips the load throttler; intended to be used
     /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
     /// <param name="bytes">The data.</param>
+    /// <param name="debugName">Name for debugging.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The loaded texture.</returns>
     internal IDalamudTextureWrap NoThrottleCreateFromImage(
         ReadOnlyMemory<byte> bytes,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(this.disposing, this);
@@ -175,13 +177,13 @@ internal sealed partial class TextureManager
         {
             using var handle = bytes.Pin();
             using var stream = this.Wic.CreateIStreamViewOfMemory(handle, bytes.Length);
-            return this.Wic.NoThrottleCreateFromWicStream(stream, cancellationToken);
+            return this.Wic.NoThrottleCreateFromWicStream(stream, debugName, cancellationToken);
         }
         catch (Exception e1)
         {
             try
             {
-                return this.NoThrottleCreateFromTexFile(bytes.Span);
+                return this.NoThrottleCreateFromTexFile(bytes.Span, debugName);
             }
             catch (Exception e2)
             {
@@ -192,11 +194,13 @@ internal sealed partial class TextureManager
 
     /// <summary>Creates a texture from the given path to an image file. Skips the load throttler; intended to be used
     /// from implementation of <see cref="SharedImmediateTexture"/>s.</summary>
-    /// <param name="path">The path of the file..</param>
+    /// <param name="path">The path of the file.</param>
+    /// <param name="debugName">Name for debugging.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The loaded texture.</returns>
     internal async Task<IDalamudTextureWrap> NoThrottleCreateFromFileAsync(
         string path,
+        string? debugName = null,
         CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(this.disposing, this);
@@ -209,7 +213,10 @@ internal sealed partial class TextureManager
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.Read);
-            return this.Wic.NoThrottleCreateFromWicStream(stream, cancellationToken);
+            return this.Wic.NoThrottleCreateFromWicStream(
+                stream,
+                debugName ?? $"{nameof(this.NoThrottleCreateFromFileAsync)}({path})",
+                cancellationToken);
         }
         catch (Exception e1)
         {
@@ -367,10 +374,12 @@ internal sealed partial class TextureManager
 
         /// <summary>Creates a new instance of <see cref="IDalamudTextureWrap"/> from a <see cref="IStream"/>.</summary>
         /// <param name="stream">The stream that will NOT be closed after.</param>
+        /// <param name="debugName">Name for debugging.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The newly loaded texture.</returns>
         public unsafe IDalamudTextureWrap NoThrottleCreateFromWicStream(
             ComPtr<IStream> stream,
+            string? debugName = null,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -446,7 +455,8 @@ internal sealed partial class TextureManager
             bitmapSource.Get()->CopyPixels(null, stride, cbBufferSize, pbData).ThrowOnError();
             return this.textureManager.NoThrottleCreateFromRaw(
                 new(rcLock.Width, rcLock.Height, (int)dxgiFormat, (int)stride),
-                new(pbData, (int)cbBufferSize));
+                new(pbData, (int)cbBufferSize),
+                debugName);
         }
 
         /// <summary>Gets the supported bitmap codecs.</summary>

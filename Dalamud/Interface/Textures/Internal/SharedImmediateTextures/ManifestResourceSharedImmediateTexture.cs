@@ -42,8 +42,10 @@ internal sealed class ManifestResourceSharedImmediateTexture : SharedImmediateTe
         var tm = await Service<TextureManager>.GetAsync();
         var ms = new MemoryStream(stream.CanSeek ? checked((int)stream.Length) : 0);
         await stream.CopyToAsync(ms, cancellationToken);
-        var wrap = tm.NoThrottleCreateFromImage(ms.GetBuffer().AsMemory(0, checked((int)ms.Length)), cancellationToken);
-        tm.BlameSetName(wrap, this.ToString());
+        var wrap = tm.NoThrottleCreateFromImage(
+            ms.GetBuffer().AsMemory(0, checked((int)ms.Length)),
+            this.ToString(),
+            cancellationToken);
         return wrap;
     }
 }

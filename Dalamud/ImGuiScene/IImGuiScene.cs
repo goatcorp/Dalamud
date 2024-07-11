@@ -111,6 +111,9 @@ internal interface IImGuiScene : IDisposable
         string? debugName = null,
         CancellationToken cancellationToken = default);
 
+    /// <inheritdoc cref="IImGuiRenderer.WrapFromTextureResource"/>
+    IDalamudTextureWrap WrapFromTextureResource(nint handle);
+
     /// <inheritdoc cref="IImGuiRenderer.GetTextureSpecification"/>
     RawImageSpecification GetTextureSpecification(IDalamudTextureWrap texture);
 

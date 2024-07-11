@@ -225,6 +225,10 @@ internal sealed unsafe class Dx11Win32Scene : IWin32Scene
         this.imguiRenderer.CreateTextureFromImGuiViewport(args, ownerPlugin, debugName, cancellationToken);
 
     /// <inheritdoc/>
+    public IDalamudTextureWrap WrapFromTextureResource(nint handle) =>
+        this.imguiRenderer.WrapFromTextureResource(handle);
+
+    /// <inheritdoc/>
     public RawImageSpecification GetTextureSpecification(IDalamudTextureWrap texture) =>
         this.imguiRenderer.GetTextureSpecification(texture);
 

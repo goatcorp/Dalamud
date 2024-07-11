@@ -90,6 +90,11 @@ public record DalamudStartInfo
     public string? BootLogPath { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to enable D3D11 and DXGI debugging if possible.
+    /// </summary>
+    public bool BootDebugDirectX { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether a Boot console should be shown.
     /// </summary>
     public bool BootShowConsole { get; set; }

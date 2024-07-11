@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -246,16 +245,7 @@ internal abstract class SharedImmediateTexture
         lock (this.ownerPlugins)
         {
             if (!this.ownerPlugins.Contains(plugin))
-            {
                 this.ownerPlugins.Add(plugin);
-                this.UnderlyingWrap?.ContinueWith(
-                    r =>
-                    {
-                        if (r.IsCompletedSuccessfully)
-                            Service<TextureManager>.Get().Blame(r.Result, plugin);
-                    },
-                    default(CancellationToken));
-            }
         }
     }
 
@@ -272,31 +262,13 @@ internal abstract class SharedImmediateTexture
     /// <summary>Attempts to restore the reference to this texture.</summary>
     protected void LoadUnderlyingWrap()
     {
-        int addLen;
         lock (this.ownerPlugins)
         {
             this.UnderlyingWrap = Service<TextureManager>.Get().DynamicPriorityTextureLoader.LoadAsync(
                 this,
                 this.CreateTextureAsync,
                 this.LoadCancellationToken);
-
-            addLen = this.ownerPlugins.Count;
         }
-
-        if (addLen == 0)
-            return;
-        this.UnderlyingWrap.ContinueWith(
-            r =>
-            {
-                if (!r.IsCompletedSuccessfully)
-                    return;
-                lock (this.ownerPlugins)
-                {
-                    foreach (var op in this.ownerPlugins.Take(addLen))
-                        Service<TextureManager>.Get().Blame(r.Result, op);
-                }
-            },
-            default(CancellationToken));
     }
 
     /// <summary>Creates the texture immediately.</summary>

@@ -94,6 +94,7 @@ internal class ConsoleWindow : Window, IDisposable
         
         this.autoScroll = configuration.LogAutoScroll;
         this.autoOpen = configuration.LogOpenAtStartup;
+        this.newLogEntries = new();
         SerilogEventSink.Instance.LogLine += this.OnLogLine;
 
         Service<Framework>.GetAsync().ContinueWith(r => r.Result.Update += this.FrameworkOnUpdate);
@@ -114,7 +115,6 @@ internal class ConsoleWindow : Window, IDisposable
         this.logLinesLimit = configuration.LogLinesLimit;
 
         var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
-        this.newLogEntries = new();
         this.logText = new(limit);
         this.filteredLogEntries = new(limit);
 

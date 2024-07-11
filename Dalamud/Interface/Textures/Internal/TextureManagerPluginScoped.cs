@@ -143,7 +143,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = this.ManagerOrThrow;
         var textureWrap = manager.CreateEmpty(specs, cpuRead, cpuWrite, debugName);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -162,7 +161,6 @@ internal sealed class TextureManagerPluginScoped
                               leaveWrapOpen,
                               debugName,
                               cancellationToken);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -174,7 +172,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = await this.ManagerTask;
         var textureWrap = await manager.CreateFromImGuiViewportAsync(args, this.plugin, debugName, cancellationToken);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -186,7 +183,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = await this.ManagerTask;
         var textureWrap = await manager.CreateFromImageAsync(bytes, debugName, cancellationToken);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -199,7 +195,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = await this.ManagerTask;
         var textureWrap = await manager.CreateFromImageAsync(stream, leaveOpen, debugName, cancellationToken);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -211,7 +206,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = this.ManagerOrThrow;
         var textureWrap = manager.CreateFromRaw(specs, bytes, debugName);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -224,7 +218,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = await this.ManagerTask;
         var textureWrap = await manager.CreateFromRawAsync(specs, bytes, debugName, cancellationToken);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -238,7 +231,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = await this.ManagerTask;
         var textureWrap = await manager.CreateFromRawAsync(specs, stream, leaveOpen, debugName, cancellationToken);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -247,7 +239,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = this.ManagerOrThrow;
         var textureWrap = manager.CreateFromTexFile(file);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
@@ -259,7 +250,6 @@ internal sealed class TextureManagerPluginScoped
     {
         var manager = await this.ManagerTask;
         var textureWrap = await manager.CreateFromTexFileAsync(file, debugName, cancellationToken);
-        manager.Blame(textureWrap, this.plugin);
         return textureWrap;
     }
 
