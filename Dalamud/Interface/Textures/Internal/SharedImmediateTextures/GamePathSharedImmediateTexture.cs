@@ -45,7 +45,7 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
             try
             {
                 file =
-                    Path.IsPathRooted(this.path)
+                    Path.IsPathRooted(substPath)
                         ? dm.GameData.GetFileFromDisk<TexFile>(substPath, this.path)
                         : dm.GetFile<TexFile>(substPath) ??
                           throw new FileNotFoundException("Game file not found.", substPath);
