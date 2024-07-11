@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
@@ -101,7 +102,8 @@ internal class DalamudInterface : IInternalDisposableService
         Game.Framework framework,
         ClientState clientState,
         TitleScreenMenu titleScreenMenu,
-        GameGui gameGui)
+        GameGui gameGui,
+        ConsoleManager consoleManager)
     {
         this.dalamud = dalamud;
         this.configuration = configuration;
@@ -126,11 +128,14 @@ internal class DalamudInterface : IInternalDisposableService
             fontAtlasFactory,
             framework,
             gameGui,
-            titleScreenMenu) { IsOpen = false };
+            titleScreenMenu,
+            consoleManager) { IsOpen = false };
         this.changelogWindow = new ChangelogWindow(
             this.titleScreenMenuWindow,
             fontAtlasFactory,
-            dalamudAssetManager) { IsOpen = false };
+            dalamudAssetManager,
+            gameGui,
+            framework) { IsOpen = false };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
         this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };
@@ -206,6 +211,15 @@ internal class DalamudInterface : IInternalDisposableService
     {
         get => this.isImGuiDrawDevMenu;
         set => this.isImGuiDrawDevMenu = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the plugin installer is open.
+    /// </summary>
+    public bool IsPluginInstallerOpen
+    {
+        get => this.pluginWindow.IsOpen;
+        set => this.pluginWindow.IsOpen = value;
     }
 
     /// <inheritdoc/>
@@ -290,10 +304,10 @@ internal class DalamudInterface : IInternalDisposableService
     }
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
+    /// Opens the <see cref="PluginInstallerWindow"/> on the specified page.
     /// </summary>
     /// <param name="kind">The page of the installer to open.</param>
-    public void OpenPluginInstallerTo(PluginInstallerWindow.PluginInstallerOpenKind kind)
+    public void OpenPluginInstallerTo(PluginInstallerOpenKind kind)
     {
         this.pluginWindow.OpenTo(kind);
         this.pluginWindow.BringToFront();
@@ -305,6 +319,16 @@ internal class DalamudInterface : IInternalDisposableService
     public void OpenSettings()
     {
         this.settingsWindow.IsOpen = true;
+        this.settingsWindow.BringToFront();
+    }
+
+    /// <summary>
+    /// Opens the <see cref="SettingsWindow"/> on the specified tab.
+    /// </summary>
+    /// <param name="kind">The tab of the settings to open.</param>
+    public void OpenSettingsTo(SettingsOpenKind kind)
+    {
+        this.settingsWindow.OpenTo(kind);
         this.settingsWindow.BringToFront();
     }
 
@@ -418,7 +442,7 @@ internal class DalamudInterface : IInternalDisposableService
     /// Toggles the <see cref="PluginInstallerWindow"/>.
     /// </summary>
     /// <param name="kind">The page of the installer to open.</param>
-    public void TogglePluginInstallerWindowTo(PluginInstallerWindow.PluginInstallerOpenKind kind) => this.pluginWindow.ToggleTo(kind);
+    public void TogglePluginInstallerWindowTo(PluginInstallerOpenKind kind) => this.pluginWindow.ToggleTo(kind);
 
     /// <summary>
     /// Toggles the <see cref="SettingsWindow"/>.
@@ -454,6 +478,15 @@ internal class DalamudInterface : IInternalDisposableService
     public void SetPluginInstallerSearchText(string text)
     {
         this.pluginWindow.SetSearchText(text);
+    }
+
+    /// <summary>
+    /// Sets the current search text for the settings window.
+    /// </summary>
+    /// <param name="text">The search term.</param>
+    public void SetSettingsSearchText(string text)
+    {
+        this.settingsWindow.SetSearchText(text);
     }
 
     /// <summary>
@@ -532,7 +565,7 @@ internal class DalamudInterface : IInternalDisposableService
         using var style2 = ImRaii.PushStyle(ImGuiStyleVar.WindowBorderSize, 0f);
         using var color = ImRaii.PushColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0));
 
-        ImGui.SetNextWindowPos(new Vector2(0, 0));
+        ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos);
         ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
         ImGuiHelpers.ForceNextWindowMainViewport();
 
@@ -760,7 +793,7 @@ internal class DalamudInterface : IInternalDisposableService
                             unsafe
                             {
                                 var hook = Hook<CrashDebugDelegate>.FromAddress(
-                                    (nint)UIModule.StaticVTable.GetUIInputData,
+                                    (nint)UIModule.StaticVirtualTablePointer->GetUIInputData,
                                     self =>
                                     {
                                         _ = *(byte*)0;
@@ -794,7 +827,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                     ImGui.MenuItem(Util.AssemblyVersion, false);
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
-                    ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.Interop.Resolver.Version}]", false);
+                    ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
                     ImGui.EndMenu();
@@ -950,7 +983,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                     if (ImGui.MenuItem("Export localizable"))
                     {
-                        localization.ExportLocalizable();
+                        localization.ExportLocalizable(true);
                     }
 
                     if (ImGui.BeginMenu("Load language..."))

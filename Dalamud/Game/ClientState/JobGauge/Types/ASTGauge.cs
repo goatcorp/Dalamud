@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 
 using Dalamud.Game.ClientState.JobGauge.Enums;
@@ -23,23 +22,17 @@ public unsafe class ASTGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the currently drawn <see cref="CardType"/>.
     /// </summary>
     /// <returns>Currently drawn <see cref="CardType"/>.</returns>
-    public CardType DrawnCard => (CardType)(this.Struct->Card & 0xF);
+    public CardType[] DrawnCards => this.Struct->CurrentCards.Select(card => (CardType)card).ToArray();
 
     /// <summary>
     /// Gets the currently drawn crown <see cref="CardType"/>.
     /// </summary>
     /// <returns>Currently drawn crown <see cref="CardType"/>.</returns>
-    public CardType DrawnCrownCard => this.Struct->Card - this.DrawnCard;
+    public CardType DrawnCrownCard => (CardType)this.Struct->CurrentArcana;
 
     /// <summary>
-    /// Gets the <see cref="SealType"/>s currently active.
+    /// Gets the currently active draw type <see cref="DrawType"/>.
     /// </summary>
-    public SealType[] Seals => this.Struct->CurrentSeals.Select(seal => (SealType)seal).ToArray();
-
-    /// <summary>
-    /// Check if a <see cref="SealType"/> is currently active on the divination gauge.
-    /// </summary>
-    /// <param name="seal">The <see cref="SealType"/> to check for.</param>
-    /// <returns>If the given Seal is currently divined.</returns>
-    public unsafe bool ContainsSeal(SealType seal) => this.Seals.Contains(seal);
+    /// <returns>Currently active draw type.</returns>
+    public DrawType ActiveDraw => (DrawType)this.Struct->CurrentDraw;
 }

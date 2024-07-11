@@ -123,7 +123,7 @@ internal class ContextMenuAgingStep : IAgingStep
         this.targetCharacter = null;
     }
 
-    private void OnMenuOpened(MenuOpenedArgs args)
+    private void OnMenuOpened(IMenuOpenedArgs args)
     {
         this.LogMenuOpened(args);
 
@@ -139,11 +139,11 @@ internal class ContextMenuAgingStep : IAgingStep
                         PrefixColor = 56,
                         Priority = -1,
                         IsSubmenu = true,
-                        OnClicked = (MenuItemClickedArgs a) =>
+                        OnClicked = (IMenuItemClickedArgs a) =>
                         {
                             SeString name;
                             uint count;
-                            var targetItem = (a.Target as MenuTargetInventory).TargetItem;
+                            var targetItem = (a.Target as MenuTargetInventory)!.TargetItem;
                             if (targetItem is { } item)
                             {
                                 name = (this.itemSheet.GetRow(item.ItemId)?.Name.ToDalamudString() ?? $"Unknown ({item.ItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
@@ -186,7 +186,7 @@ internal class ContextMenuAgingStep : IAgingStep
         }
     }
 
-    private void LogMenuOpened(MenuOpenedArgs args)
+    private void LogMenuOpened(IMenuOpenedArgs args)
     {
         Log.Verbose($"Got {args.MenuType} context menu with addon 0x{args.AddonPtr:X8} ({args.AddonName}) and agent 0x{args.AgentPtr:X8}");
         if (args.Target is MenuTargetDefault targetDefault)
@@ -270,8 +270,22 @@ internal class ContextMenuAgingStep : IAgingStep
                     b.AppendLine(string.Join(", ", materias));
 
                 b.Append($"Dye/Stain: ");
-                if (item.Stain != 0)
-                    b.AppendLine($"{this.stainSheet.GetRow(item.Stain)?.Name.ToDalamudString() ?? "Unknown"} ({item.Stain})");
+                for (var i = 0; i < item.Stains.Length; i++)
+                {
+                    var stainId = item.Stains[i];
+                    if (stainId != 0)
+                    {
+                        var stainName = this.stainSheet.GetRow(stainId)?.Name.ToDalamudString().ToString() ?? "Unknown";
+                        b.AppendLine($"  Stain {i + 1}: {stainName} ({stainId})");
+                    }
+                    else
+                    {
+                        b.AppendLine($"  Stain {i + 1}: None");
+                    }
+                }
+
+                if (item.Stains[0] != 0)
+                    b.AppendLine($"{this.stainSheet.GetRow(item.Stains[0])?.Name.ToDalamudString() ?? "Unknown"} ({item.Stains[0]})");
                 else
                     b.AppendLine("None");
 

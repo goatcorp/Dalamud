@@ -132,7 +132,7 @@ public partial class FileDialog
             AddToIconMap(new[] { "csv" }, FontAwesomeIcon.FileCsv, miscTextColor);
         }
 
-        return iconMap.TryGetValue(ext.ToLower(), out var icon) ? icon : new IconColorItem
+        return iconMap.TryGetValue(ext.ToLowerInvariant(), out var icon) ? icon : new IconColorItem
         {
             Icon = FontAwesomeIcon.File,
             Color = standardTextColor,

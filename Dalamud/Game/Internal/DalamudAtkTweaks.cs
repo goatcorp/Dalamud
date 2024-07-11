@@ -1,6 +1,3 @@
-using System;
-using System.Runtime.InteropServices;
-
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
@@ -9,6 +6,7 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Serilog;
 
@@ -22,8 +20,6 @@ namespace Dalamud.Game.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 {
-    private readonly AtkValueChangeType atkValueChangeType;
-    private readonly AtkValueSetString atkValueSetString;
     private readonly Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
 
     // TODO: Make this into events in Framework.Gui
@@ -45,20 +41,14 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private DalamudAtkTweaks(TargetSigScanner sigScanner)
     {
-        var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 32 C0 4C 8B AC 24 ?? ?? ?? ?? 48 8B 8D ?? ?? ?? ??");
+        var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B CF 4C 89 B4 24 B8 08 00 00");
 
         this.hookAgentHudOpenSystemMenu = Hook<AgentHudOpenSystemMenuPrototype>.FromAddress(openSystemMenuAddress, this.AgentHudOpenSystemMenuDetour);
-
-        var atkValueChangeTypeAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 45 84 F6 48 8D 4C 24 ??");
-        this.atkValueChangeType = Marshal.GetDelegateForFunctionPointer<AtkValueChangeType>(atkValueChangeTypeAddress);
-
-        var atkValueSetStringAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 41 03 ED");
-        this.atkValueSetString = Marshal.GetDelegateForFunctionPointer<AtkValueSetString>(atkValueSetStringAddress);
 
         var uiModuleRequestMainCommandAddress = sigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
         this.hookUiModuleRequestMainCommand = Hook<UiModuleRequestMainCommand>.FromAddress(uiModuleRequestMainCommandAddress, this.UiModuleRequestMainCommandDetour);
 
-        var atkUnitBaseReceiveGlobalEventAddress = sigScanner.ScanText("48 89 5C 24 ?? 48 89 7C 24 ?? 55 41 56 41 57 48 8B EC 48 83 EC 50 44 0F B7 F2");
+        var atkUnitBaseReceiveGlobalEventAddress = sigScanner.ScanText("48 89 5C 24 ?? 48 89 7C 24 ?? 55 41 54 41 57");
         this.hookAtkUnitBaseReceiveGlobalEvent = Hook<AtkUnitBaseReceiveGlobalEvent>.FromAddress(atkUnitBaseReceiveGlobalEventAddress, this.AtkUnitBaseReceiveGlobalEventDetour);
 
         this.locDalamudPlugins = Loc.Localize("SystemMenuPlugins", "Dalamud Plugins");
@@ -75,10 +65,6 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     ~DalamudAtkTweaks() => this.Dispose(false);
 
     private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
-
-    private delegate void AtkValueChangeType(AtkValue* thisPtr, ValueType type);
-
-    private delegate void AtkValueSetString(AtkValue* thisPtr, byte* bytes);
 
     private delegate void UiModuleRequestMainCommand(void* thisPtr, int commandId);
 
@@ -166,10 +152,10 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
             return;
         }
 
-        // the max size (hardcoded) is 0x11/17, but the system menu currently uses 0xC/12
+        // the max size (hardcoded) is 0x12/18, but the system menu currently uses 0xC/12
         // this is a just in case that doesnt really matter
         // see if we can add 2 entries
-        if (menuSize >= 0x11)
+        if (menuSize >= 0x12)
         {
             this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize);
             return;
@@ -181,8 +167,8 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         // reference the original function for more details :)
 
         // step 1) move all the current menu items down so we can put Dalamud at the top like it deserves
-        this.atkValueChangeType(&atkValueArgs[menuSize + 5], ValueType.Int); // currently this value has no type, set it to int
-        this.atkValueChangeType(&atkValueArgs[menuSize + 5 + 1], ValueType.Int);
+        (&atkValueArgs[menuSize + 5])->ChangeType(ValueType.Int); // currently this value has no type, set it to int
+        (&atkValueArgs[menuSize + 5 + 1])->ChangeType(ValueType.Int);
 
         for (var i = menuSize + 2; i > 1; i--)
         {
@@ -201,10 +187,11 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         // step 3) create strings for them
         // since the game first checks for strings in the AtkValue argument before pulling them from the exd, if we create strings we dont have to worry
         // about hooking the exd reader, thank god
-        var firstStringEntry = &atkValueArgs[5 + 17];
-        this.atkValueChangeType(firstStringEntry, ValueType.String);
-        var secondStringEntry = &atkValueArgs[6 + 17];
-        this.atkValueChangeType(secondStringEntry, ValueType.String);
+        var firstStringEntry = &atkValueArgs[5 + 18];
+        firstStringEntry->ChangeType(ValueType.String);
+        
+        var secondStringEntry = &atkValueArgs[6 + 18];
+        secondStringEntry->ChangeType(ValueType.String);
 
         const int color = 539;
         var strPlugins = new SeString().Append(new UIForegroundPayload(color))
@@ -215,19 +202,9 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
                                         .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
                                         .Append(new UIForegroundPayload(0))
                                         .Append(this.locDalamudSettings).Encode();
-
-        // do this the most terrible way possible since im lazy
-        var bytes = stackalloc byte[strPlugins.Length + 1];
-        Marshal.Copy(strPlugins, 0, new IntPtr(bytes), strPlugins.Length);
-        bytes[strPlugins.Length] = 0x0;
-
-        this.atkValueSetString(firstStringEntry, bytes); // this allocs the string properly using the game's allocators and copies it, so we dont have to worry about memory fuckups
-
-        var bytes2 = stackalloc byte[strSettings.Length + 1];
-        Marshal.Copy(strSettings, 0, new IntPtr(bytes2), strSettings.Length);
-        bytes2[strSettings.Length] = 0x0;
-
-        this.atkValueSetString(secondStringEntry, bytes2);
+        
+        firstStringEntry->SetManagedString(strPlugins);
+        secondStringEntry->SetManagedString(strSettings);
 
         // open menu with new size
         var sizeEntry = &atkValueArgs[4];

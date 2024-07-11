@@ -1,18 +1,192 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Data;
 using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Text.SeStringHandling;
+
 using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
 /// <summary>
+/// A interface representing a single listing in party finder.
+/// </summary>
+public interface IPartyFinderListing
+{
+    /// <summary>
+    /// Gets  the objective of this listing.
+    /// </summary>
+    ObjectiveFlags Objective { get; }
+
+    /// <summary>
+    /// Gets the conditions of this listing.
+    /// </summary>
+    ConditionFlags Conditions { get; }
+
+    /// <summary>
+    /// Gets the Duty Finder settings that will be used for this listing.
+    /// </summary>
+    DutyFinderSettingsFlags DutyFinderSettings { get; }
+
+    /// <summary>
+    /// Gets the loot rules that will be used for this listing.
+    /// </summary>
+    LootRuleFlags LootRules { get; }
+
+    /// <summary>
+    /// Gets where this listing is searching. Note that this is also used for denoting alliance raid listings and one
+    /// player per job.
+    /// </summary>
+    SearchAreaFlags SearchArea { get; }
+
+    /// <summary>
+    /// Gets a list of player slots that the Party Finder is accepting.
+    /// </summary>
+    IReadOnlyCollection<PartyFinderSlot> Slots { get; }
+
+    /// <summary>
+    /// Gets a list of the classes/jobs that are currently present in the party.
+    /// </summary>
+    IReadOnlyCollection<Lazy<ClassJob>> JobsPresent { get; }
+
+    /// <summary>
+    /// Gets the ID assigned to this listing by the game's server.
+    /// </summary>
+    uint Id { get; }
+
+    /// <summary>
+    /// Gets the player's unique content ID.
+    /// </summary>
+    ulong ContentId { get; }
+
+    /// <summary>
+    /// Gets the name of the player hosting this listing.
+    /// </summary>
+    SeString Name { get; }
+
+    /// <summary>
+    /// Gets the description of this listing as set by the host. May be multiple lines.
+    /// </summary>
+    SeString Description { get; }
+
+    /// <summary>
+    /// Gets the world that this listing was created on.
+    /// </summary>
+    Lazy<World> World { get; }
+
+    /// <summary>
+    /// Gets the home world of the listing's host.
+    /// </summary>
+    Lazy<World> HomeWorld { get; }
+
+    /// <summary>
+    /// Gets the current world of the listing's host.
+    /// </summary>
+    Lazy<World> CurrentWorld { get; }
+
+    /// <summary>
+    /// Gets the Party Finder category this listing is listed under.
+    /// </summary>
+    DutyCategory Category { get; }
+
+    /// <summary>
+    /// Gets the row ID of the duty this listing is for. May be 0 for non-duty listings.
+    /// </summary>
+    ushort RawDuty { get; }
+
+    /// <summary>
+    /// Gets the duty this listing is for. May be null for non-duty listings.
+    /// </summary>
+    Lazy<ContentFinderCondition> Duty { get; }
+
+    /// <summary>
+    /// Gets the type of duty this listing is for.
+    /// </summary>
+    DutyType DutyType { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether if this listing is beginner-friendly. Shown with a sprout icon in-game.
+    /// </summary>
+    bool BeginnersWelcome { get; }
+
+    /// <summary>
+    /// Gets how many seconds this listing will continue to be available for. It may end before this time if the party
+    /// fills or the host ends it early.
+    /// </summary>
+    ushort SecondsRemaining { get; }
+
+    /// <summary>
+    /// Gets the minimum item level required to join this listing.
+    /// </summary>
+    ushort MinimumItemLevel { get; }
+
+    /// <summary>
+    /// Gets the number of parties this listing is recruiting for.
+    /// </summary>
+    byte Parties { get; }
+
+    /// <summary>
+    /// Gets the number of player slots this listing is recruiting for.
+    /// </summary>
+    byte SlotsAvailable { get; }
+
+    /// <summary>
+    /// Gets the number of player slots filled.
+    /// </summary>
+    byte SlotsFilled { get; }
+
+    /// <summary>
+    /// Gets the time at which the server this listings is on last restarted for a patch/hotfix.
+    /// Probably.
+    /// </summary>
+    uint LastPatchHotfixTimestamp { get; }
+
+    /// <summary>
+    /// Gets a list of the class/job IDs that are currently present in the party.
+    /// </summary>
+    IReadOnlyCollection<byte> RawJobsPresent { get; }
+
+    /// <summary>
+    /// Check if the given flag is present.
+    /// </summary>
+    /// <param name="flag">The flag to check for.</param>
+    /// <returns>A value indicating whether the flag is present.</returns>
+    bool this[ObjectiveFlags flag] { get; }
+
+    /// <summary>
+    /// Check if the given flag is present.
+    /// </summary>
+    /// <param name="flag">The flag to check for.</param>
+    /// <returns>A value indicating whether the flag is present.</returns>
+    bool this[ConditionFlags flag] { get; }
+
+    /// <summary>
+    /// Check if the given flag is present.
+    /// </summary>
+    /// <param name="flag">The flag to check for.</param>
+    /// <returns>A value indicating whether the flag is present.</returns>
+    bool this[DutyFinderSettingsFlags flag] { get; }
+
+    /// <summary>
+    /// Check if the given flag is present.
+    /// </summary>
+    /// <param name="flag">The flag to check for.</param>
+    /// <returns>A value indicating whether the flag is present.</returns>
+    bool this[LootRuleFlags flag] { get; }
+
+    /// <summary>
+    /// Check if the given flag is present.
+    /// </summary>
+    /// <param name="flag">The flag to check for.</param>
+    /// <returns>A value indicating whether the flag is present.</returns>
+    bool this[SearchAreaFlags flag] { get; }
+}
+
+/// <summary>
 /// A single listing in party finder.
 /// </summary>
-public class PartyFinderListing
+internal class PartyFinderListing : IPartyFinderListing
 {
     private readonly byte objective;
     private readonly byte conditions;
@@ -39,7 +213,7 @@ public class PartyFinderListing
         this.jobsPresent = listing.JobsPresent;
 
         this.Id = listing.Id;
-        this.ContentIdLower = listing.ContentIdLower;
+        this.ContentId = listing.ContentId;
         this.Name = SeString.Parse(listing.Name.TakeWhile(b => b != 0).ToArray());
         this.Description = SeString.Parse(listing.Description.TakeWhile(b => b != 0).ToArray());
         this.World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.World));
@@ -54,6 +228,7 @@ public class PartyFinderListing
         this.MinimumItemLevel = listing.MinimumItemLevel;
         this.Parties = listing.NumParties;
         this.SlotsAvailable = listing.NumSlots;
+        this.SlotsFilled = listing.NumSlotsFilled;
         this.LastPatchHotfixTimestamp = listing.LastPatchHotfixTimestamp;
         this.JobsPresent = listing.JobsPresent
                                   .Select(id => new Lazy<ClassJob>(
@@ -63,171 +238,100 @@ public class PartyFinderListing
                                   .ToArray();
     }
 
-    /// <summary>
-    /// Gets the ID assigned to this listing by the game's server.
-    /// </summary>
+    /// <inheritdoc/>
     public uint Id { get; }
 
-    /// <summary>
-    /// Gets the lower bits of the player's content ID.
-    /// </summary>
-    public uint ContentIdLower { get; }
+    /// <inheritdoc/>
+    public ulong ContentId { get; }
 
-    /// <summary>
-    /// Gets the name of the player hosting this listing.
-    /// </summary>
+    /// <inheritdoc/>
     public SeString Name { get; }
 
-    /// <summary>
-    /// Gets the description of this listing as set by the host. May be multiple lines.
-    /// </summary>
+    /// <inheritdoc/>
     public SeString Description { get; }
 
-    /// <summary>
-    /// Gets the world that this listing was created on.
-    /// </summary>
+    /// <inheritdoc/>
     public Lazy<World> World { get; }
 
-    /// <summary>
-    /// Gets the home world of the listing's host.
-    /// </summary>
+    /// <inheritdoc/>
     public Lazy<World> HomeWorld { get; }
 
-    /// <summary>
-    /// Gets the current world of the listing's host.
-    /// </summary>
+    /// <inheritdoc/>
     public Lazy<World> CurrentWorld { get; }
 
-    /// <summary>
-    /// Gets the Party Finder category this listing is listed under.
-    /// </summary>
+    /// <inheritdoc/>
     public DutyCategory Category { get; }
 
-    /// <summary>
-    /// Gets the row ID of the duty this listing is for. May be 0 for non-duty listings.
-    /// </summary>
+    /// <inheritdoc/>
     public ushort RawDuty { get; }
 
-    /// <summary>
-    /// Gets the duty this listing is for. May be null for non-duty listings.
-    /// </summary>
+    /// <inheritdoc/>
     public Lazy<ContentFinderCondition> Duty { get; }
 
-    /// <summary>
-    /// Gets the type of duty this listing is for.
-    /// </summary>
+    /// <inheritdoc/>
     public DutyType DutyType { get; }
 
-    /// <summary>
-    /// Gets a value indicating whether if this listing is beginner-friendly. Shown with a sprout icon in-game.
-    /// </summary>
+    /// <inheritdoc/>
     public bool BeginnersWelcome { get; }
 
-    /// <summary>
-    /// Gets how many seconds this listing will continue to be available for. It may end before this time if the party
-    /// fills or the host ends it early.
-    /// </summary>
+    /// <inheritdoc/>
     public ushort SecondsRemaining { get; }
 
-    /// <summary>
-    /// Gets the minimum item level required to join this listing.
-    /// </summary>
+    /// <inheritdoc/>
     public ushort MinimumItemLevel { get; }
 
-    /// <summary>
-    /// Gets the number of parties this listing is recruiting for.
-    /// </summary>
+    /// <inheritdoc/>
     public byte Parties { get; }
 
-    /// <summary>
-    /// Gets the number of player slots this listing is recruiting for.
-    /// </summary>
+    /// <inheritdoc/>
     public byte SlotsAvailable { get; }
 
-    /// <summary>
-    /// Gets the time at which the server this listings is on last restarted for a patch/hotfix.
-    /// Probably.
-    /// </summary>
+    /// <inheritdoc/>
+    public byte SlotsFilled { get; }
+
+    /// <inheritdoc/>
     public uint LastPatchHotfixTimestamp { get; }
 
-    /// <summary>
-    /// Gets a list of player slots that the Party Finder is accepting.
-    /// </summary>
+    /// <inheritdoc/>
     public IReadOnlyCollection<PartyFinderSlot> Slots => this.slots;
 
-    /// <summary>
-    /// Gets  the objective of this listing.
-    /// </summary>
+    /// <inheritdoc/>
     public ObjectiveFlags Objective => (ObjectiveFlags)this.objective;
 
-    /// <summary>
-    /// Gets the conditions of this listing.
-    /// </summary>
+    /// <inheritdoc/>
     public ConditionFlags Conditions => (ConditionFlags)this.conditions;
 
-    /// <summary>
-    /// Gets the Duty Finder settings that will be used for this listing.
-    /// </summary>
+    /// <inheritdoc/>
     public DutyFinderSettingsFlags DutyFinderSettings => (DutyFinderSettingsFlags)this.dutyFinderSettings;
 
-    /// <summary>
-    /// Gets the loot rules that will be used for this listing.
-    /// </summary>
+    /// <inheritdoc/>
     public LootRuleFlags LootRules => (LootRuleFlags)this.lootRules;
 
-    /// <summary>
-    /// Gets where this listing is searching. Note that this is also used for denoting alliance raid listings and one
-    /// player per job.
-    /// </summary>
+    /// <inheritdoc/>
     public SearchAreaFlags SearchArea => (SearchAreaFlags)this.searchArea;
 
-    /// <summary>
-    /// Gets a list of the class/job IDs that are currently present in the party.
-    /// </summary>
+    /// <inheritdoc/>
     public IReadOnlyCollection<byte> RawJobsPresent => this.jobsPresent;
 
-    /// <summary>
-    /// Gets a list of the classes/jobs that are currently present in the party.
-    /// </summary>
+    /// <inheritdoc/>
     public IReadOnlyCollection<Lazy<ClassJob>> JobsPresent { get; }
 
     #region Indexers
 
-    /// <summary>
-    /// Check if the given flag is present.
-    /// </summary>
-    /// <param name="flag">The flag to check for.</param>
-    /// <returns>A value indicating whether the flag is present.</returns>
+    /// <inheritdoc/>
     public bool this[ObjectiveFlags flag] => this.objective == 0 || (this.objective & (uint)flag) > 0;
 
-    /// <summary>
-    /// Check if the given flag is present.
-    /// </summary>
-    /// <param name="flag">The flag to check for.</param>
-    /// <returns>A value indicating whether the flag is present.</returns>
+    /// <inheritdoc/>
     public bool this[ConditionFlags flag] => this.conditions == 0 || (this.conditions & (uint)flag) > 0;
 
-    /// <summary>
-    /// Check if the given flag is present.
-    /// </summary>
-    /// <param name="flag">The flag to check for.</param>
-    /// <returns>A value indicating whether the flag is present.</returns>
+    /// <inheritdoc/>
     public bool this[DutyFinderSettingsFlags flag] => this.dutyFinderSettings == 0 || (this.dutyFinderSettings & (uint)flag) > 0;
 
-    /// <summary>
-    /// Check if the given flag is present.
-    /// </summary>
-    /// <param name="flag">The flag to check for.</param>
-    /// <returns>A value indicating whether the flag is present.</returns>
+    /// <inheritdoc/>
     public bool this[LootRuleFlags flag] => this.lootRules == 0 || (this.lootRules & (uint)flag) > 0;
 
-    /// <summary>
-    /// Check if the given flag is present.
-    /// </summary>
-    /// <param name="flag">The flag to check for.</param>
-    /// <returns>A value indicating whether the flag is present.</returns>
+    /// <inheritdoc/>
     public bool this[SearchAreaFlags flag] => this.searchArea == 0 || (this.searchArea & (uint)flag) > 0;
 
     #endregion
-
 }

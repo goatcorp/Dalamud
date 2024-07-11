@@ -8,6 +8,7 @@ using System.Reactive.Disposables;
 using Dalamud.Game.Text;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -232,14 +233,6 @@ internal class GamePrebakedFontHandle : FontHandle
         public IFontHandleManager Manager => this.handleManager;
 
         /// <inheritdoc/>
-        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-        public IFontAtlasBuildToolkitPreBuild? PreBuildToolkitForApi9Compat { get; set; }
-
-        /// <inheritdoc/>
-        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-        public bool CreateFontOnAccess { get; set; }
-
-        /// <inheritdoc/>
         public void Dispose()
         {
             // empty
@@ -295,27 +288,11 @@ internal class GamePrebakedFontHandle : FontHandle
             }
         }
 
-        // Use this on API 10.
-        // /// <inheritdoc/>
-        // public ImFontPtr GetFontPtr(IFontHandle handle) =>
-        //     handle is GamePrebakedFontHandle ggfh
-        //         ? this.fonts.GetValueOrDefault(ggfh.FontStyle)?.FullRangeFont ?? default
-        //         : default;
-
         /// <inheritdoc/>
-        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-        public ImFontPtr GetFontPtr(IFontHandle handle)
-        {
-            if (handle is not GamePrebakedFontHandle ggfh)
-                return default;
-            if (this.fonts.GetValueOrDefault(ggfh.FontStyle)?.FullRangeFont is { } font)
-                return font;
-            if (!this.CreateFontOnAccess)
-                return default;
-            if (this.PreBuildToolkitForApi9Compat is not { } tk)
-                return default;
-            return this.GetOrCreateFont(ggfh.FontStyle, tk);
-        }
+        public ImFontPtr GetFontPtr(IFontHandle handle) =>
+            handle is GamePrebakedFontHandle ggfh
+                ? this.fonts.GetValueOrDefault(ggfh.FontStyle)?.FullRangeFont ?? default
+                : default;
 
         /// <inheritdoc/>
         public Exception? GetBuildException(IFontHandle handle) =>

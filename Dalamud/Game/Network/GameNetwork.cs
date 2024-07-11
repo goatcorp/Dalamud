@@ -13,8 +13,7 @@ namespace Dalamud.Game.Network;
 /// <summary>
 /// This class handles interacting with game network events.
 /// </summary>
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
 {
     private readonly GameNetworkAddressResolver address;
@@ -140,7 +139,6 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
 /// Plugin-scoped version of a AddonLifecycle service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameNetwork>]

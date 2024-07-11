@@ -1,5 +1,6 @@
 ﻿using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui.Dtr;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -9,9 +10,9 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class DtrBarWidget : IDataWindowWidget
 {
-    private DtrBarEntry? dtrTest1;
-    private DtrBarEntry? dtrTest2;
-    private DtrBarEntry? dtrTest3;
+    private IDtrBarEntry? dtrTest1;
+    private IDtrBarEntry? dtrTest2;
+    private IDtrBarEntry? dtrTest3;
     
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "dtr", "dtrbar" };
@@ -50,7 +51,7 @@ internal class DtrBarWidget : IDataWindowWidget
         }
     }
     
-    private void DrawDtrTestEntry(ref DtrBarEntry? entry, string title)
+    private void DrawDtrTestEntry(ref IDtrBarEntry? entry, string title)
     {
         var dtrBar = Service<DtrBar>.Get();
 

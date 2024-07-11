@@ -12,8 +12,7 @@ namespace Dalamud.Game.Gui.Toast;
 /// <summary>
 /// This class facilitates interacting with and creating native toast windows.
 /// </summary>
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
 {
     private const uint QuestToastCheckmarkMagic = 60081;
@@ -378,7 +377,6 @@ internal sealed partial class ToastGui
 /// Plugin scoped version of ToastGui.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IToastGui>]

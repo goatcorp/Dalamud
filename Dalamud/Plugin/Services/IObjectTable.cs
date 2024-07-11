@@ -1,16 +1,13 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This collection represents the currently spawned FFXIV game objects.
 /// </summary>
-[Api10ToDo(
-    "Make it an IEnumerable<GameObject> instead. Skipping null objects make IReadOnlyCollection<T>.Count yield incorrect values.")]
-public interface IObjectTable : IReadOnlyCollection<GameObject>
+public interface IObjectTable : IEnumerable<IGameObject>
 {
     /// <summary>
     /// Gets the address of the object table.
@@ -27,14 +24,14 @@ public interface IObjectTable : IReadOnlyCollection<GameObject>
     /// </summary>
     /// <param name="index">Spawn index.</param>
     /// <returns>An <see cref="GameObject"/> at the specified spawn index.</returns>
-    public GameObject? this[int index] { get; }
+    public IGameObject? this[int index] { get; }
 
     /// <summary>
     /// Search for a game object by their Object ID.
     /// </summary>
-    /// <param name="objectId">Object ID to find.</param>
+    /// <param name="gameObjectId">Object ID to find.</param>
     /// <returns>A game object or null.</returns>
-    public GameObject? SearchById(ulong objectId);
+    public IGameObject? SearchById(ulong gameObjectId);
 
     /// <summary>
     /// Gets the address of the game object at the specified index of the object table.
@@ -48,5 +45,5 @@ public interface IObjectTable : IReadOnlyCollection<GameObject>
     /// </summary>
     /// <param name="address">The address of the object in memory.</param>
     /// <returns><see cref="GameObject"/> object or inheritor containing the requested data.</returns>
-    public GameObject? CreateObjectReference(nint address);
+    public IGameObject? CreateObjectReference(nint address);
 }

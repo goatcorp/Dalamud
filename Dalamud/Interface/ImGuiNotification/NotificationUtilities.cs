@@ -7,6 +7,7 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;

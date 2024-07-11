@@ -2,6 +2,7 @@
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -12,7 +13,6 @@ namespace Dalamud.Logging;
 /// Implementation of <see cref="IPluginLog"/>.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IPluginLog>]

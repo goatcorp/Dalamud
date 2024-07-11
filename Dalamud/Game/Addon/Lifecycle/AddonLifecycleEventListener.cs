@@ -27,6 +27,11 @@ internal class AddonLifecycleEventListener
     public string AddonName { get; init; }
     
     /// <summary>
+    /// Gets or sets a value indicating whether this event has been unregistered.
+    /// </summary>
+    public bool Removed { get; set; }
+    
+    /// <summary>
     /// Gets the event type this listener is looking for.
     /// </summary>
     public AddonEvent EventType { get; init; }

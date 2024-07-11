@@ -6,7 +6,7 @@ namespace Dalamud.Game.Network.Structures;
 /// This class represents the "Result Dialog" packet. This is also used e.g. for reduction results, but we only care about tax rates.
 /// We can do that by checking the "Category" field.
 /// </summary>
-public class MarketTaxRates
+public class MarketTaxRates : IMarketTaxRates
 {
     private MarketTaxRates()
     {
@@ -48,16 +48,26 @@ public class MarketTaxRates
     public uint CrystariumTax { get; private set; }
 
     /// <summary>
-    /// Gets the tax rate in the Crystarium.
+    /// Gets the tax rate in Sharlayan.
     /// </summary>
     public uint SharlayanTax { get; private set; }
+
+    /// <summary>
+    /// Gets the tax rate in Tuliyollal.
+    /// </summary>
+    public uint TuliyollalTax { get; private set; }
+
+    /// <summary>
+    /// Gets until when these values are valid.
+    /// </summary>
+    public DateTime ValidUntil { get; private set; }
 
     /// <summary>
     /// Read a <see cref="MarketTaxRates"/> object from memory.
     /// </summary>
     /// <param name="dataPtr">Address to read.</param>
     /// <returns>A new <see cref="MarketTaxRates"/> object.</returns>
-    public static unsafe MarketTaxRates Read(IntPtr dataPtr)
+    public static unsafe MarketTaxRates Read(nint dataPtr)
     {
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
@@ -73,23 +83,26 @@ public class MarketTaxRates
         output.KuganeTax = reader.ReadUInt32();
         output.CrystariumTax = reader.ReadUInt32();
         output.SharlayanTax = reader.ReadUInt32();
+        output.TuliyollalTax = reader.ReadUInt32();
+
+        output.ValidUntil = DateTime.Now; // Dalamud never reads this packet, so setting it to Now just to be safe
 
         return output;
     }
-    
+
     /// <summary>
     /// Generate a MarketTaxRates wrapper class from information located in a CustomTalk packet.
     /// </summary>
     /// <param name="dataPtr">The pointer to the relevant CustomTalk data.</param>
     /// <returns>Returns a wrapped and ready-to-go MarketTaxRates record.</returns>
-    public static unsafe MarketTaxRates ReadFromCustomTalk(IntPtr dataPtr)
+    public static unsafe MarketTaxRates ReadFromCustomTalk(nint dataPtr)
     {
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
 
         return new MarketTaxRates
         {
-            Category = 0xb0009, // shim
+            Category = 0xB0009, // shim
             LimsaLominsaTax = reader.ReadUInt32(),
             GridaniaTax = reader.ReadUInt32(),
             UldahTax = reader.ReadUInt32(),
@@ -97,6 +110,8 @@ public class MarketTaxRates
             KuganeTax = reader.ReadUInt32(),
             CrystariumTax = reader.ReadUInt32(),
             SharlayanTax = reader.ReadUInt32(),
+            TuliyollalTax = reader.ReadUInt32(),
+            ValidUntil = DateTimeOffset.FromUnixTimeSeconds(reader.ReadUInt32()).UtcDateTime,
         };
     }
 }

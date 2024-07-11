@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Aetherytes;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -82,7 +83,7 @@ internal class AetherytesWidget : IDataWindowWidget
             ImGui.TextUnformatted($"{info.IsSharedHouse}");
 
             ImGui.TableNextColumn(); // Apartment
-            ImGui.TextUnformatted($"{info.IsAppartment}");
+            ImGui.TextUnformatted($"{info.IsApartment}");
         }
 
         ImGui.EndTable();

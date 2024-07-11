@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
 
 namespace Dalamud.Interface.ImGuiNotification;

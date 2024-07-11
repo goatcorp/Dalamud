@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
+using Dalamud.Game;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
@@ -19,8 +19,7 @@ namespace Dalamud.Data;
 /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IDataManager>]
 #pragma warning restore SA1015
@@ -52,15 +51,12 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                     DefaultExcelLanguage = this.Language.ToLumina(),
                 };
 
-                var processModule = Process.GetCurrentProcess().MainModule;
-                if (processModule != null)
+                this.GameData = new(
+                    Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!, "sqpack"),
+                    luminaOptions)
                 {
-                    this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName)!, "sqpack"), luminaOptions);
-                }
-                else
-                {
-                    throw new Exception("Could not main module.");
-                }
+                    StreamPool = new(),
+                };
 
                 Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
 
@@ -107,7 +103,8 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Could not download data.");
+            Log.Error(ex, "Could not initialize Lumina");
+            throw;
         }
     }
 
@@ -161,6 +158,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     void IInternalDisposableService.DisposeService()
     {
         this.luminaCancellationTokenSource.Cancel();
+        this.GameData.Dispose();
     }
 
     private class LauncherTroubleshootingInfo

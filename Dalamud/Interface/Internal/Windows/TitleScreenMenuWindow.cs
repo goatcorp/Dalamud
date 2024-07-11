@@ -3,12 +3,14 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -41,6 +43,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
     private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
     private readonly Dictionary<Guid, InOutCubic> logoEasings = new();
+    
+    private readonly IConsoleVariable<bool> showTsm;
 
     private InOutCubic? fadeOutEasing;
 
@@ -55,7 +59,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// <param name="fontAtlasFactory">An instance of <see cref="FontAtlasFactory"/>.</param>
     /// <param name="framework">An instance of <see cref="Framework"/>.</param>
     /// <param name="titleScreenMenu">An instance of <see cref="TitleScreenMenu"/>.</param>
-    /// <param name="gameGui">An instance of <see cref="gameGui"/>.</param>
+    /// <param name="gameGui">An instance of <see cref="GameGui"/>.</param>
+    /// <param name="consoleManager">An instance of <see cref="ConsoleManager"/>.</param>
     public TitleScreenMenuWindow(
         ClientState clientState,
         DalamudConfiguration configuration,
@@ -63,12 +68,15 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         FontAtlasFactory fontAtlasFactory,
         Framework framework,
         GameGui gameGui,
-        TitleScreenMenu titleScreenMenu)
+        TitleScreenMenu titleScreenMenu,
+        ConsoleManager consoleManager)
         : base(
             "TitleScreenMenuOverlay",
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar |
             ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus)
     {
+        this.showTsm = consoleManager.AddVariable("dalamud.show_tsm", "Show the Title Screen Menu", true);
+        
         this.clientState = clientState;
         this.configuration = configuration;
         this.gameGui = gameGui;
@@ -136,12 +144,18 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
-        if (!this.AllowDrawing)
+        if (!this.AllowDrawing || !this.showTsm.Value)
             return;
         
         var scale = ImGui.GetIO().FontGlobalScale;
-        var entries = this.titleScreenMenu.Entries;
+        var entries = this.titleScreenMenu.PluginEntries;
 
+        var hovered = ImGui.IsWindowHovered(
+            ImGuiHoveredFlags.RootAndChildWindows |
+            ImGuiHoveredFlags.AllowWhenBlockedByActiveItem);
+
+        Service<InterfaceManager>.Get().OverrideGameCursor = !hovered;
+        
         switch (this.state)
         {
             case State.Show:
@@ -187,8 +201,11 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     i++;
                 }
 
-                if (!ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows |
-                                           ImGuiHoveredFlags.AllowWhenBlockedByActiveItem))
+                // Don't check for hover if we're in the middle of an animation, as it will cause flickering.
+                if (this.moveEasings.Any(x => !x.Value.IsDone))
+                    break;
+
+                if (!hovered)
                 {
                     this.state = State.FadeOut;
                 }
@@ -253,7 +270,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
             case State.Hide:
             {
-                if (this.DrawEntry(entries[0], true, false, true, true, false))
+                if (entries.Count > 0 && this.DrawEntry(entries[0], true, false, true, true, false))
                 {
                     this.state = State.Show;
                 }
@@ -267,7 +284,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     }
 
     private bool DrawEntry(
-        TitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
+        ITitleScreenMenuEntry entry, bool inhibitFadeout, bool showText, bool isFirst, bool overrideAlpha, bool interactable)
     {
         using var fontScopeDispose = this.myFontHandle.Value.Push();
 

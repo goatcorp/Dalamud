@@ -13,7 +13,7 @@ public interface IPartyFinderGui
     /// </summary>
     /// <param name="listing">The listings received.</param>
     /// <param name="args">Additional arguments passed by the game.</param>
-    public delegate void PartyFinderListingEventDelegate(PartyFinderListing listing, PartyFinderListingEventArgs args);
+    public delegate void PartyFinderListingEventDelegate(IPartyFinderListing listing, IPartyFinderListingEventArgs args);
     
     /// <summary>
     /// Event fired each time the game receives an individual Party Finder listing.

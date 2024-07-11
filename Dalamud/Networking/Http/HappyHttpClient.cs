@@ -1,8 +1,8 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
+using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 
 namespace Dalamud.Networking.Http;
@@ -11,7 +11,9 @@ namespace Dalamud.Networking.Http;
 /// A service to help build and manage HttpClients with some semblance of Happy Eyeballs (RFC 8305 - IPv4 fallback)
 /// awareness.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService($"{nameof(PluginManager)} currently uses this.")]
+// ^ TODO: This seems unnecessary, remove the hard dependency at a later time.
+//         Otherwise, if PM eventually marks this class as required, note that in the comment above.
 internal class HappyHttpClient : IInternalDisposableService
 {
     /// <summary>

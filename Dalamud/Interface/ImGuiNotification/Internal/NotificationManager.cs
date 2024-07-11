@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
@@ -17,7 +16,6 @@ using ImGuiNET;
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
 /// <summary>Class handling notifications/toasts in ImGui.</summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
 internal class NotificationManager : INotificationManager, IInternalDisposableService
 {
@@ -124,7 +122,6 @@ internal class NotificationManager : INotificationManager, IInternalDisposableSe
 
 /// <summary>Plugin-scoped version of a <see cref="NotificationManager"/> service.</summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<INotificationManager>]

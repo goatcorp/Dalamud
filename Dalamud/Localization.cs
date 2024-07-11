@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,6 +5,7 @@ using System.Reflection;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+
 using Serilog;
 
 namespace Dalamud;
@@ -138,7 +138,7 @@ public class Localization : IServiceType
     /// <param name="langCode">The language code to set up the UI language with.</param>
     public void SetupWithLangCode(string langCode)
     {
-        if (langCode.ToLower() == FallbackLangCode)
+        if (langCode.Equals(FallbackLangCode, StringComparison.InvariantCultureIgnoreCase))
         {
             this.SetupWithFallbacks();
             return;

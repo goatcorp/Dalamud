@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using Dalamud.Game.Text;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Windowing;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
@@ -231,12 +232,14 @@ internal class ImGuiWidget : IDataWindowWidget
                     break;
                 case 7:
                     n.SetIconTexture(
-                        DisposeLoggingTextureWrap.Wrap(tm.GetTextureFromGame(this.notificationTemplate.IconText)),
+                        DisposeLoggingTextureWrap.Wrap(
+                            tm.Shared.GetFromGame(this.notificationTemplate.IconText).GetWrapOrDefault()),
                         this.notificationTemplate.LeaveTexturesOpen);
                     break;
                 case 8:
                     n.SetIconTexture(
-                        DisposeLoggingTextureWrap.Wrap(tm.GetTextureFromFile(new(this.notificationTemplate.IconText))),
+                        DisposeLoggingTextureWrap.Wrap(
+                            tm.Shared.GetFromFile(this.notificationTemplate.IconText).GetWrapOrDefault()),
                         this.notificationTemplate.LeaveTexturesOpen);
                     break;
             }
@@ -307,7 +310,8 @@ internal class ImGuiWidget : IDataWindowWidget
             foreach (var n in this.notifications)
             {
                 var i = (uint)Random.Shared.NextInt64(0, 200000);
-                n.IconTexture = DisposeLoggingTextureWrap.Wrap(Service<TextureManager>.Get().GetIcon(i));
+                n.IconTexture = DisposeLoggingTextureWrap.Wrap(
+                    Service<TextureManager>.Get().Shared.GetFromGameIcon(new(i)).GetWrapOrDefault());
             }
         }
     }

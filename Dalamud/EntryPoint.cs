@@ -138,9 +138,7 @@ public sealed class EntryPoint
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
 
         // Load configuration first to get some early persistent state, like log level
-#pragma warning disable CS0618 // Type or member is obsolete
         var fs = new ReliableFileStorage(Path.GetDirectoryName(info.ConfigurationPath)!);
-#pragma warning restore CS0618 // Type or member is obsolete
         var configuration = DalamudConfiguration.Load(info.ConfigurationPath!, fs);
 
         // Set the appropriate logging level from the configuration
@@ -149,8 +147,16 @@ public sealed class EntryPoint
         LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 
         // Log any unhandled exception.
-        if (!info.NoExceptionHandlers)
-            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        switch (info.UnhandledException)
+        {
+            case UnhandledExceptionHandlingMode.Default:
+                AppDomain.CurrentDomain.UnhandledException += OnUnhandledExceptionDefault;
+                break;
+            case UnhandledExceptionHandlingMode.StallDebug:
+                AppDomain.CurrentDomain.UnhandledException += OnUnhandledExceptionStallDebug;
+                break;
+        }
+
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         var unloadFailed = false;
@@ -178,7 +184,10 @@ public sealed class EntryPoint
                 InitSymbolHandler(info);
 
             var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
-            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", Util.GetGitHash(), Util.GetGitHashClientStructs(), FFXIVClientStructs.Interop.Resolver.Version);
+            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", 
+                            Util.GetGitHash(), 
+                            Util.GetGitHashClientStructs(), 
+                            FFXIVClientStructs.ThisAssembly.Git.Commits);
 
             dalamud.WaitForUnload();
 
@@ -199,8 +208,15 @@ public sealed class EntryPoint
         finally
         {
             TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
-            if (!info.NoExceptionHandlers)
-                AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+            switch (info.UnhandledException)
+            {
+                case UnhandledExceptionHandlingMode.Default:
+                    AppDomain.CurrentDomain.UnhandledException -= OnUnhandledExceptionDefault;
+                    break;
+                case UnhandledExceptionHandlingMode.StallDebug:
+                    AppDomain.CurrentDomain.UnhandledException -= OnUnhandledExceptionStallDebug;
+                    break;
+            }
 
             Log.Information("Session has ended.");
             Log.CloseAndFlush();
@@ -248,7 +264,7 @@ public sealed class EntryPoint
         }
     }
 
-    private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
+    private static void OnUnhandledExceptionDefault(object sender, UnhandledExceptionEventArgs args)
     {
         switch (args.ExceptionObject)
         {
@@ -306,6 +322,12 @@ public sealed class EntryPoint
                 Environment.Exit(-1);
                 break;
         }
+    }
+
+    private static void OnUnhandledExceptionStallDebug(object sender, UnhandledExceptionEventArgs args)
+    {
+        while (!Debugger.IsAttached)
+            Thread.Sleep(100);
     }
 
     private static void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs args)

@@ -12,6 +12,9 @@ using Dalamud.ImGuiScene;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
@@ -26,7 +29,7 @@ namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 /// <summary>
 /// Factory for the implementation of <see cref="IFontAtlas"/>.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed partial class FontAtlasFactory
     : IInternalDisposableService, GamePrebakedFontHandle.IGameFontTextureProvider
 {
@@ -142,6 +145,11 @@ internal sealed partial class FontAtlasFactory
     public InterfaceManager InterfaceManager { get; }
 
     /// <summary>
+    /// Gets the service instance of <see cref="TextureManager"/>.
+    /// </summary>
+    public TextureManager TextureManager => Service<TextureManager>.Get();
+
+    /// <summary>
     /// Gets the async task for <see cref="IImGuiScene"/> inside <see cref="InterfaceManager"/>.
     /// </summary>
     public Task<IImGuiScene> SceneTask { get; }
@@ -171,12 +179,14 @@ internal sealed partial class FontAtlasFactory
     /// <param name="atlasName">Name of atlas, for debugging and logging purposes.</param>
     /// <param name="autoRebuildMode">Specify how to auto rebuild.</param>
     /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
+    /// <param name="ownerPlugin">The owner plugin, if any.</param>
     /// <returns>The new font atlas.</returns>
     public IFontAtlas CreateFontAtlas(
         string atlasName,
         FontAtlasAutoRebuildMode autoRebuildMode,
-        bool isGlobalScaled = true) =>
-        new DalamudFontAtlas(this, atlasName, autoRebuildMode, isGlobalScaled);
+        bool isGlobalScaled = true,
+        LocalPlugin? ownerPlugin = null) =>
+        new DalamudFontAtlas(this, atlasName, autoRebuildMode, isGlobalScaled, ownerPlugin);
 
     /// <summary>
     /// Adds the font from Dalamud Assets.
@@ -236,19 +246,11 @@ internal sealed partial class FontAtlasFactory
             var fileIndex = textureIndex / 4;
             var channelIndex = FdtReader.FontTableEntry.TextureChannelOrder[textureIndex % 4];
             wraps[textureIndex] ??= this.GetChannelTexture(texPathFormat, fileIndex, channelIndex);
-            return CloneTextureWrap(wraps[textureIndex]);
+            return wraps[textureIndex].CreateWrapSharingLowLevelResource();
         }
     }
 
     private static T ExtractResult<T>(Task<T> t) => t.IsCompleted ? t.Result : t.GetAwaiter().GetResult();
-
-    private static IDalamudTextureWrap CloneTextureWrap(IDalamudTextureWrap wrap) =>
-        wrap switch
-        {
-            ICloneable cloneable => (IDalamudTextureWrap)cloneable.Clone(),
-            not null => wrap.CreateWrapSharingLowLevelResource(),
-            _ => throw new NotSupportedException(),
-        };
 
     private static unsafe void ExtractChannelFromB8G8R8A8(
         Span<byte> target,
@@ -332,7 +334,7 @@ internal sealed partial class FontAtlasFactory
         var numPixels = texFile.Header.Width * texFile.Header.Height;
 
         _ = Service<InterfaceManager.InterfaceManagerWithScene>.Get();
-        var targetIsB4G4R4A4 = this.InterfaceManager.SupportsTextureFormat(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
+        var targetIsB4G4R4A4 = this.TextureManager.IsDxgiFormatSupported(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
         var bpp = targetIsB4G4R4A4 ? 2 : 4;
         var buffer = ArrayPool<byte>.Shared.Rent(numPixels * bpp);
         try
@@ -355,15 +357,16 @@ internal sealed partial class FontAtlasFactory
             }
 
             return this.scopedFinalizer.Add(
-                this.InterfaceManager.CreateTexture2DFromRaw(
+                this.TextureManager.CreateFromRaw(
+                    new(
+                        texFile.Header.Width,
+                        texFile.Header.Height,
+                        (int)(targetIsB4G4R4A4
+                                  ? DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
+                                  : DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM),
+                        texFile.Header.Width * bpp),
                     buffer,
-                    texFile.Header.Width * bpp,
-                    texFile.Header.Width,
-                    texFile.Header.Height,
-                    targetIsB4G4R4A4
-                        ? (int)DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
-                        : (int)DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM,
-                    $"{texPathFormat.Format(fileIndex)}(channel={channelIndex})"));
+                    $"{nameof(FontAtlasFactory)}[{texPathFormat.Format(fileIndex)}][{channelIndex}]"));
         }
         finally
         {

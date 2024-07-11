@@ -1,14 +1,13 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Text.RegularExpressions;
 
-using Dalamud.Data;
 using Dalamud.Game.Network;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -18,17 +17,6 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class NetworkMonitorWidget : IDataWindowWidget
 {
-#pragma warning disable SA1313
-    private readonly record struct NetworkPacketData(ushort OpCode, NetworkMessageDirection Direction, uint SourceActorId, uint TargetActorId)
-#pragma warning restore SA1313
-    {
-        public readonly IReadOnlyList<byte> Data = Array.Empty<byte>();
-
-        public NetworkPacketData(NetworkMonitorWidget widget, ushort opCode, NetworkMessageDirection direction, uint sourceActorId, uint targetActorId, nint dataPtr)
-            : this(opCode, direction, sourceActorId, targetActorId)
-            => this.Data = MemoryHelper.Read<byte>(dataPtr, widget.GetSizeFromOpCode(opCode), false);
-    }
-
     private readonly ConcurrentQueue<NetworkPacketData> packets = new();
 
     private bool trackNetwork;
@@ -215,4 +203,15 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     /// <remarks> The filter should find opCodes by number (decimal and hex) and name, if existing. </remarks>
     private string OpCodeToString(ushort opCode)
         => $"{opCode}\0{opCode:X}";
+    
+#pragma warning disable SA1313
+    private readonly record struct NetworkPacketData(ushort OpCode, NetworkMessageDirection Direction, uint SourceActorId, uint TargetActorId)
+#pragma warning restore SA1313
+    {
+        public readonly IReadOnlyList<byte> Data = Array.Empty<byte>();
+
+        public NetworkPacketData(NetworkMonitorWidget widget, ushort opCode, NetworkMessageDirection direction, uint sourceActorId, uint targetActorId, nint dataPtr)
+            : this(opCode, direction, sourceActorId, targetActorId)
+            => this.Data = MemoryHelper.Read<byte>(dataPtr, widget.GetSizeFromOpCode(opCode), false);
+    }
 }

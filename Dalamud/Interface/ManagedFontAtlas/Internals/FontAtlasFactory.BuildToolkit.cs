@@ -1,19 +1,23 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using ImGuiNET;
+
+using TerraFX.Interop.DirectX;
 
 using TerraFX.Interop.DirectX;
 
@@ -31,7 +35,7 @@ internal sealed partial class FontAtlasFactory
     /// Implementations for <see cref="IFontAtlasBuildToolkitPreBuild"/> and
     /// <see cref="IFontAtlasBuildToolkitPostBuild"/>.
     /// </summary>
-    private class BuildToolkit : IFontAtlasBuildToolkit.IApi9Compat, IFontAtlasBuildToolkitPreBuild, IFontAtlasBuildToolkitPostBuild, IDisposable
+    private class BuildToolkit : IFontAtlasBuildToolkitPreBuild, IFontAtlasBuildToolkitPostBuild, IDisposable
     {
         private static readonly ushort FontAwesomeIconMin =
             (ushort)Enum.GetValues<FontAwesomeIcon>().Where(x => x > 0).Min();
@@ -110,34 +114,6 @@ internal sealed partial class FontAtlasFactory
         public void DisposeWithAtlas(Action action) => this.data.Garbage.Add(action);
 
         /// <inheritdoc/>
-        [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-        public void FromUiBuilderObsoleteEventHandlers(Action action)
-        {
-            var previousSubstances = new IFontHandleSubstance[this.data.Substances.Count];
-            for (var i = 0; i < previousSubstances.Length; i++)
-            {
-                previousSubstances[i] = this.data.Substances[i].Manager.Substance;
-                this.data.Substances[i].Manager.Substance = this.data.Substances[i];
-                this.data.Substances[i].CreateFontOnAccess = true;
-                this.data.Substances[i].PreBuildToolkitForApi9Compat = this;
-            }
-
-            try
-            {
-                action();
-            }
-            finally
-            {
-                for (var i = 0; i < previousSubstances.Length; i++)
-                {
-                    this.data.Substances[i].Manager.Substance = previousSubstances[i];
-                    this.data.Substances[i].CreateFontOnAccess = false;
-                    this.data.Substances[i].PreBuildToolkitForApi9Compat = null;
-                }
-            }
-        }
-
-        /// <inheritdoc/>
         public ImFontPtr GetFont(IFontHandle fontHandle)
         {
             foreach (var s in this.data.Substances)
@@ -164,7 +140,7 @@ internal sealed partial class FontAtlasFactory
         /// <inheritdoc/>
         public int StoreTexture(IDalamudTextureWrap textureWrap, bool disposeOnError) =>
             this.data.AddNewTexture(textureWrap, disposeOnError);
-        
+
         /// <inheritdoc/>
         public void RegisterPostBuild(Action action) => this.registeredPostBuildActions.Add(action);
 
@@ -389,12 +365,10 @@ internal sealed partial class FontAtlasFactory
                         });
 
                 case DalamudAsset.LodestoneGameSymbol when !this.factory.HasGameSymbolsFontFile:
-                {
                     return this.AddGameGlyphs(
                         new(GameFontFamily.Axis, fontConfig.SizePx),
                         fontConfig.GlyphRanges,
                         fontConfig.MergeFont);
-                }
 
                 default:
                     return this.factory.AddFont(
@@ -434,8 +408,162 @@ internal sealed partial class FontAtlasFactory
             this.gameFontHandleSubstance.AttachGameGlyphs(this, mergeFont, gameFontStyle, glyphRanges);
 
         /// <inheritdoc/>
+        public void AttachWindowsDefaultFont(
+            CultureInfo cultureInfo,
+            in SafeFontConfig fontConfig,
+            int weight = (int)DWRITE_FONT_WEIGHT.DWRITE_FONT_WEIGHT_NORMAL,
+            int stretch = (int)DWRITE_FONT_STRETCH.DWRITE_FONT_STRETCH_NORMAL,
+            int style = (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL)
+        {
+            var targetFont = fontConfig.MergeFont;
+            if (targetFont.IsNull())
+                targetFont = this.Font;
+            if (targetFont.IsNull())
+                return;
+
+            // https://learn.microsoft.com/en-us/windows/apps/design/globalizing/loc-international-fonts
+            var splitTag = cultureInfo.IetfLanguageTag.Split("-");
+            foreach (var test in new[]
+                     {
+                         cultureInfo.IetfLanguageTag,
+                         $"{splitTag[0]}-{splitTag[^1]}",
+                     })
+            {
+                var familyName = test switch
+                {
+                    "af-ZA" => "Segoe UI",
+                    "am-ET" => "Ebrima",
+                    "ar-SA" => "Segoe UI",
+                    "as-IN" => "Nirmala UI",
+                    "az-Latn-AZ" => "Segoe UI",
+                    "be-BY" => "Segoe UI",
+                    "bg-BG" => "Segoe UI",
+                    "bn-BD" => "Nirmala UI",
+                    "bn-IN" => "Nirmala UI",
+                    "bs-Latn-BA" => "Segoe UI",
+                    "ca-ES" => "Segoe UI",
+                    "ca-ES-valencia" => "Segoe UI",
+                    "chr-CHER-US" => "Gadugi",
+                    "cs-CZ" => "Segoe UI",
+                    "cy-GB" => "Segoe UI",
+                    "da-DK" => "Segoe UI",
+                    "de-DE" => "Segoe UI",
+                    "el-GR" => "Segoe UI",
+                    "en-GB" => "Segoe UI",
+                    "es-ES" => "Segoe UI",
+                    "et-EE" => "Segoe UI",
+                    "eu-ES" => "Segoe UI",
+                    "fa-IR" => "Segoe UI",
+                    "fi-FI" => "Segoe UI",
+                    "fil-PH" => "Segoe UI",
+                    "fr-FR" => "Segoe UI",
+                    "ga-IE" => "Segoe UI",
+                    "gd-GB" => "Segoe UI",
+                    "gl-ES" => "Segoe UI",
+                    "gu-IN" => "Nirmala UI",
+                    "ha-Latn-NG" => "Segoe UI",
+                    "he-IL" => "Segoe UI",
+                    "hi-IN" => "Nirmala UI",
+                    "hr-HR" => "Segoe UI",
+                    "hu-HU" => "Segoe UI",
+                    "hy-AM" => "Segoe UI",
+                    "id-ID" => "Segoe UI",
+                    "ig-NG" => "Segoe UI",
+                    "is-IS" => "Segoe UI",
+                    "it-IT" => "Segoe UI",
+                    "ja-JP" => "Yu Gothic UI",
+                    "ka-GE" => "Segoe UI",
+                    "kk-KZ" => "Segoe UI",
+                    "km-KH" => "Leelawadee UI",
+                    "kn-IN" => "Nirmala UI",
+                    "ko-KR" => "Malgun Gothic",
+                    "kok-IN" => "Nirmala UI",
+                    "ku-ARAB-IQ" => "Segoe UI",
+                    "ky-KG" => "Segoe UI",
+                    "lb-LU" => "Segoe UI",
+                    "lt-LT" => "Segoe UI",
+                    "lv-LV" => "Segoe UI",
+                    "mi-NZ" => "Segoe UI",
+                    "mk-MK" => "Segoe UI",
+                    "ml-IN" => "Nirmala UI",
+                    "mn-MN" => "Segoe UI",
+                    "mr-IN" => "Nirmala UI",
+                    "ms-MY" => "Segoe UI",
+                    "mt-MT" => "Segoe UI",
+                    "nb-NO" => "Segoe UI",
+                    "ne-NP" => "Nirmala UI",
+                    "nl-NL" => "Segoe UI",
+                    "nn-NO" => "Segoe UI",
+                    "nso-ZA" => "Segoe UI",
+                    "or-IN" => "Nirmala UI",
+                    "pa-Arab-PK" => "Segoe UI",
+                    "pa-IN" => "Nirmala UI",
+                    "pl-PL" => "Segoe UI",
+                    "prs-AF" => "Segoe UI",
+                    "pt-BR" => "Segoe UI",
+                    "pt-PT" => "Segoe UI",
+                    "qut-GT" => "Segoe UI",
+                    "quz-PE" => "Segoe UI",
+                    "ro-RO" => "Segoe UI",
+                    "ru-RU" => "Segoe UI",
+                    "rw-RW" => "Segoe UI",
+                    "sd-Arab-PK" => "Segoe UI",
+                    "si-LK" => "Nirmala UI",
+                    "sk-SK" => "Segoe UI",
+                    "sl-SI" => "Segoe UI",
+                    "sq-AL" => "Segoe UI",
+                    "sr-Cyrl-BA" => "Segoe UI",
+                    "sr-Cyrl-CS" => "Segoe UI",
+                    "sr-Latn-CS" => "Segoe UI",
+                    "sv-SE" => "Segoe UI",
+                    "sw-KE" => "Segoe UI",
+                    "ta-IN" => "Nirmala UI",
+                    "te-IN" => "Nirmala UI",
+                    "tg-Cyrl-TJ" => "Segoe UI",
+                    "th-TH" => "Leelawadee UI",
+                    "ti-ET" => "Ebrima",
+                    "tk-TM" => "Segoe UI",
+                    "tn-ZA" => "Segoe UI",
+                    "tr-TR" => "Segoe UI",
+                    "tt-RU" => "Segoe UI",
+                    "ug-CN" => "Segoe UI",
+                    "uk-UA" => "Segoe UI",
+                    "ur-PK" => "Segoe UI",
+                    "uz-Latn-UZ" => "Segoe UI",
+                    "vi-VN" => "Segoe UI",
+                    "wo-SN" => "Segoe UI",
+                    "xh-ZA" => "Segoe UI",
+                    "yo-NG" => "Segoe UI",
+                    "zh-CN" => "Microsoft YaHei UI",
+                    "zh-HK" => "Microsoft JhengHei UI",
+                    "zh-TW" => "Microsoft JhengHei UI",
+                    "zh-Hans" => "Microsoft YaHei UI",
+                    "zh-Hant" => "Microsoft YaHei UI",
+                    "zu-ZA" => "Segoe UI",
+                    _ => null,
+                };
+                if (familyName is null)
+                    continue;
+                var family = IFontFamilyId
+                             .ListSystemFonts(false)
+                             .FirstOrDefault(
+                                 x => x.EnglishName.Equals(familyName, StringComparison.InvariantCultureIgnoreCase));
+                if (family?.Fonts[family.FindBestMatch(weight, stretch, style)] is not { } font)
+                    return;
+                font.AddToBuildToolkit(this, fontConfig with { MergeFont = targetFont });
+                return;
+            }
+        }
+
+        /// <inheritdoc/>
         public void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig)
         {
+            var targetFont = fontConfig.MergeFont;
+            if (targetFont.IsNull())
+                targetFont = this.Font;
+            if (targetFont.IsNull())
+                return;
+
             var dalamudConfiguration = Service<DalamudConfiguration>.Get();
             if (dalamudConfiguration.EffectiveLanguage == "ko"
                 || Service<DalamudIme>.GetNullable()?.EncounteredHangul is true)
@@ -444,41 +572,24 @@ internal sealed partial class FontAtlasFactory
                     DalamudAsset.NotoSansKrRegular,
                     fontConfig with
                     {
-                        GlyphRanges = ImGuiHelpers.CreateImGuiRangesFrom(
-                            UnicodeRanges.HangulJamo,
-                            UnicodeRanges.HangulCompatibilityJamo,
-                            UnicodeRanges.HangulSyllables,
-                            UnicodeRanges.HangulJamoExtendedA,
-                            UnicodeRanges.HangulJamoExtendedB),
+                        MergeFont = targetFont,
+                        GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("ko-kr").BuildExact(),
                     });
             }
 
-            var windowsDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-            var fontPathChs = Path.Combine(windowsDir, "Fonts", "msyh.ttc");
-            if (!File.Exists(fontPathChs))
-                fontPathChs = null;
-
-            var fontPathCht = Path.Combine(windowsDir, "Fonts", "msjh.ttc");
-            if (!File.Exists(fontPathCht))
-                fontPathCht = null;
-
-            if (fontPathCht != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "tw")
+            if (Service<DalamudConfiguration>.Get().EffectiveLanguage == "tw")
             {
-                this.AddFontFromFile(fontPathCht, fontConfig with
+                this.AttachWindowsDefaultFont(CultureInfo.GetCultureInfo("zh-hant"), fontConfig with
                 {
-                    GlyphRanges = ImGuiHelpers.CreateImGuiRangesFrom(
-                        UnicodeRanges.CjkUnifiedIdeographs,
-                        UnicodeRanges.CjkUnifiedIdeographsExtensionA),
+                    GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("zh-hant").BuildExact(),
                 });
             }
-            else if (fontPathChs != null && (Service<DalamudConfiguration>.Get().EffectiveLanguage == "zh"
-                                               || Service<DalamudIme>.GetNullable()?.EncounteredHan is true))
+            else if (Service<DalamudConfiguration>.Get().EffectiveLanguage == "zh"
+                     || Service<DalamudIme>.GetNullable()?.EncounteredHan is true)
             {
-                this.AddFontFromFile(fontPathChs, fontConfig with
+                this.AttachWindowsDefaultFont(CultureInfo.GetCultureInfo("zh-hans"), fontConfig with
                 {
-                    GlyphRanges = ImGuiHelpers.CreateImGuiRangesFrom(
-                        UnicodeRanges.CjkUnifiedIdeographs,
-                        UnicodeRanges.CjkUnifiedIdeographsExtensionA),
+                    GlyphRanges = default(FluentGlyphRangeBuilder).WithLanguage("zh-hans").BuildExact(),
                 });
             }
         }
@@ -579,28 +690,27 @@ internal sealed partial class FontAtlasFactory
             var buf = Array.Empty<byte>();
             try
             {
-                var use4 = this.factory.InterfaceManager.SupportsTextureFormat(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
+                var use4 = this.factory.TextureManager.IsDxgiFormatSupported(DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM);
                 var bpp = use4 ? 2 : 4;
                 var width = this.NewImAtlas.TexWidth;
                 var height = this.NewImAtlas.TexHeight;
-                var textureIndex = 0;
-                foreach (ref var texture in this.data.ImTextures.DataSpan)
+                var textureSpan = this.data.ImTextures.DataSpan;
+                for (var i = 0; i < textureSpan.Length; i++)
                 {
+                    ref var texture = ref textureSpan[i];
+                    var name =
+                        $"{nameof(FontAtlasBuiltData)}[{this.data.Owner?.Name ?? "-"}][0x{(long)this.data.Atlas.NativePtr:X}][{i}]";
                     if (texture.TexID != 0)
                     {
                         // Nothing to do
                     }
                     else if (texture.TexPixelsRGBA32 is not null)
                     {
-                        var wrap = this.factory.InterfaceManager.CreateTexture2DFromRaw(
+                        var wrap = this.factory.TextureManager.CreateFromRaw(
+                            RawImageSpecification.Rgba32(width, height),
                             new(texture.TexPixelsRGBA32, width * height * 4),
-                            width * 4,
-                            width,
-                            height,
-                            use4
-                                ? (int)DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
-                                : (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
-                            $"{this.data.Owner?.Name}:{textureIndex}");
+                            name);
+                        this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                     }
@@ -638,15 +748,17 @@ internal sealed partial class FontAtlasFactory
                             }
                         }
 
-                        var wrap = this.factory.InterfaceManager.CreateTexture2DFromRaw(
+                        var wrap = this.factory.TextureManager.CreateFromRaw(
+                            new(
+                                width,
+                                height,
+                                use4
+                                    ? (int)DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
+                                    : (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
+                                width * bpp),
                             buf,
-                            width * bpp,
-                            width,
-                            height,
-                            use4
-                                ? (int)DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM
-                                : (int)DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM,
-                            $"{this.data.Owner?.Name}:{textureIndex}");
+                            name);
+                        this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
                         texture.TexID = wrap.ImGuiHandle;
                         continue;
@@ -664,8 +776,6 @@ internal sealed partial class FontAtlasFactory
                         ImGuiNative.igMemFree(texture.TexPixelsAlpha8);
                     texture.TexPixelsRGBA32 = null;
                     texture.TexPixelsAlpha8 = null;
-
-                    textureIndex++;
                 }
             }
             finally
@@ -727,6 +837,31 @@ internal sealed partial class FontAtlasFactory
                     indexedHotData[codepoint].OccupiedWidth = fallbackHotData.OccupiedWidth;
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public void FitRatio(ImFontPtr font, bool rebuildLookupTable = true)
+        {
+            var nsize = font.FontSize;
+            var glyphs = font.GlyphsWrapped();
+            foreach (ref var glyph in glyphs.DataSpan)
+            {
+                var ratio = 1f;
+                if (glyph.X1 - glyph.X0 > nsize)
+                    ratio = Math.Max(ratio, (glyph.X1 - glyph.X0) / nsize);
+                if (glyph.Y1 - glyph.Y0 > nsize)
+                    ratio = Math.Max(ratio, (glyph.Y1 - glyph.Y0) / nsize);
+                var w = MathF.Round((glyph.X1 - glyph.X0) / ratio, MidpointRounding.ToZero);
+                var h = MathF.Round((glyph.Y1 - glyph.Y0) / ratio, MidpointRounding.AwayFromZero);
+                glyph.X0 = MathF.Round((nsize - w) / 2f, MidpointRounding.ToZero);
+                glyph.Y0 = MathF.Round((nsize - h) / 2f, MidpointRounding.AwayFromZero);
+                glyph.X1 = glyph.X0 + w;
+                glyph.Y1 = glyph.Y0 + h;
+                glyph.AdvanceX = nsize;
+            }
+
+            if (rebuildLookupTable)
+                this.BuildLookupTable(font);
         }
     }
 }

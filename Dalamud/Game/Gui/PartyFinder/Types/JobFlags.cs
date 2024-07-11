@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
 /// <summary>
@@ -152,4 +150,14 @@ public enum JobFlags
     /// Sage (SGE).
     /// </summary>
     Sage = 1 << 29,
+
+    /// <summary>
+    /// Viper (VPR).
+    /// </summary>
+    Viper = 1 << 30,
+
+    /// <summary>
+    /// Pictomancer (PCT).
+    /// </summary>
+    Pictomancer = 1 << 31,
 }

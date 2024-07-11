@@ -8,6 +8,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
@@ -35,27 +36,37 @@ Created by:
 goat
 daemitus
 Soreepeong
-ff-meli
-attickdoor
-Caraxi
-ascclemens
-kalilistic
-0ceal0t
-lmcintyre
-pohky
+MidoriKami
 Aireil
+ff-meli
+Caraxi
+KazWolfe
+kalilistic
+lmcintyre
+Ottermandias
+karashiiro
+attickdoor
+Haselnussbomber
+anna-is-cute
+pohky
+avafloww
+rreminy
+Infiziert90
+marzent
 fitzchivalrik
 MgAl2O4
+nebel
+SheepGoMeh
+wolfcomp
+0ceal0t
 NotAdam
+Bluefissure
+redstrate
 marimelon
-karashiiro
 pmgr
-Ottermandias
 aers
 Poliwrath
-Minizbot2021
 MalRD
-SheepGoMeh
 philpax
 
 
@@ -123,6 +134,14 @@ Haplo
 Franz
 aers
 philpax
+Aida
+Khayle
+Dale
+Arcane Disgea
+Risu
+Tom
+Blyoom
+Valk
 
 
 We use these awesome libraries:
@@ -234,7 +253,9 @@ Contribute at: https://github.com/goatcorp/Dalamud
     {
         var windowSize = ImGui.GetWindowSize();
 
-        ImGui.BeginChild("scrolling", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
+        using var child = ImRaii.Child("scrolling", new Vector2(-1, -10 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.NoScrollbar);
+        if (!child)
+            return;
 
         if (this.resetNow)
         {
@@ -294,8 +315,6 @@ Contribute at: https://github.com/goatcorp/Dalamud
                 ImGui.SetScrollY(0);
             }
         }
-
-        ImGui.EndChild();
 
         base.Draw();
     }

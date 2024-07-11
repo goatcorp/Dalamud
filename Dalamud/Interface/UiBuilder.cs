@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -9,39 +8,247 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.FontIdentifier;
-using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.ImGuiNotification;
-using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
-using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
 using ImGuiNET;
 
 using Serilog;
 
-using TerraFX.Interop.DirectX;
-
 namespace Dalamud.Interface;
+
+/// <summary>
+/// This interface represents the Dalamud UI that is drawn on top of the game.
+/// It can be used to draw custom windows and overlays.
+/// </summary>
+public interface IUiBuilder
+{
+    /// <summary>
+    /// The event that gets called when Dalamud is ready to draw your windows or overlays.
+    /// When it is called, you can use static ImGui calls.
+    /// </summary>
+    event Action? Draw;
+
+    /// <summary>
+    /// The event that is called when the game's DirectX device is requesting you to resize your buffers.
+    /// </summary>
+    event Action? ResizeBuffers;
+
+    /// <summary>
+    /// Event that is fired when the plugin should open its configuration interface.
+    /// </summary>
+    event Action? OpenConfigUi;
+
+    /// <summary>
+    /// Event that is fired when the plugin should open its main interface.
+    /// </summary>
+    event Action? OpenMainUi;
+
+    /// <summary>
+    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
+    /// These may be fired consecutively.
+    /// </summary>
+    event Action? ShowUi;
+
+    /// <summary>
+    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
+    /// These may be fired consecutively.
+    /// </summary>
+    event Action? HideUi;
+
+    /// <summary>
+    /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddDalamudDefaultFont(UiBuilder.DefaultFontSizePx)));
+    /// </code>
+    /// </remarks>
+    IFontHandle DefaultFontHandle { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddFontAwesomeIconFont(new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// // or use
+    ///         tk => tk.AddFontAwesomeIconFont(new() { SizePx = UiBuilder.DefaultFontSizePx })));
+    /// </code>
+    /// </remarks>
+    IFontHandle IconFontHandle { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud monospaced font based on Inconsolata Regular.
+    /// </summary>
+    /// <remarks>
+    /// A font handle corresponding to this font can be obtained with:
+    /// <code>
+    /// fontAtlas.NewDelegateFontHandle(
+    ///     e => e.OnPreBuild(
+    ///         tk => tk.AddDalamudAssetFont(
+    ///             DalamudAsset.InconsolataRegular,
+    ///             new() { SizePt = UiBuilder.DefaultFontSizePt })));
+    /// // or use
+    ///             new() { SizePx = UiBuilder.DefaultFontSizePx })));
+    /// </code>
+    /// </remarks>
+    IFontHandle MonoFontHandle { get; }
+
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 free solid with a fixed width and vertically centered glyphs.
+    /// </summary>
+    IFontHandle IconFontFixedWidthHandle { get; }
+
+    /// <summary>
+    /// Gets the default font specifications.
+    /// </summary>
+    IFontSpec DefaultFontSpec { get; }
+
+    /// <summary>
+    /// Gets the game's active Direct3D device.
+    /// </summary>
+    [Obsolete($"Use your own library of choice, wrapping ${nameof(DevicePtr)}.", true)]
+    SharpDX.Direct3D11.Device Device { get; }
+
+    /// <summary>
+    /// Gets the game's active Direct3D device.
+    /// </summary>
+    public nint DevicePtr { get; }
+
+    /// <summary>
+    /// Gets the game's main window handle.
+    /// </summary>
+    IntPtr WindowHandlePtr { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
+    /// </summary>
+    bool DisableAutomaticUiHide { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the user toggles the UI.
+    /// </summary>
+    bool DisableUserUiHide { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this plugin should hide its UI automatically during cutscenes.
+    /// </summary>
+    bool DisableCutsceneUiHide { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this plugin should hide its UI automatically while gpose is active.
+    /// </summary>
+    bool DisableGposeUiHide { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+    /// </summary>
+    bool OverrideGameCursor { get; set; }
+
+    /// <summary>
+    /// Gets the count of Draw calls made since plugin creation.
+    /// </summary>
+    ulong FrameCount { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not a cutscene is playing.
+    /// </summary>
+    bool CutsceneActive { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin should modify the game's interface at this time.
+    /// </summary>
+    bool ShouldModifyUi { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether UI functions can be used.
+    /// </summary>
+    bool UiPrepared { get; }
+
+    /// <summary>
+    /// Gets the plugin-private font atlas.
+    /// </summary>
+    IFontAtlas FontAtlas { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not to use "reduced motion". This usually means that you should use less
+    /// intrusive animations, or disable them entirely.
+    /// </summary>
+    bool ShouldUseReducedMotion { get; }
+
+    /// <summary>
+    /// Loads an ULD file that can load textures containing multiple icons in a single texture.
+    /// </summary>
+    /// <param name="uldPath">The path of the requested ULD file.</param>
+    /// <returns>A wrapper around said ULD file.</returns>
+    UldWrapper LoadUld(string uldPath);
+
+    /// <summary>
+    /// Waits for UI to become available for use.
+    /// </summary>
+    /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+    Task WaitForUi();
+
+    /// <summary>
+    /// Waits for UI to become available for use.
+    /// </summary>
+    /// <param name="func">Function to call.</param>
+    /// <param name="runInFrameworkThread">Specifies whether to call the function from the framework thread.</param>
+    /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+    /// <typeparam name="T">Return type.</typeparam>
+    Task<T> RunWhenUiPrepared<T>(Func<T> func, bool runInFrameworkThread = false);
+
+    /// <summary>
+    /// Waits for UI to become available for use.
+    /// </summary>
+    /// <param name="func">Function to call.</param>
+    /// <param name="runInFrameworkThread">Specifies whether to call the function from the framework thread.</param>
+    /// <returns>A task that completes when the game's Present has been called at least once.</returns>
+    /// <typeparam name="T">Return type.</typeparam>
+    Task<T> RunWhenUiPrepared<T>(Func<Task<T>> func, bool runInFrameworkThread = false);
+
+    /// <summary>
+    /// Creates an isolated <see cref="IFontAtlas"/>.
+    /// </summary>
+    /// <param name="autoRebuildMode">Specify when and how to rebuild this atlas.</param>
+    /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
+    /// <param name="debugName">Name for debugging purposes.</param>
+    /// <returns>A new instance of <see cref="IFontAtlas"/>.</returns>
+    /// <remarks>
+    /// Use this to create extra font atlases, if you want to create and dispose fonts without having to rebuild all
+    /// other fonts together.<br />
+    /// If <paramref name="autoRebuildMode"/> is not <see cref="FontAtlasAutoRebuildMode.OnNewFrame"/>,
+    /// the font rebuilding functions must be called manually.
+    /// </remarks>
+    IFontAtlas CreateFontAtlas(
+        FontAtlasAutoRebuildMode autoRebuildMode,
+        bool isGlobalScaled = true,
+        string? debugName = null);
+}
 
 /// <summary>
 /// This class represents the Dalamud UI that is drawn on top of the game.
 /// It can be used to draw custom windows and overlays.
 /// </summary>
-public sealed class UiBuilder : IDisposable
+public sealed class UiBuilder : IDisposable, IUiBuilder
 {
-    private readonly LocalPlugin localPlugin;
+    private readonly LocalPlugin plugin;
     private readonly Stopwatch stopwatch;
     private readonly HitchDetector hitchDetector;
     private readonly string namespaceName;
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
     private readonly Framework framework = Service<Framework>.Get();
-    private readonly ConcurrentDictionary<IActiveNotification, int> notifications = new();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -54,21 +261,22 @@ public sealed class UiBuilder : IDisposable
     private IFontHandle? defaultFontHandle;
     private IFontHandle? iconFontHandle;
     private IFontHandle? monoFontHandle;
+    private IFontHandle? iconFontFixedWidthHandle;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
     /// You do not have to call this manually.
     /// </summary>
+    /// <param name="plugin">The plugin.</param>
     /// <param name="namespaceName">The plugin namespace.</param>
-    /// <param name="localPlugin">The relevant local plugin.</param>
-    internal UiBuilder(string namespaceName, LocalPlugin localPlugin)
+    internal UiBuilder(LocalPlugin plugin, string namespaceName)
     {
-        this.localPlugin = localPlugin;
         try
         {
             this.stopwatch = new Stopwatch();
             this.hitchDetector = new HitchDetector($"UiBuilder({namespaceName})", this.configuration.UiBuilderHitch);
             this.namespaceName = namespaceName;
+            this.plugin = plugin;
 
             this.interfaceManager.Draw += this.OnDraw;
             this.scopedFinalizer.Add(() => this.interfaceManager.Draw -= this.OnDraw);
@@ -81,9 +289,7 @@ public sealed class UiBuilder : IDisposable
                     .Add(
                         Service<FontAtlasFactory>
                             .Get()
-                            .CreateFontAtlas(namespaceName, FontAtlasAutoRebuildMode.Disable));
-            this.FontAtlas.BuildStepChange += this.PrivateAtlasOnBuildStepChange;
-            this.FontAtlas.RebuildRecommend += this.RebuildFonts;
+                            .CreateFontAtlas(namespaceName, FontAtlasAutoRebuildMode.Async));
         }
         catch
         {
@@ -92,94 +298,23 @@ public sealed class UiBuilder : IDisposable
         }
     }
 
-    /// <summary>
-    /// The event that gets called when Dalamud is ready to draw your windows or overlays.
-    /// When it is called, you can use static ImGui calls.
-    /// </summary>
-    public event Action Draw;
+    /// <inheritdoc/>
+    public event Action? Draw;
 
-    /// <summary>
-    /// The event that is called when the game's DirectX device is requesting you to resize your buffers.
-    /// </summary>
-    public event Action ResizeBuffers;
+    /// <inheritdoc/>
+    public event Action? ResizeBuffers;
 
-    /// <summary>
-    /// Event that is fired when the plugin should open its configuration interface.
-    /// </summary>
-    public event Action OpenConfigUi;
-    
-    /// <summary>
-    /// Event that is fired when the plugin should open its main interface.
-    /// </summary>
-    public event Action OpenMainUi;
+    /// <inheritdoc/>
+    public event Action? OpenConfigUi;
 
-    /// <summary>
-    /// Gets or sets an action that is called any time ImGui fonts need to be rebuilt.<br/>
-    /// Any ImFontPtr objects that you store <b>can be invalidated</b> when fonts are rebuilt
-    /// (at any time), so you should both reload your custom fonts and restore those
-    /// pointers inside this handler.
-    /// </summary>
-    /// <remarks>
-    /// To add your custom font, use <see cref="FontAtlas"/>.<see cref="IFontAtlas.NewDelegateFontHandle"/> or
-    /// <see cref="IFontAtlas.NewGameFontHandle"/>.<br />
-    /// To be notified on font changes after fonts are built, use
-    /// <see cref="DefaultFontHandle"/>.<see cref="IFontHandle.ImFontChanged"/>.<br />
-    /// For all other purposes, use <see cref="FontAtlas"/>.<see cref="IFontAtlas.BuildStepChange"/>.<br />
-    /// <br />
-    /// Note that you will be calling above functions once, instead of every time inside a build step change callback.
-    /// For example, you can make all font handles from your plugin constructor, and then use the created handles during
-    /// <see cref="Draw"/> event, by using <see cref="IFontHandle.Push"/> in a scope.<br />
-    /// You may dispose your font handle anytime, as long as it's not in use in <see cref="Draw"/>.
-    /// Font handles may be constructed anytime, as long as the owner <see cref="IFontAtlas"/> or
-    /// <see cref="UiBuilder"/> is not disposed.<br />
-    /// <br />
-    /// If you were storing <see cref="ImFontPtr"/>, consider if the job can be achieved solely by using
-    /// <see cref="IFontHandle"/> without directly using an instance of <see cref="ImFontPtr"/>.<br />
-    /// If you do need it, evaluate if you need to access fonts outside the main thread.<br />
-    /// If it is the case, use <see cref="IFontHandle.Lock"/> to obtain a safe-to-access instance of
-    /// <see cref="ImFontPtr"/>, once <see cref="IFontHandle.WaitAsync"/> resolves.<br />
-    /// Otherwise, use <see cref="IFontHandle.Push"/>, and obtain the instance of <see cref="ImFontPtr"/> via
-    /// <see cref="ImGui.GetFont"/>. Do not let the <see cref="ImFontPtr"/> escape the <c>using</c> scope.<br />
-    /// <br />
-    /// If your plugin sets <see cref="PluginManifest.LoadRequiredState"/> to a non-default value, then
-    /// <see cref="DefaultFontHandle"/> should be accessed using
-    /// <see cref="RunWhenUiPrepared{T}(System.Func{T},bool)"/>, as the font handle member variables are only available
-    /// once drawing facilities are available.<br />
-    /// <br />
-    /// <b>Examples:</b><br />
-    /// * <see cref="InterfaceManager.ContinueConstruction"/>.<br />
-    /// * <see cref="Interface.Internal.Windows.Data.Widgets.GamePrebakedFontsTestWidget"/>.<br />
-    /// * <see cref="Interface.Internal.Windows.TitleScreenMenuWindow"/> ctor.<br />
-    /// * <see cref="Interface.Internal.Windows.Settings.Tabs.SettingsTabAbout"/>:
-    /// note how the construction of a new instance of <see cref="IFontAtlas"/> and
-    /// call of <see cref="IFontAtlas.NewGameFontHandle"/> are done in different functions,
-    /// without having to manually initiate font rebuild process.
-    /// </remarks>
-    [Obsolete("See remarks.", false)]
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public event Action? BuildFonts;
+    /// <inheritdoc/>
+    public event Action? OpenMainUi;
 
-    /// <summary>
-    /// Gets or sets an action that is called any time right after ImGui fonts are rebuilt.<br/>
-    /// Any ImFontPtr objects that you store <b>can be invalidated</b> when fonts are rebuilt
-    /// (at any time), so you should both reload your custom fonts and restore those
-    /// pointers inside this handler.
-    /// </summary>
-    [Obsolete($"See remarks for {nameof(BuildFonts)}.", false)]
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public event Action? AfterBuildFonts;
+    /// <inheritdoc/>
+    public event Action? ShowUi;
 
-    /// <summary>
-    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be shown.
-    /// These may be fired consecutively.
-    /// </summary>
-    public event Action ShowUi;
-
-    /// <summary>
-    /// Gets or sets an action that is called when plugin UI or interface modifications are supposed to be hidden.
-    /// These may be fired consecutively.
-    /// </summary>
-    public event Action HideUi;
+    /// <inheritdoc/>
+    public event Action? HideUi;
 
     /// <summary>
     /// Gets the default Dalamud font size in points.
@@ -253,6 +388,16 @@ public sealed class UiBuilder : IDisposable
                     ?? throw new InvalidOperationException("Scene is not yet ready.")));
 
     /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 free solid with a fixed width and vertically centered glyphs.
+    /// </summary>
+    public IFontHandle IconFontFixedWidthHandle =>
+        this.iconFontFixedWidthHandle ??=
+            this.scopedFinalizer.Add(
+                new FontHandleWrapper(
+                    this.InterfaceManagerWithScene?.IconFontFixedWidthHandle
+                    ?? throw new InvalidOperationException("Scene is not yet ready.")));
+
+    /// <summary>
     /// Gets the default Dalamud monospaced font based on Inconsolata Regular.
     /// </summary>
     /// <remarks>
@@ -267,28 +412,23 @@ public sealed class UiBuilder : IDisposable
     ///             new() { SizePx = UiBuilder.DefaultFontSizePx })));
     /// </code>
     /// </remarks>
-    public IFontHandle MonoFontHandle => 
+    public IFontHandle MonoFontHandle =>
         this.monoFontHandle ??=
             this.scopedFinalizer.Add(
                 new FontHandleWrapper(
                     this.InterfaceManagerWithScene?.MonoFontHandle
                     ?? throw new InvalidOperationException("Scene is not yet ready.")));
 
-    /// <summary>
-    /// Gets the game's active Direct3D device.
-    /// </summary>
-    [Obsolete($"Use your own library of choice, wrapping ${nameof(DevicePtr)}.", true)]
-    public SharpDX.Direct3D11.Device Device => new(this.InterfaceManagerWithScene.Device);
+    /// <inheritdoc/>
+    public SharpDX.Direct3D11.Device Device => new(this.DevicePtr);
     
-    /// <summary>
-    /// Gets the game's active Direct3D device.
-    /// </summary>
+    /// <inheritdoc/>
     public nint DevicePtr => this.InterfaceManagerWithScene.Device;
 
     /// <summary>
     /// Gets the game's main window handle.
     /// </summary>
-    public IntPtr WindowHandlePtr => this.InterfaceManagerWithScene.WindowHandlePtr;
+    public IntPtr WindowHandlePtr => this.InterfaceManagerWithScene!.WindowHandlePtr;
 
     /// <summary>
     /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
@@ -355,6 +495,12 @@ public sealed class UiBuilder : IDisposable
     public IFontAtlas FontAtlas { get; }
 
     /// <summary>
+    /// Gets a value indicating whether or not to use "reduced motion". This usually means that you should use less
+    /// intrusive animations, or disable them entirely.
+    /// </summary>
+    public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
+
+    /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
     /// </summary>
 #if DEBUG
@@ -395,89 +541,12 @@ public sealed class UiBuilder : IDisposable
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(task => task.Result.Manager);
 
     /// <summary>
-    /// Loads an image from the specified file.
-    /// </summary>
-    /// <param name="filePath">The full filepath to the image.</param>
-    /// <returns>A <see cref="IDalamudTextureWrap"/> object wrapping the created image.  Use <see cref="IDalamudTextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public IDalamudTextureWrap LoadImage(string filePath)
-        => this.InterfaceManagerWithScene!.CreateTexture2DFromFile(
-               filePath,
-               $"{nameof(UiBuilder)}[{this.namespaceName}].{nameof(this.LoadImage)}({nameof(filePath)}: {filePath})");
-
-    /// <summary>
-    /// Loads an image from a byte stream, such as a png downloaded into memory.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw image data.</param>
-    /// <returns>A <see cref="IDalamudTextureWrap"/> object wrapping the created image.  Use <see cref="IDalamudTextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public IDalamudTextureWrap LoadImage(byte[] imageData)
-        => this.InterfaceManagerWithScene!.CreateTexture2DFromBytes(
-               imageData,
-               $"{nameof(UiBuilder)}[{this.namespaceName}].{nameof(this.LoadImage)}({nameof(imageData)}: {imageData.Length} bytes)");
-
-    /// <summary>
-    /// Loads an image from raw unformatted pixel data, with no type or header information.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw pixel data.</param>
-    /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
-    /// <returns>A <see cref="IDalamudTextureWrap"/> object wrapping the created image.  Use <see cref="IDalamudTextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public IDalamudTextureWrap LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
-        => this.InterfaceManagerWithScene!.CreateTexture2DFromRaw(
-               imageData,
-               numChannels * width,
-               width,
-               height,
-               (int)(numChannels == 1 ? DXGI_FORMAT.DXGI_FORMAT_R8_UNORM : DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM),
-               $"{nameof(UiBuilder)}[{this.namespaceName}].{nameof(this.LoadImageRaw)}({width}x{height}x{numChannels})");
-
-    /// <summary>
     /// Loads an ULD file that can load textures containing multiple icons in a single texture.
     /// </summary>
     /// <param name="uldPath">The path of the requested ULD file.</param>
     /// <returns>A wrapper around said ULD file.</returns>
     public UldWrapper LoadUld(string uldPath)
         => new(this, uldPath);
-
-    /// <summary>
-    /// Asynchronously loads an image from the specified file, when it's possible to do so.
-    /// </summary>
-    /// <param name="filePath">The full filepath to the image.</param>
-    /// <returns>A <see cref="IDalamudTextureWrap"/> object wrapping the created image.  Use <see cref="IDalamudTextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<IDalamudTextureWrap> LoadImageAsync(string filePath) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).CreateTexture2DFromFile(
-                filePath,
-                $"{nameof(UiBuilder)}[{this.namespaceName}].{nameof(this.LoadImageAsync)}({nameof(filePath)}: {filePath})"));
-
-    /// <summary>
-    /// Asynchronously loads an image from a byte stream, such as a png downloaded into memory, when it's possible to do so.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw image data.</param>
-    /// <returns>A <see cref="IDalamudTextureWrap"/> object wrapping the created image.  Use <see cref="IDalamudTextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<IDalamudTextureWrap> LoadImageAsync(byte[] imageData) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).CreateTexture2DFromBytes(
-                imageData,
-                $"{nameof(UiBuilder)}[{this.namespaceName}].{nameof(this.LoadImageAsync)}({nameof(imageData)}: {imageData.Length} bytes)"));
-
-    /// <summary>
-    /// Asynchronously loads an image from raw unformatted pixel data, with no type or header information, when it's possible to do so.  To load formatted data, use <see cref="LoadImage(byte[])"/>.
-    /// </summary>
-    /// <param name="imageData">A byte array containing the raw pixel data.</param>
-    /// <param name="width">The width of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="height">The height of the image contained in <paramref name="imageData"/>.</param>
-    /// <param name="numChannels">The number of channels (bytes per pixel) of the image contained in <paramref name="imageData"/>.  This should usually be 4.</param>
-    /// <returns>A <see cref="IDalamudTextureWrap"/> object wrapping the created image.  Use <see cref="IDalamudTextureWrap.ImGuiHandle"/> inside ImGui.Image().</returns>
-    public Task<IDalamudTextureWrap> LoadImageRawAsync(byte[] imageData, int width, int height, int numChannels) => Task.Run(
-        async () =>
-            (await this.InterfaceManagerWithSceneAsync).CreateTexture2DFromRaw(
-                imageData,
-                numChannels * width,
-                width,
-                height,
-                (int)(numChannels == 1 ? DXGI_FORMAT.DXGI_FORMAT_R8_UNORM : DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM),
-                $"{nameof(UiBuilder)}[{this.namespaceName}].{nameof(this.LoadImageRawAsync)}({width}x{height}x{numChannels})"));
 
     /// <summary>
     /// Waits for UI to become available for use.
@@ -531,38 +600,6 @@ public sealed class UiBuilder : IDisposable
     }
 
     /// <summary>
-    /// Gets a game font.
-    /// </summary>
-    /// <param name="style">Font to get.</param>
-    /// <returns>Handle to the game font which may or may not be available for use yet.</returns>
-    [Obsolete($"Use {nameof(this.FontAtlas)}.{nameof(IFontAtlas.NewGameFontHandle)} instead.", false)]
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public GameFontHandle GetGameFontHandle(GameFontStyle style)
-    {
-        var prevValue = FontAtlasFactory.IsBuildInProgressForTask.Value;
-        FontAtlasFactory.IsBuildInProgressForTask.Value = false;
-        var v = new GameFontHandle(
-            (GamePrebakedFontHandle)this.FontAtlas.NewGameFontHandle(style),
-            Service<FontAtlasFactory>.Get());
-        FontAtlasFactory.IsBuildInProgressForTask.Value = prevValue;
-        return v;
-    }
-
-    /// <summary>
-    /// Call this to queue a rebuild of the font atlas.<br/>
-    /// This will invoke any <see cref="BuildFonts"/> and <see cref="AfterBuildFonts"/> handlers and ensure that any
-    /// loaded fonts are ready to be used on the next UI frame.
-    /// </summary>
-    public void RebuildFonts()
-    {
-        Log.Verbose("[FONT] {0} plugin is initiating FONT REBUILD", this.namespaceName);
-        if (this.AfterBuildFonts is null && this.BuildFonts is null)
-            this.FontAtlas.BuildFontsAsync();
-        else
-            this.FontAtlas.BuildFontsOnNextFrame();
-    }
-
-    /// <summary>
     /// Creates an isolated <see cref="IFontAtlas"/>.
     /// </summary>
     /// <param name="autoRebuildMode">Specify when and how to rebuild this atlas.</param>
@@ -584,36 +621,8 @@ public sealed class UiBuilder : IDisposable
                                  .CreateFontAtlas(
                                      this.namespaceName + ":" + (debugName ?? "custom"),
                                      autoRebuildMode,
-                                     isGlobalScaled));
-
-    /// <summary>
-    /// Add a notification to the notification queue.
-    /// </summary>
-    /// <param name="content">The content of the notification.</param>
-    /// <param name="title">The title of the notification.</param>
-    /// <param name="type">The type of the notification.</param>
-    /// <param name="msDelay">The time the notification should be displayed for.</param>
-    [Obsolete($"Use {nameof(INotificationManager)}.", false)]
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    public async void AddNotification(
-        string content,
-        string? title = null,
-        NotificationType type = NotificationType.None,
-        uint msDelay = 3000)
-    {
-        var nm = await Service<NotificationManager>.GetAsync();
-        var an = nm.AddNotification(
-            new()
-            {
-                Content = content,
-                Title = title,
-                Type = type,
-                InitialDuration = TimeSpan.FromMilliseconds(msDelay),
-            },
-            this.localPlugin);
-        _ = this.notifications.TryAdd(an, 0);
-        an.Dismiss += a => this.notifications.TryRemove(a.Notification, out _);
-    }
+                                     isGlobalScaled,
+                                     this.plugin));
 
     /// <summary>
     /// Unregister the UiBuilder. Do not call this in plugin code.
@@ -621,17 +630,6 @@ public sealed class UiBuilder : IDisposable
     void IDisposable.Dispose()
     {
         this.scopedFinalizer.Dispose();
-
-        // Taken from NotificationManagerPluginScoped.
-        // TODO: remove on API 10.
-        while (!this.notifications.IsEmpty)
-        {
-            foreach (var n in this.notifications.Keys)
-            {
-                this.notifications.TryRemove(n, out _);
-                ((ActiveNotification)n).RemoveNonDalamudInvocations();
-            }
-        }
     }
 
     /// <summary>Clean up resources allocated by this instance of <see cref="UiBuilder"/>.</summary>
@@ -645,7 +643,7 @@ public sealed class UiBuilder : IDisposable
     {
         this.OpenConfigUi?.InvokeSafely();
     }
-    
+
     /// <summary>
     /// Open the registered configuration UI, if it exists.
     /// </summary>
@@ -675,16 +673,15 @@ public sealed class UiBuilder : IDisposable
         this.hitchDetector.Start();
 
         var clientState = Service<ClientState>.Get();
-        var configuration = Service<DalamudConfiguration>.Get();
         var gameGui = Service<GameGui>.GetNullable();
         if (gameGui == null)
             return;
 
-        if ((gameGui.GameUiHidden && configuration.ToggleUiHide &&
+        if ((gameGui.GameUiHidden && this.configuration.ToggleUiHide &&
              !(this.DisableUserUiHide || this.DisableAutomaticUiHide)) ||
-            (this.CutsceneActive && configuration.ToggleUiHideDuringCutscenes &&
+            (this.CutsceneActive && this.configuration.ToggleUiHideDuringCutscenes &&
              !(this.DisableCutsceneUiHide || this.DisableAutomaticUiHide)) ||
-            (clientState.IsGPosing && configuration.ToggleUiHideDuringGpose &&
+            (clientState.IsGPosing && this.configuration.ToggleUiHideDuringGpose &&
              !(this.DisableGposeUiHide || this.DisableAutomaticUiHide)))
         {
             if (!this.lastFrameUiHideState)
@@ -700,13 +697,6 @@ public sealed class UiBuilder : IDisposable
         {
             this.lastFrameUiHideState = false;
             this.ShowUi?.InvokeSafely();
-        }
-
-        // just in case, if something goes wrong, prevent drawing; otherwise it probably will crash.
-        if (!this.FontAtlas.BuildTask.IsCompletedSuccessfully
-            && (this.BuildFonts is not null || this.AfterBuildFonts is not null))
-        {
-            return;
         }
 
         ImGui.PushID(this.namespaceName);
@@ -728,11 +718,7 @@ public sealed class UiBuilder : IDisposable
             ImGui.End();
         }
 
-        ImGuiManagedAsserts.ImGuiContextSnapshot snapshot = null;
-        if (this.Draw != null)
-        {
-            snapshot = ImGuiManagedAsserts.GetSnapshot();
-        }
+        var snapshot = this.Draw is null ? null : ImGuiManagedAsserts.GetSnapshot();
 
         try
         {
@@ -748,10 +734,8 @@ public sealed class UiBuilder : IDisposable
         }
 
         // Only if Draw was successful
-        if (this.Draw != null)
-        {
+        if (this.Draw is not null && snapshot is not null)
             ImGuiManagedAsserts.ReportProblems(this.namespaceName, snapshot);
-        }
 
         this.FrameCount++;
 
@@ -767,41 +751,6 @@ public sealed class UiBuilder : IDisposable
         ImGui.PopID();
 
         this.hitchDetector.Stop();
-    }
-
-    [Api10ToDo(Api10ToDoAttribute.DeleteCompatBehavior)]
-    private unsafe void PrivateAtlasOnBuildStepChange(IFontAtlasBuildToolkit e)
-    {
-        if (e.IsAsyncBuildOperation)
-            return;
-
-        ThreadSafety.AssertMainThread();
-
-        if (this.BuildFonts is not null)
-        {
-            e.OnPreBuild(
-                _ =>
-                {
-                    var prev = ImGui.GetIO().NativePtr->Fonts;
-                    ImGui.GetIO().NativePtr->Fonts = e.NewImAtlas.NativePtr;
-                    ((IFontAtlasBuildToolkit.IApi9Compat)e)
-                        .FromUiBuilderObsoleteEventHandlers(() => this.BuildFonts?.InvokeSafely());
-                    ImGui.GetIO().NativePtr->Fonts = prev;
-                });
-        }
-
-        if (this.AfterBuildFonts is not null)
-        {
-            e.OnPostBuild(
-                _ =>
-                {
-                    var prev = ImGui.GetIO().NativePtr->Fonts;
-                    ImGui.GetIO().NativePtr->Fonts = e.NewImAtlas.NativePtr;
-                    ((IFontAtlasBuildToolkit.IApi9Compat)e)
-                        .FromUiBuilderObsoleteEventHandlers(() => this.AfterBuildFonts?.InvokeSafely());
-                    ImGui.GetIO().NativePtr->Fonts = prev;
-                });
-        }
     }
 
     private void OnResizeBuffers()
@@ -853,5 +802,5 @@ public sealed class UiBuilder : IDisposable
 
         private void WrappedOnImFontChanged(IFontHandle obj, ILockedImFont lockedFont) =>
             this.ImFontChanged?.Invoke(obj, lockedFont);
-    } 
+    }
 }

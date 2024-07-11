@@ -11,8 +11,7 @@ namespace Dalamud.Game.DutyState;
 /// <summary>
 /// This class represents the state of the currently occupied duty.
 /// </summary>
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal unsafe class DutyState : IInternalDisposableService, IDutyState
 {
     private readonly DutyStateAddressResolver address;
@@ -163,7 +162,6 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
 /// Plugin scoped version of DutyState.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IDutyState>]

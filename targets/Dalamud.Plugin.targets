@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.12" />
+        <PackageReference Include="DalamudPackager" Version="2.1.13" />
         <Reference Include="FFXIVClientStructs" Private="false" />
         <Reference Include="Newtonsoft.Json" Private="false" />
         <Reference Include="Dalamud" Private="false" />
@@ -26,4 +26,10 @@
     <Target Name="Message" BeforeTargets="BeforeBuild">
         <Message Text="Dalamud.Plugin: root at $(DalamudLibPath)" Importance="high" />
     </Target>
+
+    <!-- Uncomment when we... wrote the docs
+    <Target Name="DeprecationNotice" BeforeTargets="BeforeBuild">
+        <Warning Text="Dalamud.Plugin.targets is deprecated. Please upgrade to Dalamud.NET.Sdk - learn more here: https://dalamud.dev/versions/v10/sdk-migration" />
+    </Target>
+    -->
 </Project>

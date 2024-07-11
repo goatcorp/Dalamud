@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Storage.Assets;
 
@@ -22,6 +23,11 @@ public interface IDalamudAssetManager
     /// Gets the shared texture wrap for <see cref="DalamudAsset.Empty4X4"/>.
     /// </summary>
     IDalamudTextureWrap Empty4X4 { get; }
+
+    /// <summary>
+    /// Gets the shared texture wrap for <see cref="DalamudAsset.White4X4"/>.
+    /// </summary>
+    IDalamudTextureWrap White4X4 { get; }
 
     /// <summary>
     /// Gets whether the stream for the asset is instantly available.

@@ -1,5 +1,10 @@
 ﻿using System.Numerics;
 
+using Dalamud.Data;
+using Dalamud.Game.ClientState.Objects.Types;
+
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+
 using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Utility;
@@ -127,5 +132,33 @@ public static class MapUtil
     public static Vector2 WorldToMap(Vector2 worldCoordinates, Map map)
     {
         return WorldToMap(worldCoordinates, map.OffsetX, map.OffsetY, map.SizeFactor);
+    }
+
+    /// <summary>
+    /// Extension method to get the current position of a GameObject in Map Coordinates (visible to players in the
+    /// minimap or chat). A Z (height) value will always be returned, even on maps that do not natively show one.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if ClientState is unavailable.</exception>
+    /// <param name="go">The GameObject to get the position for.</param>
+    /// <param name="correctZOffset">Whether to "correct" a Z offset to sane values for maps that don't have one.</param>
+    /// <returns>A Vector3 that represents the X (east/west), Y (north/south), and Z (height) position of this object.</returns>
+    public static unsafe Vector3 GetMapCoordinates(this IGameObject go, bool correctZOffset = false)
+    {
+        var agentMap = AgentMap.Instance();
+
+        if (agentMap == null || agentMap->CurrentMapId == 0)
+            throw new InvalidOperationException("Could not determine active map - data may not be loaded yet?");
+
+        var territoryTransient = Service<DataManager>.Get()
+                                                     .GetExcelSheet<TerritoryTypeTransient>()!
+                                                     .GetRow(agentMap->CurrentTerritoryId);
+
+        return WorldToMap(
+            go.Position,
+            agentMap->CurrentOffsetX,
+            agentMap->CurrentOffsetY,
+            territoryTransient?.OffsetZ ?? 0,
+            (uint)agentMap->CurrentMapSizeFactor,
+            correctZOffset);
     }
 }

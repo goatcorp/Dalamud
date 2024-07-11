@@ -2,7 +2,6 @@ using System;
 using System.IO;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -35,7 +34,7 @@ namespace Dalamud.CorePlugin
         /// Initializes a new instance of the <see cref="PluginImpl"/> class.
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface)
+        public PluginImpl(IDalamudPluginInterface pluginInterface)
         {
         }
 
@@ -56,7 +55,7 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface, IPluginLog log)
+        public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log)
         {
             try
             {
@@ -74,7 +73,7 @@ namespace Dalamud.CorePlugin
                     Log.Information($"CorePlugin : DefaultFontHandle.ImFontChanged called {fc}");
                 };
 
-                Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = "Access the plugin." });
+                Service<CommandManager>.Get().AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
 
                 log.Information("CorePlugin ctor!");
             }
@@ -87,7 +86,7 @@ namespace Dalamud.CorePlugin
         /// <summary>
         /// Gets the plugin interface.
         /// </summary>
-        internal DalamudPluginInterface Interface { get; private set; }
+        internal IDalamudPluginInterface Interface { get; private set; }
 
         /// <inheritdoc/>
         public void Dispose()

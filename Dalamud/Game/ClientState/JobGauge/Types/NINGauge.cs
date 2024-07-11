@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Game.ClientState.JobGauge.Types;
 
 /// <summary>
@@ -17,17 +15,7 @@ public unsafe class NINGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     }
 
     /// <summary>
-    /// Gets the time left on Huton in milliseconds.
-    /// </summary>
-    public int HutonTimer => this.Struct->HutonTimer;
-
-    /// <summary>
     /// Gets the amount of Ninki available.
     /// </summary>
     public byte Ninki => this.Struct->Ninki;
-
-    /// <summary>
-    /// Gets the number of times Huton has been cast manually.
-    /// </summary>
-    public byte HutonManualCasts => this.Struct->HutonManualCasts;
 }

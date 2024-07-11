@@ -24,10 +24,12 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using ImGuiNET;
-using Serilog;
+
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -50,7 +52,7 @@ namespace Dalamud.Interface.Internal;
 /// <summary>
 /// This class manages interaction with the ImGui interface.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class InterfaceManager : IInternalDisposableService
 {
     /// <summary>
@@ -63,17 +65,22 @@ internal class InterfaceManager : IInternalDisposableService
     /// </summary>
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
+    private static readonly ModuleLog Log = new("INTERFACE");
+
     private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
-    private readonly ConcurrentBag<ILockedImFont> deferredDisposeImFontLockeds = new();
+    private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly Framework framework = Service<Framework>.Get();
+    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
 
     [ServiceManager.ServiceDependency]
-    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
+    private readonly Framework framework = Service<Framework>.Get();
+
+    private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
+    private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
     private readonly SwapChainVtableResolver address = new();
     private IWin32Scene? scene;
@@ -100,7 +107,8 @@ internal class InterfaceManager : IInternalDisposableService
     private unsafe delegate HRESULT PresentDelegate(IDXGISwapChain* swapChain, uint syncInterval, uint presentFlags);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private unsafe delegate HRESULT ResizeBuffersDelegate(IDXGISwapChain* swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
+    private unsafe delegate HRESULT ResizeBuffersDelegate(
+        IDXGISwapChain* swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate HCURSOR SetCursorDelegate(HCURSOR hCursor);
@@ -135,6 +143,13 @@ internal class InterfaceManager : IInternalDisposableService
         WhenFontsReady().IconFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
 
     /// <summary>
+    /// Gets an included FontAwesome icon font with fixed width.
+    /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
+    /// </summary>
+    public static ImFontPtr IconFontFixedWidth =>
+        WhenFontsReady().IconFontFixedWidthHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+
+    /// <summary>
     /// Gets an included monospaced font.<br />
     /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
@@ -152,6 +167,11 @@ internal class InterfaceManager : IInternalDisposableService
     public FontHandle? IconFontHandle { get; private set; }
 
     /// <summary>
+    /// Gets the icon font handle with fixed width.
+    /// </summary>
+    public FontHandle? IconFontFixedWidthHandle { get; private set; }
+
+    /// <summary>
     /// Gets the mono font handle.
     /// </summary>
     public FontHandle? MonoFontHandle { get; private set; }
@@ -167,14 +187,14 @@ internal class InterfaceManager : IInternalDisposableService
     public IImGuiScene? Scene => this.scene;
 
     /// <summary>
-    /// Gets the device instance.
+    /// Gets the device instance, or 0 if unavailable.
     /// </summary>
     public nint Device => this.scene?.DeviceHandle ?? 0;
 
     /// <summary>
-    /// Gets the address handle to the main process window.
+    /// Gets the handle to the main process window, or 0 if unavailable.
     /// </summary>
-    public IntPtr WindowHandlePtr => this.GameWindowHandle;
+    public nint WindowHandlePtr => this.GameWindowHandle;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
@@ -199,6 +219,10 @@ internal class InterfaceManager : IInternalDisposableService
     /// Gets or sets a value indicating whether or not Draw events should be dispatched.
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
+
+    /// <summary>Gets a value indicating whether the main thread is executing <see cref="PresentDetour"/>.</summary>
+    /// <remarks>This still will be <c>true</c> even when queried off the main thread.</remarks>
+    public bool IsMainThreadInPresent { get; private set; }
 
     /// <summary>
     /// Gets a value indicating the native handle of the game main window.
@@ -234,9 +258,11 @@ internal class InterfaceManager : IInternalDisposableService
     /// </summary>
     public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
 
-    /// <summary>
-    /// Gets the number of calls to <see cref="PresentDetour"/> so far.
-    /// </summary>
+    /// <summary>Gets the number of calls to <see cref="PresentDetour"/> so far.</summary>
+    /// <remarks>
+    /// The value increases even when Dalamud is hidden via &quot;/xlui hide&quot;.
+    /// <see cref="DalamudInterface.FrameCount"/> does not.
+    /// </remarks>
     public long CumulativePresentCalls { get; private set; }
 
     /// <summary>
@@ -284,42 +310,6 @@ internal class InterfaceManager : IInternalDisposableService
         }
     }
 
-    /// <inheritdoc cref="IImGuiScene.SupportsTextureFormat"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool SupportsTextureFormat(int format) => 
-        this.scene?.SupportsTextureFormat(format) ?? throw new InvalidOperationException("Scene isn't ready.");
-
-    /// <inheritdoc cref="IImGuiScene.SupportsTextureFormat"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool SupportsTextureFormat(DXGI_FORMAT format) => this.SupportsTextureFormat((int)format);
-
-    /// <inheritdoc cref="IImGuiScene.CreateTexture2DFromFile"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDalamudTextureWrap CreateTexture2DFromFile(string filePath, string debugName) =>
-        new DalamudTextureWrap(
-            this.scene?.CreateTexture2DFromFile(filePath, debugName)
-            ?? throw new InvalidOperationException("Scene isn't ready."));
-
-    /// <inheritdoc cref="IImGuiScene.CreateTexture2DFromBytes"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDalamudTextureWrap CreateTexture2DFromBytes(ReadOnlySpan<byte> imageData, string debugName) =>
-        new DalamudTextureWrap(
-            this.scene?.CreateTexture2DFromBytes(imageData, debugName)
-            ?? throw new InvalidOperationException("Scene isn't ready."));
-
-    /// <inheritdoc cref="IImGuiScene.CreateTexture2DFromRaw"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IDalamudTextureWrap CreateTexture2DFromRaw(
-        Span<byte> data,
-        int pitch,
-        int width,
-        int height,
-        int format,
-        string debugName) =>
-        new DalamudTextureWrap(
-            this.scene?.CreateTexture2DFromRaw(data, pitch, width, height, format, debugName)
-            ?? throw new InvalidOperationException("Scene isn't ready."));
-
     /// <summary>
     /// Sets up a deferred invocation of font rebuilding, before the next render frame.
     /// </summary>
@@ -342,9 +332,97 @@ internal class InterfaceManager : IInternalDisposableService
     /// Enqueue an <see cref="ILockedImFont"/> to be disposed at the end of the frame.
     /// </summary>
     /// <param name="locked">The disposable.</param>
-    public void EnqueueDeferredDispose(in ILockedImFont locked)
+    public void EnqueueDeferredDispose(IDisposable locked)
     {
-        this.deferredDisposeImFontLockeds.Add(locked);
+        this.deferredDisposeDisposables.Add(locked);
+    }
+
+    /// <summary>Queues an action to be run before <see cref="ImGui.Render"/> call.</summary>
+    /// <param name="action">The action.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
+    public Task RunBeforeImGuiRender(Action action)
+    {
+        var tcs = new TaskCompletionSource();
+        this.runBeforeImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    action();
+                    tcs.SetResult();
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues a function to be run before <see cref="ImGui.Render"/> call.</summary>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="func">The function.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
+    public Task<T> RunBeforeImGuiRender<T>(Func<T> func)
+    {
+        var tcs = new TaskCompletionSource<T>();
+        this.runBeforeImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    tcs.SetResult(func());
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues an action to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <param name="action">The action.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
+    public Task RunAfterImGuiRender(Action action)
+    {
+        var tcs = new TaskCompletionSource();
+        this.runAfterImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    action();
+                    tcs.SetResult();
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues a function to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="func">The function.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
+    public Task<T> RunAfterImGuiRender<T>(Func<T> func)
+    {
+        var tcs = new TaskCompletionSource<T>();
+        this.runAfterImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    tcs.SetResult(func());
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
     }
 
     /// <summary>
@@ -393,10 +471,10 @@ internal class InterfaceManager : IInternalDisposableService
             throw new InvalidOperationException("Game window is not yet ready.");
         var value = enabled ? 1u : 0u;
         DwmSetWindowAttribute(
-                    this.GameWindowHandle,
-                    (uint)DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
-                    &value,
-                    sizeof(int)).ThrowOnError();
+            this.GameWindowHandle,
+            (uint)DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
+            &value,
+            sizeof(int)).ThrowOnError();
     }
 
     private static InterfaceManager WhenFontsReady()
@@ -408,6 +486,23 @@ internal class InterfaceManager : IInternalDisposableService
         if (!atlas.HasBuiltAtlas)
             atlas.BuildTask.GetAwaiter().GetResult();
         return im;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void RenderImGui(IImGuiScene scene)
+    {
+        var conf = Service<DalamudConfiguration>.Get();
+
+        // Process information needed by ImGuiHelpers each frame.
+        ImGuiHelpers.NewFrame();
+
+        // Enable viewports if there are no issues.
+        if (conf.IsDisableViewport || scene.IsMainViewportFullScreen() || ImGui.GetPlatformIO().Monitors.Size == 1)
+            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
+        else
+            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+
+        scene.Render();
     }
 
     private unsafe void InitScene(IDXGISwapChain* swapChain)
@@ -427,7 +522,8 @@ internal class InterfaceManager : IInternalDisposableService
                 Log.Error(ex, "Could not load ImGui dependencies.");
 
                 int res;
-                fixed (char* msg = "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?")
+                fixed (char* msg =
+                           "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?")
                 {
                     fixed (char* title = "Dalamud Error")
                     {
@@ -458,14 +554,18 @@ internal class InterfaceManager : IInternalDisposableService
             var startInfo = Service<Dalamud>.Get().StartInfo;
             var configuration = this.dalamudConfiguration;
 
-            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
+            var iniFileInfo = new FileInfo(
+                Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
 
             try
             {
                 if (iniFileInfo.Length > 1200000)
                 {
                     Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                    iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName!, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                    iniFileInfo.CopyTo(
+                        Path.Combine(
+                            iniFileInfo.DirectoryName!,
+                            $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
                     iniFileInfo.Delete();
                 }
             }
@@ -481,9 +581,11 @@ internal class InterfaceManager : IInternalDisposableService
 
             StyleModel.TransferOldModels();
 
-            if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
+            if (configuration.SavedStyles == null ||
+                configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
             {
-                configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
+                configuration.SavedStyles = new List<StyleModel>
+                    { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
                 configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
             }
             else if (configuration.SavedStyles.Count == 1)
@@ -567,41 +669,45 @@ internal class InterfaceManager : IInternalDisposableService
                 throw new InvalidOperationException("InitScene did not set this.scene?");
         }
 
-        if (!this.scene!.IsAttachedToPresentationTarget((nint)swapChain))
+        if (!this.scene.IsAttachedToPresentationTarget((nint)swapChain))
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
         // Do not do anything yet if no font atlas has been built yet.
         if (this.dalamudAtlas?.HasBuiltAtlas is not true)
+        {
+            if (this.dalamudAtlas?.BuildTask.Exception != null)
+            {
+                // TODO: Can we do something more user-friendly here? Unload instead?
+                Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
+                Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
+            }
+
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
+        }
 
         // Only count Present calls for the main viewport (game window).
         this.CumulativePresentCalls++;
 
-        // Process information needed by ImGuiHelpers each frame.
-        ImGuiHelpers.NewFrame();
+        this.IsMainThreadInPresent = true;
+        this.PreImGuiRender();
+        RenderImGui(this.scene!);
+        this.PostImGuiRender();
+        this.IsMainThreadInPresent = false;
 
-        // Check if we can still enable viewports without any issues.
-        if (this.dalamudConfiguration.IsDisableViewport
-            || this.scene.IsMainViewportFullScreen()
-            || ImGui.GetPlatformIO().Monitors.Size == 1)
-        {
-            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
-        }
-        else
-        {
-            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
-        }
-
-        this.scene.Render();
-
-        // Clean up temporary resources allocated/locked from above. 
-        this.CleanupPostImGuiRender();
-
-        return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+        return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
     }
-    
-    private void CleanupPostImGuiRender()
+
+    private void PreImGuiRender()
     {
+        while (this.runBeforeImGuiRender.TryDequeue(out var action))
+            action.InvokeSafely();
+    }
+
+    private void PostImGuiRender()
+    {
+        while (this.runAfterImGuiRender.TryDequeue(out var action))
+            action.InvokeSafely();
+
         if (!this.deferredDisposeTextures.IsEmpty)
         {
             var count = 0;
@@ -614,12 +720,12 @@ internal class InterfaceManager : IInternalDisposableService
             Log.Verbose("[IM] Disposing {Count} textures", count);
         }
 
-        if (!this.deferredDisposeImFontLockeds.IsEmpty)
+        if (!this.deferredDisposeDisposables.IsEmpty)
         {
             // Not logging; the main purpose of this is to keep resources used for rendering the frame to be kept
             // referenced until the resources are actually done being used, and it is expected that this will be
             // frequent.
-            while (this.deferredDisposeImFontLockeds.TryTake(out var d))
+            while (this.deferredDisposeDisposables.TryTake(out var d))
                 d.Dispose();
         }
     }
@@ -645,6 +751,15 @@ internal class InterfaceManager : IInternalDisposableService
                             GlyphMinAdvanceX = DefaultFontSizePx,
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
+            this.IconFontFixedWidthHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(
+                    tk => tk.AddDalamudAssetFont(
+                        DalamudAsset.FontAwesomeFreeSolid,
+                        new()
+                        {
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                            GlyphRanges = new ushort[] { 0x20, 0x20, 0x00 },
+                        })));
             this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(
@@ -661,6 +776,13 @@ internal class InterfaceManager : IInternalDisposableService
                         tk.GetFont(this.DefaultFontHandle),
                         tk.GetFont(this.MonoFontHandle),
                         missingOnly: true);
+
+                    // Fill missing glyphs in IconFontFixedWidth with IconFont and fit ratio
+                    tk.CopyGlyphsAcrossFonts(
+                        tk.GetFont(this.IconFontHandle),
+                        tk.GetFont(this.IconFontFixedWidthHandle),
+                        missingOnly: true);
+                    tk.FitRatio(tk.GetFont(this.IconFontFixedWidthHandle));
                 });
             this.DefaultFontHandle.ImFontChanged += (_, font) =>
             {
@@ -696,9 +818,16 @@ internal class InterfaceManager : IInternalDisposableService
             Log.Error(ex, "Could not enable immersive mode");
         }
 
-        this.setCursorHook = Hook<SetCursorDelegate>.FromImport(null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
+        this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
+            null,
+            "user32.dll",
+            "SetCursor",
+            0,
+            this.SetCursorDetour);
         this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
-        this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
+        this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
+            this.address.ResizeBuffers,
+            this.ResizeBuffersDetour);
 
         Log.Verbose("===== S W A P C H A I N =====");
         Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
@@ -709,10 +838,12 @@ internal class InterfaceManager : IInternalDisposableService
         this.resizeBuffersHook.Enable();
     }
 
-    private unsafe HRESULT ResizeBuffersDetour(IDXGISwapChain* swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
+    private unsafe HRESULT ResizeBuffersDetour(
+        IDXGISwapChain* swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
     {
 #if DEBUG
-        Log.Verbose($"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+        Log.Verbose(
+            $"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
         this.ResizeBuffers?.InvokeSafely();

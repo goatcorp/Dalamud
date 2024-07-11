@@ -1,10 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Fates;
@@ -13,8 +13,7 @@ namespace Dalamud.Game.ClientState.Fates;
 /// This collection represents the currently available Fate events.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IFateTable>]
 #pragma warning restore SA1015
@@ -49,7 +48,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
             if (Struct->Fates.First == null || Struct->Fates.Last == null)
                 return 0;
 
-            return (int)Struct->Fates.Size();
+            return Struct->Fates.Count;
         }
     }
 
@@ -70,13 +69,27 @@ internal sealed partial class FateTable : IServiceType, IFateTable
     private unsafe FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager*)this.FateTableAddress;
 
     /// <inheritdoc/>
-    public Fate? this[int index]
+    public IFate? this[int index]
     {
         get
         {
             var address = this.GetFateAddress(index);
             return this.CreateFateReference(address);
         }
+    }
+
+    /// <inheritdoc/>
+    public bool IsValid(IFate fate)
+    {
+        var clientState = Service<ClientState>.GetNullable();
+
+        if (fate == null || clientState == null)
+            return false;
+
+        if (clientState.LocalContentId == 0)
+            return false;
+
+        return true;
     }
 
     /// <inheritdoc/>
@@ -89,11 +102,11 @@ internal sealed partial class FateTable : IServiceType, IFateTable
         if (fateTable == IntPtr.Zero)
             return IntPtr.Zero;
 
-        return (IntPtr)this.Struct->Fates.Get((ulong)index).Value;
+        return (IntPtr)this.Struct->Fates[index].Value;
     }
 
     /// <inheritdoc/>
-    public Fate? CreateFateReference(IntPtr offset)
+    public IFate? CreateFateReference(IntPtr offset)
     {
         var clientState = Service<ClientState>.Get();
 
@@ -113,10 +126,10 @@ internal sealed partial class FateTable : IServiceType, IFateTable
 internal sealed partial class FateTable
 {
     /// <inheritdoc/>
-    int IReadOnlyCollection<Fate>.Count => this.Length;
+    int IReadOnlyCollection<IFate>.Count => this.Length;
 
     /// <inheritdoc/>
-    public IEnumerator<Fate> GetEnumerator()
+    public IEnumerator<IFate> GetEnumerator()
     {
         for (var i = 0; i < this.Length; i++)
         {

@@ -10,8 +10,7 @@ namespace Dalamud.Game;
 /// Class offering cancellation tokens for common gameplay events.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameLifecycle>]
 #pragma warning restore SA1015

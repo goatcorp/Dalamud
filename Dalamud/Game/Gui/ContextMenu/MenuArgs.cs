@@ -9,33 +9,17 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.Game.Gui.ContextMenu;
 
 /// <summary>
-/// Base class for <see cref="IContextMenu"/> menu args.
+/// Interface representing a context menus args.
 /// </summary>
-public abstract unsafe class MenuArgs
+public interface IMenuArgs
 {
-    private IReadOnlySet<nint>? eventInterfaces;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="MenuArgs"/> class.
+    /// Gets a list of AtkEventInterface pointers associated with the context menu.
+    /// Only available with <see cref="ContextMenuType.Default"/>.
+    /// Almost always an agent pointer. You can use this to find out what type of context menu it is.
     /// </summary>
-    /// <param name="addon">Addon associated with the context menu.</param>
-    /// <param name="agent">Agent associated with the context menu.</param>
-    /// <param name="type">The type of context menu.</param>
-    /// <param name="eventInterfaces">List of AtkEventInterfaces associated with the context menu.</param>
-    protected internal MenuArgs(AtkUnitBase* addon, AgentInterface* agent, ContextMenuType type, IReadOnlySet<nint>? eventInterfaces)
-    {
-        this.AddonName = addon != null ? MemoryHelper.ReadString((nint)addon->Name, 32) : null;
-        this.AddonPtr = (nint)addon;
-        this.AgentPtr = (nint)agent;
-        this.MenuType = type;
-        this.eventInterfaces = eventInterfaces;
-        this.Target = type switch
-        {
-            ContextMenuType.Default => new MenuTargetDefault((AgentContext*)agent),
-            ContextMenuType.Inventory => new MenuTargetInventory((AgentInventoryContext*)agent),
-            _ => throw new ArgumentException("Invalid context menu type", nameof(type)),
-        };
-    }
+    /// <exception cref="InvalidOperationException">Thrown when the context menu is not a <see cref="ContextMenuType.Default"/>.</exception>
+    public IReadOnlySet<nint> EventInterfaces { get; }
 
     /// <summary>
     /// Gets the name of the addon that opened the context menu.
@@ -63,15 +47,65 @@ public abstract unsafe class MenuArgs
     /// <see cref="ContextMenuType.Inventory"/> signifies a <see cref="MenuTargetInventory"/>.
     /// </summary>
     public MenuTarget Target { get; }
+}
+
+/// <summary>
+/// Base class for <see cref="IContextMenu"/> menu args.
+/// </summary>
+internal abstract unsafe class MenuArgs : IMenuArgs
+{
+    private IReadOnlySet<nint>? eventInterfaces;
 
     /// <summary>
-    /// Gets a list of AtkEventInterface pointers associated with the context menu.
-    /// Only available with <see cref="ContextMenuType.Default"/>.
-    /// Almost always an agent pointer. You can use this to find out what type of context menu it is.
+    /// Initializes a new instance of the <see cref="MenuArgs"/> class.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the context menu is not a <see cref="ContextMenuType.Default"/>.</exception>
-    public IReadOnlySet<nint> EventInterfaces =>
-        this.MenuType != ContextMenuType.Default ?
-            this.eventInterfaces :
-            throw new InvalidOperationException("Not a default context menu");
+    /// <param name="addon">Addon associated with the context menu.</param>
+    /// <param name="agent">Agent associated with the context menu.</param>
+    /// <param name="type">The type of context menu.</param>
+    /// <param name="eventInterfaces">List of AtkEventInterfaces associated with the context menu.</param>
+    protected internal MenuArgs(AtkUnitBase* addon, AgentInterface* agent, ContextMenuType type, IReadOnlySet<nint>? eventInterfaces)
+    {
+        this.AddonName = addon != null ? addon->NameString : null;
+        this.AddonPtr = (nint)addon;
+        this.AgentPtr = (nint)agent;
+        this.MenuType = type;
+        this.eventInterfaces = eventInterfaces;
+        this.Target = type switch
+        {
+            ContextMenuType.Default => new MenuTargetDefault((AgentContext*)agent),
+            ContextMenuType.Inventory => new MenuTargetInventory((AgentInventoryContext*)agent),
+            _ => throw new ArgumentException("Invalid context menu type", nameof(type)),
+        };
+    }
+
+    /// <inheritdoc/>
+    public string? AddonName { get; }
+
+    /// <inheritdoc/>
+    public nint AddonPtr { get; }
+
+    /// <inheritdoc/>
+    public nint AgentPtr { get; }
+
+    /// <inheritdoc/>
+    public ContextMenuType MenuType { get; }
+
+    /// <inheritdoc/>
+    public MenuTarget Target { get; }
+
+    /// <inheritdoc/>
+    public IReadOnlySet<nint> EventInterfaces 
+    {
+        get
+        {
+            if (this.MenuType is ContextMenuType.Default)
+            {
+                return this.eventInterfaces ?? new HashSet<nint>();
+            }
+            else
+            {
+                throw new InvalidOperationException("Not a default context menu");
+            }
+        }
+    }
 }

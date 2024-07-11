@@ -21,15 +21,12 @@ namespace Dalamud.Game;
 /// <summary>
 /// This class represents the Framework of the native game client and grants access to various subsystems.
 /// </summary>
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal sealed class Framework : IInternalDisposableService, IFramework
 {
     private static readonly ModuleLog Log = new("Framework");
 
     private static readonly Stopwatch StatsStopwatch = new();
-
-    private readonly GameLifecycle lifecycle;
 
     private readonly Stopwatch updateStopwatch = new();
     private readonly HitchDetector hitchDetector;
@@ -38,6 +35,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private readonly Hook<OnRealDestroyDelegate> destroyHook;
 
     private readonly FrameworkAddressResolver addressResolver;
+    
+    [ServiceManager.ServiceDependency]
+    private readonly GameLifecycle lifecycle = Service<GameLifecycle>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -51,9 +51,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private ulong tickCounter; 
 
     [ServiceManager.ServiceConstructor]
-    private Framework(TargetSigScanner sigScanner, GameLifecycle lifecycle)
+    private Framework(TargetSigScanner sigScanner)
     {
-        this.lifecycle = lifecycle;
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
 
         this.addressResolver = new FrameworkAddressResolver();
@@ -90,7 +89,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <summary>
     /// Executes during FrameworkUpdate before all <see cref="Update"/> delegates.
     /// </summary>
-    internal event IFramework.OnUpdateDelegate BeforeUpdate;
+    internal event IFramework.OnUpdateDelegate? BeforeUpdate;
 
     /// <summary>
     /// Gets or sets a value indicating whether the collection of stats is enabled.
@@ -513,7 +512,6 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 /// Plugin-scoped version of a Framework service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IFramework>]

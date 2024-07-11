@@ -1,6 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
+
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Conditions;
@@ -8,9 +12,8 @@ namespace Dalamud.Game.ClientState.Conditions;
 /// <summary>
 /// Provides access to conditions (generally player state). You can check whether a player is in combat, mounted, etc.
 /// </summary>
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed partial class Condition : IInternalDisposableService, ICondition
+[ServiceManager.EarlyLoadedService]
+internal sealed class Condition : IInternalDisposableService, ICondition
 {
     /// <summary>
     /// Gets the current max number of conditions. You can get this just by looking at the condition sheet and how many rows it has.
@@ -67,6 +70,22 @@ internal sealed partial class Condition : IInternalDisposableService, ICondition
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.Dispose(true);
+    
+    /// <inheritdoc/>
+    public IReadOnlySet<ConditionFlag> AsReadOnlySet()
+    {
+        var result = new HashSet<ConditionFlag>();
+        
+        for (var i = 0; i < MaxConditionEntries; i++)
+        {
+            if (this[i])
+            {
+                result.Add((ConditionFlag)i);
+            }
+        }
+
+        return result;
+    }
 
     /// <inheritdoc/>
     public bool Any()
@@ -95,6 +114,25 @@ internal sealed partial class Condition : IInternalDisposableService, ICondition
         }
 
         return false;
+    }
+    
+    /// <inheritdoc/>
+    public bool AnyExcept(params ConditionFlag[] excluded)
+    {
+        return !this.AsReadOnlySet().Intersect(excluded).Any();
+    }
+
+    /// <inheritdoc/>
+    public bool OnlyAny(params ConditionFlag[] other)
+    {
+        return !this.AsReadOnlySet().Except(other).Any();
+    }
+
+    /// <inheritdoc/>
+    public bool EqualTo(params ConditionFlag[] other)
+    {
+        var resultSet = this.AsReadOnlySet();
+        return resultSet.SetEquals(other);
     }
 
     private void Dispose(bool disposing)
@@ -137,7 +175,6 @@ internal sealed partial class Condition : IInternalDisposableService, ICondition
 /// Plugin-scoped version of a Condition service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<ICondition>]
@@ -174,12 +211,24 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 
         this.ConditionChange = null;
     }
+    
+    /// <inheritdoc/>
+    public IReadOnlySet<ConditionFlag> AsReadOnlySet() => this.conditionService.AsReadOnlySet();
 
     /// <inheritdoc/>
     public bool Any() => this.conditionService.Any();
 
     /// <inheritdoc/>
     public bool Any(params ConditionFlag[] flags) => this.conditionService.Any(flags);
+
+    /// <inheritdoc/>
+    public bool AnyExcept(params ConditionFlag[] except) => this.conditionService.AnyExcept(except);
+    
+    /// <inheritdoc/>
+    public bool OnlyAny(params ConditionFlag[] other) => this.conditionService.OnlyAny(other);
+    
+    /// <inheritdoc/>
+    public bool EqualTo(params ConditionFlag[] other) => this.conditionService.EqualTo(other);
 
     private void ConditionChangedForward(ConditionFlag flag, bool value) => this.ConditionChange?.Invoke(flag, value);
 }

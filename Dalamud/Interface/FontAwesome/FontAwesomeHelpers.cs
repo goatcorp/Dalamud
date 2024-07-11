@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -74,9 +73,9 @@ public static class FontAwesomeHelpers
         {
             foreach (var icon in icons)
             {
-                var name = Enum.GetName(icon)?.ToLower();
+                var name = Enum.GetName(icon)?.ToLowerInvariant();
                 var searchTerms = icon.GetSearchTerms();
-                if (name!.Contains(search.ToLower()) || searchTerms.Contains(search.ToLower()))
+                if (name!.Contains(search.ToLowerInvariant()) || searchTerms.Contains(search.ToLowerInvariant()))
                 {
                     result.Add(icon);
                 }
@@ -103,10 +102,10 @@ public static class FontAwesomeHelpers
         // search by both terms and category
         foreach (var icon in icons)
         {
-            var name = Enum.GetName(icon)?.ToLower();
+            var name = Enum.GetName(icon)?.ToLowerInvariant();
             var searchTerms = icon.GetSearchTerms();
             var categories = icon.GetCategories();
-            if ((name!.Contains(search.ToLower()) || searchTerms.Contains(search.ToLower())) && categories.Contains(category))
+            if ((name!.Contains(search.ToLowerInvariant()) || searchTerms.Contains(search.ToLowerInvariant())) && categories.Contains(category))
             {
                 result.Add(icon);
             }

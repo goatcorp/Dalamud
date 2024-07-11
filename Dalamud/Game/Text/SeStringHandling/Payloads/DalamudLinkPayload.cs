@@ -1,7 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
+
+using Lumina.Text.Payloads;
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
@@ -32,27 +32,33 @@ public class DalamudLinkPayload : Payload
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
-        var pluginBytes = Encoding.UTF8.GetBytes(this.Plugin);
-        var commandBytes = MakeInteger(this.CommandId);
-        var chunkLen = 3 + pluginBytes.Length + commandBytes.Length;
-
-        if (chunkLen > 255)
-        {
-            throw new Exception("Chunk is too long. Plugin name exceeds limits for DalamudLinkPayload");
-        }
-
-        var bytes = new List<byte> { START_BYTE, (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.DalamudLink };
-        bytes.Add((byte)pluginBytes.Length);
-        bytes.AddRange(pluginBytes);
-        bytes.AddRange(commandBytes);
-        bytes.Add(END_BYTE);
-        return bytes.ToArray();
+        return new Lumina.Text.SeStringBuilder()
+            .BeginMacro(MacroCode.Link)
+            .AppendIntExpression((int)EmbeddedInfoType.DalamudLink - 1)
+            .AppendStringExpression(this.Plugin)
+            .AppendUIntExpression(this.CommandId)
+            .EndMacro()
+            .ToArray();
     }
 
     /// <inheritdoc/>
     protected override void DecodeImpl(BinaryReader reader, long endOfStream)
     {
-        this.Plugin = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadByte()));
-        this.CommandId = GetInteger(reader);
+        // Note: Payload.DecodeChunk already took the first int expr (DalamudLink).
+
+        var body = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position));
+        var rosps = new ReadOnlySePayloadSpan(ReadOnlySePayloadType.Macro, MacroCode.Link, body.AsSpan());
+
+        if (!rosps.TryGetExpression(out var pluginExpression, out var commandIdExpression))
+            return;
+
+        if (!pluginExpression.TryGetString(out var pluginString))
+            return;
+
+        if (!commandIdExpression.TryGetUInt(out var commandId))
+            return;
+
+        this.Plugin = pluginString.ExtractText();
+        this.CommandId = commandId;
     }
 }

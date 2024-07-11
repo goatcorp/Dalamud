@@ -1,47 +1,23 @@
-﻿using SharpDX.DXGI;
+﻿using Dalamud.Interface.Textures;
 
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Storage.Assets;
 
-/// <summary>
-/// Provide raw texture data directly.
-/// </summary>
+/// <summary>Provide raw texture data directly. </summary>
 [AttributeUsage(AttributeTargets.Field)]
 internal class DalamudAssetRawTextureAttribute : Attribute
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DalamudAssetRawTextureAttribute"/> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="DalamudAssetRawTextureAttribute"/> class.</summary>
     /// <param name="width">The width.</param>
-    /// <param name="pitch">The pitch.</param>
     /// <param name="height">The height.</param>
     /// <param name="format">The format.</param>
-    public DalamudAssetRawTextureAttribute(int width, int pitch, int height, DXGI_FORMAT format)
-    {
-        this.Width = width;
-        this.Pitch = pitch;
-        this.Height = height;
-        this.Format = format;
-    }
+    /// <param name="pitch">The pitch.</param>
+    public DalamudAssetRawTextureAttribute(int width, int height, DXGI_FORMAT format, int pitch) =>
+        this.Specification = new(width, height, (int)format, pitch);
 
     /// <summary>
-    /// Gets the width.
+    /// Gets the specification.
     /// </summary>
-    public int Width { get; }
-
-    /// <summary>
-    /// Gets the pitch.
-    /// </summary>
-    public int Pitch { get; }
-
-    /// <summary>
-    /// Gets the height.
-    /// </summary>
-    public int Height { get; }
-
-    /// <summary>
-    /// Gets the format.
-    /// </summary>
-    public DXGI_FORMAT Format { get; }
+    public RawImageSpecification Specification { get; }
 }

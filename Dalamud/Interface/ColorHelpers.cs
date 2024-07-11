@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Numerics;
@@ -9,17 +10,6 @@ namespace Dalamud.Interface;
 /// </summary>
 public static class ColorHelpers
 {
-    /// <summary>
-    /// A struct representing a color using HSVA coordinates.
-    /// </summary>
-    /// <param name="H">The hue represented by this struct.</param>
-    /// <param name="S">The saturation represented by this struct.</param>
-    /// <param name="V">The value represented by this struct.</param>
-    /// <param name="A">The alpha represented by this struct.</param>
-    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter",
-                     Justification = "I don't like it.")]
-    public record struct HsvaColor(float H, float S, float V, float A);
-
     /// <summary>
     /// Pack a vector4 color into a uint for use in ImGui APIs.
     /// </summary>
@@ -160,6 +150,16 @@ public static class ColorHelpers
     }
 
     /// <summary>
+    /// Performs a swap of endianness
+    /// Exmaple:
+    /// (FFXIV) RGBA to ABGR (ImGui).
+    /// </summary>
+    /// <param name="rgba">Color value in byte order X Y Z W.</param>
+    /// <returns>Endian swapped color value with new byte order W Z Y X.</returns>
+    public static uint SwapEndianness(uint rgba)
+        => BinaryPrimitives.ReverseEndianness(rgba);
+
+    /// <summary>
     /// Lighten a color.
     /// </summary>
     /// <param name="color">The color to lighten.</param>
@@ -259,7 +259,7 @@ public static class ColorHelpers
         hsv.A -= amount;
         return HsvToRgb(hsv);
     }
-    
+
     /// <summary>
     /// Set alpha of a color.
     /// </summary>
@@ -299,10 +299,21 @@ public static class ColorHelpers
     {
         // If any components are out of range, return original value.
         { W: > 255.0f or < 0.0f } or { X: > 255.0f or < 0.0f } or { Y: > 255.0f or < 0.0f } or { Z: > 255.0f or < 0.0f } => color,
-            
+
         // If all components are already unit range, return original value.
         { W: >= 0.0f and <= 1.0f, X: >= 0.0f and <= 1.0f, Y: >= 0.0f and <= 1.0f, Z: >= 0.0f and <= 1.0f } => color,
-            
+
         _ => color / 255.0f,
     };
+    
+    /// <summary>
+    /// A struct representing a color using HSVA coordinates.
+    /// </summary>
+    /// <param name="H">The hue represented by this struct.</param>
+    /// <param name="S">The saturation represented by this struct.</param>
+    /// <param name="V">The value represented by this struct.</param>
+    /// <param name="A">The alpha represented by this struct.</param>
+    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1313:Parameter names should begin with lower-case letter",
+                     Justification = "I don't like it.")]
+    public record struct HsvaColor(float H, float S, float V, float A);
 }

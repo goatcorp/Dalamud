@@ -49,7 +49,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
         }
 
         var addon = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)address;
-        var name = MemoryHelper.ReadStringNullTerminated((nint)addon->Name);
+        var name = addon->NameString;
         ImGui.TextUnformatted($"{name} - 0x{address.ToInt64():X}\n    v:{addon->IsVisible} x:{addon->X} y:{addon->Y} s:{addon->Scale}, w:{addon->RootNode->Width}, h:{addon->RootNode->Height}");
 
         if (ImGui.Button("Find Agent"))

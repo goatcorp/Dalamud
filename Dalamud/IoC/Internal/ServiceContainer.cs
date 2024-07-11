@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
@@ -96,31 +95,18 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         }
 
         // validate dependency versions (if they exist)
-        var parameters = ctor.GetParameters().Select(p =>
-        {
-            var parameterType = p.ParameterType;
-            var requiredVersion = p.GetCustomAttribute(typeof(RequiredVersionAttribute)) as RequiredVersionAttribute;
-            return (parameterType, requiredVersion);
-        }).ToList();
-
-        var versionCheck = parameters.All(p => CheckInterfaceVersion(p.requiredVersion, p.parameterType));
-
-        if (!versionCheck)
-        {
-            Log.Error("Failed to create {TypeName}, a RequestedVersion could not be satisfied", objectType.FullName!);
-            return null;
-        }
+        var parameterTypes = ctor.GetParameters().Select(p => p.ParameterType).ToList();
 
         var resolvedParams =
             await Task.WhenAll(
-                parameters
-                    .Select(async p =>
+                parameterTypes
+                    .Select(async type =>
                     {
-                        var service = await this.GetService(p.parameterType, scopeImpl, scopedObjects);
+                        var service = await this.GetService(type, scopeImpl, scopedObjects);
 
                         if (service == null)
                         {
-                            Log.Error("Requested ctor service type {TypeName} was not available (null)", p.parameterType.FullName!);
+                            Log.Error("Requested ctor service type {TypeName} was not available (null)", type.FullName!);
                         }
 
                         return service;
@@ -149,7 +135,6 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <summary>
     /// Inject <see cref="PluginInterfaceAttribute"/> interfaces into public or static properties on the provided object.
     /// The properties have to be marked with the <see cref="PluginServiceAttribute"/>.
-    /// The properties can be marked with the <see cref="RequiredVersionAttribute"/> to lock down versions.
     /// </summary>
     /// <param name="instance">The object instance.</param>
     /// <param name="publicScopes">Scoped objects to be injected.</param>
@@ -161,31 +146,18 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         var objectType = instance.GetType();
 
         var props = objectType.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public |
-                                             BindingFlags.NonPublic).Where(x => x.GetCustomAttributes(typeof(PluginServiceAttribute)).Any()).Select(
-            propertyInfo =>
-            {
-                var requiredVersion = propertyInfo.GetCustomAttribute(typeof(RequiredVersionAttribute)) as RequiredVersionAttribute;
-                return (propertyInfo, requiredVersion);
-            }).ToArray();
-
-        var versionCheck = props.All(x => CheckInterfaceVersion(x.requiredVersion, x.propertyInfo.PropertyType));
-
-        if (!versionCheck)
-        {
-            Log.Error("Failed to create {TypeName}, a RequestedVersion could not be satisfied", objectType.FullName!);
-            return false;
-        }
+                                             BindingFlags.NonPublic).Where(x => x.GetCustomAttributes(typeof(PluginServiceAttribute)).Any()).ToArray();
 
         foreach (var prop in props)
         {
-            var service = await this.GetService(prop.propertyInfo.PropertyType, scopeImpl, publicScopes);
+            var service = await this.GetService(prop.PropertyType, scopeImpl, publicScopes);
             if (service == null)
             {
-                Log.Error("Requested service type {TypeName} was not available (null)", prop.propertyInfo.PropertyType.FullName!);
+                Log.Error("Requested service type {TypeName} was not available (null)", prop.PropertyType.FullName!);
                 return false;
             }
 
-            prop.propertyInfo.SetValue(instance, service);
+            prop.SetValue(instance, service);
         }
 
         return true;
@@ -199,29 +171,6 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
     /// <inheritdoc/>
     object? IServiceProvider.GetService(Type serviceType) => this.GetSingletonService(serviceType);
-
-    private static bool CheckInterfaceVersion(RequiredVersionAttribute? requiredVersion, Type parameterType)
-    {
-        // if there's no required version, ignore it
-        if (requiredVersion == null)
-            return true;
-
-        // if there's no requested version, ignore it
-        var declVersion = parameterType.GetCustomAttribute<InterfaceVersionAttribute>();
-        if (declVersion == null)
-            return true;
-
-        if (declVersion.Version == requiredVersion.Version)
-            return true;
-
-        Log.Error(
-            "Requested version {ReqVersion} does not match the implemented version {ImplVersion} for param type {ParamType}",
-            requiredVersion.Version,
-            declVersion.Version,
-            parameterType.FullName!);
-
-        return false;
-    }
 
     private async Task<object?> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
     {

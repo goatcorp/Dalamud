@@ -7,6 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Networking.Http;
@@ -23,7 +26,8 @@ namespace Dalamud.Storage.Assets;
 /// A concrete class for <see cref="IDalamudAssetManager"/>.
 /// </summary>
 [PluginInterface]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.BlockingEarlyLoadedService(
+    "Ensuring that it is worth continuing loading Dalamud, by checking if all required assets are properly available.")]
 #pragma warning disable SA1015
 [ResolveVia<IDalamudAssetManager>]
 #pragma warning restore SA1015
@@ -57,7 +61,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
 
         this.fileStreams = Enum.GetValues<DalamudAsset>().ToDictionary(x => x, _ => (Task<FileStream>?)null);
         this.textureWraps = Enum.GetValues<DalamudAsset>().ToDictionary(x => x, _ => (Task<IDalamudTextureWrap>?)null);
-        
+
         // Block until all the required assets to be ready.
         var loadTimings = Timings.Start("DAM LoadAll");
         registerStartupBlocker(
@@ -77,16 +81,19 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
             "Prevent Dalamud from loading more stuff, until we've ensured that all required assets are available.");
 
         Task.WhenAll(
-            Enum.GetValues<DalamudAsset>()
-                .Where(x => x is not DalamudAsset.Empty4X4)
-                .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
-                .Select(this.CreateStreamAsync)
-                .Select(x => x.ToContentDisposedTask(true)))
+                Enum.GetValues<DalamudAsset>()
+                    .Where(x => x is not DalamudAsset.Empty4X4)
+                    .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
+                    .Select(this.CreateStreamAsync)
+                    .Select(x => x.ToContentDisposedTask()))
             .ContinueWith(r => Log.Verbose($"Optional assets load state: {r}"));
     }
 
     /// <inheritdoc/>
     public IDalamudTextureWrap Empty4X4 => this.GetDalamudTextureWrap(DalamudAsset.Empty4X4);
+
+    /// <inheritdoc/>
+    public IDalamudTextureWrap White4X4 => this.GetDalamudTextureWrap(DalamudAsset.White4X4);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -309,18 +316,18 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
             var buf = Array.Empty<byte>();
             try
             {
-                var im = (await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync()).Manager;
+                var tm = await Service<TextureManager>.GetAsync();
                 await using var stream = await this.CreateStreamAsync(asset);
                 var length = checked((int)stream.Length);
                 buf = ArrayPool<byte>.Shared.Rent(length);
                 stream.ReadExactly(buf, 0, length);
-                var name = $"{nameof(DalamudAssetManager)}:{asset}";
+                var name = $"{nameof(DalamudAsset)}[{Enum.GetName(asset)}]";
                 var image = purpose switch
                 {
-                    DalamudAssetPurpose.TextureFromPng => im.CreateTexture2DFromBytes(buf, name),
+                    DalamudAssetPurpose.TextureFromPng => await tm.CreateFromImageAsync(buf, name),
                     DalamudAssetPurpose.TextureFromRaw =>
                         asset.GetAttribute<DalamudAssetRawTextureAttribute>() is { } raw
-                            ? im.CreateTexture2DFromRaw(buf, raw.Pitch, raw.Width, raw.Height, (int)raw.Format, name)
+                            ? await tm.CreateFromRawAsync(raw.Specification, buf, name)
                             : throw new InvalidOperationException(
                                   "TextureFromRaw must accompany a DalamudAssetRawTextureAttribute."),
                     _ => null,
@@ -328,7 +335,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                 var disposeDeferred =
                     this.scopedFinalizer.Add(image)
                     ?? throw new InvalidOperationException("Something went wrong very badly");
-                return new DisposeSuppressingDalamudTextureWrap(disposeDeferred);
+                return new DisposeSuppressingTextureWrap(disposeDeferred);
             }
             catch (Exception e)
             {
@@ -349,27 +356,5 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
         if (task.Exception is { } exc)
             return Task.FromException<TOut>(exc);
         return task.ContinueWith(_ => this.TransformImmediate(task, transformer)).Unwrap();
-    }
-
-    private class DisposeSuppressingDalamudTextureWrap : IDalamudTextureWrap
-    {
-        private readonly IDalamudTextureWrap innerWrap;
-
-        public DisposeSuppressingDalamudTextureWrap(IDalamudTextureWrap wrap) => this.innerWrap = wrap;
-
-        /// <inheritdoc/>
-        public IntPtr ImGuiHandle => this.innerWrap.ImGuiHandle;
-
-        /// <inheritdoc/>
-        public int Width => this.innerWrap.Width;
-
-        /// <inheritdoc/>
-        public int Height => this.innerWrap.Height;
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            // suppressed
-        }
     }
 }

@@ -17,8 +17,7 @@ namespace Dalamud.Game.Inventory;
 /// <summary>
 /// This class provides events for the players in-game inventory.
 /// </summary>
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 internal class GameInventory : IInternalDisposableService
 {
     private readonly List<GameInventoryPluginScoped> subscribersPendingChange = new();
@@ -51,7 +50,7 @@ internal class GameInventory : IInternalDisposableService
         unsafe
         {
             this.raptureAtkModuleUpdateHook = Hook<RaptureAtkModuleUpdateDelegate>.FromFunctionPointerVariable(
-                new(&((RaptureAtkModule.RaptureAtkModuleVTable*)RaptureAtkModule.StaticAddressPointers.VTable)->Update),
+                new(&RaptureAtkModule.StaticVirtualTablePointer->Update),
                 this.RaptureAtkModuleUpdateDetour);
         }
 
@@ -346,7 +345,6 @@ internal class GameInventory : IInternalDisposableService
 /// Plugin-scoped version of a GameInventory service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameInventory>]

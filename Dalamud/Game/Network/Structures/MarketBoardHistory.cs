@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -8,7 +7,7 @@ namespace Dalamud.Game.Network.Structures;
 /// <summary>
 /// This class represents the market board history from a game network packet.
 /// </summary>
-public class MarketBoardHistory
+public class MarketBoardHistory : IMarketBoardHistory
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="MarketBoardHistory"/> class.
@@ -23,58 +22,59 @@ public class MarketBoardHistory
     public uint CatalogId { get; private set; }
 
     /// <summary>
-    /// Gets the second catalog ID.
+    /// Gets the ID (for EXD) for the item being sold.
     /// </summary>
-    public uint CatalogId2 { get; private set; }
+    public uint ItemId => this.CatalogId;
 
     /// <summary>
-    /// Gets the list of individual item history listings.
+    /// Gets the list of individual item listings.
     /// </summary>
-    public List<MarketBoardHistoryListing> HistoryListings { get; } = new();
+    public IReadOnlyList<IMarketBoardHistoryListing> HistoryListings => this.InternalHistoryListings;
+
+    /// <summary>
+    /// Gets or sets a list of individual item listings.
+    /// </summary>
+    internal List<MarketBoardHistoryListing> InternalHistoryListings { get; set; } = [];
 
     /// <summary>
     /// Read a <see cref="MarketBoardHistory"/> object from memory.
     /// </summary>
     /// <param name="dataPtr">Address to read.</param>
     /// <returns>A new <see cref="MarketBoardHistory"/> object.</returns>
-    public static unsafe MarketBoardHistory Read(IntPtr dataPtr)
+    public static unsafe MarketBoardHistory Read(nint dataPtr)
     {
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
 
-        var output = new MarketBoardHistory
-        {
-            CatalogId = reader.ReadUInt32(),
-            CatalogId2 = reader.ReadUInt32(),
-        };
+        var output = new MarketBoardHistory { CatalogId = reader.ReadUInt32() };
 
-        if (output.CatalogId2 == 0)
-        {
-            // No items found in the resulting packet - just return the empty history.
-            return output;
-        }
-
+        var historyListings = new List<MarketBoardHistoryListing>();
         for (var i = 0; i < 20; i++)
         {
+            var price = reader.ReadUInt32();
+            if (price == 0)
+            {
+                // no price means we reached the end of available listings
+                break;
+            }
+
             var listingEntry = new MarketBoardHistoryListing
             {
-                SalePrice = reader.ReadUInt32(),
+                SalePrice = price,
                 PurchaseTime = DateTimeOffset.FromUnixTimeSeconds(reader.ReadUInt32()).UtcDateTime,
                 Quantity = reader.ReadUInt32(),
                 IsHq = reader.ReadBoolean(),
+                OnMannequin = reader.ReadBoolean(),
+                BuyerName = Encoding.UTF8.GetString(reader.ReadBytes(0x20)).TrimEnd('\u0000'),
             };
 
-            reader.ReadBoolean();
+            // Skip padding
+            reader.ReadBytes(0x2);
 
-            listingEntry.OnMannequin = reader.ReadBoolean();
-            listingEntry.BuyerName = Encoding.UTF8.GetString(reader.ReadBytes(33)).TrimEnd('\u0000');
-            listingEntry.NextCatalogId = reader.ReadUInt32();
-
-            output.HistoryListings.Add(listingEntry);
-
-            if (listingEntry.NextCatalogId == 0)
-                break;
+            historyListings.Add(listingEntry);
         }
+
+        output.InternalHistoryListings = historyListings;
 
         return output;
     }
@@ -82,7 +82,7 @@ public class MarketBoardHistory
     /// <summary>
     /// This class represents the market board history of a single item from the <see cref="MarketBoardHistory"/> network packet.
     /// </summary>
-    public class MarketBoardHistoryListing
+    public class MarketBoardHistoryListing : IMarketBoardHistoryListing
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MarketBoardHistoryListing"/> class.
@@ -95,11 +95,6 @@ public class MarketBoardHistory
         /// Gets the buyer's name.
         /// </summary>
         public string BuyerName { get; internal set; }
-
-        /// <summary>
-        /// Gets the next entry's catalog ID.
-        /// </summary>
-        public uint NextCatalogId { get; internal set; }
 
         /// <summary>
         /// Gets a value indicating whether the item is HQ.

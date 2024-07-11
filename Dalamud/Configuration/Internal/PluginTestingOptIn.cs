@@ -1,6 +1,9 @@
 ﻿namespace Dalamud.Configuration.Internal;
 
-public record PluginTestingOptIn
+/// <summary>
+/// Represents a plugin that has opted in to testing.
+/// </summary>
+internal record PluginTestingOptIn
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginTestingOptIn"/> class.

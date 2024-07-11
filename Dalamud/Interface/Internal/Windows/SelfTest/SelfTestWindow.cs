@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -45,6 +44,7 @@ internal class SelfTestWindow : Window
             new HandledExceptionAgingStep(),
             new DutyStateAgingStep(),
             new GameConfigAgingStep(),
+            new MarketBoardAgingStep(),
             new LogoutEventAgingStep(),
         };
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Networking.Http;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -46,13 +48,14 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         {
             WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
             UploaderId = uploader.ToString(),
-            ItemId = request.CatalogId,
-            Listings = new List<UniversalisItemListingsEntry>(),
-            Sales = new List<UniversalisHistoryEntry>(),
+            ItemId = request.Listings.FirstOrDefault()?.CatalogId ?? 0,
+            Listings = [],
+            Sales = [],
         };
 
         foreach (var marketBoardItemListing in request.Listings)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             var universalisListing = new UniversalisItemListingsEntry
             {
                 ListingId = marketBoardItemListing.ListingId.ToString(),
@@ -69,6 +72,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 RetainerCity = marketBoardItemListing.RetainerCityId,
                 Materia = new List<UniversalisItemMateria>(),
             };
+#pragma warning restore CS0618 // Type or member is obsolete
 
             foreach (var itemMateria in marketBoardItemListing.Materia)
             {
@@ -102,7 +106,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         // ====================================================================================
 
-        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.CatalogId);
+        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.Listings.FirstOrDefault()?.CatalogId ?? 0);
     }
 
     /// <inheritdoc/>

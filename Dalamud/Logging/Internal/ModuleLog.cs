@@ -141,8 +141,15 @@ public class ModuleLog
     public void Fatal(Exception? exception, string messageTemplate, params object?[] values)
         => this.WriteLog(LogEventLevel.Fatal, messageTemplate, exception, values);
 
+    /// <summary>
+    /// Log a templated message to the in-game debug log.
+    /// </summary>
+    /// <param name="level">The log level to log with.</param>
+    /// <param name="messageTemplate">The message template to log.</param>
+    /// <param name="exception">The exception to log.</param>
+    /// <param name="values">Values to log.</param>
     [MessageTemplateFormatMethod("messageTemplate")]
-    private void WriteLog(
+    public void WriteLog(
         LogEventLevel level, string messageTemplate, Exception? exception = null, params object?[] values)
     {
         // FIXME: Eventually, the `pluginName` tag should be removed from here and moved over to the actual log
