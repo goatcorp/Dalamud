@@ -16,6 +16,8 @@ using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using ImGuiScene;
 
+using VirtualKey = Dalamud.Game.ClientState.Keys.VirtualKey;
+
 namespace Dalamud.Interface.Utility;
 
 /// <summary>
