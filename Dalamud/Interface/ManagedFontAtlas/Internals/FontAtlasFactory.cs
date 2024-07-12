@@ -10,6 +10,7 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.ImGuiBackend;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -18,8 +19,6 @@ using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using ImGuiNET;
-
-using ImGuiScene;
 
 using Lumina.Data.Files;
 
@@ -151,9 +150,9 @@ internal sealed partial class FontAtlasFactory
     public TextureManager TextureManager => Service<TextureManager>.Get();
 
     /// <summary>
-    /// Gets the async task for <see cref="RawDX11Scene"/> inside <see cref="InterfaceManager"/>.
+    /// Gets the async task for <see cref="IImGuiBackend"/> inside <see cref="InterfaceManager"/>.
     /// </summary>
-    public Task<RawDX11Scene> SceneTask { get; }
+    public Task<IImGuiBackend> SceneTask { get; }
 
     /// <summary>
     /// Gets the default glyph ranges (glyph ranges of <see cref="GameFontFamilyAndSize.Axis12"/>).

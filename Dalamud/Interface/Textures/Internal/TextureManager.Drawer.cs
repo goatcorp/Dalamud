@@ -60,7 +60,7 @@ internal sealed partial class TextureManager
         /// <param name="device">The device.</param>
         public void Setup(ID3D11Device* device)
         {
-            var assembly = typeof(ImGuiScene.ImGui_Impl_DX11).Assembly;
+            var assembly = typeof(SimpleDrawerImpl).Assembly;
 
             // Create the vertex shader
             if (this.vertexShader.IsEmpty() || this.inputLayout.IsEmpty())

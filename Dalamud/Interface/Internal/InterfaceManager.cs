@@ -14,6 +14,7 @@ using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
 using Dalamud.Hooking.WndProcHook;
+using Dalamud.Interface.ImGuiBackend;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -27,12 +28,12 @@ using Dalamud.Utility.Timing;
 
 using ImGuiNET;
 
-using ImGuiScene;
-
 using PInvoke;
 
-using SharpDX;
-using SharpDX.DXGI;
+using TerraFX.Interop.DirectX;
+using TerraFX.Interop.Windows;
+
+using static TerraFX.Interop.Windows.Windows;
 
 // general dev notes, here because it's easiest
 
@@ -65,7 +66,7 @@ internal class InterfaceManager : IInternalDisposableService
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
     private static readonly ModuleLog Log = new("INTERFACE");
-    
+
     private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
     private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
 
@@ -78,42 +79,39 @@ internal class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
-    private RawDX11Scene? scene;
+    private IWin32Backend? scene;
 
     private Hook<SetCursorDelegate>? setCursorHook;
-    private Hook<DxgiPresentDelegate>? dxgiPresentHook;
-    private Hook<ReshadeOnPresentDelegate>? reshadeOnPresentHook;
+    private Hook<PresentDelegate>? presentHook;
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
 
     private IFontAtlas? dalamudAtlas;
     private ILockedImFont? defaultFontResourceLock;
 
     // can't access imgui IO before first present call
-    private bool lastWantCapture = false;
+    private HWND gameWindowHandle;
+    private bool lastWantCapture;
     private bool isOverrideGameCursor = true;
-    private IntPtr gameWindowHandle;
 
     [ServiceManager.ServiceConstructor]
     private InterfaceManager()
     {
     }
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr DxgiPresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ReshadeOnPresentDelegate(nint swapChain, uint flags, nint presentParams);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    private unsafe delegate HRESULT PresentDelegate(IDXGISwapChain* swapChain, uint syncInterval, uint presentFlags);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
+    private unsafe delegate HRESULT ResizeBuffersDelegate(
+        IDXGISwapChain* swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    private delegate HCURSOR SetCursorDelegate(HCURSOR hCursor);
 
     /// <summary>
     /// This event gets called each frame to facilitate ImGui drawing.
     /// </summary>
-    public event RawDX11Scene.BuildUIDelegate? Draw;
+    public event IImGuiBackend.BuildUiDelegate? Draw;
 
     /// <summary>
     /// This event gets called when ResizeBuffers is called.
@@ -181,17 +179,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <summary>
     /// Gets the DX11 scene.
     /// </summary>
-    public RawDX11Scene? Scene => this.scene;
-
-    /// <summary>
-    /// Gets the D3D11 device instance.
-    /// </summary>
-    public SharpDX.Direct3D11.Device? Device => this.scene?.Device;
-
-    /// <summary>
-    /// Gets the address handle to the main process window.
-    /// </summary>
-    public IntPtr WindowHandlePtr => this.scene?.WindowHandlePtr ?? IntPtr.Zero;
+    public IImGuiBackend? Scene => this.scene;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
@@ -224,20 +212,24 @@ internal class InterfaceManager : IInternalDisposableService
     /// <summary>
     /// Gets a value indicating the native handle of the game main window.
     /// </summary>
-    public IntPtr GameWindowHandle
+    public unsafe HWND GameWindowHandle
     {
         get
         {
             if (this.gameWindowHandle == 0)
             {
-                nint gwh = 0;
-                while ((gwh = NativeFunctions.FindWindowEx(0, gwh, "FFXIVGAME", 0)) != 0)
+                var gwh = default(HWND);
+                fixed (char* pClass = "FFXIVGAME")
                 {
-                    _ = User32.GetWindowThreadProcessId(gwh, out var pid);
-                    if (pid == Environment.ProcessId && User32.IsWindowVisible(gwh))
+                    while ((gwh = FindWindowExW(default, gwh, (ushort*)pClass, default)) != default)
                     {
-                        this.gameWindowHandle = gwh;
-                        break;
+                        uint pid;
+                        _ = GetWindowThreadProcessId(gwh, &pid);
+                        if (pid == Environment.ProcessId && IsWindowVisible(gwh))
+                        {
+                            this.gameWindowHandle = gwh;
+                            break;
+                        }
                     }
                 }
             }
@@ -298,8 +290,7 @@ internal class InterfaceManager : IInternalDisposableService
         {
             this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
             Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.dxgiPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.reshadeOnPresentHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.presentHook, null)?.Dispose();
             Interlocked.Exchange(ref this.resizeBuffersHook, null)?.Dispose();
         }
     }
@@ -423,27 +414,27 @@ internal class InterfaceManager : IInternalDisposableService
     /// Get video memory information.
     /// </summary>
     /// <returns>The currently used video memory, or null if not available.</returns>
-    public (long Used, long Available)? GetD3dMemoryInfo()
+    public unsafe (long Used, long Available)? GetD3dMemoryInfo()
     {
-        if (this.Device == null)
+        if (this.scene?.DeviceHandle is 0 or null)
             return null;
 
-        try
-        {
-            var dxgiDev = this.Device.QueryInterfaceOrNull<SharpDX.DXGI.Device>();
-            var dxgiAdapter = dxgiDev?.Adapter.QueryInterfaceOrNull<Adapter4>();
-            if (dxgiAdapter == null)
-                return null;
+        using var device = default(ComPtr<IDXGIDevice>);
+        using var adapter = default(ComPtr<IDXGIAdapter>);
+        using var adapter4 = default(ComPtr<IDXGIAdapter4>);
 
-            var memInfo = dxgiAdapter.QueryVideoMemoryInfo(0, MemorySegmentGroup.Local);
-            return (memInfo.CurrentUsage, memInfo.CurrentReservation);
-        }
-        catch
-        {
-            // ignored
-        }
+        if (new ComPtr<IUnknown>((IUnknown*)this.scene.DeviceHandle).As(&device).FAILED)
+            return null;
 
-        return null;
+        if (device.Get()->GetAdapter(adapter.GetAddressOf()).FAILED)
+            return null;
+
+        if (adapter.As(&adapter4).FAILED)
+            return null;
+
+        var vmi = default(DXGI_QUERY_VIDEO_MEMORY_INFO);
+        adapter4.Get()->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP.DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &vmi);
+        return ((long)vmi.CurrentUsage, (long)vmi.CurrentReservation);
     }
 
     /// <summary>
@@ -452,23 +443,23 @@ internal class InterfaceManager : IInternalDisposableService
     /// </summary>
     public void ClearStacks()
     {
-        this.scene?.ClearStacksOnContext();
+        ImGuiHelpers.ClearStacksOnContext();
     }
 
     /// <summary>
     /// Toggle Windows 11 immersive mode on the game window.
     /// </summary>
     /// <param name="enabled">Value.</param>
-    internal void SetImmersiveMode(bool enabled)
+    internal unsafe void SetImmersiveMode(bool enabled)
     {
         if (this.GameWindowHandle == 0)
             throw new InvalidOperationException("Game window is not yet ready.");
-        var value = enabled ? 1 : 0;
-        ((Result)NativeFunctions.DwmSetWindowAttribute(
-                    this.GameWindowHandle,
-                    NativeFunctions.DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
-                    ref value,
-                    sizeof(int))).CheckError();
+        var value = enabled ? 1u : 0u;
+        DwmSetWindowAttribute(
+            this.GameWindowHandle,
+            (uint)DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
+            &value,
+            sizeof(int)).ThrowOnError();
     }
 
     private static InterfaceManager WhenFontsReady()
@@ -483,7 +474,7 @@ internal class InterfaceManager : IInternalDisposableService
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void RenderImGui(RawDX11Scene scene)
+    private static void RenderImGui(IImGuiBackend backend)
     {
         var conf = Service<DalamudConfiguration>.Get();
 
@@ -491,22 +482,22 @@ internal class InterfaceManager : IInternalDisposableService
         ImGuiHelpers.NewFrame();
 
         // Enable viewports if there are no issues.
-        if (conf.IsDisableViewport || scene.SwapChain.IsFullScreen || ImGui.GetPlatformIO().Monitors.Size == 1)
+        if (conf.IsDisableViewport || backend.IsMainViewportFullScreen() || ImGui.GetPlatformIO().Monitors.Size == 1)
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
         else
             ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
 
-        scene.Render();
+        backend.Render();
     }
 
-    private void InitScene(IntPtr swapChain)
+    private unsafe void InitScene(IDXGISwapChain* swapChain)
     {
-        RawDX11Scene newScene;
+        IWin32Backend newBackend;
         using (Timings.Start("IM Scene Init"))
         {
             try
             {
-                newScene = new RawDX11Scene(swapChain);
+                newBackend = new Dx11Win32Backend(swapChain);
             }
             catch (DllNotFoundException ex)
             {
@@ -517,7 +508,8 @@ internal class InterfaceManager : IInternalDisposableService
                     IntPtr.Zero,
                     "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
                     "Dalamud Error",
-                    User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST | User32.MessageBoxOptions.MB_ICONERROR);
+                    User32.MessageBoxOptions.MB_YESNO | User32.MessageBoxOptions.MB_TOPMOST |
+                    User32.MessageBoxOptions.MB_ICONERROR);
 
                 if (res == User32.MessageBoxResult.IDYES)
                 {
@@ -538,14 +530,18 @@ internal class InterfaceManager : IInternalDisposableService
             var startInfo = Service<Dalamud>.Get().StartInfo;
             var configuration = Service<DalamudConfiguration>.Get();
 
-            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
+            var iniFileInfo = new FileInfo(
+                Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
 
             try
             {
                 if (iniFileInfo.Length > 1200000)
                 {
                     Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                    iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName!, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                    iniFileInfo.CopyTo(
+                        Path.Combine(
+                            iniFileInfo.DirectoryName!,
+                            $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
                     iniFileInfo.Delete();
                 }
             }
@@ -554,16 +550,18 @@ internal class InterfaceManager : IInternalDisposableService
                 Log.Error(ex, "Could not delete dalamudUI.ini");
             }
 
-            newScene.UpdateCursor = this.isOverrideGameCursor;
-            newScene.ImGuiIniPath = iniFileInfo.FullName;
-            newScene.OnBuildUI += this.Display;
-            newScene.OnNewInputFrame += this.OnNewInputFrame;
+            newBackend.UpdateCursor = this.isOverrideGameCursor;
+            newBackend.IniPath = iniFileInfo.FullName;
+            newBackend.BuildUi += this.Display;
+            newBackend.NewInputFrame += this.OnNewInputFrame;
 
             StyleModel.TransferOldModels();
 
-            if (configuration.SavedStyles == null || configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
+            if (configuration.SavedStyles == null ||
+                configuration.SavedStyles.All(x => x.Name != StyleModelV1.DalamudStandard.Name))
             {
-                configuration.SavedStyles = new List<StyleModel> { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
+                configuration.SavedStyles = new List<StyleModel>
+                    { StyleModelV1.DalamudStandard, StyleModelV1.DalamudClassic };
                 configuration.ChosenStyle = StyleModelV1.DalamudStandard.Name;
             }
             else if (configuration.SavedStyles.Count == 1)
@@ -619,97 +617,64 @@ internal class InterfaceManager : IInternalDisposableService
             Log.Information("[IM] Scene & ImGui setup OK!");
         }
 
-        this.scene = newScene;
+        this.scene = newBackend;
         Service<InterfaceManagerWithScene>.Provide(new(this));
 
         this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
     }
 
-    private unsafe void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
+    private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
     {
-        var r = this.scene?.ProcessWndProcW(args.Hwnd, (User32.WindowMessage)args.Message, args.WParam, args.LParam);
+        var r = this.scene?.ProcessWndProcW(args.Hwnd, args.Message, args.WParam, args.LParam);
         if (r is not null)
             args.SuppressWithValue(r.Value);
     }
 
-    private void ReshadeOnPresentDetour(nint swapChain, uint flags, nint presentParams)
+    /*
+     * NOTE(goat): When hooking ReShade DXGISwapChain::runtime_present, this is missing the syncInterval arg.
+     *             Seems to work fine regardless, I guess, so whatever.
+     */
+    private unsafe HRESULT PresentDetour(IDXGISwapChain* swapChain, uint syncInterval, uint presentFlags)
     {
-        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
+        Debug.Assert(this.presentHook is not null, "How did PresentDetour get called when presentHook is null?");
+
+        if (this.scene is null)
         {
-            this.reshadeOnPresentHook!.Original(swapChain, flags, presentParams);
-            return;
+            this.InitScene(swapChain);
+            if (this.scene is null)
+                throw new InvalidOperationException("InitScene did not set this.scene?");
         }
 
-        Debug.Assert(this.reshadeOnPresentHook is not null, "this.reshadeOnPresentHook is not null");
-        Debug.Assert(this.dalamudAtlas is not null, "this.dalamudAtlas is not null");
+        if (!this.scene.IsAttachedToPresentationTarget((nint)swapChain))
+            return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
-        if (this.scene == null)
-            this.InitScene(swapChain);
-
-        Debug.Assert(this.scene is not null, "InitScene did not set the scene field, but did not throw an exception.");
-
-        if (!this.dalamudAtlas!.HasBuiltAtlas)
+        // Do not do anything yet if no font atlas has been built yet.
+        if (this.dalamudAtlas?.HasBuiltAtlas is not true)
         {
-            if (this.dalamudAtlas.BuildTask.Exception != null)
+            if (this.dalamudAtlas?.BuildTask.Exception != null)
             {
                 // TODO: Can we do something more user-friendly here? Unload instead?
                 Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
                 Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
             }
 
-            this.reshadeOnPresentHook!.Original(swapChain, flags, presentParams);
-            return;
+            return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
         }
 
-        this.CumulativePresentCalls++;
         this.IsMainThreadInPresent = true;
-
-        while (this.runBeforeImGuiRender.TryDequeue(out var action))
-            action.InvokeSafely();
-
-        this.reshadeOnPresentHook!.Original(swapChain, flags, presentParams);
-
+        this.CumulativePresentCalls++;
+        this.PreImGuiRender();
         RenderImGui(this.scene!);
         this.PostImGuiRender();
         this.IsMainThreadInPresent = false;
+
+        return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
     }
 
-    private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
+    private void PreImGuiRender()
     {
-        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
-            return this.dxgiPresentHook!.Original(swapChain, syncInterval, presentFlags);
-
-        Debug.Assert(this.dxgiPresentHook is not null, "How did PresentDetour get called when presentHook is null?");
-        Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
-
-        if (this.scene == null)
-            this.InitScene(swapChain);
-
-        Debug.Assert(this.scene is not null, "InitScene did not set the scene field, but did not throw an exception.");
-
-        if (!this.dalamudAtlas!.HasBuiltAtlas)
-        {
-            if (this.dalamudAtlas.BuildTask.Exception != null)
-            {
-                // TODO: Can we do something more user-friendly here? Unload instead?
-                Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
-                Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
-            }
-
-            return this.dxgiPresentHook!.Original(swapChain, syncInterval, presentFlags);
-        }
-
-        this.CumulativePresentCalls++;
-        this.IsMainThreadInPresent = true;
-
         while (this.runBeforeImGuiRender.TryDequeue(out var action))
             action.InvokeSafely();
-
-        RenderImGui(this.scene!);
-        this.PostImGuiRender();
-        this.IsMainThreadInPresent = false;
-
-        return this.dxgiPresentHook!.Original(swapChain, syncInterval, presentFlags);
     }
 
     private void PostImGuiRender()
@@ -761,13 +726,14 @@ internal class InterfaceManager : IInternalDisposableService
                             GlyphMaxAdvanceX = DefaultFontSizePx,
                         })));
             this.IconFontFixedWidthHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
-                e => e.OnPreBuild(tk => tk.AddDalamudAssetFont(
-                    DalamudAsset.FontAwesomeFreeSolid,
-                    new()
-                    {
-                        SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
-                        GlyphRanges = new ushort[] { 0x20, 0x20, 0x00 },
-                    })));
+                e => e.OnPreBuild(
+                    tk => tk.AddDalamudAssetFont(
+                        DalamudAsset.FontAwesomeFreeSolid,
+                        new()
+                        {
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                            GlyphRanges = [0x20, 0x20, 0x00],
+                        })));
             this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
                 e => e.OnPreBuild(
                     tk => tk.AddDalamudAssetFont(
@@ -799,10 +765,7 @@ internal class InterfaceManager : IInternalDisposableService
                     () =>
                     {
                         // Update the ImGui default font.
-                        unsafe
-                        {
-                            ImGui.GetIO().NativePtr->FontDefault = fontLocked.ImFont;
-                        }
+                        ImGui.GetIO().NativePtr->FontDefault = fontLocked.ImFont;
 
                         // Update the reference to the resources of the default font.
                         this.defaultFontResourceLock?.Dispose();
@@ -813,7 +776,7 @@ internal class InterfaceManager : IInternalDisposableService
                     });
             };
         }
-        
+
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync();
 
@@ -843,56 +806,54 @@ internal class InterfaceManager : IInternalDisposableService
             this.ResizeBuffersDetour);
         Log.Verbose($"ResizeBuffers address {Util.DescribeAddress(this.resizeBuffersHook!.Address)}");
 
-        if (SwapChainHelper.ReshadeOnPresent is null)
-        {
-            var addr = (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present;
-            this.dxgiPresentHook = Hook<DxgiPresentDelegate>.FromAddress(addr, this.PresentDetour);
-            Log.Verbose($"ReShade::DXGISwapChain::on_present address {Util.DescribeAddress(addr)}");
-        }
-        else
-        {
-            var addr = (nint)SwapChainHelper.ReshadeOnPresent;
-            this.reshadeOnPresentHook = Hook<ReshadeOnPresentDelegate>.FromAddress(addr, this.ReshadeOnPresentDetour);
-            Log.Verbose($"IDXGISwapChain::Present address {Util.DescribeAddress(addr)}");
-        }
+        this.presentHook = Hook<PresentDelegate>.FromAddress(
+            (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present,
+            this.PresentDetour);
+        Log.Verbose(
+            $"IDXGISwapChain::Present address {Util.DescribeAddress(SwapChainHelper.GameDeviceSwapChainVtbl->Present)}");
 
         this.setCursorHook.Enable();
-        this.dxgiPresentHook?.Enable();
-        this.reshadeOnPresentHook?.Enable();
+        this.presentHook.Enable();
         this.resizeBuffersHook.Enable();
     }
 
-    private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
+    private unsafe HRESULT ResizeBuffersDetour(
+        IDXGISwapChain* swapChain,
+        uint bufferCount,
+        uint width,
+        uint height,
+        uint newFormat,
+        uint swapChainFlags)
     {
-        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
-            return this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-
 #if DEBUG
-        Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
+        Log.Verbose(
+            $"Calling resizebuffers swap@{(nint)swapChain:X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
 #endif
 
         this.ResizeBuffers?.InvokeSafely();
 
+        // We have to ensure we're working with the main swapchain, as other viewports might be resizing as well.
+        if (this.scene?.IsAttachedToPresentationTarget((nint)swapChain) is not true)
+            return this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
+
         this.scene?.OnPreResize();
 
         var ret = this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-        if (ret.ToInt64() == 0x887A0001)
-        {
+        if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
             Log.Error("invalid call to resizeBuffers");
-        }
 
         this.scene?.OnPostResize((int)width, (int)height);
 
         return ret;
     }
 
-    private IntPtr SetCursorDetour(IntPtr hCursor)
+    private HCURSOR SetCursorDetour(HCURSOR hCursor)
     {
         if (this.lastWantCapture && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
-            return IntPtr.Zero;
+            return default;
 
         return this.setCursorHook?.IsDisposed is not false
-                   ? User32.SetCursor(new(hCursor, false)).DangerousGetHandle()
+                   ? SetCursor(hCursor)
                    : this.setCursorHook.Original(hCursor);
     }
 

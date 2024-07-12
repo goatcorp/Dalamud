@@ -32,7 +32,7 @@ internal partial class DragDropManager : IInternalDisposableService, IDragDropMa
         Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync()
             .ContinueWith(t =>
              {
-                 this.windowHandlePtr = t.Result.Manager.WindowHandlePtr;
+                 this.windowHandlePtr = t.Result.Manager.GameWindowHandle;
                  this.Enable();
              });
     }

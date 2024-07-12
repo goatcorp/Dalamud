@@ -19,8 +19,6 @@ using ImGuiNET;
 
 using Serilog;
 
-using SharpDX.Direct3D11;
-
 namespace Dalamud.Interface;
 
 /// <summary>
@@ -120,7 +118,7 @@ public interface IUiBuilder
     /// <summary>
     /// Gets the game's active Direct3D device.
     /// </summary>
-    Device Device { get; }
+    SharpDX.Direct3D11.Device Device { get; }
 
     /// <summary>
     /// Gets the game's main window handle.
@@ -258,6 +256,8 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     private IFontHandle? iconFontHandle;
     private IFontHandle? monoFontHandle;
     private IFontHandle? iconFontFixedWidthHandle;
+
+    private SharpDX.Direct3D11.Device? sdxDevice;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -418,12 +418,13 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// <summary>
     /// Gets the game's active Direct3D device.
     /// </summary>
-    public Device Device => this.InterfaceManagerWithScene!.Device!;
+    public SharpDX.Direct3D11.Device Device =>
+        this.sdxDevice ??= new(this.InterfaceManagerWithScene!.Scene!.DeviceHandle);
 
     /// <summary>
     /// Gets the game's main window handle.
     /// </summary>
-    public IntPtr WindowHandlePtr => this.InterfaceManagerWithScene!.WindowHandlePtr;
+    public nint WindowHandlePtr => this.InterfaceManagerWithScene!.GameWindowHandle;
 
     /// <summary>
     /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
