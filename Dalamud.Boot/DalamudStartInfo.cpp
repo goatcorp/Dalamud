@@ -116,6 +116,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.NoLoadThirdPartyPlugins = json.value("NoLoadThirdPartyPlugins", config.NoLoadThirdPartyPlugins);
 
     config.BootLogPath = json.value("BootLogPath", config.BootLogPath);
+    config.BootDebugDirectX = json.value("BootDebugDirectX", config.BootDebugDirectX);
     config.BootShowConsole = json.value("BootShowConsole", config.BootShowConsole);
     config.BootDisableFallbackConsole = json.value("BootDisableFallbackConsole", config.BootDisableFallbackConsole);
     config.BootWaitMessageBox = json.value("BootWaitMessageBox", config.BootWaitMessageBox);
