@@ -8,6 +8,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -351,7 +352,8 @@ internal class GameInventory : IInternalDisposableService
 #pragma warning restore SA1015
 internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInventory
 {
-    private static readonly ModuleLog Log = new(nameof(GameInventoryPluginScoped));
+    private static readonly ModuleLog Log = new("GameInventory");
+    private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
     private readonly GameInventory gameInventoryService = Service<GameInventory>.Get();
@@ -359,7 +361,12 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInventoryPluginScoped"/> class.
     /// </summary>
-    public GameInventoryPluginScoped() => this.gameInventoryService.Subscribe(this);
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal GameInventoryPluginScoped(LocalPlugin plugin)
+    {
+        this.plugin = plugin;
+        this.gameInventoryService.Subscribe(this);
+    }
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangelogDelegate? InventoryChanged;
@@ -406,6 +413,76 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        if (this.InventoryChanged?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.InventoryChanged?.GetInvocationList().Length} InventoryChanged listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.InventoryChangedRaw?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.InventoryChangedRaw?.GetInvocationList().Length} InventoryChangedRaw listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemAdded?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemAdded?.GetInvocationList().Length} ItemAdded listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemRemoved?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemRemoved?.GetInvocationList().Length} ItemRemoved listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemChanged?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemChanged?.GetInvocationList().Length} ItemChanged listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemMoved?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemMoved?.GetInvocationList().Length} ItemMoved listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemSplit?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemSplit?.GetInvocationList().Length} ItemSplit listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemMerged?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemMerged?.GetInvocationList().Length} ItemMerged listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemAddedExplicit?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemAddedExplicit?.GetInvocationList().Length} ItemAddedExplicit listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemRemovedExplicit?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemRemovedExplicit?.GetInvocationList().Length} ItemRemovedExplicit listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemChangedExplicit?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemChangedExplicit?.GetInvocationList().Length} ItemChangedExplicit listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemMovedExplicit?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemMovedExplicit?.GetInvocationList().Length} ItemMovedExplicit listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemSplitExplicit?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemSplitExplicit?.GetInvocationList().Length} ItemSplitExplicit listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.ItemMergedExplicit?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemMergedExplicit?.GetInvocationList().Length} ItemMergedExplicit listeners! Make sure that all of them are unregistered properly.");
+        }
+        
         this.gameInventoryService.Unsubscribe(this);
 
         this.InventoryChanged = null;
