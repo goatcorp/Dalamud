@@ -3,6 +3,8 @@
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
@@ -258,6 +260,9 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 #pragma warning restore SA1015
 internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
 {
+    private static readonly ModuleLog Log = new("GameConfig");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly GameConfig gameConfigService = Service<GameConfig>.Get();
 
@@ -266,8 +271,10 @@ internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigPluginScoped"/> class.
     /// </summary>
-    internal GameConfigPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal GameConfigPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.gameConfigService.Changed += this.ConfigChangedForward;
         this.initializationTask = this.gameConfigService.InitializationTask.ContinueWith(
             r =>
@@ -305,6 +312,26 @@ internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        if (this.Changed?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.Changed?.GetInvocationList().Length} Changed listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.SystemChanged?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.SystemChanged?.GetInvocationList().Length} SystemChanged listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.UiConfigChanged?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.UiConfigChanged?.GetInvocationList().Length} UiConfigChanged listeners! Make sure that all of them are unregistered properly.");
+        }
+        
+        if (this.UiControlChanged?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.UiControlChanged?.GetInvocationList().Length} UiControlChanged listeners! Make sure that all of them are unregistered properly.");
+        }
+        
         this.gameConfigService.Changed -= this.ConfigChangedForward;
         this.initializationTask.ContinueWith(
             r =>
