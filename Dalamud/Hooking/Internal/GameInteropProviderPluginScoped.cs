@@ -5,6 +5,7 @@ using System.Linq;
 using Dalamud.Game;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures;
@@ -22,6 +23,7 @@ namespace Dalamud.Hooking.Internal;
 #pragma warning restore SA1015
 internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternalDisposableService
 {
+    private static readonly ModuleLog Log = new("GameInteropProvider");
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
 
