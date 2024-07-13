@@ -5,7 +5,9 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
 using Serilog;
@@ -278,14 +280,19 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 #pragma warning restore SA1015
 internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
 {
+    private static readonly ModuleLog Log = new("FlyTextGui");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly FlyTextGui flyTextGuiService = Service<FlyTextGui>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FlyTextGuiPluginScoped"/> class.
     /// </summary>
-    internal FlyTextGuiPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal FlyTextGuiPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.flyTextGuiService.FlyTextCreated += this.FlyTextCreatedForward;
     }
 
@@ -295,6 +302,11 @@ internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        if (this.FlyTextCreated?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.FlyTextCreated?.GetInvocationList().Length} FlyTextCreated listeners! Make sure that all of them are unregistered properly.");
+        }
+        
         this.flyTextGuiService.FlyTextCreated -= this.FlyTextCreatedForward;
 
         this.FlyTextCreated = null;
