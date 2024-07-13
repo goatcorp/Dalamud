@@ -10,6 +10,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -531,11 +532,19 @@ original:
 #pragma warning restore SA1015
 internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMenu
 {
+    private static readonly ModuleLog Log = new("ContextMenu");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly ContextMenu parentService = Service<ContextMenu>.Get();
 
-    private ContextMenuPluginScoped()
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ContextMenuPluginScoped"/> class.
+    /// </summary>
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal ContextMenuPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.parentService.OnMenuOpened += this.OnMenuOpenedForward;
     }
 
@@ -549,6 +558,11 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        if (this.OnMenuOpened?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.OnMenuOpened?.GetInvocationList().Length} OnMenuOpened listeners! Make sure that all of them are unregistered properly.");
+        }
+        
         this.parentService.OnMenuOpened -= this.OnMenuOpenedForward;
 
         this.OnMenuOpened = null;
