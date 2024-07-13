@@ -4,6 +4,8 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Serilog;
@@ -145,14 +147,19 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
 #pragma warning restore SA1015
 internal class GameNetworkPluginScoped : IInternalDisposableService, IGameNetwork
 {
+    private static readonly ModuleLog Log = new("GameNetwork");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly GameNetwork gameNetworkService = Service<GameNetwork>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameNetworkPluginScoped"/> class.
     /// </summary>
-    internal GameNetworkPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal GameNetworkPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.gameNetworkService.NetworkMessage += this.NetworkMessageForward;
     }
     
@@ -162,6 +169,11 @@ internal class GameNetworkPluginScoped : IInternalDisposableService, IGameNetwor
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        if (this.NetworkMessage?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.NetworkMessage?.GetInvocationList().Length} NetworkMessage listeners! Make sure that all of them are unregistered properly.");
+        }
+        
         this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
 
         this.NetworkMessage = null;
