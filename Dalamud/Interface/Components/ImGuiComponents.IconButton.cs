@@ -52,6 +52,7 @@ public static partial class ImGuiComponents
     /// <param name="activeColor">The color of the button when active.</param>
     /// <param name="hoveredColor">The color of the button when hovered.</param>
     /// <returns>Indicator if button is clicked.</returns>
+    [Obsolete("This version does not set an id for ImGui to use, recommended to use overload with Id field.", false)]
     public static bool IconButton(FontAwesomeIcon icon, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
         => IconButton($"{icon.ToIconString()}", defaultColor, activeColor, hoveredColor);
 
