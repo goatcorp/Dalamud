@@ -8,6 +8,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -134,7 +135,7 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
 #pragma warning restore SA1015
 internal class PartyFinderGuiPluginScoped : IInternalDisposableService, IPartyFinderGui
 {
-    private static readonly ModuleLog Log = new("PartyFinderGui");
+    private readonly ModuleLog log = new("PartyFinderGui");
     private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
@@ -156,15 +157,13 @@ internal class PartyFinderGuiPluginScoped : IInternalDisposableService, IPartyFi
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.ReceiveListing?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ReceiveListing?.GetInvocationList().Length} ReceiveListing listeners! Make sure that all of them are unregistered properly.");
-        }
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.ReceiveListing);
         
         this.partyFinderGuiService.ReceiveListing -= this.ReceiveListingForward;
 
         this.ReceiveListing = null;
     }
 
-    private void ReceiveListingForward(IPartyFinderListing listing, IPartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
+    private void ReceiveListingForward(IPartyFinderListing listing, IPartyFinderListingEventArgs args) 
+        => this.ReceiveListing?.Invoke(listing, args);
 }

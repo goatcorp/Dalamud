@@ -2,7 +2,10 @@
 using Dalamud.Game.Network.Structures;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.MarketBoard;
 
@@ -89,14 +92,19 @@ internal class MarketBoard : IInternalDisposableService, IMarketBoard
 #pragma warning restore SA1015
 internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoard
 {
+    private readonly LocalPlugin plugin;
+    private readonly ModuleLog log = new("MarketBoard");
+
     [ServiceManager.ServiceDependency]
     private readonly MarketBoard marketBoardService = Service<MarketBoard>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MarketBoardPluginScoped"/> class.
     /// </summary>
-    internal MarketBoardPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal MarketBoardPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.marketBoardService.HistoryReceived += this.OnHistoryReceived;
         this.marketBoardService.ItemPurchased += this.OnItemPurchased;
         this.marketBoardService.OfferingsReceived += this.OnOfferingsReceived;
@@ -122,6 +130,8 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.HistoryReceived, this.ItemPurchased, this.OfferingsReceived, this.PurchaseRequested, this.TaxRatesReceived);
+
         this.marketBoardService.HistoryReceived -= this.OnHistoryReceived;
         this.marketBoardService.ItemPurchased -= this.OnItemPurchased;
         this.marketBoardService.OfferingsReceived -= this.OnOfferingsReceived;

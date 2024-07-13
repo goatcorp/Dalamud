@@ -147,7 +147,7 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
 #pragma warning restore SA1015
 internal class GameNetworkPluginScoped : IInternalDisposableService, IGameNetwork
 {
-    private static readonly ModuleLog Log = new("GameNetwork");
+    private readonly ModuleLog log = new("GameNetwork");
     private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
@@ -169,10 +169,7 @@ internal class GameNetworkPluginScoped : IInternalDisposableService, IGameNetwor
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.NetworkMessage?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.NetworkMessage?.GetInvocationList().Length} NetworkMessage listeners! Make sure that all of them are unregistered properly.");
-        }
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.NetworkMessage);
         
         this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
 

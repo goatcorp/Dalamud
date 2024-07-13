@@ -532,7 +532,7 @@ original:
 #pragma warning restore SA1015
 internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMenu
 {
-    private static readonly ModuleLog Log = new("ContextMenu");
+    private readonly ModuleLog log = new("ContextMenu");
     private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
@@ -558,10 +558,7 @@ internal class ContextMenuPluginScoped : IInternalDisposableService, IContextMen
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.OnMenuOpened?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.OnMenuOpened?.GetInvocationList().Length} OnMenuOpened listeners! Make sure that all of them are unregistered properly.");
-        }
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.OnMenuOpened);
         
         this.parentService.OnMenuOpened -= this.OnMenuOpenedForward;
 

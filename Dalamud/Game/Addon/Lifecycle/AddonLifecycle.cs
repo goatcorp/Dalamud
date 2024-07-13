@@ -10,6 +10,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -379,7 +380,7 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 #pragma warning restore SA1015
 internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLifecycle
 {
-    private static readonly ModuleLog Log = new("AddonLifecycle");
+    private readonly ModuleLog log = new("AddonLifecycle");
 
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
@@ -401,12 +402,12 @@ internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLi
     {
         if (this.eventListeners.Count > 0)
         { 
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.eventListeners.Count} event listeners! Make sure that all of them are unregistered properly.");
+            this.log.Warning($"{this.plugin.InternalName} is leaking {this.eventListeners.Count} event listeners! Make sure that all of them are unregistered properly.");
         }
         
         foreach (var listener in this.eventListeners)
         {
-            Log.Warning($"\t\t\tLeaked event listener {listener.EventType} for '{listener.AddonName}'");
+            this.log.Warning($"\t\t\tLeaked event listener {listener.EventType} for '{listener.AddonName}'");
             this.addonLifecycleService.UnregisterListener(listener);
         }
     }

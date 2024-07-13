@@ -8,6 +8,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.Gui.Toast;
 
@@ -385,7 +386,7 @@ internal sealed partial class ToastGui
 #pragma warning restore SA1015
 internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
 {
-    private static readonly ModuleLog Log = new("ToastGui");
+    private readonly ModuleLog log = new("ToastGui");
     private readonly LocalPlugin plugin;
     
     [ServiceManager.ServiceDependency]
@@ -416,20 +417,7 @@ internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.Toast?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.Toast?.GetInvocationList().Length} Toast listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.QuestToast?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.QuestToast?.GetInvocationList().Length} QuestToast listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ErrorToast?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ErrorToast?.GetInvocationList().Length} ErrorToast listeners! Make sure that all of them are unregistered properly.");
-        }
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.Toast, this.QuestToast, this.ErrorToast);
         
         this.toastGuiService.Toast -= this.ToastForward;
         this.toastGuiService.QuestToast -= this.QuestToastForward;

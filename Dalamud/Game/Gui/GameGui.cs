@@ -7,6 +7,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -489,14 +490,19 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 #pragma warning restore SA1015
 internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
 {
+    private readonly ModuleLog log = new("GameGui");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly GameGui gameGuiService = Service<GameGui>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameGuiPluginScoped"/> class.
     /// </summary>
-    internal GameGuiPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal GameGuiPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.gameGuiService.UiHideToggled += this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged += this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged += this.HoveredActionForward;
@@ -527,6 +533,8 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.UiHideToggled, this.HoveredItemChanged, this.HoveredActionChanged);
+        
         this.gameGuiService.UiHideToggled -= this.UiHideToggledForward;
         this.gameGuiService.HoveredItemChanged -= this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged -= this.HoveredActionForward;

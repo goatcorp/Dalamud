@@ -10,6 +10,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
@@ -352,7 +353,7 @@ internal class GameInventory : IInternalDisposableService
 #pragma warning restore SA1015
 internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInventory
 {
-    private static readonly ModuleLog Log = new("GameInventory");
+    private readonly ModuleLog log = new("GameInventory");
     private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
@@ -413,75 +414,23 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.InventoryChanged?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.InventoryChanged?.GetInvocationList().Length} InventoryChanged listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.InventoryChangedRaw?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.InventoryChangedRaw?.GetInvocationList().Length} InventoryChangedRaw listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemAdded?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemAdded?.GetInvocationList().Length} ItemAdded listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemRemoved?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemRemoved?.GetInvocationList().Length} ItemRemoved listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemChanged?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemChanged?.GetInvocationList().Length} ItemChanged listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemMoved?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemMoved?.GetInvocationList().Length} ItemMoved listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemSplit?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemSplit?.GetInvocationList().Length} ItemSplit listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemMerged?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemMerged?.GetInvocationList().Length} ItemMerged listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemAddedExplicit?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemAddedExplicit?.GetInvocationList().Length} ItemAddedExplicit listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemRemovedExplicit?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemRemovedExplicit?.GetInvocationList().Length} ItemRemovedExplicit listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemChangedExplicit?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemChangedExplicit?.GetInvocationList().Length} ItemChangedExplicit listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemMovedExplicit?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemMovedExplicit?.GetInvocationList().Length} ItemMovedExplicit listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemSplitExplicit?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemSplitExplicit?.GetInvocationList().Length} ItemSplitExplicit listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.ItemMergedExplicit?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.ItemMergedExplicit?.GetInvocationList().Length} ItemMergedExplicit listeners! Make sure that all of them are unregistered properly.");
-        }
+        PluginCleanupNag.CheckEvent(
+            this.plugin, 
+            this.log, 
+            this.InventoryChanged,
+            this.InventoryChangedRaw,
+            this.ItemAdded,
+            this.ItemRemoved,
+            this.ItemChanged,
+            this.ItemMoved,
+            this.ItemSplit,
+            this.ItemMerged,
+            this.ItemAddedExplicit,
+            this.ItemRemovedExplicit,
+            this.ItemChangedExplicit,
+            this.ItemMovedExplicit,
+            this.ItemSplitExplicit,
+            this.ItemMergedExplicit);
         
         this.gameInventoryService.Unsubscribe(this);
 
@@ -513,11 +462,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
         }
         catch (Exception e)
         {
-            Log.Error(
-                e,
-                "[{plugin}] Exception during {argType} callback",
-                Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
-                nameof(this.InventoryChanged));
+            this.log.Error(e, $"[{this.plugin.InternalName}] Exception during {nameof(this.InventoryChanged)} callback");
         }
     }
 
@@ -533,11 +478,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
         }
         catch (Exception e)
         {
-            Log.Error(
-                e,
-                "[{plugin}] Exception during {argType} callback",
-                Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
-                nameof(this.InventoryChangedRaw));
+            this.log.Error(e, $"[{this.plugin.InternalName}] Exception during {nameof(this.InventoryChangedRaw)} callback");
         }
     }
     
@@ -548,44 +489,44 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemAddedArgs> events) =>
-        Invoke(this.ItemAdded, this.ItemAddedExplicit, events);
+        this.Invoke(this.ItemAdded, this.ItemAddedExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemRemovedArgs> events) =>
-        Invoke(this.ItemRemoved, this.ItemRemovedExplicit, events);
+        this.Invoke(this.ItemRemoved, this.ItemRemovedExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemChangedArgs> events) =>
-        Invoke(this.ItemChanged, this.ItemChangedExplicit, events);
+        this.Invoke(this.ItemChanged, this.ItemChangedExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemMovedArgs> events) =>
-        Invoke(this.ItemMoved, this.ItemMovedExplicit, events);
+        this.Invoke(this.ItemMoved, this.ItemMovedExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemSplitArgs> events) =>
-        Invoke(this.ItemSplit, this.ItemSplitExplicit, events);
+        this.Invoke(this.ItemSplit, this.ItemSplitExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemMergedArgs> events) =>
-        Invoke(this.ItemMerged, this.ItemMergedExplicit, events);
+        this.Invoke(this.ItemMerged, this.ItemMergedExplicit, events);
     
-    private static void Invoke<T>(
+    private void Invoke<T>(
         IGameInventory.InventoryChangedDelegate? cb,
         IGameInventory.InventoryChangedDelegate<T>? cbt,
         List<T> events) where T : InventoryEventArgs
@@ -598,11 +539,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
             }
             catch (Exception e)
             {
-                Log.Error(
-                    e,
-                    "[{plugin}] Exception during untyped callback for {evt}",
-                    Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
-                    evt);
+                this.log.Error(e, $"[{this.plugin.InternalName}] Exception during untyped callback for {evt}");
             }
 
             try
@@ -611,11 +548,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
             }
             catch (Exception e)
             {
-                Log.Error(
-                    e,
-                    "[{plugin}] Exception during typed callback for {evt}",
-                    Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
-                    evt);
+                this.log.Error(e, $"[{this.plugin.InternalName}] Exception during typed callback for {evt}");
             }
         }
     }

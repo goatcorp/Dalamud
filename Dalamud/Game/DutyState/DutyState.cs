@@ -4,7 +4,10 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.DutyState;
 
@@ -168,14 +171,19 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
 #pragma warning restore SA1015
 internal class DutyStatePluginScoped : IInternalDisposableService, IDutyState
 {
+    private readonly ModuleLog log = new("DutyState");
+    private readonly LocalPlugin plugin;
+    
     [ServiceManager.ServiceDependency]
     private readonly DutyState dutyStateService = Service<DutyState>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DutyStatePluginScoped"/> class.
     /// </summary>
-    internal DutyStatePluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal DutyStatePluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.dutyStateService.DutyStarted += this.DutyStartedForward;
         this.dutyStateService.DutyWiped += this.DutyWipedForward;
         this.dutyStateService.DutyRecommenced += this.DutyRecommencedForward;
@@ -200,6 +208,8 @@ internal class DutyStatePluginScoped : IInternalDisposableService, IDutyState
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.DutyStarted, this.DutyWiped, this.DutyRecommenced, this.DutyCompleted);
+
         this.dutyStateService.DutyStarted -= this.DutyStartedForward;
         this.dutyStateService.DutyWiped -= this.DutyWipedForward;
         this.dutyStateService.DutyRecommenced -= this.DutyRecommencedForward;

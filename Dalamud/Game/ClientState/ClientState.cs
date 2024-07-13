@@ -11,6 +11,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -291,14 +292,19 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 #pragma warning restore SA1015
 internal class ClientStatePluginScoped : IInternalDisposableService, IClientState
 {
+    private readonly ModuleLog log = new("ClientState");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientStateService = Service<ClientState>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ClientStatePluginScoped"/> class.
     /// </summary>
-    internal ClientStatePluginScoped()
+    /// <param name="plugin">The plugin this service belongs to.</param>
+    internal ClientStatePluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.clientStateService.TerritoryChanged += this.TerritoryChangedForward;
         this.clientStateService.ClassJobChanged += this.ClassJobChangedForward;
         this.clientStateService.LevelChanged += this.LevelChangedForward;
@@ -369,6 +375,8 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.TerritoryChanged, this.Login, this.Logout, this.EnterPvP, this.LeavePvP, this.CfPop);
+
         this.clientStateService.TerritoryChanged -= this.TerritoryChangedForward;
         this.clientStateService.ClassJobChanged -= this.ClassJobChangedForward;
         this.clientStateService.LevelChanged -= this.LevelChangedForward;

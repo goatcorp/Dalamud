@@ -519,7 +519,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 #pragma warning restore SA1015
 internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 {
-    private static readonly ModuleLog Log = new("Framework");
+    private readonly ModuleLog log = new("Framework");
     private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
@@ -556,11 +556,8 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.Update?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.Update?.GetInvocationList().Length} Update listeners! Make sure that all of them are unregistered properly.");
-        }
-        
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.Update);
+
         this.frameworkService.Update -= this.OnUpdateForward;
 
         this.Update = null;

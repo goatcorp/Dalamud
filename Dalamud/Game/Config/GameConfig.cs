@@ -260,7 +260,7 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 #pragma warning restore SA1015
 internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
 {
-    private static readonly ModuleLog Log = new("GameConfig");
+    private readonly ModuleLog log = new("GameConfig");
     private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
@@ -312,25 +312,7 @@ internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.Changed?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.Changed?.GetInvocationList().Length} Changed listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.SystemChanged?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.SystemChanged?.GetInvocationList().Length} SystemChanged listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.UiConfigChanged?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.UiConfigChanged?.GetInvocationList().Length} UiConfigChanged listeners! Make sure that all of them are unregistered properly.");
-        }
-        
-        if (this.UiControlChanged?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.UiControlChanged?.GetInvocationList().Length} UiControlChanged listeners! Make sure that all of them are unregistered properly.");
-        }
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.Changed, this.SystemChanged, this.UiConfigChanged, this.UiControlChanged);
         
         this.gameConfigService.Changed -= this.ConfigChangedForward;
         this.initializationTask.ContinueWith(

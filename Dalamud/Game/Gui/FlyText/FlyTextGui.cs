@@ -9,6 +9,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -280,7 +281,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 #pragma warning restore SA1015
 internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
 {
-    private static readonly ModuleLog Log = new("FlyTextGui");
+    private readonly ModuleLog log = new("FlyTextGui");
     private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
@@ -302,10 +303,7 @@ internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.FlyTextCreated?.GetInvocationList().Length > 0)
-        {
-            Log.Warning($"{this.plugin.InternalName} is leaking {this.FlyTextCreated?.GetInvocationList().Length} FlyTextCreated listeners! Make sure that all of them are unregistered properly.");
-        }
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.FlyTextCreated);
         
         this.flyTextGuiService.FlyTextCreated -= this.FlyTextCreatedForward;
 
