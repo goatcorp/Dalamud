@@ -13,6 +13,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -518,14 +519,19 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 #pragma warning restore SA1015
 internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 {
+    private static readonly ModuleLog Log = new("Framework");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly Framework frameworkService = Service<Framework>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FrameworkPluginScoped"/> class.
     /// </summary>
-    internal FrameworkPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal FrameworkPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.frameworkService.Update += this.OnUpdateForward;
     }
 
@@ -550,6 +556,11 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        if (this.Update?.GetInvocationList().Length > 0)
+        {
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.Update?.GetInvocationList().Length} Update listeners! Make sure that all of them are unregistered properly.");
+        }
+        
         this.frameworkService.Update -= this.OnUpdateForward;
 
         this.Update = null;
