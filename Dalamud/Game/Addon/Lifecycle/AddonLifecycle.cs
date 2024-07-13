@@ -8,6 +8,7 @@ using Dalamud.Hooking.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -378,16 +379,34 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
 #pragma warning restore SA1015
 internal class AddonLifecyclePluginScoped : IInternalDisposableService, IAddonLifecycle
 {
+    private static readonly ModuleLog Log = new("AddonLifecycle");
+
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycleService = Service<AddonLifecycle>.Get();
 
-    private readonly List<AddonLifecycleEventListener> eventListeners = new();
+    private readonly List<AddonLifecycleEventListener> eventListeners = [];
+    private readonly LocalPlugin plugin;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddonLifecyclePluginScoped"/> class.
+    /// </summary>
+    /// <param name="localPlugin">Information about the plugin using this service.</param>
+    internal AddonLifecyclePluginScoped(LocalPlugin localPlugin)
+    {
+        this.plugin = localPlugin;
+    }
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        if (this.eventListeners.Count > 0)
+        { 
+            Log.Warning($"{this.plugin.InternalName} is leaking {this.eventListeners.Count} event listeners! Make sure that all of them are unregistered properly.");
+        }
+        
         foreach (var listener in this.eventListeners)
         {
+            Log.Warning($"\t\t\tLeaked event listener {listener.EventType} for '{listener.AddonName}'");
             this.addonLifecycleService.UnregisterListener(listener);
         }
     }
