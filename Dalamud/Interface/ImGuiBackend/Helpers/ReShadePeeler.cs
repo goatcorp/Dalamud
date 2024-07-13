@@ -96,6 +96,9 @@ internal static unsafe class ReShadePeeler
                 changed = true;
                 break;
             }
+
+            if (!changed)
+                break;
         }
 
         return changed;
