@@ -39,7 +39,7 @@ namespace Dalamud.Utility;
 public static class Util
 {
     private static readonly Type GenericSpanType = typeof(Span<>);
-    private static string? dalamudVersionInternal;
+    private static string? scmVersionInternal;
     private static string? gitHashInternal;
     private static int? gitCommitCountInternal;
     private static string? gitHashClientStructsInternal;
@@ -106,19 +106,19 @@ public static class Util
     }
 
     /// <summary>
-    /// Gets the Dalamud Version from the assembly, or null if it cannot be found. This method will generally return
+    /// Gets the SCM Version from the assembly, or null if it cannot be found. This method will generally return
     /// the <c>git describe</c> output for this build, which will be a raw version if this is a stable build or an
     /// appropriately-annotated version if this is *not* stable. Local builds will return a `Local Build` text string.
     /// </summary>
-    /// <returns>The dalamud version of the assembly.</returns>
-    public static string GetDalamudVersion()
+    /// <returns>The SCM version of the assembly.</returns>
+    public static string GetScmVersion()
     {
-        if (dalamudVersionInternal != null) return dalamudVersionInternal;
+        if (scmVersionInternal != null) return scmVersionInternal;
         
         var asm = typeof(Util).Assembly;
         var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
 
-        return dalamudVersionInternal = attrs.First(a => a.Key == "DalamudVersion").Value 
+        return scmVersionInternal = attrs.First(a => a.Key == "SCMVersion").Value 
                                         ?? asm.GetName().Version!.ToString();
     }
 
