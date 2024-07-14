@@ -90,12 +90,13 @@ public interface INamePlateUpdateHandler
     /// <summary>
     /// Gets or sets the icon ID for the nameplate's marker icon, which is the large icon used to indicate quest
     /// availability and so on. This value is read from and reset by the game every frame, not just when a nameplate
-    /// changes.
+    /// changes. Setting this to 0 disables the icon.
     /// </summary>
     int MarkerIconId { get; set; }
 
     /// <summary>
     /// Gets or sets the icon ID for the nameplate's name icon, which is the small icon shown to the left of the name.
+    /// Setting this to -1 disables the icon.
     /// </summary>
     int NameIconId { get; set; }
 

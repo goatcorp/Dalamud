@@ -6,6 +6,13 @@ namespace Dalamud.Game.Gui.NamePlate;
 /// A part builder for constructing and setting a simple (unquoted) nameplate field.
 /// </summary>
 /// <param name="field">The field type which should be set.</param>
+/// <remarks>
+/// This class works as a lazy writer initialized with empty parts, where an empty part signifies no change should be
+/// performed. Only after all handler processing is complete does it write out any parts which were set to the
+/// associated field. Reading fields from this class is usually not what you want to do, as you'll only be reading the
+/// contents of parts which other plugins have written to. Prefer reading from the base handler's properties or using
+/// <see cref="NamePlateInfoView"/>.
+/// </remarks>
 public class NamePlateSimpleParts(NamePlateStringField field)
 {
     /// <summary>
