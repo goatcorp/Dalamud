@@ -185,7 +185,7 @@ public sealed class EntryPoint
 
             var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
             Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", 
-                            Util.GetGitHash(), 
+                            Util.GetDalamudVersion(), 
                             Util.GetGitHashClientStructs(), 
                             FFXIVClientStructs.ThisAssembly.Git.Commits);
 

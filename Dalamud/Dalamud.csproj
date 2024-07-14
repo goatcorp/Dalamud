@@ -124,6 +124,7 @@
     <PropertyGroup>
         <!-- Needed temporarily for CI -->
         <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
+        <CommitHashFile>$(OutputPath)commit_hash.txt</CommitHashFile>
         <DalamudRevisionFile>$(OutputPath)revision.txt</DalamudRevisionFile>
     </PropertyGroup>
 
@@ -132,7 +133,6 @@
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitCount" />
         </Exec>
 
-        <!-- Set the BuildHash property to contain the GitVersion, if it wasn't already set.-->
         <PropertyGroup>
             <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
         </PropertyGroup>
@@ -140,38 +140,49 @@
         <Exec Command="echo|set /P =&quot;$(CommitCount)&quot; &gt; $(DalamudRevisionFile)" IgnoreExitCode="true" />
     </Target>
 
-    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Release'">
+    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(PrettyVersion)'=='' And '$(Configuration)'=='Release'">
         <!-- write the hash to the temp file.-->
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --tags --always --dirty" ConsoleToMSBuild="true">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
         </Exec>
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-parse" ConsoleToMSBuild="true">
-            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudFullGitCommitHash" />
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitHash" />
         </Exec>
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
         </Exec>
         
-        <!-- Set the BuildHash property to contain the GitVersion, if it wasn't already set.-->
+        <!-- Set the PrettyVersion property to contain the GitVersion, if it wasn't already set.-->
         <PropertyGroup>
-            <BuildHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</BuildHash>
-            <BuildHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</BuildHashClientStructs>
+            <PrettyVersion>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</PrettyVersion>
+            <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
+            <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
 
         <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
-        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(PrettyVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(CommitHash)&quot; &gt; $(CommitHashFile)" IgnoreExitCode="true" />
     </Target>
 
-    <Target Name="GetGitHashStub" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)'=='' And '$(Configuration)'=='Debug'">
-        <!-- Set the BuildHash property to contain some placeholder, if it wasn't already set.-->
+    <Target Name="GetGitHashStub" BeforeTargets="WriteGitHash" Condition="'$(PrettyVersion)'=='' And '$(Configuration)'=='Debug'">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --match=NeVeRmAtCh --always --abbrev=40 --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitHash" />
+        </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
+        </Exec>
+        
+        <!-- Set the PrettyVersion property to contain some placeholder, if it wasn't already set.-->
         <PropertyGroup>
             <LocalBuildText>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</LocalBuildText>
-            <BuildHash>$(LocalBuildText)</BuildHash>
-            <BuildHashClientStructs>???</BuildHashClientStructs>
+            <PrettyVersion>$(LocalBuildText)</PrettyVersion>
+            <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
+            <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
 
         <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
-        <Exec Command="echo|set /P =&quot;$(BuildHash)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(PrettyVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(CommitHash)&quot; &gt; $(CommitHashFile)" IgnoreExitCode="true" />
     </Target>
     
     <Target Name="WriteGitHash" BeforeTargets="CoreCompile">
@@ -186,8 +197,8 @@
         <!-- defines the AssemblyMetadata attribute that will be written -->
         <ItemGroup>
             <AssemblyAttributes Include="AssemblyMetadata">
-                <_Parameter1>GitHash</_Parameter1>
-                <_Parameter2>$(BuildHash)</_Parameter2>
+                <_Parameter1>DalamudVersion</_Parameter1>
+                <_Parameter2>$(PrettyVersion)</_Parameter2>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitCommitCount</_Parameter1>
@@ -195,11 +206,11 @@
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
-                <_Parameter2>$(BuildHashClientStructs)</_Parameter2>
+                <_Parameter2>$(CommitHashClientStructs)</_Parameter2>
             </AssemblyAttributes>
-            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(DalamudFullGitCommitHash)' != ''">
-                <_Parameter1>FullGitHash</_Parameter1>
-                <_Parameter2>$(DalamudFullGitCommitHash)</_Parameter2>
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(DalamudGitCommitHash)' != ''">
+                <_Parameter1>GitHash</_Parameter1>
+                <_Parameter2>$(DalamudGitCommitHash)</_Parameter2>
             </AssemblyAttributes>
         </ItemGroup>
         <!-- writes the attribute to the customAssemblyInfo file -->

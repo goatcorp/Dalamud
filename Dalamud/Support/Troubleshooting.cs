@@ -70,7 +70,7 @@ public static class Troubleshooting
                 PluginStates = pluginManager?.InstalledPlugins?.Where(x => !x.IsDev).ToDictionary(x => x.Manifest.InternalName, x => x.IsBanned ? "Banned" : x.State.ToString()),
                 EverStartedLoadingPlugins = pluginManager?.InstalledPlugins.Where(x => x.HasEverStartedLoad).Select(x => x.InternalName).ToList(),
                 DalamudVersion = Util.AssemblyVersion,
-                DalamudGitHash = Util.GetGitHash(),
+                DalamudGitHash = Util.GetGitHash() ?? "Unknown",
                 GameVersion = startInfo.GameVersion?.ToString() ?? "Unknown",
                 Language = startInfo.Language.ToString(),
                 BetaKey = configuration.DalamudBetaKey,

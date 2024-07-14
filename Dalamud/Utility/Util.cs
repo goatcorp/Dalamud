@@ -39,6 +39,7 @@ namespace Dalamud.Utility;
 public static class Util
 {
     private static readonly Type GenericSpanType = typeof(Span<>);
+    private static string? dalamudVersionInternal;
     private static string? gitHashInternal;
     private static int? gitCommitCountInternal;
     private static string? gitHashClientStructsInternal;
@@ -105,11 +106,28 @@ public static class Util
     }
 
     /// <summary>
-    /// Gets the git hash value from the assembly
-    /// or null if it cannot be found.
+    /// Gets the Dalamud Version from the assembly, or null if it cannot be found. This method will generally return
+    /// the <c>git describe</c> output for this build, which will be a raw version if this is a stable build or an
+    /// appropriately-annotated version if this is *not* stable. Local builds will return a `Local Build` text string.
+    /// </summary>
+    /// <returns>The dalamud version of the assembly.</returns>
+    public static string GetDalamudVersion()
+    {
+        if (dalamudVersionInternal != null) return dalamudVersionInternal;
+        
+        var asm = typeof(Util).Assembly;
+        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
+
+        return dalamudVersionInternal = attrs.First(a => a.Key == "DalamudVersion").Value 
+                                        ?? asm.GetName().Version!.ToString();
+    }
+
+    /// <summary>
+    /// Gets the git commit hash value from the assembly or null if it cannot be found. Will be appended with
+    /// <c>-dirty</c> if this is a local dirty build.
     /// </summary>
     /// <returns>The git hash of the assembly.</returns>
-    public static string GetGitHash()
+    public static string? GetGitHash()
     {
         if (gitHashInternal != null)
             return gitHashInternal;
@@ -119,7 +137,7 @@ public static class Util
 
         gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
 
-        return gitHashInternal;
+        return gitHashInternal!;
     }
 
     /// <summary>
@@ -147,7 +165,7 @@ public static class Util
     /// or null if it cannot be found.
     /// </summary>
     /// <returns>The git hash of the assembly.</returns>
-    public static string GetGitHashClientStructs()
+    public static string? GetGitHashClientStructs()
     {
         if (gitHashClientStructsInternal != null)
             return gitHashClientStructsInternal;
