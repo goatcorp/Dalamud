@@ -140,7 +140,7 @@
         <Exec Command="echo|set /P =&quot;$(CommitCount)&quot; &gt; $(DalamudRevisionFile)" IgnoreExitCode="true" />
     </Target>
 
-    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(PrettyVersion)'=='' And '$(Configuration)'=='Release'">
+    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(DalamudVersion)'=='' And '$(Configuration)'=='Release'">
         <!-- write the hash to the temp file.-->
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
@@ -152,19 +152,19 @@
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
         </Exec>
         
-        <!-- Set the PrettyVersion property to contain the GitVersion, if it wasn't already set.-->
+        <!-- Set the DalamudVersion property to contain the GitVersion, if it wasn't already set.-->
         <PropertyGroup>
-            <PrettyVersion>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</PrettyVersion>
+            <DalamudVersion>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</DalamudVersion>
             <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
             <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
 
         <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
-        <Exec Command="echo|set /P =&quot;$(PrettyVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(DalamudVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
         <Exec Command="echo|set /P =&quot;$(CommitHash)&quot; &gt; $(CommitHashFile)" IgnoreExitCode="true" />
     </Target>
 
-    <Target Name="GetGitHashStub" BeforeTargets="WriteGitHash" Condition="'$(PrettyVersion)'=='' And '$(Configuration)'=='Debug'">
+    <Target Name="GetGitHashStub" BeforeTargets="WriteGitHash" Condition="'$(DalamudVersion)'=='' And '$(Configuration)'=='Debug'">
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --match=NeVeRmAtCh --always --abbrev=40 --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitHash" />
         </Exec>
@@ -172,16 +172,16 @@
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
         </Exec>
         
-        <!-- Set the PrettyVersion property to contain some placeholder, if it wasn't already set.-->
+        <!-- Set the DalamudVersion property to contain some placeholder, if it wasn't already set.-->
         <PropertyGroup>
             <LocalBuildText>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</LocalBuildText>
-            <PrettyVersion>$(LocalBuildText)</PrettyVersion>
+            <DalamudVersion>$(LocalBuildText)</DalamudVersion>
             <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
             <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
 
         <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
-        <Exec Command="echo|set /P =&quot;$(PrettyVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(DalamudVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
         <Exec Command="echo|set /P =&quot;$(CommitHash)&quot; &gt; $(CommitHashFile)" IgnoreExitCode="true" />
     </Target>
     
@@ -198,7 +198,7 @@
         <ItemGroup>
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>DalamudVersion</_Parameter1>
-                <_Parameter2>$(PrettyVersion)</_Parameter2>
+                <_Parameter2>$(DalamudVersion)</_Parameter2>
             </AssemblyAttributes>
             <AssemblyAttributes Include="AssemblyMetadata">
                 <_Parameter1>GitCommitCount</_Parameter1>
