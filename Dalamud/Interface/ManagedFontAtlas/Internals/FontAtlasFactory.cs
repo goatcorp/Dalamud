@@ -51,9 +51,9 @@ internal sealed partial class FontAtlasFactory
         this.Framework = framework;
         this.InterfaceManager = interfaceManager;
         this.dalamudAssetManager = dalamudAssetManager;
-        this.SceneTask = Service<InterfaceManager.InterfaceManagerWithScene>
+        this.BackendTask = Service<InterfaceManager.InterfaceManagerWithScene>
                          .GetAsync()
-                         .ContinueWith(r => r.Result.Manager.Scene);
+                         .ContinueWith(r => r.Result.Manager.Backend);
 
         var gffasInfo = Enum.GetValues<GameFontFamilyAndSize>()
                             .Select(
@@ -140,7 +140,7 @@ internal sealed partial class FontAtlasFactory
 
     /// <summary>
     /// Gets the service instance of <see cref="InterfaceManager"/>.<br />
-    /// <see cref="Internal.InterfaceManager.Scene"/> may not yet be available.
+    /// <see cref="Internal.InterfaceManager.Backend"/> may not yet be available.
     /// </summary>
     public InterfaceManager InterfaceManager { get; }
 
@@ -152,7 +152,7 @@ internal sealed partial class FontAtlasFactory
     /// <summary>
     /// Gets the async task for <see cref="IImGuiBackend"/> inside <see cref="InterfaceManager"/>.
     /// </summary>
-    public Task<IImGuiBackend> SceneTask { get; }
+    public Task<IImGuiBackend> BackendTask { get; }
 
     /// <summary>
     /// Gets the default glyph ranges (glyph ranges of <see cref="GameFontFamilyAndSize.Axis12"/>).

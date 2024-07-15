@@ -79,7 +79,7 @@ internal class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
-    private IWin32Backend? scene;
+    private IWin32Backend? backend;
 
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<PresentDelegate>? presentHook;
@@ -179,26 +179,26 @@ internal class InterfaceManager : IInternalDisposableService
     /// <summary>
     /// Gets the DX11 scene.
     /// </summary>
-    public IImGuiBackend? Scene => this.scene;
+    public IImGuiBackend? Backend => this.backend;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
     /// </summary>
     public bool OverrideGameCursor
     {
-        get => this.scene?.UpdateCursor ?? this.isOverrideGameCursor;
+        get => this.backend?.UpdateCursor ?? this.isOverrideGameCursor;
         set
         {
             this.isOverrideGameCursor = value;
-            if (this.scene != null)
-                this.scene.UpdateCursor = value;
+            if (this.backend != null)
+                this.backend.UpdateCursor = value;
         }
     }
 
     /// <summary>
     /// Gets a value indicating whether the Dalamud interface ready to use.
     /// </summary>
-    public bool IsReady => this.scene != null;
+    public bool IsReady => this.backend != null;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not Draw events should be dispatched.
@@ -282,7 +282,7 @@ internal class InterfaceManager : IInternalDisposableService
         this.IconFontHandle = null;
 
         Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
-        Interlocked.Exchange(ref this.scene, null)?.Dispose();
+        Interlocked.Exchange(ref this.backend, null)?.Dispose();
 
         return;
 
@@ -416,14 +416,14 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>The currently used video memory, or null if not available.</returns>
     public unsafe (long Used, long Available)? GetD3dMemoryInfo()
     {
-        if (this.scene?.DeviceHandle is 0 or null)
+        if (this.backend?.DeviceHandle is 0 or null)
             return null;
 
         using var device = default(ComPtr<IDXGIDevice>);
         using var adapter = default(ComPtr<IDXGIAdapter>);
         using var adapter4 = default(ComPtr<IDXGIAdapter4>);
 
-        if (new ComPtr<IUnknown>((IUnknown*)this.scene.DeviceHandle).As(&device).FAILED)
+        if (new ComPtr<IUnknown>((IUnknown*)this.backend.DeviceHandle).As(&device).FAILED)
             return null;
 
         if (device.Get()->GetAdapter(adapter.GetAddressOf()).FAILED)
@@ -617,7 +617,7 @@ internal class InterfaceManager : IInternalDisposableService
             Log.Information("[IM] Scene & ImGui setup OK!");
         }
 
-        this.scene = newBackend;
+        this.backend = newBackend;
         Service<InterfaceManagerWithScene>.Provide(new(this));
 
         this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
@@ -625,7 +625,7 @@ internal class InterfaceManager : IInternalDisposableService
 
     private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
     {
-        var r = this.scene?.ProcessWndProcW(args.Hwnd, args.Message, args.WParam, args.LParam);
+        var r = this.backend?.ProcessWndProcW(args.Hwnd, args.Message, args.WParam, args.LParam);
         if (r is not null)
             args.SuppressWithValue(r.Value);
     }
@@ -638,14 +638,14 @@ internal class InterfaceManager : IInternalDisposableService
     {
         Debug.Assert(this.presentHook is not null, "How did PresentDetour get called when presentHook is null?");
 
-        if (this.scene is null)
+        if (this.backend is null)
         {
             this.InitScene(swapChain);
-            if (this.scene is null)
+            if (this.backend is null)
                 throw new InvalidOperationException("InitScene did not set this.scene?");
         }
 
-        if (!this.scene.IsAttachedToPresentationTarget((nint)swapChain))
+        if (!this.backend.IsAttachedToPresentationTarget((nint)swapChain))
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
         // Do not do anything yet if no font atlas has been built yet.
@@ -664,7 +664,7 @@ internal class InterfaceManager : IInternalDisposableService
         this.IsMainThreadInPresent = true;
         this.CumulativePresentCalls++;
         this.PreImGuiRender();
-        RenderImGui(this.scene!);
+        RenderImGui(this.backend!);
         this.PostImGuiRender();
         this.IsMainThreadInPresent = false;
 
@@ -833,23 +833,23 @@ internal class InterfaceManager : IInternalDisposableService
         this.ResizeBuffers?.InvokeSafely();
 
         // We have to ensure we're working with the main swapchain, as other viewports might be resizing as well.
-        if (this.scene?.IsAttachedToPresentationTarget((nint)swapChain) is not true)
+        if (this.backend?.IsAttachedToPresentationTarget((nint)swapChain) is not true)
             return this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
 
-        this.scene?.OnPreResize();
+        this.backend?.OnPreResize();
 
         var ret = this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
         if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
             Log.Error("invalid call to resizeBuffers");
 
-        this.scene?.OnPostResize((int)width, (int)height);
+        this.backend?.OnPostResize((int)width, (int)height);
 
         return ret;
     }
 
     private HCURSOR SetCursorDetour(HCURSOR hCursor)
     {
-        if (this.lastWantCapture && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
+        if (this.lastWantCapture && (!this.backend?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
             return default;
 
         return this.setCursorHook?.IsDisposed is not false
