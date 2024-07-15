@@ -29,26 +29,6 @@ internal static unsafe class ReShadePeeler
         where T : unmanaged, IDXGISwapChain.Interface =>
         PeelIUnknown(comptr, sizeof(IDXGISwapChain.Vtbl<IDXGISwapChain>));
 
-    /// <summary>
-    /// Peels <see cref="ID3D12Device"/> if it is wrapped by ReShade.
-    /// </summary>
-    /// <param name="comptr">[inout] The COM pointer to an instance of <see cref="ID3D12Device"/>.</param>
-    /// <typeparam name="T">A COM type that is or extends <see cref="ID3D12Device"/>.</typeparam>
-    /// <returns><c>true</c> if peeled.</returns>
-    public static bool PeelD3D12Device<T>(ComPtr<T>* comptr)
-        where T : unmanaged, ID3D12Device.Interface =>
-        PeelIUnknown(comptr, sizeof(ID3D12Device.Vtbl<ID3D12Device>));
-
-    /// <summary>
-    /// Peels <see cref="ID3D12CommandQueue"/> if it is wrapped by ReShade.
-    /// </summary>
-    /// <param name="comptr">[inout] The COM pointer to an instance of <see cref="ID3D12CommandQueue"/>.</param>
-    /// <typeparam name="T">A COM type that is or extends <see cref="ID3D12CommandQueue"/>.</typeparam>
-    /// <returns><c>true</c> if peeled.</returns>
-    public static bool PeelD3D12CommandQueue<T>(ComPtr<T>* comptr)
-        where T : unmanaged, ID3D12CommandQueue.Interface =>
-        PeelIUnknown(comptr, sizeof(ID3D12Device.Vtbl<ID3D12Device>));
-
     private static bool PeelIUnknown<T>(ComPtr<T>* comptr, nint vtblSize)
         where T : unmanaged, IUnknown.Interface
     {
