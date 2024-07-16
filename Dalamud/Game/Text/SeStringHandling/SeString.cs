@@ -150,7 +150,8 @@ public class SeString
     {
         fixed (byte* ptr = data)
         {
-            return Parse(ptr, data.Length);
+            var len = data.IndexOf((byte)0);
+            return Parse(ptr, len == -1 ? data.Length : len);
         }
     }
 
