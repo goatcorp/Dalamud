@@ -128,40 +128,40 @@
         <DalamudRevisionFile>$(OutputPath)revision.txt</DalamudRevisionFile>
     </PropertyGroup>
 
-    <Target Name="GetGitCommitData" BeforeTargets="WriteVersionData" Condition="'$(CommitCount)'==''">
+    <Target Name="GetVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'=='Release'">
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-list --count HEAD" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitCount" />
         </Exec>
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --match=NeVeRmAtCh --always --abbrev=40 --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitHash" />
         </Exec>
-
-        <PropertyGroup>
-            <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
-            <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
-        </PropertyGroup>
-
-        <Exec Command="echo|set /P =&quot;$(CommitCount)&quot; &gt; $(DalamudRevisionFile)" IgnoreExitCode="true" />
-        <Exec Command="echo|set /P =&quot;$(CommitHash)&quot; &gt; $(CommitHashFile)" IgnoreExitCode="true" />
-    </Target>
-    
-    <Target Name="GetVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'==''">
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
         </Exec>
         <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
         </Exec>
-        
-        <!-- Set the DalamudVersion property to contain some placeholder, if it wasn't already set.-->
+
         <PropertyGroup>
-            <SCMVersion Condition="'$(Configuration)'=='Debug'">Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</SCMVersion>
-            <SCMVersion Condition="'$(Configuration)'=='Release'">$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</SCMVersion>
+            <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
+            <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
+            <SCMVersion>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</SCMVersion>
             <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
 
-        <!-- Looks like this is the only way to write a file without a carriage return in msbuild... -->
+        <Exec Command="echo|set /P =&quot;$(CommitCount)&quot; &gt; $(DalamudRevisionFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(CommitHash)&quot; &gt; $(CommitHashFile)" IgnoreExitCode="true" />
         <Exec Command="echo|set /P =&quot;$(SCMVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+    </Target>
+    
+    <Target Name="GenerateStubVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'!='Release'">
+        <!-- stub out version since it takes a while. -->
+        <PropertyGroup>
+            <CommitCount>-1</CommitCount>
+            <CommitHash>???</CommitHash>
+            <SCMVersion>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</SCMVersion>
+            <CommitHashClientStructs>???</CommitHashClientStructs>
+        </PropertyGroup>
     </Target>
     
     <Target Name="WriteVersionData" BeforeTargets="CoreCompile">
