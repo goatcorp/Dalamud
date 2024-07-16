@@ -493,6 +493,26 @@ public class SeString
     }
 
     /// <summary>
+    /// Encodes the Payloads in this SeString into a binary representation
+    /// suitable for use by in-game handlers, such as the chat log.
+    /// Includes a null terminator at the end of the string.
+    /// </summary>
+    /// <returns>The binary encoded payload data.</returns>
+    public byte[] EncodeWithNullTerminator()
+    {
+        var messageBytes = new List<byte>();
+        foreach (var p in this.Payloads)
+        {
+            messageBytes.AddRange(p.Encode());
+        }
+        
+        // Add Null Terminator
+        messageBytes.Add(0);
+
+        return messageBytes.ToArray();
+    }
+
+    /// <summary>
     /// Get the text value of this SeString.
     /// </summary>
     /// <returns>The TextValue property.</returns>
