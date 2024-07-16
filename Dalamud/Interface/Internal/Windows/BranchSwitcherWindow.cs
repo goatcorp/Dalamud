@@ -2,17 +2,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
-using Dalamud.Networking.Http;
+using Dalamud.Support;
 
 using ImGuiNET;
-using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -21,9 +19,7 @@ namespace Dalamud.Interface.Internal.Windows;
 /// </summary>
 public class BranchSwitcherWindow : Window
 {
-    private const string BranchInfoUrl = "https://kamori.goats.dev/Dalamud/Release/Meta";
-
-    private Dictionary<string, VersionEntry>? branches;
+    private Dictionary<string, DalamudReleases.DalamudVersionInfo>? branches;
     private int selectedBranchIndex;
 
     /// <summary>
@@ -41,17 +37,16 @@ public class BranchSwitcherWindow : Window
     {
         Task.Run(async () =>
         {
-            var client = Service<HappyHttpClient>.Get().SharedHttpClient;
-            this.branches = await client.GetFromJsonAsync<Dictionary<string, VersionEntry>>(BranchInfoUrl);
+            var releaseSvc = await Service<DalamudReleases>.GetAsync();
+            
+            this.branches = await releaseSvc.GetVersionsForAllTracks();
             Debug.Assert(this.branches != null, "this.branches != null");
-
-            var config = Service<DalamudConfiguration>.Get();
-            this.selectedBranchIndex = this.branches!.Any(x => x.Key == config.DalamudBetaKind) ?
-                                           this.branches.TakeWhile(x => x.Key != config.DalamudBetaKind).Count()
+            
+            var resolvedBranchName = await releaseSvc.GetCurrentTrack(); // validates key and resolves correct track name.
+            
+            this.selectedBranchIndex = this.branches!.Any(x => x.Key == resolvedBranchName) ?
+                                           this.branches.TakeWhile(x => x.Key != resolvedBranchName).Count()
                                            : 0;
-
-            if (this.branches.ElementAt(this.selectedBranchIndex).Value.Key != config.DalamudBetaKey)
-                this.selectedBranchIndex = 0;
         });
 
         base.OnOpen();
@@ -79,7 +74,7 @@ public class BranchSwitcherWindow : Window
         }
         else
         {
-            ImGui.Text($"Version: {pickedBranch.Value.AssemblyVersion} ({pickedBranch.Value.GitSha ?? "unk"})");
+            ImGui.Text($"Version: {pickedBranch.Value.AssemblyVersion})");
             ImGui.Text($"Runtime: {pickedBranch.Value.RuntimeVersion}");
 
             ImGuiHelpers.ScaledDummy(5);
@@ -117,32 +112,5 @@ public class BranchSwitcherWindow : Window
                 }
             }
         }
-    }
-
-    private class VersionEntry
-    {
-        [JsonProperty("key")]
-        public string? Key { get; set; }
-
-        [JsonProperty("track")]
-        public string? Track { get; set; }
-
-        [JsonProperty("assemblyVersion")]
-        public string? AssemblyVersion { get; set; }
-
-        [JsonProperty("runtimeVersion")]
-        public string? RuntimeVersion { get; set; }
-
-        [JsonProperty("runtimeRequired")]
-        public bool RuntimeRequired { get; set; }
-
-        [JsonProperty("supportedGameVer")]
-        public string? SupportedGameVer { get; set; }
-
-        [JsonProperty("downloadUrl")]
-        public string? DownloadUrl { get; set; }
-
-        [JsonProperty("gitSha")]
-        public string? GitSha { get; set; }
     }
 }

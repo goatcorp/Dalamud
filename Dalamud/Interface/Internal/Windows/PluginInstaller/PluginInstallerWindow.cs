@@ -295,8 +295,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         this.profileManagerWidget.Reset();
 
-        // TODO: Actually check if we are on a tag-0 version here. We might be opted into a beta but have a wrong key.
-        if (this.staleDalamudNewVersion == null && !Service<DalamudConfiguration>.Get().DalamudBetaKind.IsNullOrEmpty())
+        if (this.staleDalamudNewVersion == null)
         {
             Service<DalamudReleases>.Get().GetVersionForCurrentTrack().ContinueWith(t =>
             {
