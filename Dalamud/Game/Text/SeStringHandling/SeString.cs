@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Data;
@@ -161,6 +162,13 @@ public class SeString
     /// <param name="bytes">Binary message payload data in SE's internal format.</param>
     /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
     public static SeString Parse(byte[] bytes) => Parse(new ReadOnlySpan<byte>(bytes));
+
+    /// <summary>
+    /// Parse a binary game message into an SeString.
+    /// </summary>
+    /// <param name="ptr">Pointer to the string's data in memory. Needs to be null-terminated.</param>
+    /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
+    public static unsafe SeString Parse(byte* ptr) => Parse(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ptr));
 
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
