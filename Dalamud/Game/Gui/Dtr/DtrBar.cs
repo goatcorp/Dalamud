@@ -146,8 +146,12 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     internal void RemoveEntry(DtrBarEntry toRemove)
     {
         this.RemoveNode(toRemove.TextNode);
-        toRemove.Storage->Dtor(true);
-        toRemove.Storage = null;
+
+        if (toRemove.Storage != null)
+        {
+            toRemove.Storage->Dtor(true);
+            toRemove.Storage = null;
+        }
     }
 
     /// <summary>
