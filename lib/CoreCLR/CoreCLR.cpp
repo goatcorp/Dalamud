@@ -20,6 +20,7 @@ int CoreCLR::load_hostfxr()
 
 int CoreCLR::load_hostfxr(const struct get_hostfxr_parameters* parameters)
 {
+    /*
     // Get the path to CoreCLR's hostfxr
     std::wstring calling_module_path(MAX_PATH, L'\0');
     
@@ -41,6 +42,7 @@ int CoreCLR::load_hostfxr(const struct get_hostfxr_parameters* parameters)
         get_export(lib_nethost, "get_hostfxr_path"));
     if (!get_hostfxr_path)
         return -1;
+        */
 
     wchar_t buffer[MAX_PATH]{};
     size_t buffer_size = sizeof buffer / sizeof(wchar_t);
