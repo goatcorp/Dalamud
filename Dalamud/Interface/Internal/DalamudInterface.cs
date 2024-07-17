@@ -895,6 +895,14 @@ internal class DalamudInterface : IInternalDisposableService
                     {
                         this.configuration.ShowDevBarInfo = !this.configuration.ShowDevBarInfo;
                     }
+                    
+                    ImGui.Separator();
+
+                    if (ImGui.MenuItem("Show loading window"))
+                    {
+                        var dialog = new LoadingDialog();
+                        dialog.Show();
+                    }
 
                     ImGui.EndMenu();
                 }

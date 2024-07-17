@@ -6,6 +6,36 @@
 
 #include <stddef.h>
 
+#ifdef _WIN32
+    #ifdef NETHOST_EXPORT
+        #define NETHOST_API __declspec(dllexport)
+    #else
+        // Consuming the nethost as a static library
+        // Shouldn't export attempt to dllimport.
+        #ifdef NETHOST_USE_AS_STATIC
+            #define NETHOST_API
+        #else
+            #define NETHOST_API __declspec(dllimport)
+        #endif
+    #endif
+
+    #define NETHOST_CALLTYPE __stdcall
+    #ifdef _WCHAR_T_DEFINED
+        typedef wchar_t char_t;
+    #else
+        typedef unsigned short char_t;
+    #endif
+#else
+    #ifdef NETHOST_EXPORT
+        #define NETHOST_API __attribute__((__visibility__("default")))
+    #else
+        #define NETHOST_API
+    #endif
+
+    #define NETHOST_CALLTYPE
+    typedef char char_t;
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,7 +47,7 @@ extern "C" {
 //     Size of the struct. This is used for versioning.
 //
 //   assembly_path
-//     Path to the compenent's assembly.
+//     Path to the component's assembly.
 //     If specified, hostfxr is located as if the assembly_path is the apphost
 //
 //   dotnet_root
@@ -47,7 +77,7 @@ struct get_hostfxr_parameters {
 //
 //   get_hostfxr_parameters
 //     Optional. Parameters that modify the behaviour for locating the hostfxr library.
-//     If nullptr, hostfxr is located using the enviroment variable or global registration
+//     If nullptr, hostfxr is located using the environment variable or global registration
 //
 // Return value:
 //   0 on success, otherwise failure
@@ -57,10 +87,10 @@ struct get_hostfxr_parameters {
 //   The full search for the hostfxr library is done on every call. To minimize the need
 //   to call this function multiple times, pass a large buffer (e.g. PATH_MAX).
 //
-using get_hostfxr_path_type = int(__stdcall *)(
-    char_t* buffer,
-    size_t* buffer_size,
-    const struct get_hostfxr_parameters* parameters);
+NETHOST_API int NETHOST_CALLTYPE get_hostfxr_path(
+    char_t * buffer,
+    size_t * buffer_size,
+    const struct get_hostfxr_parameters *parameters);
 
 #ifdef __cplusplus
 } // extern "C"

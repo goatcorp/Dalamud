@@ -99,6 +99,23 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     }
 
     /// <inheritdoc/>
+    public IGameObject? SearchByEntityId(uint entityId)
+    {
+        _ = this.WarnMultithreadedUsage();
+
+        if (entityId is 0 or 0xE0000000)
+            return null;
+
+        foreach (var e in this.cachedObjectTable)
+        {
+            if (e.Update() is { } o && o.EntityId == entityId)
+                return o;
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc/>
     public unsafe nint GetObjectAddress(int index)
     {
         _ = this.WarnMultithreadedUsage();

@@ -34,6 +34,13 @@ public interface IObjectTable : IEnumerable<IGameObject>
     public IGameObject? SearchById(ulong gameObjectId);
 
     /// <summary>
+    /// Search for a game object by the Entity ID.
+    /// </summary>
+    /// <param name="entityId">Entity ID to find.</param>
+    /// <returns>A game object or null.</returns>
+    public IGameObject? SearchByEntityId(uint entityId);
+
+    /// <summary>
     /// Gets the address of the game object at the specified index of the object table.
     /// </summary>
     /// <param name="index">The index of the object.</param>
