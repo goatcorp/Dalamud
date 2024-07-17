@@ -295,7 +295,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         this.profileManagerWidget.Reset();
 
-        if (this.staleDalamudNewVersion == null)
+        // fetch new version information on every open, unless we're in debug
+        if (!Util.IsDalamudDebugBuild())
         {
             Service<DalamudReleases>.Get().GetVersionForCurrentTrack().ContinueWith(t =>
             {

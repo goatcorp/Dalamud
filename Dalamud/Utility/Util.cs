@@ -178,6 +178,19 @@ public static class Util
     }
 
     /// <summary>
+    /// Check if the current build of Dalamud is a debug build.
+    /// </summary>
+    /// <returns>Returns true if debug, false otherwise.</returns>
+    public static bool IsDalamudDebugBuild()
+    {
+#if DEBUG
+        return true;
+#else
+        return false;
+#endif
+    }
+
+    /// <summary>
     /// Read memory from an offset and hexdump them via Serilog.
     /// </summary>
     /// <param name="offset">The offset to read from.</param>
