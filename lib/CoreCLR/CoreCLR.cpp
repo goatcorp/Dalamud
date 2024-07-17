@@ -18,8 +18,38 @@ int CoreCLR::load_hostfxr()
     return CoreCLR::load_hostfxr(nullptr);
 }
 
+// MS does not provide this typedef anymore in the header. They removed it since they want us to implicitly link nethost,
+// but we don't want to do that since we don't want to change the dll search path in ffxix_dx11.exe.
+// This is kind of a kludge but whatever. The static lib they ship is unusable. Fix it, goat.
+typedef int (NETHOST_CALLTYPE *get_hostfxr_path_type)(
+    char_t * buffer,
+    size_t * buffer_size,
+    const struct get_hostfxr_parameters *parameters);
+
 int CoreCLR::load_hostfxr(const struct get_hostfxr_parameters* parameters)
 {
+    // Get the path to CoreCLR's hostfxr
+    std::wstring calling_module_path(MAX_PATH, L'\0');
+    
+    do
+    {
+        calling_module_path.resize(GetModuleFileNameW(static_cast<HMODULE>(m_calling_module), &calling_module_path[0], static_cast<DWORD>(calling_module_path.size())));
+    }
+    while (!calling_module_path.empty() && GetLastError() == ERROR_INSUFFICIENT_BUFFER);
+    if (calling_module_path.empty())
+        return -1;
+
+    calling_module_path = (std::filesystem::path(calling_module_path).parent_path() / L"nethost.dll").wstring();
+
+    auto lib_nethost = reinterpret_cast<void*>(load_library(calling_module_path.c_str()));
+    if (!lib_nethost)
+        return -1;
+
+    auto get_hostfxr_path = reinterpret_cast<get_hostfxr_path_type>(
+        get_export(lib_nethost, "get_hostfxr_path"));
+    if (!get_hostfxr_path)
+        return -1;
+
     wchar_t buffer[MAX_PATH]{};
     size_t buffer_size = sizeof buffer / sizeof(wchar_t);
     if (int rc = get_hostfxr_path(buffer, &buffer_size, parameters); rc != 0)
