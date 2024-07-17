@@ -27,6 +27,8 @@ internal class DalamudReleases : IServiceType
     private readonly HappyHttpClient httpClient;
     private readonly DalamudConfiguration config;
 
+    private string? cachedBranchName;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudReleases"/> class.
     /// </summary>
@@ -49,25 +51,33 @@ internal class DalamudReleases : IServiceType
         // we can work around this by fetching *all* tracks, but that won't handle certain server edge cases like track
         // aliases (which shouldn't be returned by the server).
         
-        return await this.GetVersionForTrack(await this.GetCurrentTrack());
+        return await this.GetVersionForTrack(await this.GetCurrentTrack(false));
     }
 
     /// <summary>
     /// Gets the current effective track, validating the current beta key.
     /// </summary>
+    /// <param name="useCached">Use a cached branch name if it exists.</param>
     /// <returns>Returns the track name.</returns>
-    public async Task<string> GetCurrentTrack()
+    public async Task<string> GetCurrentTrack(bool useCached = true)
     {
+        if (useCached && !this.cachedBranchName.IsNullOrEmpty()) return this.cachedBranchName;
+        
         var configuredTrack = this.config.DalamudBetaKind;
-        if (configuredTrack.IsNullOrEmpty() || configuredTrack == DefaultTrack) return DefaultTrack;
+        if (configuredTrack.IsNullOrEmpty() || configuredTrack == DefaultTrack) return DefaultTrack; // no need for caching, this is fast.
 
         var trackData = await this.GetVersionForTrack(configuredTrack);
         
         // key is only considered if it's actually set.
-        if (!trackData.Key.IsNullOrEmpty() && trackData.Key != this.config.DalamudBetaKey) return DefaultTrack;
+        if (!trackData.Key.IsNullOrEmpty() && trackData.Key != this.config.DalamudBetaKey)
+        {
+            this.cachedBranchName = DefaultTrack;
+            return this.cachedBranchName;
+        }
 
         // track name from remote is authoritative for aliasing purposes.
-        return trackData.Track;
+        this.cachedBranchName = trackData.Track;
+        return this.cachedBranchName;
     }
 
     /// <summary>
