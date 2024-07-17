@@ -304,7 +304,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     return;
                 
                 var versionInfo = t.Result;
-                if (versionInfo.AssemblyVersion != Util.GetGitHash())
+                if (versionInfo.AssemblyVersion != Util.GetGitHash() && versionInfo.Track != "release")
                     this.staleDalamudNewVersion = versionInfo.AssemblyVersion;
             });
         }
