@@ -123,8 +123,8 @@ public static class Util
     }
 
     /// <summary>
-    /// Gets the git commit hash value from the assembly or null if it cannot be found. Will be appended with
-    /// <c>-dirty</c> if this is a local dirty build.
+    /// Gets the git commit hash value from the assembly or null if it cannot be found. Will be null for Debug builds,
+    /// and will be suffixed with `-dirty` if in release with pending changes.
     /// </summary>
     /// <returns>The git hash of the assembly.</returns>
     public static string? GetGitHash()
@@ -135,15 +135,14 @@ public static class Util
         var asm = typeof(Util).Assembly;
         var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
 
-        gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
-
-        return gitHashInternal!;
+        return gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
     }
 
     /// <summary>
     /// Gets the amount of commits in the current branch, or null if undetermined.
     /// </summary>
     /// <returns>The amount of commits in the current branch.</returns>
+    [Obsolete($"Planned for removal in API 11. Use {nameof(GetScmVersion)} for version tracking.")]
     public static int? GetGitCommitCount()
     {
         if (gitCommitCountInternal != null)

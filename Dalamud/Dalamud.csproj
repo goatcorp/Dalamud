@@ -157,8 +157,6 @@
     <Target Name="GenerateStubVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'!='Release'">
         <!-- stub out version since it takes a while. -->
         <PropertyGroup>
-            <CommitCount>-1</CommitCount>
-            <CommitHash>???</CommitHash>
             <SCMVersion>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</SCMVersion>
             <CommitHashClientStructs>???</CommitHashClientStructs>
         </PropertyGroup>
