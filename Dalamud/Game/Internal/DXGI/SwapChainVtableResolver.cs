@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
-using Dalamud.Game.Internal.DXGI.Definitions;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using Serilog;
+
+using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Game.Internal.DXGI;
 
@@ -19,48 +18,53 @@ namespace Dalamud.Game.Internal.DXGI;
 internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressResolver
 {
     /// <inheritdoc/>
-    public IntPtr Present { get; set; }
+    public nint Present { get; set; }
 
     /// <inheritdoc/>
-    public IntPtr ResizeBuffers { get; set; }
+    public nint ResizeBuffers { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether or not ReShade is loaded/used.
     /// </summary>
     public bool IsReshade { get; private set; }
 
+    /// <summary>Gets the game's active instance of IDXGISwapChain that is initialized.</summary>
+    /// <returns>Address of the game's instance of IDXGISwapChain, or <c>null</c> if not available (yet.)</returns>
+    public static unsafe IDXGISwapChain* GetGameDeviceSwapChain()
+    {
+        var kernelDev = Device.Instance();
+        if (kernelDev == null)
+            return null;
+
+        var swapChain = kernelDev->SwapChain;
+        if (swapChain == null)
+            return null;
+
+        // BackBuffer should be something from IDXGISwapChain->GetBuffer, which means that IDXGISwapChain itself
+        // must have been fully initialized.
+        if (swapChain->BackBuffer == null)
+            return null;
+
+        return (IDXGISwapChain*)swapChain->DXGISwapChain;
+    }
+
     /// <inheritdoc/>
     protected override unsafe void Setup64Bit(ISigScanner sig)
     {
-        Device* kernelDev;
-        SwapChain* swapChain;
-        void* dxgiSwapChain;
-
-        while (true)
+        IDXGISwapChain* dxgiSwapChain;
+        do
         {
-            kernelDev = Device.Instance();
-            if (kernelDev == null)
-                continue;
-
-            swapChain = kernelDev->SwapChain;
-            if (swapChain == null)
-                continue;
-
-            dxgiSwapChain = swapChain->DXGISwapChain;
-            if (dxgiSwapChain == null)
-                continue;
-
-            break;
+            dxgiSwapChain = GetGameDeviceSwapChain();
         }
+        while (dxgiSwapChain is null);
 
-        var scVtbl = GetVTblAddresses(new IntPtr(dxgiSwapChain), Enum.GetValues(typeof(IDXGISwapChainVtbl)).Length);
-
-        this.Present = scVtbl[(int)IDXGISwapChainVtbl.Present];
+        var vtbl = (IDXGISwapChain.Vtbl<IDXGISwapChain>*)dxgiSwapChain->lpVtbl;
+        this.Present = (nint)vtbl->Present;
 
         var modules = Process.GetCurrentProcess().Modules;
         foreach (ProcessModule processModule in modules)
         {
-            if (processModule.FileName == null || !processModule.FileName.EndsWith("game\\dxgi.dll"))
+            if (!processModule.FileName.EndsWith("game\\dxgi.dll", StringComparison.InvariantCultureIgnoreCase))
                 continue;
             
             try
@@ -82,7 +86,7 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
                 // 6.0+ - F6 C2 01 0F 85 88
 
                 var scanner = new SigScanner(processModule);
-                var reShadeDxgiPresent = IntPtr.Zero;
+                var reShadeDxgiPresent = nint.Zero;
 
                 if (fileInfo.FileVersion?.StartsWith("6.") == true)
                 {
@@ -106,7 +110,7 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
                 }
 
                 // Looks like this sig only works for GShade 4
-                if (reShadeDxgiPresent == IntPtr.Zero && fileInfo.FileDescription?.Contains("GShade 4.") == true)
+                if (reShadeDxgiPresent == nint.Zero && fileInfo.FileDescription?.Contains("GShade 4.") == true)
                 {
                     if (scanner.TryScanText("E8 ?? ?? ?? ?? 45 0F B6 5E ??", out reShadeDxgiPresent))
                     {
@@ -118,7 +122,7 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
                     }
                 }
 
-                if (reShadeDxgiPresent == IntPtr.Zero)
+                if (reShadeDxgiPresent == nint.Zero)
                 {
                     if (scanner.TryScanText("F6 C2 01 0F 85", out reShadeDxgiPresent))
                     {
@@ -136,7 +140,7 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
                                 fileInfo.FileVersion ?? "Unknown",
                                 Util.DescribeAddress(reShadeDxgiPresent));
 
-                if (reShadeDxgiPresent != IntPtr.Zero)
+                if (reShadeDxgiPresent != nint.Zero)
                 {
                     this.Present = reShadeDxgiPresent;
                     this.IsReshade = true;
@@ -151,21 +155,6 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
             }
         }
 
-        this.ResizeBuffers = scVtbl[(int)IDXGISwapChainVtbl.ResizeBuffers];
-    }
-
-    private static List<IntPtr> GetVTblAddresses(IntPtr pointer, int numberOfMethods)
-    {
-        return GetVTblAddresses(pointer, 0, numberOfMethods);
-    }
-
-    private static List<IntPtr> GetVTblAddresses(IntPtr pointer, int startIndex, int numberOfMethods)
-    {
-        var vtblAddresses = new List<IntPtr>();
-        var vTable = Marshal.ReadIntPtr(pointer);
-        for (var i = startIndex; i < startIndex + numberOfMethods; i++)
-            vtblAddresses.Add(Marshal.ReadIntPtr(vTable, i * IntPtr.Size)); // using IntPtr.Size allows us to support both 32 and 64-bit processes
-
-        return vtblAddresses;
+        this.ResizeBuffers = (nint)vtbl->ResizeBuffers;
     }
 }

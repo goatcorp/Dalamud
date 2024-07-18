@@ -633,12 +633,12 @@ internal class InterfaceManager : IInternalDisposableService
      * NOTE(goat): When hooking ReShade DXGISwapChain::runtime_present, this is missing the syncInterval arg.
      *             Seems to work fine regardless, I guess, so whatever.
      */
-    private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
+    private unsafe IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
     {
         Debug.Assert(this.presentHook is not null, "How did PresentDetour get called when presentHook is null?");
         Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
 
-        if (this.scene != null && swapChain != this.scene.SwapChain.NativePointer)
+        if (swapChain != (nint)SwapChainVtableResolver.GetGameDeviceSwapChain())
             return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
 
         if (this.scene == null)
