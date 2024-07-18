@@ -19,7 +19,6 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
-
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
@@ -28,7 +27,8 @@ using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
 
-using HWND = Windows.Win32.Foundation.HWND;
+using static TerraFX.Interop.Windows.Windows;
+
 using Win32_PInvoke = Windows.Win32.PInvoke;
 
 namespace Dalamud.Utility;
@@ -38,6 +38,28 @@ namespace Dalamud.Utility;
 /// </summary>
 public static class Util
 {
+    private static readonly string[] PageProtectionFlagNames = [
+        "PAGE_NOACCESS",
+        "PAGE_READONLY",
+        "PAGE_READWRITE",
+        "PAGE_WRITECOPY",
+        "PAGE_EXECUTE",
+        "PAGE_EXECUTE_READ",
+        "PAGE_EXECUTE_READWRITE",
+        "PAGE_EXECUTE_WRITECOPY",
+        "PAGE_GUARD",
+        "PAGE_NOCACHE",
+        "PAGE_WRITECOMBINE",
+        "PAGE_GRAPHICS_NOACCESS",
+        "PAGE_GRAPHICS_READONLY",
+        "PAGE_GRAPHICS_READWRITE",
+        "PAGE_GRAPHICS_EXECUTE",
+        "PAGE_GRAPHICS_EXECUTE_READ",
+        "PAGE_GRAPHICS_EXECUTE_READWRITE",
+        "PAGE_GRAPHICS_COHERENT",
+        "PAGE_GRAPHICS_NOCACHE",
+    ];
+
     private static readonly Type GenericSpanType = typeof(Span<>);
     private static string? gitHashInternal;
     private static int? gitCommitCountInternal;
@@ -158,6 +180,100 @@ public static class Util
         gitHashClientStructsInternal = attrs.First(a => a.Key == "GitHashClientStructs").Value;
 
         return gitHashClientStructsInternal;
+    }
+
+    /// <inheritdoc cref="DescribeAddress(nint)"/>
+    public static unsafe string DescribeAddress(void* p) => DescribeAddress((nint)p);
+
+    /// <summary>Describes a memory address relative to module, or allocation base.</summary>
+    /// <param name="p">Address.</param>
+    /// <returns>Address description.</returns>
+    public static unsafe string DescribeAddress(nint p)
+    {
+        Span<char> namebuf = stackalloc char[9];
+        var modules = Process.GetCurrentProcess().Modules;
+        for (var i = 0; i < modules.Count; i++)
+        {
+            if (p < modules[i].BaseAddress) continue;
+            var d = p - modules[i].BaseAddress;
+            if (d > modules[i].ModuleMemorySize) continue;
+
+            // Display module name without path, only if there exists exactly one module loaded in the memory.
+            var fileName = modules[i].ModuleName;
+            for (var j = 0; j < modules.Count; j++)
+            {
+                if (i == j)
+                    continue;
+                if (!modules[j].ModuleName.Equals(fileName, StringComparison.InvariantCultureIgnoreCase))
+                    continue;
+                fileName = modules[i].FileName;
+                break;
+            }
+
+            var dos = (IMAGE_DOS_HEADER*)modules[i].BaseAddress;
+            if (dos->e_magic != 0x5A4D)
+                return $"0x{p:X}({fileName}+0x{d:X}: ???)";
+
+            Span<IMAGE_SECTION_HEADER> sections;
+            switch (((IMAGE_NT_HEADERS32*)(modules[i].BaseAddress + dos->e_lfanew))->OptionalHeader.Magic)
+            {
+                case IMAGE.IMAGE_NT_OPTIONAL_HDR32_MAGIC:
+                {
+                    var nth = (IMAGE_NT_HEADERS32*)(modules[i].BaseAddress + dos->e_lfanew);
+                    if (d < dos->e_lfanew + sizeof(IMAGE_NT_HEADERS32)
+                        + (nth->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)))
+                        goto default;
+                    sections = new(
+                        (void*)(modules[i].BaseAddress + dos->e_lfanew + sizeof(IMAGE_NT_HEADERS32)),
+                        nth->FileHeader.NumberOfSections);
+                    break;
+                }
+
+                case IMAGE.IMAGE_NT_OPTIONAL_HDR64_MAGIC:
+                {
+                    var nth = (IMAGE_NT_HEADERS64*)(modules[i].BaseAddress + dos->e_lfanew);
+                    if (d < dos->e_lfanew + sizeof(IMAGE_NT_HEADERS64)
+                        + (nth->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)))
+                        goto default;
+                    sections = new(
+                        (void*)(modules[i].BaseAddress + dos->e_lfanew + sizeof(IMAGE_NT_HEADERS64)),
+                        nth->FileHeader.NumberOfSections);
+                    break;
+                }
+
+                default:
+                    return $"0x{p:X}({fileName}+0x{d:X}: header)";
+            }
+
+            for (var j = 0; j < sections.Length; j++)
+            {
+                if (d >= sections[j].VirtualAddress && d < sections[j].VirtualAddress + sections[j].Misc.VirtualSize)
+                {
+                    var d2 = d - sections[j].VirtualAddress;
+                    var name8 = new Span<byte>((byte*)Unsafe.AsPointer(ref sections[j].Name[0]), 8).TrimEnd((byte)0);
+                    return $"0x{p:X}({fileName}+0x{d:X}({namebuf[..Encoding.UTF8.GetChars(name8, namebuf)]}+0x{d2:X}))";
+                }
+            }
+
+            return $"0x{p:X}({fileName}+0x{d:X}: ???)";
+        }
+
+        MEMORY_BASIC_INFORMATION mbi;
+        if (VirtualQuery((void*)p, &mbi, (nuint)sizeof(MEMORY_BASIC_INFORMATION)) == 0)
+            return $"0x{p:X}(???)";
+
+        var sb = new StringBuilder();
+        sb.Append($"0x{p:X}(");
+        for (int i = 0, c = 0; i < PageProtectionFlagNames.Length; i++)
+        {
+            if ((mbi.Protect & (1 << i)) == 0)
+                continue;
+            if (c++ == 0)
+                sb.Append(" | ");
+            sb.Append(PageProtectionFlagNames[i]);
+        }
+
+        return sb.Append(')').ToString();
     }
 
     /// <summary>
@@ -858,7 +974,7 @@ public static class Util
 
         Win32_PInvoke.GlobalUnlock(hGlobal);
 
-        if (Win32_PInvoke.OpenClipboard(HWND.Null))
+        if (Win32_PInvoke.OpenClipboard(default))
         {
             Win32_PInvoke.SetClipboardData(
                 (uint)CLIPBOARD_FORMAT.CF_HDROP,

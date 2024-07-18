@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -27,7 +28,7 @@ internal class JobGauges : IServiceType, IJobGauges
     {
         this.Address = clientState.AddressResolver.JobGaugeData;
 
-        Log.Verbose($"JobGaugeData address 0x{this.Address.ToInt64():X}");
+        Log.Verbose($"JobGaugeData address {Util.DescribeAddress(this.Address)}");
     }
 
     /// <inheritdoc/>

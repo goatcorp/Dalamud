@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -45,7 +46,7 @@ internal class KeyState : IServiceType, IKeyState
         this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
         this.indexBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardStateIndexArray);
 
-        Log.Verbose($"Keyboard state buffer address 0x{this.bufferBase.ToInt64():X}");
+        Log.Verbose($"Keyboard state buffer address {Util.DescribeAddress(this.bufferBase)}");
     }
 
     /// <inheritdoc/>

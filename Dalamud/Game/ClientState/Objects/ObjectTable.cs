@@ -53,7 +53,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         for (var i = 0; i < this.frameworkThreadEnumerators.Length; i++)
             this.frameworkThreadEnumerators[i] = new(this, i);
 
-        Log.Verbose($"Object table address 0x{this.clientState.AddressResolver.ObjectTable.ToInt64():X}");
+        Log.Verbose($"Object table address {Util.DescribeAddress(this.clientState.AddressResolver.ObjectTable)}");
     }
 
     /// <inheritdoc/>

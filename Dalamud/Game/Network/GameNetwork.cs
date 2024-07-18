@@ -38,8 +38,8 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
         this.address.Setup(sigScanner);
 
         Log.Verbose("===== G A M E N E T W O R K =====");
-        Log.Verbose($"ProcessZonePacketDown address 0x{this.address.ProcessZonePacketDown.ToInt64():X}");
-        Log.Verbose($"ProcessZonePacketUp address 0x{this.address.ProcessZonePacketUp.ToInt64():X}");
+        Log.Verbose($"ProcessZonePacketDown address {Util.DescribeAddress(this.address.ProcessZonePacketDown)}");
+        Log.Verbose($"ProcessZonePacketUp address {Util.DescribeAddress(this.address.ProcessZonePacketUp)}");
 
         this.processZonePacketDownHook = Hook<ProcessZonePacketDownDelegate>.FromAddress(this.address.ProcessZonePacketDown, this.ProcessZonePacketDownDetour);
         this.processZonePacketUpHook = Hook<ProcessZonePacketUpDelegate>.FromAddress(this.address.ProcessZonePacketUp, this.ProcessZonePacketUpDetour);

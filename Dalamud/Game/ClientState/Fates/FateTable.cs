@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -26,7 +27,7 @@ internal sealed partial class FateTable : IServiceType, IFateTable
     {
         this.address = clientState.AddressResolver;
 
-        Log.Verbose($"Fate table address 0x{this.address.FateTablePtr.ToInt64():X}");
+        Log.Verbose($"Fate table address {Util.DescribeAddress(this.address.FateTablePtr)}");
     }
 
     /// <inheritdoc/>
