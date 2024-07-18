@@ -15,28 +15,14 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="callingAssembly">Calling assembly.</param>
-    internal MinHookHook(IntPtr address, T detour, Assembly callingAssembly)
+    internal MinHookHook(IntPtr address, T detour)
         : base(address)
     {
-        lock (HookManager.HookEnableSyncRoot)
-        {
-            var unhooker = HookManager.RegisterUnhooker(this.Address);
+        var unhooker = HookManager.RegisterUnhooker(this.Address);
 
-            if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
-                indexList = HookManager.MultiHookTracker[this.Address] = new();
+        this.minHookImpl = new MinSharp.Hook<T>(this.Address, detour, 1);
 
-            var index = (ulong)indexList.Count;
-
-            this.minHookImpl = new MinSharp.Hook<T>(this.Address, detour, index);
-
-            // Add afterwards, so the hookIdent starts at 0.
-            indexList.Add(this);
-
-            unhooker.TrimAfterHook();
-
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
-        }
+        unhooker.TrimAfterHook();
     }
 
     /// <inheritdoc/>
@@ -68,12 +54,9 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
         if (this.IsDisposed)
             return;
 
-        lock (HookManager.HookEnableSyncRoot)
+        lock (HookManager.HookSyncRoot)
         {
             this.minHookImpl.Dispose();
-
-            var index = HookManager.MultiHookTracker[this.Address].IndexOf(this);
-            HookManager.MultiHookTracker[this.Address][index] = null;
         }
 
         base.Dispose();
@@ -86,7 +69,7 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
 
         if (!this.minHookImpl.Enabled)
         {
-            lock (HookManager.HookEnableSyncRoot)
+            lock (HookManager.HookSyncRoot)
             {
                 this.minHookImpl.Enable();
             }
@@ -100,7 +83,7 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
 
         if (this.minHookImpl.Enabled)
         {
-            lock (HookManager.HookEnableSyncRoot)
+            lock (HookManager.HookSyncRoot)
             {
                 this.minHookImpl.Disable();
             }

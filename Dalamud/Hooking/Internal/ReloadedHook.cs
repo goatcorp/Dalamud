@@ -17,11 +17,10 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     /// </summary>
     /// <param name="address">A memory address to install a hook.</param>
     /// <param name="detour">Callback function. Delegate must have a same original function prototype.</param>
-    /// <param name="callingAssembly">Calling assembly.</param>
-    internal ReloadedHook(IntPtr address, T detour, Assembly callingAssembly)
+    internal ReloadedHook(IntPtr address, T detour)
         : base(address)
     {
-        lock (HookManager.HookEnableSyncRoot)
+        lock (HookManager.HookSyncRoot)
         {
             var unhooker = HookManager.RegisterUnhooker(address);
             this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
@@ -29,8 +28,6 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
             this.hookImpl.Disable();
 
             unhooker.TrimAfterHook();
-
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
         }
     }
 
@@ -73,7 +70,7 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     {
         this.CheckDisposed();
 
-        lock (HookManager.HookEnableSyncRoot)
+        lock (HookManager.HookSyncRoot)
         {
             if (!this.hookImpl.IsHookEnabled)
                 this.hookImpl.Enable();
@@ -85,7 +82,7 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     {
         this.CheckDisposed();
 
-        lock (HookManager.HookEnableSyncRoot)
+        lock (HookManager.HookSyncRoot)
         {
             if (!this.hookImpl.IsHookActivated)
                 return;
