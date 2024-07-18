@@ -179,7 +179,7 @@ internal class ChatHandlers : IServiceType
 
         if (this.configuration.PrintDalamudWelcomeMsg)
         {
-            chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud vD{0} loaded."), assemblyVersion)
+            chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud {0} loaded."), Util.GetGitHash())
                           + string.Format(Loc.Localize("PluginsWelcome", " {0} plugin(s) loaded."), pluginManager.InstalledPlugins.Count(x => x.IsLoaded)));
         }
 
