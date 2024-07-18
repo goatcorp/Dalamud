@@ -200,7 +200,7 @@ namespace Dalamud.Injector
 
             Log.Logger = new LoggerConfiguration()
                          .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Debug)
-                         .WriteTo.File(logPath, fileSizeLimitBytes: null)
+                         .WriteTo.File(logPath, fileSizeLimitBytes: 1 * 1024 * 1024)
                          .MinimumLevel.ControlledBy(levelSwitch)
                          .CreateLogger();
 

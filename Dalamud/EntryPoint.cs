@@ -109,13 +109,13 @@ public sealed class EntryPoint
 
         if (logSynchronously)
         {
-            config = config.WriteTo.File(logPath.FullName, fileSizeLimitBytes: null);
+            config = config.WriteTo.File(logPath.FullName, fileSizeLimitBytes: 100 * 1024 * 1024);
         }
         else
         {
             config = config.WriteTo.Async(a => a.File(
                                               logPath.FullName,
-                                              fileSizeLimitBytes: null,
+                                              fileSizeLimitBytes: 100 * 1024 * 1024,
                                               buffered: false,
                                               flushToDiskInterval: TimeSpan.FromSeconds(1)));
         }
