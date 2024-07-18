@@ -804,8 +804,8 @@ internal class InterfaceManager : IInternalDisposableService
         this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
 
         Log.Verbose("===== S W A P C H A I N =====");
-        Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
-        Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
+        Log.Verbose($"Present address {Util.DescribeAddress(this.presentHook!.Address)}");
+        Log.Verbose($"ResizeBuffers address {Util.DescribeAddress(this.resizeBuffersHook!.Address)}");
 
         this.setCursorHook.Enable();
         this.presentHook.Enable();

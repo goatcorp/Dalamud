@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Internal.DXGI.Definitions;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using Serilog;
 
@@ -132,7 +134,7 @@ internal class SwapChainVtableResolver : BaseAddressResolver, ISwapChainAddressR
                                 processModule.FileName,
                                 fileInfo.FileDescription ?? "Unknown",
                                 fileInfo.FileVersion ?? "Unknown",
-                                reShadeDxgiPresent.ToString("X"));
+                                Util.DescribeAddress(reShadeDxgiPresent));
 
                 if (reShadeDxgiPresent != IntPtr.Zero)
                 {

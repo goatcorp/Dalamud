@@ -55,11 +55,11 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.address.Setup(sigScanner);
 
         Log.Verbose("===== G A M E G U I =====");
-        Log.Verbose($"GameGuiManager address 0x{this.address.BaseAddress.ToInt64():X}");
-        Log.Verbose($"SetGlobalBgm address 0x{this.address.SetGlobalBgm.ToInt64():X}");
-        Log.Verbose($"HandleItemHover address 0x{this.address.HandleItemHover.ToInt64():X}");
-        Log.Verbose($"HandleItemOut address 0x{this.address.HandleItemOut.ToInt64():X}");
-        Log.Verbose($"HandleImm address 0x{this.address.HandleImm.ToInt64():X}");
+        Log.Verbose($"GameGuiManager address {Util.DescribeAddress(this.address.BaseAddress)}");
+        Log.Verbose($"SetGlobalBgm address {Util.DescribeAddress(this.address.SetGlobalBgm)}");
+        Log.Verbose($"HandleItemHover address {Util.DescribeAddress(this.address.HandleItemHover)}");
+        Log.Verbose($"HandleItemOut address {Util.DescribeAddress(this.address.HandleItemOut)}");
+        Log.Verbose($"HandleImm address {Util.DescribeAddress(this.address.HandleImm)}");
 
         this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 

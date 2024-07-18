@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -34,7 +35,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     {
         this.address = this.clientState.AddressResolver;
 
-        Log.Verbose($"Buddy list address 0x{this.address.BuddyList.ToInt64():X}");
+        Log.Verbose($"Buddy list address {Util.DescribeAddress(this.address.BuddyList)}");
     }
 
     /// <inheritdoc/>

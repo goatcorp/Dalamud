@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using Dalamud.Utility;
+
 #if !DEBUG
 using Dalamud.Configuration.Internal;
 #endif
@@ -30,7 +32,7 @@ internal sealed class AntiDebug : IInternalDisposableService
             this.debugCheckAddress = IntPtr.Zero;
         }
 
-        Log.Verbose($"Debug check address 0x{this.debugCheckAddress.ToInt64():X}");
+        Log.Verbose($"Debug check address {Util.DescribeAddress(this.debugCheckAddress)}");
 
         if (!this.IsEnabled)
         {
@@ -65,7 +67,7 @@ internal sealed class AntiDebug : IInternalDisposableService
         this.original = new byte[this.nop.Length];
         if (this.debugCheckAddress != IntPtr.Zero && !this.IsEnabled)
         {
-            Log.Information($"Overwriting debug check at 0x{this.debugCheckAddress.ToInt64():X}");
+            Log.Information($"Overwriting debug check at {Util.DescribeAddress(this.debugCheckAddress)}");
             SafeMemory.ReadBytes(this.debugCheckAddress, this.nop.Length, out this.original);
             SafeMemory.WriteBytes(this.debugCheckAddress, this.nop);
         }
@@ -87,7 +89,7 @@ internal sealed class AntiDebug : IInternalDisposableService
 
         if (this.debugCheckAddress != IntPtr.Zero && this.original != null)
         {
-            Log.Information($"Reverting debug check at 0x{this.debugCheckAddress.ToInt64():X}");
+            Log.Information($"Reverting debug check at {Util.DescribeAddress(this.debugCheckAddress)}");
             SafeMemory.WriteBytes(this.debugCheckAddress, this.original);
         }
         else

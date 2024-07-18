@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Iced.Intel;
 
@@ -69,7 +70,7 @@ internal class HookManager : IInternalDisposableService
     /// <returns>A new Unhooker instance.</returns>
     public static Unhooker RegisterUnhooker(IntPtr address, int minBytes, int maxBytes)
     {
-        Log.Verbose($"Registering hook at 0x{address.ToInt64():X} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
+        Log.Verbose($"Registering hook at {Util.DescribeAddress(address)} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
         return Unhookers.GetOrAdd(address, _ => new Unhooker(address, minBytes, maxBytes));
     }
 
