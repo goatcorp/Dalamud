@@ -273,14 +273,14 @@ public interface INamePlateUpdateHandler
     void SetField(NamePlateStringField field, SeString value);
 
     /// <summary>
-    /// Sets the string array value for the provided field.
+    /// Sets the string array value for the provided field. The provided byte sequence must be null-terminated.
     /// </summary>
     /// <param name="field">The field to write to.</param>
     /// <param name="value">The ReadOnlySpan of bytes to write.</param>
     void SetField(NamePlateStringField field, ReadOnlySpan<byte> value);
 
     /// <summary>
-    /// Sets the string array value for the provided field.
+    /// Sets the string array value for the provided field. The provided byte sequence must be null-terminated.
     /// </summary>
     /// <param name="field">The field to write to.</param>
     /// <param name="value">The pointer to a null-terminated sequence of bytes to write.</param>
@@ -550,7 +550,12 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetField(NamePlateStringField field, SeString value)
     {
-        this.context.StringData->SetValue(this.ArrayIndex + (int)field, value.Encode(), true, true, true);
+        this.context.StringData->SetValue(
+            this.ArrayIndex + (int)field,
+            value.EncodeWithNullTerminator(),
+            true,
+            true,
+            true);
     }
 
     /// <inheritdoc/>
@@ -601,6 +606,11 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     {
         if ((nint)this.GetFieldAsPointer(field) == NamePlateGui.EmptyStringPointer)
             return;
-        this.context.StringData->SetValue(this.ArrayIndex + (int)field, value.Encode(), true, true, true);
+        this.context.StringData->SetValue(
+            this.ArrayIndex + (int)field,
+            value.EncodeWithNullTerminator(),
+            true,
+            true,
+            true);
     }
 }
