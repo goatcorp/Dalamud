@@ -360,7 +360,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                 {
                     case State.WindowFadeIn:
                     case State.ExplainerIntro:
-                        ImGui.TextWrapped($"Welcome to Dalamud v{Util.AssemblyVersion}!");
+                        ImGui.TextWrapped($"Welcome to Dalamud v{Util.GetScmVersion()}!");
                         ImGuiHelpers.ScaledDummy(5);
                         ImGui.TextWrapped(ChangeLog);
                         ImGuiHelpers.ScaledDummy(5);

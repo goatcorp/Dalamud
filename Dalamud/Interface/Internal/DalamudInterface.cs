@@ -818,8 +818,7 @@ internal class DalamudInterface : IInternalDisposableService
                     {
                         this.OpenBranchSwitcher();
                     }
-
-                    ImGui.MenuItem(Util.AssemblyVersion, false);
+                    
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
                     ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
