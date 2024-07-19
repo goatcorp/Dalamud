@@ -193,8 +193,8 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
 
     /// <inheritdoc/>
     public bool IsAttachedToPresentationTarget(nint targetHandle) =>
-        this.swapChain.Get() == (void*)targetHandle
-        || this.swapChainPossiblyWrapped.Get() == (void*)targetHandle;
+        AreIUnknownEqual(this.swapChain.Get(), (IUnknown*)targetHandle)
+        || AreIUnknownEqual(this.swapChainPossiblyWrapped.Get(), (IUnknown*)targetHandle);
 
     /// <inheritdoc/>
     public bool IsMainViewportFullScreen()
@@ -202,6 +202,31 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         BOOL fullscreen;
         this.swapChain.Get()->GetFullscreenState(&fullscreen, null);
         return fullscreen;
+    }
+
+    private static bool AreIUnknownEqual<T1, T2>(T1* punk1, T2* punk2)
+        where T1 : unmanaged, IUnknown.Interface
+        where T2 : unmanaged, IUnknown.Interface
+    {
+        // https://learn.microsoft.com/en-us/windows/win32/api/unknwn/nf-unknwn-iunknown-queryinterface(refiid_void)
+        // For any given COM object (also known as a COM component), a specific query for the IUnknown interface on any
+        // of the object's interfaces must always return the same pointer value.
+
+        if (punk1 is null || punk2 is null)
+            return false;
+
+        fixed (Guid* iid = &IID.IID_IUnknown)
+        {
+            using var u1 = default(ComPtr<IUnknown>);
+            if (punk1->QueryInterface(iid, (void**)u1.GetAddressOf()).FAILED)
+                return false;
+
+            using var u2 = default(ComPtr<IUnknown>);
+            if (punk2->QueryInterface(iid, (void**)u2.GetAddressOf()).FAILED)
+                return false;
+
+            return u1.Get() == u2.Get();
+        }
     }
 
     private void ReleaseUnmanagedResources()
