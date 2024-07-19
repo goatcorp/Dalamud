@@ -2276,6 +2276,16 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextColored(ImGuiColors.DalamudGrey3, Locs.PluginBody_AuthorWithoutDownloadCount(log.Author));
         }
 
+        if (log.Date != DateTime.MinValue)
+        {
+            var whenText = log.Date.LocRelativePastLong();
+            var whenSize = ImGui.CalcTextSize(whenText);
+            ImGui.SameLine(ImGui.GetWindowWidth() - whenSize.X - (25 * ImGuiHelpers.GlobalScale));
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, whenText);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Published on " + log.Date.LocAbsolute());
+        }
+
         cursor.Y += ImGui.GetTextLineHeightWithSpacing();
         ImGui.SetCursorPos(cursor);
 
