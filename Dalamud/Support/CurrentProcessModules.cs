@@ -57,8 +57,22 @@ internal sealed unsafe partial class CurrentProcessModules : IInternalDisposable
     }
 
     /// <summary>Gets all the loaded modules, up to date.</summary>
-    public static ProcessModuleCollection ModuleCollection =>
-        (cookie == 0 ? Process.GetCurrentProcess() : process ??= Process.GetCurrentProcess()).Modules;
+    public static ProcessModuleCollection ModuleCollection
+    {
+        get
+        {
+            if (cookie == 0)
+            {
+                // This service has not been initialized; return a fresh copy without storing it.
+                return Process.GetCurrentProcess().Modules;
+            }
+
+            if (process is null)
+                Log.Verbose("{what}: Fetchling fresh copy of current process modules.", nameof(CurrentProcessModules));
+
+            return (process ??= Process.GetCurrentProcess()).Modules;
+        }
+    }
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -77,14 +91,7 @@ internal sealed unsafe partial class CurrentProcessModules : IInternalDisposable
     private static void DllNotificationCallback(
         LdrDllNotificationReason reason,
         LdrDllNotificationData* data,
-        nint context)
-    {
-        process = null;
-        var name = new ReadOnlySpan<char>(data->FullDllName->Buffer, data->FullDllName->Length / 2);
-        LogQueue.Enqueue(
-            $"[{nameof(CurrentProcessModules)}]: {reason}: {name} @ 0x{data->DllBase:X} ({data->SizeOfImage}:X bytes)");
-        LogSemaphore.Release();
-    }
+        nint context) => process = null;
 
     /// <summary>
     /// Registers for notification when a DLL is first loaded.
