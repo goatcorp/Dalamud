@@ -2624,7 +2624,24 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var applicableChangelog = plugin.IsTesting ? remoteManifest?.Changelog : remoteManifest?.TestingChangelog;
         var hasChangelog = !applicableChangelog.IsNullOrWhitespace();
-        var didDrawChangelogInsideCollapsible = false;
+        var didDrawApplicableChangelogInsideCollapsible = false;
+
+        Version? availablePluginUpdateVersion = null;
+        string? availableChangelog = null;
+        var didDrawAvailableChangelogInsideCollapsible = false;
+
+        if (availablePluginUpdate != default)
+        {
+            availablePluginUpdateVersion =
+                availablePluginUpdate.UseTesting ?
+                    availablePluginUpdate.UpdateManifest.TestingAssemblyVersion :
+                    availablePluginUpdate.UpdateManifest.AssemblyVersion;
+            
+            availableChangelog =
+                availablePluginUpdate.UseTesting ? 
+                    availablePluginUpdate.UpdateManifest.TestingChangelog :
+                    availablePluginUpdate.UpdateManifest.Changelog;
+        }
 
         var flags = PluginHeaderFlags.None;
         if (plugin.IsThirdParty)
@@ -2758,27 +2775,32 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 if (ImGui.TreeNode(Locs.PluginBody_CurrentChangeLog(plugin.EffectiveVersion)))
                 {
-                    didDrawChangelogInsideCollapsible = true;
+                    didDrawApplicableChangelogInsideCollapsible = true;
                     this.DrawInstalledPluginChangelog(applicableChangelog);
                     ImGui.TreePop();
                 }
             }
 
-            if (availablePluginUpdate != default && !availablePluginUpdate.UpdateManifest.Changelog.IsNullOrWhitespace())
+            if (!availableChangelog.IsNullOrWhitespace() && ImGui.TreeNode(Locs.PluginBody_UpdateChangeLog(availablePluginUpdateVersion)))
             {
-                var availablePluginUpdateVersion = availablePluginUpdate.UseTesting ? availablePluginUpdate.UpdateManifest.TestingAssemblyVersion : availablePluginUpdate.UpdateManifest.AssemblyVersion;
-                var availableChangelog = availablePluginUpdate.UseTesting ? availablePluginUpdate.UpdateManifest.TestingChangelog : availablePluginUpdate.UpdateManifest.Changelog;
-                if (!availableChangelog.IsNullOrWhitespace() && ImGui.TreeNode(Locs.PluginBody_UpdateChangeLog(availablePluginUpdateVersion)))
-                {
-                    this.DrawInstalledPluginChangelog(availableChangelog);
-                    ImGui.TreePop();
-                }
+                this.DrawInstalledPluginChangelog(availableChangelog);
+                ImGui.TreePop();
+                didDrawAvailableChangelogInsideCollapsible = true;
             }
         }
 
-        if (thisWasUpdated && hasChangelog && !didDrawChangelogInsideCollapsible)
+        if (thisWasUpdated &&
+            hasChangelog &&
+            !didDrawApplicableChangelogInsideCollapsible)
         {
             this.DrawInstalledPluginChangelog(applicableChangelog);
+        }
+        
+        if (this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.UpdateablePlugins &&
+            !availableChangelog.IsNullOrWhitespace() &&
+            !didDrawAvailableChangelogInsideCollapsible)
+        {
+            this.DrawInstalledPluginChangelog(availableChangelog);
         }
 
         ImGui.PopID();
