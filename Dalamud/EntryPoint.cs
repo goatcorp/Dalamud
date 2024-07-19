@@ -107,15 +107,16 @@ public sealed class EntryPoint
                      .WriteTo.Sink(SerilogEventSink.Instance)
                      .MinimumLevel.ControlledBy(LogLevelSwitch);
 
+        const long maxLogSize = 100 * 1024 * 1024; // 100MB
         if (logSynchronously)
         {
-            config = config.WriteTo.File(logPath.FullName, fileSizeLimitBytes: null);
+            config = config.WriteTo.File(logPath.FullName, fileSizeLimitBytes: maxLogSize);
         }
         else
         {
             config = config.WriteTo.Async(a => a.File(
                                               logPath.FullName,
-                                              fileSizeLimitBytes: null,
+                                              fileSizeLimitBytes: maxLogSize,
                                               buffered: false,
                                               flushToDiskInterval: TimeSpan.FromSeconds(1)));
         }
