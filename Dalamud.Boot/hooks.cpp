@@ -5,6 +5,14 @@
 #include "ntdll.h"
 #include "logging.h"
 
+namespace {
+    int s_dllChanged = 0;
+}
+
+extern "C" __declspec(dllexport) int* GetDllChangedStorage() {
+    return &s_dllChanged;
+}
+
 hooks::getprocaddress_singleton_import_hook::getprocaddress_singleton_import_hook()
     : m_pfnGetProcAddress(GetProcAddress)
     , m_thunk("kernel32!GetProcAddress(Singleton Import Hook)",
@@ -71,6 +79,7 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
     m_getProcAddressHandler = set_handler(L"kernel32.dll", "GetProcAddress", m_thunk.get_thunk(), [this](void*) {});
 
     LdrRegisterDllNotification(0, [](ULONG notiReason, const LDR_DLL_NOTIFICATION_DATA* pData, void* context) {
+        s_dllChanged = 1;
         if (notiReason == LDR_DLL_NOTIFICATION_REASON_LOADED) {
             const auto dllName = unicode::convert<std::string>(pData->Loaded.FullDllName->Buffer);
 
