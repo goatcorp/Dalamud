@@ -27,6 +27,8 @@ using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
 
+using Dalamud.Support;
+
 using static TerraFX.Interop.Windows.Windows;
 
 using Win32_PInvoke = Windows.Win32.PInvoke;
@@ -191,7 +193,7 @@ public static class Util
     public static unsafe string DescribeAddress(nint p)
     {
         Span<char> namebuf = stackalloc char[9];
-        var modules = Process.GetCurrentProcess().Modules;
+        var modules = CurrentProcessModules.ModuleCollection;
         for (var i = 0; i < modules.Count; i++)
         {
             if (p < modules[i].BaseAddress) continue;
