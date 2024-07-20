@@ -137,14 +137,17 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
         get => this.shownBacking;
         set
         {
-            this.shownBacking = value;
-            this.Dirty = true;
+            if (value != this.shownBacking)
+            {
+                this.shownBacking = value;
+                this.Dirty = true;
+            }
         }
     }
 
     /// <inheritdoc/>
     [Api10ToDo("Maybe make this config scoped to internalname?")]
-    public bool UserHidden => this.configuration.DtrIgnore?.Any(x => x == this.Title) ?? false;
+    public bool UserHidden => this.configuration.DtrIgnore?.Contains(this.Title) ?? false;
 
     /// <summary>
     /// Gets or sets the internal text node of this entry.
