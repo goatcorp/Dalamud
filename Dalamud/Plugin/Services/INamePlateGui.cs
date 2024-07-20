@@ -39,5 +39,10 @@ public interface INamePlateGui
     /// <summary>
     /// Requests that all nameplates should be redrawn on the following frame.
     /// </summary>
+    /// <remarks>
+    /// This causes extra work for the game, and should not need to be called every frame. However, it is acceptable to
+    /// call frequently when needed (e.g. in response to a manual settings change by the user) or when necessary (e.g.
+    /// after a change of zone, party type, etc.).
+    /// </remarks>
     void RequestRedraw();
 }
