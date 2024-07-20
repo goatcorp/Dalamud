@@ -28,6 +28,7 @@ internal class SelfTestWindow : Window
             new EnterTerritoryAgingStep(148, "Central Shroud"),
             new ItemPayloadAgingStep(),
             new ContextMenuAgingStep(),
+            new NamePlateAgingStep(),
             new ActorTableAgingStep(),
             new FateTableAgingStep(),
             new AetheryteListAgingStep(),
