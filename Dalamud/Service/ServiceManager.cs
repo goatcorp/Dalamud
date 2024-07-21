@@ -44,7 +44,9 @@ internal static class ServiceManager
     private static readonly List<Type> LoadedServices = new();
 #endif
 
-    private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource = new();
+    private static readonly TaskCompletionSource BlockingServicesLoadedTaskCompletionSource =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     private static readonly CancellationTokenSource UnloadCancellationTokenSource = new();
 
     private static ManualResetEvent unloadResetEvent = new(false);

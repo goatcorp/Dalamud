@@ -336,7 +336,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunBeforeImGuiRender(Action action)
     {
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runBeforeImGuiRender.Enqueue(
             () =>
             {
@@ -359,7 +359,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
     public Task<T> RunBeforeImGuiRender<T>(Func<T> func)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runBeforeImGuiRender.Enqueue(
             () =>
             {
@@ -380,7 +380,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunAfterImGuiRender(Action action)
     {
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runAfterImGuiRender.Enqueue(
             () =>
             {
@@ -403,7 +403,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
     public Task<T> RunAfterImGuiRender<T>(Func<T> func)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runAfterImGuiRender.Enqueue(
             () =>
             {
