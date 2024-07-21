@@ -32,6 +32,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Build">
+        <UseWindowsForms>true</UseWindowsForms>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <DebugSymbols>true</DebugSymbols>
         <DebugType>portable</DebugType>
