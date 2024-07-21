@@ -5,6 +5,7 @@ using System.Text;
 
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
@@ -787,11 +788,11 @@ public static unsafe class MemoryHelper
         var result = VirtualProtect(memoryAddress, (nuint)length, newPermissions, out var oldPermissions);
 
         if (!result)
-            throw new MemoryPermissionException($"Unable to change permissions at 0x{memoryAddress.ToInt64():X} of length {length} and permission {newPermissions} (result={result})");
+            throw new MemoryPermissionException($"Unable to change permissions at {Util.DescribeAddress(memoryAddress)} of length {length} and permission {newPermissions} (result={result})");
 
         var last = Marshal.GetLastWin32Error();
         if (last > 0)
-            throw new MemoryPermissionException($"Unable to change permissions at 0x{memoryAddress.ToInt64():X} of length {length} and permission {newPermissions} (error={last})");
+            throw new MemoryPermissionException($"Unable to change permissions at {Util.DescribeAddress(memoryAddress)} of length {length} and permission {newPermissions} (error={last})");
 
         return oldPermissions;
     }
@@ -862,11 +863,11 @@ public static unsafe class MemoryHelper
             var result = NativeFunctions.ReadProcessMemory((nint)0xFFFFFFFF, memoryAddress, value, length, out _);
 
             if (!result)
-                throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
+                throw new MemoryReadException($"Unable to read memory at {Util.DescribeAddress(memoryAddress)} of length {length} (result={result})");
 
             var last = Marshal.GetLastWin32Error();
             if (last > 0)
-                throw new MemoryReadException($"Unable to read memory at 0x{memoryAddress.ToInt64():X} of length {length} (error={last})");
+                throw new MemoryReadException($"Unable to read memory at {Util.DescribeAddress(memoryAddress)} of length {length} (error={last})");
         }
     }
 
@@ -884,11 +885,11 @@ public static unsafe class MemoryHelper
             var result = NativeFunctions.WriteProcessMemory((nint)0xFFFFFFFF, memoryAddress, data, length, out _);
 
             if (!result)
-                throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (result={result})");
+                throw new MemoryWriteException($"Unable to write memory at {Util.DescribeAddress(memoryAddress)} of length {length} (result={result})");
 
             var last = Marshal.GetLastWin32Error();
             if (last > 0)
-                throw new MemoryWriteException($"Unable to write memory at 0x{memoryAddress.ToInt64():X} of length {length} (error={last})");
+                throw new MemoryWriteException($"Unable to write memory at {Util.DescribeAddress(memoryAddress)} of length {length} (error={last})");
         }
     }
 

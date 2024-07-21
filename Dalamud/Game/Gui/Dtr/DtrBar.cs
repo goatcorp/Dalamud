@@ -14,6 +14,7 @@ using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Gui.Dtr;
@@ -51,6 +52,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private readonly List<DtrBarEntry> entries = new();
 
     private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = new();
+
+    private Utf8String* emptyString;
     
     private uint runningNodeIds = BaseNodeId;
     private float entryStartPos = float.NaN;
@@ -111,10 +114,16 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.addonLifecycle.UnregisterListener(this.dtrPreFinalizeListener);
 
         foreach (var entry in this.entries)
-            this.RemoveNode(entry.TextNode);
+            this.RemoveEntry(entry);
 
         this.entries.Clear();
         this.framework.Update -= this.Update;
+
+        if (this.emptyString != null)
+        {
+            this.emptyString->Dtor();
+            this.emptyString = null;
+        }
     }
 
     /// <summary>
@@ -124,10 +133,25 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     {
         foreach (var data in this.entries.Where(d => d.ShouldBeRemoved))
         {
-            this.RemoveNode(data.TextNode);
+            this.RemoveEntry(data);
         }
 
         this.entries.RemoveAll(d => d.ShouldBeRemoved);
+    }
+
+    /// <summary>
+    /// Remove native resources for the specified entry.
+    /// </summary>
+    /// <param name="toRemove">The resources to remove.</param>
+    internal void RemoveEntry(DtrBarEntry toRemove)
+    {
+        this.RemoveNode(toRemove.TextNode);
+
+        if (toRemove.Storage != null)
+        {
+            toRemove.Storage->Dtor(true);
+            toRemove.Storage = null;
+        }
     }
 
     /// <summary>
@@ -204,7 +228,15 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             if (data is { Dirty: true, Added: true, Text: not null, TextNode: not null })
             {
                 var node = data.TextNode;
-                node->SetText(data.Text.Encode());
+
+                if (data.Storage == null)
+                {
+                    data.Storage = Utf8String.CreateEmpty();
+                }
+
+                data.Storage->SetString(data.Text.EncodeWithNullTerminator());
+                node->SetText(data.Storage->StringPtr);
+
                 ushort w = 0, h = 0;
 
                 if (!isHide)
@@ -427,7 +459,10 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         newTextNode->TextFlags = (byte)TextFlags.Edge;
         newTextNode->TextFlags2 = 0;
 
-        newTextNode->SetText(" ");
+        if (this.emptyString == null)
+            this.emptyString = Utf8String.FromString(" ");
+        
+        newTextNode->SetText(this.emptyString->StringPtr);
 
         newTextNode->TextColor = new ByteColor { R = 255, G = 255, B = 255, A = 255 };
         newTextNode->EdgeColor = new ByteColor { R = 142, G = 106, B = 12, A = 255 };

@@ -4,6 +4,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Gui.Dtr;
@@ -149,6 +150,11 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// Gets or sets the internal text node of this entry.
     /// </summary>
     internal AtkTextNode* TextNode { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the storage for the text of this entry.
+    /// </summary>
+    internal Utf8String* Storage { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether this entry should be removed.

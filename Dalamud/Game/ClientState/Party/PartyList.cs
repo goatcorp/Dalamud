@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -34,7 +35,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     {
         this.address = this.clientState.AddressResolver;
 
-        Log.Verbose($"Group manager address 0x{this.address.GroupManager.ToInt64():X}");
+        Log.Verbose($"Group manager address {Util.DescribeAddress(this.address.GroupManager)}");
     }
 
     /// <inheritdoc/>

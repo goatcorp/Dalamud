@@ -23,6 +23,7 @@ internal class PluginCategoryManager
         new(CategoryKind.All, "special.all", () => Locs.Category_All),
         new(CategoryKind.IsTesting, "special.isTesting", () => Locs.Category_IsTesting, CategoryInfo.AppearCondition.DoPluginTest),
         new(CategoryKind.AvailableForTesting, "special.availableForTesting", () => Locs.Category_AvailableForTesting, CategoryInfo.AppearCondition.DoPluginTest),
+        new(CategoryKind.Hidden, "special.hidden", () => Locs.Category_Hidden, CategoryInfo.AppearCondition.AnyHiddenPlugins),
         new(CategoryKind.DevInstalled, "special.devInstalled", () => Locs.Category_DevInstalled),
         new(CategoryKind.IconTester, "special.devIconTester", () => Locs.Category_IconTester),
         new(CategoryKind.DalamudChangelogs, "special.dalamud", () => Locs.Category_Dalamud),
@@ -105,6 +106,11 @@ internal class PluginCategoryManager
         /// Plugins available for testing.
         /// </summary>
         AvailableForTesting = 2,
+        
+        /// <summary>
+        /// Plugins that were hidden.
+        /// </summary>
+        Hidden = 3,
         
         /// <summary>
         /// Installed dev plugins.
@@ -309,6 +315,9 @@ internal class PluginCategoryManager
         {
             groupAvail.Categories.Add(this.CategoryList[categoryIdx].CategoryKind);
         }
+        
+        // Hidden at the end
+        groupAvail.Categories.Add(CategoryKind.Hidden);
 
         // compare with prev state and mark as dirty if needed
         var noCategoryChanges = prevCategoryIds.SequenceEqual(groupAvail.Categories);
@@ -332,7 +341,10 @@ internal class PluginCategoryManager
         {
             var groupInfo = this.groupList[this.currentGroupIdx];
 
-            var includeAll = (this.currentCategoryKind == CategoryKind.All) || (groupInfo.GroupKind != GroupKind.Available);
+            var includeAll = this.currentCategoryKind == CategoryKind.All ||
+                             this.currentCategoryKind == CategoryKind.Hidden ||
+                             groupInfo.GroupKind != GroupKind.Available;
+
             if (includeAll)
             {
                 result.AddRange(plugins);
@@ -455,6 +467,11 @@ internal class PluginCategoryManager
             /// Check if plugin testing is enabled.
             /// </summary>
             DoPluginTest,
+            
+            /// <summary>
+            /// Check if there are any hidden plugins.
+            /// </summary>
+            AnyHiddenPlugins,
         }
 
         /// <summary>
@@ -529,6 +546,8 @@ internal class PluginCategoryManager
 
         public static string Category_AvailableForTesting => Loc.Localize("InstallerCategoryAvailableForTesting", "Testing Available");
 
+        public static string Category_Hidden => Loc.Localize("InstallerCategoryHidden", "Hidden");
+        
         public static string Category_DevInstalled => Loc.Localize("InstallerInstalledDevPlugins", "Installed Dev Plugins");
 
         public static string Category_IconTester => "Image/Icon Tester";

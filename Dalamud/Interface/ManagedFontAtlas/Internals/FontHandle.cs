@@ -242,7 +242,7 @@ internal abstract class FontHandle : IFontHandle
         if (this.Available)
             return Task.FromResult<IFontHandle>(this);
 
-        var tcs = new TaskCompletionSource<IFontHandle>();
+        var tcs = new TaskCompletionSource<IFontHandle>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.ImFontChanged += OnImFontChanged;
         this.Disposed += OnDisposed;
         if (this.Available)

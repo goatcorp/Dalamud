@@ -258,12 +258,6 @@ internal class PluginManager : IInternalDisposableService
     /// <returns>If the manifest is visible.</returns>
     public static bool IsManifestVisible(RemotePluginManifest manifest)
     {
-        var configuration = Service<DalamudConfiguration>.Get();
-
-        // Hidden by user
-        if (configuration.HiddenPluginInternalName.Contains(manifest.InternalName))
-            return false;
-
         // Hidden by manifest
         return !manifest.IsHide;
     }

@@ -179,7 +179,7 @@ internal class SettingsWindow : Window
 
                     foreach (var settingsTab in this.tabs.Where(x => x.IsVisible))
                     {
-                        var eligible = settingsTab.Entries.Where(x => !x.Name.IsNullOrEmpty() && x.Name.ToLower().Contains(this.searchInput.ToLower())).ToArray();
+                        var eligible = settingsTab.Entries.Where(x => !x.Name.IsNullOrEmpty() && x.Name.ToLowerInvariant().Contains(this.searchInput.ToLowerInvariant())).ToArray();
 
                         if (!eligible.Any())
                             continue;

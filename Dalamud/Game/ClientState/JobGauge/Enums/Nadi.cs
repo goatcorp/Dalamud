@@ -7,17 +7,17 @@
 public enum Nadi : byte
 {
     /// <summary>
-    /// No card.
+    /// No nadi.
     /// </summary>
     NONE = 0,
 
     /// <summary>
     /// The Lunar nadi.
     /// </summary>
-    LUNAR = 2,
+    LUNAR = 1,
 
     /// <summary>
     /// The Solar nadi.
     /// </summary>
-    SOLAR = 4,
+    SOLAR = 2,
 }

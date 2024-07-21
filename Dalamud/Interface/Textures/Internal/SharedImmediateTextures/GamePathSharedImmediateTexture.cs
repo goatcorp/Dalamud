@@ -3,10 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Data;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 
 using Lumina.Data.Files;
+
+using Serilog;
 
 namespace Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 
@@ -35,9 +36,39 @@ internal sealed class GamePathSharedImmediateTexture : SharedImmediateTexture
     {
         var dm = await Service<DataManager>.GetAsync();
         var tm = await Service<TextureManager>.GetAsync();
+
+        TexFile? file;
+
         var substPath = tm.GetSubstitutedPath(this.path);
-        if (dm.GetFile<TexFile>(substPath) is not { } file)
-            throw new FileNotFoundException();
+        if (!string.IsNullOrWhiteSpace(substPath) && substPath != this.path)
+        {
+            try
+            {
+                file =
+                    Path.IsPathRooted(substPath)
+                        ? dm.GameData.GetFileFromDisk<TexFile>(substPath, this.path)
+                        : dm.GetFile<TexFile>(substPath) ??
+                          throw new FileNotFoundException("Game file not found.", substPath);
+            }
+            catch (Exception e)
+            {
+                file = dm.GetFile<TexFile>(this.path);
+                if (file is null)
+                    throw;
+
+                Log.Warning(
+                    e,
+                    "{who}: substitute path {subst} for {orig} failed to load. Using original path instead.",
+                    nameof(GamePathSharedImmediateTexture),
+                    substPath,
+                    this.path);
+            }
+        }
+        else
+        {
+            file = dm.GetFile<TexFile>(this.path) ?? throw new FileNotFoundException("Game file not found.", this.path);
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
         var wrap = tm.NoThrottleCreateFromTexFile(file);
         tm.BlameSetName(wrap, this.ToString());

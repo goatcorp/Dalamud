@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Data;
@@ -150,7 +151,8 @@ public class SeString
     {
         fixed (byte* ptr = data)
         {
-            return Parse(ptr, data.Length);
+            var len = data.IndexOf((byte)0);
+            return Parse(ptr, len == -1 ? data.Length : len);
         }
     }
 
@@ -160,6 +162,13 @@ public class SeString
     /// <param name="bytes">Binary message payload data in SE's internal format.</param>
     /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
     public static SeString Parse(byte[] bytes) => Parse(new ReadOnlySpan<byte>(bytes));
+
+    /// <summary>
+    /// Parse a binary game message into an SeString.
+    /// </summary>
+    /// <param name="ptr">Pointer to the string's data in memory. Needs to be null-terminated.</param>
+    /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
+    public static unsafe SeString Parse(byte* ptr) => Parse(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ptr));
 
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
@@ -488,6 +497,26 @@ public class SeString
         {
             messageBytes.AddRange(p.Encode());
         }
+
+        return messageBytes.ToArray();
+    }
+
+    /// <summary>
+    /// Encodes the Payloads in this SeString into a binary representation
+    /// suitable for use by in-game handlers, such as the chat log.
+    /// Includes a null terminator at the end of the string.
+    /// </summary>
+    /// <returns>The binary encoded payload data.</returns>
+    public byte[] EncodeWithNullTerminator()
+    {
+        var messageBytes = new List<byte>();
+        foreach (var p in this.Payloads)
+        {
+            messageBytes.AddRange(p.Encode());
+        }
+        
+        // Add Null Terminator
+        messageBytes.Add(0);
 
         return messageBytes.ToArray();
     }
