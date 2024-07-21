@@ -20,10 +20,18 @@ internal static unsafe partial class CurrentProcessModules
             {
                 t = 0;
                 process = null;
-                Log.Verbose("{what}: Fetchling fresh copy of current process modules.", nameof(CurrentProcessModules));
+                Log.Verbose("{what}: Fetching fresh copy of current process modules.", nameof(CurrentProcessModules));
             }
 
-            return (process ??= Process.GetCurrentProcess()).Modules;
+            try
+            {
+                return (process ??= Process.GetCurrentProcess()).Modules;
+            }
+            catch (Exception e)
+            {
+                Log.Verbose(e, "{what}: Failed to fetch module list.", nameof(CurrentProcessModules));
+                return new([]);
+            }
         }
     }
 

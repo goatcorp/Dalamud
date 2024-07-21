@@ -21,7 +21,7 @@ public static class AsyncUtils
     /// <returns>Returns the first task that completes, according to <see cref="Task.IsCompletedSuccessfully"/>.</returns>
     public static Task<T> FirstSuccessfulTask<T>(ICollection<Task<T>> tasks)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         var remainingTasks = tasks.Count;
 
         foreach (var task in tasks)

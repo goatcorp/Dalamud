@@ -59,7 +59,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
             {
                 var first = true;
                 var encoders = textureManager.Wic.GetSupportedEncoderInfos().ToList();
-                var tcs = new TaskCompletionSource<BitmapCodecInfo>();
+                var tcs = new TaskCompletionSource<BitmapCodecInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
                 Service<InterfaceManager>.Get().Draw += DrawChoices;
 
                 encoder = await tcs.Task;
@@ -108,7 +108,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
 
             string path;
             {
-                var tcs = new TaskCompletionSource<string>();
+                var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
                 this.fileDialogManager.SaveFileDialog(
                     "Save texture...",
                     $"{encoder.Name.Replace(',', '.')}{{{string.Join(',', encoder.Extensions)}}}",

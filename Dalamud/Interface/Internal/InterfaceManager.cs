@@ -336,7 +336,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunBeforeImGuiRender(Action action)
     {
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runBeforeImGuiRender.Enqueue(
             () =>
             {
@@ -359,7 +359,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
     public Task<T> RunBeforeImGuiRender<T>(Func<T> func)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runBeforeImGuiRender.Enqueue(
             () =>
             {
@@ -380,7 +380,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunAfterImGuiRender(Action action)
     {
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runAfterImGuiRender.Enqueue(
             () =>
             {
@@ -403,7 +403,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
     public Task<T> RunAfterImGuiRender<T>(Func<T> func)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runAfterImGuiRender.Enqueue(
             () =>
             {
@@ -817,8 +817,12 @@ internal class InterfaceManager : IInternalDisposableService
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync();
 
+        SwapChainHelper.BusyWaitForGameDeviceSwapChain();
+        SwapChainHelper.DetectReShade();
+
         try
         {
+            // Requires that game window to be there, which will be the case once game swap chain is initialized.
             if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
                 this.SetImmersiveMode(true);
         }
@@ -833,9 +837,6 @@ internal class InterfaceManager : IInternalDisposableService
             "SetCursor",
             0,
             this.SetCursorDetour);
-
-        SwapChainHelper.BusyWaitForGameDeviceSwapChain();
-        SwapChainHelper.DetectReShade();
 
         Log.Verbose("===== S W A P C H A I N =====");
         this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(

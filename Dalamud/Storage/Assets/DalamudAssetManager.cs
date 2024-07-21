@@ -85,7 +85,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                     .Where(x => x is not DalamudAsset.Empty4X4)
                     .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
                     .Select(this.CreateStreamAsync)
-                    .Select(x => x.ToContentDisposedTask()))
+                    .Select(x => x.ToContentDisposedTask(true)))
             .ContinueWith(r => Log.Verbose($"Optional assets load state: {r}"));
     }
 
