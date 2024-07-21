@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.Internal.Windows;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
 using Dalamud.Plugin.Internal;
@@ -232,6 +233,10 @@ public sealed class EntryPoint
 
     private static void SerilogOnLogLine(object? sender, (string Line, LogEvent LogEvent) ev)
     {
+        if (!LoadingDialog.IsGloballyHidden)
+            LoadingDialog.NewLogEntries.Enqueue(ev);
+        ConsoleWindow.NewLogEntries.Enqueue(ev);
+
         if (ev.LogEvent.Exception == null)
             return;
 

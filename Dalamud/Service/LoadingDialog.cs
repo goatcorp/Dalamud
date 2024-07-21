@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
@@ -14,6 +15,7 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
 
 using Serilog;
+using Serilog.Events;
 
 using TerraFX.Interop.Windows;
 
@@ -31,7 +33,7 @@ namespace Dalamud;
     Justification = "Multiple fixed blocks")]
 internal sealed unsafe class LoadingDialog
 {
-    private static int wasGloballyHidden;
+    private readonly RollingList<string> logs = new(20);
 
     private Thread? thread;
     private HWND hwndTaskDialog;
@@ -59,6 +61,13 @@ internal sealed unsafe class LoadingDialog
         /// </summary>
         AutoUpdatePlugins,
     }
+
+    /// <summary>Gets the queue where log entries that are not processed yet are stored.</summary>
+    public static ConcurrentQueue<(string Line, LogEvent LogEvent)> NewLogEntries { get; } = new();
+
+    /// <summary>Gets a value indicating whether the initial Dalamud loading dialog will not show again until next
+    /// game restart.</summary>
+    public static bool IsGloballyHidden { get; private set; }
 
     /// <summary>
     /// Gets or sets the current state of the dialog.
@@ -98,7 +107,7 @@ internal sealed unsafe class LoadingDialog
     /// </summary>
     public void Show()
     {
-        if (Volatile.Read(ref wasGloballyHidden) == 1)
+        if (IsGloballyHidden)
             return;
 
         if (this.thread?.IsAlive == true)
@@ -119,6 +128,7 @@ internal sealed unsafe class LoadingDialog
     /// </summary>
     public void HideAndJoin()
     {
+        IsGloballyHidden = true;
         if (this.thread?.IsAlive is not true)
             return;
 
@@ -210,6 +220,42 @@ internal sealed unsafe class LoadingDialog
         }
     }
 
+    private void UpdateExpandedInformation()
+    {
+        const int maxCharactersPerLine = 80;
+
+        if (NewLogEntries.IsEmpty)
+            return;
+        while (NewLogEntries.TryDequeue(out var e))
+        {
+            var t = e.Line.AsSpan();
+            while (!t.IsEmpty)
+            {
+                var i = t.IndexOfAny('\r', '\n');
+                var line = i == -1 ? t : t[..i];
+                t = i == -1 ? ReadOnlySpan<char>.Empty : t[(i + 1)..];
+                if (line.IsEmpty)
+                    continue;
+
+                this.logs.Add(
+                    line.Length < maxCharactersPerLine ? line.ToString() : $"{line[..(maxCharactersPerLine - 3)]}...");
+            }
+        }
+
+        var sb = new StringBuilder();
+        foreach (var l in this.logs)
+            sb.AppendLine(l);
+
+        fixed (void* pszText = sb.ToString())
+        {
+            SendMessageW(
+                this.hwndTaskDialog,
+                (uint)TASKDIALOG_MESSAGES.TDM_SET_ELEMENT_TEXT,
+                (WPARAM)(int)TASKDIALOG_ELEMENTS.TDE_EXPANDED_INFORMATION,
+                (LPARAM)pszText);
+        }
+    }
+
     private void UpdateButtonEnabled()
     {
         if (this.hwndTaskDialog == default)
@@ -227,6 +273,7 @@ internal sealed unsafe class LoadingDialog
 
                 this.UpdateMainInstructionText();
                 this.UpdateContentText();
+                this.UpdateExpandedInformation();
                 this.UpdateButtonEnabled();
                 SendMessageW(hwnd, (int)TASKDIALOG_MESSAGES.TDM_SET_PROGRESS_BAR_MARQUEE, 1, 0);
 
@@ -245,6 +292,7 @@ internal sealed unsafe class LoadingDialog
 
             case TASKDIALOG_NOTIFICATIONS.TDN_TIMER:
                 this.UpdateContentText();
+                this.UpdateExpandedInformation();
                 return S.S_OK;
         }
 
@@ -260,10 +308,13 @@ internal sealed unsafe class LoadingDialog
                 ? null
                 : Icon.ExtractAssociatedIcon(Path.Combine(workingDirectory, "Dalamud.Injector.exe"));
 
+        fixed (void* pszEmpty = "-")
         fixed (void* pszWindowTitle = "Dalamud")
-        fixed (void* pszHide = Loc.Localize("LoadingDialogHide", "Hide"))
-        fixed (void* pszThemesManifestResourceName = "RT_MANIFEST_THEMES")
         fixed (void* pszDalamudBoot = "Dalamud.Boot.dll")
+        fixed (void* pszThemesManifestResourceName = "RT_MANIFEST_THEMES")
+        fixed (void* pszHide = Loc.Localize("LoadingDialogHide", "Hide"))
+        fixed (void* pszShowLatestLogs = Loc.Localize("LoadingDialogShowLatestLogs", "Show Latest Logs"))
+        fixed (void* pszHideLatestLogs = Loc.Localize("LoadingDialogHideLatestLogs", "Hide Latest Logs"))
         {
             var taskDialogButton = new TASKDIALOG_BUTTON
             {
@@ -277,6 +328,7 @@ internal sealed unsafe class LoadingDialog
                 hInstance = (HINSTANCE)Marshal.GetHINSTANCE(Assembly.GetExecutingAssembly().ManifestModule),
                 dwFlags = (int)TDF_CAN_BE_MINIMIZED |
                           (int)TDF_SHOW_MARQUEE_PROGRESS_BAR |
+                          (int)TDF_EXPAND_FOOTER_AREA |
                           (int)TDF_CALLBACK_TIMER |
                           (extractedIcon is null ? 0 : (int)TDF_USE_HICON_MAIN),
                 dwCommonButtons = 0,
@@ -291,14 +343,14 @@ internal sealed unsafe class LoadingDialog
                 pRadioButtons = null,
                 nDefaultRadioButton = 0,
                 pszVerificationText = null,
-                pszExpandedInformation = null,
-                pszExpandedControlText = null,
-                pszCollapsedControlText = null,
+                pszExpandedInformation = (ushort*)pszEmpty,
+                pszExpandedControlText = (ushort*)pszShowLatestLogs,
+                pszCollapsedControlText = (ushort*)pszHideLatestLogs,
                 pszFooterIcon = null,
                 pszFooter = null,
                 pfCallback = &HResultFuncBinder,
                 lpCallbackData = 0,
-                cxWidth = 0,
+                cxWidth = 360,
             };
 
             HANDLE hActCtx = default;
@@ -338,7 +390,7 @@ internal sealed unsafe class LoadingDialog
             }
         }
 
-        Interlocked.Exchange(ref wasGloballyHidden, 1);
+        IsGloballyHidden = true;
 
         return;
 

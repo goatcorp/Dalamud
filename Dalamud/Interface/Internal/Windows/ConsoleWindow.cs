@@ -18,7 +18,6 @@ using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -38,9 +37,6 @@ internal class ConsoleWindow : Window, IDisposable
     private const int LogLinesMinimum = 100;
     private const int LogLinesMaximum = 1000000;
     private const int HistorySize = 50;
-
-    // Only this field may be touched from any thread.
-    private readonly ConcurrentQueue<(string Line, LogEvent LogEvent)> newLogEntries;
 
     // Fields below should be touched only from the main thread.
     private readonly RollingList<LogEntry> logText;
@@ -94,7 +90,6 @@ internal class ConsoleWindow : Window, IDisposable
         
         this.autoScroll = configuration.LogAutoScroll;
         this.autoOpen = configuration.LogOpenAtStartup;
-        SerilogEventSink.Instance.LogLine += this.OnLogLine;
 
         Service<Framework>.GetAsync().ContinueWith(r => r.Result.Update += this.FrameworkOnUpdate);
             
@@ -114,7 +109,6 @@ internal class ConsoleWindow : Window, IDisposable
         this.logLinesLimit = configuration.LogLinesLimit;
 
         var limit = Math.Max(LogLinesMinimum, this.logLinesLimit);
-        this.newLogEntries = new();
         this.logText = new(limit);
         this.filteredLogEntries = new(limit);
 
@@ -126,6 +120,9 @@ internal class ConsoleWindow : Window, IDisposable
         }
     }
 
+    /// <summary>Gets the queue where log entries that are not processed yet are stored.</summary>
+    public static ConcurrentQueue<(string Line, LogEvent LogEvent)> NewLogEntries { get; } = new();
+
     /// <inheritdoc/>
     public override void OnOpen()
     {
@@ -136,7 +133,6 @@ internal class ConsoleWindow : Window, IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        SerilogEventSink.Instance.LogLine -= this.OnLogLine;
         this.configuration.DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
         if (Service<Framework>.GetNullable() is { } framework)
             framework.Update -= this.FrameworkOnUpdate;
@@ -324,7 +320,7 @@ internal class ConsoleWindow : Window, IDisposable
                     ImGuiInputTextFlags.CallbackHistory | ImGuiInputTextFlags.CallbackEdit,
                     this.CommandInputCallback))
             {
-                this.newLogEntries.Enqueue((this.commandText, new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate(string.Empty, []), [])));
+                NewLogEntries.Enqueue((this.commandText, new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, new MessageTemplate(string.Empty, []), [])));
                 this.ProcessCommand();
                 getFocus = true;
             }
@@ -372,7 +368,7 @@ internal class ConsoleWindow : Window, IDisposable
             this.pendingClearLog = false;
             this.logText.Clear();
             this.filteredLogEntries.Clear();
-            this.newLogEntries.Clear();
+            NewLogEntries.Clear();
         }
 
         if (this.pendingRefilter)
@@ -388,7 +384,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         var numPrevFilteredLogEntries = this.filteredLogEntries.Count;
         var addedLines = 0;
-        while (this.newLogEntries.TryDequeue(out var logLine))
+        while (NewLogEntries.TryDequeue(out var logLine))
             addedLines += this.HandleLogLine(logLine.Line, logLine.LogEvent);
         this.newRolledLines = addedLines - (this.filteredLogEntries.Count - numPrevFilteredLogEntries);
     }
@@ -1061,11 +1057,6 @@ internal class ConsoleWindow : Window, IDisposable
 
     /// <summary>Queues filtering the log entries again, before next call to <see cref="Draw"/>.</summary>
     private void QueueRefilter() => this.pendingRefilter = true;
-
-    /// <summary>Enqueues the new log line to the log-to-be-processed queue.</summary>
-    /// <remarks>See <see cref="FrameworkOnUpdate"/> for the handler for the queued log entries.</remarks>
-    private void OnLogLine(object sender, (string Line, LogEvent LogEvent) logEvent) =>
-        this.newLogEntries.Enqueue(logEvent);
 
     private bool DrawToggleButtonWithTooltip(
         string buttonId, string tooltip, FontAwesomeIcon icon, ref bool enabledState)

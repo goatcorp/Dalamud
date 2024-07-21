@@ -250,19 +250,20 @@ internal static class ServiceManager
             try
             {
                 // Wait for all blocking constructors to complete first.
-                await WaitWithTimeoutConsent(blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]),
+                await WaitWithTimeoutConsent(
+                    blockingEarlyLoadingServices.Select(x => getAsyncTaskMap[x]),
                     LoadingDialog.State.LoadingDalamud);
 
                 // All the BlockingEarlyLoadedService constructors have been run,
                 // and blockerTasks now will not change. Now wait for them.
                 // Note that ServiceManager.CallWhenServicesReady does not get to register a blocker.
-                await WaitWithTimeoutConsent(blockerTasks,
+                await WaitWithTimeoutConsent(
+                    blockerTasks,
                     LoadingDialog.State.LoadingPlugins);
 
                 Log.Verbose("=============== BLOCKINGSERVICES & TASKS INITIALIZED ===============");
                 Timings.Event("BlockingServices Initialized");
                 BlockingServicesLoadedTaskCompletionSource.SetResult();
-                loadingDialog.HideAndJoin();
             }
             catch (Exception e)
             {
@@ -276,6 +277,10 @@ internal static class ServiceManager
                 }
 
                 Log.Error(e, "Failed resolving blocking services");
+            }
+            finally
+            {
+                loadingDialog.HideAndJoin();
             }
 
             return;
