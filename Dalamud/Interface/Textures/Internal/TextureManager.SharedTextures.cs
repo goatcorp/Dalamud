@@ -46,6 +46,10 @@ internal sealed partial class TextureManager
         this.Shared.GetFromFile(file);
 
     /// <inheritdoc/>
+    public ISharedImmediateTexture GetFromFileAbsolute(string fullPath) =>
+        this.Shared.GetFromFileAbsolute(fullPath);
+
+    /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromManifestResource(Assembly assembly, string name) =>
         this.Shared.GetFromManifestResource(assembly, name);
 
