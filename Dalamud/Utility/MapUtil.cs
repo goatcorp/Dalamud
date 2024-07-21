@@ -155,8 +155,12 @@ public static class MapUtil
 
         return WorldToMap(
             go.Position,
-            agentMap->CurrentOffsetX,
-            agentMap->CurrentOffsetY,
+            /*
+             * https://github.com/aers/FFXIVClientStructs/issues/1029
+             * Our calculations are based on Excel's Map, but AgentMap's offset values are sign-flipped in comparison
+             */
+            -agentMap->CurrentOffsetX,
+            -agentMap->CurrentOffsetY,
             territoryTransient?.OffsetZ ?? 0,
             (uint)agentMap->CurrentMapSizeFactor,
             correctZOffset);

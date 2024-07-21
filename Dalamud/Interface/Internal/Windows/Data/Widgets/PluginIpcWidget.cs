@@ -1,4 +1,7 @@
-﻿using Dalamud.Plugin.Ipc;
+﻿using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -14,6 +17,11 @@ internal class PluginIpcWidget : IDataWindowWidget
     // IPC
     private ICallGateProvider<string, string>? ipcPub;
     private ICallGateSubscriber<string, string>? ipcSub;
+    
+    // IPC
+    private ICallGateProvider<ICharacter?, string>? ipcPubGo;
+    private ICallGateSubscriber<ICharacter?, string>? ipcSubGo;
+    
     private string callGateResponse = string.Empty;
     
     /// <inheritdoc/>
@@ -64,6 +72,28 @@ internal class PluginIpcWidget : IDataWindowWidget
             this.ipcSub.Subscribe(_ => throw new Exception("PONG3"));
         }
 
+        if (this.ipcPubGo == null)
+        {
+            this.ipcPubGo = new CallGatePubSub<ICharacter?, string>("dataDemo2");
+
+            this.ipcPubGo.RegisterAction(go =>
+            {
+                Log.Information("Data action was called: {Name}", go?.Name);
+            });
+
+            this.ipcPubGo.RegisterFunc(go =>
+            {
+                Log.Information("Data func was called: {Name}", go?.Name);
+                return "test";
+            });
+        }
+
+        if (this.ipcSubGo == null)
+        {
+            this.ipcSubGo = new CallGatePubSub<ICharacter?, string>("dataDemo2");
+            this.ipcSubGo.Subscribe(go => { Log.Information("GO: {Name}", go.Name); });
+        }
+
         if (ImGui.Button("PING"))
         {
             this.ipcPub.SendMessage("PING");
@@ -78,7 +108,17 @@ internal class PluginIpcWidget : IDataWindowWidget
         {
             this.callGateResponse = this.ipcSub.InvokeFunc("button2");
         }
-
+        
+        if (ImGui.Button("Action GO"))
+        {
+            this.ipcSubGo.InvokeAction(Service<ClientState>.Get().LocalPlayer);
+        }
+        
+        if (ImGui.Button("Func GO"))
+        {
+            this.callGateResponse = this.ipcSubGo.InvokeFunc(Service<ClientState>.Get().LocalPlayer);
+        }
+        
         if (!this.callGateResponse.IsNullOrEmpty())
             ImGui.Text($"Response: {this.callGateResponse}");
     }

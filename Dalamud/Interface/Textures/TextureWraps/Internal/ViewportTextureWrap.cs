@@ -24,7 +24,8 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
     private readonly string? debugName;
     private readonly LocalPlugin? ownerPlugin;
     private readonly CancellationToken cancellationToken;
-    private readonly TaskCompletionSource<IDalamudTextureWrap> firstUpdateTaskCompletionSource = new();
+    private readonly TaskCompletionSource<IDalamudTextureWrap> firstUpdateTaskCompletionSource =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private ImGuiViewportTextureArgs args;
     private D3D11_TEXTURE2D_DESC desc;

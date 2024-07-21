@@ -18,6 +18,14 @@ int CoreCLR::load_hostfxr()
     return CoreCLR::load_hostfxr(nullptr);
 }
 
+// MS does not provide this typedef anymore in the header. They removed it since they want us to implicitly link nethost,
+// but we don't want to do that since we don't want to change the dll search path in ffxix_dx11.exe.
+// This is kind of a kludge but whatever. The static lib they ship is unusable. Fix it, goat.
+typedef int (NETHOST_CALLTYPE *get_hostfxr_path_type)(
+    char_t * buffer,
+    size_t * buffer_size,
+    const struct get_hostfxr_parameters *parameters);
+
 int CoreCLR::load_hostfxr(const struct get_hostfxr_parameters* parameters)
 {
     // Get the path to CoreCLR's hostfxr

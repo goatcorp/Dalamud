@@ -28,6 +28,7 @@ internal class SelfTestWindow : Window
             new EnterTerritoryAgingStep(148, "Central Shroud"),
             new ItemPayloadAgingStep(),
             new ContextMenuAgingStep(),
+            new NamePlateAgingStep(),
             new ActorTableAgingStep(),
             new FateTableAgingStep(),
             new AetheryteListAgingStep(),
@@ -82,6 +83,7 @@ internal class SelfTestWindow : Window
             if (ImGuiComponents.IconButton(FontAwesomeIcon.StepForward))
             {
                 this.stepResults.Add((SelfTestStepResult.NotRan, null));
+                this.steps[this.currentStep].CleanUp();
                 this.currentStep++;
                 this.lastTestStart = DateTimeOffset.Now;
 

@@ -54,7 +54,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         this.ClientLanguage = (ClientLanguage)dalamud.StartInfo.Language;
 
-        Log.Verbose($"SetupTerritoryType address 0x{this.address.SetupTerritoryType.ToInt64():X}");
+        Log.Verbose($"SetupTerritoryType address {Util.DescribeAddress(this.address.SetupTerritoryType)}");
 
         this.setupTerritoryTypeHook = Hook<SetupTerritoryTypeDelegate>.FromAddress(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
 

@@ -315,7 +315,7 @@ internal class PluginImageCache : IInternalDisposableService
 
     private Task<T> RunInDownloadQueue<T>(Func<Task<T>> func, ulong requestedFrame)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.downloadQueue.Add(Tuple.Create(requestedFrame, async () =>
         {
             try
@@ -332,7 +332,7 @@ internal class PluginImageCache : IInternalDisposableService
 
     private Task<T> RunInLoadQueue<T>(Func<Task<T>> func)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.loadQueue.Add(async () =>
         {
             try

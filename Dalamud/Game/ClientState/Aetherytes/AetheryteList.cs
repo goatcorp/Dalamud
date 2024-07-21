@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Serilog;
@@ -28,7 +29,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
     [ServiceManager.ServiceConstructor]
     private AetheryteList()
     {
-        Log.Verbose($"Teleport address 0x{((nint)this.telepoInstance).ToInt64():X}");
+        Log.Verbose($"Teleport address {Util.DescribeAddress(this.telepoInstance)}");
     }
 
     /// <inheritdoc/>

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 
 using Dalamud.Plugin.Ipc.Exceptions;
+using Dalamud.Plugin.Ipc.Internal.Converters;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -206,7 +208,10 @@ internal class CallGateChannel
         if (obj is null)
             return null;
 
-        var json = JsonConvert.SerializeObject(obj);
+        var settings = new JsonSerializerSettings();
+        settings.Converters.Add(new GameObjectConverter());
+
+        var json = JsonConvert.SerializeObject(obj, settings);
 
         try
         {
@@ -241,7 +246,7 @@ internal class CallGateChannel
 
         try
         {
-            return JsonConvert.DeserializeObject(json, type);
+            return JsonConvert.DeserializeObject(json, type, settings);
         }
         catch (Exception ex)
         {

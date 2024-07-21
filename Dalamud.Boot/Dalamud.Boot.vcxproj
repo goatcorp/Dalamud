@@ -197,6 +197,9 @@
   <ItemGroup>
     <None Include="module.def" />
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="themes.manifest" />
+  </ItemGroup>
   <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
     <Delete Files="$(OutDir)$(TargetName).lib" />
     <Delete Files="$(OutDir)$(TargetName).exp" />

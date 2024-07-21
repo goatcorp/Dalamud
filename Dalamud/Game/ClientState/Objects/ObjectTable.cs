@@ -53,7 +53,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         for (var i = 0; i < this.frameworkThreadEnumerators.Length; i++)
             this.frameworkThreadEnumerators[i] = new(this, i);
 
-        Log.Verbose($"Object table address 0x{this.clientState.AddressResolver.ObjectTable.ToInt64():X}");
+        Log.Verbose($"Object table address {Util.DescribeAddress(this.clientState.AddressResolver.ObjectTable)}");
     }
 
     /// <inheritdoc/>
@@ -92,6 +92,23 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         foreach (var e in this.cachedObjectTable)
         {
             if (e.Update() is { } o && o.GameObjectId == gameObjectId)
+                return o;
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public IGameObject? SearchByEntityId(uint entityId)
+    {
+        _ = this.WarnMultithreadedUsage();
+
+        if (entityId is 0 or 0xE0000000)
+            return null;
+
+        foreach (var e in this.cachedObjectTable)
+        {
+            if (e.Update() is { } o && o.EntityId == entityId)
                 return o;
         }
 
