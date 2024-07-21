@@ -126,7 +126,13 @@ internal static class ServiceManager
     /// <param name="fs">Instance of <see cref="ReliableFileStorage"/>.</param>
     /// <param name="configuration">Instance of <see cref="DalamudConfiguration"/>.</param>
     /// <param name="scanner">Instance of <see cref="TargetSigScanner"/>.</param>
-    public static void InitializeProvidedServices(Dalamud dalamud, ReliableFileStorage fs, DalamudConfiguration configuration, TargetSigScanner scanner)
+    /// <param name="localization">Instance of <see cref="Localization"/>.</param>
+    public static void InitializeProvidedServices(
+        Dalamud dalamud,
+        ReliableFileStorage fs,
+        DalamudConfiguration configuration,
+        TargetSigScanner scanner,
+        Localization localization)
     {
 #if DEBUG
         lock (LoadedServices)
@@ -136,6 +142,7 @@ internal static class ServiceManager
             ProvideService(configuration);
             ProvideService(new ServiceContainer());
             ProvideService(scanner);
+            ProvideService(localization);
         }
 
         return;
@@ -152,6 +159,7 @@ internal static class ServiceManager
         ProvideService(configuration);
         ProvideService(new ServiceContainer());
         ProvideService(scanner);
+        ProvideService(localization);
         return;
 
         void ProvideService<T>(T service) where T : IServiceType => Service<T>.Provide(service);
