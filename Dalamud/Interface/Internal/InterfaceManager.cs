@@ -817,8 +817,12 @@ internal class InterfaceManager : IInternalDisposableService
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync();
 
+        SwapChainHelper.BusyWaitForGameDeviceSwapChain();
+        SwapChainHelper.DetectReShade();
+
         try
         {
+            // Requires that game window to be there, which will be the case once game swap chain is initialized.
             if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
                 this.SetImmersiveMode(true);
         }
@@ -833,9 +837,6 @@ internal class InterfaceManager : IInternalDisposableService
             "SetCursor",
             0,
             this.SetCursorDetour);
-
-        SwapChainHelper.BusyWaitForGameDeviceSwapChain();
-        SwapChainHelper.DetectReShade();
 
         Log.Verbose("===== S W A P C H A I N =====");
         this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
