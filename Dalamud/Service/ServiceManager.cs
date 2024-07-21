@@ -282,6 +282,7 @@ internal static class ServiceManager
 
             async Task WaitWithTimeoutConsent(IEnumerable<Task> tasksEnumerable, LoadingDialog.State state)
             {
+                loadingDialog.CurrentState = state;
                 var tasks = tasksEnumerable.AsReadOnlyCollection();
                 if (tasks.Count == 0)
                     return;
@@ -294,7 +295,6 @@ internal static class ServiceManager
                 {
                     loadingDialog.Show();
                     loadingDialog.CanHide = true;
-                    loadingDialog.CurrentState = state;
                 }
             }
         }).ConfigureAwait(false);
