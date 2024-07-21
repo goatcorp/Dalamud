@@ -226,9 +226,12 @@ internal sealed unsafe class LoadingDialog
 
         if (NewLogEntries.IsEmpty)
             return;
+        
+        var sb = new StringBuilder();
         while (NewLogEntries.TryDequeue(out var e))
         {
             var t = e.Line.AsSpan();
+            var first = true;
             while (!t.IsEmpty)
             {
                 var i = t.IndexOfAny('\r', '\n');
@@ -236,13 +239,22 @@ internal sealed unsafe class LoadingDialog
                 t = i == -1 ? ReadOnlySpan<char>.Empty : t[(i + 1)..];
                 if (line.IsEmpty)
                     continue;
-
-                this.logs.Add(
-                    line.Length < maxCharactersPerLine ? line.ToString() : $"{line[..(maxCharactersPerLine - 3)]}...");
+                
+                sb.Clear();
+                if (first)
+                    sb.Append($"{e.LogEvent.Timestamp:HH:mm:ss} | ");
+                else
+                    sb.Append("         | ");
+                first = false;
+                if (line.Length < maxCharactersPerLine)
+                    sb.Append(line);
+                else
+                    sb.Append($"{line[..(maxCharactersPerLine - 3)]}...");
+                this.logs.Add(sb.ToString());
             }
         }
 
-        var sb = new StringBuilder();
+        sb.Clear();
         foreach (var l in this.logs)
             sb.AppendLine(l);
 
