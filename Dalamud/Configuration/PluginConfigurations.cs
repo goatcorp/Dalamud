@@ -142,6 +142,9 @@ public sealed class PluginConfigurations
     /// <returns>Plugin Configuration.</returns>
     public IPluginConfiguration? LoadForType(string pluginName, Type type)
     {
+        if (!typeof(IPluginConfiguration).IsAssignableFrom(type))
+            throw new ArgumentException("Type must be assignable to IPluginConfiguration.", nameof(type));
+        
         if (this.GetConfigFile(pluginName) is not { Exists: true } path)
             return null;
 
