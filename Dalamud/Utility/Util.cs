@@ -269,7 +269,7 @@ public static class Util
         {
             if ((mbi.Protect & (1 << i)) == 0)
                 continue;
-            if (c++ == 0)
+            if (c++ != 0)
                 sb.Append(" | ");
             sb.Append(PageProtectionFlagNames[i]);
         }
