@@ -15,7 +15,7 @@ public class SettingsTabGeneral : SettingsTab
 
         new GapSettingsEntry(5),
 
-        new SettingsEntry<XivChatType>(
+        new EnumSettingsEntry<XivChatType>(
             Loc.Localize("DalamudSettingsChannel", "Dalamud Chat Channel"),
             Loc.Localize("DalamudSettingsChannelHint", "Select the chat channel that is to be used for general Dalamud messages."),
             c => c.GeneralChatType,

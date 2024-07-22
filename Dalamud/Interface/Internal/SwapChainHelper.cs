@@ -1,5 +1,7 @@
 using System.Threading;
 
+using Dalamud.Interface.Internal.ReShadeHandling;
+
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 
 using TerraFX.Interop.DirectX;
@@ -10,12 +12,17 @@ namespace Dalamud.Interface.Internal;
 /// <summary>Helper for dealing with swap chains.</summary>
 internal static unsafe class SwapChainHelper
 {
+    private static IDXGISwapChain* foundGameDeviceSwapChain;
+
     /// <summary>Gets the game's active instance of IDXGISwapChain that is initialized.</summary>
     /// <value>Address of the game's instance of IDXGISwapChain, or <c>null</c> if not available (yet.)</value>
     public static IDXGISwapChain* GameDeviceSwapChain
     {
         get
         {
+            if (foundGameDeviceSwapChain is not null)
+                return foundGameDeviceSwapChain;
+
             var kernelDev = Device.Instance();
             if (kernelDev == null)
                 return null;
@@ -29,7 +36,7 @@ internal static unsafe class SwapChainHelper
             if (swapChain->BackBuffer == null)
                 return null;
 
-            return (IDXGISwapChain*)swapChain->DXGISwapChain;
+            return foundGameDeviceSwapChain = (IDXGISwapChain*)swapChain->DXGISwapChain;
         }
     }
 
@@ -79,5 +86,19 @@ internal static unsafe class SwapChainHelper
     {
         while (GameDeviceSwapChain is null)
             Thread.Yield();
+    }
+
+    /// <summary>
+    /// Make <see cref="GameDeviceSwapChain"/> store address of unwrapped swap chain, if it was wrapped with ReShade.
+    /// </summary>
+    /// <returns><c>true</c> if it was wrapped with ReShade.</returns>
+    public static bool UnwrapReShade()
+    {
+        using var swapChain = new ComPtr<IDXGISwapChain>(GameDeviceSwapChain);
+        if (!ReShadeUnwrapper.Unwrap(&swapChain))
+            return false;
+
+        foundGameDeviceSwapChain = swapChain.Get();
+        return true;
     }
 }

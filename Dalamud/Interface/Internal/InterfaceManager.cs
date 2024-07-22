@@ -17,6 +17,7 @@ using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
+using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
@@ -72,7 +73,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
 
     [ServiceManager.ServiceDependency]
-    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
+    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
@@ -82,6 +83,9 @@ internal partial class InterfaceManager : IInternalDisposableService
     [UsedImplicitly]
     private readonly HookManager hookManager = Service<HookManager>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
+
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
 
@@ -90,7 +94,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<DxgiPresentDelegate>? dxgiPresentHook;
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
-    private ReShadeHandling.ReShadeAddonInterface? reShadeAddonInterface;
+    private ReShadeAddonInterface? reShadeAddonInterface;
 
     private IFontAtlas? dalamudAtlas;
     private ILockedImFont? defaultFontResourceLock;
@@ -759,17 +763,23 @@ internal partial class InterfaceManager : IInternalDisposableService
             this.SetCursorDetour);
 
         Log.Verbose("===== S W A P C H A I N =====");
-        if (ReShadeHandling.ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
+        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.UnwrapReShade)
+        {
+            if (SwapChainHelper.UnwrapReShade())
+                Log.Verbose("Unwrapped ReShade.");
+        }
+
+        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddon &&
+            ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
         {
             this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
                 (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
                 this.AsReShadeAddonResizeBuffersDetour);
-            Log.Verbose($"ResizeBuffers address {Util.DescribeAddress(this.resizeBuffersHook!.Address)}");
 
             Log.Verbose(
                 "Registered as a ReShade({name}: 0x{addr:X}) addon.",
-                ReShadeHandling.ReShadeAddonInterface.ReShadeModule!.FileName,
-                ReShadeHandling.ReShadeAddonInterface.ReShadeModule!.BaseAddress);
+                ReShadeAddonInterface.ReShadeModule!.FileName,
+                ReShadeAddonInterface.ReShadeModule!.BaseAddress);
             this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
             this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
             this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
@@ -779,16 +789,18 @@ internal partial class InterfaceManager : IInternalDisposableService
             this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
                 (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
                 this.AsHookResizeBuffersDetour);
-            Log.Verbose($"ResizeBuffers address {Util.DescribeAddress(this.resizeBuffersHook!.Address)}");
             
-            var addr = (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present;
-            this.dxgiPresentHook = Hook<DxgiPresentDelegate>.FromAddress(addr, this.PresentDetour);
-            Log.Verbose($"IDXGISwapChain::Present address {Util.DescribeAddress(addr)}");
+            this.dxgiPresentHook = Hook<DxgiPresentDelegate>.FromAddress(
+                (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present,
+                this.PresentDetour);
         }
+
+        Log.Verbose($"IDXGISwapChain::ResizeBuffers address: {Util.DescribeAddress(this.resizeBuffersHook.Address)}");
+        Log.Verbose($"IDXGISwapChain::Present address: {Util.DescribeAddress(this.dxgiPresentHook?.Address ?? 0)}");
 
         this.setCursorHook.Enable();
         this.dxgiPresentHook?.Enable();
-        this.resizeBuffersHook?.Enable();
+        this.resizeBuffersHook.Enable();
     }
 
     private IntPtr SetCursorDetour(IntPtr hCursor)

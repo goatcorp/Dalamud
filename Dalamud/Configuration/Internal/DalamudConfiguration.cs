@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
@@ -440,6 +441,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether the FFXIV window should be toggled to immersive mode.
     /// </summary>
     public bool WindowIsImmersive { get; set; } = false;
+
+    /// <summary>Gets or sets the mode specifying how to handle ReShade.</summary>
+    public ReShadeHandlingMode ReShadeHandlingMode { get; set; } = ReShadeHandlingMode.ReShadeAddon;
 
     /// <summary>
     /// Gets or sets hitch threshold for game network up in milliseconds.
