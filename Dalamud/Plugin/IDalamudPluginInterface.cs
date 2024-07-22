@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
@@ -264,10 +265,34 @@ public interface IDalamudPluginInterface
 
     /// <summary>
     /// Get a previously saved plugin configuration or null if none was saved before.
+    /// This uses the first IPluginConfiguration type found in the calling assembly.
     /// </summary>
     /// <returns>A previously saved config or null if none was saved before.</returns>
     IPluginConfiguration? GetPluginConfig();
 
+    /// <summary>
+    /// Get a previously saved plugin configuration or null if none was saved before.
+    /// This uses the first IPluginConfiguration type found in the specified assembly.
+    /// </summary>
+    /// <param name="assembly">The assembly to search for the configuration type.</param>
+    /// <returns>A previously saved config or null if none was saved before.</returns>
+    IPluginConfiguration? GetPluginConfig(Assembly assembly);
+
+    /// <summary>
+    /// Get a previously saved plugin configuration or null if none was saved before.
+    /// </summary>
+    /// <typeparam name="TPluginConfiguration">The type of the plugin configuration.</typeparam>
+    /// <returns>A previously saved config or null if none was saved before.</returns>
+    TPluginConfiguration? GetPluginConfig<TPluginConfiguration>() 
+        where TPluginConfiguration : class, IPluginConfiguration;
+
+    /// <summary>
+    /// Get a previously saved plugin configuration or null if none was saved before.
+    /// </summary>
+    /// <param name="type">The type of the plugin configuration.</param>
+    /// <returns>A previously saved config or null if none was saved before.</returns>
+    IPluginConfiguration? GetPluginConfig(Type type);
+    
     /// <summary>
     /// Get the config directory.
     /// </summary>

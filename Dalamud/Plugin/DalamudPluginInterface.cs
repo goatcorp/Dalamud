@@ -384,6 +384,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <summary>
     /// Get a previously saved plugin configuration or null if none was saved before.
+    /// This uses the first IPluginConfiguration type found in the calling assembly.
     /// </summary>
     /// <returns>A previously saved config or null if none was saved before.</returns>
     public IPluginConfiguration? GetPluginConfig()
@@ -407,6 +408,49 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
         // this shouldn't be a thing, I think, but just in case
         return this.configs.Load(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
+    }
+    
+    /// <summary>
+    /// Get a previously saved plugin configuration or null if none was saved before.
+    /// This uses the first IPluginConfiguration type found in the specified assembly.
+    /// </summary>
+    /// <param name="assembly">The assembly to search for the configuration type.</param>
+    /// <returns>A previously saved config or null if none was saved before.</returns>
+    public IPluginConfiguration? GetPluginConfig(Assembly assembly)
+    {
+        foreach (var type in assembly.GetTypes())
+        {
+            if (type.IsAssignableTo(typeof(IPluginConfiguration)))
+            {
+                var mi = this.configs.GetType().GetMethod("LoadForType");
+                var fn = mi!.MakeGenericMethod(type);
+                return (IPluginConfiguration)fn.Invoke(this.configs, new object[] { this.plugin.InternalName });
+            }
+        }
+
+        // this shouldn't be a thing, I think, but just in case
+        return this.configs.Load(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
+    }
+
+    /// <summary>
+    /// Get a previously saved plugin configuration or null if none was saved before.
+    /// </summary>
+    /// <typeparam name="TPluginConfiguration">The type of the plugin configuration.</typeparam>
+    /// <returns>A previously saved config or null if none was saved before.</returns>
+    public TPluginConfiguration? GetPluginConfig<TPluginConfiguration>() 
+        where TPluginConfiguration : class, IPluginConfiguration
+    {
+        return this.configs.LoadForType<TPluginConfiguration>(this.plugin.InternalName);
+    }
+    
+    /// <summary>
+    /// Get a previously saved plugin configuration or null if none was saved before.
+    /// </summary>
+    /// <param name="type">The type of the plugin configuration.</param>
+    /// <returns>A previously saved config or null if none was saved before.</returns>
+    public IPluginConfiguration? GetPluginConfig(Type type)
+    {
+        return this.configs.LoadForType(this.plugin.InternalName, type);
     }
 
     /// <summary>
