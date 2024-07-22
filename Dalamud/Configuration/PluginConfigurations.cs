@@ -133,6 +133,29 @@ public sealed class PluginConfigurations
         // intentionally no type handling - it will break when updating a plugin at runtime
         // and turns out to be unnecessary when we fully qualify the object type
     }
+    
+    /// <summary>
+    /// Load Plugin configuration. Deserialized to the specified type.
+    /// </summary>
+    /// <param name="pluginName">Plugin Name.</param>
+    /// <param name="type">Configuration Type.</param>
+    /// <returns>Plugin Configuration.</returns>
+    public IPluginConfiguration? LoadForType(string pluginName, Type type)
+    {
+        if (this.GetConfigFile(pluginName) is not { Exists: true } path)
+            return null;
+
+        return (IPluginConfiguration?)JsonConvert.DeserializeObject(
+            File.ReadAllText(path.FullName),
+            type,
+            new JsonSerializerSettings
+            {
+                Converters =
+                [
+                    DalamudAssemblyTypeNameForcingJsonConverter.Instance,
+                ],
+            });
+    }
 
     /// <summary>
     /// Get FileInfo to plugin config file.
