@@ -72,7 +72,7 @@ internal sealed class ExposedPlugin(LocalPlugin plugin) : IExposedPlugin
     public bool HasMainUi => plugin.DalamudInterface?.LocalUiBuilder.HasMainUi ?? false;
 
     /// <inheritdoc/>
-    public bool HasConfigUi => plugin.DalamudInterface?.LocalUiBuilder.HasMainUi ?? false;
+    public bool HasConfigUi => plugin.DalamudInterface?.LocalUiBuilder.HasConfigUi ?? false;
 
     /// <inheritdoc/>
     public void OpenMainUi()
