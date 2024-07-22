@@ -70,7 +70,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             }
         }
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add dev plugin load locations.\nThese can be either the directory or DLL path."));
+        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsDevPluginLocationsHint", "Add dev plugin load locations.\nThis must be a path to the plugin DLL."));
 
         var locationSelect = Loc.Localize("DalamudDevPluginLocationSelect", "Select Dev Plugin Location");
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Folder, locationSelect))
