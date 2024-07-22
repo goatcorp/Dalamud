@@ -230,5 +230,5 @@ public class DevPluginsSettingsEntry : SettingsEntry
     }
 
     private static bool ValidDevPluginPath(string path)
-        => Path.IsPathRooted(path) && (Path.GetExtension(path) == ".dll" || !Path.Exists(path) || Directory.Exists(path));
+        => Path.IsPathRooted(path) && Path.GetExtension(path) == ".dll";
 }
