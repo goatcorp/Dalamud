@@ -786,11 +786,7 @@ internal class PluginManager : IInternalDisposableService
             
             Log.Verbose("Scanning dev plugins at {Path}", setting.Path);
 
-            if (Directory.Exists(setting.Path))
-            {
-                devDllFiles.AddRange(new DirectoryInfo(setting.Path).GetFiles("*.dll", SearchOption.AllDirectories));
-            }
-            else if (File.Exists(setting.Path))
+            if (File.Exists(setting.Path))
             {
                 devDllFiles.Add(new FileInfo(setting.Path));
             }
