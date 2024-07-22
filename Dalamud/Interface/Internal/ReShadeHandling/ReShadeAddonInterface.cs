@@ -10,7 +10,7 @@ using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
 
-namespace Dalamud.Interface.Internal;
+namespace Dalamud.Interface.Internal.ReShadeHandling;
 
 /// <summary>ReShade interface.</summary>
 internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
@@ -53,27 +53,27 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
     /// <summary>Finalizes an instance of the <see cref="ReShadeAddonInterface"/> class.</summary>
     ~ReShadeAddonInterface() => this.ReleaseUnmanagedResources();
 
-    /// <summary>Delegate for <see cref="AddonEvent.ReShadeOverlay"/>.</summary>
+    /// <summary>Delegate for <see cref="ReShadeAddonInterface.AddonEvent.ReShadeOverlay"/>.</summary>
     /// <param name="effectRuntime">Reference to the ReShade runtime.</param>
     public delegate void ReShadeOverlayDelegate(ref ApiObject effectRuntime);
 
-    /// <summary>Delegate for <see cref="AddonEvent.InitSwapChain"/>.</summary>
+    /// <summary>Delegate for <see cref="ReShadeAddonInterface.AddonEvent.InitSwapChain"/>.</summary>
     /// <param name="swapChain">Reference to the ReShade SwapChain wrapper.</param>
     public delegate void ReShadeInitSwapChain(ref ApiObject swapChain);
 
-    /// <summary>Delegate for <see cref="AddonEvent.DestroySwapChain"/>.</summary>
+    /// <summary>Delegate for <see cref="ReShadeAddonInterface.AddonEvent.DestroySwapChain"/>.</summary>
     /// <param name="swapChain">Reference to the ReShade SwapChain wrapper.</param>
     public delegate void ReShadeDestroySwapChain(ref ApiObject swapChain);
 
     private delegate BOOL GetModuleHandleExWDelegate(uint dwFlags, ushort* lpModuleName, HMODULE* phModule);
 
-    /// <summary>Called on <see cref="AddonEvent.ReShadeOverlay"/>.</summary>
+    /// <summary>Called on <see cref="ReShadeAddonInterface.AddonEvent.ReShadeOverlay"/>.</summary>
     public event ReShadeOverlayDelegate? ReShadeOverlay;
 
-    /// <summary>Called on <see cref="AddonEvent.InitSwapChain"/>.</summary>
+    /// <summary>Called on <see cref="ReShadeAddonInterface.AddonEvent.InitSwapChain"/>.</summary>
     public event ReShadeInitSwapChain? InitSwapChain;
 
-    /// <summary>Called on <see cref="AddonEvent.DestroySwapChain"/>.</summary>
+    /// <summary>Called on <see cref="ReShadeAddonInterface.AddonEvent.DestroySwapChain"/>.</summary>
     public event ReShadeDestroySwapChain? DestroySwapChain;
 
     /// <summary>Registers Dalamud as a ReShade addon.</summary>

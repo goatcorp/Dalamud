@@ -90,7 +90,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<DxgiPresentDelegate>? dxgiPresentHook;
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
-    private ReShadeAddonInterface? reShadeAddonInterface;
+    private ReShadeHandling.ReShadeAddonInterface? reShadeAddonInterface;
 
     private IFontAtlas? dalamudAtlas;
     private ILockedImFont? defaultFontResourceLock;
@@ -759,7 +759,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             this.SetCursorDetour);
 
         Log.Verbose("===== S W A P C H A I N =====");
-        if (ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
+        if (ReShadeHandling.ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
         {
             this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
                 (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
@@ -768,8 +768,8 @@ internal partial class InterfaceManager : IInternalDisposableService
 
             Log.Verbose(
                 "Registered as a ReShade({name}: 0x{addr:X}) addon.",
-                ReShadeAddonInterface.ReShadeModule!.FileName,
-                ReShadeAddonInterface.ReShadeModule!.BaseAddress);
+                ReShadeHandling.ReShadeAddonInterface.ReShadeModule!.FileName,
+                ReShadeHandling.ReShadeAddonInterface.ReShadeModule!.BaseAddress);
             this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
             this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
             this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;

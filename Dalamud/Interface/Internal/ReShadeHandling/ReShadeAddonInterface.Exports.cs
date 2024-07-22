@@ -8,7 +8,7 @@ using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
 
-namespace Dalamud.Interface.Internal;
+namespace Dalamud.Interface.Internal.ReShadeHandling;
 
 /// <summary>ReShade interface.</summary>
 [SuppressMessage(

@@ -11,7 +11,7 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 internal partial class InterfaceManager
 {
-    private unsafe void ReShadeAddonInterfaceOnDestroySwapChain(ref ReShadeAddonInterface.ApiObject swapchain)
+    private unsafe void ReShadeAddonInterfaceOnDestroySwapChain(ref ReShadeHandling.ReShadeAddonInterface.ApiObject swapchain)
     {
         var swapChain = swapchain.GetNative<IDXGISwapChain>();
         if (this.scene?.SwapChain.NativePointer != (nint)swapChain)
@@ -20,7 +20,7 @@ internal partial class InterfaceManager
         this.scene?.OnPreResize();
     }
 
-    private unsafe void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeAddonInterface.ApiObject swapchain)
+    private unsafe void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeHandling.ReShadeAddonInterface.ApiObject swapchain)
     {
         var swapChain = swapchain.GetNative<IDXGISwapChain>();
         if (this.scene?.SwapChain.NativePointer != (nint)swapChain)
@@ -33,7 +33,7 @@ internal partial class InterfaceManager
         this.scene?.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
     }
 
-    private void ReShadeAddonInterfaceOnReShadeOverlay(ref ReShadeAddonInterface.ApiObject runtime)
+    private void ReShadeAddonInterfaceOnReShadeOverlay(ref ReShadeHandling.ReShadeAddonInterface.ApiObject runtime)
     {
         var swapChain = runtime.GetNative();
 

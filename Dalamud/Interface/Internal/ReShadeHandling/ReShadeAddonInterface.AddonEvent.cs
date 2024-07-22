@@ -1,4 +1,4 @@
-namespace Dalamud.Interface.Internal;
+namespace Dalamud.Interface.Internal.ReShadeHandling;
 
 /// <summary>ReShade interface.</summary>
 internal sealed partial class ReShadeAddonInterface
