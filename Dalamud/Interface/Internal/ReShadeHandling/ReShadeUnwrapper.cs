@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -9,13 +8,7 @@ using static TerraFX.Interop.Windows.Windows;
 
 namespace Dalamud.Interface.Internal.ReShadeHandling;
 
-/// <summary>
-/// Peels ReShade off stuff.
-/// </summary>
-[SuppressMessage(
-    "StyleCop.CSharp.LayoutRules",
-    "SA1519:Braces should not be omitted from multi-line child statement",
-    Justification = "Multiple fixed blocks")]
+/// <summary>Unwraps IUnknown wrapped by ReShade.</summary>
 internal static unsafe class ReShadeUnwrapper
 {
     /// <summary>Unwraps <typeparamref name="T"/> if it is wrapped by ReShade.</summary>

@@ -31,6 +31,8 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
         if (!Exports.ReShadeRegisterAddon(this.hDalamudModule, ReShadeApiVersion))
             throw new InvalidOperationException("ReShadeRegisterAddon failure.");
 
+        // https://github.com/crosire/reshade/commit/eaaa2a2c5adf5749ad17b358305da3f2d0f6baf4
+        // TODO: when ReShade gets a proper release with this commit, make this hook optional
         this.addonModuleResolverHook = Hook<GetModuleHandleExWDelegate>.FromImport(
             ReShadeModule!,
             "kernel32.dll",
