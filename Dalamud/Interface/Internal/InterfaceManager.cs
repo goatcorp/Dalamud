@@ -35,6 +35,7 @@ using JetBrains.Annotations;
 
 using PInvoke;
 
+using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
 // general dev notes, here because it's easiest
@@ -94,6 +95,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<DxgiPresentDelegate>? dxgiPresentHook;
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
+    private ObjectVTableHook<IDXGISwapChain.Vtbl<IDXGISwapChain>>? swapChainHook;
     private ReShadeAddonInterface? reShadeAddonInterface;
 
     private IFontAtlas? dalamudAtlas;
@@ -308,6 +310,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
             Interlocked.Exchange(ref this.dxgiPresentHook, null)?.Dispose();
             Interlocked.Exchange(ref this.resizeBuffersHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.swapChainHook, null)?.Dispose();
             Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
         }
     }
@@ -769,12 +772,13 @@ internal partial class InterfaceManager : IInternalDisposableService
                 Log.Verbose("Unwrapped ReShade.");
         }
 
+        ResizeBuffersDelegate resizeBuffersDelegate;
+        DxgiPresentDelegate? dxgiPresentDelegate;
         if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddon &&
             ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
         {
-            this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
-                (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
-                this.AsReShadeAddonResizeBuffersDetour);
+            resizeBuffersDelegate = this.AsReShadeAddonResizeBuffersDetour;
+            dxgiPresentDelegate = null;
 
             Log.Verbose(
                 "Registered as a ReShade({name}: 0x{addr:X}) addon.",
@@ -786,21 +790,55 @@ internal partial class InterfaceManager : IInternalDisposableService
         }
         else
         {
-            this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
-                (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
-                this.AsHookResizeBuffersDetour);
-            
-            this.dxgiPresentHook = Hook<DxgiPresentDelegate>.FromAddress(
-                (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present,
-                this.PresentDetour);
+            resizeBuffersDelegate = this.AsHookResizeBuffersDetour;
+            dxgiPresentDelegate = this.PresentDetour;
         }
 
-        Log.Verbose($"IDXGISwapChain::ResizeBuffers address: {Util.DescribeAddress(this.resizeBuffersHook.Address)}");
+        switch (this.dalamudConfiguration.SwapChainHookMode)
+        {
+            case SwapChainHelper.HookMode.ByteCode: 
+            default:
+            {
+                this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
+                    (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
+                    resizeBuffersDelegate);
+
+                if (dxgiPresentDelegate is not null)
+                {
+                    this.dxgiPresentHook = Hook<DxgiPresentDelegate>.FromAddress(
+                        (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present,
+                        dxgiPresentDelegate);
+                }
+
+                break;
+            }
+
+            case SwapChainHelper.HookMode.VTable:
+            {
+                this.swapChainHook = new(SwapChainHelper.GameDeviceSwapChain);
+                this.resizeBuffersHook = this.swapChainHook.CreateHook(
+                    nameof(IDXGISwapChain.ResizeBuffers),
+                    resizeBuffersDelegate);
+
+                if (dxgiPresentDelegate is not null)
+                {
+                    this.dxgiPresentHook = this.swapChainHook.CreateHook(
+                        nameof(IDXGISwapChain.Present),
+                        dxgiPresentDelegate);
+                }
+
+                break;
+            }
+        }
+
+        Log.Verbose(
+            $"IDXGISwapChain::ResizeBuffers address: {Util.DescribeAddress(this.resizeBuffersHook.Address)}");
         Log.Verbose($"IDXGISwapChain::Present address: {Util.DescribeAddress(this.dxgiPresentHook?.Address ?? 0)}");
 
         this.setCursorHook.Enable();
-        this.dxgiPresentHook?.Enable();
         this.resizeBuffersHook.Enable();
+        this.dxgiPresentHook?.Enable();
+        this.swapChainHook?.Enable();
     }
 
     private IntPtr SetCursorDetour(IntPtr hCursor)

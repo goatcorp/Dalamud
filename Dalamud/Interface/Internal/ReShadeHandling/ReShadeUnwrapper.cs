@@ -78,28 +78,24 @@ internal static unsafe class ReShadeUnwrapper
     {
         foreach (ProcessModule processModule in Process.GetCurrentProcess().Modules)
         {
-            if (ptr < processModule.BaseAddress || ptr >= processModule.BaseAddress + processModule.ModuleMemorySize)
+            if (ptr < processModule.BaseAddress ||
+                ptr >= processModule.BaseAddress + processModule.ModuleMemorySize ||
+                !HasProcExported(processModule, "ReShadeRegisterAddon"u8) ||
+                !HasProcExported(processModule, "ReShadeUnregisterAddon"u8) ||
+                !HasProcExported(processModule, "ReShadeRegisterEvent"u8) ||
+                !HasProcExported(processModule, "ReShadeUnregisterEvent"u8))
                 continue;
-
-            fixed (byte* pfn0 = "ReShadeRegisterAddon"u8)
-            fixed (byte* pfn1 = "ReShadeUnregisterAddon"u8)
-            fixed (byte* pfn2 = "ReShadeRegisterEvent"u8)
-            fixed (byte* pfn3 = "ReShadeUnregisterEvent"u8)
-            {
-                if (GetProcAddress((HMODULE)processModule.BaseAddress, (sbyte*)pfn0) == 0)
-                    continue;
-                if (GetProcAddress((HMODULE)processModule.BaseAddress, (sbyte*)pfn1) == 0)
-                    continue;
-                if (GetProcAddress((HMODULE)processModule.BaseAddress, (sbyte*)pfn2) == 0)
-                    continue;
-                if (GetProcAddress((HMODULE)processModule.BaseAddress, (sbyte*)pfn3) == 0)
-                    continue;
-            }
 
             return true;
         }
 
         return false;
+
+        static bool HasProcExported(ProcessModule m, ReadOnlySpan<byte> name)
+        {
+            fixed (byte* p = name)
+                return GetProcAddress((HMODULE)m.BaseAddress, (sbyte*)p) != 0;
+        }
     }
 
     private static bool IsReShadedComObject<T>(T* obj)

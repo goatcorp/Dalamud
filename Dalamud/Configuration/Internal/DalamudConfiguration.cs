@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Style;
 using Dalamud.IoC.Internal;
@@ -444,6 +445,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
 
     /// <summary>Gets or sets the mode specifying how to handle ReShade.</summary>
     public ReShadeHandlingMode ReShadeHandlingMode { get; set; } = ReShadeHandlingMode.ReShadeAddon;
+
+    /// <summary>Gets or sets the swap chain hook mode.</summary>
+    public SwapChainHelper.HookMode SwapChainHookMode { get; set; } = SwapChainHelper.HookMode.ByteCode;
 
     /// <summary>
     /// Gets or sets hitch threshold for game network up in milliseconds.

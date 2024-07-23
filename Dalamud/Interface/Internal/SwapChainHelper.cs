@@ -14,6 +14,16 @@ internal static unsafe class SwapChainHelper
 {
     private static IDXGISwapChain* foundGameDeviceSwapChain;
 
+    /// <summary>Describes how to hook <see cref="IDXGISwapChain"/> methods.</summary>
+    public enum HookMode
+    {
+        /// <summary>Hooks by rewriting the native bytecode.</summary>
+        ByteCode,
+
+        /// <summary>Hooks by providing an alternative vtable.</summary>
+        VTable,
+    }
+
     /// <summary>Gets the game's active instance of IDXGISwapChain that is initialized.</summary>
     /// <value>Address of the game's instance of IDXGISwapChain, or <c>null</c> if not available (yet.)</value>
     public static IDXGISwapChain* GameDeviceSwapChain

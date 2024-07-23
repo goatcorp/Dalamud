@@ -98,7 +98,7 @@ public class SettingsTabExperimental : SettingsTab
             {
                 ReShadeHandlingMode.ReShadeAddon => Loc.Localize(
                     "DalamudSettingsReShadeHandlingModeReShadeAddonDescription",
-                    "Dalamud will register itself as a ReShade addon. Most compatibility is expected, but multi-monitor window option won't work too well."),
+                    "Dalamud will register itself as a ReShade addon. Most compatibility is expected, but multi-monitor window option will require reloading ReShade every time a new window is opened, or even may not work at all."),
                 ReShadeHandlingMode.UnwrapReShade => Loc.Localize(
                     "DalamudSettingsReShadeHandlingModeUnwrapReShadeDescription",
                     "Dalamud will exclude itself from all ReShade handling. Multi-monitor windows should work fine with this mode, but it may not be supported and crash in future ReShade versions."),
@@ -108,6 +108,17 @@ public class SettingsTabExperimental : SettingsTab
                 _ => "<invalid>",
             },
         },
+
+        new GapSettingsEntry(5, true),
+
+        new EnumSettingsEntry<SwapChainHelper.HookMode>(
+            Loc.Localize("DalamudSettingsSwapChainHookMode", "Swap chain hooking mode"),
+            Loc.Localize(
+                "DalamudSettingsSwapChainHookModeHint",
+                "Depending on addons aside from Dalamud you use, you may have to use different options for Dalamud and other addons to cooperate.\nRestart is required for changes to take effect."),
+            c => c.SwapChainHookMode,
+            (v, c) => c.SwapChainHookMode = v,
+            fallbackValue: SwapChainHelper.HookMode.ByteCode),
 
         /* Disabling profiles after they've been enabled doesn't make much sense, at least not if the user has already created profiles.
         new GapSettingsEntry(5, true),
