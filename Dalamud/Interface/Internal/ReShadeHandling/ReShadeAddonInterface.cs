@@ -55,19 +55,20 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
                 AddonEvent.DestroySwapChain,
                 this.destroySwapChainDelegate = new((ref ApiObject rt) => this.DestroySwapChain?.Invoke(ref rt)));
         }
-        catch
+        catch (Exception e1)
         {
+            Exports.ReShadeUnregisterAddon(this.hDalamudModule);
+
             try
             {
                 this.addonModuleResolverHook.Disable();
                 this.addonModuleResolverHook.Dispose();
             }
-            catch
+            catch (Exception e2)
             {
-                // ignore
+                throw new AggregateException(e1, e2);
             }
 
-            Exports.ReShadeUnregisterAddon(this.hDalamudModule);
             throw;
         }
 
@@ -129,6 +130,7 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
         if (!this.requiresFinalize)
             return;
         this.requiresFinalize = false;
+        // This will also unregister addon event registrations.
         Exports.ReShadeUnregisterAddon(this.hDalamudModule);
         this.addonModuleResolverHook.Disable();
         this.addonModuleResolverHook.Dispose();
