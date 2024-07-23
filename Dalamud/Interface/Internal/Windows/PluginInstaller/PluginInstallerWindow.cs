@@ -2889,6 +2889,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     }
 
                     configuration.QueueSave();
+                    _ = pluginManager.ReloadPluginMastersAsync();
                 }
 
                 if (repoManifest?.IsTestingExclusive == true)
