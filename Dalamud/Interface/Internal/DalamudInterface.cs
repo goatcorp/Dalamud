@@ -207,10 +207,11 @@ internal class DalamudInterface : IInternalDisposableService
                         break;
                     default:
                         Log.Error("Unknown swapchain mode: {Mode}", mode);
-                        break;
+                        return false;
                 }
                 
                 this.configuration.QueueSave();
+                return true;
             });
     }
     
