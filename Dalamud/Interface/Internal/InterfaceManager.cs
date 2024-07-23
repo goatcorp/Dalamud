@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
@@ -15,6 +17,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.ReShadeHandling;
@@ -746,6 +749,9 @@ internal partial class InterfaceManager : IInternalDisposableService
         _ = this.dalamudAtlas.BuildFontsAsync();
 
         SwapChainHelper.BusyWaitForGameDeviceSwapChain();
+        var swapChainDesc = default(DXGI_SWAP_CHAIN_DESC);
+        if (SwapChainHelper.GameDeviceSwapChain->GetDesc(&swapChainDesc).SUCCEEDED)
+            this.gameWindowHandle = swapChainDesc.OutputWindow; 
 
         try
         {
@@ -765,6 +771,28 @@ internal partial class InterfaceManager : IInternalDisposableService
             0,
             this.SetCursorDetour);
 
+        if (ReShadeAddonInterface.ReShadeHasSignature)
+        {
+            Log.Warning("Signed ReShade binary detected.");
+            Service<NotificationManager>
+                .GetAsync()
+                .ContinueWith(
+                    nmt => nmt.Result.AddNotification(
+                        new()
+                        {
+                            MinimizedText = Loc.Localize(
+                                "ReShadeNoAddonSupportNotificationMinimizedText",
+                                "Wrong ReShade installation"),
+                            Content = Loc.Localize(
+                                "ReShadeNoAddonSupportNotificationContent",
+                                "Your installation of ReShade does not have full addon support, and may not work with Dalamud and/or the game.\n" +
+                                "Download and install ReShade with full addon-support."),
+                            Type = NotificationType.Warning,
+                            InitialDuration = TimeSpan.MaxValue,
+                            ShowIndeterminateIfNoExpiry = false,
+                        }));
+        }
+
         Log.Verbose("===== S W A P C H A I N =====");
         if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.UnwrapReShade)
         {
@@ -772,23 +800,25 @@ internal partial class InterfaceManager : IInternalDisposableService
                 Log.Verbose("Unwrapped ReShade.");
         }
 
-        ResizeBuffersDelegate resizeBuffersDelegate;
-        DxgiPresentDelegate? dxgiPresentDelegate;
-        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddon &&
-            ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
+        ResizeBuffersDelegate? resizeBuffersDelegate = null;
+        DxgiPresentDelegate? dxgiPresentDelegate = null;
+        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddon)
         {
-            resizeBuffersDelegate = this.AsReShadeAddonResizeBuffersDetour;
-            dxgiPresentDelegate = null;
+            if (ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
+            {
+                resizeBuffersDelegate = this.AsReShadeAddonResizeBuffersDetour;
 
-            Log.Verbose(
-                "Registered as a ReShade({name}: 0x{addr:X}) addon.",
-                ReShadeAddonInterface.ReShadeModule!.FileName,
-                ReShadeAddonInterface.ReShadeModule!.BaseAddress);
-            this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
-            this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
-            this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
+                Log.Verbose(
+                    "Registered as a ReShade({name}: 0x{addr:X}) addon.",
+                    ReShadeAddonInterface.ReShadeModule!.FileName,
+                    ReShadeAddonInterface.ReShadeModule!.BaseAddress);
+                this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
+                this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
+                this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
+            }
         }
-        else
+
+        if (resizeBuffersDelegate is null)
         {
             resizeBuffersDelegate = this.AsHookResizeBuffersDetour;
             dxgiPresentDelegate = this.PresentDetour;
