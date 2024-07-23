@@ -774,7 +774,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         if (ReShadeAddonInterface.ReShadeHasSignature)
         {
-            Log.Warning("Signed ReShade binary detected.");
+            Log.Warning("Signed ReShade binary detected");
             Service<NotificationManager>
                 .GetAsync()
                 .ContinueWith(
@@ -809,7 +809,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.UnwrapReShade)
         {
             if (SwapChainHelper.UnwrapReShade())
-                Log.Verbose("Unwrapped ReShade.");
+                Log.Information("Unwrapped ReShade");
         }
 
         ResizeBuffersDelegate? resizeBuffersDelegate = null;
@@ -820,13 +820,17 @@ internal partial class InterfaceManager : IInternalDisposableService
             {
                 resizeBuffersDelegate = this.AsReShadeAddonResizeBuffersDetour;
 
-                Log.Verbose(
-                    "Registered as a ReShade({name}: 0x{addr:X}) addon.",
+                Log.Information(
+                    "Registered as a ReShade({Name}: 0x{Addr:X}) addon",
                     ReShadeAddonInterface.ReShadeModule!.FileName,
                     ReShadeAddonInterface.ReShadeModule!.BaseAddress);
                 this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
                 this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
                 this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
+            }
+            else
+            {
+                Log.Information("Could not register as ReShade addon");
             }
         }
 
@@ -841,6 +845,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             case SwapChainHelper.HookMode.ByteCode: 
             default:
             {
+                Log.Information("Hooking using bytecode...");
                 this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
                     (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
                     resizeBuffersDelegate);
@@ -850,6 +855,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                     this.dxgiPresentHook = Hook<DxgiPresentDelegate>.FromAddress(
                         (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present,
                         dxgiPresentDelegate);
+                    Log.Information("Hooked present using bytecode");
                 }
 
                 break;
@@ -857,6 +863,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
             case SwapChainHelper.HookMode.VTable:
             {
+                Log.Information("Hooking using VTable...");
                 this.swapChainHook = new(SwapChainHelper.GameDeviceSwapChain);
                 this.resizeBuffersHook = this.swapChainHook.CreateHook(
                     nameof(IDXGISwapChain.ResizeBuffers),
@@ -867,15 +874,15 @@ internal partial class InterfaceManager : IInternalDisposableService
                     this.dxgiPresentHook = this.swapChainHook.CreateHook(
                         nameof(IDXGISwapChain.Present),
                         dxgiPresentDelegate);
+                    Log.Information("Hooked present using VTable");
                 }
 
                 break;
             }
         }
 
-        Log.Verbose(
-            $"IDXGISwapChain::ResizeBuffers address: {Util.DescribeAddress(this.resizeBuffersHook.Address)}");
-        Log.Verbose($"IDXGISwapChain::Present address: {Util.DescribeAddress(this.dxgiPresentHook?.Address ?? 0)}");
+        Log.Information($"IDXGISwapChain::ResizeBuffers address: {Util.DescribeAddress(this.resizeBuffersHook.Address)}");
+        Log.Information($"IDXGISwapChain::Present address: {Util.DescribeAddress(this.dxgiPresentHook?.Address ?? 0)}");
 
         this.setCursorHook.Enable();
         this.resizeBuffersHook.Enable();
