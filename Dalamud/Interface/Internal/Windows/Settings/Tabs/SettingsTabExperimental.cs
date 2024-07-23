@@ -109,6 +109,7 @@ public class SettingsTabExperimental : SettingsTab
             },
         },
 
+        /* // Making this a console command instead, for now
         new GapSettingsEntry(5, true),
 
         new EnumSettingsEntry<SwapChainHelper.HookMode>(
@@ -119,6 +120,7 @@ public class SettingsTabExperimental : SettingsTab
             c => c.SwapChainHookMode,
             (v, c) => c.SwapChainHookMode = v,
             fallbackValue: SwapChainHelper.HookMode.ByteCode),
+            */
 
         /* Disabling profiles after they've been enabled doesn't make much sense, at least not if the user has already created profiles.
         new GapSettingsEntry(5, true),
