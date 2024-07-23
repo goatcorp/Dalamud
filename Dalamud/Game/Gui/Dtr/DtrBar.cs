@@ -131,9 +131,12 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// </summary>
     internal void HandleRemovedNodes()
     {
-        foreach (var data in this.entries.Where(d => d.ShouldBeRemoved))
+        foreach (var data in this.entries)
         {
-            this.RemoveEntry(data);
+            if (data.ShouldBeRemoved)
+            {
+                this.RemoveEntry(data);
+            }
         }
 
         this.entries.RemoveAll(d => d.ShouldBeRemoved);
@@ -210,7 +213,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         // If we have an unmodified DTR but still have entries, we need to
         // work to reset our state.
-        if (!this.CheckForDalamudNodes())
+        if (!this.CheckForDalamudNodes(dtr))
             this.RecreateNodes();
 
         var collisionNode = dtr->GetNodeById(17);
@@ -223,40 +226,35 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         foreach (var data in this.entries)
         {
-            var isHide = data.UserHidden || !data.Shown;
-
-            if (data is { Dirty: true, Added: true, Text: not null, TextNode: not null })
-            {
-                var node = data.TextNode;
-
-                if (data.Storage == null)
-                {
-                    data.Storage = Utf8String.CreateEmpty();
-                }
-
-                data.Storage->SetString(data.Text.EncodeWithNullTerminator());
-                node->SetText(data.Storage->StringPtr);
-
-                ushort w = 0, h = 0;
-
-                if (!isHide)
-                {
-                    node->GetTextDrawSize(&w, &h, node->NodeText.StringPtr);
-                    node->AtkResNode.SetWidth(w);
-                }
-
-                node->AtkResNode.ToggleVisibility(!isHide);
-
-                data.Dirty = false;
-            }
-
             if (!data.Added)
             {
                 data.Added = this.AddNode(data.TextNode);
             }
 
+            var isHide = !data.Shown || data.UserHidden;
+            var node = data.TextNode;
+            var nodeHidden = !node->AtkResNode.IsVisible();
+
             if (!isHide)
             {
+                if (nodeHidden)
+                    node->AtkResNode.ToggleVisibility(true);
+
+                if (data is { Added: true, Text: not null, TextNode: not null } && (data.Dirty || nodeHidden))
+                {
+                    if (data.Storage == null)
+                    {
+                        data.Storage = Utf8String.CreateEmpty();
+                    }
+
+                    data.Storage->SetString(data.Text.EncodeWithNullTerminator());
+                    node->SetText(data.Storage->StringPtr);
+
+                    ushort w = 0, h = 0;
+                    node->GetTextDrawSize(&w, &h, node->NodeText.StringPtr);
+                    node->AtkResNode.SetWidth(w);
+                }
+
                 var elementWidth = data.TextNode->AtkResNode.Width + this.configuration.DtrSpacing;
 
                 if (this.configuration.DtrSwapDirection)
@@ -270,17 +268,20 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
                 }
             }
-            else
+            else if (!nodeHidden)
             {
                 // If we want the node hidden, shift it up, to prevent collision conflicts
-                data.TextNode->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
+                node->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
+                node->AtkResNode.ToggleVisibility(false);
             }
+
+            data.Dirty = false;
         }
     }
 
     private void HandleAddedNodes()
     {
-        if (this.newEntries.Any())
+        if (!this.newEntries.IsEmpty)
         {
             foreach (var newEntry in this.newEntries)
             {
@@ -354,11 +355,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// Checks if there are any Dalamud nodes in the DTR.
     /// </summary>
     /// <returns>True if there are nodes with an ID > 1000.</returns>
-    private bool CheckForDalamudNodes()
+    private bool CheckForDalamudNodes(AtkUnitBase* dtr)
     {
-        var dtr = this.GetDtr();
-        if (dtr == null || dtr->RootNode == null) return false;
-
         for (var i = 0; i < dtr->UldManager.NodeListCount; i++)
         {
             if (dtr->UldManager.NodeList[i]->NodeId > 1000)
