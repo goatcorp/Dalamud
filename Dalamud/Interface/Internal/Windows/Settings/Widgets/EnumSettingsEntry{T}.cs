@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
+using System.Linq;
 
 using Dalamud.Configuration.Internal;
 
@@ -13,23 +13,27 @@ using ImGuiNET;
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-internal sealed class SettingsEntry<T> : SettingsEntry
+internal sealed class EnumSettingsEntry<T> : SettingsEntry
+    where T : struct, Enum
 {
     private readonly LoadSettingDelegate load;
     private readonly SaveSettingDelegate save;
-    private readonly Action<T?>? change;
+    private readonly Action<T>? change;
 
-    private object? valueBacking;
+    private readonly T fallbackValue;
 
-    public SettingsEntry(
+    private T valueBacking;
+
+    public EnumSettingsEntry(
         string name,
         string description,
         LoadSettingDelegate load,
         SaveSettingDelegate save,
-        Action<T?>? change = null,
-        Func<T?, string?>? warning = null,
-        Func<T?, string?>? validity = null,
-        Func<bool>? visibility = null)
+        Action<T>? change = null,
+        Func<T, string?>? warning = null,
+        Func<T, string?>? validity = null,
+        Func<bool>? visibility = null,
+        T fallbackValue = default)
     {
         this.load = load;
         this.save = save;
@@ -39,15 +43,17 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         this.CheckWarning = warning;
         this.CheckValidity = validity;
         this.CheckVisibility = visibility;
+
+        this.fallbackValue = fallbackValue;
     }
 
-    public delegate T? LoadSettingDelegate(DalamudConfiguration config);
+    public delegate T LoadSettingDelegate(DalamudConfiguration config);
 
-    public delegate void SaveSettingDelegate(T? value, DalamudConfiguration config);
+    public delegate void SaveSettingDelegate(T value, DalamudConfiguration config);
 
-    public T? Value
+    public T Value
     {
-        get => this.valueBacking == default ? default : (T)this.valueBacking;
+        get => this.valueBacking;
         set
         {
             if (Equals(value, this.valueBacking))
@@ -59,13 +65,17 @@ internal sealed class SettingsEntry<T> : SettingsEntry
 
     public string Description { get; }
 
-    public Action<SettingsEntry<T>>? CustomDraw { get; init; }
+    public Action<EnumSettingsEntry<T>>? CustomDraw { get; init; }
 
-    public Func<T?, string?>? CheckValidity { get; init; }
+    public Func<T, string?>? CheckValidity { get; init; }
 
-    public Func<T?, string?>? CheckWarning { get; init; }
+    public Func<T, string?>? CheckWarning { get; init; }
 
     public Func<bool>? CheckVisibility { get; init; }
+
+    public Func<T, string> FriendlyEnumNameGetter { get; init; } = x => x.ToString();
+
+    public Func<T, string> FriendlyEnumDescriptionGetter { get; init; } = _ => string.Empty;
 
     public override bool IsVisible => this.CheckVisibility?.Invoke() ?? true;
 
@@ -73,48 +83,48 @@ internal sealed class SettingsEntry<T> : SettingsEntry
     {
         Debug.Assert(this.Name != null, "this.Name != null");
 
-        var type = typeof(T);
-
         if (this.CustomDraw is not null)
         {
             this.CustomDraw.Invoke(this);
         }
-        else if (type == typeof(DirectoryInfo))
+        else
         {
             ImGuiHelpers.SafeTextWrapped(this.Name);
 
-            var value = this.Value as DirectoryInfo;
-            var nativeBuffer = value?.FullName ?? string.Empty;
+            var idx = this.valueBacking;
+            var values = Enum.GetValues<T>();
 
-            if (ImGui.InputText($"###{this.Id.ToString()}", ref nativeBuffer, 1000))
+            if (!values.Contains(idx))
             {
-                this.valueBacking = !string.IsNullOrEmpty(nativeBuffer) ? new DirectoryInfo(nativeBuffer) : null;
+                idx = Enum.IsDefined(this.fallbackValue)
+                          ? this.fallbackValue
+                          : throw new InvalidOperationException("No fallback value for enum");
+                this.valueBacking = idx;
             }
-        }
-        else if (type == typeof(string))
-        {
-            ImGuiHelpers.SafeTextWrapped(this.Name);
 
-            var nativeBuffer = this.Value as string ?? string.Empty;
-
-            if (ImGui.InputText($"###{this.Id.ToString()}", ref nativeBuffer, 1000))
+            if (ImGui.BeginCombo($"###{this.Id.ToString()}", this.FriendlyEnumNameGetter(idx)))
             {
-                this.valueBacking = nativeBuffer;
-            }
-        }
-        else if (type == typeof(bool))
-        {
-            var nativeValue = this.Value as bool? ?? false;
+                foreach (var value in values)
+                {
+                    if (ImGui.Selectable(this.FriendlyEnumNameGetter(value), idx.Equals(value)))
+                    {
+                        this.valueBacking = value;
+                    }
+                }
 
-            if (ImGui.Checkbox($"{this.Name}###{this.Id.ToString()}", ref nativeValue))
-            {
-                this.valueBacking = nativeValue;
-                this.change?.Invoke(this.Value);
+                ImGui.EndCombo();
             }
         }
 
         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
         {
+            var desc = this.FriendlyEnumDescriptionGetter(this.valueBacking);
+            if (!string.IsNullOrWhiteSpace(desc))
+            {
+                ImGuiHelpers.SafeTextWrapped(desc);
+                ImGuiHelpers.ScaledDummy(2);
+            }
+
             ImGuiHelpers.SafeTextWrapped(this.Description);
         }
 
