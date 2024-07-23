@@ -25,6 +25,8 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
     private readonly DelegateStorage<ReShadeInitSwapChain> initSwapChainDelegate;
     private readonly DelegateStorage<ReShadeDestroySwapChain> destroySwapChainDelegate;
 
+    private bool requiresFinalize;
+
     private ReShadeAddonInterface()
     {
         this.hDalamudModule = (HMODULE)Marshal.GetHINSTANCE(typeof(ReShadeAddonInterface).Assembly.ManifestModule);
@@ -40,16 +42,36 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
             0,
             this.GetModuleHandleExWDetour);
 
-        this.addonModuleResolverHook.Enable();
-        Exports.ReShadeRegisterEvent(
-            AddonEvent.ReShadeOverlay,
-            this.reShadeOverlayDelegate = new((ref ApiObject rt) => this.ReShadeOverlay?.Invoke(ref rt)));
-        Exports.ReShadeRegisterEvent(
-            AddonEvent.InitSwapChain,
-            this.initSwapChainDelegate = new((ref ApiObject rt) => this.InitSwapChain?.Invoke(ref rt)));
-        Exports.ReShadeRegisterEvent(
-            AddonEvent.DestroySwapChain,
-            this.destroySwapChainDelegate = new((ref ApiObject rt) => this.DestroySwapChain?.Invoke(ref rt)));
+        try
+        {
+            this.addonModuleResolverHook.Enable();
+            Exports.ReShadeRegisterEvent(
+                AddonEvent.ReShadeOverlay,
+                this.reShadeOverlayDelegate = new((ref ApiObject rt) => this.ReShadeOverlay?.Invoke(ref rt)));
+            Exports.ReShadeRegisterEvent(
+                AddonEvent.InitSwapChain,
+                this.initSwapChainDelegate = new((ref ApiObject rt) => this.InitSwapChain?.Invoke(ref rt)));
+            Exports.ReShadeRegisterEvent(
+                AddonEvent.DestroySwapChain,
+                this.destroySwapChainDelegate = new((ref ApiObject rt) => this.DestroySwapChain?.Invoke(ref rt)));
+        }
+        catch
+        {
+            try
+            {
+                this.addonModuleResolverHook.Disable();
+                this.addonModuleResolverHook.Dispose();
+            }
+            catch
+            {
+                // ignore
+            }
+
+            Exports.ReShadeUnregisterAddon(this.hDalamudModule);
+            throw;
+        }
+
+        this.requiresFinalize = true;
     }
 
     /// <summary>Finalizes an instance of the <see cref="ReShadeAddonInterface"/> class.</summary>
@@ -104,9 +126,9 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        Exports.ReShadeUnregisterEvent(AddonEvent.InitSwapChain, this.initSwapChainDelegate);
-        Exports.ReShadeUnregisterEvent(AddonEvent.DestroySwapChain, this.destroySwapChainDelegate);
-        Exports.ReShadeUnregisterEvent(AddonEvent.ReShadeOverlay, this.reShadeOverlayDelegate);
+        if (!this.requiresFinalize)
+            return;
+        this.requiresFinalize = false;
         Exports.ReShadeUnregisterAddon(this.hDalamudModule);
         this.addonModuleResolverHook.Disable();
         this.addonModuleResolverHook.Dispose();
