@@ -15,7 +15,7 @@ namespace Dalamud.Interface.Internal.ReShadeHandling;
 /// <summary>ReShade interface.</summary>
 internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
 {
-    private const int ReShadeApiVersion = 12;
+    private const int ReShadeApiVersion = 1;
 
     private readonly HMODULE hDalamudModule;
 
