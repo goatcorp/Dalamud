@@ -19,6 +19,7 @@ using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -790,7 +791,18 @@ internal partial class InterfaceManager : IInternalDisposableService
                             Type = NotificationType.Warning,
                             InitialDuration = TimeSpan.MaxValue,
                             ShowIndeterminateIfNoExpiry = false,
-                        }));
+                        })).ContinueWith(
+                    t =>
+                    {
+                        t.Result.DrawActions += _ =>
+                        {
+                            ImGuiHelpers.ScaledDummy(2);
+                            if (DalamudComponents.PrimaryButton(Loc.Localize("LearnMore", "Learn more...")))
+                            {
+                                Util.OpenLink("https://dalamud.dev/news/2024/07/23/reshade/");
+                            }
+                        };
+                    });
         }
 
         Log.Verbose("===== S W A P C H A I N =====");
