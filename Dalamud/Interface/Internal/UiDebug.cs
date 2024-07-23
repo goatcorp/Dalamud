@@ -311,8 +311,6 @@ internal unsafe class UiDebug
         }
     }
 
-    
-
     private void PrintComponentNode(AtkResNode* node, string treePrefix)
     {
         var compNode = (AtkComponentNode*)node;
