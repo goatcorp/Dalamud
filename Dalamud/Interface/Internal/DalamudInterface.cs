@@ -841,10 +841,9 @@ internal class DalamudInterface : IInternalDisposableService
                     {
                         this.OpenBranchSwitcher();
                     }
-
-                    ImGui.MenuItem(Util.AssemblyVersion, false);
+                    
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
-                    ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
+                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
                     ImGui.EndMenu();
@@ -1043,7 +1042,7 @@ internal class DalamudInterface : IInternalDisposableService
                 {
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu($"{Util.GetGitHash()}({Util.GetGitCommitCount()})", false);
+                    ImGui.BeginMenu(Util.GetScmVersion(), false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);

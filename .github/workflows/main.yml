@@ -137,6 +137,7 @@ jobs:
         
         $newVersion = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\TEMP_gitver.txt")
         $revision = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\revision.txt")
+        $commitHash = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\commit_hash.txt")
         Remove-Item -Force -Recurse .\scratch
         
         if (Test-Path -Path $branchName) {
@@ -147,7 +148,7 @@ jobs:
             } else {
               Move-Item -Force ".\canary.zip" ".\${branchName}\latest.zip"
               $versionData.AssemblyVersion = $newVersion
-              $versionData | add-member -Force -Name "GitSha" $newVersion -MemberType NoteProperty
+              $versionData | add-member -Force -Name "GitSha" $commitHash -MemberType NoteProperty
               $versionData | add-member -Force -Name "Revision" $revision -MemberType NoteProperty
               $versionData | ConvertTo-Json -Compress | Out-File ".\${branchName}\version"
             }
