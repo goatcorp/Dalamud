@@ -826,7 +826,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                     ReShadeAddonInterface.ReShadeModule!.BaseAddress);
                 this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
                 this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
-                this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
+                this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
             }
             else
             {
