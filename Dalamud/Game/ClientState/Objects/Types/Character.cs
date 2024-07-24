@@ -98,6 +98,13 @@ public interface ICharacter : IGameObject
     /// Gets the current mount for this character. Will be <c>null</c> if the character doesn't have a mount.
     /// </summary>
     public ExcelResolver<Mount>? CurrentMount { get; }
+    
+    /// <summary>
+    /// Gets the current minion summoned for this character. Will be <c>null</c> if the character doesn't have a minion.
+    /// This method *will* return information about a spawned (but invisible) minion, e.g. if the character is riding a
+    /// mount.
+    /// </summary>
+    public ExcelResolver<Companion>? CurrentMinion { get; }
 }
 
 /// <summary>
@@ -183,10 +190,24 @@ internal unsafe class Character : GameObject, ICharacter
     {
         get
         {
-            if (this.Struct->IsNotMounted()) return null; // safety i guess?
+            if (this.Struct->IsNotMounted()) return null; // just for safety.
             
             var mountId = this.Struct->Mount.MountId;
             return mountId == 0 ? null : new ExcelResolver<Mount>(mountId);
+        }
+    }
+
+    /// <inheritdoc />
+    public ExcelResolver<Companion>? CurrentMinion
+    {
+        get
+        {
+            if (this.Struct->CompanionObject != null) 
+                return new ExcelResolver<Companion>(this.Struct->CompanionObject->BaseId);
+
+            // this is only present if a minion is summoned but hidden (e.g. the player's on a mount).
+            var hiddenCompanionId = this.Struct->CompanionData.CompanionId;
+            return hiddenCompanionId == 0 ? null : new ExcelResolver<Companion>(hiddenCompanionId);
         }
     }
 
