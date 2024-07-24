@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
@@ -25,6 +26,8 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
+
+using Serilog;
 
 namespace Dalamud.Plugin;
 
@@ -458,20 +461,21 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     #region Dependency Injection
 
-    /// <summary>
-    /// Create a new object of the provided type using its default constructor, then inject objects and properties.
-    /// </summary>
-    /// <param name="scopedObjects">Objects to inject additionally.</param>
-    /// <typeparam name="T">The type to create.</typeparam>
-    /// <returns>The created and initialized type.</returns>
+    /// <inheritdoc/>
     public T? Create<T>(params object[] scopedObjects) where T : class
     {
-        var svcContainer = Service<IoC.Internal.ServiceContainer>.Get();
+        var t = this.CreateAsync<T>(scopedObjects);
+        t.Wait();
 
-        return (T)this.plugin.ServiceScope!.CreateAsync(
-            typeof(T),
-            this.GetPublicIocScopes(scopedObjects)).GetAwaiter().GetResult();
+        if (t.Exception is { } e)
+            Log.Error(e, "{who}: Failed to initialize {what}", this.plugin.Name, typeof(T).FullName ?? typeof(T).Name);
+
+        return t.IsCompletedSuccessfully ? t.Result : null;
     }
+
+    /// <inheritdoc/>
+    public async Task<T> CreateAsync<T>(params object[] scopedObjects) where T : class =>
+        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), this.GetPublicIocScopes(scopedObjects));
 
     /// <summary>
     /// Inject services into properties on the provided object instance.

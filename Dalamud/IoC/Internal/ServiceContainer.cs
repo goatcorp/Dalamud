@@ -84,15 +84,15 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <param name="scope">The scope to be used to create scoped services.</param>
     /// <returns>The created object.</returns>
-    public async Task<object?> CreateAsync(Type objectType, object[] scopedObjects, IServiceScope? scope = null)
+    public async Task<object> CreateAsync(Type objectType, object[] scopedObjects, IServiceScope? scope = null)
     {
         var scopeImpl = scope as ServiceScopeImpl;
 
         var ctor = this.FindApplicableCtor(objectType, scopedObjects);
         if (ctor == null)
         {
-            Log.Error("Failed to create {TypeName}, an eligible ctor with satisfiable services could not be found", objectType.FullName!);
-            return null;
+            throw new InvalidOperationException(
+                $"Failed to create {objectType.FullName ?? objectType.Name}; an eligible ctor with satisfiable services could not be found");
         }
 
         // validate dependency versions (if they exist)
@@ -116,16 +116,16 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         var hasNull = resolvedParams.Any(p => p == null);
         if (hasNull)
         {
-            Log.Error("Failed to create {TypeName}, a requested service type could not be satisfied", objectType.FullName!);
-            return null;
+            throw new InvalidOperationException(
+                $"Failed to create {objectType.FullName ?? objectType.Name}; a requested service type could not be satisfied");
         }
 
         var instance = RuntimeHelpers.GetUninitializedObject(objectType);
 
         if (!await this.InjectProperties(instance, scopedObjects, scope))
         {
-            Log.Error("Failed to create {TypeName}, a requested property service type could not be satisfied", objectType.FullName!);
-            return null;
+            throw new InvalidOperationException(
+                $"Failed to create {objectType.FullName ?? objectType.Name}; a requested property service type could not be satisfied");
         }
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

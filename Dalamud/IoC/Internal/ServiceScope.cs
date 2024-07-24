@@ -25,7 +25,7 @@ internal interface IServiceScope : IDisposable
     /// <param name="objectType">The type of object to create.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <returns>The created object.</returns>
-    public Task<object?> CreateAsync(Type objectType, params object[] scopedObjects);
+    public Task<object> CreateAsync(Type objectType, params object[] scopedObjects);
 
     /// <summary>
     /// Inject <see cref="PluginInterfaceAttribute" /> interfaces into public or static properties on the provided object.
@@ -45,7 +45,7 @@ internal class ServiceScopeImpl : IServiceScope
     private readonly ServiceContainer container;
 
     private readonly List<object> privateScopedObjects = [];
-    private readonly ConcurrentDictionary<Type, Task<object?>> scopeCreatedObjects = new();
+    private readonly ConcurrentDictionary<Type, Task<object>> scopeCreatedObjects = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ServiceScopeImpl" /> class.
@@ -63,7 +63,7 @@ internal class ServiceScopeImpl : IServiceScope
     }
 
     /// <inheritdoc />
-    public Task<object?> CreateAsync(Type objectType, params object[] scopedObjects)
+    public Task<object> CreateAsync(Type objectType, params object[] scopedObjects)
     {
         return this.container.CreateAsync(objectType, scopedObjects, this);
     }
@@ -80,7 +80,7 @@ internal class ServiceScopeImpl : IServiceScope
     /// <param name="objectType">The type of object to create.</param>
     /// <param name="scopedObjects">Additional scoped objects.</param>
     /// <returns>The created object, or null.</returns>
-    public Task<object?> CreatePrivateScopedObject(Type objectType, params object[] scopedObjects) =>
+    public Task<object> CreatePrivateScopedObject(Type objectType, params object[] scopedObjects) =>
         this.scopeCreatedObjects.GetOrAdd(
             objectType,
             static (objectType, p) => p.Scope.container.CreateAsync(
