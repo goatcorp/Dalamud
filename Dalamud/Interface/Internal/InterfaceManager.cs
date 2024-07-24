@@ -8,14 +8,20 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using CheapLoc;
+
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Hooking;
+using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.ManagedAsserts;
+using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
@@ -29,10 +35,12 @@ using ImGuiNET;
 
 using ImGuiScene;
 
+using JetBrains.Annotations;
+
 using PInvoke;
 
-using SharpDX;
-using SharpDX.DXGI;
+using TerraFX.Interop.DirectX;
+using TerraFX.Interop.Windows;
 
 // general dev notes, here because it's easiest
 
@@ -52,7 +60,7 @@ namespace Dalamud.Interface.Internal;
 /// This class manages interaction with the ImGui interface.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class InterfaceManager : IInternalDisposableService
+internal partial class InterfaceManager : IInternalDisposableService
 {
     /// <summary>
     /// The default font size, in points.
@@ -70,10 +78,18 @@ internal class InterfaceManager : IInternalDisposableService
     private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
 
     [ServiceManager.ServiceDependency]
-    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
+    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
+
+    // ReShadeAddonInterface requires hooks to be alive to unregister itself.
+    [ServiceManager.ServiceDependency]
+    [UsedImplicitly]
+    private readonly HookManager hookManager = Service<HookManager>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
 
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
@@ -82,8 +98,9 @@ internal class InterfaceManager : IInternalDisposableService
 
     private Hook<SetCursorDelegate>? setCursorHook;
     private Hook<DxgiPresentDelegate>? dxgiPresentHook;
-    private Hook<ReshadeOnPresentDelegate>? reshadeOnPresentHook;
     private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
+    private ObjectVTableHook<IDXGISwapChain.Vtbl<IDXGISwapChain>>? swapChainHook;
+    private ReShadeAddonInterface? reShadeAddonInterface;
 
     private IFontAtlas? dalamudAtlas;
     private ILockedImFont? defaultFontResourceLock;
@@ -100,9 +117,6 @@ internal class InterfaceManager : IInternalDisposableService
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr DxgiPresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ReshadeOnPresentDelegate(nint swapChain, uint flags, nint presentParams);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
@@ -299,8 +313,9 @@ internal class InterfaceManager : IInternalDisposableService
             this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
             Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
             Interlocked.Exchange(ref this.dxgiPresentHook, null)?.Dispose();
-            Interlocked.Exchange(ref this.reshadeOnPresentHook, null)?.Dispose();
             Interlocked.Exchange(ref this.resizeBuffersHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.swapChainHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
         }
     }
 
@@ -336,7 +351,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunBeforeImGuiRender(Action action)
     {
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runBeforeImGuiRender.Enqueue(
             () =>
             {
@@ -359,7 +374,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
     public Task<T> RunBeforeImGuiRender<T>(Func<T> func)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runBeforeImGuiRender.Enqueue(
             () =>
             {
@@ -380,7 +395,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
     public Task RunAfterImGuiRender(Action action)
     {
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runAfterImGuiRender.Enqueue(
             () =>
             {
@@ -403,7 +418,7 @@ internal class InterfaceManager : IInternalDisposableService
     /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
     public Task<T> RunAfterImGuiRender<T>(Func<T> func)
     {
-        var tcs = new TaskCompletionSource<T>();
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
         this.runAfterImGuiRender.Enqueue(
             () =>
             {
@@ -431,11 +446,11 @@ internal class InterfaceManager : IInternalDisposableService
         try
         {
             var dxgiDev = this.Device.QueryInterfaceOrNull<SharpDX.DXGI.Device>();
-            var dxgiAdapter = dxgiDev?.Adapter.QueryInterfaceOrNull<Adapter4>();
+            var dxgiAdapter = dxgiDev?.Adapter.QueryInterfaceOrNull<SharpDX.DXGI.Adapter4>();
             if (dxgiAdapter == null)
                 return null;
 
-            var memInfo = dxgiAdapter.QueryVideoMemoryInfo(0, MemorySegmentGroup.Local);
+            var memInfo = dxgiAdapter.QueryVideoMemoryInfo(0, SharpDX.DXGI.MemorySegmentGroup.Local);
             return (memInfo.CurrentUsage, memInfo.CurrentReservation);
         }
         catch
@@ -464,11 +479,11 @@ internal class InterfaceManager : IInternalDisposableService
         if (this.GameWindowHandle == 0)
             throw new InvalidOperationException("Game window is not yet ready.");
         var value = enabled ? 1 : 0;
-        ((Result)NativeFunctions.DwmSetWindowAttribute(
+        ((HRESULT)NativeFunctions.DwmSetWindowAttribute(
                     this.GameWindowHandle,
                     NativeFunctions.DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
                     ref value,
-                    sizeof(int))).CheckError();
+                    sizeof(int))).ThrowOnError();
     }
 
     private static InterfaceManager WhenFontsReady()
@@ -632,86 +647,6 @@ internal class InterfaceManager : IInternalDisposableService
             args.SuppressWithValue(r.Value);
     }
 
-    private void ReshadeOnPresentDetour(nint swapChain, uint flags, nint presentParams)
-    {
-        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
-        {
-            this.reshadeOnPresentHook!.Original(swapChain, flags, presentParams);
-            return;
-        }
-
-        Debug.Assert(this.reshadeOnPresentHook is not null, "this.reshadeOnPresentHook is not null");
-        Debug.Assert(this.dalamudAtlas is not null, "this.dalamudAtlas is not null");
-
-        if (this.scene == null)
-            this.InitScene(swapChain);
-
-        Debug.Assert(this.scene is not null, "InitScene did not set the scene field, but did not throw an exception.");
-
-        if (!this.dalamudAtlas!.HasBuiltAtlas)
-        {
-            if (this.dalamudAtlas.BuildTask.Exception != null)
-            {
-                // TODO: Can we do something more user-friendly here? Unload instead?
-                Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
-                Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
-            }
-
-            this.reshadeOnPresentHook!.Original(swapChain, flags, presentParams);
-            return;
-        }
-
-        this.CumulativePresentCalls++;
-        this.IsMainThreadInPresent = true;
-
-        while (this.runBeforeImGuiRender.TryDequeue(out var action))
-            action.InvokeSafely();
-
-        this.reshadeOnPresentHook!.Original(swapChain, flags, presentParams);
-
-        RenderImGui(this.scene!);
-        this.PostImGuiRender();
-        this.IsMainThreadInPresent = false;
-    }
-
-    private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
-    {
-        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
-            return this.dxgiPresentHook!.Original(swapChain, syncInterval, presentFlags);
-
-        Debug.Assert(this.dxgiPresentHook is not null, "How did PresentDetour get called when presentHook is null?");
-        Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
-
-        if (this.scene == null)
-            this.InitScene(swapChain);
-
-        Debug.Assert(this.scene is not null, "InitScene did not set the scene field, but did not throw an exception.");
-
-        if (!this.dalamudAtlas!.HasBuiltAtlas)
-        {
-            if (this.dalamudAtlas.BuildTask.Exception != null)
-            {
-                // TODO: Can we do something more user-friendly here? Unload instead?
-                Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
-                Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
-            }
-
-            return this.dxgiPresentHook!.Original(swapChain, syncInterval, presentFlags);
-        }
-
-        this.CumulativePresentCalls++;
-        this.IsMainThreadInPresent = true;
-
-        while (this.runBeforeImGuiRender.TryDequeue(out var action))
-            action.InvokeSafely();
-
-        RenderImGui(this.scene!);
-        this.PostImGuiRender();
-        this.IsMainThreadInPresent = false;
-
-        return this.dxgiPresentHook!.Original(swapChain, syncInterval, presentFlags);
-    }
-
     private void PostImGuiRender()
     {
         while (this.runAfterImGuiRender.TryDequeue(out var action))
@@ -799,10 +734,7 @@ internal class InterfaceManager : IInternalDisposableService
                     () =>
                     {
                         // Update the ImGui default font.
-                        unsafe
-                        {
-                            ImGui.GetIO().NativePtr->FontDefault = fontLocked.ImFont;
-                        }
+                        ImGui.GetIO().NativePtr->FontDefault = fontLocked.ImFont;
 
                         // Update the reference to the resources of the default font.
                         this.defaultFontResourceLock?.Dispose();
@@ -817,8 +749,14 @@ internal class InterfaceManager : IInternalDisposableService
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync();
 
+        SwapChainHelper.BusyWaitForGameDeviceSwapChain();
+        var swapChainDesc = default(DXGI_SWAP_CHAIN_DESC);
+        if (SwapChainHelper.GameDeviceSwapChain->GetDesc(&swapChainDesc).SUCCEEDED)
+            this.gameWindowHandle = swapChainDesc.OutputWindow; 
+
         try
         {
+            // Requires that game window to be there, which will be the case once game swap chain is initialized.
             if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
                 this.SetImmersiveMode(true);
         }
@@ -834,56 +772,122 @@ internal class InterfaceManager : IInternalDisposableService
             0,
             this.SetCursorDetour);
 
-        SwapChainHelper.BusyWaitForGameDeviceSwapChain();
-        SwapChainHelper.DetectReShade();
+        if (ReShadeAddonInterface.ReShadeIsSignedByReShade)
+        {
+            Log.Warning("Signed ReShade binary detected");
+            Service<NotificationManager>
+                .GetAsync()
+                .ContinueWith(
+                    nmt => nmt.Result.AddNotification(
+                        new()
+                        {
+                            MinimizedText = Loc.Localize(
+                                "ReShadeNoAddonSupportNotificationMinimizedText",
+                                "Wrong ReShade installation"),
+                            Content = Loc.Localize(
+                                "ReShadeNoAddonSupportNotificationContent",
+                                "Your installation of ReShade does not have full addon support, and may not work with Dalamud and/or the game.\n" +
+                                "Download and install ReShade with full addon-support."),
+                            Type = NotificationType.Warning,
+                            InitialDuration = TimeSpan.MaxValue,
+                            ShowIndeterminateIfNoExpiry = false,
+                        })).ContinueWith(
+                    t =>
+                    {
+                        t.Result.DrawActions += _ =>
+                        {
+                            ImGuiHelpers.ScaledDummy(2);
+                            if (DalamudComponents.PrimaryButton(Loc.Localize("LearnMore", "Learn more...")))
+                            {
+                                Util.OpenLink("https://dalamud.dev/news/2024/07/23/reshade/");
+                            }
+                        };
+                    });
+        }
 
         Log.Verbose("===== S W A P C H A I N =====");
-        this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
-            (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
-            this.ResizeBuffersDetour);
-        Log.Verbose($"ResizeBuffers address {Util.DescribeAddress(this.resizeBuffersHook!.Address)}");
+        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.UnwrapReShade)
+        {
+            if (SwapChainHelper.UnwrapReShade())
+                Log.Information("Unwrapped ReShade");
+        }
 
-        if (SwapChainHelper.ReshadeOnPresent is null)
+        ResizeBuffersDelegate? resizeBuffersDelegate = null;
+        DxgiPresentDelegate? dxgiPresentDelegate = null;
+        if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddon)
         {
-            var addr = (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present;
-            this.dxgiPresentHook = Hook<DxgiPresentDelegate>.FromAddress(addr, this.PresentDetour);
-            Log.Verbose($"ReShade::DXGISwapChain::on_present address {Util.DescribeAddress(addr)}");
+            if (ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
+            {
+                resizeBuffersDelegate = this.AsReShadeAddonResizeBuffersDetour;
+
+                Log.Information(
+                    "Registered as a ReShade({Name}: 0x{Addr:X}) addon",
+                    ReShadeAddonInterface.ReShadeModule!.FileName,
+                    ReShadeAddonInterface.ReShadeModule!.BaseAddress);
+                this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
+                this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
+                this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
+            }
+            else
+            {
+                Log.Information("Could not register as ReShade addon");
+            }
         }
-        else
+
+        if (resizeBuffersDelegate is null)
         {
-            var addr = (nint)SwapChainHelper.ReshadeOnPresent;
-            this.reshadeOnPresentHook = Hook<ReshadeOnPresentDelegate>.FromAddress(addr, this.ReshadeOnPresentDetour);
-            Log.Verbose($"IDXGISwapChain::Present address {Util.DescribeAddress(addr)}");
+            resizeBuffersDelegate = this.AsHookResizeBuffersDetour;
+            dxgiPresentDelegate = this.PresentDetour;
         }
+
+        switch (this.dalamudConfiguration.SwapChainHookMode)
+        {
+            case SwapChainHelper.HookMode.ByteCode: 
+            default:
+            {
+                Log.Information("Hooking using bytecode...");
+                this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
+                    (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
+                    resizeBuffersDelegate);
+
+                if (dxgiPresentDelegate is not null)
+                {
+                    this.dxgiPresentHook = Hook<DxgiPresentDelegate>.FromAddress(
+                        (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present,
+                        dxgiPresentDelegate);
+                    Log.Information("Hooked present using bytecode");
+                }
+
+                break;
+            }
+
+            case SwapChainHelper.HookMode.VTable:
+            {
+                Log.Information("Hooking using VTable...");
+                this.swapChainHook = new(SwapChainHelper.GameDeviceSwapChain);
+                this.resizeBuffersHook = this.swapChainHook.CreateHook(
+                    nameof(IDXGISwapChain.ResizeBuffers),
+                    resizeBuffersDelegate);
+
+                if (dxgiPresentDelegate is not null)
+                {
+                    this.dxgiPresentHook = this.swapChainHook.CreateHook(
+                        nameof(IDXGISwapChain.Present),
+                        dxgiPresentDelegate);
+                    Log.Information("Hooked present using VTable");
+                }
+
+                break;
+            }
+        }
+
+        Log.Information($"IDXGISwapChain::ResizeBuffers address: {Util.DescribeAddress(this.resizeBuffersHook.Address)}");
+        Log.Information($"IDXGISwapChain::Present address: {Util.DescribeAddress(this.dxgiPresentHook?.Address ?? 0)}");
 
         this.setCursorHook.Enable();
-        this.dxgiPresentHook?.Enable();
-        this.reshadeOnPresentHook?.Enable();
         this.resizeBuffersHook.Enable();
-    }
-
-    private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
-    {
-        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
-            return this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-
-#if DEBUG
-        Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
-#endif
-
-        this.ResizeBuffers?.InvokeSafely();
-
-        this.scene?.OnPreResize();
-
-        var ret = this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-        if (ret.ToInt64() == 0x887A0001)
-        {
-            Log.Error("invalid call to resizeBuffers");
-        }
-
-        this.scene?.OnPostResize((int)width, (int)height);
-
-        return ret;
+        this.dxgiPresentHook?.Enable();
+        this.swapChainHook?.Enable();
     }
 
     private IntPtr SetCursorDetour(IntPtr hCursor)

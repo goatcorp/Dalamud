@@ -19,6 +19,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
+using Dalamud.Support;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
@@ -208,7 +209,7 @@ public static class Util
     public static unsafe string DescribeAddress(nint p)
     {
         Span<char> namebuf = stackalloc char[9];
-        var modules = Process.GetCurrentProcess().Modules;
+        var modules = CurrentProcessModules.ModuleCollection;
         for (var i = 0; i < modules.Count; i++)
         {
             if (p < modules[i].BaseAddress) continue;
@@ -285,7 +286,7 @@ public static class Util
         {
             if ((mbi.Protect & (1 << i)) == 0)
                 continue;
-            if (c++ == 0)
+            if (c++ != 0)
                 sb.Append(" | ");
             sb.Append(PageProtectionFlagNames[i]);
         }

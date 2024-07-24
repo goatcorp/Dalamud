@@ -76,6 +76,17 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.configuration.QueueSave();
     }
 
+    /// <summary>
+    /// Event type fired each time a DtrEntry was removed.
+    /// </summary>
+    /// <param name="title">The title of the bar entry.</param>
+    internal delegate void DtrEntryRemovedDelegate(string title);
+
+    /// <summary>
+    /// Event fired each time a DtrEntry was removed.
+    /// </summary>
+    internal event DtrEntryRemovedDelegate? DtrEntryRemoved;
+
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.entries;
     
@@ -131,9 +142,13 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// </summary>
     internal void HandleRemovedNodes()
     {
-        foreach (var data in this.entries.Where(d => d.ShouldBeRemoved))
+        foreach (var data in this.entries)
         {
-            this.RemoveEntry(data);
+            if (data.ShouldBeRemoved)
+            {
+                this.RemoveEntry(data);
+                this.DtrEntryRemoved?.Invoke(data.Title);
+            }
         }
 
         this.entries.RemoveAll(d => d.ShouldBeRemoved);
@@ -210,7 +225,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         // If we have an unmodified DTR but still have entries, we need to
         // work to reset our state.
-        if (!this.CheckForDalamudNodes())
+        if (!this.CheckForDalamudNodes(dtr))
             this.RecreateNodes();
 
         var collisionNode = dtr->GetNodeById(17);
@@ -223,40 +238,36 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         foreach (var data in this.entries)
         {
-            var isHide = data.UserHidden || !data.Shown;
-
-            if (data is { Dirty: true, Added: true, Text: not null, TextNode: not null })
+            if (!data.Added)
             {
-                var node = data.TextNode;
+                data.Added = this.AddNode(data.TextNode);
+                data.Dirty = true;
+            }
 
-                if (data.Storage == null)
+            var isHide = !data.Shown || data.UserHidden;
+            var node = data.TextNode;
+            var nodeHidden = !node->AtkResNode.IsVisible();
+
+            if (!isHide)
+            {
+                if (nodeHidden)
+                    node->AtkResNode.ToggleVisibility(true);
+
+                if (data is { Added: true, Text: not null, TextNode: not null } && (data.Dirty || nodeHidden))
                 {
-                    data.Storage = Utf8String.CreateEmpty();
-                }
+                    if (data.Storage == null)
+                    {
+                        data.Storage = Utf8String.CreateEmpty();
+                    }
 
-                data.Storage->SetString(data.Text.EncodeWithNullTerminator());
-                node->SetText(data.Storage->StringPtr);
+                    data.Storage->SetString(data.Text.EncodeWithNullTerminator());
+                    node->SetText(data.Storage->StringPtr);
 
-                ushort w = 0, h = 0;
-
-                if (!isHide)
-                {
+                    ushort w = 0, h = 0;
                     node->GetTextDrawSize(&w, &h, node->NodeText.StringPtr);
                     node->AtkResNode.SetWidth(w);
                 }
 
-                node->AtkResNode.ToggleVisibility(!isHide);
-
-                data.Dirty = false;
-            }
-
-            if (!data.Added)
-            {
-                data.Added = this.AddNode(data.TextNode);
-            }
-
-            if (!isHide)
-            {
                 var elementWidth = data.TextNode->AtkResNode.Width + this.configuration.DtrSpacing;
 
                 if (this.configuration.DtrSwapDirection)
@@ -270,17 +281,20 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
                 }
             }
-            else
+            else if (!nodeHidden)
             {
                 // If we want the node hidden, shift it up, to prevent collision conflicts
-                data.TextNode->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
+                node->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
+                node->AtkResNode.ToggleVisibility(false);
             }
+
+            data.Dirty = false;
         }
     }
 
     private void HandleAddedNodes()
     {
-        if (this.newEntries.Any())
+        if (!this.newEntries.IsEmpty)
         {
             foreach (var newEntry in this.newEntries)
             {
@@ -354,11 +368,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// Checks if there are any Dalamud nodes in the DTR.
     /// </summary>
     /// <returns>True if there are nodes with an ID > 1000.</returns>
-    private bool CheckForDalamudNodes()
+    private bool CheckForDalamudNodes(AtkUnitBase* dtr)
     {
-        var dtr = this.GetDtr();
-        if (dtr == null || dtr->RootNode == null) return false;
-
         for (var i = 0; i < dtr->UldManager.NodeListCount; i++)
         {
             if (dtr->UldManager.NodeList[i]->NodeId > 1000)
@@ -526,7 +537,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 /// Plugin-scoped version of a AddonEventManager service.
 /// </summary>
 [PluginInterface]
-
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IDtrBar>]
@@ -537,13 +547,23 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
 
     private readonly Dictionary<string, IDtrBarEntry> pluginEntries = new();
-    
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DtrBarPluginScoped"/> class.
+    /// </summary>
+    internal DtrBarPluginScoped()
+    {
+        this.dtrBarService.DtrEntryRemoved += this.OnDtrEntryRemoved;
+    }
+
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.dtrBarService.Entries;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.dtrBarService.DtrEntryRemoved -= this.OnDtrEntryRemoved;
+
         foreach (var entry in this.pluginEntries)
         {
             entry.Value.Remove();
@@ -569,5 +589,10 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
             existingEntry.Remove();
             this.pluginEntries.Remove(title);
         }
+    }
+
+    private void OnDtrEntryRemoved(string title)
+    {
+        this.pluginEntries.Remove(title);
     }
 }
