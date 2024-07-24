@@ -1,8 +1,11 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+
+using Serilog;
 
 using TerraFX.Interop.Windows;
 
@@ -30,30 +33,19 @@ internal sealed unsafe partial class ReShadeAddonInterface
                 !GetProcAddressInto(m, nameof(e.ReShadeUnregisterEvent), &e.ReShadeUnregisterEvent))
                 continue;
 
-            fixed (void* pwszFile = m.FileName)
-            fixed (Guid* pguid = &WINTRUST_ACTION_GENERIC_VERIFY_V2)
+            try
             {
-                var wtfi = new WINTRUST_FILE_INFO
-                {
-                    cbStruct = (uint)sizeof(WINTRUST_FILE_INFO),
-                    pcwszFilePath = (ushort*)pwszFile,
-                    hFile = default,
-                    pgKnownSubject = null,
-                };
-                var wtd = new WINTRUST_DATA
-                {
-                    cbStruct = (uint)sizeof(WINTRUST_DATA),
-                    pPolicyCallbackData = null,
-                    pSIPClientData = null,
-                    dwUIChoice = WTD.WTD_UI_NONE,
-                    fdwRevocationChecks = WTD.WTD_REVOKE_NONE,
-                    dwUnionChoice = WTD.WTD_STATEACTION_VERIFY,
-                    hWVTStateData = default,
-                    pwszURLReference = null,
-                    dwUIContext = 0,
-                    pFile = &wtfi,
-                };
-                ReShadeHasSignature = WinVerifyTrust(default, pguid, &wtd) != TRUST.TRUST_E_NOSIGNATURE;
+                var signerName = GetSignatureSignerNameWithoutVerification(m.FileName);
+                ReShadeIsSignedByReShade = signerName == "ReShade";
+                Log.Information(
+                    "ReShade DLL is signed by {signerName}. {vn}={v}",
+                    signerName,
+                    nameof(ReShadeIsSignedByReShade),
+                    ReShadeIsSignedByReShade);
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex, "ReShade DLL did not had a valid signature.");
             }
 
             ReShadeModule = m;
@@ -78,7 +70,98 @@ internal sealed unsafe partial class ReShadeAddonInterface
 
     /// <summary>Gets a value indicating whether the loaded ReShade has signatures.</summary>
     /// <remarks>ReShade without addon support is signed, but may not pass signature verification.</remarks>
-    public static bool ReShadeHasSignature { get; private set; }
+    public static bool ReShadeIsSignedByReShade { get; private set; }
+
+    /// <summary>Gets the name of the signer of a file that has a certificate embedded within, without verifying if the
+    /// file has a valid signature.</summary>
+    /// <param name="path">Path to the file.</param>
+    /// <returns>Name of the signer.</returns>
+    // https://learn.microsoft.com/en-us/previous-versions/troubleshoot/windows/win32/get-information-authenticode-signed-executables
+    private static string GetSignatureSignerNameWithoutVerification(ReadOnlySpan<char> path)
+    {
+        var hCertStore = default(HCERTSTORE);
+        var hMsg = default(HCRYPTMSG);
+        var pCertContext = default(CERT_CONTEXT*);
+        try
+        {
+            fixed (void* pwszFile = path)
+            {
+                uint dwMsgAndCertEncodingType;
+                uint dwContentType;
+                uint dwFormatType;
+                void* pvContext;
+                if (!CryptQueryObject(
+                        CERT.CERT_QUERY_OBJECT_FILE,
+                        pwszFile,
+                        CERT.CERT_QUERY_CONTENT_FLAG_ALL,
+                        CERT.CERT_QUERY_FORMAT_FLAG_ALL,
+                        0,
+                        &dwMsgAndCertEncodingType,
+                        &dwContentType,
+                        &dwFormatType,
+                        &hCertStore,
+                        &hMsg,
+                        &pvContext))
+                {
+                    throw new Win32Exception("CryptQueryObject");
+                }
+            }
+
+            var pcb = 0u;
+            if (!CryptMsgGetParam(hMsg, CMSG.CMSG_SIGNER_INFO_PARAM, 0, null, &pcb))
+                throw new Win32Exception("CryptMsgGetParam(1)");
+
+            var signerInfo = GC.AllocateArray<byte>((int)pcb, true);
+            var pSignerInfo = (CMSG_SIGNER_INFO*)Unsafe.AsPointer(ref signerInfo[0]);
+            if (!CryptMsgGetParam(hMsg, CMSG.CMSG_SIGNER_INFO_PARAM, 0, pSignerInfo, &pcb))
+                throw new Win32Exception("CryptMsgGetParam(2)");
+
+            var certInfo = new CERT_INFO
+            {
+                Issuer = pSignerInfo->Issuer,
+                SerialNumber = pSignerInfo->SerialNumber,
+            };
+            pCertContext = CertFindCertificateInStore(
+                hCertStore,
+                X509.X509_ASN_ENCODING | PKCS.PKCS_7_ASN_ENCODING,
+                0,
+                CERT.CERT_FIND_SUBJECT_CERT,
+                &certInfo,
+                null);
+            if (pCertContext == default)
+                throw new Win32Exception("CertFindCertificateInStore");
+
+            pcb = CertGetNameStringW(
+                pCertContext,
+                CERT.CERT_NAME_SIMPLE_DISPLAY_TYPE,
+                CERT.CERT_NAME_ISSUER_FLAG,
+                null,
+                null,
+                pcb);
+            if (pcb == 0)
+                throw new Win32Exception("CertGetNameStringW(1)");
+
+            var issuerName = GC.AllocateArray<char>((int)pcb, true);
+            pcb = CertGetNameStringW(
+                pCertContext,
+                CERT.CERT_NAME_SIMPLE_DISPLAY_TYPE,
+                CERT.CERT_NAME_ISSUER_FLAG,
+                null,
+                (ushort*)Unsafe.AsPointer(ref issuerName[0]),
+                pcb);
+            if (pcb == 0)
+                throw new Win32Exception("CertGetNameStringW(2)");
+
+            // The string is null-terminated.
+            return new(issuerName.AsSpan()[..^1]);
+        }
+        finally
+        {
+            if (pCertContext != default) CertFreeCertificateContext(pCertContext);
+            if (hCertStore != default) CertCloseStore(hCertStore, 0);
+            if (hMsg != default) CryptMsgClose(hMsg);
+        }
+    }
 
     private struct ExportsStruct
     {

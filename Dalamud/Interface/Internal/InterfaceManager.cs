@@ -772,7 +772,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             0,
             this.SetCursorDetour);
 
-        if (ReShadeAddonInterface.ReShadeHasSignature)
+        if (ReShadeAddonInterface.ReShadeIsSignedByReShade)
         {
             Log.Warning("Signed ReShade binary detected");
             Service<NotificationManager>
