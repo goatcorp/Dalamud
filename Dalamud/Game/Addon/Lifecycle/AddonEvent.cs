@@ -66,11 +66,12 @@ public enum AddonEvent
     PreFinalize,
     
     /// <summary>
-    /// An event that is fired before an addon begins a requested update via
-    /// <see cref="AtkUnitBase.OnRequestedUpdate"/>. Requested updates generally occur when the server sends new data to
-    /// the client and needs the UI to update to reflect this new data. This event is useful for modifying the data received
-    /// before it's passed to the UI for display. Contrast to <see cref="PreRefresh"/> which tends to be in
-    /// response to <em>client-driven</em> interactions.
+    /// An event that is fired before a call to <see cref="AtkUnitBase.OnRequestedUpdate"/> is made in response to a
+    /// change in the subscribed <see cref="AddonRequestedUpdateArgs.NumberArrayData"/> or
+    /// <see cref="AddonRequestedUpdateArgs.StringArrayData"/> backing this addon. This generally occurs in response to
+    /// receiving data from the game server, but can happen in other cases as well. This event is useful for modifying
+    /// the data received before it's passed to the UI for display. Contrast to <see cref="PreRefresh"/> which tends to
+    /// be in response to <em>client-driven</em> interactions.
     /// </summary>
     /// <seealso cref="AddonRequestedUpdateArgs"/>
     /// <seealso cref="PostRequestedUpdate"/>
@@ -82,17 +83,16 @@ public enum AddonEvent
     PreRequestedUpdate,
     
     /// <summary>
-    /// An event that is fired after an addon has finished processing a requested update.
+    /// An event that is fired after an addon has finished processing an <c>ArrayData</c> update.
     /// See <see cref="PreRequestedUpdate"/> for more information.
     /// </summary>
     PostRequestedUpdate,
     
     /// <summary>
-    /// An event that is fired before an addon begins processing a refresh via
-    /// <see cref="AtkUnitManager.RefreshAddon"/>. Refreshes are generally triggered in response to certain user
-    /// interactions such as changing tabs. Contrast to <see cref="PreRequestedUpdate"/> which tends to be in response
-    /// to <em>server-driven</em> events.
-    /// </summary>
+    /// An event that is fired before an addon calls its <see cref="AtkUnitManager.RefreshAddon"/> method. Refreshes are
+    /// generally triggered in response to certain user interactions such as changing tabs, and are primarily used to
+    /// update the <c>AtkValue</c>s present in this addon. Contrast to <see cref="PreRequestedUpdate"/> which is called
+    /// in response to <c>ArrayData</c> updates.</summary>
     /// <seealso cref="AddonRefreshArgs"/>
     /// <seealso cref="PostRefresh"/>
     PreRefresh,
