@@ -229,6 +229,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             if (!data.Added)
             {
                 data.Added = this.AddNode(data.TextNode);
+                data.Dirty = true;
             }
 
             var isHide = !data.Shown || data.UserHidden;
