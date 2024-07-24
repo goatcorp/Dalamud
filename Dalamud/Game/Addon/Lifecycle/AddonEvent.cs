@@ -27,7 +27,7 @@ public enum AddonEvent
 
     /// <summary>
     /// An event that is fired before an addon begins its update cycle via <see cref="AtkUnitBase.Update"/>. This event
-    /// is fired every frame that an update is loaded, regardless of visibility.
+    /// is fired every frame that an addon is loaded, regardless of visibility.
     /// </summary>
     /// <seealso cref="AddonUpdateArgs"/>
     PreUpdate,
