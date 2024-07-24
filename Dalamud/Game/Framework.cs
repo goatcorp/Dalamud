@@ -139,7 +139,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         if (numTicks <= 0)
             return Task.CompletedTask;
 
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         this.tickDelayedTaskCompletionSources[tcs] = (this.tickCounter + (ulong)numTicks, cancellationToken);
         return tcs.Task;
     }

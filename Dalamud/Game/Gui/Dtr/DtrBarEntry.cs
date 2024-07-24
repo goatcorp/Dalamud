@@ -4,6 +4,7 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Gui.Dtr;
@@ -136,19 +137,27 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
         get => this.shownBacking;
         set
         {
-            this.shownBacking = value;
-            this.Dirty = true;
+            if (value != this.shownBacking)
+            {
+                this.shownBacking = value;
+                this.Dirty = true;
+            }
         }
     }
 
     /// <inheritdoc/>
     [Api10ToDo("Maybe make this config scoped to internalname?")]
-    public bool UserHidden => this.configuration.DtrIgnore?.Any(x => x == this.Title) ?? false;
+    public bool UserHidden => this.configuration.DtrIgnore?.Contains(this.Title) ?? false;
 
     /// <summary>
     /// Gets or sets the internal text node of this entry.
     /// </summary>
     internal AtkTextNode* TextNode { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the storage for the text of this entry.
+    /// </summary>
+    internal Utf8String* Storage { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether this entry should be removed.

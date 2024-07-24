@@ -16,10 +16,17 @@ namespace Dalamud.Game.Config;
 [ServiceManager.EarlyLoadedService]
 internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 {
-    private readonly TaskCompletionSource tcsInitialization = new();
-    private readonly TaskCompletionSource<GameConfigSection> tcsSystem = new();
-    private readonly TaskCompletionSource<GameConfigSection> tcsUiConfig = new();
-    private readonly TaskCompletionSource<GameConfigSection> tcsUiControl = new(); 
+    private readonly TaskCompletionSource tcsInitialization =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private readonly TaskCompletionSource<GameConfigSection> tcsSystem =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private readonly TaskCompletionSource<GameConfigSection> tcsUiConfig =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    private readonly TaskCompletionSource<GameConfigSection> tcsUiControl =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private readonly GameConfigAddressResolver address = new();
     private Hook<ConfigChangeDelegate>? configChangeHook;

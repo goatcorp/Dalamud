@@ -198,9 +198,10 @@ namespace Dalamud.Injector
 
             CullLogFile(logPath, 1 * 1024 * 1024);
 
+            const long maxLogSize = 100 * 1024 * 1024; // 100MB
             Log.Logger = new LoggerConfiguration()
                          .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Debug)
-                         .WriteTo.File(logPath, fileSizeLimitBytes: null)
+                         .WriteTo.File(logPath, fileSizeLimitBytes: maxLogSize)
                          .MinimumLevel.ControlledBy(levelSwitch)
                          .CreateLogger();
 

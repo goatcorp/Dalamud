@@ -18,4 +18,9 @@ public unsafe class NINGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the amount of Ninki available.
     /// </summary>
     public byte Ninki => this.Struct->Ninki;
+    
+    /// <summary>
+    /// Gets the current charges for Kazematoi.
+    /// </summary>
+    public byte Kazematoi => this.Struct->Kazematoi;
 }

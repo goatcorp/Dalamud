@@ -1,4 +1,5 @@
 ﻿using Dalamud.Memory;
+using Dalamud.Utility;
 
 namespace Dalamud.Hooking.Internal;
 
@@ -63,7 +64,7 @@ public class Unhooker
         var len = this.trimmed ? this.originalBytes.Length : int.Max(this.GetNaiveHookLength(), this.minBytes);
         if (len > 0)
         {
-            HookManager.Log.Verbose($"Reverting hook at 0x{this.address.ToInt64():X} ({len} bytes, trimmed={this.trimmed})");
+            HookManager.Log.Verbose($"Reverting hook at {Util.DescribeAddress(this.address)} ({len} bytes, trimmed={this.trimmed})");
             MemoryHelper.ChangePermission(this.address, len, MemoryProtection.ExecuteReadWrite, out var oldPermissions);
             MemoryHelper.WriteRaw(this.address, this.originalBytes[..len]);
             MemoryHelper.ChangePermission(this.address, len, oldPermissions);

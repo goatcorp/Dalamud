@@ -118,7 +118,8 @@ internal class PluginInstallerWindow : Window, IDisposable
     private List<LocalPlugin> pluginListInstalled = new();
     private List<AvailablePluginUpdate> pluginListUpdatable = new();
     private bool hasDevPlugins = false;
-
+    private bool hasHiddenPlugins = false;
+    
     private string searchText = string.Empty;
     private bool isSearchTextPrefilled = false;
 
@@ -295,8 +296,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         this.profileManagerWidget.Reset();
 
-        // TODO: Actually check if we are on a tag-0 version here. We might be opted into a beta but have a wrong key.
-        if (this.staleDalamudNewVersion == null && !Service<DalamudConfiguration>.Get().DalamudBetaKind.IsNullOrEmpty())
+        var config = Service<DalamudConfiguration>.Get();
+        if (this.staleDalamudNewVersion == null && !config.DalamudBetaKind.IsNullOrEmpty())
         {
             Service<DalamudReleases>.Get().GetVersionForCurrentTrack().ContinueWith(t =>
             {
@@ -304,7 +305,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                     return;
                 
                 var versionInfo = t.Result;
-                if (versionInfo.AssemblyVersion != Util.GetGitHash())
+                if (versionInfo.AssemblyVersion != Util.GetGitHash() &&
+                    versionInfo.Track != "release" &&
+                    string.Equals(versionInfo.Key, config.DalamudBetaKey, StringComparison.OrdinalIgnoreCase))
                     this.staleDalamudNewVersion = versionInfo.AssemblyVersion;
             });
         }
@@ -1275,6 +1278,19 @@ internal class PluginInstallerWindow : Window, IDisposable
             proxies.Add(new PluginInstallerAvailablePluginProxy(null, installedPlugin));
         }
 
+        var configuration = Service<DalamudConfiguration>.Get();
+        bool IsProxyHidden(PluginInstallerAvailablePluginProxy proxy)
+        {
+            var isHidden =
+                configuration.HiddenPluginInternalName.Contains(proxy.RemoteManifest?.InternalName);
+            if (this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.Hidden)
+                return isHidden;
+            return !isHidden;
+        }
+        
+        // Filter out plugins that are not hidden
+        proxies = proxies.Where(IsProxyHidden).ToList();
+
         return proxies;
     }
 #pragma warning restore SA1201
@@ -1302,6 +1318,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             ImGui.PopID();
+        }
+        
+        // Reset the category to "All" if we're on the "Hidden" category and there are no hidden plugins (we removed the last one)
+        if (i == 0 && this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.Hidden)
+        {
+            this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
         }
     }
     
@@ -1467,6 +1489,10 @@ internal class PluginInstallerWindow : Window, IDisposable
                             break;
                         case PluginCategoryManager.CategoryInfo.AppearCondition.DoPluginTest:
                             if (!Service<DalamudConfiguration>.Get().DoPluginTest)
+                                continue;
+                            break;
+                        case PluginCategoryManager.CategoryInfo.AppearCondition.AnyHiddenPlugins:
+                            if (!this.hasHiddenPlugins)
                                 continue;
                             break;
                         default:
@@ -2274,6 +2300,16 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.TextColored(ImGuiColors.DalamudGrey3, Locs.PluginBody_AuthorWithoutDownloadCount(log.Author));
         }
 
+        if (log.Date != DateTime.MinValue)
+        {
+            var whenText = log.Date.LocRelativePastLong();
+            var whenSize = ImGui.CalcTextSize(whenText);
+            ImGui.SameLine(ImGui.GetWindowWidth() - whenSize.X - (25 * ImGuiHelpers.GlobalScale));
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, whenText);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Published on " + log.Date.LocAbsolute());
+        }
+
         cursor.Y += ImGui.GetTextLineHeightWithSpacing();
         ImGui.SetCursorPos(cursor);
 
@@ -2444,12 +2480,19 @@ internal class PluginInstallerWindow : Window, IDisposable
                 pluginManager.RefilterPluginMasters();
             }
 
-            if (ImGui.Selectable(Locs.PluginContext_HidePlugin))
+            var isHidden = configuration.HiddenPluginInternalName.Contains(manifest.InternalName);
+            switch (isHidden)
             {
-                Log.Debug($"Adding {manifest.InternalName} to hidden plugins");
-                configuration.HiddenPluginInternalName.Add(manifest.InternalName);
-                configuration.QueueSave();
-                pluginManager.RefilterPluginMasters();
+                case false when ImGui.Selectable(Locs.PluginContext_HidePlugin):
+                    configuration.HiddenPluginInternalName.Add(manifest.InternalName);
+                    configuration.QueueSave();
+                    pluginManager.RefilterPluginMasters();
+                    break;
+                case true when ImGui.Selectable(Locs.PluginContext_UnhidePlugin):
+                    configuration.HiddenPluginInternalName.Remove(manifest.InternalName);
+                    configuration.QueueSave();
+                    pluginManager.RefilterPluginMasters();
+                    break;
             }
 
             if (ImGui.Selectable(Locs.PluginContext_DeletePluginConfig))
@@ -2612,7 +2655,24 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var applicableChangelog = plugin.IsTesting ? remoteManifest?.Changelog : remoteManifest?.TestingChangelog;
         var hasChangelog = !applicableChangelog.IsNullOrWhitespace();
-        var didDrawChangelogInsideCollapsible = false;
+        var didDrawApplicableChangelogInsideCollapsible = false;
+
+        Version? availablePluginUpdateVersion = null;
+        string? availableChangelog = null;
+        var didDrawAvailableChangelogInsideCollapsible = false;
+
+        if (availablePluginUpdate != default)
+        {
+            availablePluginUpdateVersion =
+                availablePluginUpdate.UseTesting ?
+                    availablePluginUpdate.UpdateManifest.TestingAssemblyVersion :
+                    availablePluginUpdate.UpdateManifest.AssemblyVersion;
+            
+            availableChangelog =
+                availablePluginUpdate.UseTesting ? 
+                    availablePluginUpdate.UpdateManifest.TestingChangelog :
+                    availablePluginUpdate.UpdateManifest.Changelog;
+        }
 
         var flags = PluginHeaderFlags.None;
         if (plugin.IsThirdParty)
@@ -2746,27 +2806,32 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 if (ImGui.TreeNode(Locs.PluginBody_CurrentChangeLog(plugin.EffectiveVersion)))
                 {
-                    didDrawChangelogInsideCollapsible = true;
+                    didDrawApplicableChangelogInsideCollapsible = true;
                     this.DrawInstalledPluginChangelog(applicableChangelog);
                     ImGui.TreePop();
                 }
             }
 
-            if (availablePluginUpdate != default && !availablePluginUpdate.UpdateManifest.Changelog.IsNullOrWhitespace())
+            if (!availableChangelog.IsNullOrWhitespace() && ImGui.TreeNode(Locs.PluginBody_UpdateChangeLog(availablePluginUpdateVersion)))
             {
-                var availablePluginUpdateVersion = availablePluginUpdate.UseTesting ? availablePluginUpdate.UpdateManifest.TestingAssemblyVersion : availablePluginUpdate.UpdateManifest.AssemblyVersion;
-                var availableChangelog = availablePluginUpdate.UseTesting ? availablePluginUpdate.UpdateManifest.TestingChangelog : availablePluginUpdate.UpdateManifest.Changelog;
-                if (!availableChangelog.IsNullOrWhitespace() && ImGui.TreeNode(Locs.PluginBody_UpdateChangeLog(availablePluginUpdateVersion)))
-                {
-                    this.DrawInstalledPluginChangelog(availableChangelog);
-                    ImGui.TreePop();
-                }
+                this.DrawInstalledPluginChangelog(availableChangelog);
+                ImGui.TreePop();
+                didDrawAvailableChangelogInsideCollapsible = true;
             }
         }
 
-        if (thisWasUpdated && hasChangelog && !didDrawChangelogInsideCollapsible)
+        if (thisWasUpdated &&
+            hasChangelog &&
+            !didDrawApplicableChangelogInsideCollapsible)
         {
             this.DrawInstalledPluginChangelog(applicableChangelog);
+        }
+        
+        if (this.categoryManager.CurrentCategoryKind == PluginCategoryManager.CategoryKind.UpdateablePlugins &&
+            !availableChangelog.IsNullOrWhitespace() &&
+            !didDrawAvailableChangelogInsideCollapsible)
+        {
+            this.DrawInstalledPluginChangelog(availableChangelog);
         }
 
         ImGui.PopID();
@@ -2824,6 +2889,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     }
 
                     configuration.QueueSave();
+                    _ = pluginManager.ReloadPluginMastersAsync();
                 }
 
                 if (repoManifest?.IsTestingExclusive == true)
@@ -3604,6 +3670,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private void OnAvailablePluginsChanged()
     {
         var pluginManager = Service<PluginManager>.Get();
+        var configuration = Service<DalamudConfiguration>.Get();
 
         lock (this.listLock)
         {
@@ -3613,6 +3680,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.pluginListUpdatable = pluginManager.UpdatablePlugins.ToList();
             this.ResortPlugins();
         }
+        
+        this.hasHiddenPlugins = this.pluginListAvailable.Any(x => configuration.HiddenPluginInternalName.Contains(x.InternalName));
 
         this.UpdateCategoriesOnPluginsChange();
     }
@@ -3706,7 +3775,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.errorModalMessage = message;
         this.errorModalDrawing = true;
         this.errorModalOnNextFrame = true;
-        this.errorModalTaskCompletionSource = new TaskCompletionSource();
+        this.errorModalTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
         return this.errorModalTaskCompletionSource.Task;
     }
 
@@ -3714,7 +3783,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         this.updateModalOnNextFrame = true;
         this.updateModalPlugin = plugin;
-        this.updateModalTaskCompletionSource = new TaskCompletionSource<bool>();
+        this.updateModalTaskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
         return this.updateModalTaskCompletionSource.Task;
     }
 
@@ -3873,7 +3942,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         
         public static string TabBody_NoPluginsUpdateable => Loc.Localize("InstallerNoPluginsUpdate", "No plugins have updates available at the moment.");
         
-        public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them some the settings.");
+        public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them from the settings.");
         
         #endregion
 
@@ -3940,6 +4009,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginContext_MarkAllSeen => Loc.Localize("InstallerMarkAllSeen", "Mark all as seen");
 
         public static string PluginContext_HidePlugin => Loc.Localize("InstallerHidePlugin", "Hide from installer");
+        
+        public static string PluginContext_UnhidePlugin => Loc.Localize("InstallerUnhidePlugin", "Unhide from installer");
 
         public static string PluginContext_DeletePluginConfig => Loc.Localize("InstallerDeletePluginConfig", "Reset plugin data");
 

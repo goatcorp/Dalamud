@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging.Internal;
@@ -127,7 +128,26 @@ internal class ServiceContainer : IServiceProvider, IServiceType
             return null;
         }
 
-        ctor.Invoke(instance, resolvedParams);
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thr = new Thread(
+            () =>
+            {
+                try
+                {
+                    ctor.Invoke(instance, resolvedParams);
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                    return;
+                }
+
+                tcs.SetResult();
+            });
+
+        thr.Start();
+        await tcs.Task.ConfigureAwait(false);
+        thr.Join();
 
         return instance;
     }

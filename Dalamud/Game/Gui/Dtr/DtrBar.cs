@@ -14,6 +14,7 @@ using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Gui.Dtr;
@@ -51,6 +52,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private readonly List<DtrBarEntry> entries = new();
 
     private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = new();
+
+    private Utf8String* emptyString;
     
     private uint runningNodeIds = BaseNodeId;
     private float entryStartPos = float.NaN;
@@ -111,10 +114,16 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.addonLifecycle.UnregisterListener(this.dtrPreFinalizeListener);
 
         foreach (var entry in this.entries)
-            this.RemoveNode(entry.TextNode);
+            this.RemoveEntry(entry);
 
         this.entries.Clear();
         this.framework.Update -= this.Update;
+
+        if (this.emptyString != null)
+        {
+            this.emptyString->Dtor();
+            this.emptyString = null;
+        }
     }
 
     /// <summary>
@@ -122,12 +131,30 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// </summary>
     internal void HandleRemovedNodes()
     {
-        foreach (var data in this.entries.Where(d => d.ShouldBeRemoved))
+        foreach (var data in this.entries)
         {
-            this.RemoveNode(data.TextNode);
+            if (data.ShouldBeRemoved)
+            {
+                this.RemoveEntry(data);
+            }
         }
 
         this.entries.RemoveAll(d => d.ShouldBeRemoved);
+    }
+
+    /// <summary>
+    /// Remove native resources for the specified entry.
+    /// </summary>
+    /// <param name="toRemove">The resources to remove.</param>
+    internal void RemoveEntry(DtrBarEntry toRemove)
+    {
+        this.RemoveNode(toRemove.TextNode);
+
+        if (toRemove.Storage != null)
+        {
+            toRemove.Storage->Dtor(true);
+            toRemove.Storage = null;
+        }
     }
 
     /// <summary>
@@ -186,7 +213,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         // If we have an unmodified DTR but still have entries, we need to
         // work to reset our state.
-        if (!this.CheckForDalamudNodes())
+        if (!this.CheckForDalamudNodes(dtr))
             this.RecreateNodes();
 
         var collisionNode = dtr->GetNodeById(17);
@@ -199,32 +226,35 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         foreach (var data in this.entries)
         {
-            var isHide = data.UserHidden || !data.Shown;
-
-            if (data is { Dirty: true, Added: true, Text: not null, TextNode: not null })
-            {
-                var node = data.TextNode;
-                node->SetText(data.Text.Encode());
-                ushort w = 0, h = 0;
-
-                if (!isHide)
-                {
-                    node->GetTextDrawSize(&w, &h, node->NodeText.StringPtr);
-                    node->AtkResNode.SetWidth(w);
-                }
-
-                node->AtkResNode.ToggleVisibility(!isHide);
-
-                data.Dirty = false;
-            }
-
             if (!data.Added)
             {
                 data.Added = this.AddNode(data.TextNode);
             }
 
+            var isHide = !data.Shown || data.UserHidden;
+            var node = data.TextNode;
+            var nodeHidden = !node->AtkResNode.IsVisible();
+
             if (!isHide)
             {
+                if (nodeHidden)
+                    node->AtkResNode.ToggleVisibility(true);
+
+                if (data is { Added: true, Text: not null, TextNode: not null } && (data.Dirty || nodeHidden))
+                {
+                    if (data.Storage == null)
+                    {
+                        data.Storage = Utf8String.CreateEmpty();
+                    }
+
+                    data.Storage->SetString(data.Text.EncodeWithNullTerminator());
+                    node->SetText(data.Storage->StringPtr);
+
+                    ushort w = 0, h = 0;
+                    node->GetTextDrawSize(&w, &h, node->NodeText.StringPtr);
+                    node->AtkResNode.SetWidth(w);
+                }
+
                 var elementWidth = data.TextNode->AtkResNode.Width + this.configuration.DtrSpacing;
 
                 if (this.configuration.DtrSwapDirection)
@@ -238,17 +268,20 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     data.TextNode->AtkResNode.SetPositionFloat(runningXPos, 2);
                 }
             }
-            else
+            else if (!nodeHidden)
             {
                 // If we want the node hidden, shift it up, to prevent collision conflicts
-                data.TextNode->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
+                node->AtkResNode.SetYFloat(-collisionNode->Height * dtr->RootNode->ScaleX);
+                node->AtkResNode.ToggleVisibility(false);
             }
+
+            data.Dirty = false;
         }
     }
 
     private void HandleAddedNodes()
     {
-        if (this.newEntries.Any())
+        if (!this.newEntries.IsEmpty)
         {
             foreach (var newEntry in this.newEntries)
             {
@@ -322,11 +355,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// Checks if there are any Dalamud nodes in the DTR.
     /// </summary>
     /// <returns>True if there are nodes with an ID > 1000.</returns>
-    private bool CheckForDalamudNodes()
+    private bool CheckForDalamudNodes(AtkUnitBase* dtr)
     {
-        var dtr = this.GetDtr();
-        if (dtr == null || dtr->RootNode == null) return false;
-
         for (var i = 0; i < dtr->UldManager.NodeListCount; i++)
         {
             if (dtr->UldManager.NodeList[i]->NodeId > 1000)
@@ -427,7 +457,10 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         newTextNode->TextFlags = (byte)TextFlags.Edge;
         newTextNode->TextFlags2 = 0;
 
-        newTextNode->SetText(" ");
+        if (this.emptyString == null)
+            this.emptyString = Utf8String.FromString(" ");
+        
+        newTextNode->SetText(this.emptyString->StringPtr);
 
         newTextNode->TextColor = new ByteColor { R = 255, G = 255, B = 255, A = 255 };
         newTextNode->EdgeColor = new ByteColor { R = 142, G = 106, B = 12, A = 255 };
