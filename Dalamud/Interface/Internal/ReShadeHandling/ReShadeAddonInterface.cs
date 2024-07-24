@@ -21,7 +21,7 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
 
     private readonly Hook<GetModuleHandleExWDelegate> addonModuleResolverHook;
 
-    private readonly DelegateStorage<ReShadeOverlayDelegate> reShadeOverlayDelegate;
+    private readonly DelegateStorage<UnsafePresentDelegate> presentDelegate;
     private readonly DelegateStorage<ReShadeInitSwapChain> initSwapChainDelegate;
     private readonly DelegateStorage<ReShadeDestroySwapChain> destroySwapChainDelegate;
 
@@ -46,8 +46,21 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
         {
             this.addonModuleResolverHook.Enable();
             Exports.ReShadeRegisterEvent(
-                AddonEvent.ReShadeOverlay,
-                this.reShadeOverlayDelegate = new((ref ApiObject rt) => this.ReShadeOverlay?.Invoke(ref rt)));
+                AddonEvent.Present,
+                this.presentDelegate = new(
+                    (
+                            ref ApiObject commandQueue,
+                            ref ApiObject swapChain,
+                            RECT* pSourceRect,
+                            RECT* pDestRect,
+                            uint dirtyRectCount,
+                            void* pDirtyRects) =>
+                        this.Present?.Invoke(
+                            ref commandQueue,
+                            ref swapChain,
+                            pSourceRect is null ? default : new(pSourceRect, 1),
+                            pDestRect is null ? default : new(pDestRect, 1),
+                            new(pDirtyRects, (int)dirtyRectCount))));
             Exports.ReShadeRegisterEvent(
                 AddonEvent.InitSwapChain,
                 this.initSwapChainDelegate = new((ref ApiObject rt) => this.InitSwapChain?.Invoke(ref rt)));
@@ -79,8 +92,17 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
     ~ReShadeAddonInterface() => this.ReleaseUnmanagedResources();
 
     /// <summary>Delegate for <see cref="ReShadeAddonInterface.AddonEvent.ReShadeOverlay"/>.</summary>
-    /// <param name="effectRuntime">Reference to the ReShade runtime.</param>
-    public delegate void ReShadeOverlayDelegate(ref ApiObject effectRuntime);
+    /// <param name="commandQueue">Current command queue. Type: <c>api::command_queue</c>.</param>
+    /// <param name="swapChain">Current swap chain. Type: <c>api::swapchain</c>.</param>
+    /// <param name="sourceRect">Optional; source rectangle. May contain up to 1 element.</param>
+    /// <param name="destRect">Optional; target rectangle. May contain up to 1 element.</param>
+    /// <param name="dirtyRects">Dirty rectangles.</param>
+    public delegate void PresentDelegate(
+        ref ApiObject commandQueue,
+        ref ApiObject swapChain,
+        ReadOnlySpan<RECT> sourceRect,
+        ReadOnlySpan<RECT> destRect,
+        ReadOnlySpan<RECT> dirtyRects);
 
     /// <summary>Delegate for <see cref="ReShadeAddonInterface.AddonEvent.InitSwapChain"/>.</summary>
     /// <param name="swapChain">Reference to the ReShade SwapChain wrapper.</param>
@@ -90,10 +112,25 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
     /// <param name="swapChain">Reference to the ReShade SwapChain wrapper.</param>
     public delegate void ReShadeDestroySwapChain(ref ApiObject swapChain);
 
+    /// <summary>Delegate for <see cref="ReShadeAddonInterface.AddonEvent.ReShadeOverlay"/>.</summary>
+    /// <param name="commandQueue">Current command queue. Type: <c>api::command_queue</c>.</param>
+    /// <param name="swapChain">Current swap chain. Type: <c>api::swapchain</c>.</param>
+    /// <param name="pSourceRect">Optional; source rectangle.</param>
+    /// <param name="pDestRect">Optional; target rectangle.</param>
+    /// <param name="dirtyRectCount">Number of dirty rectangles.</param>
+    /// <param name="pDirtyRects">Optional; dirty rectangles.</param>
+    private delegate void UnsafePresentDelegate(
+        ref ApiObject commandQueue,
+        ref ApiObject swapChain,
+        RECT* pSourceRect,
+        RECT* pDestRect,
+        uint dirtyRectCount,
+        void* pDirtyRects);
+
     private delegate BOOL GetModuleHandleExWDelegate(uint dwFlags, ushort* lpModuleName, HMODULE* phModule);
 
-    /// <summary>Called on <see cref="ReShadeAddonInterface.AddonEvent.ReShadeOverlay"/>.</summary>
-    public event ReShadeOverlayDelegate? ReShadeOverlay;
+    /// <summary>Called on <see cref="ReShadeAddonInterface.AddonEvent.Present"/>.</summary>
+    public event PresentDelegate? Present;
 
     /// <summary>Called on <see cref="ReShadeAddonInterface.AddonEvent.InitSwapChain"/>.</summary>
     public event ReShadeInitSwapChain? InitSwapChain;
@@ -144,7 +181,7 @@ internal sealed unsafe partial class ReShadeAddonInterface : IDisposable
             return this.addonModuleResolverHook.Original(dwFlags, lpModuleName, phModule);
         if (lpModuleName == this.initSwapChainDelegate ||
             lpModuleName == this.destroySwapChainDelegate ||
-            lpModuleName == this.reShadeOverlayDelegate)
+            lpModuleName == this.presentDelegate)
         {
             *phModule = this.hDalamudModule;
             return BOOL.TRUE;

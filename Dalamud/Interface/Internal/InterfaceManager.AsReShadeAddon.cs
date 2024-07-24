@@ -1,8 +1,10 @@
 using System.Diagnostics;
 
+using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Utility;
 
 using TerraFX.Interop.DirectX;
+using TerraFX.Interop.Windows;
 
 namespace Dalamud.Interface.Internal;
 
@@ -11,36 +13,41 @@ namespace Dalamud.Interface.Internal;
 /// </summary>
 internal partial class InterfaceManager
 {
-    private unsafe void ReShadeAddonInterfaceOnDestroySwapChain(ref ReShadeHandling.ReShadeAddonInterface.ApiObject swapchain)
+    private unsafe void ReShadeAddonInterfaceOnDestroySwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
-        var swapChain = swapchain.GetNative<IDXGISwapChain>();
-        if (this.scene?.SwapChain.NativePointer != (nint)swapChain)
+        var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
+        if (this.scene?.SwapChain.NativePointer != (nint)swapChainNative)
             return;
 
         this.scene?.OnPreResize();
     }
 
-    private unsafe void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeHandling.ReShadeAddonInterface.ApiObject swapchain)
+    private unsafe void ReShadeAddonInterfaceOnInitSwapChain(ref ReShadeAddonInterface.ApiObject swapChain)
     {
-        var swapChain = swapchain.GetNative<IDXGISwapChain>();
-        if (this.scene?.SwapChain.NativePointer != (nint)swapChain)
+        var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
+        if (this.scene?.SwapChain.NativePointer != (nint)swapChainNative)
             return;
 
         DXGI_SWAP_CHAIN_DESC desc;
-        if (swapChain->GetDesc(&desc).FAILED)
+        if (swapChainNative->GetDesc(&desc).FAILED)
             return;
 
         this.scene?.OnPostResize((int)desc.BufferDesc.Width, (int)desc.BufferDesc.Height);
     }
 
-    private void ReShadeAddonInterfaceOnReShadeOverlay(ref ReShadeHandling.ReShadeAddonInterface.ApiObject runtime)
+    private void ReShadeAddonInterfaceOnPresent(
+        ref ReShadeAddonInterface.ApiObject runtime,
+        ref ReShadeAddonInterface.ApiObject swapChain,
+        ReadOnlySpan<RECT> sourceRect,
+        ReadOnlySpan<RECT> destRect,
+        ReadOnlySpan<RECT> dirtyRects)
     {
-        var swapChain = runtime.GetNative();
+        var swapChainNative = swapChain.GetNative();
 
         if (this.scene == null)
-            this.InitScene(swapChain);
+            this.InitScene(swapChainNative);
 
-        if (this.scene?.SwapChain.NativePointer != swapChain)
+        if (this.scene?.SwapChain.NativePointer != swapChainNative)
             return;
 
         Debug.Assert(this.dalamudAtlas is not null, "this.dalamudAtlas is not null");
