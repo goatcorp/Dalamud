@@ -68,9 +68,9 @@ public enum AddonEvent
     /// <summary>
     /// An event that is fired before an addon begins a requested update via
     /// <see cref="AtkUnitBase.OnRequestedUpdate"/>. Requested updates generally occur when the server sends new data to
-    /// the client for display in the UI. This event is useful for modifying the data received before it's passed to the
-    /// UI for display. Contrast to <see cref="PreRefresh"/> which tends to be in response to <em>client-driven</em>
-    /// interactions.
+    /// the client and needs the UI to update to reflect this new data. This event is useful for modifying the data received
+    /// before it's passed to the UI for display. Contrast to <see cref="PreRefresh"/> which tends to be in
+    /// response to <em>client-driven</em> interactions.
     /// </summary>
     /// <seealso cref="AddonRequestedUpdateArgs"/>
     /// <seealso cref="PostRequestedUpdate"/>
