@@ -145,7 +145,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <param name="publicScopes">Scoped objects to be injected.</param>
     /// <param name="scope">The scope to be used to create scoped services.</param>
     /// <returns>A <see cref="ValueTask"/> representing the operation.</returns>
-    public async ValueTask InjectProperties(object instance, object[] publicScopes, IServiceScope? scope = null)
+    public async Task InjectProperties(object instance, object[] publicScopes, IServiceScope? scope = null)
     {
         var scopeImpl = scope as ServiceScopeImpl;
         var objectType = instance.GetType();

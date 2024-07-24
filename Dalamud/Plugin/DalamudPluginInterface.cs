@@ -487,7 +487,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <inheritdoc/>
     public bool Inject(object instance, params object[] scopedObjects)
     {
-        var t = this.InjectAsync(instance, scopedObjects).AsTask();
+        var t = this.InjectAsync(instance, scopedObjects);
         t.Wait();
 
         if (t.Exception is { } e)
@@ -504,7 +504,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     }
 
     /// <inheritdoc/>
-    public ValueTask InjectAsync(object instance, params object[] scopedObjects) =>
+    public Task InjectAsync(object instance, params object[] scopedObjects) =>
         this.plugin.ServiceScope!.InjectPropertiesAsync(instance, this.GetPublicIocScopes(scopedObjects));
 
     #endregion

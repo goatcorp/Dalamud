@@ -321,7 +321,7 @@ public interface IDalamudPluginInterface
     /// </summary>
     /// <param name="instance">The instance to inject services into.</param>
     /// <param name="scopedObjects">Objects to inject additionally.</param>
-    /// <returns>Whether or not the injection succeeded.</returns>
+    /// <returns>Whether the injection succeeded.</returns>
     bool Inject(object instance, params object[] scopedObjects);
 
     /// <summary>
@@ -330,5 +330,5 @@ public interface IDalamudPluginInterface
     /// <param name="instance">The instance to inject services into.</param>
     /// <param name="scopedObjects">Objects to inject additionally.</param>
     /// <returns>A <see cref="ValueTask"/> representing the status of the operation.</returns>
-    ValueTask InjectAsync(object instance, params object[] scopedObjects);
+    Task InjectAsync(object instance, params object[] scopedObjects);
 }

@@ -17,7 +17,7 @@ internal interface IServiceScope : IDisposable
     /// but not directly to created objects.
     /// </summary>
     /// <param name="scopes">The scopes to add.</param>
-    public void RegisterPrivateScopes(params object[] scopes);
+    void RegisterPrivateScopes(params object[] scopes);
 
     /// <summary>
     /// Create an object.
@@ -25,7 +25,7 @@ internal interface IServiceScope : IDisposable
     /// <param name="objectType">The type of object to create.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <returns>The created object.</returns>
-    public Task<object> CreateAsync(Type objectType, params object[] scopedObjects);
+    Task<object> CreateAsync(Type objectType, params object[] scopedObjects);
 
     /// <summary>
     /// Inject <see cref="PluginInterfaceAttribute" /> interfaces into public or static properties on the provided object.
@@ -34,7 +34,7 @@ internal interface IServiceScope : IDisposable
     /// <param name="instance">The object instance.</param>
     /// <param name="scopedObjects">Scoped objects to be injected.</param>
     /// <returns>A <see cref="ValueTask"/> representing the status of the operation.</returns>
-    public ValueTask InjectPropertiesAsync(object instance, params object[] scopedObjects);
+    Task InjectPropertiesAsync(object instance, params object[] scopedObjects);
 }
 
 /// <summary>
@@ -47,29 +47,20 @@ internal class ServiceScopeImpl : IServiceScope
     private readonly List<object> privateScopedObjects = [];
     private readonly ConcurrentDictionary<Type, Task<object>> scopeCreatedObjects = new();
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ServiceScopeImpl" /> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="ServiceScopeImpl" /> class.</summary>
     /// <param name="container">The container this scope will use to create services.</param>
-    public ServiceScopeImpl(ServiceContainer container)
-    {
-        this.container = container;
-    }
+    public ServiceScopeImpl(ServiceContainer container) => this.container = container;
 
     /// <inheritdoc/>
-    public void RegisterPrivateScopes(params object[] scopes)
-    {
+    public void RegisterPrivateScopes(params object[] scopes) =>
         this.privateScopedObjects.AddRange(scopes);
-    }
 
     /// <inheritdoc />
-    public Task<object> CreateAsync(Type objectType, params object[] scopedObjects)
-    {
-        return this.container.CreateAsync(objectType, scopedObjects, this);
-    }
+    public Task<object> CreateAsync(Type objectType, params object[] scopedObjects) =>
+        this.container.CreateAsync(objectType, scopedObjects, this);
 
     /// <inheritdoc />
-    public ValueTask InjectPropertiesAsync(object instance, params object[] scopedObjects) =>
+    public Task InjectPropertiesAsync(object instance, params object[] scopedObjects) =>
         this.container.InjectProperties(instance, scopedObjects, this);
 
     /// <summary>
