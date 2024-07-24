@@ -76,6 +76,17 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.configuration.QueueSave();
     }
 
+    /// <summary>
+    /// Event type fired each time a DtrEntry was removed.
+    /// </summary>
+    /// <param name="title">The title of the bar entry.</param>
+    internal delegate void DtrEntryRemovedDelegate(string title);
+
+    /// <summary>
+    /// Event fired each time a DtrEntry was removed.
+    /// </summary>
+    internal event DtrEntryRemovedDelegate? DtrEntryRemoved;
+
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.entries;
     
@@ -136,6 +147,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             if (data.ShouldBeRemoved)
             {
                 this.RemoveEntry(data);
+                this.DtrEntryRemoved?.Invoke(data.Title);
             }
         }
 
@@ -525,7 +537,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 /// Plugin-scoped version of a AddonEventManager service.
 /// </summary>
 [PluginInterface]
-
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IDtrBar>]
@@ -536,13 +547,23 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
 
     private readonly Dictionary<string, IDtrBarEntry> pluginEntries = new();
-    
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DtrBarPluginScoped"/> class.
+    /// </summary>
+    internal DtrBarPluginScoped()
+    {
+        this.dtrBarService.DtrEntryRemoved += this.OnDtrEntryRemoved;
+    }
+
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.dtrBarService.Entries;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.dtrBarService.DtrEntryRemoved -= this.OnDtrEntryRemoved;
+
         foreach (var entry in this.pluginEntries)
         {
             entry.Value.Remove();
@@ -568,5 +589,10 @@ internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
             existingEntry.Remove();
             this.pluginEntries.Remove(title);
         }
+    }
+
+    private void OnDtrEntryRemoved(string title)
+    {
+        this.pluginEntries.Remove(title);
     }
 }
