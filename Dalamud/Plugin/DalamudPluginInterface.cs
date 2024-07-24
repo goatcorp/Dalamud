@@ -468,7 +468,14 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
         t.Wait();
 
         if (t.Exception is { } e)
-            Log.Error(e, "{who}: Failed to initialize {what}", this.plugin.Name, typeof(T).FullName ?? typeof(T).Name);
+        {
+            Log.Error(
+                e,
+                "{who}: Exception during {where}: {what}",
+                this.plugin.Name,
+                nameof(this.Create),
+                typeof(T).FullName ?? typeof(T).Name);
+        }
 
         return t.IsCompletedSuccessfully ? t.Result : null;
     }
@@ -477,18 +484,28 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public async Task<T> CreateAsync<T>(params object[] scopedObjects) where T : class =>
         (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), this.GetPublicIocScopes(scopedObjects));
 
-    /// <summary>
-    /// Inject services into properties on the provided object instance.
-    /// </summary>
-    /// <param name="instance">The instance to inject services into.</param>
-    /// <param name="scopedObjects">Objects to inject additionally.</param>
-    /// <returns>Whether or not the injection succeeded.</returns>
+    /// <inheritdoc/>
     public bool Inject(object instance, params object[] scopedObjects)
     {
-        return this.plugin.ServiceScope!.InjectPropertiesAsync(
-            instance,
-            this.GetPublicIocScopes(scopedObjects)).GetAwaiter().GetResult();
+        var t = this.InjectAsync(instance, scopedObjects).AsTask();
+        t.Wait();
+
+        if (t.Exception is { } e)
+        {
+            Log.Error(
+                e,
+                "{who}: Exception during {where}: {what}",
+                this.plugin.Name,
+                nameof(this.Inject),
+                instance.GetType().FullName ?? instance.GetType().Name);
+        }
+
+        return t.IsCompletedSuccessfully;
     }
+
+    /// <inheritdoc/>
+    public ValueTask InjectAsync(object instance, params object[] scopedObjects) =>
+        this.plugin.ServiceScope!.InjectPropertiesAsync(instance, this.GetPublicIocScopes(scopedObjects));
 
     #endregion
 

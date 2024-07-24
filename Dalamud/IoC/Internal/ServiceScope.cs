@@ -33,8 +33,8 @@ internal interface IServiceScope : IDisposable
     /// </summary>
     /// <param name="instance">The object instance.</param>
     /// <param name="scopedObjects">Scoped objects to be injected.</param>
-    /// <returns>Whether or not the injection was successful.</returns>
-    public Task<bool> InjectPropertiesAsync(object instance, params object[] scopedObjects);
+    /// <returns>A <see cref="ValueTask"/> representing the status of the operation.</returns>
+    public ValueTask InjectPropertiesAsync(object instance, params object[] scopedObjects);
 }
 
 /// <summary>
@@ -69,10 +69,8 @@ internal class ServiceScopeImpl : IServiceScope
     }
 
     /// <inheritdoc />
-    public Task<bool> InjectPropertiesAsync(object instance, params object[] scopedObjects)
-    {
-        return this.container.InjectProperties(instance, scopedObjects, this);
-    }
+    public ValueTask InjectPropertiesAsync(object instance, params object[] scopedObjects) =>
+        this.container.InjectProperties(instance, scopedObjects, this);
 
     /// <summary>
     /// Create a service scoped to this scope, with private scoped objects.

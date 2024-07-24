@@ -86,70 +86,55 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <returns>The created object.</returns>
     public async Task<object> CreateAsync(Type objectType, object[] scopedObjects, IServiceScope? scope = null)
     {
-        var scopeImpl = scope as ServiceScopeImpl;
+        var errorStep = "constructor lookup";
 
-        var ctor = this.FindApplicableCtor(objectType, scopedObjects);
-        if (ctor == null)
+        try
         {
-            throw new InvalidOperationException(
-                $"Failed to create {objectType.FullName ?? objectType.Name}; an eligible ctor with satisfiable services could not be found");
-        }
+            var scopeImpl = scope as ServiceScopeImpl;
 
-        // validate dependency versions (if they exist)
-        var parameterTypes = ctor.GetParameters().Select(p => p.ParameterType).ToList();
+            var ctor = this.FindApplicableCtor(objectType, scopedObjects)
+                ?? throw new InvalidOperationException("An eligible ctor with satisfiable services could not be found");
 
-        var resolvedParams =
-            await Task.WhenAll(
-                parameterTypes
-                    .Select(async type =>
+            errorStep = "requested service resolution";
+            var resolvedParams =
+                await Task.WhenAll(
+                    ctor.GetParameters()
+                        .Select(p => p.ParameterType)
+                        .Select(type => this.GetService(type, scopeImpl, scopedObjects)));
+
+            var instance = RuntimeHelpers.GetUninitializedObject(objectType);
+
+            errorStep = "property injection";
+            await this.InjectProperties(instance, scopedObjects, scope);
+
+            errorStep = "ctor invocation";
+            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var thr = new Thread(
+                () =>
+                {
+                    try
                     {
-                        var service = await this.GetService(type, scopeImpl, scopedObjects);
+                        ctor.Invoke(instance, resolvedParams);
+                    }
+                    catch (Exception e)
+                    {
+                        tcs.SetException(e);
+                        return;
+                    }
 
-                        if (service == null)
-                        {
-                            Log.Error("Requested ctor service type {TypeName} was not available (null)", type.FullName!);
-                        }
+                    tcs.SetResult();
+                });
 
-                        return service;
-                    }));
+            thr.Start();
+            await tcs.Task.ConfigureAwait(false);
+            thr.Join();
 
-        var hasNull = resolvedParams.Any(p => p == null);
-        if (hasNull)
-        {
-            throw new InvalidOperationException(
-                $"Failed to create {objectType.FullName ?? objectType.Name}; a requested service type could not be satisfied");
+            return instance;
         }
-
-        var instance = RuntimeHelpers.GetUninitializedObject(objectType);
-
-        if (!await this.InjectProperties(instance, scopedObjects, scope))
+        catch (Exception e)
         {
-            throw new InvalidOperationException(
-                $"Failed to create {objectType.FullName ?? objectType.Name}; a requested property service type could not be satisfied");
+            throw new AggregateException($"Failed to create {objectType.FullName ?? objectType.Name} ({errorStep})", e);
         }
-
-        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thr = new Thread(
-            () =>
-            {
-                try
-                {
-                    ctor.Invoke(instance, resolvedParams);
-                }
-                catch (Exception e)
-                {
-                    tcs.SetException(e);
-                    return;
-                }
-
-                tcs.SetResult();
-            });
-
-        thr.Start();
-        await tcs.Task.ConfigureAwait(false);
-        thr.Join();
-
-        return instance;
     }
 
     /// <summary>
@@ -159,28 +144,21 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <param name="instance">The object instance.</param>
     /// <param name="publicScopes">Scoped objects to be injected.</param>
     /// <param name="scope">The scope to be used to create scoped services.</param>
-    /// <returns>Whether or not the injection was successful.</returns>
-    public async Task<bool> InjectProperties(object instance, object[] publicScopes, IServiceScope? scope = null)
+    /// <returns>A <see cref="ValueTask"/> representing the operation.</returns>
+    public async ValueTask InjectProperties(object instance, object[] publicScopes, IServiceScope? scope = null)
     {
         var scopeImpl = scope as ServiceScopeImpl;
         var objectType = instance.GetType();
 
-        var props = objectType.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public |
-                                             BindingFlags.NonPublic).Where(x => x.GetCustomAttributes(typeof(PluginServiceAttribute)).Any()).ToArray();
+        var props =
+            objectType
+                .GetProperties(
+                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(x => x.GetCustomAttributes(typeof(PluginServiceAttribute)).Any())
+                .ToArray();
 
         foreach (var prop in props)
-        {
-            var service = await this.GetService(prop.PropertyType, scopeImpl, publicScopes);
-            if (service == null)
-            {
-                Log.Error("Requested service type {TypeName} was not available (null)", prop.PropertyType.FullName!);
-                return false;
-            }
-
-            prop.SetValue(instance, service);
-        }
-
-        return true;
+            prop.SetValue(instance, await this.GetService(prop.PropertyType, scopeImpl, publicScopes));
     }
 
     /// <summary>
@@ -192,7 +170,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// <inheritdoc/>
     object? IServiceProvider.GetService(Type serviceType) => this.GetSingletonService(serviceType);
 
-    private async Task<object?> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
+    private async Task<object> GetService(Type serviceType, ServiceScopeImpl? scope, object[] scopedObjects)
     {
         if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
             serviceType = implementingType;
@@ -201,8 +179,8 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         {
             if (scope == null)
             {
-                Log.Error("Failed to create {TypeName}, is scoped but no scope provided", serviceType.FullName!);
-                return null;
+                throw new InvalidOperationException(
+                    $"Failed to create {serviceType.FullName ?? serviceType.Name}, is scoped but no scope provided");
             }
 
             return await scope.CreatePrivateScopedObject(serviceType, scopedObjects);
@@ -210,18 +188,12 @@ internal class ServiceContainer : IServiceProvider, IServiceType
 
         var singletonService = await this.GetSingletonService(serviceType, false);
         if (singletonService != null)
-        {
             return singletonService;
-        }
 
         // resolve dependency from scoped objects
-        var scoped = scopedObjects.FirstOrDefault(o => o.GetType().IsAssignableTo(serviceType));
-        if (scoped == default)
-        {
-            return null;
-        }
-
-        return scoped;
+        return scopedObjects.FirstOrDefault(o => o.GetType().IsAssignableTo(serviceType))
+               ?? throw new InvalidOperationException(
+                   $"Requested type {serviceType.FullName ?? serviceType.Name} could not be found from {nameof(scopedObjects)}");
     }
 
     private async Task<object?> GetSingletonService(Type serviceType, bool tryGetInterface = true)
