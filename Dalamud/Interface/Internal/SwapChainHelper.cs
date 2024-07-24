@@ -69,26 +69,28 @@ internal static unsafe class SwapChainHelper
     /// <returns><c>true</c> if the object is the game's swap chain.</returns>
     public static bool IsGameDeviceSwapChain<T>(T* punk) where T : unmanaged, IUnknown.Interface
     {
-        // https://learn.microsoft.com/en-us/windows/win32/api/unknwn/nf-unknwn-iunknown-queryinterface(refiid_void)
-        // For any given COM object (also known as a COM component), a specific query for the IUnknown interface on any
-        // of the object's interfaces must always return the same pointer value.
+        using var psc = default(ComPtr<IDXGISwapChain>);
+        fixed (Guid* piid = &IID.IID_IDXGISwapChain)
+        {
+            if (punk->QueryInterface(piid, (void**)psc.GetAddressOf()).FAILED)
+                return false;
+        }
 
-        var gdsc = GameDeviceSwapChain;
-        if (gdsc is null || punk is null)
+        return IsGameDeviceSwapChain(psc.Get());
+    }
+
+    /// <inheritdoc cref="IsGameDeviceSwapChain{T}"/>
+    public static bool IsGameDeviceSwapChain(IDXGISwapChain* punk)
+    {
+        DXGI_SWAP_CHAIN_DESC desc1;
+        if (punk->GetDesc(&desc1).FAILED)
+            return false;
+        
+        DXGI_SWAP_CHAIN_DESC desc2;
+        if (GameDeviceSwapChain->GetDesc(&desc2).FAILED)
             return false;
 
-        fixed (Guid* iid = &IID.IID_IUnknown)
-        {
-            using var u1 = default(ComPtr<IUnknown>);
-            if (gdsc->QueryInterface(iid, (void**)u1.GetAddressOf()).FAILED)
-                return false;
-
-            using var u2 = default(ComPtr<IUnknown>);
-            if (punk->QueryInterface(iid, (void**)u2.GetAddressOf()).FAILED)
-                return false;
-
-            return u1.Get() == u2.Get();
-        }
+        return desc1.OutputWindow == desc2.OutputWindow;
     }
 
     /// <summary>Wait for the game to have finished initializing the IDXGISwapChain.</summary>
