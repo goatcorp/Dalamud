@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Serilog;
 
 namespace Dalamud.IoC.Internal;
 
@@ -41,8 +44,8 @@ internal class ServiceScopeImpl : IServiceScope
 {
     private readonly ServiceContainer container;
 
-    private readonly List<object> privateScopedObjects = new();
-    private readonly List<object> scopeCreatedObjects = new();
+    private readonly List<object> privateScopedObjects = [];
+    private readonly ConcurrentDictionary<Type, Task<object?>> scopeCreatedObjects = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ServiceScopeImpl" /> class.
@@ -77,34 +80,39 @@ internal class ServiceScopeImpl : IServiceScope
     /// <param name="objectType">The type of object to create.</param>
     /// <param name="scopedObjects">Additional scoped objects.</param>
     /// <returns>The created object, or null.</returns>
-    public async Task<object?> CreatePrivateScopedObject(Type objectType, params object[] scopedObjects)
-    {
-        var instance = this.scopeCreatedObjects.FirstOrDefault(x => x.GetType() == objectType);
-        if (instance != null)
-            return instance;
-
-        instance =
-            await this.container.CreateAsync(objectType, scopedObjects.Concat(this.privateScopedObjects).ToArray());
-        if (instance != null)
-            this.scopeCreatedObjects.Add(instance);
-
-        return instance;
-    }
+    public Task<object?> CreatePrivateScopedObject(Type objectType, params object[] scopedObjects) =>
+        this.scopeCreatedObjects.GetOrAdd(
+            objectType,
+            static (objectType, p) => p.Scope.container.CreateAsync(
+                objectType,
+                p.Objects.Concat(p.Scope.privateScopedObjects).ToArray()),
+            (Scope: this, Objects: scopedObjects));
 
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var createdObject in this.scopeCreatedObjects)
+        foreach (var objectTask in this.scopeCreatedObjects)
         {
-            switch (createdObject)
-            {
-                case IInternalDisposableService d:
-                    d.DisposeService();
-                    break;
-                case IDisposable d:
-                    d.Dispose();
-                    break;
-            }
+            objectTask.Value.ContinueWith(
+                static r =>
+                {
+                    if (!r.IsCompletedSuccessfully)
+                    {
+                        if (r.Exception is { } e)
+                            Log.Error(e, "{what}: Failed to load.", nameof(ServiceScopeImpl));
+                        return;
+                    }
+
+                    switch (r.Result)
+                    {
+                        case IInternalDisposableService d:
+                            d.DisposeService();
+                            break;
+                        case IDisposable d:
+                            d.Dispose();
+                            break;
+                    }
+                });
         }
     }
 }
