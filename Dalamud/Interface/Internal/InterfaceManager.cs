@@ -496,6 +496,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
     /// and initializes ImGui for drawing.</summary>
     /// <param name="swapChain">The swap chain to test and initialize ImGui with if conditions are met.</param>
+    /// <param name="flags">Flags passed to <see cref="IDXGISwapChain.Present"/>.</param>
     /// <returns>An initialized instance of <see cref="RawDX11Scene"/>, or <c>null</c> if <paramref name="swapChain"/>
     /// is not the main swap chain.</returns>
     private unsafe RawDX11Scene? RenderDalamudCheckAndInitialize(IDXGISwapChain* swapChain, uint flags)

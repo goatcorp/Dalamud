@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Utility;
 
@@ -44,7 +42,7 @@ internal unsafe partial class InterfaceManager
     {
         var swapChainNative = swapChain.GetNative<IDXGISwapChain>();
 
-        if (this.RenderDalamudCheckAndInitialize(swapChainNative) is { } activeScene)
+        if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activeScene)
             this.RenderDalamudDraw(activeScene);
     }
 
