@@ -877,9 +877,13 @@ internal partial class InterfaceManager : IInternalDisposableService
         nint pfnReShadeDxgiSwapChainPresent = 0;
         switch (this.dalamudConfiguration.ReShadeHandlingMode)
         {
+            // If ReShade is not found, do no special handling.
+            case var _ when ReShadeAddonInterface.ReShadeModule is null:
+                goto default;
+
             // This is the only mode honored when SwapChainHookMode is set to VTable.
             case ReShadeHandlingMode.Default:
-            case ReShadeHandlingMode.UnwrapReShade when ReShadeAddonInterface.ReShadeModule is not null:
+            case ReShadeHandlingMode.UnwrapReShade:
                 if (SwapChainHelper.UnwrapReShade())
                     Log.Information("Unwrapped ReShade");
                 else
@@ -887,9 +891,8 @@ internal partial class InterfaceManager : IInternalDisposableService
                 goto default;
 
             // Do no special ReShade handling.
-            // If ReShade is not found or SwapChainHookMode is set to VTable, also do nothing special.
+            // If SwapChainHookMode is set to VTable, do no special handling.
             case ReShadeHandlingMode.None:
-            case var _ when ReShadeAddonInterface.ReShadeModule is null:
             case var _ when this.dalamudConfiguration.SwapChainHookMode == SwapChainHelper.HookMode.VTable:
             default:
                 dxgiSwapChainResizeBuffersDelegate = this.AsHookDxgiSwapChainResizeBuffersDetour;
