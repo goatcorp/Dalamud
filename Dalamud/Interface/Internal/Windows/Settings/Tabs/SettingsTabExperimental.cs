@@ -79,32 +79,21 @@ public class SettingsTabExperimental : SettingsTab
                 "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
             c => c.ReShadeHandlingMode,
             (v, c) => c.ReShadeHandlingMode = v,
-            fallbackValue: ReShadeHandlingMode.ReShadeAddon)
+            fallbackValue: ReShadeHandlingMode.Default,
+            warning: static rshm =>
+                rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None ||
+                Service<DalamudConfiguration>.Get().SwapChainHookMode == SwapChainHelper.HookMode.ByteCode
+                    ? null
+                    : "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set.")
         {
             FriendlyEnumNameGetter = x => x switch
             {
-                ReShadeHandlingMode.ReShadeAddon => Loc.Localize(
-                    "DalamudSettingsReShadeHandlingModeReShadeAddon",
-                    "ReShade addon"),
-                ReShadeHandlingMode.UnwrapReShade => Loc.Localize(
-                    "DalamudSettingsReShadeHandlingModeUnwrapReShade",
-                    "Unwrap ReShade"),
-                ReShadeHandlingMode.None => Loc.Localize(
-                    "DalamudSettingsReShadeHandlingModeNone",
-                    "Do not handle"),
-                _ => "<invalid>",
-            },
-            FriendlyEnumDescriptionGetter = x => x switch
-            {
-                ReShadeHandlingMode.ReShadeAddon => Loc.Localize(
-                    "DalamudSettingsReShadeHandlingModeReShadeAddonDescription",
-                    "Dalamud will register itself as a ReShade addon. Most compatibility is expected, but multi-monitor window option will require reloading ReShade every time a new window is opened, or even may not work at all."),
-                ReShadeHandlingMode.UnwrapReShade => Loc.Localize(
-                    "DalamudSettingsReShadeHandlingModeUnwrapReShadeDescription",
-                    "Dalamud will exclude itself from all ReShade handling. Multi-monitor windows should work fine with this mode, but it may not be supported and crash in future ReShade versions."),
-                ReShadeHandlingMode.None => Loc.Localize(
-                    "DalamudSettingsReShadeHandlingModeNoneDescription",
-                    "No special handling will be done for ReShade. Dalamud will be under the effect of ReShade postprocessing."),
+                ReShadeHandlingMode.Default => "Default",
+                ReShadeHandlingMode.UnwrapReShade => "Unwrap",
+                ReShadeHandlingMode.ReShadeAddonPresent => "ReShade Addon (present)",
+                ReShadeHandlingMode.ReShadeAddonReShadeOverlay => "ReShade Addon (reshade_overlay)",
+                ReShadeHandlingMode.HookReShadeDxgiSwapChainOnPresent => "Hook ReShade::DXGISwapChain::OnPresent",
+                ReShadeHandlingMode.None => "Do not handle",
                 _ => "<invalid>",
             },
         },
