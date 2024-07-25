@@ -46,6 +46,14 @@ internal unsafe partial class InterfaceManager
             this.RenderDalamudDraw(activeScene);
     }
 
+    private void ReShadeAddonInterfaceOnReShadeOverlay(ref ReShadeAddonInterface.ApiObject runtime)
+    {
+        var swapChainNative = runtime.GetNative<IDXGISwapChain>();
+
+        if (this.RenderDalamudCheckAndInitialize(swapChainNative, 0) is { } activeScene)
+            this.RenderDalamudDraw(activeScene);
+    }
+
     private int AsReShadeAddonDxgiSwapChainResizeBuffersDetour(
         IDXGISwapChain* swapChain,
         uint bufferCount,

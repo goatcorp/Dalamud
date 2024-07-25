@@ -878,6 +878,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         switch (this.dalamudConfiguration.ReShadeHandlingMode)
         {
             // This is the only mode honored when SwapChainHookMode is set to VTable.
+            case ReShadeHandlingMode.Default:
             case ReShadeHandlingMode.UnwrapReShade when ReShadeAddonInterface.ReShadeModule is not null:
                 if (SwapChainHelper.UnwrapReShade())
                     Log.Information("Unwrapped ReShade");
@@ -896,7 +897,8 @@ internal partial class InterfaceManager : IInternalDisposableService
                 break;
 
             // Register Dalamud as a ReShade addon.
-            case ReShadeHandlingMode.ReShadeAddon:
+            case ReShadeHandlingMode.ReShadeAddonPresent:
+            case ReShadeHandlingMode.ReShadeAddonReShadeOverlay:
                 if (!ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
                 {
                     Log.Warning("Could not register as ReShade addon");
@@ -906,13 +908,15 @@ internal partial class InterfaceManager : IInternalDisposableService
                 Log.Information("Registered as a ReShade addon");
                 this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
                 this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
-                this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
+                if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddonPresent)
+                    this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
+                else
+                    this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
 
                 dxgiSwapChainResizeBuffersDelegate = this.AsReShadeAddonDxgiSwapChainResizeBuffersDetour;
                 break;
 
             // Hook ReShade's DXGISwapChain::on_present. This is the legacy and the default option.
-            case ReShadeHandlingMode.Default:
             case ReShadeHandlingMode.HookReShadeDxgiSwapChainOnPresent:
                 pfnReShadeDxgiSwapChainPresent = ReShadeAddonInterface.FindReShadeDxgiSwapChainOnPresent();
 

@@ -444,7 +444,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool WindowIsImmersive { get; set; } = false;
 
     /// <summary>Gets or sets the mode specifying how to handle ReShade.</summary>
-    public ReShadeHandlingMode ReShadeHandlingMode { get; set; } = ReShadeHandlingMode.ReShadeAddon;
+    public ReShadeHandlingMode ReShadeHandlingMode { get; set; } = ReShadeHandlingMode.Default;
 
     /// <summary>Gets or sets the swap chain hook mode.</summary>
     public SwapChainHelper.HookMode SwapChainHookMode { get; set; } = SwapChainHelper.HookMode.ByteCode;
