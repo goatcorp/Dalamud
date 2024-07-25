@@ -92,7 +92,7 @@ jobs:
         foreach ($file in $FILES_TO_VALIDATE) {
             $testout = ""
             Write-Output "::group::=== API COMPATIBILITY CHECK: ${file} ==="
-            apicompat -l "left\${file}" -r "right\${file}" --noWarn "$(NoWarn);CP0006" | Tee-Object -Variable testout
+            apicompat -l "left\${file}" -r "right\${file}" --noWarn "CP0006" | Tee-Object -Variable testout
             Write-Output "::endgroup::"
             if ($testout -ne "APICompat ran successfully without finding any breaking changes.") {
                 Write-Output "::error::${file} did not pass. Please review it for problems."
