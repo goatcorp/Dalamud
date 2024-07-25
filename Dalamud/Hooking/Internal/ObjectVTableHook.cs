@@ -54,6 +54,15 @@ internal unsafe class ObjectVTableHook : IDisposable
     /// <summary>Gets the span view of overriden vtable.</summary>
     public ReadOnlySpan<nint> OverridenVTableSpan => this.vtblOverriden.AsSpan();
 
+    /// <summary>Gets the address of the pointer to the vtable.</summary>
+    public nint Address => (nint)this.ppVtbl;
+
+    /// <summary>Gets the address of the original vtable.</summary>
+    public nint OriginalVTableAddress => (nint)this.pVtblOriginal;
+
+    /// <summary>Gets the address of the overriden vtable.</summary>
+    public nint OverridenVTableAddress => (nint)Unsafe.AsPointer(ref this.vtblOverriden[0]);
+
     /// <summary>Disables the hook.</summary>
     public void Disable()
     {

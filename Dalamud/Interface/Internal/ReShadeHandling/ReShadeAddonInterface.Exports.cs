@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -24,6 +26,7 @@ internal sealed unsafe partial class ReShadeAddonInterface
 
     static ReShadeAddonInterface()
     {
+        var modules = new List<ProcessModule>();
         foreach (var m in Process.GetCurrentProcess().Modules.Cast<ProcessModule>())
         {
             ExportsStruct e;
@@ -33,26 +36,30 @@ internal sealed unsafe partial class ReShadeAddonInterface
                 !GetProcAddressInto(m, nameof(e.ReShadeUnregisterEvent), &e.ReShadeUnregisterEvent))
                 continue;
 
-            try
+            modules.Add(m);
+            if (modules.Count == 1)
             {
-                var signerName = GetSignatureSignerNameWithoutVerification(m.FileName);
-                ReShadeIsSignedByReShade = signerName == "ReShade";
-                Log.Information(
-                    "ReShade DLL is signed by {signerName}. {vn}={v}",
-                    signerName,
-                    nameof(ReShadeIsSignedByReShade),
-                    ReShadeIsSignedByReShade);
-            }
-            catch (Exception ex)
-            {
-                Log.Information(ex, "ReShade DLL did not had a valid signature.");
-            }
+                try
+                {
+                    var signerName = GetSignatureSignerNameWithoutVerification(m.FileName);
+                    ReShadeIsSignedByReShade = signerName == "ReShade";
+                    Log.Information(
+                        "ReShade DLL is signed by {signerName}. {vn}={v}",
+                        signerName,
+                        nameof(ReShadeIsSignedByReShade),
+                        ReShadeIsSignedByReShade);
+                }
+                catch (Exception ex)
+                {
+                    Log.Information(ex, "ReShade DLL did not had a valid signature.");
+                }
 
-            ReShadeModule = m;
-            Exports = e;
-
-            return;
+                ReShadeModule = m;
+                Exports = e;
+            }
         }
+
+        AllReShadeModules = [..modules];
 
         return;
 
@@ -68,9 +75,29 @@ internal sealed unsafe partial class ReShadeAddonInterface
     /// <summary>Gets the active ReShade module.</summary>
     public static ProcessModule? ReShadeModule { get; private set; }
 
+    /// <summary>Gets all the detected ReShade modules.</summary>
+    public static ImmutableArray<ProcessModule> AllReShadeModules { get; private set; }
+
     /// <summary>Gets a value indicating whether the loaded ReShade has signatures.</summary>
     /// <remarks>ReShade without addon support is signed, but may not pass signature verification.</remarks>
     public static bool ReShadeIsSignedByReShade { get; private set; }
+
+    /// <summary>Finds the address of <c>DXGISwapChain::on_present</c> in <see cref="ReShadeModule"/>.</summary>
+    /// <returns>Address of the function, or <c>0</c> if not found.</returns>
+    public static nint FindReShadeDxgiSwapChainOnPresent()
+    {
+        if (ReShadeModule is not { } rsm)
+            return 0;
+
+        var m = new ReadOnlySpan<byte>((void*)rsm.BaseAddress, rsm.ModuleMemorySize);
+
+        // Signature validated against 5.0.0 to 6.2.0
+        var i = m.IndexOf(new byte[] { 0xCC, 0xF6, 0xC2, 0x01, 0x0F, 0x85 });
+        if (i == -1)
+            return 0;
+
+        return rsm.BaseAddress + i + 1;
+    }
 
     /// <summary>Gets the name of the signer of a file that has a certificate embedded within, without verifying if the
     /// file has a valid signature.</summary>

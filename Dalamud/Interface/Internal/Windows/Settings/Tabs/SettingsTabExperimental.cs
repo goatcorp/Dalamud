@@ -79,16 +79,28 @@ public class SettingsTabExperimental : SettingsTab
                 "You may try different options to work around problems you may encounter.\nRestart is required for changes to take effect."),
             c => c.ReShadeHandlingMode,
             (v, c) => c.ReShadeHandlingMode = v,
-            fallbackValue: ReShadeHandlingMode.ReShadeAddon)
+            fallbackValue: ReShadeHandlingMode.ReShadeAddon,
+            warning: static rshm =>
+                rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None
+                    ? null
+                    : Loc.Localize(
+                        "DalamudSettingsReShadeHandlingModeIgnoredVTableHookMode",
+                        "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set."))
         {
             FriendlyEnumNameGetter = x => x switch
             {
-                ReShadeHandlingMode.ReShadeAddon => Loc.Localize(
-                    "DalamudSettingsReShadeHandlingModeReShadeAddon",
-                    "ReShade addon"),
+                ReShadeHandlingMode.Default => Loc.Localize(
+                    "DalamudSettingsReShadeHandlingModeDefault",
+                    "Default"),
                 ReShadeHandlingMode.UnwrapReShade => Loc.Localize(
                     "DalamudSettingsReShadeHandlingModeUnwrapReShade",
                     "Unwrap ReShade"),
+                ReShadeHandlingMode.ReShadeAddon => Loc.Localize(
+                    "DalamudSettingsReShadeHandlingModeReShadeAddon",
+                    "ReShade addon"),
+                ReShadeHandlingMode.HookReShadeDxgiSwapChainOnPresent => Loc.Localize(
+                    "DalamudSettingsReShadeHandlingModeHookReShadeDxgiSwapChainOnPresent",
+                    "Hook ReShade DXGISwapChain::OnPresent"),
                 ReShadeHandlingMode.None => Loc.Localize(
                     "DalamudSettingsReShadeHandlingModeNone",
                     "Do not handle"),
@@ -96,12 +108,18 @@ public class SettingsTabExperimental : SettingsTab
             },
             FriendlyEnumDescriptionGetter = x => x switch
             {
-                ReShadeHandlingMode.ReShadeAddon => Loc.Localize(
-                    "DalamudSettingsReShadeHandlingModeReShadeAddonDescription",
-                    "Dalamud will register itself as a ReShade addon. Most compatibility is expected, but multi-monitor window option will require reloading ReShade every time a new window is opened, or even may not work at all."),
+                ReShadeHandlingMode.Default => Loc.Localize(
+                    "DalamudSettingsReShadeHandlingModeDefaultDescription",
+                    "Dalamud will use the developer-recommend settings. If nothing's wrong, keeping this option is recommended."),
                 ReShadeHandlingMode.UnwrapReShade => Loc.Localize(
                     "DalamudSettingsReShadeHandlingModeUnwrapReShadeDescription",
                     "Dalamud will exclude itself from all ReShade handling. Multi-monitor windows should work fine with this mode, but it may not be supported and crash in future ReShade versions."),
+                ReShadeHandlingMode.ReShadeAddon => Loc.Localize(
+                    "DalamudSettingsReShadeHandlingModeReShadeAddonDescription",
+                    "Dalamud will register itself as a ReShade addon. Multi-monitor window option will require reloading ReShade every time a new window is opened, or even may not work at all."),
+                ReShadeHandlingMode.HookReShadeDxgiSwapChainOnPresent => Loc.Localize(
+                    "DalamudSettingsReShadeHandlingModeHookReShadeDxgiSwapChainOnPresentDescription",
+                    "Dalamud will use an unsupported method of detouring an internal ReShade function. Multi-monitor window option will require reloading ReShade every time a new window is opened, or even may not work at all."),
                 ReShadeHandlingMode.None => Loc.Localize(
                     "DalamudSettingsReShadeHandlingModeNoneDescription",
                     "No special handling will be done for ReShade. Dalamud will be under the effect of ReShade postprocessing."),
