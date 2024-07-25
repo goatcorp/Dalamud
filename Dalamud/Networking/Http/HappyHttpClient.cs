@@ -36,7 +36,7 @@ internal class HappyHttpClient : IInternalDisposableService
             {
                 UserAgent =
                 {
-                    new ProductInfoHeaderValue("Dalamud", Util.GetScmVersion()),
+                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
                 },
             },
         };
