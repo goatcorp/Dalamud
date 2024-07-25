@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Game.Text;
@@ -304,14 +305,30 @@ public interface IDalamudPluginInterface
     /// </summary>
     /// <param name="scopedObjects">Objects to inject additionally.</param>
     /// <typeparam name="T">The type to create.</typeparam>
-    /// <returns>The created and initialized type.</returns>
+    /// <returns>The created and initialized type, or <c>null</c> on failure.</returns>
     T? Create<T>(params object[] scopedObjects) where T : class;
+
+    /// <summary>
+    /// Create a new object of the provided type using its default constructor, then inject objects and properties.
+    /// </summary>
+    /// <param name="scopedObjects">Objects to inject additionally.</param>
+    /// <typeparam name="T">The type to create.</typeparam>
+    /// <returns>A task representing the created and initialized type.</returns>
+    Task<T> CreateAsync<T>(params object[] scopedObjects) where T : class;
 
     /// <summary>
     /// Inject services into properties on the provided object instance.
     /// </summary>
     /// <param name="instance">The instance to inject services into.</param>
     /// <param name="scopedObjects">Objects to inject additionally.</param>
-    /// <returns>Whether or not the injection succeeded.</returns>
+    /// <returns>Whether the injection succeeded.</returns>
     bool Inject(object instance, params object[] scopedObjects);
+
+    /// <summary>
+    /// Inject services into properties on the provided object instance.
+    /// </summary>
+    /// <param name="instance">The instance to inject services into.</param>
+    /// <param name="scopedObjects">Objects to inject additionally.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the status of the operation.</returns>
+    Task InjectAsync(object instance, params object[] scopedObjects);
 }
