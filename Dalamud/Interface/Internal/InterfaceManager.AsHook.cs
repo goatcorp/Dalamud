@@ -83,11 +83,10 @@ internal unsafe partial class InterfaceManager
             this.reShadeDxgiSwapChainPresentHook is not null,
             "this.reShadeDxgiSwapChainPresentHook is not null");
 
-        // Call this first to draw Dalamud over ReShade.
-        this.reShadeDxgiSwapChainPresentHook!.Original(swapChain, flags, presentParams);
-
         if (this.RenderDalamudCheckAndInitialize(swapChain->AsIDxgiSwapChain(), flags) is { } activeScene)
             this.RenderDalamudDraw(activeScene);
+
+        this.reShadeDxgiSwapChainPresentHook!.Original(swapChain, flags, presentParams);
 
         // Upstream call to system IDXGISwapChain::Present will be called by ReShade.
     }
