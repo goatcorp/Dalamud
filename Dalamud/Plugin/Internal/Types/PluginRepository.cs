@@ -59,7 +59,7 @@ internal class PluginRepository
                 },
                 UserAgent =
                 {
-                    new ProductInfoHeaderValue("Dalamud", Util.GetScmVersion()),
+                    new ProductInfoHeaderValue("Dalamud", Util.AssemblyVersion),
                 },
             },
         };
