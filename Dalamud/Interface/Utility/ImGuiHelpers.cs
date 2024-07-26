@@ -16,6 +16,10 @@ using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using ImGuiScene;
 
+using Lumina.Text.ReadOnly;
+
+using SeStringRenderer = Dalamud.Interface.Internal.ImGuiSeStringRenderer.SeStringRenderer;
+
 namespace Dalamud.Interface.Utility;
 
 /// <summary>
@@ -176,6 +180,14 @@ public static class ImGuiHelpers
 
         if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
     }
+
+    /// <inheritdoc cref="SeStringRenderer.DrawWrapped(ReadOnlySeStringSpan, float)"/>
+    public static void SeStringWrapped(ReadOnlySpan<byte> sss, float wrapWidth = 0) =>
+        Service<SeStringRenderer>.Get().DrawWrapped(sss, wrapWidth);
+
+    /// <inheritdoc cref="SeStringRenderer.CompileAndDrawWrapped"/>
+    public static void CompileSeStringWrapped(string text, float wrapWidth = 0) =>
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, wrapWidth);
 
     /// <summary>
     /// Write unformatted text wrapped.

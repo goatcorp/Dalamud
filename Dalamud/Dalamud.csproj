@@ -114,6 +114,13 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
+        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
+        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\DerivedGeneralCategory.txt" LogicalName="DerivedGeneralCategory.txt" />
+        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
+    </ItemGroup>
+
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">
         <ItemGroup>
             <ContentWithTargetPath Include="$(ProjectDepsFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectDepsFileName)" />
