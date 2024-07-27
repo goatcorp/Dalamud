@@ -124,6 +124,13 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.entriesLock.EnterWriteLock();
         var entry = new DtrBarEntry(this.configuration, title, null) { Text = text, OwnerPlugin = plugin };
         this.entries.Add(entry);
+
+        // Add the entry to the end of the order list, if it's not there already.
+        var dtrOrder = this.configuration.DtrOrder ??= [];
+        if (!dtrOrder.Contains(entry.Title))
+            dtrOrder.Add(entry.Title);
+        this.ApplySortUnsafe(dtrOrder);
+
         this.entriesReadOnlyCopy = null;
         this.entriesLock.ExitWriteLock();
 
@@ -268,15 +275,20 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// <summary>
     /// Reapply the DTR entry ordering from <see cref="DalamudConfiguration"/>.
     /// </summary>
-    /// <param name="dtrOrder">Copy of DTR order.</param>
-    internal void ApplySort(List<string> dtrOrder)
+    internal void ApplySort()
+    {
+        this.entriesLock.EnterWriteLock();
+        this.ApplySortUnsafe(this.configuration.DtrOrder ??= []);
+        this.entriesLock.ExitWriteLock();
+    }
+
+    private void ApplySortUnsafe(List<string> dtrOrder)
     {
         // Sort the current entry list, based on the order in the configuration.
         var positions = dtrOrder
                         .Select(entry => (entry, index: dtrOrder.IndexOf(entry)))
                         .ToDictionary(x => x.entry, x => x.index);
 
-        this.entriesLock.EnterWriteLock();
         this.entries.Sort((x, y) =>
         {
             var xPos = positions.TryGetValue(x.Title, out var xIndex) ? xIndex : int.MaxValue;
@@ -284,7 +296,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             return xPos.CompareTo(yPos);
         });
         this.entriesReadOnlyCopy = null;
-        this.entriesLock.ExitWriteLock();
     }
 
     private AtkUnitBase* GetDtr() => (AtkUnitBase*)this.gameGui.GetAddonByName("_DTR").ToPointer();
@@ -292,7 +303,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private void Update(IFramework unused)
     {
         this.HandleRemovedNodes();
-        this.HandleAddedNodes();
 
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->RootNode->ChildNode == null) return;
@@ -372,28 +382,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.entriesLock.ExitReadLock();
     }
 
-    private void HandleAddedNodes()
-    {
-        var dtrOrder = this.configuration.DtrOrder ??= [];
-
-        this.entriesLock.EnterUpgradeableReadLock();
-
-        foreach (var entry in this.entries)
-        {
-            // Is the node going away already, or already has been added?
-            if (entry.ShouldBeRemoved || entry.Added)
-                continue;
-
-            // Add the entry to the end of the order list, if it's not there already.
-            if (!dtrOrder.Contains(entry.Title))
-                dtrOrder.Add(entry.Title);
-        }
-
-        this.ApplySort(dtrOrder);
-
-        this.entriesLock.ExitUpgradeableReadLock();
-    }
-    
     private void FixCollision(AddonEvent eventType, AddonArgs addonInfo)
     {
         var addon = (AtkUnitBase*)addonInfo.Addon;
