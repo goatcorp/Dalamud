@@ -403,7 +403,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         var additionalWidth = 0;
         AtkResNode* collisionNode = null;
 
-        foreach (var index in Enumerable.Range(0, addon->UldManager.NodeListCount))
+        for (var index = 0; index < addon->UldManager.NodeListCount; index++)
         {
             var node = addon->UldManager.NodeList[index];
             if (node->IsVisible())
