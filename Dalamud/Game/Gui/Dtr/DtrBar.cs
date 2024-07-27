@@ -317,11 +317,10 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         foreach (var data in this.entries)
         {
             if (!data.Added)
-            {
-                data.TextNode = this.MakeNode(++this.runningNodeIds);
-                data.Added = this.AddNode(data.TextNode);
-                data.Dirty = true;
-            }
+                data.Added = this.AddNode(data);
+
+            if (!data.Added || data.TextNode is null) // TextNode check is unnecessary, but just in case.
+                continue;
 
             var isHide = !data.Shown || data.UserHidden;
             var node = data.TextNode;
@@ -478,10 +477,12 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.entriesLock.ExitReadLock();
     }
 
-    private bool AddNode(AtkTextNode* node)
+    private bool AddNode(DtrBarEntry data)
     {
         var dtr = this.GetDtr();
-        if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
+        if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null) return false;
+
+        var node = data.TextNode = this.MakeNode(++this.runningNodeIds);
 
         this.eventHandles.TryAdd(node->AtkResNode.NodeId, new List<IAddonEventHandle>());
         this.eventHandles[node->AtkResNode.NodeId].AddRange(new List<IAddonEventHandle>
@@ -504,6 +505,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         dtr->UldManager.UpdateDrawNodeList();
         dtr->UpdateCollisionNodeList(false);
         Log.Debug("Updated node draw list");
+
+        data.Dirty = true;
         return true;
     }
 
