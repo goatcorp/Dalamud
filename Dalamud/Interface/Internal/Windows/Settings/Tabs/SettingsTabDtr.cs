@@ -111,7 +111,7 @@ public class SettingsTabDtr : SettingsTab
         configuration.DtrIgnore = ignore.Concat(ignoreLeft).ToList();
 
         if (isOrderChange)
-            dtrBar.ApplySort();
+            dtrBar.ApplySort(configuration.DtrOrder);
 
         ImGuiHelpers.ScaledDummy(10);
 
