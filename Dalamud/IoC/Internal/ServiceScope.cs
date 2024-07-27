@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Serilog;
 
 namespace Dalamud.IoC.Internal;
 
@@ -14,7 +17,7 @@ internal interface IServiceScope : IDisposable
     /// but not directly to created objects.
     /// </summary>
     /// <param name="scopes">The scopes to add.</param>
-    public void RegisterPrivateScopes(params object[] scopes);
+    void RegisterPrivateScopes(params object[] scopes);
 
     /// <summary>
     /// Create an object.
@@ -22,7 +25,7 @@ internal interface IServiceScope : IDisposable
     /// <param name="objectType">The type of object to create.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <returns>The created object.</returns>
-    public Task<object?> CreateAsync(Type objectType, params object[] scopedObjects);
+    Task<object> CreateAsync(Type objectType, params object[] scopedObjects);
 
     /// <summary>
     /// Inject <see cref="PluginInterfaceAttribute" /> interfaces into public or static properties on the provided object.
@@ -30,8 +33,8 @@ internal interface IServiceScope : IDisposable
     /// </summary>
     /// <param name="instance">The object instance.</param>
     /// <param name="scopedObjects">Scoped objects to be injected.</param>
-    /// <returns>Whether or not the injection was successful.</returns>
-    public Task<bool> InjectPropertiesAsync(object instance, params object[] scopedObjects);
+    /// <returns>A <see cref="ValueTask"/> representing the status of the operation.</returns>
+    Task InjectPropertiesAsync(object instance, params object[] scopedObjects);
 }
 
 /// <summary>
@@ -41,35 +44,24 @@ internal class ServiceScopeImpl : IServiceScope
 {
     private readonly ServiceContainer container;
 
-    private readonly List<object> privateScopedObjects = new();
-    private readonly List<object> scopeCreatedObjects = new();
+    private readonly List<object> privateScopedObjects = [];
+    private readonly ConcurrentDictionary<Type, Task<object>> scopeCreatedObjects = new();
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ServiceScopeImpl" /> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="ServiceScopeImpl" /> class.</summary>
     /// <param name="container">The container this scope will use to create services.</param>
-    public ServiceScopeImpl(ServiceContainer container)
-    {
-        this.container = container;
-    }
+    public ServiceScopeImpl(ServiceContainer container) => this.container = container;
 
     /// <inheritdoc/>
-    public void RegisterPrivateScopes(params object[] scopes)
-    {
+    public void RegisterPrivateScopes(params object[] scopes) =>
         this.privateScopedObjects.AddRange(scopes);
-    }
 
     /// <inheritdoc />
-    public Task<object?> CreateAsync(Type objectType, params object[] scopedObjects)
-    {
-        return this.container.CreateAsync(objectType, scopedObjects, this);
-    }
+    public Task<object> CreateAsync(Type objectType, params object[] scopedObjects) =>
+        this.container.CreateAsync(objectType, scopedObjects, this);
 
     /// <inheritdoc />
-    public Task<bool> InjectPropertiesAsync(object instance, params object[] scopedObjects)
-    {
-        return this.container.InjectProperties(instance, scopedObjects, this);
-    }
+    public Task InjectPropertiesAsync(object instance, params object[] scopedObjects) =>
+        this.container.InjectProperties(instance, scopedObjects, this);
 
     /// <summary>
     /// Create a service scoped to this scope, with private scoped objects.
@@ -77,34 +69,39 @@ internal class ServiceScopeImpl : IServiceScope
     /// <param name="objectType">The type of object to create.</param>
     /// <param name="scopedObjects">Additional scoped objects.</param>
     /// <returns>The created object, or null.</returns>
-    public async Task<object?> CreatePrivateScopedObject(Type objectType, params object[] scopedObjects)
-    {
-        var instance = this.scopeCreatedObjects.FirstOrDefault(x => x.GetType() == objectType);
-        if (instance != null)
-            return instance;
-
-        instance =
-            await this.container.CreateAsync(objectType, scopedObjects.Concat(this.privateScopedObjects).ToArray());
-        if (instance != null)
-            this.scopeCreatedObjects.Add(instance);
-
-        return instance;
-    }
+    public Task<object> CreatePrivateScopedObject(Type objectType, params object[] scopedObjects) =>
+        this.scopeCreatedObjects.GetOrAdd(
+            objectType,
+            static (objectType, p) => p.Scope.container.CreateAsync(
+                objectType,
+                p.Objects.Concat(p.Scope.privateScopedObjects).ToArray()),
+            (Scope: this, Objects: scopedObjects));
 
     /// <inheritdoc />
     public void Dispose()
     {
-        foreach (var createdObject in this.scopeCreatedObjects)
+        foreach (var objectTask in this.scopeCreatedObjects)
         {
-            switch (createdObject)
-            {
-                case IInternalDisposableService d:
-                    d.DisposeService();
-                    break;
-                case IDisposable d:
-                    d.Dispose();
-                    break;
-            }
+            objectTask.Value.ContinueWith(
+                static r =>
+                {
+                    if (!r.IsCompletedSuccessfully)
+                    {
+                        if (r.Exception is { } e)
+                            Log.Error(e, "{what}: Failed to load.", nameof(ServiceScopeImpl));
+                        return;
+                    }
+
+                    switch (r.Result)
+                    {
+                        case IInternalDisposableService d:
+                            d.DisposeService();
+                            break;
+                        case IDisposable d:
+                            d.Dispose();
+                            break;
+                    }
+                });
         }
     }
 }

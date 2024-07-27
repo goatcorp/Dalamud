@@ -65,7 +65,12 @@ internal sealed class Dalamud : IServiceType
                 true, new FileInfo(Path.Combine(cacheDir.FullName, $"{this.StartInfo.GameVersion}.json")));
         }
 
-        ServiceManager.InitializeProvidedServices(this, fs, configuration, scanner);
+        ServiceManager.InitializeProvidedServices(
+            this,
+            fs,
+            configuration,
+            scanner,
+            Localization.FromAssets(info.AssetDirectory!, configuration.LanguageOverride));
         
         // Set up FFXIVClientStructs
         this.SetupClientStructsResolver(cacheDir);

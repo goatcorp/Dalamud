@@ -417,24 +417,16 @@ internal class LocalPlugin : IDisposable
 
             try
             {
-                if (this.manifest.LoadSync && this.manifest.LoadRequiredState is 0 or 1)
-                {
-                    var newInstance = await framework.RunOnFrameworkThread(
-                                        () => this.ServiceScope.CreateAsync(
-                                            this.pluginType!,
-                                            this.DalamudInterface!)).ConfigureAwait(false);
-                    
-                    this.instance = newInstance as IDalamudPlugin;
-                }
-                else
-                {
-                    this.instance =
-                        await this.ServiceScope.CreateAsync(this.pluginType!, this.DalamudInterface!) as IDalamudPlugin;
-                }
+                var forceFrameworkThread = this.manifest.LoadSync && this.manifest.LoadRequiredState is 0 or 1;
+                var newInstanceTask = forceFrameworkThread ? framework.RunOnFrameworkThread(Create) : Create();
+                this.instance = await newInstanceTask.ConfigureAwait(false);
+
+                async Task<IDalamudPlugin> Create() =>
+                    (IDalamudPlugin)await this.ServiceScope!.CreateAsync(this.pluginType!, this.DalamudInterface!);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Exception in plugin constructor");
+                Log.Error(ex, "Exception during plugin initialization");
                 this.instance = null;
             }
 

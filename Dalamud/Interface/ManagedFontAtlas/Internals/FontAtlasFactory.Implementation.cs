@@ -496,7 +496,7 @@ internal sealed partial class FontAtlasFactory
                     $"{nameof(FontAtlasAutoRebuildMode.Async)}.");
             }
 
-            var tcs = new TaskCompletionSource<FontAtlasBuiltData>();
+            var tcs = new TaskCompletionSource<FontAtlasBuiltData>(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
                 var rebuildIndex = Interlocked.Increment(ref this.buildIndex);

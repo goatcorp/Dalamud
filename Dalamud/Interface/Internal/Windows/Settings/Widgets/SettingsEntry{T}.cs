@@ -1,15 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
-using System.Numerics;
 
 using Dalamud.Configuration.Internal;
 
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
@@ -22,7 +20,6 @@ internal sealed class SettingsEntry<T> : SettingsEntry
     private readonly Action<T?>? change;
 
     private object? valueBacking;
-    private object? fallbackValue;
 
     public SettingsEntry(
         string name,
@@ -32,8 +29,7 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         Action<T?>? change = null,
         Func<T?, string?>? warning = null,
         Func<T?, string?>? validity = null,
-        Func<bool>? visibility = null, 
-        object? fallbackValue = null)
+        Func<bool>? visibility = null)
     {
         this.load = load;
         this.save = save;
@@ -43,8 +39,6 @@ internal sealed class SettingsEntry<T> : SettingsEntry
         this.CheckWarning = warning;
         this.CheckValidity = validity;
         this.CheckVisibility = visibility;
-
-        this.fallbackValue = fallbackValue;
     }
 
     public delegate T? LoadSettingDelegate(DalamudConfiguration config);
@@ -118,34 +112,6 @@ internal sealed class SettingsEntry<T> : SettingsEntry
                 this.change?.Invoke(this.Value);
             }
         }
-        else if (type.IsEnum)
-        {
-            ImGuiHelpers.SafeTextWrapped(this.Name);
-
-            var idx = (Enum)(this.valueBacking ?? 0);
-            var values = Enum.GetValues(type);
-            var descriptions =
-                values.Cast<Enum>().ToDictionary(x => x, x => x.GetAttribute<SettingsAnnotationAttribute>() ?? new SettingsAnnotationAttribute(x.ToString(), string.Empty));
-
-            if (!descriptions.ContainsKey(idx))
-            {
-                idx = (Enum)this.fallbackValue ?? throw new Exception("No fallback value for enum");
-                this.valueBacking = idx;
-            }
-
-            if (ImGui.BeginCombo($"###{this.Id.ToString()}", descriptions[idx].FriendlyName))
-            {
-                foreach (Enum value in values)
-                {
-                    if (ImGui.Selectable(descriptions[value].FriendlyName, idx.Equals(value)))
-                    {
-                        this.valueBacking = value;
-                    }
-                }
-
-                ImGui.EndCombo();
-            }
-        }
 
         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
         {
@@ -196,19 +162,4 @@ internal sealed class SettingsEntry<T> : SettingsEntry
     }
 
     public override void Save() => this.save(this.Value, Service<DalamudConfiguration>.Get());
-}
-
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Internals")]
-[AttributeUsage(AttributeTargets.Field)]
-internal class SettingsAnnotationAttribute : Attribute
-{
-    public SettingsAnnotationAttribute(string friendlyName, string description)
-    {
-        this.FriendlyName = friendlyName;
-        this.Description = description;
-    }
-
-    public string FriendlyName { get; set; }
-
-    public string Description { get; set; }
 }

@@ -238,7 +238,7 @@ internal class DynamicPriorityQueueLoader : IDisposable
             params IDisposable?[] disposables)
             : base(basis, cancellationToken, disposables)
         {
-            this.taskCompletionSource = new();
+            this.taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
             this.immediateLoadFunction = immediateLoadFunction;
         }
 

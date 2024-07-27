@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.Internal.Windows;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
 using Dalamud.Plugin.Internal;
@@ -107,15 +108,16 @@ public sealed class EntryPoint
                      .WriteTo.Sink(SerilogEventSink.Instance)
                      .MinimumLevel.ControlledBy(LogLevelSwitch);
 
+        const long maxLogSize = 100 * 1024 * 1024; // 100MB
         if (logSynchronously)
         {
-            config = config.WriteTo.File(logPath.FullName, fileSizeLimitBytes: null);
+            config = config.WriteTo.File(logPath.FullName, fileSizeLimitBytes: maxLogSize);
         }
         else
         {
             config = config.WriteTo.Async(a => a.File(
                                               logPath.FullName,
-                                              fileSizeLimitBytes: null,
+                                              fileSizeLimitBytes: maxLogSize,
                                               buffered: false,
                                               flushToDiskInterval: TimeSpan.FromSeconds(1)));
         }
@@ -185,7 +187,7 @@ public sealed class EntryPoint
 
             var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
             Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", 
-                            Util.GetGitHash(), 
+                            Util.GetScmVersion(), 
                             Util.GetGitHashClientStructs(), 
                             FFXIVClientStructs.ThisAssembly.Git.Commits);
 
@@ -231,6 +233,10 @@ public sealed class EntryPoint
 
     private static void SerilogOnLogLine(object? sender, (string Line, LogEvent LogEvent) ev)
     {
+        if (!LoadingDialog.IsGloballyHidden)
+            LoadingDialog.NewLogEntries.Enqueue(ev);
+        ConsoleWindow.NewLogEntries.Enqueue(ev);
+
         if (ev.LogEvent.Exception == null)
             return;
 

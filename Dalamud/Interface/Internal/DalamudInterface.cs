@@ -190,6 +190,29 @@ internal class DalamudInterface : IInternalDisposableService
 
         this.creditsDarkeningAnimation.Point1 = Vector2.Zero;
         this.creditsDarkeningAnimation.Point2 = new Vector2(CreditsDarkeningMaxAlpha);
+        
+        // This is temporary, until we know the repercussions of vtable hooking mode
+        consoleManager.AddCommand(
+            "dalamud.interface.swapchain_mode",
+            "Set swapchain hooking mode",
+            (string mode) =>
+            {
+                switch (mode)
+                {
+                    case "vtable":
+                        this.configuration.SwapChainHookMode = SwapChainHelper.HookMode.VTable;
+                        break;
+                    case "bytecode":
+                        this.configuration.SwapChainHookMode = SwapChainHelper.HookMode.ByteCode;
+                        break;
+                    default:
+                        Log.Error("Unknown swapchain mode: {Mode}", mode);
+                        return false;
+                }
+                
+                this.configuration.QueueSave();
+                return true;
+            });
     }
     
     private delegate nint CrashDebugDelegate(nint self);
@@ -818,10 +841,9 @@ internal class DalamudInterface : IInternalDisposableService
                     {
                         this.OpenBranchSwitcher();
                     }
-
-                    ImGui.MenuItem(Util.AssemblyVersion, false);
+                    
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
-                    ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
+                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
                     ImGui.EndMenu();
@@ -1020,7 +1042,7 @@ internal class DalamudInterface : IInternalDisposableService
                 {
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu($"{Util.GetGitHash()}({Util.GetGitCommitCount()})", false);
+                    ImGui.BeginMenu(Util.GetScmVersion(), false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);

@@ -46,6 +46,10 @@ internal sealed partial class TextureManager
         this.Shared.GetFromFile(file);
 
     /// <inheritdoc/>
+    public ISharedImmediateTexture GetFromFileAbsolute(string fullPath) =>
+        this.Shared.GetFromFileAbsolute(fullPath);
+
+    /// <inheritdoc/>
     ISharedImmediateTexture ITextureProvider.GetFromManifestResource(Assembly assembly, string name) =>
         this.Shared.GetFromManifestResource(assembly, name);
 
@@ -141,7 +145,12 @@ internal sealed partial class TextureManager
         /// <inheritdoc cref="ITextureProvider.GetFromFile(FileInfo)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromFile(FileInfo file) =>
-            this.fileDict.GetOrAdd(file.FullName, FileSystemSharedImmediateTexture.CreatePlaceholder)
+            this.GetFromFileAbsolute(file.FullName);
+
+        /// <inheritdoc cref="ITextureProvider.GetFromFileAbsolute(string)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SharedImmediateTexture.PureImpl GetFromFileAbsolute(string fullPath) =>
+            this.fileDict.GetOrAdd(fullPath, FileSystemSharedImmediateTexture.CreatePlaceholder)
                 .PublicUseInstance;
 
         /// <inheritdoc cref="ITextureProvider.GetFromManifestResource"/>

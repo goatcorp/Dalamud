@@ -36,7 +36,7 @@ internal static class BugBait
             Reporter = reporter,
             Name = plugin.InternalName,
             Version = isTesting ? plugin.TestingAssemblyVersion?.ToString() : plugin.AssemblyVersion.ToString(),
-            DalamudHash = Util.GetGitHash(),
+            DalamudHash = Util.GetScmVersion(),
         };
 
         if (includeException)

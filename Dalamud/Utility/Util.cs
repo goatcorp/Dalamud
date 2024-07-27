@@ -19,6 +19,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
+using Dalamud.Support;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Serilog;
@@ -26,8 +27,6 @@ using TerraFX.Interop.Windows;
 using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
-
-using Dalamud.Support;
 
 using static TerraFX.Interop.Windows.Windows;
 
@@ -63,6 +62,7 @@ public static class Util
     ];
 
     private static readonly Type GenericSpanType = typeof(Span<>);
+    private static string? scmVersionInternal;
     private static string? gitHashInternal;
     private static int? gitCommitCountInternal;
     private static string? gitHashClientStructsInternal;
@@ -129,11 +129,28 @@ public static class Util
     }
 
     /// <summary>
-    /// Gets the git hash value from the assembly
-    /// or null if it cannot be found.
+    /// Gets the SCM Version from the assembly, or null if it cannot be found. This method will generally return
+    /// the <c>git describe</c> output for this build, which will be a raw version if this is a stable build or an
+    /// appropriately-annotated version if this is *not* stable. Local builds will return a `Local Build` text string.
+    /// </summary>
+    /// <returns>The SCM version of the assembly.</returns>
+    public static string GetScmVersion()
+    {
+        if (scmVersionInternal != null) return scmVersionInternal;
+        
+        var asm = typeof(Util).Assembly;
+        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
+
+        return scmVersionInternal = attrs.First(a => a.Key == "SCMVersion").Value 
+                                        ?? asm.GetName().Version!.ToString();
+    }
+
+    /// <summary>
+    /// Gets the git commit hash value from the assembly or null if it cannot be found. Will be null for Debug builds,
+    /// and will be suffixed with `-dirty` if in release with pending changes.
     /// </summary>
     /// <returns>The git hash of the assembly.</returns>
-    public static string GetGitHash()
+    public static string? GetGitHash()
     {
         if (gitHashInternal != null)
             return gitHashInternal;
@@ -141,15 +158,14 @@ public static class Util
         var asm = typeof(Util).Assembly;
         var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
 
-        gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
-
-        return gitHashInternal;
+        return gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
     }
 
     /// <summary>
     /// Gets the amount of commits in the current branch, or null if undetermined.
     /// </summary>
     /// <returns>The amount of commits in the current branch.</returns>
+    [Obsolete($"Planned for removal in API 11. Use {nameof(GetScmVersion)} for version tracking.")]
     public static int? GetGitCommitCount()
     {
         if (gitCommitCountInternal != null)
@@ -171,7 +187,7 @@ public static class Util
     /// or null if it cannot be found.
     /// </summary>
     /// <returns>The git hash of the assembly.</returns>
-    public static string GetGitHashClientStructs()
+    public static string? GetGitHashClientStructs()
     {
         if (gitHashClientStructsInternal != null)
             return gitHashClientStructsInternal;
@@ -270,7 +286,7 @@ public static class Util
         {
             if ((mbi.Protect & (1 << i)) == 0)
                 continue;
-            if (c++ == 0)
+            if (c++ != 0)
                 sb.Append(" | ");
             sb.Append(PageProtectionFlagNames[i]);
         }

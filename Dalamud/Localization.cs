@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 
 using CheapLoc;
-using Dalamud.Configuration.Internal;
 
 using Serilog;
 
@@ -13,7 +12,7 @@ namespace Dalamud;
 /// <summary>
 /// Class handling localization.
 /// </summary>
-[ServiceManager.EarlyLoadedService]
+[ServiceManager.ProvidedService]
 public class Localization : IServiceType
 {
     /// <summary>
@@ -41,16 +40,6 @@ public class Localization : IServiceType
         this.locResourcePrefix = locResourcePrefix;
         this.useEmbedded = useEmbedded;
         this.assembly = Assembly.GetCallingAssembly();
-    }
-
-    [ServiceManager.ServiceConstructor]
-    private Localization(Dalamud dalamud, DalamudConfiguration configuration)
-        : this(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_")
-    {
-        if (!string.IsNullOrEmpty(configuration.LanguageOverride))
-            this.SetupWithLangCode(configuration.LanguageOverride);
-        else
-            this.SetupWithUiCulture();
     }
 
     /// <summary>
@@ -165,6 +154,22 @@ public class Localization : IServiceType
     public void ExportLocalizable(bool ignoreInvalidFunctions = false)
     {
         Loc.ExportLocalizableForAssembly(this.assembly, ignoreInvalidFunctions);
+    }
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="Localization"/> class.
+    /// </summary>
+    /// <param name="assetDirectory">Path to Dalamud assets.</param>
+    /// <param name="languageOverride">Optional language override.</param>
+    /// <returns>A new instance.</returns>
+    internal static Localization FromAssets(string assetDirectory, string? languageOverride)
+    {
+        var t = new Localization(Path.Combine(assetDirectory, "UIRes", "loc", "dalamud"), "dalamud_");
+        if (!string.IsNullOrEmpty(languageOverride))
+            t.SetupWithLangCode(languageOverride);
+        else
+            t.SetupWithUiCulture();
+        return t;
     }
 
     private string ReadLocData(string langCode)

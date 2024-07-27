@@ -332,7 +332,7 @@ internal static class Service<T> where T : IServiceType
                 break;
         }
 
-        instanceTcs = new TaskCompletionSource<T>();
+        instanceTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
         instanceTcs.SetException(new UnloadedException());
     }
 

@@ -59,7 +59,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
     private readonly int counter;
     private readonly byte[] fontPreviewText = new byte[2048];
-    private readonly TaskCompletionSource<SingleFontSpec> tcs = new();
+    private readonly TaskCompletionSource<SingleFontSpec> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly IFontAtlas atlas;
 
     private string popupImGuiName;
