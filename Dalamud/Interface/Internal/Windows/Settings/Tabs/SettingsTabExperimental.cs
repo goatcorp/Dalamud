@@ -81,10 +81,24 @@ public class SettingsTabExperimental : SettingsTab
             (v, c) => c.ReShadeHandlingMode = v,
             fallbackValue: ReShadeHandlingMode.Default,
             warning: static rshm =>
-                rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None ||
-                Service<DalamudConfiguration>.Get().SwapChainHookMode == SwapChainHelper.HookMode.ByteCode
-                    ? null
-                    : "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set.")
+            {
+                var warning = string.Empty;
+                warning += rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None ||
+                           Service<DalamudConfiguration>.Get().SwapChainHookMode == SwapChainHelper.HookMode.ByteCode
+                               ? string.Empty
+                               : "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set.";
+
+                if (ReShadeAddonInterface.ReShadeIsSignedByReShade)
+                {
+                    warning += warning.Length > 0 ? "\n" : string.Empty;
+                    warning += Loc.Localize(
+                        "ReShadeNoAddonSupportNotificationContent",
+                        "Your installation of ReShade does not have full addon support, and may not work with Dalamud and/or the game.\n" +
+                        "Download and install ReShade with full addon-support.");
+                }
+
+                return warning.Length > 0 ? warning : null;
+            })
         {
             FriendlyEnumNameGetter = x => x switch
             {

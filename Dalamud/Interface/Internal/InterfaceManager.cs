@@ -817,7 +817,8 @@ internal partial class InterfaceManager : IInternalDisposableService
             0,
             this.SetCursorDetour);
 
-        if (ReShadeAddonInterface.ReShadeIsSignedByReShade)
+        if (ReShadeAddonInterface.ReShadeIsSignedByReShade &&
+            this.dalamudConfiguration.ReShadeHandlingMode is ReShadeHandlingMode.ReShadeAddonPresent or ReShadeHandlingMode.ReShadeAddonReShadeOverlay)
         {
             Log.Warning("Signed ReShade binary detected");
             Service<NotificationManager>
