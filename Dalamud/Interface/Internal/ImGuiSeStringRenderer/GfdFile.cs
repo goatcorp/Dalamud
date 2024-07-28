@@ -6,7 +6,7 @@ using Lumina.Data;
 
 namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer;
 
-/// <summary>Reference member view of a .gfd file data.</summary>
+/// <summary>Game font data file.</summary>
 internal sealed unsafe class GfdFile : FileResource
 {
     /// <summary>Gets or sets the file header.</summary>

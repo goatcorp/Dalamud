@@ -2,18 +2,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
 
+/// <summary><a href="https://unicode.org/reports/tr14/#Table1">Unicode line break class</a>.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]
 [SuppressMessage(
     "StyleCop.CSharp.DocumentationRules",
     "SA1300:Element should begin with an uppercase letter",
-    Justification = "Unicode Data")]
-[SuppressMessage(
-    "StyleCop.CSharp.DocumentationRules",
-    "SA1600:Elements should be documented",
-    Justification = "Unicode Data")]
-[SuppressMessage(
-    "StyleCop.CSharp.DocumentationRules",
-    "SA1602:Enumeration items should be documented",
     Justification = "Unicode Data")]
 internal enum UnicodeLineBreakClass : byte
 {

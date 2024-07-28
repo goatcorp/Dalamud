@@ -44,7 +44,7 @@ internal static class UnicodeData
         EmojiProperty =
             Parse(
                 typeof(UnicodeData).Assembly.GetManifestResourceStream("emoji-data.txt")!,
-                UnicodeEmojiProperty.Emoji);
+                default(UnicodeEmojiProperty));
     }
 
     private static T[] Parse<T>(Stream stream, T defaultValue)
@@ -94,8 +94,8 @@ internal static class UnicodeData
             if (from > char.MaxValue)
                 continue;
 
-            from = Math.Min(from, char.MaxValue);
-            to = Math.Min(to, char.MaxValue);
+            from = Math.Min(from, res.Length);
+            to = Math.Min(to, res.Length);
             if (isFlag)
             {
                 foreach (ref var v in res.AsSpan()[from..to])
