@@ -101,7 +101,15 @@ public interface IGameConfig
     /// <param name="properties">Details of the option: Minimum, Maximum, and Default values.</param>
     /// <returns>A value representing the success.</returns>
     public bool TryGet(SystemConfigOption option, out FloatConfigProperties? properties);
-    
+
+    /// <summary>
+    /// Attempts to get a string config value as a gamepad button enum value from the UiConfig section.
+    /// </summary>
+    /// <param name="option">Option to get the value of.</param>
+    /// <param name="value">The returned value of the config option.</param>
+    /// <returns>A value representing the success.</returns>
+    public bool TryGet(SystemConfigOption option, out PadButtonValue value);
+
     /// <summary>
     /// Attempts to get the properties of a String option from the System section.
     /// </summary>
