@@ -1,7 +1,6 @@
-﻿using System.Linq;
-
-using Dalamud.Configuration.Internal;
+﻿using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
@@ -86,6 +85,7 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
 /// <summary>
 /// Class representing an entry in the server info bar.
 /// </summary>
+[Api11ToDo(Api11ToDoAttribute.MakeInternal)]
 public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
 {
     private readonly DalamudConfiguration configuration;
@@ -146,7 +146,7 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     }
 
     /// <inheritdoc/>
-    [Api10ToDo("Maybe make this config scoped to internalname?")]
+    [Api11ToDo("Maybe make this config scoped to internalname?")]
     public bool UserHidden => this.configuration.DtrIgnore?.Contains(this.Title) ?? false;
 
     /// <summary>
@@ -160,9 +160,9 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     internal Utf8String* Storage { get; set; }
 
     /// <summary>
-    /// Gets a value indicating whether this entry should be removed.
+    /// Gets or sets a value indicating whether this entry should be removed.
     /// </summary>
-    internal bool ShouldBeRemoved { get; private set; }
+    internal bool ShouldBeRemoved { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this entry is dirty.
@@ -173,6 +173,11 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// Gets or sets a value indicating whether this entry has just been added.
     /// </summary>
     internal bool Added { get; set; } 
+
+    /// <summary>
+    /// Gets or sets the plugin that owns this entry.
+    /// </summary>
+    internal LocalPlugin? OwnerPlugin { get; set; }
 
     /// <inheritdoc/>
     public bool TriggerClickAction()

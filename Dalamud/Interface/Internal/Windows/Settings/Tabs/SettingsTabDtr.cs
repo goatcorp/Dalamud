@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
@@ -45,6 +46,10 @@ public class SettingsTabDtr : SettingsTab
         }
 
         var isOrderChange = false;
+        Span<Vector2> upButtonCenters = stackalloc Vector2[order.Count];
+        Span<Vector2> downButtonCenters = stackalloc Vector2[order.Count];
+        scoped Span<Vector2> moveMouseTo = default;
+        var moveMouseToIndex = -1;
         for (var i = 0; i < order.Count; i++)
         {
             var title = order[i];
@@ -65,8 +70,12 @@ public class SettingsTabDtr : SettingsTab
                 {
                     (order[i], order[i - 1]) = (order[i - 1], order[i]);
                     isOrderChange = true;
+                    moveMouseToIndex = i - 1;
+                    moveMouseTo = upButtonCenters;
                 }
             }
+
+            upButtonCenters[i] = (ImGui.GetItemRectMin() + ImGui.GetItemRectMax()) / 2;
 
             ImGui.SameLine();
 
@@ -81,8 +90,12 @@ public class SettingsTabDtr : SettingsTab
                 {
                     (order[i], order[i + 1]) = (order[i + 1], order[i]);
                     isOrderChange = true;
+                    moveMouseToIndex = i + 1;
+                    moveMouseTo = downButtonCenters;
                 }
             }
+
+            downButtonCenters[i] = (ImGui.GetItemRectMin() + ImGui.GetItemRectMax()) / 2;
 
             ImGui.PopFont();
 
@@ -105,6 +118,12 @@ public class SettingsTabDtr : SettingsTab
             }
 
             // }
+        }
+
+        if (moveMouseToIndex >= 0 && moveMouseToIndex < moveMouseTo.Length)
+        {
+            ImGui.GetIO().WantSetMousePos = true;
+            ImGui.GetIO().MousePos = moveMouseTo[moveMouseToIndex];
         }
 
         configuration.DtrOrder = order.Concat(orderLeft).ToList();
