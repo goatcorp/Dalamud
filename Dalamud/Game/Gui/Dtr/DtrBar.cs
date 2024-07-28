@@ -114,6 +114,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         {
             if (existingEntry.Title == title)
             {
+                existingEntry.ShouldBeRemoved = false;
                 this.entriesLock.ExitUpgradeableReadLock();
                 if (plugin == existingEntry.OwnerPlugin)
                     return existingEntry;
@@ -150,15 +151,27 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// </remarks>
     public void Remove(LocalPlugin? plugin, string? title)
     {
-        this.entriesLock.EnterReadLock();
+        this.entriesLock.EnterUpgradeableReadLock();
 
         foreach (var entry in this.entries)
         {
             if ((title is null || entry.Title == title) && (plugin is null || entry.OwnerPlugin == plugin))
+            {
+                if (!entry.Added)
+                {
+                    this.entriesLock.EnterWriteLock();
+                    this.RemoveEntry(entry);
+                    this.entries.Remove(entry);
+                    this.entriesReadOnlyCopy = null;
+                    this.entriesLock.ExitWriteLock();
+                }
+
                 entry.Remove();
+                break;
+            }
         }
 
-        this.entriesLock.ExitReadLock();
+        this.entriesLock.ExitUpgradeableReadLock();
     }
 
     /// <inheritdoc/>
@@ -189,33 +202,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             this.emptyString->Dtor();
             this.emptyString = null;
         }
-    }
-
-    /// <summary>
-    /// Remove nodes marked as "should be removed" from the bar.
-    /// </summary>
-    internal void HandleRemovedNodes()
-    {
-        this.entriesLock.EnterUpgradeableReadLock();
-        var changed = false;
-        foreach (var data in this.entries)
-        {
-            if (data.ShouldBeRemoved)
-            {
-                this.RemoveEntry(data);
-                changed = true;
-            }
-        }
-
-        if (changed)
-        {
-            this.entriesLock.EnterWriteLock();
-            this.entries.RemoveAll(d => d.ShouldBeRemoved);
-            this.entriesReadOnlyCopy = null;
-            this.entriesLock.ExitWriteLock();
-        }
-
-        this.entriesLock.ExitUpgradeableReadLock();
     }
 
     /// <summary>
@@ -302,8 +288,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
     private void Update(IFramework unused)
     {
-        this.HandleRemovedNodes();
-
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->RootNode->ChildNode == null) return;
 
@@ -323,9 +307,17 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         var runningXPos = this.entryStartPos;
 
-        this.entriesLock.EnterReadLock();
+        this.entriesLock.EnterUpgradeableReadLock();
+        var changed = false;
         foreach (var data in this.entries)
         {
+            if (data.ShouldBeRemoved)
+            {
+                changed = true;
+                this.RemoveEntry(data);
+                continue;
+            }
+
             if (!data.Added)
                 data.Added = this.AddNode(data);
 
@@ -379,7 +371,15 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             data.Dirty = false;
         }
 
-        this.entriesLock.ExitReadLock();
+        if (changed)
+        {
+            this.entriesLock.EnterWriteLock();
+            this.entries.RemoveAll(d => d.ShouldBeRemoved);
+            this.entriesReadOnlyCopy = null;
+            this.entriesLock.ExitWriteLock();
+        }
+
+        this.entriesLock.ExitUpgradeableReadLock();
     }
 
     private void FixCollision(AddonEvent eventType, AddonArgs addonInfo)

@@ -160,9 +160,9 @@ public sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     internal Utf8String* Storage { get; set; }
 
     /// <summary>
-    /// Gets a value indicating whether this entry should be removed.
+    /// Gets or sets a value indicating whether this entry should be removed.
     /// </summary>
-    internal bool ShouldBeRemoved { get; private set; }
+    internal bool ShouldBeRemoved { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this entry is dirty.

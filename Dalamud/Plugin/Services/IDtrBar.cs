@@ -32,7 +32,7 @@ public interface IDtrBar
     /// Removes a DTR bar entry from the system.
     /// </summary>
     /// <param name="title">Title of the entry to remove.</param>
-    /// <remarks>Remove operation is not immediate. Attempts to call <see cref="Get"/> immediately after calling this
-    /// function may fail.</remarks>
+    /// <remarks>Remove operation is not guaranteed to be immediately effective. Calls to <see cref="Get"/> may result
+    /// in an entry marked to be remove being revived and used again.</remarks>
     void Remove(string title);
 }
