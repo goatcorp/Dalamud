@@ -2,21 +2,25 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
 
+/// <summary><a href="https://www.unicode.org/reports/tr11/">Unicode east asian width</a>.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]
-[SuppressMessage(
-    "StyleCop.CSharp.DocumentationRules",
-    "SA1600:Elements should be documented",
-    Justification = "Unicode Data")]
-[SuppressMessage(
-    "StyleCop.CSharp.DocumentationRules",
-    "SA1602:Enumeration items should be documented",
-    Justification = "Unicode Data")]
 internal enum UnicodeEastAsianWidthClass : byte
 {
-    A = 0,
-    F = 1,
-    H = 2,
-    N = 3,
-    Na = 4,
-    W = 5,
+    /// <summary>East Asian Ambiguous.</summary>
+    A,
+
+    /// <summary>East Asian Fullwidth.</summary>
+    F,
+
+    /// <summary>East Asian Halfwidth.</summary>
+    H,
+
+    /// <summary>Neutral.</summary>
+    N,
+
+    /// <summary>East Asian Narrow.</summary>
+    Na,
+
+    /// <summary>East Asian Wide.</summary>
+    W,
 }
