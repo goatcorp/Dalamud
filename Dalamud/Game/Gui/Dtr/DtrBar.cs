@@ -308,13 +308,17 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         var runningXPos = this.entryStartPos;
 
         this.entriesLock.EnterUpgradeableReadLock();
-        var changed = false;
-        foreach (var data in this.entries)
+        for (var i = 0; i < this.entries.Count; i++)
         {
+            var data = this.entries[i];
             if (data.ShouldBeRemoved)
             {
-                changed = true;
+                this.entriesLock.EnterWriteLock();
+                this.entries.RemoveAt(i);
                 this.RemoveEntry(data);
+                this.entriesReadOnlyCopy = null;
+                this.entriesLock.ExitWriteLock();
+                i--;
                 continue;
             }
 
@@ -369,14 +373,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             }
 
             data.Dirty = false;
-        }
-
-        if (changed)
-        {
-            this.entriesLock.EnterWriteLock();
-            this.entries.RemoveAll(d => d.ShouldBeRemoved);
-            this.entriesReadOnlyCopy = null;
-            this.entriesLock.ExitWriteLock();
         }
 
         this.entriesLock.ExitUpgradeableReadLock();
