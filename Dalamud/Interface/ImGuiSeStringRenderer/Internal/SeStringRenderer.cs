@@ -30,8 +30,8 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class SeStringRenderer : IInternalDisposableService
 {
-    private const int ChannelShadow = 0;
-    private const int ChannelLinkBackground = 1;
+    private const int ChannelLinkBackground = 0;
+    private const int ChannelShadow = 1;
     private const int ChannelLinkUnderline = 2;
     private const int ChannelEdge = 3;
     private const int ChannelFore = 4;
@@ -397,6 +397,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         foreach (var c in UtfEnumerator.From(span, UtfEnumeratorFlags.Utf8SeString))
         {
             var activeColor = this.colorStack.Count == 0 ? this.currentStyle.Color : this.colorStack[^1];
+            var activeShadowColor =
+                this.shadowColorStack.Count == 0 ? this.currentStyle.ShadowColor : this.shadowColorStack[^1];
 
             if (c.IsSeStringPayload)
             {
@@ -464,6 +466,19 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                                     x + size.X,
                                     MathF.Round(state.Font.Ascent * state.FontSizeScale)),
                                 activeColor);
+
+                            if (this.currentStyle.Shadow && activeShadowColor >= 0x1000000)
+                            {
+                                state.SetCurrentChannel(ChannelShadow);
+                                state.DrawList.AddLine(
+                                    state.ScreenOffset + offset + new Vector2(
+                                        x,
+                                        MathF.Round(state.Font.Ascent * state.FontSizeScale) + 1),
+                                    state.ScreenOffset + offset + new Vector2(
+                                        x + size.X,
+                                        MathF.Round(state.Font.Ascent * state.FontSizeScale) + 1),
+                                    activeShadowColor);
+                            }
                         }
 
                         width = Math.Max(width, x + size.X);
@@ -486,17 +501,16 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 var dist = state.Font.GetDistanceAdjustmentForPair(lastRuneRepr, runeRepr);
                 ref var g = ref *(ImGuiHelpers.ImFontGlyphReal*)state.Font.FindGlyph(runeRepr).NativePtr;
 
+                var dxBold = this.currentStyle.Bold ? 2 : 1;
                 var dyItalic = this.currentStyle.Italic
                                    ? new Vector2(state.Font.FontSize - g.Y0, state.Font.FontSize - g.Y1) / 6
                                    : Vector2.Zero;
 
-                var activeShadowColor = this.shadowColorStack.Count == 0
-                                            ? this.currentStyle.ShadowColor
-                                            : this.shadowColorStack[^1];
                 if (this.currentStyle.Shadow && activeShadowColor >= 0x1000000)
                 {
                     state.SetCurrentChannel(ChannelShadow);
-                    state.Draw(offset + new Vector2(x + dist, 1), g, dyItalic, activeShadowColor);
+                    for (var dx = 0; dx < dxBold; dx++)
+                        state.Draw(offset + new Vector2(x + dist + dx, 1), g, dyItalic, activeShadowColor);
                 }
 
                 var useEdge = this.edgeColorStack.Count > 0 || this.currentStyle.Edge;
@@ -510,11 +524,11 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 if (useEdge && activeEdgeColor >= 0x1000000)
                 {
                     state.SetCurrentChannel(ChannelEdge);
-                    for (var dx = -1; dx <= 1; dx++)
+                    for (var dx = -1; dx <= dxBold; dx++)
                     {
                         for (var dy = -1; dy <= 1; dy++)
                         {
-                            if (dx == 0 && dy == 0)
+                            if (dx >= 0 && dx < dxBold && dy == 0)
                                 continue;
 
                             state.Draw(offset + new Vector2(x + dist + dx, dy), g, dyItalic, activeEdgeColor);
@@ -523,7 +537,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 }
 
                 state.SetCurrentChannel(ChannelFore);
-                for (var dx = this.currentStyle.Bold ? 1 : 0; dx >= 0; dx--)
+                for (var dx = 0; dx < dxBold; dx++)
                     state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, activeColor);
 
                 if (activeLinkOffset != -1 && this.currentStyle.LinkUnderline)
@@ -537,6 +551,19 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                             x + dist + g.AdvanceX,
                             MathF.Round(state.Font.Ascent * state.FontSizeScale)),
                         activeColor);
+
+                    if (this.currentStyle.Shadow && activeShadowColor >= 0x1000000)
+                    {
+                        state.SetCurrentChannel(ChannelShadow);
+                        state.DrawList.AddLine(
+                            state.ScreenOffset + offset + new Vector2(
+                                x + dist,
+                                MathF.Round(state.Font.Ascent * state.FontSizeScale) + 1),
+                            state.ScreenOffset + offset + new Vector2(
+                                x + dist + g.AdvanceX,
+                                MathF.Round(state.Font.Ascent * state.FontSizeScale) + 1),
+                            activeShadowColor);
+                    }
                 }
 
                 width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
