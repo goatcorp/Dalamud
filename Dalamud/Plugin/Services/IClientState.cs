@@ -33,8 +33,8 @@ public interface IClientState
     public event ClassJobChangeDelegate? ClassJobChanged;
 
     /// <summary>
-    /// Event that fires when a characters level changed.<br/>
-    /// This event might get fired for a different ClassJob than the player is currently on (e.g. in PvP matches).
+    /// Event that fires when <em>any</em> character level changes, including levels
+    /// for a not-currently-active ClassJob (e.g. PvP matches, DoH/DoL).
     /// </summary>
     public event LevelChangeDelegate? LevelChanged;
 
