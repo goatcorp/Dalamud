@@ -166,9 +166,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
         this.CreateTextFragments(ref state, currLineTextBaseOffset, wrapWidth);
 
+        // Draw text fragments.
         var size = Vector2.Zero;
-        var hoveredLinkOffset = -1;
-        var activeLinkOffset = -1;
         for (var i = 0; i < this.fragments.Count; i++)
         {
             var fragment = this.fragments[i];
@@ -196,8 +195,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             size = Vector2.Max(size, fragment.Offset + new Vector2(fragment.VisibleWidth, state.FontSize));
         }
 
+        // Create an ImGui item.
         ImGui.Dummy(size);
+
+        // Handle link interactions.
         var clicked = false;
+        var hoveredLinkOffset = -1;
+        var activeLinkOffset = -1;
         if (imGuiId.PushId())
         {
             var invisibleButtonDrawn = false;
@@ -236,6 +240,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             ImGui.PopID();
         }
 
+        // If any link is being interacted, draw rectangles behind the relevant text fragments.
         if (hoveredLinkOffset != -1 || activeLinkOffset != -1)
         {
             state.SetCurrentChannel(ChannelLinkBackground);
@@ -288,22 +293,21 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         this.splitter = default;
     }
 
-    private void CreateTextFragments(ref DrawState state, float baseOffset, float wrapWidth)
+    private void CreateTextFragments(ref DrawState state, float baseY, float wrapWidth)
     {
         var prev = 0;
-        var runningOffset = new Vector2(0, baseOffset);
-        var runningWidth = 0f;
-        var activeLinkOffset = -1;
-        foreach (var (curr2, mandatory) in new LineBreakEnumerator(state.Raw, UtfEnumeratorFlags.Utf8SeString))
+        var xy = new Vector2(0, baseY);
+        var w = 0f;
+        var linkOffset = -1;
+        foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Raw, UtfEnumeratorFlags.Utf8SeString))
         {
-            var curr = curr2;
-            var fragment = state.CreateFragment(this, prev, curr, mandatory, runningOffset, activeLinkOffset);
-            var nextRunningWidth = Math.Max(runningWidth, runningOffset.X + fragment.VisibleWidth);
-            var nextLinkOffset = activeLinkOffset;
-            if (nextRunningWidth <= wrapWidth)
+            var nextLinkOffset = linkOffset;
+            while (prev < breakAt)
             {
-                // New fragment fits in the current line.
-                foreach (var p in new ReadOnlySeStringSpan(state.Raw.Data[prev..curr2]).GetOffsetEnumerator())
+                var curr = breakAt;
+
+                // Try to split by link payloads.
+                foreach (var p in new ReadOnlySeStringSpan(state.Raw.Data[prev..breakAt]).GetOffsetEnumerator())
                 {
                     if (p.Payload.MacroCode == MacroCode.Link)
                     {
@@ -313,166 +317,69 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                             u == (uint)LinkMacroPayloadType.Terminator
                                 ? -1
                                 : prev + p.Offset;
+
+                        // Split only if we're not splitting at the beginning.
                         if (p.Offset != 0)
                         {
                             curr = prev + p.Offset;
-                            this.CreateNonBreakingTextFragment(
-                                ref state,
-                                ref runningOffset,
-                                ref prev,
-                                curr,
-                                curr == curr2 && mandatory,
-                                activeLinkOffset);
+                            break;
                         }
-
-                        activeLinkOffset = nextLinkOffset;
                     }
                 }
 
-                this.CreateNonBreakingTextFragment(
-                    ref state,
-                    ref runningOffset,
-                    ref prev,
-                    curr2,
-                    mandatory,
-                    activeLinkOffset);
-
-                prev = curr2;
-                runningWidth = nextRunningWidth;
-            }
-            else if (fragment.VisibleWidth <= wrapWidth)
-            {
-                // New fragment does not fit in the current line, but it will fit in the next line.
-                // Implicit conditions: runningWidth > 0, this.words.Count > 0
-                runningOffset.X = 0;
-                runningOffset.Y += state.FontSize;
-                this.fragments[^1] = this.fragments[^1] with { MandatoryBreakAfter = true };
-
-                foreach (var p in new ReadOnlySeStringSpan(state.Raw.Data[prev..curr2]).GetOffsetEnumerator())
+                // See if it's possible to add the whole break unit within wrap width.
+                var currMandatory = curr == breakAt && mandatory;
+                var fragment = state.CreateFragment(this, prev, curr, currMandatory, xy, linkOffset);
+                if (wrapWidth < Math.Max(w, xy.X + fragment.VisibleWidth))
                 {
-                    if (p.Payload.MacroCode == MacroCode.Link)
+                    // New fragment does not fit in the current line.
+                    if (xy.X != 0 && this.fragments.Count > 0 && !this.fragments[^1].MandatoryBreakAfter)
                     {
-                        nextLinkOffset =
-                            p.Payload.TryGetExpression(out var e) &&
-                            e.TryGetUInt(out var u) &&
-                            u == (uint)LinkMacroPayloadType.Terminator
-                                ? -1
-                                : prev + p.Offset;
-                        if (p.Offset != 0)
-                        {
-                            curr = prev + p.Offset;
-                            this.CreateNonBreakingTextFragment(
-                                ref state,
-                                ref runningOffset,
-                                ref prev,
-                                curr,
-                                curr == curr2 && mandatory,
-                                activeLinkOffset);
-                        }
-
-                        activeLinkOffset = nextLinkOffset;
-                    }
-                }
-
-                this.CreateNonBreakingTextFragment(
-                    ref state,
-                    ref runningOffset,
-                    ref prev,
-                    curr2,
-                    mandatory,
-                    activeLinkOffset);
-
-                prev = curr2;
-                runningWidth = this.fragments[^1].AdvanceWidth;
-            }
-            else
-            {
-                // New fragment does not fit in the given width, and it needs to be broken down.
-                while (prev < curr2)
-                {
-                    if (runningOffset.X > 0)
-                    {
-                        runningOffset.X = 0;
-                        runningOffset.Y += state.FontSize;
-                    }
-
-                    curr = curr2;
-                    foreach (var p in new ReadOnlySeStringSpan(state.Raw.Data[prev..curr2]).GetOffsetEnumerator())
-                    {
-                        if (p.Payload.MacroCode == MacroCode.Link)
-                        {
-                            nextLinkOffset =
-                                p.Payload.TryGetExpression(out var e) &&
-                                e.TryGetUInt(out var u) &&
-                                u == (uint)LinkMacroPayloadType.Terminator
-                                    ? -1
-                                    : prev + p.Offset;
-                            if (p.Offset != 0)
-                            {
-                                curr = prev + p.Offset;
-                                break;
-                            }
-                        }
-                    }
-
-                    fragment = state.CreateFragment(
-                        this,
-                        prev,
-                        curr,
-                        fragment.To != curr || mandatory,
-                        runningOffset,
-                        activeLinkOffset,
-                        wrapWidth);
-                    activeLinkOffset = nextLinkOffset;
-                    runningWidth = fragment.VisibleWidth;
-                    runningOffset.X = fragment.AdvanceWidth;
-                    prev = fragment.To;
-                    if (this.fragments.Count > 0)
+                        xy.X = 0;
+                        xy.Y += state.FontSize;
+                        w = 0;
                         this.fragments[^1] = this.fragments[^1] with { MandatoryBreakAfter = true };
-                    this.fragments.Add(fragment);
+                    }
+
+                    // Create a fragment again that fits into the given width limit.
+                    fragment = state.CreateFragment(this, prev, curr, currMandatory, xy, linkOffset, wrapWidth);
+                }
+                else if (this.fragments.Count > 0)
+                {
+                    // New fragment fits into the current line, and it has a previous fragment.
+                    char lastFragmentEnd;
+                    if (this.fragments[^1].EndsWithSoftHyphen)
+                    {
+                        // Previous fragment needs to be marked that its ending soft hyphen won't be shown.
+                        xy.X += this.fragments[^1].AdvanceWidthWithoutLastRune -
+                                           this.fragments[^1].AdvanceWidth;
+                        lastFragmentEnd = this.fragments[^1].LastRuneRepr2;
+                    }
+                    else
+                    {
+                        lastFragmentEnd = this.fragments[^1].LastRuneRepr;
+                    }
+
+                    // Adjust this fragment's offset from kerning distance.
+                    xy.X += MathF.Round(
+                        state.Font.GetDistanceAdjustmentForPair(lastFragmentEnd, fragment.FirstRuneRepr) *
+                        state.FontSizeScale);
+                    fragment = fragment with { Offset = xy };
+                }
+
+                linkOffset = nextLinkOffset;
+                w = Math.Max(w, xy.X + fragment.VisibleWidth);
+                xy.X += fragment.AdvanceWidth;
+                prev = fragment.To;
+                this.fragments.Add(fragment);
+
+                if (fragment.MandatoryBreakAfter)
+                {
+                    xy.X = w = 0;
+                    xy.Y += state.FontSize;
                 }
             }
-
-            if (fragment.MandatoryBreakAfter)
-            {
-                runningOffset.X = runningWidth = 0;
-                runningOffset.Y += state.FontSize;
-            }
         }
-    }
-
-    private void CreateNonBreakingTextFragment(
-        ref DrawState state,
-        ref Vector2 runningOffset,
-        ref int prev,
-        int curr,
-        bool mandatory,
-        int activeLinkOffset)
-    {
-        var fragment = state.CreateFragment(this, prev, curr, mandatory, runningOffset, activeLinkOffset);
-
-        if (this.fragments.Count > 0)
-        {
-            char lastFragmentEnd;
-            if (this.fragments[^1].EndsWithSoftHyphen)
-            {
-                runningOffset.X += this.fragments[^1].AdvanceWidthWithoutLastRune - this.fragments[^1].AdvanceWidth;
-                lastFragmentEnd = this.fragments[^1].LastRuneRepr;
-            }
-            else
-            {
-                lastFragmentEnd = this.fragments[^1].LastRuneRepr2;
-            }
-
-            runningOffset.X += MathF.Round(
-                state.Font.GetDistanceAdjustmentForPair(lastFragmentEnd, fragment.FirstRuneRepr) *
-                state.FontSizeScale);
-            fragment = fragment with { Offset = runningOffset };
-        }
-
-        this.fragments.Add(fragment);
-        runningOffset.X += fragment.AdvanceWidth;
-        prev = curr;
     }
 
     private void DrawTextFragment(
