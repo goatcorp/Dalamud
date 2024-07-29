@@ -184,30 +184,48 @@ public static class ImGuiHelpers
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
     public static void SeStringWrapped(ReadOnlySpan<byte> sss, float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().DrawWrapped(sss, default, wrapWidth);
+        Service<SeStringRenderer>.Get().DrawWrapped(sss, wrapWidth: wrapWidth);
 
     /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
     /// <param name="text">SeString text macro representation.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
     public static void CompileSeStringWrapped(string text, float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, default, wrapWidth);
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, wrapWidth: wrapWidth);
 
     /// <summary>Draws a SeString.</summary>
     /// <param name="sss">SeString to draw.</param>
     /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    public static void SeStringWrapped(ReadOnlySpan<byte> sss, SeStringRenderStyle style, float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().DrawWrapped(sss, style, wrapWidth);
+    /// <returns>Byte offset of the link payload that is being hovered, or <c>-1</c> if none, and whether that link
+    /// (or the text itself if no link is active) is clicked.</returns>
+    public static (int ByteOffset, bool Clicked) SeStringWrapped(
+        ReadOnlySpan<byte> sss,
+        SeStringRenderStyle style = default,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault,
+        float wrapWidth = 0) =>
+        Service<SeStringRenderer>.Get().DrawWrapped(sss, style, imGuiId, buttonFlags, wrapWidth);
 
     /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
     /// <param name="text">SeString text macro representation.</param>
     /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    public static void CompileSeStringWrapped(string text, SeStringRenderStyle style, float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, wrapWidth);
+    /// <returns>Byte offset of the link payload that is being hovered, or <c>-1</c> if none, and whether that link
+    /// (or the text itself if no link is active) is clicked.</returns>
+    public static (int ByteOffset, bool Clicked) CompileSeStringWrapped(
+        string text,
+        SeStringRenderStyle style,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault,
+        float wrapWidth = 0) =>
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags, wrapWidth);
 
     /// <summary>
     /// Write unformatted text wrapped.

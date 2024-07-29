@@ -31,9 +31,11 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 internal unsafe class SeStringRenderer : IInternalDisposableService
 {
     private const int ChannelShadow = 0;
-    private const int ChannelEdge = 1;
-    private const int ChannelFore = 2;
-    private const int ChannelCount = 3;
+    private const int ChannelLinkBackground = 1;
+    private const int ChannelLinkUnderline = 2;
+    private const int ChannelEdge = 3;
+    private const int ChannelFore = 4;
+    private const int ChannelCount = 5;
 
     private const int ImGuiContextCurrentWindowOffset = 0x3FF0;
     private const int ImGuiWindowDcOffset = 0x118;
@@ -50,7 +52,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     private readonly uint[] colorTypes;
     private readonly uint[] edgeColorTypes;
 
-    private readonly List<TextFragment> words = [];
+    private readonly List<TextFragment> fragments = [];
 
     private readonly List<uint> colorStack = [];
     private readonly List<uint> edgeColorStack = [];
@@ -99,31 +101,52 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
     /// <param name="text">SeString text macro representation.</param>
     /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    public void CompileAndDrawWrapped(string text, SeStringRenderStyle style = default, float wrapWidth = 0)
+    /// <returns>Byte offset of the link payload that is being hovered, or <c>-1</c> if none, and whether that link
+    /// (or the text itself if no link is active) is clicked.</returns>
+    public (int ByteOffset, bool Clicked) CompileAndDrawWrapped(
+        string text,
+        SeStringRenderStyle style = default,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault,
+        float wrapWidth = 0)
     {
         ThreadSafety.AssertMainThread();
-        this.DrawWrapped(this.Compile(text).AsSpan(), style, wrapWidth);
+        return this.DrawWrapped(this.Compile(text).AsSpan(), style, imGuiId, buttonFlags, wrapWidth);
     }
 
-    /// <inheritdoc cref="DrawWrapped(ReadOnlySeStringSpan, SeStringRenderStyle, float)"/>
-    public void DrawWrapped(in Utf8String utf8String, SeStringRenderStyle style = default, float wrapWidth = 0) =>
-        this.DrawWrapped(utf8String.AsSpan(), style, wrapWidth);
+    /// <inheritdoc cref="DrawWrapped(ReadOnlySeStringSpan, SeStringRenderStyle, ImGuiId, ImGuiButtonFlags, float)"/>
+    public (int ByteOffset, bool Clicked) DrawWrapped(
+        in Utf8String utf8String,
+        SeStringRenderStyle style = default,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault, float wrapWidth = 0) =>
+        this.DrawWrapped(utf8String.AsSpan(), style, imGuiId, buttonFlags, wrapWidth);
 
     /// <summary>Draws a SeString.</summary>
     /// <param name="sss">SeString to draw.</param>
     /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    public void DrawWrapped(ReadOnlySeStringSpan sss, SeStringRenderStyle style = default, float wrapWidth = 0)
+    /// <returns>Byte offset of the link payload that is being hovered, or <c>-1</c> if none, and whether that link
+    /// (or the text itself if no link is active) is clicked.</returns>
+    public (int ByteOffset, bool Clicked) DrawWrapped(
+        ReadOnlySeStringSpan sss,
+        SeStringRenderStyle style = default,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault, float wrapWidth = 0)
     {
         ThreadSafety.AssertMainThread();
 
         if (wrapWidth <= 0)
             wrapWidth = ImGui.GetContentRegionAvail().X;
 
-        this.words.Clear();
+        this.fragments.Clear();
         this.colorStack.Clear();
         this.edgeColorStack.Clear();
         this.shadowColorStack.Clear();
@@ -140,38 +163,100 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         var pCurrentWindow = *(nint*)(ImGui.GetCurrentContext() + ImGuiContextCurrentWindowOffset);
         var pWindowDc = pCurrentWindow + ImGuiWindowDcOffset;
         var currLineTextBaseOffset = *(float*)(pWindowDc + ImGuiWindowTempDataCurrLineTextBaseOffset);
-        
+
         this.CreateTextFragments(ref state, currLineTextBaseOffset, wrapWidth);
 
         var size = Vector2.Zero;
-        for (var i = 0; i < this.words.Count; i++)
+        var hoveredLinkOffset = -1;
+        var activeLinkOffset = -1;
+        for (var i = 0; i < this.fragments.Count; i++)
         {
-            var word = this.words[i];
-            this.DrawWord(
+            var fragment = this.fragments[i];
+            this.DrawTextFragment(
                 ref state,
-                word.Offset,
-                state.Raw.Data[word.From..word.To],
+                fragment.Offset,
+                state.Raw.Data[fragment.From..fragment.To],
                 i == 0
                     ? '\0'
-                    : this.words[i - 1].IsSoftHyphenVisible
-                        ? this.words[i - 1].LastRuneRepr
-                        : this.words[i - 1].LastRuneRepr2);
+                    : this.fragments[i - 1].IsSoftHyphenVisible
+                        ? this.fragments[i - 1].LastRuneRepr
+                        : this.fragments[i - 1].LastRuneRepr2,
+                fragment.ActiveLinkOffset);
 
-            if (word.IsSoftHyphenVisible && i > 0)
+            if (fragment.IsSoftHyphenVisible && i > 0)
             {
-                this.DrawWord(
+                this.DrawTextFragment(
                     ref state,
-                    word.Offset + new Vector2(word.AdvanceWidthWithoutLastRune, 0),
+                    fragment.Offset + new Vector2(fragment.AdvanceWidthWithoutLastRune, 0),
                     "-"u8,
-                    this.words[i - 1].LastRuneRepr);
+                    this.fragments[i - 1].LastRuneRepr,
+                    fragment.ActiveLinkOffset);
             }
 
-            size = Vector2.Max(size, word.Offset + new Vector2(word.VisibleWidth, state.FontSize));
+            size = Vector2.Max(size, fragment.Offset + new Vector2(fragment.VisibleWidth, state.FontSize));
+        }
+
+        ImGui.Dummy(size);
+        var clicked = false;
+        if (imGuiId.PushId())
+        {
+            var invisibleButtonDrawn = false;
+            foreach (var fragment in this.fragments)
+            {
+                var fragmentSize = new Vector2(fragment.AdvanceWidth, state.FontSize);
+                if (fragment.ActiveLinkOffset != -1)
+                {
+                    var pos = ImGui.GetMousePos() - state.ScreenOffset - fragment.Offset;
+                    if (pos is { X: >= 0, Y: >= 0 } && pos.X <= fragmentSize.X && pos.Y <= fragmentSize.Y)
+                    {
+                        invisibleButtonDrawn = true;
+
+                        var cursorPosBackup = ImGui.GetCursorScreenPos();
+                        ImGui.SetCursorScreenPos(state.ScreenOffset + fragment.Offset);
+                        clicked = ImGui.InvisibleButton("##link", new(fragment.AdvanceWidth, state.FontSize));
+                        if (ImGui.IsItemHovered())
+                            hoveredLinkOffset = fragment.ActiveLinkOffset;
+                        if (ImGui.IsItemActive())
+                            activeLinkOffset = fragment.ActiveLinkOffset;
+                        ImGui.SetCursorScreenPos(cursorPosBackup);
+
+                        break;
+                    }
+                }
+
+                size = Vector2.Max(size, fragmentSize);
+            }
+
+            if (!invisibleButtonDrawn)
+            {
+                ImGui.SetCursorScreenPos(state.ScreenOffset);
+                clicked = ImGui.InvisibleButton("##text", size);
+            }
+
+            ImGui.PopID();
+        }
+
+        if (hoveredLinkOffset != -1 || activeLinkOffset != -1)
+        {
+            state.SetCurrentChannel(ChannelLinkBackground);
+            foreach (var f in this.fragments)
+            {
+                if (f.ActiveLinkOffset != hoveredLinkOffset && hoveredLinkOffset != -1)
+                    continue;
+                if (f.ActiveLinkOffset != activeLinkOffset && activeLinkOffset != -1)
+                    continue;
+                state.DrawList.AddRectFilled(
+                    state.ScreenOffset + f.Offset,
+                    state.ScreenOffset + f.Offset + new Vector2(f.AdvanceWidth, state.FontSize),
+                    activeLinkOffset == -1
+                        ? this.currentStyle.LinkHoverColor
+                        : this.currentStyle.LinkActiveColor);
+            }
         }
 
         state.Splitter.Merge(state.DrawList);
 
-        ImGui.Dummy(size);
+        return (hoveredLinkOffset, clicked);
     }
 
     /// <summary>Gets the printable char for the given char, or null(\0) if it should not be handled at all.</summary>
@@ -208,52 +293,102 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         var prev = 0;
         var runningOffset = new Vector2(0, baseOffset);
         var runningWidth = 0f;
-        foreach (var (curr, mandatory) in new LineBreakEnumerator(state.Raw, UtfEnumeratorFlags.Utf8SeString))
+        var activeLinkOffset = -1;
+        foreach (var (curr2, mandatory) in new LineBreakEnumerator(state.Raw, UtfEnumeratorFlags.Utf8SeString))
         {
-            var fragment = state.CreateFragment(this, prev, curr, mandatory, runningOffset);
+            var curr = curr2;
+            var fragment = state.CreateFragment(this, prev, curr, mandatory, runningOffset, activeLinkOffset);
             var nextRunningWidth = Math.Max(runningWidth, runningOffset.X + fragment.VisibleWidth);
+            var nextLinkOffset = activeLinkOffset;
             if (nextRunningWidth <= wrapWidth)
             {
                 // New fragment fits in the current line.
-                if (this.words.Count > 0)
+                foreach (var p in new ReadOnlySeStringSpan(state.Raw.Data[prev..curr2]).GetOffsetEnumerator())
                 {
-                    char lastFragmentEnd;
-                    if (this.words[^1].EndsWithSoftHyphen)
+                    if (p.Payload.MacroCode == MacroCode.Link)
                     {
-                        runningOffset.X += this.words[^1].AdvanceWidthWithoutLastRune - this.words[^1].AdvanceWidth;
-                        lastFragmentEnd = this.words[^1].LastRuneRepr;
-                    }
-                    else
-                    {
-                        lastFragmentEnd = this.words[^1].LastRuneRepr2;
-                    }
+                        nextLinkOffset =
+                            p.Payload.TryGetExpression(out var e) &&
+                            e.TryGetUInt(out var u) &&
+                            u == (uint)LinkMacroPayloadType.Terminator
+                                ? -1
+                                : prev + p.Offset;
+                        if (p.Offset != 0)
+                        {
+                            curr = prev + p.Offset;
+                            this.CreateNonBreakingTextFragment(
+                                ref state,
+                                ref runningOffset,
+                                ref prev,
+                                curr,
+                                curr == curr2 && mandatory,
+                                activeLinkOffset);
+                        }
 
-                    runningOffset.X += MathF.Round(
-                        state.Font.GetDistanceAdjustmentForPair(lastFragmentEnd, fragment.FirstRuneRepr) *
-                        state.FontSizeScale);
-                    fragment = fragment with { Offset = runningOffset };
+                        activeLinkOffset = nextLinkOffset;
+                    }
                 }
 
-                this.words.Add(fragment);
+                this.CreateNonBreakingTextFragment(
+                    ref state,
+                    ref runningOffset,
+                    ref prev,
+                    curr2,
+                    mandatory,
+                    activeLinkOffset);
+
+                prev = curr2;
                 runningWidth = nextRunningWidth;
-                runningOffset.X += fragment.AdvanceWidth;
-                prev = curr;
             }
             else if (fragment.VisibleWidth <= wrapWidth)
             {
                 // New fragment does not fit in the current line, but it will fit in the next line.
                 // Implicit conditions: runningWidth > 0, this.words.Count > 0
-                runningWidth = fragment.VisibleWidth;
-                runningOffset.X = fragment.AdvanceWidth;
+                runningOffset.X = 0;
                 runningOffset.Y += state.FontSize;
-                prev = curr;
-                this.words[^1] = this.words[^1] with { MandatoryBreakAfter = true };
-                this.words.Add(fragment with { Offset = runningOffset with { X = 0 } });
+                this.fragments[^1] = this.fragments[^1] with { MandatoryBreakAfter = true };
+
+                foreach (var p in new ReadOnlySeStringSpan(state.Raw.Data[prev..curr2]).GetOffsetEnumerator())
+                {
+                    if (p.Payload.MacroCode == MacroCode.Link)
+                    {
+                        nextLinkOffset =
+                            p.Payload.TryGetExpression(out var e) &&
+                            e.TryGetUInt(out var u) &&
+                            u == (uint)LinkMacroPayloadType.Terminator
+                                ? -1
+                                : prev + p.Offset;
+                        if (p.Offset != 0)
+                        {
+                            curr = prev + p.Offset;
+                            this.CreateNonBreakingTextFragment(
+                                ref state,
+                                ref runningOffset,
+                                ref prev,
+                                curr,
+                                curr == curr2 && mandatory,
+                                activeLinkOffset);
+                        }
+
+                        activeLinkOffset = nextLinkOffset;
+                    }
+                }
+
+                this.CreateNonBreakingTextFragment(
+                    ref state,
+                    ref runningOffset,
+                    ref prev,
+                    curr2,
+                    mandatory,
+                    activeLinkOffset);
+
+                prev = curr2;
+                runningWidth = this.fragments[^1].AdvanceWidth;
             }
             else
             {
                 // New fragment does not fit in the given width, and it needs to be broken down.
-                while (prev < curr)
+                while (prev < curr2)
                 {
                     if (runningOffset.X > 0)
                     {
@@ -261,13 +396,40 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                         runningOffset.Y += state.FontSize;
                     }
 
-                    fragment = state.CreateFragment(this, prev, curr, mandatory, runningOffset, wrapWidth);
+                    curr = curr2;
+                    foreach (var p in new ReadOnlySeStringSpan(state.Raw.Data[prev..curr2]).GetOffsetEnumerator())
+                    {
+                        if (p.Payload.MacroCode == MacroCode.Link)
+                        {
+                            nextLinkOffset =
+                                p.Payload.TryGetExpression(out var e) &&
+                                e.TryGetUInt(out var u) &&
+                                u == (uint)LinkMacroPayloadType.Terminator
+                                    ? -1
+                                    : prev + p.Offset;
+                            if (p.Offset != 0)
+                            {
+                                curr = prev + p.Offset;
+                                break;
+                            }
+                        }
+                    }
+
+                    fragment = state.CreateFragment(
+                        this,
+                        prev,
+                        curr,
+                        fragment.To != curr || mandatory,
+                        runningOffset,
+                        activeLinkOffset,
+                        wrapWidth);
+                    activeLinkOffset = nextLinkOffset;
                     runningWidth = fragment.VisibleWidth;
                     runningOffset.X = fragment.AdvanceWidth;
                     prev = fragment.To;
-                    if (this.words.Count > 0)
-                        this.words[^1] = this.words[^1] with { MandatoryBreakAfter = true };
-                    this.words.Add(fragment);
+                    if (this.fragments.Count > 0)
+                        this.fragments[^1] = this.fragments[^1] with { MandatoryBreakAfter = true };
+                    this.fragments.Add(fragment);
                 }
             }
 
@@ -279,7 +441,46 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         }
     }
 
-    private void DrawWord(ref DrawState state, Vector2 offset, ReadOnlySpan<byte> span, char lastRuneRepr)
+    private void CreateNonBreakingTextFragment(
+        ref DrawState state,
+        ref Vector2 runningOffset,
+        ref int prev,
+        int curr,
+        bool mandatory,
+        int activeLinkOffset)
+    {
+        var fragment = state.CreateFragment(this, prev, curr, mandatory, runningOffset, activeLinkOffset);
+
+        if (this.fragments.Count > 0)
+        {
+            char lastFragmentEnd;
+            if (this.fragments[^1].EndsWithSoftHyphen)
+            {
+                runningOffset.X += this.fragments[^1].AdvanceWidthWithoutLastRune - this.fragments[^1].AdvanceWidth;
+                lastFragmentEnd = this.fragments[^1].LastRuneRepr;
+            }
+            else
+            {
+                lastFragmentEnd = this.fragments[^1].LastRuneRepr2;
+            }
+
+            runningOffset.X += MathF.Round(
+                state.Font.GetDistanceAdjustmentForPair(lastFragmentEnd, fragment.FirstRuneRepr) *
+                state.FontSizeScale);
+            fragment = fragment with { Offset = runningOffset };
+        }
+
+        this.fragments.Add(fragment);
+        runningOffset.X += fragment.AdvanceWidth;
+        prev = curr;
+    }
+
+    private void DrawTextFragment(
+        ref DrawState state,
+        Vector2 offset,
+        ReadOnlySpan<byte> span,
+        char lastRuneRepr,
+        int activeLinkOffset)
     {
         var gfdTextureSrv =
             (nint)UIModule.Instance()->GetRaptureAtkModule()->AtkModule.AtkFontManager.Gfd->Texture->
@@ -288,13 +489,15 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         var width = 0f;
         foreach (var c in UtfEnumerator.From(span, UtfEnumeratorFlags.Utf8SeString))
         {
+            var activeColor = this.colorStack.Count == 0 ? this.currentStyle.Color : this.colorStack[^1];
+
             if (c.IsSeStringPayload)
             {
-                var enu = new ReadOnlySeStringSpan(span[c.ByteOffset..]).GetEnumerator();
+                var enu = new ReadOnlySeStringSpan(span[c.ByteOffset..]).GetOffsetEnumerator();
                 if (!enu.MoveNext())
                     continue;
 
-                var payload = enu.Current;
+                var payload = enu.Current.Payload;
                 switch (payload.MacroCode)
                 {
                     case MacroCode.Color:
@@ -343,6 +546,19 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                             Vector2.Zero,
                             useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,
                             useHq ? gfdEntry.HqUv1 : gfdEntry.Uv1);
+                        if (activeLinkOffset != -1 && this.currentStyle.LinkUnderline)
+                        {
+                            state.SetCurrentChannel(ChannelLinkUnderline);
+                            state.DrawList.AddLine(
+                                state.ScreenOffset + offset + new Vector2(
+                                    x,
+                                    MathF.Round(state.Font.Ascent * state.FontSizeScale)),
+                                state.ScreenOffset + offset + new Vector2(
+                                    x + size.X,
+                                    MathF.Round(state.Font.Ascent * state.FontSizeScale)),
+                                activeColor);
+                        }
+
                         width = Math.Max(width, x + size.X);
                         x += MathF.Round(size.X);
                         lastRuneRepr = '\0';
@@ -400,9 +616,21 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 }
 
                 state.SetCurrentChannel(ChannelFore);
-                var activeColor = this.colorStack.Count == 0 ? this.currentStyle.Color : this.colorStack[^1];
                 for (var dx = this.currentStyle.Bold ? 1 : 0; dx >= 0; dx--)
                     state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, activeColor);
+
+                if (activeLinkOffset != -1 && this.currentStyle.LinkUnderline)
+                {
+                    state.SetCurrentChannel(ChannelLinkUnderline);
+                    state.DrawList.AddLine(
+                        state.ScreenOffset + offset + new Vector2(
+                            x + dist,
+                            MathF.Round(state.Font.Ascent * state.FontSizeScale)),
+                        state.ScreenOffset + offset + new Vector2(
+                            x + dist + g.AdvanceX,
+                            MathF.Round(state.Font.Ascent * state.FontSizeScale)),
+                        activeColor);
+                }
 
                 width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
                 x += dist + MathF.Round(g.AdvanceX * state.FontSizeScale);
@@ -522,6 +750,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     private readonly record struct TextFragment(
         int From,
         int To,
+        int ActiveLinkOffset,
         Vector2 Offset,
         float VisibleWidth,
         float AdvanceWidth,
@@ -615,7 +844,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             int to,
             bool mandatoryBreakAfter,
             Vector2 offset,
-            float wrapWidth = float.PositiveInfinity)
+            int activeLinkOffset,
+            float wrapWidth = float.MaxValue)
         {
             var lastNonSpace = from;
 
@@ -690,6 +920,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             return new(
                 from,
                 to,
+                activeLinkOffset,
                 offset,
                 visibleWidth,
                 advanceWidth,
