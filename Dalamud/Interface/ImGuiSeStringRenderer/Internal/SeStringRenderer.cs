@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using BitFaster.Caching.Lru;
 
 using Dalamud.Data;
+using Dalamud.Game;
 using Dalamud.Game.Config;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Hooking;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -23,6 +26,8 @@ using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using static Dalamud.Game.Text.SeStringHandling.BitmapFontIcon;
+
+using SeStringBuilder = Lumina.Text.SeStringBuilder;
 
 namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 
@@ -43,10 +48,24 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
     private const char SoftHyphen = '\u00AD';
 
+    private static readonly ReadOnlySeString MacroEncoderEncodeStringError =
+        new SeStringBuilder()
+            .BeginMacro(MacroCode.ColorType).AppendIntExpression(508).EndMacro()
+            .BeginMacro(MacroCode.EdgeColorType).AppendIntExpression(509).EndMacro()
+            .Append(
+                "<encode failed, and error message generation failed because the part that caused the error was too long>"u8)
+            .BeginMacro(MacroCode.EdgeColorType).AppendIntExpression(0).EndMacro()
+            .BeginMacro(MacroCode.ColorType).AppendIntExpression(0).EndMacro()
+            .ToReadOnlySeString();
+
     [ServiceManager.ServiceDependency]
     private readonly GameConfig gameConfig = Service<GameConfig>.Get();
 
     private readonly ConcurrentLru<string, ReadOnlySeString> cache = new(1024);
+
+    private readonly delegate* unmanaged<
+        delegate* unmanaged<char*, char*, char*, int, nuint, void>,
+        delegate* unmanaged<char*, char*, char*, int, nuint, void>> setInvalidParameterHandler;
 
     private readonly GfdFile gfd;
     private readonly uint[] colorTypes;
@@ -57,12 +76,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     private readonly List<uint> colorStack = [];
     private readonly List<uint> edgeColorStack = [];
     private readonly List<uint> shadowColorStack = [];
+
     private SeStringRenderStyle currentStyle;
 
     private ImDrawListSplitterPtr splitter = new(ImGuiNative.ImDrawListSplitter_ImDrawListSplitter());
 
     [ServiceManager.ServiceConstructor]
-    private SeStringRenderer(DataManager dm)
+    private SeStringRenderer(DataManager dm, TargetSigScanner sigScanner)
     {
         var uiColor = dm.Excel.GetSheet<UIColor>()!;
         var maxId = 0;
@@ -78,6 +98,14 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         }
 
         this.gfd = dm.GetFile<GfdFile>("common/font/gfdata.gfd")!;
+
+        // SetUnhandledExceptionFilter(who cares);
+        // _set_purecall_handler(() => *(int*)0 = 0xff14);
+        // _set_invalid_parameter_handler(() => *(int*)0 = 0xff14);
+        var f = sigScanner.ScanText(
+                    "ff 15 ff 0e e3 01 48 8d 0d ?? ?? ?? ?? e8 ?? ?? ?? ?? 48 8d 0d ?? ?? ?? ?? e8 ?? ?? ?? ??") + 26;
+        fixed (void* p = &this.setInvalidParameterHandler)
+            *(nint*)p = *(int*)f + f + 4;
     }
 
     /// <summary>Finalizes an instance of the <see cref="SeStringRenderer"/> class.</summary>
@@ -89,14 +117,45 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <summary>Creates and caches a SeString from a text macro representation.</summary>
     /// <param name="text">SeString text macro representation.</param>
     /// <returns>Compiled SeString.</returns>
-    public ReadOnlySeString Compile(string text) => this.cache.GetOrAdd(
-        text,
-        static text =>
+    public ReadOnlySeString Compile(string text)
+    {
+        // MacroEncoder looks stateful; disallowing calls from off main threads for now.
+        ThreadSafety.AssertMainThread();
+
+        return this.cache.GetOrAdd(
+            text,
+            static (text, context) =>
+            {
+                // there is a thread local variant of this but who cares
+                var prev = context.setInvalidParameterHandler(&MsvcrtInvalidParameterHandlerDetour);
+                try
+                {
+                    using var tmp = new Utf8String();
+                    RaptureTextModule.Instance()->MacroEncoder.EncodeString(&tmp, text.ReplaceLineEndings("<br>"));
+                    return new(tmp.AsSpan().ToArray());
+                }
+                catch (Exception)
+                {
+                    return MacroEncoderEncodeStringError;
+                }
+                finally
+                {
+                    context.setInvalidParameterHandler(prev);
+                }
+            },
+            this);
+
+        [UnmanagedCallersOnly]
+        static void MsvcrtInvalidParameterHandlerDetour(
+            char* expression,
+            char* function,
+            char* file,
+            int line,
+            nuint reserved)
         {
-            using var tmp = new Utf8String();
-            RaptureTextModule.Instance()->MacroEncoder.EncodeString(&tmp, text.ReplaceLineEndings("<br>"));
-            return new(tmp.AsSpan().ToArray());
-        });
+            throw new InvalidOperationException();
+        }
+    }
 
     /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
     /// <param name="text">SeString text macro representation.</param>
