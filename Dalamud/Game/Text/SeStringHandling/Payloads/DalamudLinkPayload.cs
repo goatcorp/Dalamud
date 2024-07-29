@@ -62,35 +62,49 @@ public class DalamudLinkPayload : Payload
                 out var commandIdExpression,
                 out var extra1Expression,
                 out var extra2Expression,
-                out var pluginExpression))
-            return;
-
-        if (!commandIdExpression.TryGetUInt(out var commandId))
-            return;
-
-        if (!extra1Expression.TryGetInt(out var extra1))
-            return;
-
-        if (!extra2Expression.TryGetInt(out var extra2))
-            return;
-
-        if (!pluginExpression.TryGetString(out var compositeString))
-            return;
-
-        string[] extraData;
-        try
+                out var compositeExpression))
         {
-            extraData = JsonConvert.DeserializeObject<string[]>(compositeString.ExtractText());
-        }
-        catch
-        {
-            return;
-        }
+            if (!rosps.TryGetExpression(out var pluginExpression, out commandIdExpression))
+                return;
 
-        this.CommandId = commandId;
-        this.Extra1 = extra1;
-        this.Extra2 = extra2;
-        this.Plugin = extraData[0];
-        this.ExtraString = extraData[1];
+            if (!pluginExpression.TryGetString(out var pluginString))
+                return;
+
+            if (!commandIdExpression.TryGetUInt(out var commandId))
+                return;
+
+            this.Plugin = pluginString.ExtractText();
+            this.CommandId = commandId;
+        }
+        else
+        {
+            if (!commandIdExpression.TryGetUInt(out var commandId))
+                return;
+
+            if (!extra1Expression.TryGetInt(out var extra1))
+                return;
+
+            if (!extra2Expression.TryGetInt(out var extra2))
+                return;
+
+            if (!compositeExpression.TryGetString(out var compositeString))
+                return;
+
+            string[] extraData;
+            try
+            {
+                extraData = JsonConvert.DeserializeObject<string[]>(compositeString.ExtractText());
+            }
+            catch
+            {
+                return;
+            }
+
+            this.CommandId = commandId;
+            this.Extra1 = extra1;
+            this.Extra2 = extra2;
+            this.Plugin = extraData[0];
+            this.ExtraString = extraData[1];
+        }
     }
 }
