@@ -9,16 +9,14 @@ using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
 
 using ImGuiNET;
 using ImGuiScene;
-
-using Lumina.Text.ReadOnly;
-
-using SeStringRenderer = Dalamud.Interface.Internal.ImGuiSeStringRenderer.SeStringRenderer;
 
 namespace Dalamud.Interface.Utility;
 
@@ -181,13 +179,35 @@ public static class ImGuiHelpers
         if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
     }
 
-    /// <inheritdoc cref="SeStringRenderer.DrawWrapped(ReadOnlySeStringSpan, float)"/>
+    /// <summary>Draws a SeString.</summary>
+    /// <param name="sss">SeString to draw.</param>
+    /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
+    /// will be used.</param>
     public static void SeStringWrapped(ReadOnlySpan<byte> sss, float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().DrawWrapped(sss, wrapWidth);
+        Service<SeStringRenderer>.Get().DrawWrapped(sss, default, wrapWidth);
 
-    /// <inheritdoc cref="SeStringRenderer.CompileAndDrawWrapped"/>
+    /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
+    /// <param name="text">SeString text macro representation.</param>
+    /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
+    /// will be used.</param>
     public static void CompileSeStringWrapped(string text, float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, wrapWidth);
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, default, wrapWidth);
+
+    /// <summary>Draws a SeString.</summary>
+    /// <param name="sss">SeString to draw.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
+    /// will be used.</param>
+    public static void SeStringWrapped(ReadOnlySpan<byte> sss, SeStringRenderStyle style, float wrapWidth = 0) =>
+        Service<SeStringRenderer>.Get().DrawWrapped(sss, style, wrapWidth);
+
+    /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
+    /// <param name="text">SeString text macro representation.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
+    /// will be used.</param>
+    public static void CompileSeStringWrapped(string text, SeStringRenderStyle style, float wrapWidth = 0) =>
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, wrapWidth);
 
     /// <summary>
     /// Write unformatted text wrapped.

@@ -1,11 +1,16 @@
 using System.Numerics;
 
 using Dalamud.Game.Gui;
-using Dalamud.Interface.Internal.ImGuiSeStringRenderer;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+
+using Lumina.Text.ReadOnly;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
@@ -207,6 +212,18 @@ internal unsafe class UiDebug
                     Service<SeStringRenderer>.Get().DrawWrapped(textNode->NodeText);
 
                     ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new IntPtr(textNode->NodeText.StringPtr), (uint)textNode->NodeText.BufSize);
+
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Encode##{(ulong)textNode:X}"))
+                    {
+                        using var tmp = new Utf8String();
+                        RaptureTextModule.Instance()->MacroEncoder.EncodeString(&tmp, textNode->NodeText.StringPtr);
+                        textNode->NodeText.Copy(&tmp);
+                    }
+
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Decode##{(ulong)textNode:X}"))
+                        textNode->NodeText.SetString(new ReadOnlySeStringSpan(textNode->NodeText.StringPtr).ToString());
 
                     ImGui.Text($"AlignmentType: {(AlignmentType)textNode->AlignmentFontType}  FontSize: {textNode->FontSize}");
                     int b = textNode->AlignmentFontType;

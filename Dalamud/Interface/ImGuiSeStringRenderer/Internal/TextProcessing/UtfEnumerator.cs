@@ -8,7 +8,7 @@ using Lumina.Text;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 
 /// <summary>Enumerates a UTF-N byte sequence by codepoint.</summary>
 [DebuggerDisplay("{Current}/{data.Length} ({flags}, BE={isBigEndian})")]

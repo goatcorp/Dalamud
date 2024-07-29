@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 
 /// <summary><a href="https://unicode.org/reports/tr14/#Table1">Unicode line break class</a>.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]

@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 
 /// <summary>Stores unicode data.</summary>
 internal static class UnicodeData

@@ -7,7 +7,7 @@ using BitFaster.Caching.Lru;
 using Dalamud.Data;
 using Dalamud.Game.Config;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -24,7 +24,7 @@ using Lumina.Text.ReadOnly;
 
 using static Dalamud.Game.Text.SeStringHandling.BitmapFontIcon;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 
 /// <summary>Draws SeString.</summary>
 [ServiceManager.EarlyLoadedService]
@@ -35,8 +35,11 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     private const int ChannelFore = 2;
     private const int ChannelCount = 3;
 
+    private const int ImGuiContextCurrentWindowOffset = 0x3FF0;
+    private const int ImGuiWindowDcOffset = 0x118;
+    private const int ImGuiWindowTempDataCurrLineTextBaseOffset = 0x38;
+
     private const char SoftHyphen = '\u00AD';
-    private const char ObjectReplacementCharacter = '\uFFFC';
 
     [ServiceManager.ServiceDependency]
     private readonly GameConfig gameConfig = Service<GameConfig>.Get();
@@ -52,10 +55,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     private readonly List<uint> colorStack = [];
     private readonly List<uint> edgeColorStack = [];
     private readonly List<uint> shadowColorStack = [];
-    private bool bold;
-    private bool italic;
-    private Vector2 edge;
-    private Vector2 shadow;
+    private SeStringRenderStyle currentStyle;
 
     private ImDrawListSplitterPtr splitter = new(ImGuiNative.ImDrawListSplitter_ImDrawListSplitter());
 
@@ -76,15 +76,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         }
 
         this.gfd = dm.GetFile<GfdFile>("common/font/gfdata.gfd")!;
-
-        return;
-
-        static uint BgraToRgba(uint x)
-        {
-            var buf = (byte*)&x;
-            (buf[0], buf[2]) = (buf[2], buf[0]);
-            return x;
-        }
     }
 
     /// <summary>Finalizes an instance of the <see cref="SeStringRenderer"/> class.</summary>
@@ -93,38 +84,39 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.ReleaseUnmanagedResources();
 
+    /// <summary>Creates and caches a SeString from a text macro representation.</summary>
+    /// <param name="text">SeString text macro representation.</param>
+    /// <returns>Compiled SeString.</returns>
+    public ReadOnlySeString Compile(string text) => this.cache.GetOrAdd(
+        text,
+        static text =>
+        {
+            using var tmp = new Utf8String();
+            RaptureTextModule.Instance()->MacroEncoder.EncodeString(&tmp, text.ReplaceLineEndings("<br>"));
+            return new(tmp.AsSpan().ToArray());
+        });
+
     /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
     /// <param name="text">SeString text macro representation.</param>
+    /// <param name="style">Initial rendering style.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    public void CompileAndDrawWrapped(string text, float wrapWidth = 0)
+    public void CompileAndDrawWrapped(string text, SeStringRenderStyle style = default, float wrapWidth = 0)
     {
         ThreadSafety.AssertMainThread();
-
-        this.DrawWrapped(
-            this.cache.GetOrAdd(
-                text,
-                static text =>
-                {
-                    var outstr = default(Utf8String);
-                    outstr.Ctor();
-                    RaptureTextModule.Instance()->MacroEncoder.EncodeString(&outstr, text.ReplaceLineEndings("<br>"));
-                    var res = new ReadOnlySeString(outstr.AsSpan().ToArray());
-                    outstr.Dtor();
-                    return res;
-                }).AsSpan(),
-            wrapWidth);
+        this.DrawWrapped(this.Compile(text).AsSpan(), style, wrapWidth);
     }
 
-    /// <inheritdoc cref="DrawWrapped(ReadOnlySeStringSpan, float)"/>
-    public void DrawWrapped(in Utf8String utf8String, float wrapWidth = 0) =>
-        this.DrawWrapped(utf8String.AsSpan(), wrapWidth);
+    /// <inheritdoc cref="DrawWrapped(ReadOnlySeStringSpan, SeStringRenderStyle, float)"/>
+    public void DrawWrapped(in Utf8String utf8String, SeStringRenderStyle style = default, float wrapWidth = 0) =>
+        this.DrawWrapped(utf8String.AsSpan(), style, wrapWidth);
 
     /// <summary>Draws a SeString.</summary>
     /// <param name="sss">SeString to draw.</param>
+    /// <param name="style">Initial rendering style.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    public void DrawWrapped(ReadOnlySeStringSpan sss, float wrapWidth = 0)
+    public void DrawWrapped(ReadOnlySeStringSpan sss, SeStringRenderStyle style = default, float wrapWidth = 0)
     {
         ThreadSafety.AssertMainThread();
 
@@ -135,13 +127,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         this.colorStack.Clear();
         this.edgeColorStack.Clear();
         this.shadowColorStack.Clear();
-
-        this.colorStack.Add(ImGui.GetColorU32(ImGuiCol.Text));
-        this.edgeColorStack.Add(0);
-        this.shadowColorStack.Add(0);
-        this.bold = this.italic = false;
-        this.edge = Vector2.One;
-        this.shadow = Vector2.Zero;
+        this.currentStyle = style;
 
         var state = new DrawState(
             sss,
@@ -150,7 +136,12 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             ImGui.GetFont(),
             ImGui.GetFontSize(),
             ImGui.GetCursorScreenPos());
-        this.CreateTextFragments(ref state, wrapWidth);
+
+        var pCurrentWindow = *(nint*)(ImGui.GetCurrentContext() + ImGuiContextCurrentWindowOffset);
+        var pWindowDc = pCurrentWindow + ImGuiWindowDcOffset;
+        var currLineTextBaseOffset = *(float*)(pWindowDc + ImGuiWindowTempDataCurrLineTextBaseOffset);
+        
+        this.CreateTextFragments(ref state, currLineTextBaseOffset, wrapWidth);
 
         var size = Vector2.Zero;
         for (var i = 0; i < this.words.Count; i++)
@@ -198,6 +189,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         _ => new(c),
     };
 
+    private static uint BgraToRgba(uint x)
+    {
+        var buf = (byte*)&x;
+        (buf[0], buf[2]) = (buf[2], buf[0]);
+        return x;
+    }
+
     private void ReleaseUnmanagedResources()
     {
         if (this.splitter.NativePtr is not null)
@@ -205,10 +203,10 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         this.splitter = default;
     }
 
-    private void CreateTextFragments(ref DrawState state, float wrapWidth)
+    private void CreateTextFragments(ref DrawState state, float baseOffset, float wrapWidth)
     {
         var prev = 0;
-        var runningOffset = Vector2.Zero;
+        var runningOffset = new Vector2(0, baseOffset);
         var runningWidth = 0f;
         foreach (var (curr, mandatory) in new LineBreakEnumerator(state.Raw, UtfEnumeratorFlags.Utf8SeString))
         {
@@ -309,18 +307,17 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                         TouchColorStack(this.shadowColorStack, payload);
                         continue;
                     case MacroCode.Bold when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                        this.bold = u != 0;
+                        // doesn't actually work in chat log
+                        this.currentStyle.Bold = u != 0;
                         continue;
                     case MacroCode.Italic when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                        this.italic = u != 0;
+                        this.currentStyle.Italic = u != 0;
                         continue;
-                    case MacroCode.Edge when payload.TryGetExpression(out var e1, out var e2) &&
-                                             e1.TryGetInt(out var v1) && e2.TryGetInt(out var v2):
-                        this.edge = new(v1, v2);
+                    case MacroCode.Edge when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
+                        this.currentStyle.Edge = u != 0;
                         continue;
-                    case MacroCode.Shadow when payload.TryGetExpression(out var e1, out var e2) &&
-                                               e1.TryGetInt(out var v1) && e2.TryGetInt(out var v2):
-                        this.shadow = new(v1, v2);
+                    case MacroCode.Shadow when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
+                        this.currentStyle.Shadow = u != 0;
                         continue;
                     case MacroCode.ColorType:
                         TouchColorTypeStack(this.colorStack, this.colorTypes, payload);
@@ -336,19 +333,18 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                             gfdEntry.IsEmpty)
                             continue;
 
-                        var useHq = state.FontSize > 19;
-                        var sizeScale = (state.FontSize + 1) / gfdEntry.Height;
+                        var size = state.CalculateGfdEntrySize(gfdEntry, out var useHq);
                         state.SetCurrentChannel(ChannelFore);
                         state.Draw(
-                            offset + new Vector2(x, 0),
+                            offset + new Vector2(x, (state.FontSize - size.Y) / 2),
                             gfdTextureSrv,
                             Vector2.Zero,
-                            gfdEntry.Size * sizeScale,
+                            size,
                             Vector2.Zero,
                             useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,
                             useHq ? gfdEntry.HqUv1 : gfdEntry.Uv1);
-                        width = Math.Max(width, x + (gfdEntry.Width * sizeScale));
-                        x += MathF.Round(gfdEntry.Width * sizeScale);
+                        width = Math.Max(width, x + size.X);
+                        x += MathF.Round(size.X);
                         lastRuneRepr = '\0';
                         continue;
                     }
@@ -367,38 +363,46 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 var dist = state.Font.GetDistanceAdjustmentForPair(lastRuneRepr, runeRepr);
                 ref var g = ref *(ImGuiHelpers.ImFontGlyphReal*)state.Font.FindGlyph(runeRepr).NativePtr;
 
-                var dyItalic = this.italic
+                var dyItalic = this.currentStyle.Italic
                                    ? new Vector2(state.Font.FontSize - g.Y0, state.Font.FontSize - g.Y1) / 6
                                    : Vector2.Zero;
 
-                if (this.shadow != Vector2.Zero && this.shadowColorStack[^1] >= 0x1000000)
+                var activeShadowColor = this.shadowColorStack.Count == 0
+                                            ? this.currentStyle.ShadowColor
+                                            : this.shadowColorStack[^1];
+                if (this.currentStyle.Shadow && activeShadowColor >= 0x1000000)
                 {
                     state.SetCurrentChannel(ChannelShadow);
-                    state.Draw(
-                        offset + this.shadow + new Vector2(x + dist, 0),
-                        g,
-                        dyItalic,
-                        this.shadowColorStack[^1]);
+                    state.Draw(offset + new Vector2(x + dist, 1), g, dyItalic, activeShadowColor);
                 }
 
-                if (this.edge != Vector2.Zero && this.edgeColorStack[^1] >= 0x1000000)
+                var useEdge = this.edgeColorStack.Count > 0 || this.currentStyle.Edge;
+                var activeEdgeColor =
+                    this.currentStyle.ForceEdgeColor
+                        ? this.currentStyle.EdgeColor
+                        : this.edgeColorStack.Count == 0
+                            ? this.currentStyle.EdgeColor
+                            : this.edgeColorStack[^1];
+                activeEdgeColor = (activeEdgeColor & 0xFFFFFFu) | ((activeEdgeColor >> 26) << 24);
+                if (useEdge && activeEdgeColor >= 0x1000000)
                 {
                     state.SetCurrentChannel(ChannelEdge);
-                    for (var dx = -this.edge.X; dx <= this.edge.X; dx++)
+                    for (var dx = -1; dx <= 1; dx++)
                     {
-                        for (var dy = -this.edge.Y; dy <= this.edge.Y; dy++)
+                        for (var dy = -1; dy <= 1; dy++)
                         {
                             if (dx == 0 && dy == 0)
                                 continue;
 
-                            state.Draw(offset + new Vector2(x + dist + dx, dy), g, dyItalic, this.edgeColorStack[^1]);
+                            state.Draw(offset + new Vector2(x + dist + dx, dy), g, dyItalic, activeEdgeColor);
                         }
                     }
                 }
 
                 state.SetCurrentChannel(ChannelFore);
-                for (var dx = this.bold ? 1 : 0; dx >= 0; dx--)
-                    state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, this.colorStack[^1]);
+                var activeColor = this.colorStack.Count == 0 ? this.currentStyle.Color : this.colorStack[^1];
+                for (var dx = this.currentStyle.Bold ? 1 : 0; dx >= 0; dx--)
+                    state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, activeColor);
 
                 width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
                 x += dist + MathF.Round(g.AdvanceX * state.FontSizeScale);
@@ -413,10 +417,10 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         {
             if (!payload.TryGetExpression(out var expr))
                 return;
-            if (expr.TryGetPlaceholderExpression(out var p) && p == (int)ExpressionType.StackColor && stack.Count > 1)
+            if (expr.TryGetPlaceholderExpression(out var p) && p == (int)ExpressionType.StackColor && stack.Count > 0)
                 stack.RemoveAt(stack.Count - 1);
             else if (expr.TryGetUInt(out var u))
-                stack.Add(u);
+                stack.Add(BgraToRgba(u) | 0xFF000000u);
         }
 
         static void TouchColorTypeStack(List<uint> stack, uint[] colorTypes, ReadOnlySePayloadSpan payload)
@@ -426,8 +430,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             if (!expr.TryGetUInt(out var u))
                 return;
             if (u != 0)
-                stack.Add(u < colorTypes.Length ? colorTypes[u] : 0u);
-            else if (stack.Count > 1)
+                stack.Add((u < colorTypes.Length ? colorTypes[u] : 0u) | 0xFF000000u);
+            else if (stack.Count > 0)
                 stack.RemoveAt(stack.Count - 1);
         }
     }
@@ -479,8 +483,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                     PadButtonValue.XHB_Left_Start => ControllerTriggerLeft,
                     PadButtonValue.XHB_Right_Start => ControllerTriggerRight,
                     PadButtonValue.Jump => ControllerButton3,
-                    PadButtonValue.Accept => ControllerButton1,
-                    PadButtonValue.Cancel => ControllerButton0,
+                    PadButtonValue.Accept => ControllerButton0,
+                    PadButtonValue.Cancel => ControllerButton1,
                     PadButtonValue.Map_Sub => ControllerButton2,
                     PadButtonValue.MainCommand => ControllerStart,
                     PadButtonValue.HUD_Select => ControllerBack,
@@ -561,6 +565,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             splitter.Split(drawList, ChannelCount);
         }
 
+        public Vector2 CalculateGfdEntrySize(in GfdFile.GfdEntry gfdEntry, out bool useHq)
+        {
+            useHq = this.FontSize > 20;
+            var targetHeight = useHq ? this.FontSize : 20;
+            return new(gfdEntry.Width * (targetHeight / gfdEntry.Height), targetHeight);
+        }
+
         public void SetCurrentChannel(int channelIndex) => this.Splitter.SetCurrentChannel(this.DrawList, channelIndex);
 
         public void Draw(Vector2 offset, in ImGuiHelpers.ImFontGlyphReal g, Vector2 dyItalic, uint color) =>
@@ -630,9 +641,9 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                     renderer.gfd.TryGetEntry((uint)icon, out var gfdEntry) &&
                     !gfdEntry.IsEmpty)
                 {
-                    var sizeScale = (this.FontSize + 1) / gfdEntry.Height;
-                    w = Math.Max(w, x + (gfdEntry.Width * sizeScale));
-                    x += MathF.Round(gfdEntry.Width * sizeScale);
+                    var size = this.CalculateGfdEntrySize(gfdEntry, out _);
+                    w = Math.Max(w, x + size.X);
+                    x += MathF.Round(size.X);
                     lastRuneRepr = default;
                 }
                 else if (ToPrintableRune(c.EffectiveChar) is { } rune)

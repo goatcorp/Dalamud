@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-using static Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing.UnicodeEastAsianWidthClass;
-using static Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing.UnicodeGeneralCategory;
-using static Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing.UnicodeLineBreakClass;
+using static Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing.UnicodeEastAsianWidthClass;
+using static Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing.UnicodeGeneralCategory;
+using static Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing.UnicodeLineBreakClass;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 
 /// <summary>Enumerates line break offsets.</summary>
 internal ref struct LineBreakEnumerator
