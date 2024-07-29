@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -9,7 +10,6 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.Config;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Hooking;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
@@ -114,51 +114,74 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.ReleaseUnmanagedResources();
 
-    /// <summary>Creates and caches a SeString from a text macro representation.</summary>
+    /// <summary>Compiles a SeString from a text macro representation.</summary>
     /// <param name="text">SeString text macro representation.</param>
     /// <returns>Compiled SeString.</returns>
-    public ReadOnlySeString Compile(string text)
+    public ReadOnlySeString Compile(ReadOnlySpan<byte> text)
     {
         // MacroEncoder looks stateful; disallowing calls from off main threads for now.
         ThreadSafety.AssertMainThread();
 
-        return this.cache.GetOrAdd(
-            text,
-            static (text, context) =>
-            {
-                // there is a thread local variant of this but who cares
-                var prev = context.setInvalidParameterHandler(&MsvcrtInvalidParameterHandlerDetour);
-                try
-                {
-                    using var tmp = new Utf8String();
-                    RaptureTextModule.Instance()->MacroEncoder.EncodeString(&tmp, text.ReplaceLineEndings("<br>"));
-                    return new(tmp.AsSpan().ToArray());
-                }
-                catch (Exception)
-                {
-                    return MacroEncoderEncodeStringError;
-                }
-                finally
-                {
-                    context.setInvalidParameterHandler(prev);
-                }
-            },
-            this);
+        // there is a thread local variant of this but who cares
+        var prev = this.setInvalidParameterHandler(&MsvcrtInvalidParameterHandlerDetour);
+        try
+        {
+            using var tmp = new Utf8String();
+            RaptureTextModule.Instance()->MacroEncoder.EncodeString(&tmp, text);
+            return new(tmp.AsSpan().ToArray());
+        }
+        catch (Exception)
+        {
+            return MacroEncoderEncodeStringError;
+        }
+        finally
+        {
+            this.setInvalidParameterHandler(prev);
+        }
 
         [UnmanagedCallersOnly]
-        static void MsvcrtInvalidParameterHandlerDetour(
-            char* expression,
-            char* function,
-            char* file,
-            int line,
-            nuint reserved)
-        {
+        static void MsvcrtInvalidParameterHandlerDetour(char* a, char* b, char* c, int d, nuint e) =>
             throw new InvalidOperationException();
+    }
+
+    /// <summary>Compiles a SeString from a text macro representation.</summary>
+    /// <param name="text">SeString text macro representation.</param>
+    /// <returns>Compiled SeString.</returns>
+    public ReadOnlySeString Compile(ReadOnlySpan<char> text)
+    {
+        var len = Encoding.UTF8.GetByteCount(text);
+        if (len >= 1024)
+        {
+            var buf = ArrayPool<byte>.Shared.Rent(len + 1);
+            buf[Encoding.UTF8.GetBytes(text, buf)] = 0;
+            var res = this.Compile(buf);
+            ArrayPool<byte>.Shared.Return(buf);
+            return res;
+        }
+        else
+        {
+            Span<byte> buf = stackalloc byte[len + 1];
+            buf[Encoding.UTF8.GetBytes(text, buf)] = 0;
+            return this.Compile(buf);
         }
     }
 
-    /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
-    /// <param name="text">SeString text macro representation.</param>
+    /// <summary>Compiles and caches a SeString from a text macro representation.</summary>
+    /// <param name="text">SeString text macro representation.
+    /// Newline characters will be normalized to newline payloads.</param>
+    /// <returns>Compiled SeString.</returns>
+    public ReadOnlySeString CompileAndCache(string text)
+    {
+        // MacroEncoder looks stateful; disallowing calls from off main threads for now.
+        // Note that this is replicated in context.Compile. Only access cache from the main thread.
+        ThreadSafety.AssertMainThread();
+
+        return this.cache.GetOrAdd(text, static (text, context) => context.Compile(text.ReplaceLineEndings("<br>")), this);
+    }
+
+    /// <summary>Compiles and caches a SeString from a text macro representation, and then draws it.</summary>
+    /// <param name="text">SeString text macro representation.
+    /// Newline characters will be normalized to newline payloads.</param>
     /// <param name="style">Initial rendering style.</param>
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
@@ -174,7 +197,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         float wrapWidth = 0)
     {
         ThreadSafety.AssertMainThread();
-        return this.DrawWrapped(this.Compile(text).AsSpan(), style, imGuiId, buttonFlags, wrapWidth);
+        return this.DrawWrapped(this.CompileAndCache(text).AsSpan(), style, imGuiId, buttonFlags, wrapWidth);
     }
 
     /// <inheritdoc cref="DrawWrapped(ReadOnlySeStringSpan, SeStringRenderStyle, ImGuiId, ImGuiButtonFlags, float)"/>
@@ -383,6 +406,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                             curr = prev + p.Offset;
                             break;
                         }
+
+                        linkOffset = nextLinkOffset;
                     }
                 }
 
