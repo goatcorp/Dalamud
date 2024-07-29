@@ -68,6 +68,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
 
         this.setupTerritoryTypeHook.Enable();
+        this.uiModuleHandlePacketHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -163,6 +164,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     void IInternalDisposableService.DisposeService()
     {
         this.setupTerritoryTypeHook.Dispose();
+        this.uiModuleHandlePacketHook.Dispose();
         this.framework.Update -= this.FrameworkOnOnUpdateEvent;
         this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
     }
