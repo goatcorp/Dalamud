@@ -8,9 +8,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
@@ -354,7 +352,6 @@ internal class GameInventory : IInternalDisposableService
 internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInventory
 {
     private readonly ModuleLog log = new("GameInventory");
-    private readonly LocalPlugin plugin;
 
     [ServiceManager.ServiceDependency]
     private readonly GameInventory gameInventoryService = Service<GameInventory>.Get();
@@ -362,12 +359,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInventoryPluginScoped"/> class.
     /// </summary>
-    /// <param name="plugin">Information about the plugin using this service.</param>
-    internal GameInventoryPluginScoped(LocalPlugin plugin)
-    {
-        this.plugin = plugin;
-        this.gameInventoryService.Subscribe(this);
-    }
+    public GameInventoryPluginScoped() => this.gameInventoryService.Subscribe(this);
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangelogDelegate? InventoryChanged;
@@ -414,24 +406,6 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        PluginCleanupNag.CheckEvent(
-            this.plugin, 
-            this.log, 
-            this.InventoryChanged,
-            this.InventoryChangedRaw,
-            this.ItemAdded,
-            this.ItemRemoved,
-            this.ItemChanged,
-            this.ItemMoved,
-            this.ItemSplit,
-            this.ItemMerged,
-            this.ItemAddedExplicit,
-            this.ItemRemovedExplicit,
-            this.ItemChangedExplicit,
-            this.ItemMovedExplicit,
-            this.ItemSplitExplicit,
-            this.ItemMergedExplicit);
-        
         this.gameInventoryService.Unsubscribe(this);
 
         this.InventoryChanged = null;
@@ -462,7 +436,11 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
         }
         catch (Exception e)
         {
-            this.log.Error(e, $"[{this.plugin.InternalName}] Exception during {nameof(this.InventoryChanged)} callback");
+            this.log.Error(
+                e,
+                "[{plugin}] Exception during {argType} callback",
+                Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
+                nameof(this.InventoryChanged));
         }
     }
 
@@ -478,7 +456,11 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
         }
         catch (Exception e)
         {
-            this.log.Error(e, $"[{this.plugin.InternalName}] Exception during {nameof(this.InventoryChangedRaw)} callback");
+            this.log.Error(
+                e,
+                "[{plugin}] Exception during {argType} callback",
+                Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
+                nameof(this.InventoryChangedRaw));
         }
     }
     
@@ -539,7 +521,11 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
             }
             catch (Exception e)
             {
-                this.log.Error(e, $"[{this.plugin.InternalName}] Exception during untyped callback for {evt}");
+                log.Error(
+                    e,
+                    "[{plugin}] Exception during untyped callback for {evt}",
+                    Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
+                    evt);
             }
 
             try
@@ -548,7 +534,11 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
             }
             catch (Exception e)
             {
-                this.log.Error(e, $"[{this.plugin.InternalName}] Exception during typed callback for {evt}");
+                log.Error(
+                    e,
+                    "[{plugin}] Exception during typed callback for {evt}",
+                    Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
+                    evt);
             }
         }
     }
