@@ -184,6 +184,8 @@ public static class ImGuiHelpers
     /// <param name="sss">SeString to draw.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
+    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
+    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static void SeStringWrapped(ReadOnlySpan<byte> sss, float wrapWidth = 0) =>
         Service<SeStringRenderer>.Get().Draw(sss, new() { WrapWidth = wrapWidth > 0 ? wrapWidth : null });
 
@@ -192,6 +194,8 @@ public static class ImGuiHelpers
     /// Newline characters will be normalized to <see cref="NewLinePayload"/>.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
+    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
+    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static void CompileSeStringWrapped(string text, float wrapWidth = 0) =>
         Service<SeStringRenderer>.Get().CompileAndDrawWrapped(
             text,
@@ -203,6 +207,8 @@ public static class ImGuiHelpers
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
+    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
+    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static SeStringRenderResult SeStringWrapped(
         ReadOnlySpan<byte> sss,
         SeStringDrawParams style = default,
@@ -217,6 +223,8 @@ public static class ImGuiHelpers
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
+    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
+    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static SeStringRenderResult CompileSeStringWrapped(
         string text,
         SeStringDrawParams style,
