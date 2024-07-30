@@ -375,7 +375,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.TerritoryChanged, this.Login, this.Logout, this.EnterPvP, this.LeavePvP, this.CfPop);
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.TerritoryChanged, this.ClassJobChanged, this.LevelChanged, this.Login, this.Logout, this.EnterPvP, this.LeavePvP, this.CfPop);
 
         this.clientStateService.TerritoryChanged -= this.TerritoryChangedForward;
         this.clientStateService.ClassJobChanged -= this.ClassJobChangedForward;
