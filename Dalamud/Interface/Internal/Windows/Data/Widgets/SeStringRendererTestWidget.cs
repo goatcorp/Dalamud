@@ -24,7 +24,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     private ImVectorWrapper<byte> testStringBuffer;
     private string testString = string.Empty;
     private Addon[]? addons;
-    private SeStringRenderStyle style;
+    private SeStringDrawParams style;
     private bool interactable;
 
     /// <inheritdoc/>
@@ -42,18 +42,18 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         this.style = default;
         this.addons = null;
         this.testString = string.Empty;
-        this.interactable = false;
+        this.interactable = true;
         this.Ready = true;
     }
 
     /// <inheritdoc/>
     public void Draw()
     {
-        var t2 = ImGui.ColorConvertU32ToFloat4(this.style.Color);
+        var t2 = ImGui.ColorConvertU32ToFloat4(this.style.Color ?? ImGui.GetColorU32(ImGuiCol.Text));
         if (ImGui.ColorEdit4("Color", ref t2))
             this.style.Color = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.EdgeColor);
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.EdgeColor ?? 0xFF000000u);
         if (ImGui.ColorEdit4("Edge Color", ref t2))
             this.style.EdgeColor = ImGui.ColorConvertFloat4ToU32(t2);
 
@@ -62,17 +62,21 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         if (ImGui.Checkbox("Forced", ref t))
             this.style.ForceEdgeColor = t;
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.ShadowColor);
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.ShadowColor ?? 0xFF000000u);
         if (ImGui.ColorEdit4("Shadow Color", ref t2))
             this.style.ShadowColor = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkHoverColor);
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkHoverBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonHovered));
         if (ImGui.ColorEdit4("Link Hover Color", ref t2))
-            this.style.LinkHoverColor = ImGui.ColorConvertFloat4ToU32(t2);
+            this.style.LinkHoverBackColor = ImGui.ColorConvertFloat4ToU32(t2);
 
-        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkActiveColor);
+        t2 = ImGui.ColorConvertU32ToFloat4(this.style.LinkActiveBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonActive));
         if (ImGui.ColorEdit4("Link Active Color", ref t2))
-            this.style.LinkActiveColor = ImGui.ColorConvertFloat4ToU32(t2);
+            this.style.LinkActiveBackColor = ImGui.ColorConvertFloat4ToU32(t2);
+
+        var t3 = this.style.LineHeight ?? 1f;
+        if (ImGui.DragFloat("Line Height", ref t3, 0.1f, 0.4f, 3f, "%.02f"))
+            this.style.LineHeight = t3;
 
         t = this.style.Edge;
         if (ImGui.Checkbox("Edge", ref t))
@@ -94,9 +98,14 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             this.style.Shadow = t;
 
         ImGui.SameLine();
-        t = this.style.LinkUnderline;
+        t = this.style.LinkUnderlineThickness > 0f;
         if (ImGui.Checkbox("Link Underline", ref t))
-            this.style.LinkUnderline = t;
+            this.style.LinkUnderlineThickness = t ? 1f : 0f;
+
+        ImGui.SameLine();
+        t = this.style.WrapWidth is null;
+        if (ImGui.Checkbox("Word Wrap", ref t))
+            this.style.WrapWidth = t ? null : float.PositiveInfinity;
 
         ImGui.SameLine();
         t = this.interactable;

@@ -1,13 +1,17 @@
 using System.Linq;
+using System.Numerics;
 
 using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Interface.ImGuiSeStringRenderer;
 
 /// <summary>Represents the result of n rendered interactable SeString.</summary>
-public ref struct SeStringInteraction
+public ref struct SeStringRenderResult
 {
     private Payload? lazyPayload;
+
+    /// <summary>Gets the visible size of the text rendered/to be rendered.</summary>
+    public Vector2 Size { get; init; }
 
     /// <summary>Gets a value indicating whether a payload or the whole text has been clicked.</summary>
     public bool Clicked { get; init; }

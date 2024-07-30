@@ -209,7 +209,7 @@ internal unsafe class UiDebug
                     var textNode = (AtkTextNode*)node;
                     ImGui.Text("text: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(textNode->NodeText);
+                    Service<SeStringRenderer>.Get().Draw(textNode->NodeText);
 
                     ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new IntPtr(textNode->NodeText.StringPtr), (uint)textNode->NodeText.BufSize);
 
@@ -250,7 +250,7 @@ internal unsafe class UiDebug
                     var counterNode = (AtkCounterNode*)node;
                     ImGui.Text("text: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(counterNode->NodeText);
+                    Service<SeStringRenderer>.Get().Draw(counterNode->NodeText);
                     break;
                 case NodeType.Image:
                     var imageNode = (AtkImageNode*)node;
@@ -389,31 +389,31 @@ internal unsafe class UiDebug
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
                     ImGui.Text("InputBase Text1: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(textInputComponent->AtkComponentInputBase.UnkText1);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText1);
                     
                     ImGui.Text("InputBase Text2: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(textInputComponent->AtkComponentInputBase.UnkText2);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText2);
                     
                     ImGui.Text("Text1: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(textInputComponent->UnkText01);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText01);
                     
                     ImGui.Text("Text2: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(textInputComponent->UnkText02);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
                     
                     ImGui.Text("Text3: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(textInputComponent->UnkText03);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText03);
                     
                     ImGui.Text("Text4: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(textInputComponent->UnkText04);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText04);
                     
                     ImGui.Text("Text5: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().DrawWrapped(textInputComponent->UnkText05);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText05);
                     break;
             }
 
