@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 using BitFaster.Caching.Lru;
 
@@ -222,9 +223,9 @@ internal sealed partial class TextureManager
                 {
                     this.textureManager.framework.DelayTicks(60).Wait(this.disposingCancellationTokenSource.Token);
                 }
-                catch (OperationCanceledException)
+                catch (Exception)
                 {
-                    break;
+                    // who cares
                 }
             }
 
