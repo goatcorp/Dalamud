@@ -187,25 +187,22 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    /// <returns>Byte offset of the link payload that is being hovered, or <c>-1</c> if none, and whether that link
-    /// (or the text itself if no link is active) is clicked.</returns>
-    public (int ByteOffset, bool Clicked) CompileAndDrawWrapped(
+    /// <returns>Interaction result of the rendered text.</returns>
+    public SeStringInteraction CompileAndDrawWrapped(
         string text,
         SeStringRenderStyle style = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault,
-        float wrapWidth = 0)
-    {
-        ThreadSafety.AssertMainThread();
-        return this.DrawWrapped(this.CompileAndCache(text).AsSpan(), style, imGuiId, buttonFlags, wrapWidth);
-    }
+        float wrapWidth = 0) =>
+        this.DrawWrapped(this.CompileAndCache(text).AsSpan(), style, imGuiId, buttonFlags, wrapWidth);
 
     /// <inheritdoc cref="DrawWrapped(ReadOnlySeStringSpan, SeStringRenderStyle, ImGuiId, ImGuiButtonFlags, float)"/>
-    public (int ByteOffset, bool Clicked) DrawWrapped(
+    public SeStringInteraction DrawWrapped(
         in Utf8String utf8String,
         SeStringRenderStyle style = default,
         ImGuiId imGuiId = default,
-        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault, float wrapWidth = 0) =>
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault,
+        float wrapWidth = 0) =>
         this.DrawWrapped(utf8String.AsSpan(), style, imGuiId, buttonFlags, wrapWidth);
 
     /// <summary>Draws a SeString.</summary>
@@ -215,13 +212,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    /// <returns>Byte offset of the link payload that is being hovered, or <c>-1</c> if none, and whether that link
-    /// (or the text itself if no link is active) is clicked.</returns>
-    public (int ByteOffset, bool Clicked) DrawWrapped(
+    /// <returns>Interaction result of the rendered text.</returns>
+    public SeStringInteraction DrawWrapped(
         ReadOnlySeStringSpan sss,
         SeStringRenderStyle style = default,
         ImGuiId imGuiId = default,
-        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault, float wrapWidth = 0)
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault,
+        float wrapWidth = 0)
     {
         ThreadSafety.AssertMainThread();
 
@@ -299,7 +296,10 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
                         var cursorPosBackup = ImGui.GetCursorScreenPos();
                         ImGui.SetCursorScreenPos(state.ScreenOffset + fragment.Offset);
-                        clicked = ImGui.InvisibleButton("##link", new(fragment.AdvanceWidth, state.FontSize));
+                        clicked = ImGui.InvisibleButton(
+                            "##link",
+                            new(fragment.AdvanceWidth, state.FontSize),
+                            buttonFlags);
                         if (ImGui.IsItemHovered())
                             hoveredLinkOffset = fragment.ActiveLinkOffset;
                         if (ImGui.IsItemActive())
@@ -316,7 +316,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             if (!invisibleButtonDrawn)
             {
                 ImGui.SetCursorScreenPos(state.ScreenOffset);
-                clicked = ImGui.InvisibleButton("##text", size);
+                clicked = ImGui.InvisibleButton("##text", size, buttonFlags);
             }
 
             ImGui.PopID();
@@ -343,7 +343,16 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
         state.Splitter.Merge(state.DrawList);
 
-        return (hoveredLinkOffset, clicked);
+        var payloadEnumerator = new ReadOnlySeStringSpan(
+            hoveredLinkOffset == -1 ? ReadOnlySpan<byte>.Empty : sss.Data[hoveredLinkOffset..]).GetEnumerator();
+        if (!payloadEnumerator.MoveNext())
+            return new() { Clicked = clicked, InteractedPayloadOffset = -1 };
+        return new()
+        {
+            Clicked = clicked,
+            InteractedPayloadOffset = hoveredLinkOffset,
+            InteractedPayloadEnvelope = sss.Data.Slice(hoveredLinkOffset, payloadEnumerator.Current.EnvelopeByteLength),
+        };
     }
 
     /// <summary>Gets the printable char for the given char, or null(\0) if it should not be handled at all.</summary>
@@ -383,8 +392,21 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         var linkOffset = -1;
         foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Raw, UtfEnumeratorFlags.Utf8SeString))
         {
+            // Does the whole break unit not fit into the current line?
+            var fragment = state.CreateFragment(this, prev, breakAt, mandatory, xy, linkOffset);
+            if (xy.X != 0 &&
+                this.fragments.Count > 0 &&
+                !this.fragments[^1].MandatoryBreakAfter &&
+                xy.X + fragment.VisibleWidth > wrapWidth)
+            {
+                xy.X = 0;
+                xy.Y += state.FontSize;
+                w = 0;
+                this.fragments[^1] = this.fragments[^1] with { MandatoryBreakAfter = true };
+            }
+
             var nextLinkOffset = linkOffset;
-            while (prev < breakAt)
+            for (var i = 0; prev < breakAt; i++)
             {
                 var curr = breakAt;
 
@@ -411,20 +433,15 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                     }
                 }
 
-                // See if it's possible to add the whole break unit within wrap width.
                 var currMandatory = curr == breakAt && mandatory;
-                var fragment = state.CreateFragment(this, prev, curr, currMandatory, xy, linkOffset);
+
+                // Re-calculate the fragment only if a link has been found and the break unit has been split up.
+                if (i > 0 || curr != breakAt)
+                    fragment = state.CreateFragment(this, prev, curr, currMandatory, xy, linkOffset);
+
+                // See if it's possible to add the current break unit within wrap width.
                 if (wrapWidth < Math.Max(w, xy.X + fragment.VisibleWidth))
                 {
-                    // New fragment does not fit in the current line.
-                    if (xy.X != 0 && this.fragments.Count > 0 && !this.fragments[^1].MandatoryBreakAfter)
-                    {
-                        xy.X = 0;
-                        xy.Y += state.FontSize;
-                        w = 0;
-                        this.fragments[^1] = this.fragments[^1] with { MandatoryBreakAfter = true };
-                    }
-
                     // Create a fragment again that fits into the given width limit.
                     fragment = state.CreateFragment(this, prev, curr, currMandatory, xy, linkOffset, wrapWidth);
                 }

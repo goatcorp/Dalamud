@@ -15,7 +15,6 @@ using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Utility;
 
 using ImGuiNET;
 using ImGuiScene;
@@ -203,9 +202,8 @@ public static class ImGuiHelpers
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    /// <returns>Byte offset of the link payload that is being hovered, or <c>-1</c> if none, and whether that link
-    /// (or the text itself if no link is active) is clicked.</returns>
-    public static (int ByteOffset, bool Clicked) SeStringWrapped(
+    /// <returns>Interaction result of the rendered text.</returns>
+    public static SeStringInteraction SeStringWrapped(
         ReadOnlySpan<byte> sss,
         SeStringRenderStyle style = default,
         ImGuiId imGuiId = default,
@@ -217,16 +215,18 @@ public static class ImGuiHelpers
     /// <param name="text">SeString text macro representation.
     /// Newline characters will be normalized to <see cref="NewLinePayload"/>.</param>
     /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <param name="wrapWidth">Wrapping width. If a non-positive number is provided, then the remainder of the width
     /// will be used.</param>
-    /// <remarks>If links are desired, then compile it first using
-    /// <see cref="SeStringExtensions.AppendMacroString(Game.Text.SeStringHandling.SeStringBuilder, ReadOnlySpan{byte})"/>
-    /// and use <see cref="SeStringWrapped(System.ReadOnlySpan{byte}, float)"/>.</remarks>
-    public static void CompileSeStringWrapped(
+    /// <returns>Interaction result of the rendered text.</returns>
+    public static SeStringInteraction CompileSeStringWrapped(
         string text,
         SeStringRenderStyle style,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault,
         float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, wrapWidth: wrapWidth);
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags, wrapWidth);
 
     /// <summary>
     /// Write unformatted text wrapped.
