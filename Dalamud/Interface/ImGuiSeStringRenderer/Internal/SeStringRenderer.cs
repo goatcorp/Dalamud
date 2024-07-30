@@ -48,7 +48,11 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
     /// <summary>Soft hyphen character, which signifies that a word can be broken here, and will display a standard
     /// hyphen when it is broken there.</summary>
-    private const char SoftHyphen = '\u00AD';
+    private const int SoftHyphen = '\u00AD';
+
+    /// <summary>Object replacement character, which signifies that there should be something else displayed in place
+    /// of this placeholder. On its own, usually displayed like <c>[OBJ]</c>.</summary>
+    private const int ObjectReplacementCharacter = '\uFFFC';
 
     /// <summary>SeString to return instead, if macro encoder has failed and could not provide us the reason.</summary>
     private static readonly ReadOnlySeString MacroEncoderEncodeStringError =
@@ -274,12 +278,12 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         ImGuiNative.ImDrawListSplitter_Split(state.Splitter, state.Params.DrawList, ChannelCount);
 
         // Draw all text fragments.
-        var lastRune = 0;
+        var lastRune = default(Rune);
         foreach (ref var f in fragmentSpan)
         {
             var data = state.Raw.Data[f.From..f.To];
             this.DrawTextFragment(ref state, f.Offset, f.IsSoftHyphenVisible, data, lastRune, f.Link);
-            lastRune = f.IsSoftHyphenVisible ? f.LastRune1 : f.LastRune2;
+            lastRune = f.LastRune;
         }
 
         // Create an ImGui item, if a target draw list is not manually set.
@@ -363,20 +367,26 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         };
     }
 
-    /// <summary>Gets the printable char for the given char, or null(\0) if it should not be handled at all.</summary>
-    /// <param name="c">Character to determine.</param>
-    /// <returns>Character to print, or null(\0) if none.</returns>
-    private static Rune? ToPrintableRune(int c) => c switch
+    /// <summary>Gets the effective char for the given char, or null(\0) if it should not be handled at all.</summary>
+    /// <param name="rune">Character to determine.</param>
+    /// <param name="displayRune">Corresponding rune.</param>
+    /// <param name="displaySoftHyphen">Whether to display soft hyphens.</param>
+    /// <returns>Rune corresponding to the unicode codepoint to process, or null(\0) if none.</returns>
+    private static bool TryGetDisplayRune(Rune rune, out Rune displayRune, bool displaySoftHyphen = true)
     {
-        char.MaxValue => null,
-        SoftHyphen => new('-'),
-        _ when UnicodeData.LineBreak[c]
-                   is UnicodeLineBreakClass.BK
-                   or UnicodeLineBreakClass.CR
-                   or UnicodeLineBreakClass.LF
-                   or UnicodeLineBreakClass.NL => new(0),
-        _ => new(c),
-    };
+        displayRune = rune.Value switch
+        {
+            0 or char.MaxValue => default,
+            SoftHyphen => displaySoftHyphen ? new('-') : default,
+            _ when UnicodeData.LineBreak[rune.Value]
+                       is UnicodeLineBreakClass.BK
+                       or UnicodeLineBreakClass.CR
+                       or UnicodeLineBreakClass.LF
+                       or UnicodeLineBreakClass.NL => new(0),
+            _ => rune,
+        };
+        return displayRune.Value != 0;
+    }
 
     /// <summary>Swaps red and blue channels of a given color in ARGB(BB GG RR AA) and ABGR(RR GG BB AA).</summary>
     /// <param name="x">Color to process.</param>
@@ -405,7 +415,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Raw, UtfEnumeratorFlags.Utf8SeString))
         {
             var nextLinkOffset = linkOffset;
-            while (prev < breakAt)
+            for (var first = true; prev < breakAt; first = false)
             {
                 var curr = breakAt;
 
@@ -434,12 +444,11 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
                 // Create a text fragment without applying wrap width limits for testing.
                 var fragment = state.CreateFragment(this, prev, curr, curr == breakAt && mandatory, xy, linkOffset);
+                var overflows = Math.Max(w, xy.X + fragment.VisibleWidth) > state.Params.WrapWidth;
 
-                // Test if the fragment does not fit into the current line and the current line is not empty.
-                if (xy.X != 0 &&
-                    this.fragments.Count > 0 &&
-                    !this.fragments[^1].BreakAfter &&
-                    xy.X + fragment.VisibleWidth > state.Params.WrapWidth)
+                // Test if the fragment does not fit into the current line and the current line is not empty,
+                // if this is the first time testing the current break unit.
+                if (first && xy.X != 0 && this.fragments.Count > 0 && !this.fragments[^1].BreakAfter && overflows)
                 {
                     // The break unit as a whole does not fit into the current line. Advance to the next line.
                     xy.X = 0;
@@ -447,10 +456,12 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                     w = 0;
                     CollectionsMarshal.AsSpan(this.fragments)[^1].BreakAfter = true;
                     fragment.Offset = xy;
+
+                    // Now that the fragment is given its own line, test if it overflows again.
+                    overflows = fragment.VisibleWidth > state.Params.WrapWidth;
                 }
 
-                // See if it's possible to add the current fragment within wrap width.
-                if (state.Params.WrapWidth <= Math.Max(w, xy.X + fragment.VisibleWidth))
+                if (overflows)
                 {
                     // Create a fragment again that fits into the given width limit.
                     var remainingWidth = state.Params.WrapWidth - xy.X;
@@ -459,26 +470,20 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 else if (this.fragments.Count > 0 && xy.X != 0)
                 {
                     // New fragment fits into the current line, and it has a previous fragment in the same line.
-                    int lastFragmentEnd;
+                    // If the previous fragment ends with a soft hyphen, adjust its width so that the width of its
+                    // trailing soft hyphens are not considered.
                     if (this.fragments[^1].EndsWithSoftHyphen)
-                    {
-                        // Previous fragment needs to be marked that its ending soft hyphen won't be shown.
-                        xy.X += this.fragments[^1].AdvanceWidthWithoutLastRune -
-                                this.fragments[^1].AdvanceWidth;
-                        lastFragmentEnd = this.fragments[^1].LastRune2;
-                    }
-                    else
-                    {
-                        lastFragmentEnd = this.fragments[^1].LastRune1;
-                    }
+                        xy.X += this.fragments[^1].AdvanceWidthWithoutSoftHyphen - this.fragments[^1].AdvanceWidth;
 
                     // Adjust this fragment's offset from kerning distance.
-                    xy.X += state.CalculateDistance(lastFragmentEnd, fragment.FirstRune);
+                    xy.X += state.CalculateDistance(this.fragments[^1].LastRune, fragment.FirstRune);
                     fragment.Offset = xy;
                 }
 
+                // If the fragment was not broken by wrap width, update the link payload offset.
                 if (fragment.To == curr)
                     linkOffset = nextLinkOffset;
+
                 w = Math.Max(w, xy.X + fragment.VisibleWidth);
                 xy.X += fragment.AdvanceWidth;
                 prev = fragment.To;
@@ -507,7 +512,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         Vector2 offset,
         bool displaySoftHyphen,
         ReadOnlySpan<byte> span,
-        int lastRune,
+        Rune lastRune,
         int link)
     {
         var gfdTextureSrv =
@@ -520,7 +525,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             var color = this.colorStack.Count == 0 ? state.Params.Color : this.colorStack[^1];
             var shadowColor = this.shadowColorStack.Count == 0 ? state.Params.ShadowColor : this.shadowColorStack[^1];
 
-            if (c is { IsSeStringPayload: true, EffectiveInt: char.MaxValue or '\uFFFC' })
+            if (c is { IsSeStringPayload: true, EffectiveInt: char.MaxValue or ObjectReplacementCharacter })
             {
                 var enu = new ReadOnlySeStringSpan(span[c.ByteOffset..]).GetOffsetEnumerator();
                 if (!enu.MoveNext())
@@ -580,7 +585,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
                         width = Math.Max(width, x + size.X);
                         x += MathF.Round(size.X);
-                        lastRune = '\0';
+                        lastRune = default;
                         continue;
                     }
 
@@ -589,65 +594,57 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 }
             }
 
-            var effectiveInt = c.EffectiveInt;
-            if (effectiveInt == SoftHyphen && !displaySoftHyphen)
-                continue;
-            if (ToPrintableRune(effectiveInt) is not { } rune)
+            if (!TryGetDisplayRune(c.EffectiveRune, out var rune, displaySoftHyphen))
                 continue;
 
-            var currChar = rune.Value is >= 0 and < char.MaxValue ? (char)rune.Value : '\uFFFE';
-            if (currChar != 0)
+            ref var g = ref state.FindGlyph(ref rune);
+            var dist = state.CalculateDistance(lastRune, rune);
+            lastRune = rune;
+
+            var dxBold = state.Params.Bold ? 2 : 1;
+            var dyItalic = state.Params.Italic
+                               ? new Vector2(state.Params.FontSize - g.Y0, state.Params.FontSize - g.Y1) / 6
+                               : Vector2.Zero;
+
+            if (state.Params.Shadow && shadowColor >= 0x1000000)
             {
-                var dist = state.CalculateDistance(lastRune, currChar);
-                ref var g = ref state.FindGlyph(currChar);
-
-                var dxBold = state.Params.Bold ? 2 : 1;
-                var dyItalic = state.Params.Italic
-                                   ? new Vector2(state.Params.FontSize - g.Y0, state.Params.FontSize - g.Y1) / 6
-                                   : Vector2.Zero;
-
-                if (state.Params.Shadow && shadowColor >= 0x1000000)
-                {
-                    state.SetCurrentChannel(ChannelShadow);
-                    for (var dx = 0; dx < dxBold; dx++)
-                        state.Draw(offset + new Vector2(x + dist + dx, 1), g, dyItalic, shadowColor);
-                }
-
-                var useEdge = this.edgeColorStack.Count > 0 || state.Params.Edge;
-                var activeEdgeColor =
-                    state.Params.ForceEdgeColor
-                        ? state.Params.EdgeColor
-                        : this.edgeColorStack.Count == 0
-                            ? state.Params.EdgeColor
-                            : this.edgeColorStack[^1];
-                activeEdgeColor = (activeEdgeColor & 0xFFFFFFu) | ((activeEdgeColor >> 26) << 24);
-                if (useEdge && activeEdgeColor >= 0x1000000)
-                {
-                    state.SetCurrentChannel(ChannelEdge);
-                    for (var dx = -1; dx <= dxBold; dx++)
-                    {
-                        for (var dy = -1; dy <= 1; dy++)
-                        {
-                            if (dx >= 0 && dx < dxBold && dy == 0)
-                                continue;
-
-                            state.Draw(offset + new Vector2(x + dist + dx, dy), g, dyItalic, activeEdgeColor);
-                        }
-                    }
-                }
-
-                state.SetCurrentChannel(ChannelFore);
+                state.SetCurrentChannel(ChannelShadow);
                 for (var dx = 0; dx < dxBold; dx++)
-                    state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, color);
-
-                if (link != -1)
-                    state.DrawLinkUnderline(offset + new Vector2(x + dist, 0), g.AdvanceX, color, shadowColor);
-
-                width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
-                x += dist + MathF.Round(g.AdvanceX * state.FontSizeScale);
+                    state.Draw(offset + new Vector2(x + dist + dx, 1), g, dyItalic, shadowColor);
             }
 
-            lastRune = currChar;
+            var useEdge = this.edgeColorStack.Count > 0 || state.Params.Edge;
+            var activeEdgeColor =
+                state.Params.ForceEdgeColor
+                    ? state.Params.EdgeColor
+                    : this.edgeColorStack.Count == 0
+                        ? state.Params.EdgeColor
+                        : this.edgeColorStack[^1];
+            activeEdgeColor = (activeEdgeColor & 0xFFFFFFu) | ((activeEdgeColor >> 26) << 24);
+            if (useEdge && activeEdgeColor >= 0x1000000)
+            {
+                state.SetCurrentChannel(ChannelEdge);
+                for (var dx = -1; dx <= dxBold; dx++)
+                {
+                    for (var dy = -1; dy <= 1; dy++)
+                    {
+                        if (dx >= 0 && dx < dxBold && dy == 0)
+                            continue;
+
+                        state.Draw(offset + new Vector2(x + dist + dx, dy), g, dyItalic, activeEdgeColor);
+                    }
+                }
+            }
+
+            state.SetCurrentChannel(ChannelFore);
+            for (var dx = 0; dx < dxBold; dx++)
+                state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, color);
+
+            if (link != -1)
+                state.DrawLinkUnderline(offset + new Vector2(x + dist, 0), g.AdvanceX, color, shadowColor);
+
+            width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
+            x += dist + MathF.Round(g.AdvanceX * state.FontSizeScale);
         }
 
         return;
@@ -773,15 +770,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// without clipping.</param>
     /// <param name="AdvanceWidth">Advance width of this text fragment. This is the width required to add to the cursor
     /// to position the next fragment correctly.</param>
-    /// <param name="AdvanceWidthWithoutLastRune">Same with <paramref name="AdvanceWidth"/>, but excluding the last
-    /// rune.</param>
+    /// <param name="AdvanceWidthWithoutSoftHyphen">Same with <paramref name="AdvanceWidth"/>, but trimming all the
+    /// trailing soft hyphens.</param>
     /// <param name="BreakAfter">Whether to insert a line break after this text fragment.</param>
-    /// <param name="EndsWithSoftHyphen">Whether this text fragment ends with a soft hyphen.</param>
+    /// <param name="EndsWithSoftHyphen">Whether this text fragment ends with one or more soft hyphens.</param>
     /// <param name="FirstRune">First rune in this text fragment.</param>
-    /// <param name="LastRune1">Last rune in this text fragment. Referred if it is not a soft hyphen, for the purpose
-    /// of calculating kerning distance with the following text fragment, if any.</param>
-    /// <param name="LastRune2">Second last rune in this text fragment. Referred if <paramref name="LastRune1"/> is a
-    /// soft hyphen, for the purpose of calculating kerning distance with the following text fragment, if any.</param>
+    /// <param name="LastRune">Last rune in this text fragment, for the purpose of calculating kerning distance with
+    /// the following text fragment in the same line, if any.</param>
     private record struct TextFragment(
         int From,
         int To,
@@ -789,12 +784,11 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         Vector2 Offset,
         float VisibleWidth,
         float AdvanceWidth,
-        float AdvanceWidthWithoutLastRune,
+        float AdvanceWidthWithoutSoftHyphen,
         bool BreakAfter,
         bool EndsWithSoftHyphen,
-        int FirstRune,
-        int LastRune1,
-        int LastRune2)
+        Rune FirstRune,
+        Rune LastRune)
     {
         public bool IsSoftHyphenVisible => this.EndsWithSoftHyphen && this.BreakAfter;
     }
@@ -953,25 +947,21 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             int activeLinkOffset,
             float wrapWidth = float.MaxValue)
         {
-            var lastNonSpace = from;
-
             var x = 0f;
             var w = 0f;
             var visibleWidth = 0f;
             var advanceWidth = 0f;
-            var prevAdvanceWidth = 0f;
-            int firstRune = char.MaxValue;
-            var lastRune1 = default(int);
-            var lastRune2 = default(int);
+            var advanceWidthWithoutSoftHyphen = 0f;
+            var firstDisplayRune = default(Rune?);
+            var lastDisplayRune = default(Rune);
+            var lastNonSoftHyphenRune = default(Rune);
             var endsWithSoftHyphen = false;
             foreach (var c in UtfEnumerator.From(this.Raw.Data[from..to], UtfEnumeratorFlags.Utf8SeString))
             {
-                prevAdvanceWidth = x;
-                lastRune2 = lastRune1;
-                endsWithSoftHyphen = c.EffectiveChar == SoftHyphen;
-
                 var byteOffset = from + c.ByteOffset;
                 var isBreakableWhitespace = false;
+                var effectiveRune = c.EffectiveRune;
+                Rune displayRune;
                 if (c is { IsSeStringPayload: true, MacroCode: MacroCode.Icon or MacroCode.Icon2 } &&
                     renderer.GetBitmapFontIconFor(this.Raw.Data[byteOffset..]) is var icon and not None &&
                     renderer.gfd.TryGetEntry((uint)icon, out var gfdEntry) &&
@@ -981,27 +971,24 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                     var size = this.CalculateGfdEntrySize(gfdEntry, out _);
                     w = Math.Max(w, x + size.X);
                     x += MathF.Round(size.X);
-                    lastRune1 = default;
+                    displayRune = default;
                 }
-                else if (ToPrintableRune(c.EffectiveChar) is { } rune)
+                else if (TryGetDisplayRune(effectiveRune, out displayRune))
                 {
                     // This is a printable character, or a standard whitespace character.
-                    var dist = this.CalculateDistance(lastRune1, rune.Value);
-                    ref var g = ref this.FindGlyph(rune.Value);
+                    ref var g = ref this.FindGlyph(ref displayRune);
+                    var dist = this.CalculateDistance(lastDisplayRune, displayRune);
                     w = Math.Max(w, x + ((dist + g.X1) * this.FontSizeScale));
                     x += MathF.Round((dist + g.AdvanceX) * this.FontSizeScale);
 
-                    isBreakableWhitespace = Rune.IsWhiteSpace(rune) &&
-                                            UnicodeData.LineBreak[rune.Value] is not UnicodeLineBreakClass.GL;
-                    lastRune1 = (char)g.Codepoint;
+                    isBreakableWhitespace =
+                        Rune.IsWhiteSpace(displayRune) &&
+                        UnicodeData.LineBreak[displayRune.Value] is not UnicodeLineBreakClass.GL;
                 }
                 else
                 {
                     continue;
                 }
-
-                if (firstRune == char.MaxValue)
-                    firstRune = lastRune1;
 
                 if (isBreakableWhitespace)
                 {
@@ -1009,7 +996,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 }
                 else
                 {
-                    if (w > wrapWidth && lastNonSpace != from && !endsWithSoftHyphen)
+                    if (firstDisplayRune is not null && w > wrapWidth && effectiveRune.Value != SoftHyphen)
                     {
                         to = byteOffset;
                         break;
@@ -1017,7 +1004,15 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
                     advanceWidth = x;
                     visibleWidth = w;
-                    lastNonSpace = byteOffset + c.ByteLength;
+                }
+
+                firstDisplayRune ??= displayRune;
+                lastDisplayRune = displayRune;
+                endsWithSoftHyphen = effectiveRune.Value == SoftHyphen;
+                if (!endsWithSoftHyphen)
+                {
+                    advanceWidthWithoutSoftHyphen = x;
+                    lastNonSoftHyphenRune = displayRune;
                 }
             }
 
@@ -1028,43 +1023,59 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 offset,
                 visibleWidth,
                 advanceWidth,
-                prevAdvanceWidth,
+                advanceWidthWithoutSoftHyphen,
                 breakAfter,
                 endsWithSoftHyphen,
-                firstRune,
-                lastRune1,
-                lastRune2);
+                firstDisplayRune ?? default,
+                lastNonSoftHyphenRune);
         }
 
         /// <summary>Gets the glyph corresponding to the given codepoint.</summary>
-        /// <param name="codepoint">Codepoint of the glyph.</param>
+        /// <param name="rune">An instance of <see cref="Rune"/> that represents a character to display.</param>
         /// <returns>Corresponding glyph, or glyph of a fallback character specified from
         /// <see cref="ImFont.FallbackChar"/>.</returns>
-        public readonly ref ImGuiHelpers.ImFontGlyphReal FindGlyph(int codepoint)
+        public readonly ref ImGuiHelpers.ImFontGlyphReal FindGlyph(Rune rune)
         {
-            var p = codepoint is >= ushort.MinValue and <= ushort.MaxValue
-                        ? ImGuiNative.ImFont_FindGlyph(this.Params.Font, (ushort)codepoint)
+            var p = rune.Value is >= ushort.MinValue and < ushort.MaxValue
+                        ? ImGuiNative.ImFont_FindGlyph(this.Params.Font, (ushort)rune.Value)
                         : this.Params.Font->FallbackGlyph;
             return ref *(ImGuiHelpers.ImFontGlyphReal*)p;
         }
 
-        /// <summary>Gets the kerning adjustment between two glyphs in a succession corresponding to the given
-        /// codepoints.</summary>
-        /// <param name="codepoint1">Codepoint of the glyph on the left side of a pair.</param>
-        /// <param name="codepoint2">Codepoint of the glyph on the right side of a pair.</param>
+        /// <summary>Gets the glyph corresponding to the given codepoint.</summary>
+        /// <param name="rune">An instance of <see cref="Rune"/> that represents a character to display, that will be
+        /// changed on return to the rune corresponding to the fallback glyph if a glyph not corresponding to the
+        /// requested glyph is being returned.</param>
+        /// <returns>Corresponding glyph, or glyph of a fallback character specified from
+        /// <see cref="ImFont.FallbackChar"/>.</returns>
+        public readonly ref ImGuiHelpers.ImFontGlyphReal FindGlyph(ref Rune rune)
+        {
+            ref var glyph = ref this.FindGlyph(rune);
+            if (rune.Value != glyph.Codepoint && !Rune.TryCreate(glyph.Codepoint, out rune))
+                rune = Rune.ReplacementChar;
+            return ref glyph;
+        }
+
+        /// <summary>Gets the kerning adjustment between two glyphs in a succession corresponding to the given runes.
+        /// </summary>
+        /// <param name="left">Rune representing the glyph on the left side of a pair.</param>
+        /// <param name="right">Rune representing the glyph on the right side of a pair.</param>
         /// <returns>Distance adjustment in pixels, scaled to the size specified from
         /// <see cref="SeStringDrawParams.FontSize"/>, and rounded.</returns>
-        public readonly float CalculateDistance(int codepoint1, int codepoint2)
+        public readonly float CalculateDistance(Rune left, Rune right)
         {
-            if (codepoint1 is <= 0 or > char.MaxValue)
+            // Kerning distance entries are ignored if NUL, U+FFFF(invalid Unicode character), or characters outside
+            // the basic multilingual plane(BMP) is involved.
+            if (left.Value is <= 0 or >= char.MaxValue)
                 return 0;
-            if (codepoint2 is <= 0 or > char.MaxValue)
+            if (right.Value is <= 0 or >= char.MaxValue)
                 return 0;
+
             return MathF.Round(
                 ImGuiNative.ImFont_GetDistanceAdjustmentForPair(
                     this.Params.Font,
-                    (ushort)codepoint1,
-                    (ushort)codepoint2) * this.FontSizeScale);
+                    (ushort)left.Value,
+                    (ushort)right.Value) * this.FontSizeScale);
         }
     }
 }
