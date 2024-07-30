@@ -256,7 +256,15 @@ internal class UldWidget : IDataWindowWidget
         {
             for (var index = 0; index < partsData.Parts.Length; index++)
             {
+                ImGui.TextUnformatted($"Index: {index}");
+                ImGui.SameLine();
                 var partsDataPart = partsData.Parts[index];
+                if (textureEntries.All(t => t.Id != partsDataPart.TextureId))
+                {
+                    ImGui.TextUnformatted($"Could not find texture for id {partsDataPart.TextureId}");
+                    continue;
+                }
+
                 var texturePathChars = textureEntries.First(t => t.Id == partsDataPart.TextureId).Path;
                 string texturePath;
                 fixed (char* p = texturePathChars)
@@ -268,8 +276,6 @@ internal class UldWidget : IDataWindowWidget
                 var uv0 = new Vector2(partsDataPart.U, partsDataPart.V);
                 var partSize = new Vector2(partsDataPart.W, partsDataPart.H);
                 var uv1 = uv0 + partSize;
-                ImGui.TextUnformatted($"Index: {index}");
-                ImGui.SameLine();
                 ImGui.Image(wrap.ImGuiHandle, partSize, uv0 / texSize, uv1 / texSize);
                 wrap.Dispose();
             }
