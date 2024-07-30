@@ -54,6 +54,7 @@ struct DalamudStartInfo {
     bool NoLoadThirdPartyPlugins;
 
     std::string BootLogPath;
+    bool BootDebugDirectX = false;
     bool BootShowConsole = false;
     bool BootDisableFallbackConsole = false;
     WaitMessageboxFlags BootWaitMessageBox = WaitMessageboxFlags::None;

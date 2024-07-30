@@ -1,6 +1,3 @@
-[submodule "lib/ImGuiScene"]
-	path = lib/ImGuiScene
-	url = https://github.com/goatcorp/ImGuiScene
 [submodule "lib/FFXIVClientStructs"]
 	path = lib/FFXIVClientStructs
 	url = https://github.com/aers/FFXIVClientStructs
@@ -10,3 +7,6 @@
 [submodule "lib/TsudaKageyu-minhook"]
 	path = lib/TsudaKageyu-minhook
 	url = https://github.com/TsudaKageyu/minhook.git
+[submodule "lib/ImGui.NET"]
+	path = lib/ImGui.NET
+	url = https://github.com/goatcorp/ImGui.NET.git

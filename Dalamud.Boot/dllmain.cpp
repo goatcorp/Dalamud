@@ -1,6 +1,10 @@
 #include "pch.h"
 
+#include <d3d11.h>
+#include <dxgi1_3.h>
+
 #include "DalamudStartInfo.h"
+#include "hooks.h"
 #include "logging.h"
 #include "utils.h"
 #include "veh.h"
@@ -89,6 +93,69 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     if ((g_startInfo.BootWaitMessageBox & DalamudStartInfo::WaitMessageboxFlags::BeforeInitialize) != DalamudStartInfo::WaitMessageboxFlags::None)
         MessageBoxW(nullptr, L"Press OK to continue (BeforeInitialize)", L"Dalamud Boot", MB_OK);
+
+    if (g_startInfo.BootDebugDirectX) {
+        logging::I("Enabling DirectX Debugging.");
+
+        const auto hD3D11 = GetModuleHandleW(L"d3d11.dll");
+        const auto hDXGI = GetModuleHandleW(L"dxgi.dll");
+        const auto pfnD3D11CreateDevice = static_cast<decltype(&D3D11CreateDevice)>(
+            hD3D11 ? static_cast<void*>(GetProcAddress(hD3D11, "D3D11CreateDevice")) : nullptr);
+        if (pfnD3D11CreateDevice) {
+            static hooks::direct_hook<decltype(D3D11CreateDevice)> s_hookD3D11CreateDevice(
+                "d3d11.dll!D3D11CreateDevice",
+                pfnD3D11CreateDevice);
+            s_hookD3D11CreateDevice.set_detour([](
+                IDXGIAdapter* pAdapter,
+                D3D_DRIVER_TYPE DriverType,
+                HMODULE Software,
+                UINT Flags,
+                const D3D_FEATURE_LEVEL* pFeatureLevels,
+                UINT FeatureLevels,
+                UINT SDKVersion,
+                ID3D11Device** ppDevice,
+                D3D_FEATURE_LEVEL* pFeatureLevel,
+                ID3D11DeviceContext** ppImmediateContext
+            ) -> HRESULT {
+                return s_hookD3D11CreateDevice.call_original(
+                    pAdapter,
+                    DriverType,
+                    Software,
+                    (Flags & ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY) | D3D11_CREATE_DEVICE_DEBUG,
+                    pFeatureLevels,
+                    FeatureLevels,
+                    SDKVersion,
+                    ppDevice,
+                    pFeatureLevel,
+                    ppImmediateContext);
+            });
+        } else {
+            logging::W("Could not find d3d11!D3D11CreateDevice.");
+        }
+
+        const auto pfnCreateDXGIFactory = static_cast<decltype(&CreateDXGIFactory)>(
+            hDXGI ? static_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory")) : nullptr);
+        const auto pfnCreateDXGIFactory1 = static_cast<decltype(&CreateDXGIFactory1)>(
+            hDXGI ? static_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory1")) : nullptr);
+        static const auto pfnCreateDXGIFactory2 = static_cast<decltype(&CreateDXGIFactory2)>(
+            hDXGI ? static_cast<void*>(GetProcAddress(hDXGI, "CreateDXGIFactory2")) : nullptr);
+        if (pfnCreateDXGIFactory2) {
+            static hooks::direct_hook<decltype(CreateDXGIFactory)> s_hookCreateDXGIFactory(
+                "dxgi.dll!CreateDXGIFactory",
+                pfnCreateDXGIFactory);
+            static hooks::direct_hook<decltype(CreateDXGIFactory1)> s_hookCreateDXGIFactory1(
+                "dxgi.dll!CreateDXGIFactory1",
+                pfnCreateDXGIFactory1);
+            s_hookCreateDXGIFactory.set_detour([](REFIID riid, _COM_Outptr_ void **ppFactory) -> HRESULT {
+                return pfnCreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, riid, ppFactory);
+            });
+            s_hookCreateDXGIFactory1.set_detour([](REFIID riid, _COM_Outptr_ void **ppFactory) -> HRESULT {
+                return pfnCreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, riid, ppFactory);
+            });
+        } else {
+            logging::W("Could not find dxgi!CreateDXGIFactory2.");
+        }
+    }
 
     if (minHookLoaded) {
         logging::I("Applying fixes...");

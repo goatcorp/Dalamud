@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
@@ -310,7 +309,7 @@ internal sealed partial class FontAtlasFactory
                 throw;
             }
 
-            this.factory.SceneTask.ContinueWith(
+            this.factory.BackendTask.ContinueWith(
                 r =>
                 {
                     lock (this.syncRoot)
@@ -318,8 +317,8 @@ internal sealed partial class FontAtlasFactory
                         if (this.disposed)
                             return;
 
-                        r.Result.OnNewRenderFrame += this.ImGuiSceneOnNewRenderFrame;
-                        this.disposables.Add(() => r.Result.OnNewRenderFrame -= this.ImGuiSceneOnNewRenderFrame);
+                        r.Result.NewRenderFrame += this.ImGuiSceneOnNewRenderFrame;
+                        this.disposables.Add(() => r.Result.NewRenderFrame -= this.ImGuiSceneOnNewRenderFrame);
                     }
 
                     if (this.AutoRebuildMode == FontAtlasAutoRebuildMode.OnNewFrame)
@@ -735,7 +734,7 @@ internal sealed partial class FontAtlasFactory
                 foreach (var font in toolkit.Fonts)
                     toolkit.BuildLookupTable(font);
 
-                if (this.factory.SceneTask is { IsCompleted: false } sceneTask)
+                if (this.factory.BackendTask is { IsCompleted: false } backendTask)
                 {
                     Log.Verbose(
                         "[{name}:{functionname}] 0x{ptr:X}: await SceneTask (at {sw}ms)",
@@ -743,7 +742,7 @@ internal sealed partial class FontAtlasFactory
                         nameof(this.RebuildFontsPrivateReal),
                         atlasPtr,
                         sw.ElapsedMilliseconds);
-                    await sceneTask.ConfigureAwait(!isAsync);
+                    await backendTask.ConfigureAwait(!isAsync);
                 }
 
 #if VeryVerboseLog
