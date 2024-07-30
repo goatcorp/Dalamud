@@ -211,7 +211,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
-    public SeStringRenderResult CompileAndDrawWrapped(
+    public SeStringDrawResult CompileAndDrawWrapped(
         string text,
         SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
@@ -219,7 +219,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         this.Draw(this.CompileAndCache(text).AsSpan(), drawParams, imGuiId, buttonFlags);
 
     /// <inheritdoc cref="Draw(ReadOnlySeStringSpan, SeStringDrawParams, ImGuiId, ImGuiButtonFlags)"/>
-    public SeStringRenderResult Draw(
+    public SeStringDrawResult Draw(
         in Utf8String utf8String,
         SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
@@ -232,7 +232,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
-    public SeStringRenderResult Draw(
+    public SeStringDrawResult Draw(
         ReadOnlySeStringSpan sss,
         SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
