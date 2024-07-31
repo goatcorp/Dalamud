@@ -217,15 +217,20 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <returns>Interaction result of the rendered text.</returns>
     public SeStringDrawResult CompileAndDrawWrapped(
         string text,
-        SeStringDrawParams drawParams = default,
+        in SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
         this.Draw(this.CompileAndCache(text).AsSpan(), drawParams, imGuiId, buttonFlags);
 
-    /// <inheritdoc cref="Draw(ReadOnlySeStringSpan, SeStringDrawParams, ImGuiId, ImGuiButtonFlags)"/>
+    /// <summary>Draws a SeString.</summary>
+    /// <param name="utf8String">SeString to draw.</param>
+    /// <param name="drawParams">Parameters for drawing.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
+    /// <returns>Interaction result of the rendered text.</returns>
     public SeStringDrawResult Draw(
         in Utf8String utf8String,
-        SeStringDrawParams drawParams = default,
+        in SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
         this.Draw(utf8String.AsSpan(), drawParams, imGuiId, buttonFlags);
@@ -238,7 +243,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <returns>Interaction result of the rendered text.</returns>
     public SeStringDrawResult Draw(
         ReadOnlySeStringSpan sss,
-        SeStringDrawParams drawParams = default,
+        in SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault)
     {

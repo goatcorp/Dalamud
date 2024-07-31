@@ -211,7 +211,7 @@ public static class ImGuiHelpers
     /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static SeStringDrawResult SeStringWrapped(
         ReadOnlySpan<byte> sss,
-        SeStringDrawParams style = default,
+        in SeStringDrawParams style = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
         Service<SeStringRenderer>.Get().Draw(sss, style, imGuiId, buttonFlags);
@@ -227,7 +227,7 @@ public static class ImGuiHelpers
     /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static SeStringDrawResult CompileSeStringWrapped(
         string text,
-        SeStringDrawParams style,
+        in SeStringDrawParams style,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
         Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags);
