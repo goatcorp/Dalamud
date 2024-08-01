@@ -208,7 +208,7 @@ public static class ImGuiHelpers
     [Experimental("SeStringRenderer")]
     public static SeStringDrawResult CompileSeStringWrapped(
         string text,
-        scoped in SeStringDrawParams style,
+        scoped in SeStringDrawParams style = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
         Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags);
