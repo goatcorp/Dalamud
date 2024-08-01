@@ -46,11 +46,11 @@ internal class FateTableWidget : IDataWindowWidget
         ImGui.TableSetupColumn("Address", ImGuiTableColumnFlags.WidthFixed, 100);
         ImGui.TableSetupColumn("RowId", ImGuiTableColumnFlags.WidthFixed, 40);
         ImGui.TableSetupColumn("State", ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("Progress", ImGuiTableColumnFlags.WidthFixed, 55);
-        ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("Bonus", ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 50);
         ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Progress", ImGuiTableColumnFlags.WidthFixed, 55);
+        ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Bonus", ImGuiTableColumnFlags.WidthFixed, 40);
         ImGui.TableSetupColumn("Position", ImGuiTableColumnFlags.WidthFixed, 240);
         ImGui.TableSetupScrollFreeze(7, 1);
         ImGui.TableHeadersRow();
@@ -74,16 +74,6 @@ internal class FateTableWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // State
             ImGui.TextUnformatted(fate.State.ToString());
 
-            ImGui.TableNextColumn(); // TimeRemaining
-
-            if (fate.State == FateState.Running)
-            {
-                ImGui.TextUnformatted($"{TimeSpan.FromSeconds(fate.TimeRemaining):mm\\:ss} / {TimeSpan.FromSeconds(fate.Duration):mm\\:ss}");
-            }
-
-            ImGui.TableNextColumn(); // Progress
-            ImGui.TextUnformatted($"{fate.Progress}%");
-
             ImGui.TableNextColumn(); // Level
 
             if (fate.Level == fate.MaxLevel)
@@ -95,9 +85,6 @@ internal class FateTableWidget : IDataWindowWidget
                 ImGui.TextUnformatted($"{fate.Level}-{fate.MaxLevel}");
             }
 
-            ImGui.TableNextColumn(); // HasExpBonus
-            ImGui.TextUnformatted(fate.HasExpBonus.ToString());
-
             ImGui.TableNextColumn(); // Name
 
             if (textureManager.Shared.GetFromGameIcon(fate.IconId).TryGetWrap(out var texture, out _))
@@ -107,6 +94,19 @@ internal class FateTableWidget : IDataWindowWidget
             }
 
             DrawCopyableText(fate.Name.ToString(), "Copy name");
+
+            ImGui.TableNextColumn(); // Progress
+            ImGui.TextUnformatted($"{fate.Progress}%");
+
+            ImGui.TableNextColumn(); // TimeRemaining
+
+            if (fate.State == FateState.Running)
+            {
+                ImGui.TextUnformatted($"{TimeSpan.FromSeconds(fate.TimeRemaining):mm\\:ss} / {TimeSpan.FromSeconds(fate.Duration):mm\\:ss}");
+            }
+
+            ImGui.TableNextColumn(); // HasExpBonus
+            ImGui.TextUnformatted(fate.HasExpBonus.ToString());
 
             ImGui.TableNextColumn(); // Position
             DrawCopyableText(fate.Position.ToString(), "Copy Position");
