@@ -229,7 +229,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <returns>Interaction result of the rendered text.</returns>
     public SeStringDrawResult CompileAndDrawWrapped(
         string text,
-        in SeStringDrawParams drawParams = default,
+        scoped in SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
         this.Draw(this.CompileAndCache(text).AsSpan(), drawParams, imGuiId, buttonFlags);
@@ -241,8 +241,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
     public SeStringDrawResult Draw(
-        in Utf8String utf8String,
-        in SeStringDrawParams drawParams = default,
+        scoped in Utf8String utf8String,
+        scoped in SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
         this.Draw(utf8String.AsSpan(), drawParams, imGuiId, buttonFlags);
@@ -255,7 +255,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <returns>Interaction result of the rendered text.</returns>
     public SeStringDrawResult Draw(
         ReadOnlySeStringSpan sss,
-        in SeStringDrawParams drawParams = default,
+        scoped in SeStringDrawParams drawParams = default,
         ImGuiId imGuiId = default,
         ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault)
     {
@@ -889,7 +889,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         /// <param name="gfdEntry">GFD entry to determine the size.</param>
         /// <param name="useHq">Whether to draw the HQ texture.</param>
         /// <returns>Determined size of the GFD entry when drawn.</returns>
-        public readonly Vector2 CalculateGfdEntrySize(in GfdFile.GfdEntry gfdEntry, out bool useHq)
+        public readonly Vector2 CalculateGfdEntrySize(scoped in GfdFile.GfdEntry gfdEntry, out bool useHq)
         {
             useHq = this.Params.FontSize > 20;
             var targetHeight = useHq ? this.Params.FontSize : 20;
@@ -911,7 +911,11 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         /// <param name="dyItalic">Transformation for <paramref name="g"/> that will push top and bottom pixels to
         /// apply faux italicization.</param>
         /// <param name="color">Color of the glyph.</param>
-        public readonly void Draw(Vector2 offset, in ImGuiHelpers.ImFontGlyphReal g, Vector2 dyItalic, uint color) =>
+        public readonly void Draw(
+            Vector2 offset,
+            scoped in ImGuiHelpers.ImFontGlyphReal g,
+            Vector2 dyItalic,
+            uint color) =>
             this.Draw(
                 offset + new Vector2(
                     0,
