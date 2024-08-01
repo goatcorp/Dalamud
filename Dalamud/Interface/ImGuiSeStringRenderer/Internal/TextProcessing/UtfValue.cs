@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 
 /// <summary>Represents a single value to be used in a UTF-N byte sequence.</summary>
 [StructLayout(LayoutKind.Explicit, Size = 4)]

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 using Lumina.Data;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 
 /// <summary>Game font data file.</summary>
 internal sealed unsafe class GfdFile : FileResource

@@ -1,4 +1,4 @@
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 
 /// <summary>Flags on enumerating a unicode sequence.</summary>
 [Flags]
