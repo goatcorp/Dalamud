@@ -1,5 +1,6 @@
 using System.Numerics;
 
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -27,6 +28,8 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
     private string searchTerm = string.Empty;
     private bool hideUnsetStringArrayEntries = false;
     private bool hideUnsetExtendArrayEntries = false;
+    private bool showTextAddress = false;
+    private bool showMacroString = false;
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -56,7 +59,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
 
     private static void DrawCopyableText(string text, string tooltipText)
     {
-        ImGui.TextUnformatted(text);
+        ImGuiHelpers.SafeTextWrapped(text);
 
         if (ImGui.IsItemHovered())
         {
@@ -288,12 +291,16 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
         var array = atkArrayDataHolder.StringArrays[this.selectedStringArray];
         this.DrawArrayHeader(this.stringType, "String", this.selectedStringArray, (AtkArrayData*)array);
         ImGui.Checkbox("Hide unset entries##HideUnsetStringArrayEntriesCheckbox", ref this.hideUnsetStringArrayEntries);
+        ImGui.SameLine();
+        ImGui.Checkbox("Show text address##WordWrapCheckbox", ref this.showTextAddress);
+        ImGui.SameLine();
+        ImGui.Checkbox("Show macro string##RenderStringsCheckbox", ref this.showMacroString);
 
         using var table = ImRaii.Table("StringArrayDataTable", 4, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders);
         if (!table) return;
 
         ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn(ImGui.IsKeyDown(ImGuiKey.LeftShift) ? "Entry Address" : "Text Address", ImGuiTableColumnFlags.WidthFixed, 120);
+        ImGui.TableSetupColumn(this.showTextAddress ? "Text Address" : "Entry Address", ImGuiTableColumnFlags.WidthFixed, 120);
         ImGui.TableSetupColumn("Managed", ImGuiTableColumnFlags.WidthFixed, 60);
         ImGui.TableSetupColumn("Text", ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupScrollFreeze(4, 1);
@@ -323,22 +330,34 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             ImGui.TextUnformatted($"#{i}");
 
             ImGui.TableNextColumn(); // Address
-            if (ImGui.IsKeyDown(ImGuiKey.LeftShift))
+            if (this.showTextAddress)
+            {
+                if (!isNull)
+                    DrawCopyableText($"0x{(nint)array->StringArray[i]:X}", "Copy text address");
+            }
+            else
             {
                 DrawCopyableText($"0x{(nint)(&array->StringArray[i]):X}", "Copy entry address");
-            }
-            else if (!isNull)
-            {
-                DrawCopyableText($"0x{(nint)array->StringArray[i]:X}", "Copy text address");
             }
 
             ImGui.TableNextColumn(); // Managed
             if (!isNull)
+            {
                 ImGui.TextUnformatted(((nint)array->StringArray[i] != 0 && array->ManagedStringArray[i] == array->StringArray[i]).ToString());
+            }
 
             ImGui.TableNextColumn(); // Text
             if (!isNull)
-                DrawCopyableText(new ReadOnlySeStringSpan(array->StringArray[i]).ToString(), "Copy text");
+            {
+                if (this.showMacroString)
+                {
+                    DrawCopyableText(new ReadOnlySeStringSpan(array->StringArray[i]).ToString(), "Copy text");
+                }
+                else
+                {
+                    ImGuiHelpers.SeStringWrapped(new ReadOnlySeStringSpan(array->StringArray[i]));
+                }
+            }
         }
     }
 
