@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 using ImGuiNET;
 
@@ -41,6 +43,16 @@ public record struct SeStringDrawParams
 
     /// <summary>Gets or sets the thickness of underline under links.</summary>
     public float? LinkUnderlineThickness { get; set; }
+
+    /// <summary>Gets or sets the opacity, commonly called &quot;alpha&quot;.</summary>
+    /// <value>Opacity value ranging from 0(invisible) to 1(fully visible), or <c>null</c> to use the current ImGui
+    /// opacity from <see cref="ImGuiStyle.Alpha"/> accessed using <see cref="ImGui.GetStyle"/>.</value>
+    public float? Opacity { get; set; }
+
+    /// <summary>Gets or sets the strength of the edge, which will have effects on the edge opacity.</summary>
+    /// <value>Strength value ranging from 0(invisible) to 1(fully visible), or <c>null</c> to use the default value
+    /// of <c>0.25f</c> that might be subject to change in the future.</value>
+    public float? EdgeStrength { get; set; }
 
     /// <summary>Gets or sets the color of the rendered text.</summary>
     /// <value>Color in RGBA, or <c>null</c> to use <see cref="ImGuiCol.Text"/> (the default).</value>
@@ -86,7 +98,14 @@ public record struct SeStringDrawParams
 
     private readonly float EffectiveLineHeight => (this.FontSize ?? ImGui.GetFontSize()) * (this.LineHeight ?? 1f);
 
+    private readonly float EffectiveOpacity => this.Opacity ?? ImGui.GetStyle().Alpha;
+
     /// <summary>Calculated values from <see cref="SeStringDrawParams"/> using ImGui styles.</summary>
+    [SuppressMessage(
+        "StyleCop.CSharp.OrderingRules",
+        "SA1214:Readonly fields should appear before non-readonly fields",
+        Justification = "Matching the above order.")]
+    [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct Resolved(in SeStringDrawParams ssdp)
     {
         /// <inheritdoc cref="SeStringDrawParams.TargetDrawList"/>
@@ -110,14 +129,20 @@ public record struct SeStringDrawParams
         /// <inheritdoc cref="SeStringDrawParams.LinkUnderlineThickness"/>
         public readonly float LinkUnderlineThickness = ssdp.LinkUnderlineThickness ?? 0f;
 
+        /// <inheritdoc cref="SeStringDrawParams.Opacity"/>
+        public readonly float Opacity = ssdp.EffectiveOpacity;
+
+        /// <inheritdoc cref="SeStringDrawParams.EdgeStrength"/>
+        public readonly float EdgeOpacity = (ssdp.EdgeStrength ?? 0.25f) * ssdp.EffectiveOpacity;
+
         /// <inheritdoc cref="SeStringDrawParams.Color"/>
-        public readonly uint Color = ssdp.Color ?? ImGui.GetColorU32(ImGuiCol.Text);
+        public uint Color = ssdp.Color ?? ImGui.GetColorU32(ImGuiCol.Text);
 
         /// <inheritdoc cref="SeStringDrawParams.EdgeColor"/>
-        public readonly uint EdgeColor = ssdp.EdgeColor ?? 0xFF000000;
+        public uint EdgeColor = ssdp.EdgeColor ?? 0xFF000000;
 
         /// <inheritdoc cref="SeStringDrawParams.ShadowColor"/>
-        public readonly uint ShadowColor = ssdp.ShadowColor ?? 0xFF000000;
+        public uint ShadowColor = ssdp.ShadowColor ?? 0xFF000000;
 
         /// <inheritdoc cref="SeStringDrawParams.LinkHoverBackColor"/>
         public readonly uint LinkHoverBackColor = ssdp.LinkHoverBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonHovered);

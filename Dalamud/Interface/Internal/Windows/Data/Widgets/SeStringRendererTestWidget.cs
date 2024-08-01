@@ -12,6 +12,8 @@ using Dalamud.Utility;
 using ImGuiNET;
 
 using Lumina.Excel.GeneratedSheets2;
+using Lumina.Text;
+using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -24,6 +26,8 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     private ImVectorWrapper<byte> testStringBuffer;
     private string testString = string.Empty;
     private Addon[]? addons;
+    private ReadOnlySeString? uicolor;
+    private ReadOnlySeString? logkind;
     private SeStringDrawParams style;
     private bool interactable;
 
@@ -41,6 +45,8 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     {
         this.style = default;
         this.addons = null;
+        this.uicolor = null;
+        this.logkind = null;
         this.testString = string.Empty;
         this.interactable = true;
         this.Ready = true;
@@ -75,8 +81,16 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             this.style.LinkActiveBackColor = ImGui.ColorConvertFloat4ToU32(t2);
 
         var t3 = this.style.LineHeight ?? 1f;
-        if (ImGui.DragFloat("Line Height", ref t3, 0.1f, 0.4f, 3f, "%.02f"))
+        if (ImGui.DragFloat("Line Height", ref t3, 0.01f, 0.4f, 3f, "%.02f"))
             this.style.LineHeight = t3;
+        
+        t3 = this.style.Opacity ?? ImGui.GetStyle().Alpha;
+        if (ImGui.DragFloat("Opacity", ref t3, 0.005f, 0f, 1f, "%.02f"))
+            this.style.Opacity = t3;
+        
+        t3 = this.style.EdgeStrength ?? 0.25f;
+        if (ImGui.DragFloat("Edge Strength", ref t3, 0.005f, 0f, 1f, "%.02f"))
+            this.style.EdgeStrength = t3;
 
         t = this.style.Edge;
         if (ImGui.Checkbox("Edge", ref t))
@@ -111,6 +125,82 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         t = this.interactable;
         if (ImGui.Checkbox("Interactable", ref t))
             this.interactable = t;
+
+        if (ImGui.CollapsingHeader("UIColor Preview"))
+        {
+            if (this.uicolor is null)
+            {
+                var tt = new SeStringBuilder();
+                foreach (var uc in Service<DataManager>.Get().GetExcelSheet<UIColor>()!)
+                {
+                    tt.Append($"#{uc.RowId}: ")
+                      .BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(uc.RowId).EndMacro()
+                      .Append("Edge ")
+                      .BeginMacro(MacroCode.ColorType).AppendUIntExpression(uc.RowId).EndMacro()
+                      .Append("Edge+Color ")
+                      .BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(0).EndMacro()
+                      .Append("Color ")
+                      .BeginMacro(MacroCode.ColorType).AppendUIntExpression(0).EndMacro();
+                    if (uc.RowId >= 500)
+                    {
+                        if (uc.RowId % 2 == 0)
+                        {
+                            tt.BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(uc.RowId).EndMacro()
+                              .BeginMacro(MacroCode.ColorType).AppendUIntExpression(uc.RowId + 1).EndMacro()
+                              .Append($"  => color#{uc.RowId + 1} + edge#{uc.RowId}")
+                              .BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(0).EndMacro()
+                              .BeginMacro(MacroCode.ColorType).AppendUIntExpression(0).EndMacro();
+                        }
+                        else
+                        {
+                            tt.BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(uc.RowId).EndMacro()
+                              .BeginMacro(MacroCode.ColorType).AppendUIntExpression(uc.RowId - 1).EndMacro()
+                              .Append($"  => color#{uc.RowId - 1} + edge#{uc.RowId}")
+                              .BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(0).EndMacro()
+                              .BeginMacro(MacroCode.ColorType).AppendUIntExpression(0).EndMacro();
+                        }
+                    }
+
+                    tt.BeginMacro(MacroCode.NewLine).EndMacro();
+                }
+
+                this.uicolor = tt.ToReadOnlySeString();
+            }
+
+            ImGuiHelpers.SeStringWrapped(this.uicolor.Value.Data.Span, this.style);
+        }
+
+        if (ImGui.CollapsingHeader("LogKind Preview"))
+        {
+            if (this.logkind is null)
+            {
+                var tt = new SeStringBuilder();
+                foreach (var uc in Service<DataManager>.Get().GetExcelSheet<LogKind>()!)
+                {
+                    var ucsp = uc.Format.AsReadOnly().AsSpan();
+                    if (ucsp.IsEmpty)
+                        continue;
+
+                    tt.Append($"#{uc.RowId}: ");
+                    foreach (var p in ucsp.GetOffsetEnumerator())
+                    {
+                        if (p.Payload.Type == ReadOnlySePayloadType.Macro && p.Payload.MacroCode == MacroCode.String)
+                        {
+                            tt.Append("Text"u8);
+                            continue;
+                        }
+
+                        tt.Append(new ReadOnlySeStringSpan(ucsp.Data.Slice(p.Offset, p.Payload.EnvelopeByteLength)));
+                    }
+
+                    tt.BeginMacro(MacroCode.NewLine).EndMacro();
+                }
+
+                this.logkind = tt.ToReadOnlySeString();
+            }
+
+            ImGuiHelpers.SeStringWrapped(this.logkind.Value.Data.Span, this.style);
+        }
 
         if (ImGui.CollapsingHeader("Addon Table"))
         {

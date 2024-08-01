@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -17,6 +18,7 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Component.Text;
 
 using ImGuiNET;
 
@@ -120,8 +122,18 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         this.edgeColorTypes = new uint[maxId + 1];
         foreach (var row in uiColor)
         {
-            this.colorTypes[row.RowId] = SwapRedBlue((row.UIForeground >> 8) | (row.UIForeground << 24));
-            this.edgeColorTypes[row.RowId] = SwapRedBlue((row.UIGlow >> 8) | (row.UIGlow << 24));
+            // Contains ABGR.
+            this.colorTypes[row.RowId] = row.UIForeground;
+            this.edgeColorTypes[row.RowId] = row.UIGlow;
+        }
+
+        if (BitConverter.IsLittleEndian)
+        {
+            // ImGui wants RGBA in LE.
+            foreach (ref var r in this.colorTypes.AsSpan())
+                r = BinaryPrimitives.ReverseEndianness(r);
+            foreach (ref var r in this.edgeColorTypes.AsSpan())
+                r = BinaryPrimitives.ReverseEndianness(r);
         }
 
         this.gfd = dm.GetFile<GfdFile>("common/font/gfdata.gfd")!;
@@ -256,11 +268,17 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         // This also does argument validation for drawParams. Do it here.
         var state = new DrawState(sss, new(drawParams), this.splitter);
 
-        // Reset the state.
+        // Reset and initialize the state.
         this.fragments.Clear();
         this.colorStack.Clear();
         this.edgeColorStack.Clear();
         this.shadowColorStack.Clear();
+        this.colorStack.Add(state.Params.Color);
+        this.edgeColorStack.Add(state.Params.EdgeColor);
+        this.shadowColorStack.Add(state.Params.ShadowColor);
+        state.Params.Color = ApplyOpacityValue(state.Params.Color, state.Params.Opacity);
+        state.Params.EdgeColor = ApplyOpacityValue(state.Params.EdgeColor, state.Params.EdgeOpacity);
+        state.Params.ShadowColor = ApplyOpacityValue(state.Params.ShadowColor, state.Params.Opacity);
 
         // Handle cases where ImGui.AlignTextToFramePadding has been called.
         var pCurrentWindow = *(nint*)(ImGui.GetCurrentContext() + ImGuiContextCurrentWindowOffset);
@@ -341,6 +359,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         {
             state.SetCurrentChannel(ChannelLinkBackground);
             var color = activeLinkOffset == -1 ? state.Params.LinkHoverBackColor : state.Params.LinkActiveBackColor;
+            color = ApplyOpacityValue(color, state.Params.Opacity);
             foreach (ref readonly var fragment in fragmentSpan)
             {
                 if (fragment.Link != hoveredLinkOffset && hoveredLinkOffset != -1)
@@ -397,6 +416,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="x">Color to process.</param>
     /// <returns>Swapped color.</returns>
     private static uint SwapRedBlue(uint x) => (x & 0xFF00FF00u) | ((x >> 16) & 0xFF) | ((x & 0xFF) << 16);
+
+    /// <summary>Applies the given opacity value ranging from 0 to 1 to an uint value containing a RGBA value.</summary>
+    /// <param name="rgba">RGBA value to transform.</param>
+    /// <param name="opacity">Opacity to apply.</param>
+    /// <returns>Transformed value.</returns>
+    private static uint ApplyOpacityValue(uint rgba, float opacity) =>
+        ((uint)MathF.Round((rgba >> 24) * opacity) << 24) | (rgba & 0xFFFFFFu);
 
     private void ReleaseUnmanagedResources()
     {
@@ -527,9 +553,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         var width = 0f;
         foreach (var c in UtfEnumerator.From(span, UtfEnumeratorFlags.Utf8SeString))
         {
-            var color = this.colorStack.Count == 0 ? state.Params.Color : this.colorStack[^1];
-            var shadowColor = this.shadowColorStack.Count == 0 ? state.Params.ShadowColor : this.shadowColorStack[^1];
-
             if (c is { IsSeStringPayload: true, EffectiveInt: char.MaxValue or ObjectReplacementCharacter })
             {
                 var enu = new ReadOnlySeStringSpan(span[c.ByteOffset..]).GetOffsetEnumerator();
@@ -540,13 +563,20 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 switch (payload.MacroCode)
                 {
                     case MacroCode.Color:
-                        TouchColorStack(this.colorStack, payload);
+                        state.Params.Color = ApplyOpacityValue(
+                            TouchColorStack(this.colorStack, payload),
+                            state.Params.Opacity);
                         continue;
                     case MacroCode.EdgeColor:
-                        TouchColorStack(this.edgeColorStack, payload);
+                        state.Params.EdgeColor = TouchColorStack(this.edgeColorStack, payload);
+                        state.Params.EdgeColor = ApplyOpacityValue(
+                            state.Params.ForceEdgeColor ? this.edgeColorStack[0] : state.Params.EdgeColor,
+                            state.Params.EdgeOpacity);
                         continue;
                     case MacroCode.ShadowColor:
-                        TouchColorStack(this.shadowColorStack, payload);
+                        state.Params.ShadowColor = ApplyOpacityValue(
+                            TouchColorStack(this.shadowColorStack, payload),
+                            state.Params.Opacity);
                         continue;
                     case MacroCode.Bold when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
                         // doesn't actually work in chat log
@@ -562,10 +592,15 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                         state.Params.Shadow = u != 0;
                         continue;
                     case MacroCode.ColorType:
-                        TouchColorTypeStack(this.colorStack, this.colorTypes, payload);
+                        state.Params.Color = ApplyOpacityValue(
+                            TouchColorTypeStack(this.colorStack, this.colorTypes, payload),
+                            state.Params.Opacity);
                         continue;
                     case MacroCode.EdgeColorType:
-                        TouchColorTypeStack(this.edgeColorStack, this.edgeColorTypes, payload);
+                        state.Params.EdgeColor = TouchColorTypeStack(this.edgeColorStack, this.edgeColorTypes, payload);
+                        state.Params.EdgeColor = ApplyOpacityValue(
+                            state.Params.ForceEdgeColor ? this.edgeColorStack[0] : state.Params.EdgeColor,
+                            state.Params.EdgeOpacity);
                         continue;
                     case MacroCode.Icon:
                     case MacroCode.Icon2:
@@ -584,9 +619,10 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                             size,
                             Vector2.Zero,
                             useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,
-                            useHq ? gfdEntry.HqUv1 : gfdEntry.Uv1);
+                            useHq ? gfdEntry.HqUv1 : gfdEntry.Uv1,
+                            ApplyOpacityValue(uint.MaxValue, state.Params.Opacity));
                         if (link != -1)
-                            state.DrawLinkUnderline(offset + new Vector2(x, 0), size.X, color, shadowColor);
+                            state.DrawLinkUnderline(offset + new Vector2(x, 0), size.X);
 
                         width = Math.Max(width, x + size.X);
                         x += MathF.Round(size.X);
@@ -611,22 +647,14 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                                ? new Vector2(state.Params.FontSize - g.Y0, state.Params.FontSize - g.Y1) / 6
                                : Vector2.Zero;
 
-            if (state.Params.Shadow && shadowColor >= 0x1000000)
+            if (state.Params is { Shadow: true, ShadowColor: >= 0x1000000 })
             {
                 state.SetCurrentChannel(ChannelShadow);
                 for (var dx = 0; dx < dxBold; dx++)
-                    state.Draw(offset + new Vector2(x + dist + dx, 1), g, dyItalic, shadowColor);
+                    state.Draw(offset + new Vector2(x + dist + dx, 1), g, dyItalic, state.Params.ShadowColor);
             }
 
-            var useEdge = this.edgeColorStack.Count > 0 || state.Params.Edge;
-            var activeEdgeColor =
-                state.Params.ForceEdgeColor
-                    ? state.Params.EdgeColor
-                    : this.edgeColorStack.Count == 0
-                        ? state.Params.EdgeColor
-                        : this.edgeColorStack[^1];
-            activeEdgeColor = (activeEdgeColor & 0xFFFFFFu) | ((activeEdgeColor >> 26) << 24);
-            if (useEdge && activeEdgeColor >= 0x1000000)
+            if ((state.Params.Edge || this.edgeColorStack.Count > 1) && state.Params.EdgeColor >= 0x1000000)
             {
                 state.SetCurrentChannel(ChannelEdge);
                 for (var dx = -1; dx <= dxBold; dx++)
@@ -636,17 +664,17 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                         if (dx >= 0 && dx < dxBold && dy == 0)
                             continue;
 
-                        state.Draw(offset + new Vector2(x + dist + dx, dy), g, dyItalic, activeEdgeColor);
+                        state.Draw(offset + new Vector2(x + dist + dx, dy), g, dyItalic, state.Params.EdgeColor);
                     }
                 }
             }
 
             state.SetCurrentChannel(ChannelFore);
             for (var dx = 0; dx < dxBold; dx++)
-                state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, color);
+                state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, state.Params.Color);
 
             if (link != -1)
-                state.DrawLinkUnderline(offset + new Vector2(x + dist, 0), g.AdvanceX, color, shadowColor);
+                state.DrawLinkUnderline(offset + new Vector2(x + dist, 0), g.AdvanceX);
 
             width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
             x += dist + MathF.Round(g.AdvanceX * state.FontSizeScale);
@@ -654,26 +682,63 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
         return;
 
-        static void TouchColorStack(List<uint> stack, ReadOnlySePayloadSpan payload)
+        static uint TouchColorStack(List<uint> rgbaStack, ReadOnlySePayloadSpan payload)
         {
             if (!payload.TryGetExpression(out var expr))
-                return;
-            if (expr.TryGetPlaceholderExpression(out var p) && p == (int)ExpressionType.StackColor && stack.Count > 0)
-                stack.RemoveAt(stack.Count - 1);
-            else if (expr.TryGetUInt(out var u))
-                stack.Add(SwapRedBlue(u) | 0xFF000000u);
+                return rgbaStack[^1];
+
+            // Color payloads have BGRA values as its parameter. ImGui expects RGBA values.
+            // Opacity component is ignored.
+            if (expr.TryGetPlaceholderExpression(out var p) && p == (int)ExpressionType.StackColor)
+            {
+                // First item in the stack is the color we started to draw with.
+                if (rgbaStack.Count > 1)
+                    rgbaStack.RemoveAt(rgbaStack.Count - 1);
+                return rgbaStack[^1];
+            }
+
+            if (expr.TryGetUInt(out var bgra))
+            {
+                rgbaStack.Add(SwapRedBlue(bgra) | 0xFF000000u);
+                return rgbaStack[^1];
+            }
+
+            if (expr.TryGetParameterExpression(out var et, out var op) &&
+                et == (int)ExpressionType.GlobalNumber &&
+                op.TryGetInt(out var i) &&
+                RaptureTextModule.Instance() is var rtm &&
+                rtm is not null &&
+                i > 0 && i <= rtm->TextModule.MacroDecoder.GlobalParameters.Count &&
+                rtm->TextModule.MacroDecoder.GlobalParameters[i - 1] is { Type: TextParameterType.Integer } gp)
+            {
+                rgbaStack.Add(SwapRedBlue((uint)gp.IntValue) | 0xFF000000u);
+                return rgbaStack[^1];
+            }
+
+            // Fallback value.
+            rgbaStack.Add(0xFF000000u);
+            return rgbaStack[^1];
         }
 
-        static void TouchColorTypeStack(List<uint> stack, uint[] colorTypes, ReadOnlySePayloadSpan payload)
+        static uint TouchColorTypeStack(List<uint> rgbaStack, uint[] colorTypes, ReadOnlySePayloadSpan payload)
         {
             if (!payload.TryGetExpression(out var expr))
-                return;
-            if (!expr.TryGetUInt(out var u))
-                return;
-            if (u != 0)
-                stack.Add((u < colorTypes.Length ? colorTypes[u] : 0u) | 0xFF000000u);
-            else if (stack.Count > 0)
-                stack.RemoveAt(stack.Count - 1);
+                return rgbaStack[^1];
+            if (!expr.TryGetUInt(out var colorTypeIndex))
+                return rgbaStack[^1];
+
+            if (colorTypeIndex == 0)
+            {
+                // First item in the stack is the color we started to draw with.
+                if (rgbaStack.Count > 1)
+                    rgbaStack.RemoveAt(rgbaStack.Count - 1);
+                return rgbaStack[^1];
+            }
+
+            // Opacity component is ignored.
+            rgbaStack.Add((colorTypeIndex < colorTypes.Length ? colorTypes[colorTypeIndex] : 0u) | 0xFF000000u);
+
+            return rgbaStack[^1];
         }
     }
 
@@ -899,9 +964,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         /// <param name="offset">Offset of the glyph in pixels w.r.t.
         /// <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
         /// <param name="advanceWidth">Advance width of the glyph.</param>
-        /// <param name="color">Color of the underline.</param>
-        /// <param name="shadowColor">Color of the shadow under the underline.</param>
-        public readonly void DrawLinkUnderline(Vector2 offset, float advanceWidth, uint color, uint shadowColor)
+        public readonly void DrawLinkUnderline(Vector2 offset, float advanceWidth)
         {
             if (this.Params.LinkUnderlineThickness < 1f)
                 return;
@@ -915,17 +978,17 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 this.Params.DrawList,
                 this.ScreenOffset + offset + new Vector2(0, dy),
                 this.ScreenOffset + offset + new Vector2(advanceWidth, dy),
-                color,
+                this.Params.Color,
                 this.Params.LinkUnderlineThickness);
 
-            if (this.Params.Shadow && shadowColor >= 0x1000000)
+            if (this.Params is { Shadow: true, ShadowColor: >= 0x1000000 })
             {
                 this.SetCurrentChannel(ChannelShadow);
                 ImGuiNative.ImDrawList_AddLine(
                     this.Params.DrawList,
                     this.ScreenOffset + offset + new Vector2(0, dy + 1),
                     this.ScreenOffset + offset + new Vector2(advanceWidth, dy + 1),
-                    shadowColor,
+                    this.Params.ShadowColor,
                     this.Params.LinkUnderlineThickness);
             }
         }
