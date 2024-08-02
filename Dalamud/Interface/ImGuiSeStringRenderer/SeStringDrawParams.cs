@@ -16,6 +16,10 @@ public record struct SeStringDrawParams
     /// </remarks>
     public ImDrawListPtr? TargetDrawList { get; set; }
 
+    /// <summary>Gets or sets the function to be called on every codepoint and payload for the purpose of offering
+    /// chances to draw something else instead of glyphs or SeString payload entities.</summary>
+    public SeStringReplacementEntity.GetEntityDelegate? GetEntity { get; set; }
+
     /// <summary>Gets or sets the screen offset of the left top corner.</summary>
     /// <value>Screen offset to draw at, or <c>null</c> to use <see cref="ImGui.GetCursorScreenPos"/>.</value>
     public Vector2? ScreenOffset { get; set; }

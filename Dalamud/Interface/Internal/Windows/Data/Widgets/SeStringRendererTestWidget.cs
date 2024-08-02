@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Numerics;
 using System.Text;
 
 using Dalamud.Data;
@@ -6,7 +7,9 @@ using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
 using ImGuiNET;
@@ -32,6 +35,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     private ReadOnlySeString? logkind;
     private SeStringDrawParams style;
     private bool interactable;
+    private bool useEntity;
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "SeStringRenderer Test";
@@ -45,12 +49,12 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
-        this.style = default;
+        this.style = new() { GetEntity = this.GetEntity };
         this.addons = null;
         this.uicolor = null;
         this.logkind = null;
         this.testString = string.Empty;
-        this.interactable = true;
+        this.interactable = this.useEntity = true;
         this.Ready = true;
     }
 
@@ -85,11 +89,11 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         var t3 = this.style.LineHeight ?? 1f;
         if (ImGui.DragFloat("Line Height", ref t3, 0.01f, 0.4f, 3f, "%.02f"))
             this.style.LineHeight = t3;
-        
+
         t3 = this.style.Opacity ?? ImGui.GetStyle().Alpha;
         if (ImGui.DragFloat("Opacity", ref t3, 0.005f, 0f, 1f, "%.02f"))
             this.style.Opacity = t3;
-        
+
         t3 = this.style.EdgeStrength ?? 0.25f;
         if (ImGui.DragFloat("Edge Strength", ref t3, 0.005f, 0f, 1f, "%.02f"))
             this.style.EdgeStrength = t3;
@@ -123,10 +127,14 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         if (ImGui.Checkbox("Word Wrap", ref t))
             this.style.WrapWidth = t ? null : float.PositiveInfinity;
 
-        ImGui.SameLine();
         t = this.interactable;
         if (ImGui.Checkbox("Interactable", ref t))
             this.interactable = t;
+
+        ImGui.SameLine();
+        t = this.useEntity;
+        if (ImGui.Checkbox("Use Entity Replacements", ref t))
+            this.useEntity = t;
 
         if (ImGui.CollapsingHeader("UIColor Preview"))
         {
@@ -267,7 +275,22 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         ImGuiHelpers.ScaledDummy(3);
         ImGuiHelpers.CompileSeStringWrapped(
-            "· For ease of testing, <colortype(506)><edgecolortype(507)>line breaks<colortype(0)><edgecolortype(0)> are automatically replaced to <colortype(502)><edgecolortype(503)>\\<br><colortype(0)><edgecolortype(0)>.",
+            "Optional features implemented for the following test input:<br>" +
+            "· <colortype(506)><edgecolortype(507)>line breaks<colortype(0)><edgecolortype(0)> are automatically replaced to <colortype(502)><edgecolortype(503)>\\<br><colortype(0)><edgecolortype(0)>.<br>" +
+            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>alamud<colortype(0)><edgecolortype(0)> will display Dalamud.<br>" +
+            "· <colortype(506)><edgecolortype(507)>W<link(0xCE)>hite<colortype(0)><edgecolortype(0)> will display White.<br>" +
+            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>efaultIcon<colortype(0)><edgecolortype(0)> will display DefaultIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>isabledIcon<colortype(0)><edgecolortype(0)> will display DisabledIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>O<link(0xCE)>utdatedInstallableIcon<colortype(0)><edgecolortype(0)> will display OutdatedInstallableIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>roubleIcon<colortype(0)><edgecolortype(0)> will display TroubleIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>D<link(0xCE)>evPluginIcon<colortype(0)><edgecolortype(0)> will display DevPluginIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>U<link(0xCE)>pdateIcon<colortype(0)><edgecolortype(0)> will display UpdateIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>I<link(0xCE)>nstalledIcon<colortype(0)><edgecolortype(0)> will display InstalledIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>hirdIcon<colortype(0)><edgecolortype(0)> will display ThirdIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>T<link(0xCE)>hirdInst<link(0xCE)>alledIcon<colortype(0)><edgecolortype(0)> will display ThirdInstalledIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>C<link(0xCE)>hangelogApiBumpIcon<colortype(0)><edgecolortype(0)> will display ChangelogApiBumpIcon.<br>" +
+            "· <colortype(506)><edgecolortype(507)>icon<link(0xCE)>(5)<colortype(0)><edgecolortype(0)> will display icon(5). This is different from \\<icon<link(0xCE)>(5)>.<br>" +
+            "· <colortype(506)><edgecolortype(507)>tex<link(0xCE)>(ui/loadingimage/-nowloading_base25_hr1.tex)<colortype(0)><edgecolortype(0)> will display tex(ui/loadingimage/-nowloading_base25_hr1.tex).",
             this.style);
         ImGuiHelpers.ScaledDummy(3);
 
@@ -302,10 +325,14 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         if (this.interactable)
         {
             if (ImGuiHelpers.CompileSeStringWrapped(this.testString, this.style, new("this is an ImGui id")) is
-                { InteractedPayload: { } payload, InteractedPayloadOffset: var offset, InteractedPayloadEnvelope: var envelope } rr)
+                {
+                    InteractedPayload: { } payload, InteractedPayloadOffset: var offset,
+                    InteractedPayloadEnvelope: var envelope,
+                    Clicked: var clicked
+                })
             {
                 ImGui.TextUnformatted($"Hovered[{offset}]: {new ReadOnlySeStringSpan(envelope).ToString()}; {payload}");
-                if (rr.Clicked && payload is DalamudLinkPayload { Plugin: "test" } dlp)
+                if (clicked && payload is DalamudLinkPayload { Plugin: "test" } dlp)
                     Util.OpenLink(dlp.ExtraString);
             }
         }
@@ -313,5 +340,139 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         {
             ImGuiHelpers.CompileSeStringWrapped(this.testString, this.style);
         }
+    }
+
+    private SeStringReplacementEntity GetEntity(scoped in SeStringDrawState state, int byteOffset)
+    {
+        if (!this.useEntity)
+            return default;
+        if (state.Span[byteOffset..].StartsWith("Dalamud"u8))
+            return new(7, new(state.FontSize, state.FontSize), DrawDalamud);
+        if (state.Span[byteOffset..].StartsWith("White"u8))
+            return new(5, new(state.FontSize, state.FontSize), DrawWhite);
+        if (state.Span[byteOffset..].StartsWith("DefaultIcon"u8))
+            return new(11, new(state.FontSize, state.FontSize), DrawDefaultIcon);
+        if (state.Span[byteOffset..].StartsWith("DisabledIcon"u8))
+            return new(12, new(state.FontSize, state.FontSize), DrawDisabledIcon);
+        if (state.Span[byteOffset..].StartsWith("OutdatedInstallableIcon"u8))
+            return new(23, new(state.FontSize, state.FontSize), DrawOutdatedInstallableIcon);
+        if (state.Span[byteOffset..].StartsWith("TroubleIcon"u8))
+            return new(11, new(state.FontSize, state.FontSize), DrawTroubleIcon);
+        if (state.Span[byteOffset..].StartsWith("DevPluginIcon"u8))
+            return new(13, new(state.FontSize, state.FontSize), DrawDevPluginIcon);
+        if (state.Span[byteOffset..].StartsWith("UpdateIcon"u8))
+            return new(10, new(state.FontSize, state.FontSize), DrawUpdateIcon);
+        if (state.Span[byteOffset..].StartsWith("ThirdIcon"u8))
+            return new(9, new(state.FontSize, state.FontSize), DrawThirdIcon);
+        if (state.Span[byteOffset..].StartsWith("ThirdInstalledIcon"u8))
+            return new(18, new(state.FontSize, state.FontSize), DrawThirdInstalledIcon);
+        if (state.Span[byteOffset..].StartsWith("ChangelogApiBumpIcon"u8))
+            return new(20, new(state.FontSize, state.FontSize), DrawChangelogApiBumpIcon);
+        if (state.Span[byteOffset..].StartsWith("InstalledIcon"u8))
+            return new(13, new(state.FontSize, state.FontSize), DrawInstalledIcon);
+        if (state.Span[byteOffset..].StartsWith("tex("u8))
+        {
+            var off = state.Span[byteOffset..].IndexOf((byte)')');
+            var tex = Service<TextureManager>
+                      .Get()
+                      .Shared
+                      .GetFromGame(Encoding.UTF8.GetString(state.Span[(byteOffset + 4)..(byteOffset + off)]))
+                      .GetWrapOrEmpty();
+            return new(off + 1, tex.Size * (state.FontSize / tex.Size.Y), DrawTexture);
+        }
+
+        if (state.Span[byteOffset..].StartsWith("icon("u8))
+        {
+            var off = state.Span[byteOffset..].IndexOf((byte)')');
+            if (int.TryParse(state.Span[(byteOffset + 5)..(byteOffset + off)], out var parsed))
+            {
+                var tex = Service<TextureManager>
+                          .Get()
+                          .Shared
+                          .GetFromGameIcon(parsed)
+                          .GetWrapOrEmpty();
+                return new(off + 1, tex.Size * (state.FontSize / tex.Size.Y), DrawIcon);
+            }
+        }
+
+        return default;
+
+        static void DrawTexture(scoped in SeStringDrawState state, int byteOffset, Vector2 offset)
+        {
+            var off = state.Span[byteOffset..].IndexOf((byte)')');
+            var tex = Service<TextureManager>
+                      .Get()
+                      .Shared
+                      .GetFromGame(Encoding.UTF8.GetString(state.Span[(byteOffset + 4)..(byteOffset + off)]))
+                      .GetWrapOrEmpty();
+            state.Draw(
+                tex.ImGuiHandle,
+                offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
+                tex.Size * (state.FontSize / tex.Size.Y),
+                Vector2.Zero,
+                Vector2.One);
+        }
+
+        static void DrawIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset)
+        {
+            var off = state.Span[byteOffset..].IndexOf((byte)')');
+            if (!int.TryParse(state.Span[(byteOffset + 5)..(byteOffset + off)], out var parsed))
+                return;
+            var tex = Service<TextureManager>
+                      .Get()
+                      .Shared
+                      .GetFromGameIcon(parsed)
+                      .GetWrapOrEmpty();
+            state.Draw(
+                tex.ImGuiHandle,
+                offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
+                tex.Size * (state.FontSize / tex.Size.Y),
+                Vector2.Zero,
+                Vector2.One);
+        }
+
+        static void DrawAsset(scoped in SeStringDrawState state, Vector2 offset, DalamudAsset asset) =>
+            state.Draw(
+                Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(asset).ImGuiHandle,
+                offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
+                new(state.FontSize, state.FontSize),
+                Vector2.Zero,
+                Vector2.One);
+
+        static void DrawDalamud(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.LogoSmall);
+
+        static void DrawWhite(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.White4X4);
+
+        static void DrawDefaultIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.DefaultIcon);
+
+        static void DrawDisabledIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.DisabledIcon);
+
+        static void DrawOutdatedInstallableIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.OutdatedInstallableIcon);
+
+        static void DrawTroubleIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.TroubleIcon);
+
+        static void DrawDevPluginIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.DevPluginIcon);
+
+        static void DrawUpdateIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.UpdateIcon);
+
+        static void DrawInstalledIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.InstalledIcon);
+
+        static void DrawThirdIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.ThirdIcon);
+
+        static void DrawThirdInstalledIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.ThirdInstalledIcon);
+
+        static void DrawChangelogApiBumpIcon(scoped in SeStringDrawState state, int byteOffset, Vector2 offset) =>
+            DrawAsset(state, offset, DalamudAsset.ChangelogApiBumpIcon);
     }
 }

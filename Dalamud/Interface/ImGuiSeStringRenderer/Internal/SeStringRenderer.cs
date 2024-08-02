@@ -250,7 +250,10 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         foreach (ref var f in fragmentSpan)
         {
             var data = state.Span[f.From..f.To];
-            this.DrawTextFragment(ref state, f.Offset, f.IsSoftHyphenVisible, data, lastRune, f.Link);
+            if (f.Entity)
+                f.Entity.Draw(state, f.From, f.Offset);
+            else
+                this.DrawTextFragment(ref state, f.Offset, f.IsSoftHyphenVisible, data, lastRune, f.Link);
             lastRune = f.LastRune;
         }
 
@@ -376,58 +379,125 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         var link = -1;
         foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Span, UtfEnumeratorFlags.Utf8SeString))
         {
+            // Might have happened if custom entity was longer than the previous break unit. 
+            if (prev > breakAt)
+                continue;
+
             var nextLink = link;
             for (var first = true; prev < breakAt; first = false)
             {
                 var curr = breakAt;
+                var entity = default(SeStringReplacementEntity);
 
-                // Try to split by link payloads.
+                // Try to split by link payloads and custom entities.
                 foreach (var p in new ReadOnlySeStringSpan(state.Span[prev..breakAt]).GetOffsetEnumerator())
                 {
-                    if (p.Payload.MacroCode == MacroCode.Link)
+                    var break2 = false;
+                    switch (p.Payload.Type)
                     {
-                        nextLink =
-                            p.Payload.TryGetExpression(out var e) &&
-                            e.TryGetUInt(out var u) &&
-                            u == (uint)LinkMacroPayloadType.Terminator
-                                ? -1
-                                : prev + p.Offset;
+                        case ReadOnlySePayloadType.Text when state.GetEntity is { } getEntity:
+                            foreach (var oe in UtfEnumerator.From(p.Payload.Body, UtfEnumeratorFlags.Utf8))
+                            {
+                                var entityOffset = prev + p.Offset + oe.ByteOffset;
+                                entity = getEntity(state, entityOffset);
+                                if (!entity)
+                                    continue;
 
-                        // Split only if we're not splitting at the beginning.
-                        if (p.Offset != 0)
+                                if (prev == entityOffset)
+                                {
+                                    curr = entityOffset + entity.ByteLength;
+                                }
+                                else
+                                {
+                                    entity = default;
+                                    curr = entityOffset;
+                                }
+
+                                break2 = true;
+                                break;
+                            }
+
+                            break;
+
+                        case ReadOnlySePayloadType.Macro when
+                            state.GetEntity is { } getEntity &&
+                            getEntity(state, prev + p.Offset) is { ByteLength: > 0 } entity1:
+                            entity = entity1;
+                            if (p.Offset == 0)
+                            {
+                                curr = prev + p.Offset + entity.ByteLength;
+                            }
+                            else
+                            {
+                                entity = default;
+                                curr = prev + p.Offset;
+                            }
+
+                            break2 = true;
+                            break;
+
+                        case ReadOnlySePayloadType.Macro when p.Payload.MacroCode == MacroCode.Link:
                         {
-                            curr = prev + p.Offset;
+                            nextLink =
+                                p.Payload.TryGetExpression(out var e) &&
+                                e.TryGetUInt(out var u) &&
+                                u == (uint)LinkMacroPayloadType.Terminator
+                                    ? -1
+                                    : prev + p.Offset;
+
+                            // Split only if we're not splitting at the beginning.
+                            if (p.Offset != 0)
+                            {
+                                curr = prev + p.Offset;
+                                break2 = true;
+                                break;
+                            }
+
+                            link = nextLink;
+
                             break;
                         }
 
-                        link = nextLink;
+                        case ReadOnlySePayloadType.Invalid:
+                        default:
+                            break;
                     }
+
+                    if (break2) break;
                 }
 
                 // Create a text fragment without applying wrap width limits for testing.
-                var fragment = this.CreateFragment(state, prev, curr, curr == breakAt && mandatory, xy, link);
+                var fragment = this.CreateFragment(state, prev, curr, curr == breakAt && mandatory, xy, link, entity);
                 var overflows = Math.Max(w, xy.X + fragment.VisibleWidth) > state.WrapWidth;
 
-                // Test if the fragment does not fit into the current line and the current line is not empty,
-                // if this is the first time testing the current break unit.
-                if (first && xy.X != 0 && this.fragments.Count > 0 && !this.fragments[^1].BreakAfter && overflows)
+                // Test if the fragment does not fit into the current line and the current line is not empty.
+                if (xy.X != 0 && this.fragments.Count > 0 && !this.fragments[^1].BreakAfter && overflows)
                 {
-                    // The break unit as a whole does not fit into the current line. Advance to the next line.
-                    xy.X = 0;
-                    xy.Y += state.LineHeight;
-                    w = 0;
-                    CollectionsMarshal.AsSpan(this.fragments)[^1].BreakAfter = true;
-                    fragment.Offset = xy;
+                    // Introduce break if this is the first time testing the current break unit or the current fragment
+                    // is an entity.
+                    if (first || entity)
+                    {
+                        // The break unit as a whole does not fit into the current line. Advance to the next line.
+                        xy.X = 0;
+                        xy.Y += state.LineHeight;
+                        w = 0;
+                        CollectionsMarshal.AsSpan(this.fragments)[^1].BreakAfter = true;
+                        fragment.Offset = xy;
 
-                    // Now that the fragment is given its own line, test if it overflows again.
-                    overflows = fragment.VisibleWidth > state.WrapWidth;
+                        // Now that the fragment is given its own line, test if it overflows again.
+                        overflows = fragment.VisibleWidth > state.WrapWidth;
+                    }
                 }
 
                 if (overflows)
                 {
-                    // Create a fragment again that fits into the given width limit.
-                    var remainingWidth = state.WrapWidth - xy.X;
-                    fragment = this.CreateFragment(state, prev, curr, true, xy, link, remainingWidth);
+                    // A replacement entity may not be broken down further.
+                    if (!entity)
+                    {
+                        // Create a fragment again that fits into the given width limit.
+                        var remainingWidth = state.WrapWidth - xy.X;
+                        fragment = this.CreateFragment(state, prev, curr, true, xy, link, entity, remainingWidth);
+                    }
                 }
                 else if (this.fragments.Count > 0 && xy.X != 0)
                 {
@@ -630,8 +700,9 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     ///     with.</param>
     /// <param name="breakAfter">Whether to break line after this fragment.</param>
     /// <param name="offset">Offset in pixels w.r.t. <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
-    /// <param name="activeLinkOffset">Byte offset of the link payload in <see cref="SeStringDrawState.Span"/> that
+    /// <param name="link">Byte offset of the link payload in <see cref="SeStringDrawState.Span"/> that
     ///     decorates this text fragment.</param>
+    /// <param name="entity">Entity to display in place of this fragment.</param>
     /// <param name="wrapWidth">Optional wrap width to stop at while creating this text fragment. Note that at least
     ///     one visible character needs to be there in a single text fragment, in which case it is allowed to exceed
     ///     the wrap width.</param>
@@ -642,9 +713,27 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         int to,
         bool breakAfter,
         Vector2 offset,
-        int activeLinkOffset,
+        int link,
+        SeStringReplacementEntity entity,
         float wrapWidth = float.MaxValue)
     {
+        if (entity)
+        {
+            return new(
+                from,
+                to,
+                link,
+                offset,
+                entity,
+                entity.Size.X,
+                entity.Size.X,
+                entity.Size.X,
+                false,
+                false,
+                default,
+                default);
+        }
+
         var x = 0f;
         var w = 0f;
         var visibleWidth = 0f;
@@ -717,8 +806,9 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         return new(
             from,
             to,
-            activeLinkOffset,
+            link,
             offset,
+            entity,
             visibleWidth,
             advanceWidth,
             advanceWidthWithoutSoftHyphen,
@@ -733,6 +823,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="To">Ending byte offset (exclusive) in a SeString.</param>
     /// <param name="Link">Byte offset of the link that decorates this text fragment, or <c>-1</c> if none.</param>
     /// <param name="Offset">Offset in pixels w.r.t. <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
+    /// <param name="Entity">Replacement entity, if any.</param>
     /// <param name="VisibleWidth">Visible width of this text fragment. This is the width required to draw everything
     /// without clipping.</param>
     /// <param name="AdvanceWidth">Advance width of this text fragment. This is the width required to add to the cursor
@@ -749,6 +840,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         int To,
         int Link,
         Vector2 Offset,
+        SeStringReplacementEntity Entity,
         float VisibleWidth,
         float AdvanceWidth,
         float AdvanceWidthWithoutSoftHyphen,

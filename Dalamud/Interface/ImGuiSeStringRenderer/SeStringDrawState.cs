@@ -38,6 +38,7 @@ public unsafe ref struct SeStringDrawState
         this.splitter = splitter;
         this.drawList = ssdp.TargetDrawList ?? ImGui.GetWindowDrawList();
         this.Span = span;
+        this.GetEntity = ssdp.GetEntity;
         this.ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
         this.Font = ssdp.EffectiveFont;
         this.FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
@@ -64,6 +65,9 @@ public unsafe ref struct SeStringDrawState
 
     /// <summary>Gets the raw SeString byte span.</summary>
     public ReadOnlySpan<byte> Span { get; }
+
+    /// <inheritdoc cref="SeStringDrawParams.GetEntity"/>
+    public SeStringReplacementEntity.GetEntityDelegate? GetEntity { get; }
 
     /// <inheritdoc cref="SeStringDrawParams.ScreenOffset"/>
     public Vector2 ScreenOffset { get; }
@@ -212,12 +216,12 @@ public unsafe ref struct SeStringDrawState
         var dyItalic = this.Italic
                            ? (new Vector2(this.FontSize - g.Y0, this.FontSize - g.Y1) / 6)
                            : Vector2.Zero;
-        
+
         offset.Y += MathF.Round(((this.LineHeight - this.Font->FontSize) * this.FontSizeScale) / 2f);
 
         var xy0 = g.XY0 * this.FontSizeScale;
         var xy1 = g.XY1 * this.FontSizeScale;
-        
+
         if (this.ShouldDrawShadow)
         {
             this.SetCurrentChannel(SeStringDrawChannel.Shadow);
@@ -228,7 +232,7 @@ public unsafe ref struct SeStringDrawState
         if (this.ShouldDrawEdge)
         {
             this.SetCurrentChannel(SeStringDrawChannel.Edge);
-            
+
             // Top & Bottom
             for (var i = -1; i <= dxBold; i++)
             {

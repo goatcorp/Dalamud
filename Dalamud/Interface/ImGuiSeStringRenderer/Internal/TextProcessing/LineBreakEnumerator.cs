@@ -12,9 +12,11 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 internal ref struct LineBreakEnumerator
 {
     private readonly UtfEnumeratorFlags enumeratorFlags;
-    private readonly int dataLength;
 
     private UtfEnumerator enumerator;
+    private int dataLength;
+    private int currentByteOffsetDelta;
+
     private Entry class1;
     private Entry class2;
 
@@ -23,8 +25,6 @@ internal ref struct LineBreakEnumerator
     private bool spaceStreak;
 
     private int consecutiveRegionalIndicators;
-
-    private bool finished;
 
     /// <summary>Initializes a new instance of the <see cref="LineBreakEnumerator"/> struct.</summary>
     /// <param name="data">UTF-N byte sequence.</param>
@@ -58,11 +58,25 @@ internal ref struct LineBreakEnumerator
     /// <inheritdoc cref="IEnumerator{T}.Current"/>
     public (int ByteOffset, bool Mandatory) Current { get; private set; }
 
+    /// <summary>Gets a value indicating whether the end of the underlying span has been reached.</summary>
+    public bool Finished { get; private set; }
+
+    /// <summary>Resumes enumeration with the given data.</summary>
+    /// <param name="data">The data.</param>
+    /// <param name="offsetDelta">Offset to add to <see cref="Current"/>.<c>ByteOffset</c>.</param>
+    public void ResumeWith(ReadOnlySpan<byte> data, int offsetDelta)
+    {
+        this.enumerator = UtfEnumerator.From(data, this.enumeratorFlags);
+        this.dataLength = data.Length;
+        this.currentByteOffsetDelta = offsetDelta;
+        this.Finished = false;
+    }
+
     /// <inheritdoc cref="IEnumerator.MoveNext"/>
     [SuppressMessage("ReSharper", "ConvertIfStatementToSwitchStatement", Justification = "No")]
     public bool MoveNext()
     {
-        if (this.finished)
+        if (this.Finished)
             return false;
 
         while (this.enumerator.MoveNext())
@@ -77,10 +91,10 @@ internal ref struct LineBreakEnumerator
             switch (this.HandleCharacter(effectiveInt))
             {
                 case LineBreakMode.Mandatory:
-                    this.Current = (this.enumerator.Current.ByteOffset, true);
+                    this.Current = (this.enumerator.Current.ByteOffset + this.currentByteOffsetDelta, true);
                     return true;
                 case LineBreakMode.Optional:
-                    this.Current = (this.enumerator.Current.ByteOffset, false);
+                    this.Current = (this.enumerator.Current.ByteOffset + this.currentByteOffsetDelta, false);
                     return true;
                 case LineBreakMode.Prohibited:
                 default:
@@ -90,8 +104,8 @@ internal ref struct LineBreakEnumerator
 
         // Start and end of text:
         // LB3 Always break at the end of text.
-        this.Current = (this.dataLength, true);
-        this.finished = true;
+        this.Current = (this.dataLength + this.currentByteOffsetDelta, true);
+        this.Finished = true;
         return true;
     }
 
