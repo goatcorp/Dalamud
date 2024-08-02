@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -18,12 +17,10 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using FFXIVClientStructs.FFXIV.Component.Text;
 
 using ImGuiNET;
 
 using Lumina.Excel.GeneratedSheets2;
-using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
@@ -37,13 +34,6 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 [ServiceManager.EarlyLoadedService]
 internal unsafe class SeStringRenderer : IInternalDisposableService
 {
-    private const int ChannelLinkBackground = 0;
-    private const int ChannelShadow = 1;
-    private const int ChannelLinkUnderline = 2;
-    private const int ChannelEdge = 3;
-    private const int ChannelFore = 4;
-    private const int ChannelCount = 5;
-
     private const int ImGuiContextCurrentWindowOffset = 0x3FF0;
     private const int ImGuiWindowDcOffset = 0x118;
     private const int ImGuiWindowTempDataCurrLineTextBaseOffset = 0x38;
@@ -83,29 +73,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <summary>Parsed <c>gfdata.gfd</c> file, containing bitmap font icon lookup table.</summary>
     private readonly GfdFile gfd;
 
-    /// <summary>Parsed <see cref="UIColor.UIForeground"/>, containing colors to use with
-    /// <see cref="MacroCode.ColorType"/>.</summary>
-    private readonly uint[] colorTypes;
-
-    /// <summary>Parsed <see cref="UIColor.UIGlow"/>, containing colors to use with
-    /// <see cref="MacroCode.EdgeColorType"/>.</summary>
-    private readonly uint[] edgeColorTypes;
-
     /// <summary>Parsed text fragments from a SeString.</summary>
     /// <remarks>Touched only from the main thread.</remarks>
     private readonly List<TextFragment> fragments = [];
 
-    /// <summary>Foreground color stack while evaluating a SeString for rendering.</summary>
+    /// <summary>Color stacks to use while evaluating a SeString for rendering.</summary>
     /// <remarks>Touched only from the main thread.</remarks>
-    private readonly List<uint> colorStack = [];
-
-    /// <summary>Edge/border color stack while evaluating a SeString for rendering.</summary>
-    /// <remarks>Touched only from the main thread.</remarks>
-    private readonly List<uint> edgeColorStack = [];
-
-    /// <summary>Shadow color stack while evaluating a SeString for rendering.</summary>
-    /// <remarks>Touched only from the main thread.</remarks>
-    private readonly List<uint> shadowColorStack = [];
+    private readonly SeStringColorStackSet colorStackSet;
 
     /// <summary>Splits a draw list so that different layers of a single glyph can be drawn out of order.</summary>
     private ImDrawListSplitter* splitter = ImGuiNative.ImDrawListSplitter_ImDrawListSplitter();
@@ -113,29 +87,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private SeStringRenderer(DataManager dm, TargetSigScanner sigScanner)
     {
-        var uiColor = dm.Excel.GetSheet<UIColor>()!;
-        var maxId = 0;
-        foreach (var row in uiColor)
-            maxId = (int)Math.Max(row.RowId, maxId);
-
-        this.colorTypes = new uint[maxId + 1];
-        this.edgeColorTypes = new uint[maxId + 1];
-        foreach (var row in uiColor)
-        {
-            // Contains ABGR.
-            this.colorTypes[row.RowId] = row.UIForeground;
-            this.edgeColorTypes[row.RowId] = row.UIGlow;
-        }
-
-        if (BitConverter.IsLittleEndian)
-        {
-            // ImGui wants RGBA in LE.
-            foreach (ref var r in this.colorTypes.AsSpan())
-                r = BinaryPrimitives.ReverseEndianness(r);
-            foreach (ref var r in this.edgeColorTypes.AsSpan())
-                r = BinaryPrimitives.ReverseEndianness(r);
-        }
-
+        this.colorStackSet = new(
+            dm.Excel.GetSheet<UIColor>() ?? throw new InvalidOperationException("Failed to access UIColor sheet."));
         this.gfd = dm.GetFile<GfdFile>("common/font/gfdata.gfd")!;
 
         // SetUnhandledExceptionFilter(who cares);
@@ -266,19 +219,11 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             throw new ArgumentException("ImGuiId cannot be set if TargetDrawList is manually set.", nameof(imGuiId));
 
         // This also does argument validation for drawParams. Do it here.
-        var state = new DrawState(sss, new(drawParams), this.splitter);
+        var state = new SeStringDrawState(sss, drawParams, this.colorStackSet, this.splitter);
 
         // Reset and initialize the state.
         this.fragments.Clear();
-        this.colorStack.Clear();
-        this.edgeColorStack.Clear();
-        this.shadowColorStack.Clear();
-        this.colorStack.Add(state.Params.Color);
-        this.edgeColorStack.Add(state.Params.EdgeColor);
-        this.shadowColorStack.Add(state.Params.ShadowColor);
-        state.Params.Color = ApplyOpacityValue(state.Params.Color, state.Params.Opacity);
-        state.Params.EdgeColor = ApplyOpacityValue(state.Params.EdgeColor, state.Params.EdgeOpacity);
-        state.Params.ShadowColor = ApplyOpacityValue(state.Params.ShadowColor, state.Params.Opacity);
+        this.colorStackSet.Initialize(ref state);
 
         // Handle cases where ImGui.AlignTextToFramePadding has been called.
         var pCurrentWindow = *(nint*)(ImGui.GetCurrentContext() + ImGuiContextCurrentWindowOffset);
@@ -292,19 +237,19 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         // Calculate size.
         var size = Vector2.Zero;
         foreach (ref var fragment in fragmentSpan)
-            size = Vector2.Max(size, fragment.Offset + new Vector2(fragment.VisibleWidth, state.Params.LineHeight));
+            size = Vector2.Max(size, fragment.Offset + new Vector2(fragment.VisibleWidth, state.LineHeight));
 
         // If we're not drawing at all, stop further processing.
-        if (state.Params.DrawList is null)
+        if (state.DrawList.NativePtr is null)
             return new() { Size = size };
 
-        ImGuiNative.ImDrawListSplitter_Split(state.Splitter, state.Params.DrawList, ChannelCount);
+        state.SplitDrawList();
 
         // Draw all text fragments.
         var lastRune = default(Rune);
         foreach (ref var f in fragmentSpan)
         {
-            var data = state.Raw.Data[f.From..f.To];
+            var data = state.Span[f.From..f.To];
             this.DrawTextFragment(ref state, f.Offset, f.IsSoftHyphenVisible, data, lastRune, f.Link);
             lastRune = f.LastRune;
         }
@@ -326,7 +271,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                     continue;
 
                 var pos = ImGui.GetMousePos() - state.ScreenOffset - f.Offset;
-                var sz = new Vector2(f.AdvanceWidth, state.Params.LineHeight);
+                var sz = new Vector2(f.AdvanceWidth, state.LineHeight);
                 if (pos is { X: >= 0, Y: >= 0 } && pos.X <= sz.X && pos.Y <= sz.Y)
                 {
                     invisibleButtonDrawn = true;
@@ -357,26 +302,24 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         // If any link is being interacted, draw rectangles behind the relevant text fragments.
         if (hoveredLinkOffset != -1 || activeLinkOffset != -1)
         {
-            state.SetCurrentChannel(ChannelLinkBackground);
-            var color = activeLinkOffset == -1 ? state.Params.LinkHoverBackColor : state.Params.LinkActiveBackColor;
-            color = ApplyOpacityValue(color, state.Params.Opacity);
+            state.SetCurrentChannel(SeStringDrawChannel.Background);
+            var color = activeLinkOffset == -1 ? state.LinkHoverBackColor : state.LinkActiveBackColor;
+            color = ColorHelpers.ApplyOpacity(color, state.Opacity);
             foreach (ref readonly var fragment in fragmentSpan)
             {
                 if (fragment.Link != hoveredLinkOffset && hoveredLinkOffset != -1)
                     continue;
                 if (fragment.Link != activeLinkOffset && activeLinkOffset != -1)
                     continue;
-                ImGuiNative.ImDrawList_AddRectFilled(
-                    state.Params.DrawList,
-                    state.ScreenOffset + fragment.Offset,
-                    state.ScreenOffset + fragment.Offset + new Vector2(fragment.AdvanceWidth, state.Params.LineHeight),
-                    color,
-                    0,
-                    ImDrawFlags.None);
+                var offset = state.ScreenOffset + fragment.Offset;
+                state.DrawList.AddRectFilled(
+                    offset,
+                    offset + new Vector2(fragment.AdvanceWidth, state.LineHeight),
+                    color);
             }
         }
 
-        ImGuiNative.ImDrawListSplitter_Merge(state.Splitter, state.Params.DrawList);
+        state.MergeDrawList();
 
         var payloadEnumerator = new ReadOnlySeStringSpan(
             hoveredLinkOffset == -1 ? ReadOnlySpan<byte>.Empty : sss.Data[hoveredLinkOffset..]).GetEnumerator();
@@ -412,18 +355,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         return displayRune.Value != 0;
     }
 
-    /// <summary>Swaps red and blue channels of a given color in ARGB(BB GG RR AA) and ABGR(RR GG BB AA).</summary>
-    /// <param name="x">Color to process.</param>
-    /// <returns>Swapped color.</returns>
-    private static uint SwapRedBlue(uint x) => (x & 0xFF00FF00u) | ((x >> 16) & 0xFF) | ((x & 0xFF) << 16);
-
-    /// <summary>Applies the given opacity value ranging from 0 to 1 to an uint value containing a RGBA value.</summary>
-    /// <param name="rgba">RGBA value to transform.</param>
-    /// <param name="opacity">Opacity to apply.</param>
-    /// <returns>Transformed value.</returns>
-    private static uint ApplyOpacityValue(uint rgba, float opacity) =>
-        ((uint)MathF.Round((rgba >> 24) * opacity) << 24) | (rgba & 0xFFFFFFu);
-
     private void ReleaseUnmanagedResources()
     {
         if (this.splitter is not null)
@@ -437,25 +368,25 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="state">Draw state.</param>
     /// <param name="baseY">Y offset adjustment for all text fragments. Used to honor
     /// <see cref="ImGui.AlignTextToFramePadding"/>.</param>
-    private void CreateTextFragments(ref DrawState state, float baseY)
+    private void CreateTextFragments(ref SeStringDrawState state, float baseY)
     {
         var prev = 0;
         var xy = new Vector2(0, baseY);
         var w = 0f;
-        var linkOffset = -1;
-        foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Raw, UtfEnumeratorFlags.Utf8SeString))
+        var link = -1;
+        foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Span, UtfEnumeratorFlags.Utf8SeString))
         {
-            var nextLinkOffset = linkOffset;
+            var nextLink = link;
             for (var first = true; prev < breakAt; first = false)
             {
                 var curr = breakAt;
 
                 // Try to split by link payloads.
-                foreach (var p in new ReadOnlySeStringSpan(state.Raw.Data[prev..breakAt]).GetOffsetEnumerator())
+                foreach (var p in new ReadOnlySeStringSpan(state.Span[prev..breakAt]).GetOffsetEnumerator())
                 {
                     if (p.Payload.MacroCode == MacroCode.Link)
                     {
-                        nextLinkOffset =
+                        nextLink =
                             p.Payload.TryGetExpression(out var e) &&
                             e.TryGetUInt(out var u) &&
                             u == (uint)LinkMacroPayloadType.Terminator
@@ -469,13 +400,13 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                             break;
                         }
 
-                        linkOffset = nextLinkOffset;
+                        link = nextLink;
                     }
                 }
 
                 // Create a text fragment without applying wrap width limits for testing.
-                var fragment = state.CreateFragment(this, prev, curr, curr == breakAt && mandatory, xy, linkOffset);
-                var overflows = Math.Max(w, xy.X + fragment.VisibleWidth) > state.Params.WrapWidth;
+                var fragment = this.CreateFragment(state, prev, curr, curr == breakAt && mandatory, xy, link);
+                var overflows = Math.Max(w, xy.X + fragment.VisibleWidth) > state.WrapWidth;
 
                 // Test if the fragment does not fit into the current line and the current line is not empty,
                 // if this is the first time testing the current break unit.
@@ -483,20 +414,20 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 {
                     // The break unit as a whole does not fit into the current line. Advance to the next line.
                     xy.X = 0;
-                    xy.Y += state.Params.LineHeight;
+                    xy.Y += state.LineHeight;
                     w = 0;
                     CollectionsMarshal.AsSpan(this.fragments)[^1].BreakAfter = true;
                     fragment.Offset = xy;
 
                     // Now that the fragment is given its own line, test if it overflows again.
-                    overflows = fragment.VisibleWidth > state.Params.WrapWidth;
+                    overflows = fragment.VisibleWidth > state.WrapWidth;
                 }
 
                 if (overflows)
                 {
                     // Create a fragment again that fits into the given width limit.
-                    var remainingWidth = state.Params.WrapWidth - xy.X;
-                    fragment = state.CreateFragment(this, prev, curr, true, xy, linkOffset, remainingWidth);
+                    var remainingWidth = state.WrapWidth - xy.X;
+                    fragment = this.CreateFragment(state, prev, curr, true, xy, link, remainingWidth);
                 }
                 else if (this.fragments.Count > 0 && xy.X != 0)
                 {
@@ -513,7 +444,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
                 // If the fragment was not broken by wrap width, update the link payload offset.
                 if (fragment.To == curr)
-                    linkOffset = nextLinkOffset;
+                    link = nextLink;
 
                 w = Math.Max(w, xy.X + fragment.VisibleWidth);
                 xy.X += fragment.AdvanceWidth;
@@ -523,7 +454,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 if (fragment.BreakAfter)
                 {
                     xy.X = w = 0;
-                    xy.Y += state.Params.LineHeight;
+                    xy.Y += state.LineHeight;
                 }
             }
         }
@@ -537,9 +468,9 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <param name="span">Byte span of the SeString fragment to draw.</param>
     /// <param name="lastRune">Rune that preceded this text fragment in the same line, or <c>0</c> if none.</param>
     /// <param name="link">Byte offset of the link payload that decorates this text fragment in
-    /// <see cref="DrawState.Raw"/>, or <c>-1</c> if none.</param>
+    /// <see cref="SeStringDrawState.Span"/>, or <c>-1</c> if none.</param>
     private void DrawTextFragment(
-        ref DrawState state,
+        ref SeStringDrawState state,
         Vector2 offset,
         bool displaySoftHyphen,
         ReadOnlySpan<byte> span,
@@ -559,80 +490,31 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 if (!enu.MoveNext())
                     continue;
 
-                var payload = enu.Current.Payload;
-                switch (payload.MacroCode)
+                if (state.HandleStyleAdjustingPayloads(enu.Current.Payload))
+                    continue;
+
+                if (this.GetBitmapFontIconFor(span[c.ByteOffset..]) is var icon and not None &&
+                    this.gfd.TryGetEntry((uint)icon, out var gfdEntry) &&
+                    !gfdEntry.IsEmpty)
                 {
-                    case MacroCode.Color:
-                        state.Params.Color = ApplyOpacityValue(
-                            TouchColorStack(this.colorStack, payload),
-                            state.Params.Opacity);
-                        continue;
-                    case MacroCode.EdgeColor:
-                        state.Params.EdgeColor = TouchColorStack(this.edgeColorStack, payload);
-                        state.Params.EdgeColor = ApplyOpacityValue(
-                            state.Params.ForceEdgeColor ? this.edgeColorStack[0] : state.Params.EdgeColor,
-                            state.Params.EdgeOpacity);
-                        continue;
-                    case MacroCode.ShadowColor:
-                        state.Params.ShadowColor = ApplyOpacityValue(
-                            TouchColorStack(this.shadowColorStack, payload),
-                            state.Params.Opacity);
-                        continue;
-                    case MacroCode.Bold when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                        // doesn't actually work in chat log
-                        state.Params.Bold = u != 0;
-                        continue;
-                    case MacroCode.Italic when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                        state.Params.Italic = u != 0;
-                        continue;
-                    case MacroCode.Edge when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                        state.Params.Edge = u != 0;
-                        continue;
-                    case MacroCode.Shadow when payload.TryGetExpression(out var e) && e.TryGetUInt(out var u):
-                        state.Params.Shadow = u != 0;
-                        continue;
-                    case MacroCode.ColorType:
-                        state.Params.Color = ApplyOpacityValue(
-                            TouchColorTypeStack(this.colorStack, this.colorTypes, payload),
-                            state.Params.Opacity);
-                        continue;
-                    case MacroCode.EdgeColorType:
-                        state.Params.EdgeColor = TouchColorTypeStack(this.edgeColorStack, this.edgeColorTypes, payload);
-                        state.Params.EdgeColor = ApplyOpacityValue(
-                            state.Params.ForceEdgeColor ? this.edgeColorStack[0] : state.Params.EdgeColor,
-                            state.Params.EdgeOpacity);
-                        continue;
-                    case MacroCode.Icon:
-                    case MacroCode.Icon2:
-                    {
-                        if (this.GetBitmapFontIconFor(span[c.ByteOffset..]) is not (var icon and not None) ||
-                            !this.gfd.TryGetEntry((uint)icon, out var gfdEntry) ||
-                            gfdEntry.IsEmpty)
-                            continue;
+                    var size = gfdEntry.CalculateScaledSize(state.FontSize, out var useHq);
+                    state.SetCurrentChannel(SeStringDrawChannel.Foreground);
+                    state.Draw(
+                        gfdTextureSrv,
+                        offset + new Vector2(x, MathF.Round((state.LineHeight - size.Y) / 2)),
+                        size,
+                        useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,
+                        useHq ? gfdEntry.HqUv1 : gfdEntry.Uv1,
+                        ColorHelpers.ApplyOpacity(uint.MaxValue, state.Opacity));
+                    if (link != -1)
+                        state.DrawLinkUnderline(offset + new Vector2(x, 0), size.X);
 
-                        var size = state.CalculateGfdEntrySize(gfdEntry, out var useHq);
-                        state.SetCurrentChannel(ChannelFore);
-                        state.Draw(
-                            offset + new Vector2(x, MathF.Round((state.Params.LineHeight - size.Y) / 2)),
-                            gfdTextureSrv,
-                            Vector2.Zero,
-                            size,
-                            Vector2.Zero,
-                            useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,
-                            useHq ? gfdEntry.HqUv1 : gfdEntry.Uv1,
-                            ApplyOpacityValue(uint.MaxValue, state.Params.Opacity));
-                        if (link != -1)
-                            state.DrawLinkUnderline(offset + new Vector2(x, 0), size.X);
-
-                        width = Math.Max(width, x + size.X);
-                        x += MathF.Round(size.X);
-                        lastRune = default;
-                        continue;
-                    }
-
-                    default:
-                        continue;
+                    width = Math.Max(width, x + size.X);
+                    x += MathF.Round(size.X);
+                    lastRune = default;
                 }
+
+                continue;
             }
 
             if (!TryGetDisplayRune(c.EffectiveRune, out var rune, displaySoftHyphen))
@@ -642,103 +524,12 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             var dist = state.CalculateDistance(lastRune, rune);
             lastRune = rune;
 
-            var dxBold = state.Params.Bold ? 2 : 1;
-            var dyItalic = state.Params.Italic
-                               ? new Vector2(state.Params.FontSize - g.Y0, state.Params.FontSize - g.Y1) / 6
-                               : Vector2.Zero;
-
-            if (state.Params is { Shadow: true, ShadowColor: >= 0x1000000 })
-            {
-                state.SetCurrentChannel(ChannelShadow);
-                for (var dx = 0; dx < dxBold; dx++)
-                    state.Draw(offset + new Vector2(x + dist + dx, 1), g, dyItalic, state.Params.ShadowColor);
-            }
-
-            if ((state.Params.Edge || this.edgeColorStack.Count > 1) && state.Params.EdgeColor >= 0x1000000)
-            {
-                state.SetCurrentChannel(ChannelEdge);
-                for (var dx = -1; dx <= dxBold; dx++)
-                {
-                    for (var dy = -1; dy <= 1; dy++)
-                    {
-                        if (dx >= 0 && dx < dxBold && dy == 0)
-                            continue;
-
-                        state.Draw(offset + new Vector2(x + dist + dx, dy), g, dyItalic, state.Params.EdgeColor);
-                    }
-                }
-            }
-
-            state.SetCurrentChannel(ChannelFore);
-            for (var dx = 0; dx < dxBold; dx++)
-                state.Draw(offset + new Vector2(x + dist + dx, 0), g, dyItalic, state.Params.Color);
-
+            state.DrawGlyph(g, offset + new Vector2(x + dist, 0));
             if (link != -1)
                 state.DrawLinkUnderline(offset + new Vector2(x + dist, 0), g.AdvanceX);
 
             width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
             x += dist + MathF.Round(g.AdvanceX * state.FontSizeScale);
-        }
-
-        return;
-
-        static uint TouchColorStack(List<uint> rgbaStack, ReadOnlySePayloadSpan payload)
-        {
-            if (!payload.TryGetExpression(out var expr))
-                return rgbaStack[^1];
-
-            // Color payloads have BGRA values as its parameter. ImGui expects RGBA values.
-            // Opacity component is ignored.
-            if (expr.TryGetPlaceholderExpression(out var p) && p == (int)ExpressionType.StackColor)
-            {
-                // First item in the stack is the color we started to draw with.
-                if (rgbaStack.Count > 1)
-                    rgbaStack.RemoveAt(rgbaStack.Count - 1);
-                return rgbaStack[^1];
-            }
-
-            if (expr.TryGetUInt(out var bgra))
-            {
-                rgbaStack.Add(SwapRedBlue(bgra) | 0xFF000000u);
-                return rgbaStack[^1];
-            }
-
-            if (expr.TryGetParameterExpression(out var et, out var op) &&
-                et == (int)ExpressionType.GlobalNumber &&
-                op.TryGetInt(out var i) &&
-                RaptureTextModule.Instance() is var rtm &&
-                rtm is not null &&
-                i > 0 && i <= rtm->TextModule.MacroDecoder.GlobalParameters.Count &&
-                rtm->TextModule.MacroDecoder.GlobalParameters[i - 1] is { Type: TextParameterType.Integer } gp)
-            {
-                rgbaStack.Add(SwapRedBlue((uint)gp.IntValue) | 0xFF000000u);
-                return rgbaStack[^1];
-            }
-
-            // Fallback value.
-            rgbaStack.Add(0xFF000000u);
-            return rgbaStack[^1];
-        }
-
-        static uint TouchColorTypeStack(List<uint> rgbaStack, uint[] colorTypes, ReadOnlySePayloadSpan payload)
-        {
-            if (!payload.TryGetExpression(out var expr))
-                return rgbaStack[^1];
-            if (!expr.TryGetUInt(out var colorTypeIndex))
-                return rgbaStack[^1];
-
-            if (colorTypeIndex == 0)
-            {
-                // First item in the stack is the color we started to draw with.
-                if (rgbaStack.Count > 1)
-                    rgbaStack.RemoveAt(rgbaStack.Count - 1);
-                return rgbaStack[^1];
-            }
-
-            // Opacity component is ignored.
-            rgbaStack.Add((colorTypeIndex < colorTypes.Length ? colorTypes[colorTypeIndex] : 0u) | 0xFF000000u);
-
-            return rgbaStack[^1];
         }
     }
 
@@ -831,6 +622,112 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         return None;
     }
 
+    /// <summary>Creates a text fragment.</summary>
+    /// <param name="state">Draw state.</param>
+    /// <param name="from">Starting byte offset (inclusive) in <see cref="SeStringDrawState.Span"/> that this fragment
+    ///     deals with.</param>
+    /// <param name="to">Ending byte offset (exclusive) in <see cref="SeStringDrawState.Span"/> that this fragment deals
+    ///     with.</param>
+    /// <param name="breakAfter">Whether to break line after this fragment.</param>
+    /// <param name="offset">Offset in pixels w.r.t. <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
+    /// <param name="activeLinkOffset">Byte offset of the link payload in <see cref="SeStringDrawState.Span"/> that
+    ///     decorates this text fragment.</param>
+    /// <param name="wrapWidth">Optional wrap width to stop at while creating this text fragment. Note that at least
+    ///     one visible character needs to be there in a single text fragment, in which case it is allowed to exceed
+    ///     the wrap width.</param>
+    /// <returns>Newly created text fragment.</returns>
+    private TextFragment CreateFragment(
+        scoped in SeStringDrawState state,
+        int from,
+        int to,
+        bool breakAfter,
+        Vector2 offset,
+        int activeLinkOffset,
+        float wrapWidth = float.MaxValue)
+    {
+        var x = 0f;
+        var w = 0f;
+        var visibleWidth = 0f;
+        var advanceWidth = 0f;
+        var advanceWidthWithoutSoftHyphen = 0f;
+        var firstDisplayRune = default(Rune?);
+        var lastDisplayRune = default(Rune);
+        var lastNonSoftHyphenRune = default(Rune);
+        var endsWithSoftHyphen = false;
+        foreach (var c in UtfEnumerator.From(state.Span[from..to], UtfEnumeratorFlags.Utf8SeString))
+        {
+            var byteOffset = from + c.ByteOffset;
+            var isBreakableWhitespace = false;
+            var effectiveRune = c.EffectiveRune;
+            Rune displayRune;
+            if (c is { IsSeStringPayload: true, MacroCode: MacroCode.Icon or MacroCode.Icon2 } &&
+                this.GetBitmapFontIconFor(state.Span[byteOffset..]) is var icon and not None &&
+                this.gfd.TryGetEntry((uint)icon, out var gfdEntry) &&
+                !gfdEntry.IsEmpty)
+            {
+                // This is an icon payload.
+                var size = gfdEntry.CalculateScaledSize(state.FontSize, out _);
+                w = Math.Max(w, x + size.X);
+                x += MathF.Round(size.X);
+                displayRune = default;
+            }
+            else if (TryGetDisplayRune(effectiveRune, out displayRune))
+            {
+                // This is a printable character, or a standard whitespace character.
+                ref var g = ref state.FindGlyph(ref displayRune);
+                var dist = state.CalculateDistance(lastDisplayRune, displayRune);
+                w = Math.Max(w, x + ((dist + g.X1) * state.FontSizeScale));
+                x += MathF.Round((dist + g.AdvanceX) * state.FontSizeScale);
+
+                isBreakableWhitespace =
+                    Rune.IsWhiteSpace(displayRune) &&
+                    UnicodeData.LineBreak[displayRune.Value] is not UnicodeLineBreakClass.GL;
+            }
+            else
+            {
+                continue;
+            }
+
+            if (isBreakableWhitespace)
+            {
+                advanceWidth = x;
+            }
+            else
+            {
+                if (firstDisplayRune is not null && w > wrapWidth && effectiveRune.Value != SoftHyphen)
+                {
+                    to = byteOffset;
+                    break;
+                }
+
+                advanceWidth = x;
+                visibleWidth = w;
+            }
+
+            firstDisplayRune ??= displayRune;
+            lastDisplayRune = displayRune;
+            endsWithSoftHyphen = effectiveRune.Value == SoftHyphen;
+            if (!endsWithSoftHyphen)
+            {
+                advanceWidthWithoutSoftHyphen = x;
+                lastNonSoftHyphenRune = displayRune;
+            }
+        }
+
+        return new(
+            from,
+            to,
+            activeLinkOffset,
+            offset,
+            visibleWidth,
+            advanceWidth,
+            advanceWidthWithoutSoftHyphen,
+            breakAfter,
+            endsWithSoftHyphen,
+            firstDisplayRune ?? default,
+            lastNonSoftHyphenRune);
+    }
+
     /// <summary>Represents a text fragment in a SeString span.</summary>
     /// <param name="From">Starting byte offset (inclusive) in a SeString.</param>
     /// <param name="To">Ending byte offset (exclusive) in a SeString.</param>
@@ -861,293 +758,5 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         Rune LastRune)
     {
         public bool IsSoftHyphenVisible => this.EndsWithSoftHyphen && this.BreakAfter;
-    }
-
-    /// <summary>Represents a temporary state required for drawing.</summary>
-    private ref struct DrawState(
-        ReadOnlySeStringSpan raw,
-        SeStringDrawParams.Resolved @params,
-        ImDrawListSplitter* splitter)
-    {
-        /// <summary>Raw SeString span.</summary>
-        public readonly ReadOnlySeStringSpan Raw = raw;
-
-        /// <summary>Multiplier value for glyph metrics, so that it scales to <see cref="SeStringDrawParams.FontSize"/>.
-        /// </summary>
-        public readonly float FontSizeScale = @params.FontSize / @params.Font->FontSize;
-
-        /// <summary>Value obtained from <see cref="ImGui.GetCursorScreenPos"/>.</summary>
-        public readonly Vector2 ScreenOffset = @params.ScreenOffset;
-
-        /// <summary>Splitter to split <see cref="SeStringDrawParams.TargetDrawList"/>.</summary>
-        public readonly ImDrawListSplitter* Splitter = splitter;
-
-        /// <summary>Resolved draw parameters from the caller.</summary>
-        public SeStringDrawParams.Resolved Params = @params;
-
-        /// <summary>Calculates the size in pixels of a GFD entry when drawn.</summary>
-        /// <param name="gfdEntry">GFD entry to determine the size.</param>
-        /// <param name="useHq">Whether to draw the HQ texture.</param>
-        /// <returns>Determined size of the GFD entry when drawn.</returns>
-        public readonly Vector2 CalculateGfdEntrySize(scoped in GfdFile.GfdEntry gfdEntry, out bool useHq)
-        {
-            useHq = this.Params.FontSize > 20;
-            var targetHeight = useHq ? this.Params.FontSize : 20;
-            return new(gfdEntry.Width * (targetHeight / gfdEntry.Height), targetHeight);
-        }
-
-        /// <summary>Sets the current channel in the ImGui draw list splitter.</summary>
-        /// <param name="channelIndex">Channel to switch to.</param>
-        public readonly void SetCurrentChannel(int channelIndex) =>
-            ImGuiNative.ImDrawListSplitter_SetCurrentChannel(
-                this.Splitter,
-                this.Params.DrawList,
-                channelIndex);
-
-        /// <summary>Draws a single glyph.</summary>
-        /// <param name="offset">Offset of the glyph in pixels w.r.t.
-        /// <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
-        /// <param name="g">Glyph to draw.</param>
-        /// <param name="dyItalic">Transformation for <paramref name="g"/> that will push top and bottom pixels to
-        /// apply faux italicization.</param>
-        /// <param name="color">Color of the glyph.</param>
-        public readonly void Draw(
-            Vector2 offset,
-            scoped in ImGuiHelpers.ImFontGlyphReal g,
-            Vector2 dyItalic,
-            uint color) =>
-            this.Draw(
-                offset + new Vector2(
-                    0,
-                    MathF.Round(((this.Params.LineHeight - this.Params.Font->FontSize) * this.FontSizeScale) / 2f)),
-                this.Params.Font->ContainerAtlas->Textures.Ref<ImFontAtlasTexture>(g.TextureIndex).TexID,
-                g.XY0 * this.FontSizeScale,
-                g.XY1 * this.FontSizeScale,
-                dyItalic * this.FontSizeScale,
-                g.UV0,
-                g.UV1,
-                color);
-
-        /// <summary>Draws a single glyph.</summary>
-        /// <param name="offset">Offset of the glyph in pixels w.r.t.
-        /// <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
-        /// <param name="igTextureId">ImGui texture ID to draw from.</param>
-        /// <param name="xy0">Left top corner of the glyph w.r.t. its glyph origin in the target draw list.</param>
-        /// <param name="xy1">Right bottom corner of the glyph w.r.t. its glyph origin in the target draw list.</param>
-        /// <param name="dyItalic">Transformation for <paramref name="xy0"/> and <paramref name="xy1"/> that will push
-        /// top and bottom pixels to apply faux italicization.</param>
-        /// <param name="uv0">Left top corner of the glyph w.r.t. its glyph origin in the source texture.</param>
-        /// <param name="uv1">Right bottom corner of the glyph w.r.t. its glyph origin in the source texture.</param>
-        /// <param name="color">Color of the glyph.</param>
-        public readonly void Draw(
-            Vector2 offset,
-            nint igTextureId,
-            Vector2 xy0,
-            Vector2 xy1,
-            Vector2 dyItalic,
-            Vector2 uv0,
-            Vector2 uv1,
-            uint color = uint.MaxValue)
-        {
-            offset += this.ScreenOffset;
-            ImGuiNative.ImDrawList_AddImageQuad(
-                this.Params.DrawList,
-                igTextureId,
-                offset + new Vector2(xy0.X + dyItalic.X, xy0.Y),
-                offset + new Vector2(xy0.X + dyItalic.Y, xy1.Y),
-                offset + new Vector2(xy1.X + dyItalic.Y, xy1.Y),
-                offset + new Vector2(xy1.X + dyItalic.X, xy0.Y),
-                new(uv0.X, uv0.Y),
-                new(uv0.X, uv1.Y),
-                new(uv1.X, uv1.Y),
-                new(uv1.X, uv0.Y),
-                color);
-        }
-
-        /// <summary>Draws an underline, for links.</summary>
-        /// <param name="offset">Offset of the glyph in pixels w.r.t.
-        /// <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
-        /// <param name="advanceWidth">Advance width of the glyph.</param>
-        public readonly void DrawLinkUnderline(Vector2 offset, float advanceWidth)
-        {
-            if (this.Params.LinkUnderlineThickness < 1f)
-                return;
-
-            var dy = (this.Params.LinkUnderlineThickness - 1) / 2f;
-            dy += MathF.Round(
-                (((this.Params.LineHeight - this.Params.FontSize) / 2) + this.Params.Font->Ascent) *
-                this.FontSizeScale);
-            this.SetCurrentChannel(ChannelLinkUnderline);
-            ImGuiNative.ImDrawList_AddLine(
-                this.Params.DrawList,
-                this.ScreenOffset + offset + new Vector2(0, dy),
-                this.ScreenOffset + offset + new Vector2(advanceWidth, dy),
-                this.Params.Color,
-                this.Params.LinkUnderlineThickness);
-
-            if (this.Params is { Shadow: true, ShadowColor: >= 0x1000000 })
-            {
-                this.SetCurrentChannel(ChannelShadow);
-                ImGuiNative.ImDrawList_AddLine(
-                    this.Params.DrawList,
-                    this.ScreenOffset + offset + new Vector2(0, dy + 1),
-                    this.ScreenOffset + offset + new Vector2(advanceWidth, dy + 1),
-                    this.Params.ShadowColor,
-                    this.Params.LinkUnderlineThickness);
-            }
-        }
-
-        /// <summary>Creates a text fragment.</summary>
-        /// <param name="renderer">Associated renderer.</param>
-        /// <param name="from">Starting byte offset (inclusive) in <see cref="Raw"/> that this fragment deals with.
-        /// </param>
-        /// <param name="to">Ending byte offset (exclusive) in <see cref="Raw"/> that this fragment deals with.</param>
-        /// <param name="breakAfter">Whether to break line after this fragment.</param>
-        /// <param name="offset">Offset in pixels w.r.t. <see cref="SeStringDrawParams.ScreenOffset"/>.</param>
-        /// <param name="activeLinkOffset">Byte offset of the link payload in <see cref="Raw"/> that decorates this
-        /// text fragment.</param>
-        /// <param name="wrapWidth">Optional wrap width to stop at while creating this text fragment. Note that at least
-        /// one visible character needs to be there in a single text fragment, in which case it is allowed to exceed
-        /// the wrap width.</param>
-        /// <returns>Newly created text fragment.</returns>
-        public readonly TextFragment CreateFragment(
-            SeStringRenderer renderer,
-            int from,
-            int to,
-            bool breakAfter,
-            Vector2 offset,
-            int activeLinkOffset,
-            float wrapWidth = float.MaxValue)
-        {
-            var x = 0f;
-            var w = 0f;
-            var visibleWidth = 0f;
-            var advanceWidth = 0f;
-            var advanceWidthWithoutSoftHyphen = 0f;
-            var firstDisplayRune = default(Rune?);
-            var lastDisplayRune = default(Rune);
-            var lastNonSoftHyphenRune = default(Rune);
-            var endsWithSoftHyphen = false;
-            foreach (var c in UtfEnumerator.From(this.Raw.Data[from..to], UtfEnumeratorFlags.Utf8SeString))
-            {
-                var byteOffset = from + c.ByteOffset;
-                var isBreakableWhitespace = false;
-                var effectiveRune = c.EffectiveRune;
-                Rune displayRune;
-                if (c is { IsSeStringPayload: true, MacroCode: MacroCode.Icon or MacroCode.Icon2 } &&
-                    renderer.GetBitmapFontIconFor(this.Raw.Data[byteOffset..]) is var icon and not None &&
-                    renderer.gfd.TryGetEntry((uint)icon, out var gfdEntry) &&
-                    !gfdEntry.IsEmpty)
-                {
-                    // This is an icon payload.
-                    var size = this.CalculateGfdEntrySize(gfdEntry, out _);
-                    w = Math.Max(w, x + size.X);
-                    x += MathF.Round(size.X);
-                    displayRune = default;
-                }
-                else if (TryGetDisplayRune(effectiveRune, out displayRune))
-                {
-                    // This is a printable character, or a standard whitespace character.
-                    ref var g = ref this.FindGlyph(ref displayRune);
-                    var dist = this.CalculateDistance(lastDisplayRune, displayRune);
-                    w = Math.Max(w, x + ((dist + g.X1) * this.FontSizeScale));
-                    x += MathF.Round((dist + g.AdvanceX) * this.FontSizeScale);
-
-                    isBreakableWhitespace =
-                        Rune.IsWhiteSpace(displayRune) &&
-                        UnicodeData.LineBreak[displayRune.Value] is not UnicodeLineBreakClass.GL;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (isBreakableWhitespace)
-                {
-                    advanceWidth = x;
-                }
-                else
-                {
-                    if (firstDisplayRune is not null && w > wrapWidth && effectiveRune.Value != SoftHyphen)
-                    {
-                        to = byteOffset;
-                        break;
-                    }
-
-                    advanceWidth = x;
-                    visibleWidth = w;
-                }
-
-                firstDisplayRune ??= displayRune;
-                lastDisplayRune = displayRune;
-                endsWithSoftHyphen = effectiveRune.Value == SoftHyphen;
-                if (!endsWithSoftHyphen)
-                {
-                    advanceWidthWithoutSoftHyphen = x;
-                    lastNonSoftHyphenRune = displayRune;
-                }
-            }
-
-            return new(
-                from,
-                to,
-                activeLinkOffset,
-                offset,
-                visibleWidth,
-                advanceWidth,
-                advanceWidthWithoutSoftHyphen,
-                breakAfter,
-                endsWithSoftHyphen,
-                firstDisplayRune ?? default,
-                lastNonSoftHyphenRune);
-        }
-
-        /// <summary>Gets the glyph corresponding to the given codepoint.</summary>
-        /// <param name="rune">An instance of <see cref="Rune"/> that represents a character to display.</param>
-        /// <returns>Corresponding glyph, or glyph of a fallback character specified from
-        /// <see cref="ImFont.FallbackChar"/>.</returns>
-        public readonly ref ImGuiHelpers.ImFontGlyphReal FindGlyph(Rune rune)
-        {
-            var p = rune.Value is >= ushort.MinValue and < ushort.MaxValue
-                        ? ImGuiNative.ImFont_FindGlyph(this.Params.Font, (ushort)rune.Value)
-                        : this.Params.Font->FallbackGlyph;
-            return ref *(ImGuiHelpers.ImFontGlyphReal*)p;
-        }
-
-        /// <summary>Gets the glyph corresponding to the given codepoint.</summary>
-        /// <param name="rune">An instance of <see cref="Rune"/> that represents a character to display, that will be
-        /// changed on return to the rune corresponding to the fallback glyph if a glyph not corresponding to the
-        /// requested glyph is being returned.</param>
-        /// <returns>Corresponding glyph, or glyph of a fallback character specified from
-        /// <see cref="ImFont.FallbackChar"/>.</returns>
-        public readonly ref ImGuiHelpers.ImFontGlyphReal FindGlyph(ref Rune rune)
-        {
-            ref var glyph = ref this.FindGlyph(rune);
-            if (rune.Value != glyph.Codepoint && !Rune.TryCreate(glyph.Codepoint, out rune))
-                rune = Rune.ReplacementChar;
-            return ref glyph;
-        }
-
-        /// <summary>Gets the kerning adjustment between two glyphs in a succession corresponding to the given runes.
-        /// </summary>
-        /// <param name="left">Rune representing the glyph on the left side of a pair.</param>
-        /// <param name="right">Rune representing the glyph on the right side of a pair.</param>
-        /// <returns>Distance adjustment in pixels, scaled to the size specified from
-        /// <see cref="SeStringDrawParams.FontSize"/>, and rounded.</returns>
-        public readonly float CalculateDistance(Rune left, Rune right)
-        {
-            // Kerning distance entries are ignored if NUL, U+FFFF(invalid Unicode character), or characters outside
-            // the basic multilingual plane(BMP) is involved.
-            if (left.Value is <= 0 or >= char.MaxValue)
-                return 0;
-            if (right.Value is <= 0 or >= char.MaxValue)
-                return 0;
-
-            return MathF.Round(
-                ImGuiNative.ImFont_GetDistanceAdjustmentForPair(
-                    this.Params.Font,
-                    (ushort)left.Value,
-                    (ushort)right.Value) * this.FontSizeScale);
-        }
     }
 }
