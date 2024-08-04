@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 
 /// <summary><a href="https://www.unicode.org/reports/tr11/">Unicode east asian width</a>.</summary>
 [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "Unicode Data")]

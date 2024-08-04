@@ -9,16 +9,15 @@ using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
 
 using ImGuiNET;
 using ImGuiScene;
-
-using Lumina.Text.ReadOnly;
-
-using SeStringRenderer = Dalamud.Interface.Internal.ImGuiSeStringRenderer.SeStringRenderer;
 
 namespace Dalamud.Interface.Utility;
 
@@ -181,13 +180,38 @@ public static class ImGuiHelpers
         if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
     }
 
-    /// <inheritdoc cref="SeStringRenderer.DrawWrapped(ReadOnlySeStringSpan, float)"/>
-    public static void SeStringWrapped(ReadOnlySpan<byte> sss, float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().DrawWrapped(sss, wrapWidth);
+    /// <summary>Draws a SeString.</summary>
+    /// <param name="sss">SeString to draw.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
+    /// <returns>Interaction result of the rendered text.</returns>
+    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
+    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
+    [Experimental("SeStringRenderer")]
+    public static SeStringDrawResult SeStringWrapped(
+        ReadOnlySpan<byte> sss,
+        scoped in SeStringDrawParams style = default,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
+        Service<SeStringRenderer>.Get().Draw(sss, style, imGuiId, buttonFlags);
 
-    /// <inheritdoc cref="SeStringRenderer.CompileAndDrawWrapped"/>
-    public static void CompileSeStringWrapped(string text, float wrapWidth = 0) =>
-        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, wrapWidth);
+    /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
+    /// <param name="text">SeString text macro representation.
+    /// Newline characters will be normalized to <see cref="NewLinePayload"/>.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
+    /// <returns>Interaction result of the rendered text.</returns>
+    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
+    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
+    [Experimental("SeStringRenderer")]
+    public static SeStringDrawResult CompileSeStringWrapped(
+        string text,
+        scoped in SeStringDrawParams style = default,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags);
 
     /// <summary>
     /// Write unformatted text wrapped.

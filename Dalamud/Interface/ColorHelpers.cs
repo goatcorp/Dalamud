@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Dalamud.Interface;
 
@@ -246,6 +247,14 @@ public static class ColorHelpers
     /// <returns>The desaturated color.</returns>
     public static uint Desaturate(uint color, float amount)
         => RgbaVector4ToUint(Desaturate(RgbaUintToVector4(color), amount));
+
+    /// <summary>Applies the given opacity value ranging from 0 to 1 to an uint value containing a RGBA value.</summary>
+    /// <param name="rgba">RGBA value to transform.</param>
+    /// <param name="opacity">Opacity to apply.</param>
+    /// <returns>Transformed value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint ApplyOpacity(uint rgba, float opacity) =>
+        ((uint)MathF.Round((rgba >> 24) * opacity) << 24) | (rgba & 0xFFFFFFu);
 
     /// <summary>
     /// Fade a color.

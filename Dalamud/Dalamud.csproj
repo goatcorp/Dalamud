@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>10.0.0.10</DalamudVersion>
+        <DalamudVersion>10.0.0.11</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
@@ -115,10 +115,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
-        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
-        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\DerivedGeneralCategory.txt" LogicalName="DerivedGeneralCategory.txt" />
-        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\DerivedGeneralCategory.txt" LogicalName="DerivedGeneralCategory.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
     </ItemGroup>
 
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">
