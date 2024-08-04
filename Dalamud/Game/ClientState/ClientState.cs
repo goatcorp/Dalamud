@@ -185,11 +185,11 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         switch (type)
         {
-            case UIModulePacketType.ClassJobChange:
+            case UIModulePacketType.ClassJobChange when this.ClassJobChanged is { } callback:
                 {
                     var classJobId = uintParam;
 
-                    foreach (var action in this.ClassJobChanged.GetInvocationList().Cast<IClientState.ClassJobChangeDelegate>())
+                    foreach (var action in callback.GetInvocationList().Cast<IClientState.ClassJobChangeDelegate>())
                     {
                         try
                         {
@@ -204,12 +204,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                     break;
                 }
 
-            case UIModulePacketType.LevelChange:
+            case UIModulePacketType.LevelChange when this.LevelChanged is { } callback:
                 {
                     var classJobId = *(uint*)packet;
                     var level = *(ushort*)((nint)packet + 4);
 
-                    foreach (var action in this.LevelChanged.GetInvocationList().Cast<IClientState.LevelChangeDelegate>())
+                    foreach (var action in callback.GetInvocationList().Cast<IClientState.LevelChangeDelegate>())
                     {
                         try
                         {
