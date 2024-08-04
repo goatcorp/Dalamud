@@ -145,5 +145,16 @@ internal sealed unsafe class GfdFile : FileResource
 
         /// <summary>Gets the UV1 of the HQ version of this entry.</summary>
         public Vector2 HqUv1 => new((this.Left + this.Width) / 256f, (this.Top + this.Height + 170.5f) / 512f);
+
+        /// <summary>Calculates the size in pixels of a GFD entry when drawn along with a text.</summary>
+        /// <param name="fontSize">Font size in pixels.</param>
+        /// <param name="useHq">Whether to draw the HQ texture.</param>
+        /// <returns>Determined size of the GFD entry when drawn.</returns>
+        public readonly Vector2 CalculateScaledSize(float fontSize, out bool useHq)
+        {
+            useHq = fontSize > 19;
+            var targetHeight = useHq ? fontSize : 20;
+            return new(this.Width * (targetHeight / this.Height), targetHeight);
+        }
     }
 }

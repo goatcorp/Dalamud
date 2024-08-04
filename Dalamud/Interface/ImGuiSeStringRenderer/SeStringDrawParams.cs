@@ -1,6 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 using ImGuiNET;
 
@@ -18,13 +16,17 @@ public record struct SeStringDrawParams
     /// </remarks>
     public ImDrawListPtr? TargetDrawList { get; set; }
 
-    /// <summary>Gets or sets the font to use.</summary>
-    /// <value>Font to use, or <c>null</c> to use <see cref="ImGui.GetFont"/> (the default).</value>
-    public ImFontPtr? Font { get; set; }
+    /// <summary>Gets or sets the function to be called on every codepoint and payload for the purpose of offering
+    /// chances to draw something else instead of glyphs or SeString payload entities.</summary>
+    public SeStringReplacementEntity.GetEntityDelegate? GetEntity { get; set; }
 
     /// <summary>Gets or sets the screen offset of the left top corner.</summary>
     /// <value>Screen offset to draw at, or <c>null</c> to use <see cref="ImGui.GetCursorScreenPos"/>.</value>
     public Vector2? ScreenOffset { get; set; }
+
+    /// <summary>Gets or sets the font to use.</summary>
+    /// <value>Font to use, or <c>null</c> to use <see cref="ImGui.GetFont"/> (the default).</value>
+    public ImFontPtr? Font { get; set; }
 
     /// <summary>Gets or sets the font size.</summary>
     /// <value>Font size in pixels, or <c>0</c> to use the current ImGui font size <see cref="ImGui.GetFontSize"/>.
@@ -86,83 +88,23 @@ public record struct SeStringDrawParams
     public bool Italic { get; set; }
 
     /// <summary>Gets or sets a value indicating whether the text is rendered with edge.</summary>
+    /// <remarks>If an edge color is pushed with <see cref="MacroCode.EdgeColor"/> or
+    /// <see cref="MacroCode.EdgeColorType"/>, it will be drawn regardless. Set <see cref="ForceEdgeColor"/> to
+    /// <c>true</c> and set <see cref="EdgeColor"/> to <c>0</c> to fully disable edge.</remarks>
     public bool Edge { get; set; }
 
     /// <summary>Gets or sets a value indicating whether the text is rendered with shadow.</summary>
     public bool Shadow { get; set; }
 
-    private readonly unsafe ImFont* EffectiveFont =>
+    /// <summary>Gets the effective font.</summary>
+    internal readonly unsafe ImFont* EffectiveFont =>
         (this.Font ?? ImGui.GetFont()) is var f && f.NativePtr is not null
             ? f.NativePtr
             : throw new ArgumentException("Specified font is empty.");
 
-    private readonly float EffectiveLineHeight => (this.FontSize ?? ImGui.GetFontSize()) * (this.LineHeight ?? 1f);
+    /// <summary>Gets the effective line height in pixels.</summary>
+    internal readonly float EffectiveLineHeight => (this.FontSize ?? ImGui.GetFontSize()) * (this.LineHeight ?? 1f);
 
-    private readonly float EffectiveOpacity => this.Opacity ?? ImGui.GetStyle().Alpha;
-
-    /// <summary>Calculated values from <see cref="SeStringDrawParams"/> using ImGui styles.</summary>
-    [SuppressMessage(
-        "StyleCop.CSharp.OrderingRules",
-        "SA1214:Readonly fields should appear before non-readonly fields",
-        Justification = "Matching the above order.")]
-    [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct Resolved(in SeStringDrawParams ssdp)
-    {
-        /// <inheritdoc cref="SeStringDrawParams.TargetDrawList"/>
-        public readonly ImDrawList* DrawList = ssdp.TargetDrawList ?? ImGui.GetWindowDrawList();
-
-        /// <inheritdoc cref="SeStringDrawParams.Font"/>
-        public readonly ImFont* Font = ssdp.EffectiveFont;
-
-        /// <inheritdoc cref="SeStringDrawParams.ScreenOffset"/>
-        public readonly Vector2 ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
-
-        /// <inheritdoc cref="SeStringDrawParams.FontSize"/>
-        public readonly float FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
-
-        /// <inheritdoc cref="SeStringDrawParams.LineHeight"/>
-        public readonly float LineHeight = MathF.Round(ssdp.EffectiveLineHeight);
-
-        /// <inheritdoc cref="SeStringDrawParams.WrapWidth"/>
-        public readonly float WrapWidth = ssdp.WrapWidth ?? ImGui.GetContentRegionAvail().X;
-
-        /// <inheritdoc cref="SeStringDrawParams.LinkUnderlineThickness"/>
-        public readonly float LinkUnderlineThickness = ssdp.LinkUnderlineThickness ?? 0f;
-
-        /// <inheritdoc cref="SeStringDrawParams.Opacity"/>
-        public readonly float Opacity = ssdp.EffectiveOpacity;
-
-        /// <inheritdoc cref="SeStringDrawParams.EdgeStrength"/>
-        public readonly float EdgeOpacity = (ssdp.EdgeStrength ?? 0.25f) * ssdp.EffectiveOpacity;
-
-        /// <inheritdoc cref="SeStringDrawParams.Color"/>
-        public uint Color = ssdp.Color ?? ImGui.GetColorU32(ImGuiCol.Text);
-
-        /// <inheritdoc cref="SeStringDrawParams.EdgeColor"/>
-        public uint EdgeColor = ssdp.EdgeColor ?? 0xFF000000;
-
-        /// <inheritdoc cref="SeStringDrawParams.ShadowColor"/>
-        public uint ShadowColor = ssdp.ShadowColor ?? 0xFF000000;
-
-        /// <inheritdoc cref="SeStringDrawParams.LinkHoverBackColor"/>
-        public readonly uint LinkHoverBackColor = ssdp.LinkHoverBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonHovered);
-
-        /// <inheritdoc cref="SeStringDrawParams.LinkActiveBackColor"/>
-        public readonly uint LinkActiveBackColor = ssdp.LinkActiveBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonActive);
-
-        /// <inheritdoc cref="SeStringDrawParams.ForceEdgeColor"/>
-        public readonly bool ForceEdgeColor = ssdp.ForceEdgeColor;
-
-        /// <inheritdoc cref="SeStringDrawParams.Bold"/>
-        public bool Bold = ssdp.Bold;
-
-        /// <inheritdoc cref="SeStringDrawParams.Italic"/>
-        public bool Italic = ssdp.Italic;
-
-        /// <inheritdoc cref="SeStringDrawParams.Edge"/>
-        public bool Edge = ssdp.Edge;
-
-        /// <inheritdoc cref="SeStringDrawParams.Shadow"/>
-        public bool Shadow = ssdp.Shadow;
-    }
+    /// <summary>Gets the effective opacity.</summary>
+    internal readonly float EffectiveOpacity => this.Opacity ?? ImGui.GetStyle().Alpha;
 }
