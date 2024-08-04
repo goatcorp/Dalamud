@@ -256,6 +256,12 @@ public static class ColorHelpers
     public static uint ApplyOpacity(uint rgba, float opacity) =>
         ((uint)MathF.Round((rgba >> 24) * opacity) << 24) | (rgba & 0xFFFFFFu);
 
+    /// <summary>Swaps red and blue channels of a given color in ARGB(BB GG RR AA) and ABGR(RR GG BB AA).</summary>
+    /// <param name="x">Color to process.</param>
+    /// <returns>Swapped color.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint SwapRedBlue(uint x) => (x & 0xFF00FF00u) | ((x >> 16) & 0xFF) | ((x & 0xFF) << 16);
+
     /// <summary>
     /// Fade a color.
     /// </summary>

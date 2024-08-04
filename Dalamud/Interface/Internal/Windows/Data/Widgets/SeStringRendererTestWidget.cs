@@ -12,6 +12,8 @@ using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using ImGuiNET;
 
 using Lumina.Excel.GeneratedSheets2;
@@ -28,10 +30,10 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 {
+    private static readonly string[] ThemeNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
     private ImVectorWrapper<byte> testStringBuffer;
     private string testString = string.Empty;
     private Addon[]? addons;
-    private ReadOnlySeString? uicolor;
     private ReadOnlySeString? logkind;
     private SeStringDrawParams style;
     private bool interactable;
@@ -51,7 +53,6 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     {
         this.style = new() { GetEntity = this.GetEntity };
         this.addons = null;
-        this.uicolor = null;
         this.logkind = null;
         this.testString = string.Empty;
         this.interactable = this.useEntity = true;
@@ -118,6 +119,12 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             this.style.Shadow = t;
 
         ImGui.SameLine();
+        var t4 = this.style.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
+        ImGui.PushItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW").X);
+        if (ImGui.Combo("##theme", ref t4, ThemeNames, ThemeNames.Length))
+            this.style.ThemeIndex = t4;
+
+        ImGui.SameLine();
         t = this.style.LinkUnderlineThickness > 0f;
         if (ImGui.Checkbox("Link Underline", ref t))
             this.style.LinkUnderlineThickness = t ? 1f : 0f;
@@ -135,50 +142,6 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         t = this.useEntity;
         if (ImGui.Checkbox("Use Entity Replacements", ref t))
             this.useEntity = t;
-
-        if (ImGui.CollapsingHeader("UIColor Preview"))
-        {
-            if (this.uicolor is null)
-            {
-                var tt = new SeStringBuilder();
-                foreach (var uc in Service<DataManager>.Get().GetExcelSheet<UIColor>()!)
-                {
-                    tt.Append($"#{uc.RowId}: ")
-                      .BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(uc.RowId).EndMacro()
-                      .Append("Edge ")
-                      .BeginMacro(MacroCode.ColorType).AppendUIntExpression(uc.RowId).EndMacro()
-                      .Append("Edge+Color ")
-                      .BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(0).EndMacro()
-                      .Append("Color ")
-                      .BeginMacro(MacroCode.ColorType).AppendUIntExpression(0).EndMacro();
-                    if (uc.RowId >= 500)
-                    {
-                        if (uc.RowId % 2 == 0)
-                        {
-                            tt.BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(uc.RowId).EndMacro()
-                              .BeginMacro(MacroCode.ColorType).AppendUIntExpression(uc.RowId + 1).EndMacro()
-                              .Append($"  => color#{uc.RowId + 1} + edge#{uc.RowId}")
-                              .BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(0).EndMacro()
-                              .BeginMacro(MacroCode.ColorType).AppendUIntExpression(0).EndMacro();
-                        }
-                        else
-                        {
-                            tt.BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(uc.RowId).EndMacro()
-                              .BeginMacro(MacroCode.ColorType).AppendUIntExpression(uc.RowId - 1).EndMacro()
-                              .Append($"  => color#{uc.RowId - 1} + edge#{uc.RowId}")
-                              .BeginMacro(MacroCode.EdgeColorType).AppendUIntExpression(0).EndMacro()
-                              .BeginMacro(MacroCode.ColorType).AppendUIntExpression(0).EndMacro();
-                        }
-                    }
-
-                    tt.BeginMacro(MacroCode.NewLine).EndMacro();
-                }
-
-                this.uicolor = tt.ToReadOnlySeString();
-            }
-
-            ImGuiHelpers.SeStringWrapped(this.uicolor.Value.Data.Span, this.style);
-        }
 
         if (ImGui.CollapsingHeader("LogKind Preview"))
         {

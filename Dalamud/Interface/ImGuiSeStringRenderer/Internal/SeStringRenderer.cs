@@ -547,9 +547,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         Rune lastRune,
         int link)
     {
-        var gfdTextureSrv =
-            (nint)UIModule.Instance()->GetRaptureAtkModule()->AtkModule.AtkFontManager.Gfd->Texture->
-                D3D11ShaderResourceView;
+        // This might temporarily return 0 while logging in.
+        var gfdTextureSrv = GetGfdTextureSrv();
         var x = 0f;
         var width = 0f;
         foreach (var c in UtfEnumerator.From(span, UtfEnumeratorFlags.Utf8SeString))
@@ -569,13 +568,17 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 {
                     var size = gfdEntry.CalculateScaledSize(state.FontSize, out var useHq);
                     state.SetCurrentChannel(SeStringDrawChannel.Foreground);
-                    state.Draw(
-                        gfdTextureSrv,
-                        offset + new Vector2(x, MathF.Round((state.LineHeight - size.Y) / 2)),
-                        size,
-                        useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,
-                        useHq ? gfdEntry.HqUv1 : gfdEntry.Uv1,
-                        ColorHelpers.ApplyOpacity(uint.MaxValue, state.Opacity));
+                    if (gfdTextureSrv != 0)
+                    {
+                        state.Draw(
+                            gfdTextureSrv,
+                            offset + new Vector2(x, MathF.Round((state.LineHeight - size.Y) / 2)),
+                            size,
+                            useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,
+                            useHq ? gfdEntry.HqUv1 : gfdEntry.Uv1,
+                            ColorHelpers.ApplyOpacity(uint.MaxValue, state.Opacity));
+                    }
+
                     if (link != -1)
                         state.DrawLinkUnderline(offset + new Vector2(x, 0), size.X);
 
@@ -601,6 +604,29 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
             width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
             x += dist + advanceWidth;
+        }
+
+        return;
+
+        static nint GetGfdTextureSrv()
+        {
+            var uim = UIModule.Instance();
+            if (uim is null)
+                return 0;
+
+            var ram = uim->GetRaptureAtkModule();
+            if (ram is null)
+                return 0;
+
+            var gfd = ram->AtkModule.AtkFontManager.Gfd;
+            if (gfd is null)
+                return 0;
+
+            var tex = gfd->Texture;
+            if (tex is null)
+                return 0;
+
+            return (nint)tex->D3D11ShaderResourceView;
         }
     }
 
