@@ -508,7 +508,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                         xy.X += this.fragments[^1].AdvanceWidthWithoutSoftHyphen - this.fragments[^1].AdvanceWidth;
 
                     // Adjust this fragment's offset from kerning distance.
-                    xy.X += state.CalculateDistance(this.fragments[^1].LastRune, fragment.FirstRune);
+                    xy.X += state.CalculateScaledDistance(this.fragments[^1].LastRune, fragment.FirstRune);
                     fragment.Offset = xy;
                 }
 
@@ -591,15 +591,16 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 continue;
 
             ref var g = ref state.FindGlyph(ref rune);
-            var dist = state.CalculateDistance(lastRune, rune);
+            var dist = state.CalculateScaledDistance(lastRune, rune);
+            var advanceWidth = MathF.Round(g.AdvanceX * state.FontSizeScale);
             lastRune = rune;
 
             state.DrawGlyph(g, offset + new Vector2(x + dist, 0));
             if (link != -1)
-                state.DrawLinkUnderline(offset + new Vector2(x + dist, 0), g.AdvanceX);
+                state.DrawLinkUnderline(offset + new Vector2(x + dist, 0), advanceWidth);
 
             width = Math.Max(width, x + dist + (g.X1 * state.FontSizeScale));
-            x += dist + MathF.Round(g.AdvanceX * state.FontSizeScale);
+            x += dist + advanceWidth;
         }
     }
 
@@ -764,9 +765,9 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             {
                 // This is a printable character, or a standard whitespace character.
                 ref var g = ref state.FindGlyph(ref displayRune);
-                var dist = state.CalculateDistance(lastDisplayRune, displayRune);
-                w = Math.Max(w, x + ((dist + g.X1) * state.FontSizeScale));
-                x += MathF.Round((dist + g.AdvanceX) * state.FontSizeScale);
+                var dist = state.CalculateScaledDistance(lastDisplayRune, displayRune);
+                w = Math.Max(w, x + dist + MathF.Round(g.X1 * state.FontSizeScale));
+                x += dist + MathF.Round(g.AdvanceX * state.FontSizeScale);
 
                 isBreakableWhitespace =
                     Rune.IsWhiteSpace(displayRune) &&

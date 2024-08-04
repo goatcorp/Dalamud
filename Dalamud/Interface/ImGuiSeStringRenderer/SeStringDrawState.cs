@@ -40,6 +40,7 @@ public unsafe ref struct SeStringDrawState
         this.Span = span;
         this.GetEntity = ssdp.GetEntity;
         this.ScreenOffset = ssdp.ScreenOffset ?? ImGui.GetCursorScreenPos();
+        this.ScreenOffset = new(MathF.Round(this.ScreenOffset.X), MathF.Round(this.ScreenOffset.Y));
         this.Font = ssdp.EffectiveFont;
         this.FontSize = ssdp.FontSize ?? ImGui.GetFontSize();
         this.FontSizeScale = this.FontSize / this.Font->FontSize;
@@ -79,6 +80,9 @@ public unsafe ref struct SeStringDrawState
     public float FontSize { get; }
 
     /// <summary>Gets the multiplier value for glyph metrics, so that it scales to <see cref="FontSize"/>.</summary>
+    /// <remarks>Multiplied to <see cref="ImGuiHelpers.ImFontGlyphReal.XY"/>,
+    /// <see cref="ImGuiHelpers.ImFontGlyphReal.AdvanceX"/>, and distance values from
+    /// <see cref="ImFontPtr.GetDistanceAdjustmentForPair"/>.</remarks>
     public float FontSizeScale { get; }
 
     /// <inheritdoc cref="SeStringDrawParams.LineHeight"/>
@@ -212,15 +216,19 @@ public unsafe ref struct SeStringDrawState
     internal readonly void DrawGlyph(scoped in ImGuiHelpers.ImFontGlyphReal g, Vector2 offset)
     {
         var texId = this.Font->ContainerAtlas->Textures.Ref<ImFontAtlasTexture>(g.TextureIndex).TexID;
+        var xy0 = new Vector2(
+            MathF.Round(g.X0 * this.FontSizeScale),
+            MathF.Round(g.Y0 * this.FontSizeScale));
+        var xy1 = new Vector2(
+            MathF.Round(g.X1 * this.FontSizeScale),
+            MathF.Round(g.Y1 * this.FontSizeScale));
         var dxBold = this.Bold ? 2 : 1;
         var dyItalic = this.Italic
-                           ? (new Vector2(this.FontSize - g.Y0, this.FontSize - g.Y1) / 6)
+                           ? new Vector2(this.FontSize - xy0.Y, this.FontSize - xy1.Y) / 6
                            : Vector2.Zero;
+        // Note: dyItalic values can be non-rounded; the glyph will be rendered sheared anyway.
 
-        offset.Y += MathF.Round(((this.LineHeight - this.Font->FontSize) * this.FontSizeScale) / 2f);
-
-        var xy0 = g.XY0 * this.FontSizeScale;
-        var xy1 = g.XY1 * this.FontSizeScale;
+        offset.Y += MathF.Round((this.LineHeight - this.FontSize) / 2f);
 
         if (this.ShouldDrawShadow)
         {
@@ -264,8 +272,7 @@ public unsafe ref struct SeStringDrawState
 
         offset += this.ScreenOffset;
         offset.Y += (this.LinkUnderlineThickness - 1) / 2f;
-        offset.Y += MathF.Round(
-            (((this.LineHeight - this.FontSize) / 2) + this.Font->Ascent) * this.FontSizeScale);
+        offset.Y += MathF.Round(((this.LineHeight - this.FontSize) / 2) + (this.Font->Ascent * this.FontSizeScale));
 
         this.SetCurrentChannel(SeStringDrawChannel.Foreground);
         this.DrawList.AddLine(
@@ -317,7 +324,7 @@ public unsafe ref struct SeStringDrawState
     /// <param name="right">Rune representing the glyph on the right side of a pair.</param>
     /// <returns>Distance adjustment in pixels, scaled to the size specified from
     /// <see cref="SeStringDrawParams.FontSize"/>, and rounded.</returns>
-    internal readonly float CalculateDistance(Rune left, Rune right)
+    internal readonly float CalculateScaledDistance(Rune left, Rune right)
     {
         // Kerning distance entries are ignored if NUL, U+FFFF(invalid Unicode character), or characters outside
         // the basic multilingual plane(BMP) is involved.
