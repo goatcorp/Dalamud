@@ -56,6 +56,13 @@ public record struct SeStringDrawParams
     /// of <c>0.25f</c> that might be subject to change in the future.</value>
     public float? EdgeStrength { get; set; }
 
+    /// <summary>Gets or sets the theme that will decide the colors to use for <see cref="MacroCode.ColorType"/>
+    /// and <see cref="MacroCode.EdgeColorType"/>.</summary>
+    /// <value><c>0</c> to use colors for Dark theme, <c>1</c> to use colors for Light theme, <c>2</c> to use colors
+    /// for Classic FF theme, <c>3</c> to use colors for Clear Blue theme, or <c>null</c> to use the theme set from the
+    /// game configuration.</value>
+    public int? ThemeIndex { get; set; }
+
     /// <summary>Gets or sets the color of the rendered text.</summary>
     /// <value>Color in RGBA, or <c>null</c> to use <see cref="ImGuiCol.Text"/> (the default).</value>
     public uint? Color { get; set; }

@@ -6,6 +6,8 @@ using System.Text;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Utility;
 
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using ImGuiNET;
 
 using Lumina.Text.Payloads;
@@ -55,6 +57,7 @@ public unsafe ref struct SeStringDrawState
         this.LinkHoverBackColor = ssdp.LinkHoverBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonHovered);
         this.LinkActiveBackColor = ssdp.LinkActiveBackColor ?? ImGui.GetColorU32(ImGuiCol.ButtonActive);
         this.ForceEdgeColor = ssdp.ForceEdgeColor;
+        this.ThemeIndex = ssdp.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
         this.Bold = ssdp.Bold;
         this.Italic = ssdp.Italic;
         this.Edge = ssdp.Edge;
@@ -99,6 +102,9 @@ public unsafe ref struct SeStringDrawState
 
     /// <inheritdoc cref="SeStringDrawParams.EdgeStrength"/>
     public float EdgeOpacity { get; }
+
+    /// <inheritdoc cref="SeStringDrawParams.ThemeIndex"/>
+    public int ThemeIndex { get; }
 
     /// <inheritdoc cref="SeStringDrawParams.Color"/>
     public uint Color { get; set; }

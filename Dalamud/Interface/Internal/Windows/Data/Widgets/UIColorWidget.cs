@@ -1,8 +1,13 @@
-﻿using System.Numerics;
+﻿using System.Buffers.Binary;
+using System.Linq;
+using System.Numerics;
 
 using Dalamud.Data;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Storage.Assets;
 
 using ImGuiNET;
+
 using Lumina.Excel.GeneratedSheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -10,13 +15,15 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// <summary>
 /// Widget for displaying all UI Colors from Lumina.
 /// </summary>
-internal class UIColorWidget : IDataWindowWidget
+internal class UiColorWidget : IDataWindowWidget
 {
+    private UIColor[]? colors;
+
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "uicolor" };
-    
+    public string[]? CommandShortcuts { get; init; } = ["uicolor"];
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "UIColor"; 
+    public string DisplayName { get; init; } = "UIColor";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -25,33 +32,124 @@ internal class UIColorWidget : IDataWindowWidget
     public void Load()
     {
         this.Ready = true;
+        this.colors = null;
     }
 
     /// <inheritdoc/>
-    public void Draw()
+    public unsafe void Draw()
     {
-        var colorSheet = Service<DataManager>.Get().GetExcelSheet<UIColor>();
-        if (colorSheet is null) return;
+        this.colors ??= Service<DataManager>.Get().GetExcelSheet<UIColor>()?.ToArray();
+        if (this.colors is null) return;
 
-        foreach (var color in colorSheet)
+        ImGui.TextUnformatted("Color notation is #RRGGBB.");
+        if (!ImGui.BeginTable("UIColor", 5))
+            return;
+
+        ImGui.TableSetupScrollFreeze(0, 1);
+        var basew = ImGui.CalcTextSize("9").X;
+        ImGui.TableSetupColumn("Row ID", ImGuiTableColumnFlags.WidthFixed, basew * 7);
+        ImGui.TableSetupColumn("Dark", ImGuiTableColumnFlags.WidthFixed, basew * 17);
+        ImGui.TableSetupColumn("Light", ImGuiTableColumnFlags.WidthFixed, basew * 17);
+        ImGui.TableSetupColumn("Classic FF", ImGuiTableColumnFlags.WidthFixed, basew * 17);
+        ImGui.TableSetupColumn("Clear Blue", ImGuiTableColumnFlags.WidthFixed, basew * 17);
+        ImGui.TableHeadersRow();
+
+        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        clipper.Begin(this.colors.Length);
+        while (clipper.Step())
         {
-            this.DrawUiColor(color);
+            for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+            {
+                var id = this.colors[i].RowId;
+                ImGui.TableNextRow();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextUnformatted($"{id}");
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_col1");
+                DrawColorColumn(this.colors[i].UIForeground);
+                if (id is >= 500 and < 580)
+                    DrawEdgePreview(id, this.colors[i].UIForeground, this.colors[i + 1].UIForeground);
+                ImGui.PopID();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_col2");
+                DrawColorColumn(this.colors[i].UIGlow);
+                if (id is >= 500 and < 580)
+                    DrawEdgePreview(id, this.colors[i].UIGlow, this.colors[i + 1].UIGlow);
+                ImGui.PopID();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_col3");
+                DrawColorColumn(this.colors[i].Unknown2);
+                if (id is >= 500 and < 580)
+                    DrawEdgePreview(id, this.colors[i].Unknown2, this.colors[i + 1].Unknown2);
+                ImGui.PopID();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_col4");
+                DrawColorColumn(this.colors[i].Unknown3);
+                if (id is >= 500 and < 580)
+                    DrawEdgePreview(id, this.colors[i].Unknown3, this.colors[i + 1].Unknown3);
+                ImGui.PopID();
+            }
         }
+
+        clipper.Destroy();
+        ImGui.EndTable();
     }
-    
-    private void DrawUiColor(UIColor color)
+
+    private static void DrawColorColumn(uint sheetColor)
     {
-        ImGui.Text($"[{color.RowId:D3}] ");
+        sheetColor = BinaryPrimitives.ReverseEndianness(sheetColor);
+        ImGui.Image(
+            Service<DalamudAssetManager>.Get().White4X4.ImGuiHandle,
+            new(ImGui.GetFrameHeight()),
+            Vector2.Zero,
+            Vector2.One,
+            ImGui.ColorConvertU32ToFloat4(sheetColor | 0xFF000000u));
         ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.Unknown2), $"Unknown2 ");
-        ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.UIForeground), "UIForeground ");
-        ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.Unknown3), "Unknown3 ");
-        ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.UIGlow), "UIGlow");
+        ImGui.TextUnformatted($"#{sheetColor & 0xFF:X02}{(sheetColor >> 8) & 0xFF:X02}{(sheetColor >> 16) & 0xFF:X02}");
     }
-    
+
+    private static void DrawEdgePreview(uint id, uint sheetColor, uint sheetColor2)
+    {
+        ImGui.SameLine();
+        if (Service<SeStringRenderer>.Get().Draw(
+                new("+E"u8),
+                new()
+                {
+                    Edge = true,
+                    Color = BinaryPrimitives.ReverseEndianness(sheetColor) | 0xFF000000u,
+                    EdgeColor = BinaryPrimitives.ReverseEndianness(sheetColor2) | 0xFF000000u,
+                },
+                "+E"u8).Clicked)
+            ImGui.SetClipboardText($"<colortype({id})><edgecolortype({id + 1})>+E<edgecolortype(0)><colortype(0)>");
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip($"<colortype({id})><edgecolortype({id + 1})>+E<edgecolortype(0)><colortype(0)>");
+
+        ImGui.SameLine();
+        ImGui.AlignTextToFramePadding();
+        if (Service<SeStringRenderer>.Get().Draw(
+                new("+F"u8),
+                new()
+                {
+                    Edge = true,
+                    Color = BinaryPrimitives.ReverseEndianness(sheetColor2) | 0xFF000000u,
+                    EdgeColor = BinaryPrimitives.ReverseEndianness(sheetColor) | 0xFF000000u,
+                },
+                "+F"u8).Clicked)
+            ImGui.SetClipboardText($"<colortype({id + 1})><edgecolortype({id})>+E<edgecolortype(0)><colortype(0)>");
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip($"<colortype({id + 1})><edgecolortype({id})>+E<edgecolortype(0)><colortype(0)>");
+    }
+
     private Vector4 ConvertToVector4(uint color)
     {
         var r = (byte)(color >> 24);

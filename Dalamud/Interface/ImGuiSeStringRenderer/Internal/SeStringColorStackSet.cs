@@ -1,6 +1,5 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
@@ -16,13 +15,9 @@ namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 /// <summary>Color stacks to use while evaluating a SeString.</summary>
 internal sealed class SeStringColorStackSet
 {
-    /// <summary>Parsed <see cref="UIColor.UIForeground"/>, containing colors to use with
-    /// <see cref="MacroCode.ColorType"/>.</summary>
-    private readonly uint[] colorTypes;
-
-    /// <summary>Parsed <see cref="UIColor.UIGlow"/>, containing colors to use with
+    /// <summary>Parsed <see cref="UIColor"/>, containing colors to use with <see cref="MacroCode.ColorType"/> and
     /// <see cref="MacroCode.EdgeColorType"/>.</summary>
-    private readonly uint[] edgeColorTypes;
+    private readonly uint[,] colorTypes;
 
     /// <summary>Foreground color stack while evaluating a SeString for rendering.</summary>
     /// <remarks>Touched only from the main thread.</remarks>
@@ -38,28 +33,30 @@ internal sealed class SeStringColorStackSet
 
     /// <summary>Initializes a new instance of the <see cref="SeStringColorStackSet"/> class.</summary>
     /// <param name="uiColor">UIColor sheet.</param>
-    public SeStringColorStackSet(ExcelSheet<UIColor> uiColor)
+    public unsafe SeStringColorStackSet(ExcelSheet<UIColor> uiColor)
     {
         var maxId = 0;
         foreach (var row in uiColor)
             maxId = (int)Math.Max(row.RowId, maxId);
 
-        this.colorTypes = new uint[maxId + 1];
-        this.edgeColorTypes = new uint[maxId + 1];
+        this.colorTypes = new uint[maxId + 1, 4];
         foreach (var row in uiColor)
         {
             // Contains ABGR.
-            this.colorTypes[row.RowId] = row.UIForeground;
-            this.edgeColorTypes[row.RowId] = row.UIGlow;
+            this.colorTypes[row.RowId, 0] = row.UIForeground;
+            this.colorTypes[row.RowId, 1] = row.UIGlow;
+            this.colorTypes[row.RowId, 2] = row.Unknown0;
+            this.colorTypes[row.RowId, 3] = row.Unknown1;
         }
 
         if (BitConverter.IsLittleEndian)
         {
             // ImGui wants RGBA in LE.
-            foreach (ref var r in this.colorTypes.AsSpan())
-                r = BinaryPrimitives.ReverseEndianness(r);
-            foreach (ref var r in this.edgeColorTypes.AsSpan())
-                r = BinaryPrimitives.ReverseEndianness(r);
+            fixed (uint* p = this.colorTypes)
+            {
+                foreach (ref var r in new Span<uint>(p, this.colorTypes.GetLength(0) * this.colorTypes.GetLength(1)))
+                    r = BinaryPrimitives.ReverseEndianness(r);
+            }
         }
     }
 
@@ -107,7 +104,8 @@ internal sealed class SeStringColorStackSet
     internal void HandleShadowColorPayload(
         scoped ref SeStringDrawState drawState,
         ReadOnlySePayloadSpan payload) =>
-        drawState.ShadowColor = ColorHelpers.ApplyOpacity(AdjustStack(this.shadowColorStack, payload), drawState.Opacity);
+        drawState.ShadowColor =
+            ColorHelpers.ApplyOpacity(AdjustStack(this.shadowColorStack, payload), drawState.Opacity);
 
     /// <summary>Handles a <see cref="MacroCode.ColorType"/> payload.</summary>
     /// <param name="drawState">Draw state.</param>
@@ -115,7 +113,9 @@ internal sealed class SeStringColorStackSet
     internal void HandleColorTypePayload(
         scoped ref SeStringDrawState drawState,
         ReadOnlySePayloadSpan payload) =>
-        drawState.Color = ColorHelpers.ApplyOpacity(AdjustStack(this.colorStack, this.colorTypes, payload), drawState.Opacity);
+        drawState.Color = ColorHelpers.ApplyOpacity(
+            this.AdjustStackByType(this.colorStack, payload, drawState.ThemeIndex),
+            drawState.Opacity);
 
     /// <summary>Handles a <see cref="MacroCode.EdgeColorType"/> payload.</summary>
     /// <param name="drawState">Draw state.</param>
@@ -124,18 +124,12 @@ internal sealed class SeStringColorStackSet
         scoped ref SeStringDrawState drawState,
         ReadOnlySePayloadSpan payload)
     {
-        var newColor = AdjustStack(this.edgeColorStack, this.edgeColorTypes, payload);
+        var newColor = this.AdjustStackByType(this.edgeColorStack, payload, drawState.ThemeIndex);
         if (!drawState.ForceEdgeColor)
             drawState.EdgeColor = ColorHelpers.ApplyOpacity(newColor, drawState.EdgeOpacity);
 
         this.HasAdditionalEdgeColor = this.edgeColorStack.Count > 1;
     }
-
-    /// <summary>Swaps red and blue channels of a given color in ARGB(BB GG RR AA) and ABGR(RR GG BB AA).</summary>
-    /// <param name="x">Color to process.</param>
-    /// <returns>Swapped color.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint SwapRedBlue(uint x) => (x & 0xFF00FF00u) | ((x >> 16) & 0xFF) | ((x & 0xFF) << 16);
 
     private static unsafe uint AdjustStack(List<uint> rgbaStack, ReadOnlySePayloadSpan payload)
     {
@@ -154,7 +148,10 @@ internal sealed class SeStringColorStackSet
 
         if (expr.TryGetUInt(out var bgra))
         {
-            rgbaStack.Add(SwapRedBlue(bgra) | 0xFF000000u);
+            // NOTE: if it reads a `0`, then it seems to be doing something else.
+            // See case 0x12 from `Component::GUI::AtkFontAnalyzerBase.vf4`.
+            // Fix when someone figures what's this about.
+            rgbaStack.Add(ColorHelpers.SwapRedBlue(bgra) | 0xFF000000u);
             return rgbaStack[^1];
         }
 
@@ -166,7 +163,7 @@ internal sealed class SeStringColorStackSet
             i > 0 && i <= rtm->TextModule.MacroDecoder.GlobalParameters.Count &&
             rtm->TextModule.MacroDecoder.GlobalParameters[i - 1] is { Type: TextParameterType.Integer } gp)
         {
-            rgbaStack.Add(SwapRedBlue((uint)gp.IntValue) | 0xFF000000u);
+            rgbaStack.Add(ColorHelpers.SwapRedBlue((uint)gp.IntValue) | 0xFF000000u);
             return rgbaStack[^1];
         }
 
@@ -175,13 +172,14 @@ internal sealed class SeStringColorStackSet
         return rgbaStack[^1];
     }
 
-    private static uint AdjustStack(List<uint> rgbaStack, uint[] colorTypes, ReadOnlySePayloadSpan payload)
+    private uint AdjustStackByType(List<uint> rgbaStack, ReadOnlySePayloadSpan payload, int themeIndex)
     {
         if (!payload.TryGetExpression(out var expr))
             return rgbaStack[^1];
         if (!expr.TryGetUInt(out var colorTypeIndex))
             return rgbaStack[^1];
 
+        // Component::GUI::AtkFontAnalyzerBase.vf4: passing 0 will pop the color off the stack.
         if (colorTypeIndex == 0)
         {
             // First item in the stack is the color we started to draw with.
@@ -191,8 +189,12 @@ internal sealed class SeStringColorStackSet
         }
 
         // Opacity component is ignored.
-        rgbaStack.Add((colorTypeIndex < colorTypes.Length ? colorTypes[colorTypeIndex] : 0u) | 0xFF000000u);
+        var color = themeIndex >= 0 && themeIndex < this.colorTypes.GetLength(1) &&
+                    colorTypeIndex < this.colorTypes.GetLength(0)
+                        ? this.colorTypes[colorTypeIndex, themeIndex]
+                        : 0u;
 
+        rgbaStack.Add(color | 0xFF000000u);
         return rgbaStack[^1];
     }
 }
