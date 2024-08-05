@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>10.0.0.10</DalamudVersion>
+        <DalamudVersion>10.0.0.12</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
@@ -71,7 +71,7 @@
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
-        <PackageReference Include="Lumina" Version="4.1.0" />
+        <PackageReference Include="Lumina" Version="4.1.1" />
         <PackageReference Include="Lumina.Excel" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
         <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
@@ -115,10 +115,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
-        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
-        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\DerivedGeneralCategory.txt" LogicalName="DerivedGeneralCategory.txt" />
-        <EmbeddedResource Include="Interface\Internal\ImGuiSeStringRenderer\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\DerivedGeneralCategory.txt" LogicalName="DerivedGeneralCategory.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
     </ItemGroup>
 
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">

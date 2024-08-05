@@ -8,7 +8,7 @@ using Lumina.Text;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
-namespace Dalamud.Interface.Internal.ImGuiSeStringRenderer.TextProcessing;
+namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 
 /// <summary>Enumerates a UTF-N byte sequence by codepoint.</summary>
 [DebuggerDisplay("{Current}/{data.Length} ({flags}, BE={isBigEndian})")]
@@ -257,7 +257,11 @@ internal ref struct UtfEnumerator
         /// <summary>Gets the effective <c>char</c> value, with invalid or non-representable codepoints replaced.
         /// </summary>
         /// <value><see cref="char.MaxValue"/> if the character should not be displayed at all.</value>
-        public char EffectiveChar => this.EffectiveInt is var i and >= 0 and < char.MaxValue ? (char)i : char.MaxValue;
+        public char EffectiveChar
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => this.EffectiveInt is var i and >= 0 and < char.MaxValue ? (char)i : char.MaxValue;
+        }
 
         /// <summary>Gets the effective <c>int</c> value, with invalid codepoints replaced.</summary>
         /// <value><see cref="char.MaxValue"/> if the character should not be displayed at all.</value>
@@ -267,6 +271,14 @@ internal ref struct UtfEnumerator
                 : this.BrokenSequence || !this.Value.TryGetRune(out var rune)
                     ? 0xFFFD
                     : rune.Value;
+
+        /// <summary>Gets the effective <see cref="Rune"/> value, with invalid codepoints replaced.</summary>
+        /// <value><see cref="char.MaxValue"/> if the character should not be displayed at all.</value>
+        public Rune EffectiveRune
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => new(this.EffectiveInt);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(Subsequence left, Subsequence right) => left.Equals(right);
