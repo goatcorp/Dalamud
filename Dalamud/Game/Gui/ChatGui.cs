@@ -168,8 +168,10 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
             var sender = Utf8String.FromSequence(chat.Name.Encode());
             var message = Utf8String.FromSequence(replacedMessage.BuiltString.Encode());
+            
+            var targetChannel = chat.Type ?? this.configuration.GeneralChatType;
 
-            this.HandlePrintMessageDetour(RaptureLogModule.Instance(), chat.Type, sender, message, chat.Timestamp, (byte)(chat.Silent ? 1 : 0));
+            this.HandlePrintMessageDetour(RaptureLogModule.Instance(), targetChannel, sender, message, chat.Timestamp, (byte)(chat.Silent ? 1 : 0));
 
             sender->Dtor(true);
             message->Dtor(true);
