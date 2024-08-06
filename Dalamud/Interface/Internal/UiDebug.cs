@@ -1,7 +1,9 @@
 using System.Numerics;
 
+using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -316,6 +318,32 @@ internal unsafe class UiDebug
                                     textureInfo->AtkTexture.KernelTexture->Height));
                             ImGui.TreePop();
                         }
+                    }
+
+                    if (ImGui.Button($"Replace with a random image##{(ulong)textureInfo:X}"))
+                    {
+                        var texm = Service<TextureManager>.Get();
+                        texm.Shared
+                            .GetFromGame(
+                                Random.Shared.Next(0, 1) == 0
+                                    ? $"ui/loadingimage/-nowloading_base{Random.Shared.Next(1, 33)}.tex"
+                                    : $"ui/loadingimage/-nowloading_base{Random.Shared.Next(1, 33)}_hr1.tex")
+                            .RentAsync()
+                            .ContinueWith(
+                                r => Service<Framework>.Get().RunOnFrameworkThread(
+                                    () =>
+                                    {
+                                        if (!r.IsCompletedSuccessfully)
+                                            return;
+
+                                        using (r.Result)
+                                        {
+                                            textureInfo->AtkTexture.ReleaseTexture();
+                                            textureInfo->AtkTexture.KernelTexture =
+                                                texm.ConvertToKernelTexture(r.Result);
+                                            textureInfo->AtkTexture.TextureType = TextureType.KernelTexture;
+                                        }
+                                    }));
                     }
                 }
             }

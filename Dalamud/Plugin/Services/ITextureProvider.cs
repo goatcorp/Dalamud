@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -281,4 +280,12 @@ public interface ITextureProvider
     /// <returns><c>true</c> if supported.</returns>
     /// <remarks><para>This function does not throw exceptions.</para></remarks>
     bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat);
+
+    /// <summary>Converts an existing <see cref="IDalamudTextureWrap"/> instance to a new instance of
+    /// <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/>.</summary>
+    /// <param name="wrap">Instance of <see cref="IDalamudTextureWrap"/> to convert.</param>
+    /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
+    /// <returns>Address of the new <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/>.</returns>
+    nint ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false);
 }
