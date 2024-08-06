@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace Dalamud.Game;
 
@@ -146,4 +146,11 @@ public interface ISigScanner
     /// <param name="result">The real offset of the signature, if found.</param>
     /// <returns>true if the signature was found.</returns>
     public bool TryScanText(string signature, out nint result);
+
+    /// <summary>
+    /// Scan for all matching byte signatures in the .text section.
+    /// </summary>
+    /// <param name="signature">The Signature.</param>
+    /// <returns>The list of real offsets of the found elements based on signature.</returns>
+    public nint[] ScanAllText(string signature);
 }
