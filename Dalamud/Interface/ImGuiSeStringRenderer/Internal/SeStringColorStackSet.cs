@@ -148,10 +148,12 @@ internal sealed class SeStringColorStackSet
 
         if (expr.TryGetUInt(out var bgra))
         {
-            // NOTE: if it reads a `0`, then it seems to be doing something else.
-            // See case 0x12 from `Component::GUI::AtkFontAnalyzerBase.vf4`.
-            // Fix when someone figures what's this about.
-            rgbaStack.Add(ColorHelpers.SwapRedBlue(bgra) | 0xFF000000u);
+            // <color(0)> adds the color on the top of the stack. This makes usages like <color(gnum99)> effectively
+            // become a no-op if no value is provided.
+            if (bgra == 0)
+                rgbaStack.Add(rgbaStack[^1]);
+            else
+                rgbaStack.Add(ColorHelpers.SwapRedBlue(bgra) | 0xFF000000u);
             return rgbaStack[^1];
         }
 
