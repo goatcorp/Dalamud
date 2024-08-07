@@ -56,7 +56,7 @@ internal class DataWindow : Window, IDisposable
         new TaskSchedulerWidget(),
         new TexWidget(),
         new ToastWidget(),
-        new UIColorWidget(),
+        new UiColorWidget(),
         new UldWidget(),
     };
 
