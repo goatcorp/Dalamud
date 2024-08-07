@@ -282,10 +282,18 @@ public interface ITextureProvider
     bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat);
 
     /// <summary>Converts an existing <see cref="IDalamudTextureWrap"/> instance to a new instance of
-    /// <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/>.</summary>
+    /// <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/> which can be used to supply a custom
+    /// texture onto an in-game addon (UI element.)</summary>
     /// <param name="wrap">Instance of <see cref="IDalamudTextureWrap"/> to convert.</param>
     /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
     /// <see cref="Task{TResult}"/> completes.</param>
     /// <returns>Address of the new <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/>.</returns>
+    /// <example>See <c>PrintTextureInfo</c> in <see cref="Interface.Internal.UiDebug.PrintSimpleNode"/> for an example
+    /// of replacing the texture of an image node.</example>
+    /// <remarks>
+    /// <para>If the returned kernel texture is to be destroyed, call the fourth function in its vtable, by calling
+    /// <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture.DecRef"/> or
+    /// <c>((delegate* unmanaged&lt;nint, void&gt;)(*(nint**)ptr)[3](ptr)</c>.</para>
+    /// </remarks>
     nint ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false);
 }
