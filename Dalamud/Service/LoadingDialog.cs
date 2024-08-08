@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 using CheapLoc;
 
@@ -31,15 +32,13 @@ namespace Dalamud;
     "StyleCop.CSharp.LayoutRules",
     "SA1519:Braces should not be omitted from multi-line child statement",
     Justification = "Multiple fixed blocks")]
-internal sealed unsafe class LoadingDialog
+internal sealed class LoadingDialog
 {
     private readonly RollingList<string> logs = new(20);
+    private readonly TaskCompletionSource<HWND> hwndTaskDialog = new();
 
     private Thread? thread;
-    private HWND hwndTaskDialog;
     private DateTime firstShowTime;
-    private State currentState = State.LoadingDalamud;
-    private bool canHide;
 
     /// <summary>
     /// Enum representing the state of the dialog.
@@ -72,35 +71,13 @@ internal sealed unsafe class LoadingDialog
     /// <summary>
     /// Gets or sets the current state of the dialog.
     /// </summary>
-    public State CurrentState
-    {
-        get => this.currentState;
-        set
-        {
-            if (this.currentState == value)
-                return;
-
-            this.currentState = value;
-            this.UpdateMainInstructionText();
-        }
-    }
+    public State CurrentState { get; set; } = State.LoadingDalamud;
 
     /// <summary>
     /// Gets or sets a value indicating whether the dialog can be hidden by the user.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if called before the dialog has been created.</exception>
-    public bool CanHide
-    {
-        get => this.canHide;
-        set
-        {
-            if (this.canHide == value)
-                return;
-
-            this.canHide = value;
-            this.UpdateButtonEnabled();
-        }
-    }
+    public bool CanHide { get; set; }
 
     /// <summary>
     /// Show the dialog.
@@ -110,7 +87,7 @@ internal sealed unsafe class LoadingDialog
         if (IsGloballyHidden)
             return;
 
-        if (this.thread?.IsAlive == true)
+        if (this.thread is not null)
             return;
 
         this.thread = new Thread(this.ThreadStart)
@@ -126,22 +103,28 @@ internal sealed unsafe class LoadingDialog
     /// <summary>
     /// Hide the dialog.
     /// </summary>
-    public void HideAndJoin()
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task HideAndJoin()
     {
         IsGloballyHidden = true;
-        if (this.thread?.IsAlive is not true)
+        if (this.hwndTaskDialog.TrySetCanceled() || this.hwndTaskDialog.Task.IsCanceled)
             return;
 
-        SendMessageW(this.hwndTaskDialog, WM.WM_CLOSE, default, default);
-        this.thread.Join();
+        try
+        {
+            SendMessageW(await this.hwndTaskDialog.Task, WM.WM_CLOSE, default, default);
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore
+        }
+
+        this.thread?.Join();
     }
 
-    private void UpdateMainInstructionText()
+    private unsafe void UpdateMainInstructionText(HWND hwnd)
     {
-        if (this.hwndTaskDialog == default)
-            return;
-
-        fixed (void* pszText = this.currentState switch
+        fixed (void* pszText = this.CurrentState switch
                {
                    State.LoadingDalamud => Loc.Localize(
                        "LoadingDialogMainInstructionLoadingDalamud",
@@ -156,18 +139,15 @@ internal sealed unsafe class LoadingDialog
                })
         {
             SendMessageW(
-                this.hwndTaskDialog,
+                hwnd,
                 (uint)TASKDIALOG_MESSAGES.TDM_SET_ELEMENT_TEXT,
                 (WPARAM)(int)TASKDIALOG_ELEMENTS.TDE_MAIN_INSTRUCTION,
                 (LPARAM)pszText);
         }
     }
 
-    private void UpdateContentText()
+    private unsafe void UpdateContentText(HWND hwnd)
     {
-        if (this.hwndTaskDialog == default)
-            return;
-
         var contentBuilder = new StringBuilder(
             Loc.Localize(
                 "LoadingDialogContentInfo",
@@ -213,14 +193,14 @@ internal sealed unsafe class LoadingDialog
         fixed (void* pszText = contentBuilder.ToString())
         {
             SendMessageW(
-                this.hwndTaskDialog,
+                hwnd,
                 (uint)TASKDIALOG_MESSAGES.TDM_SET_ELEMENT_TEXT,
                 (WPARAM)(int)TASKDIALOG_ELEMENTS.TDE_CONTENT,
                 (LPARAM)pszText);
         }
     }
 
-    private void UpdateExpandedInformation()
+    private unsafe void UpdateExpandedInformation(HWND hwnd)
     {
         const int maxCharactersPerLine = 80;
 
@@ -261,57 +241,51 @@ internal sealed unsafe class LoadingDialog
         fixed (void* pszText = sb.ToString())
         {
             SendMessageW(
-                this.hwndTaskDialog,
+                hwnd,
                 (uint)TASKDIALOG_MESSAGES.TDM_SET_ELEMENT_TEXT,
                 (WPARAM)(int)TASKDIALOG_ELEMENTS.TDE_EXPANDED_INFORMATION,
                 (LPARAM)pszText);
         }
     }
 
-    private void UpdateButtonEnabled()
-    {
-        if (this.hwndTaskDialog == default)
-            return;
-
-        SendMessageW(this.hwndTaskDialog, (uint)TASKDIALOG_MESSAGES.TDM_ENABLE_BUTTON, IDOK, this.canHide ? 1 : 0);
-    }
+    private void UpdateButtonEnabled(HWND hwnd) =>
+        SendMessageW(hwnd, (uint)TASKDIALOG_MESSAGES.TDM_ENABLE_BUTTON, IDOK, this.CanHide ? 1 : 0);
 
     private HRESULT TaskDialogCallback(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam)
     {
         switch ((TASKDIALOG_NOTIFICATIONS)msg)
         {
             case TASKDIALOG_NOTIFICATIONS.TDN_CREATED:
-                this.hwndTaskDialog = hwnd;
+                if (!this.hwndTaskDialog.TrySetResult(hwnd))
+                    return E.E_FAIL;
 
-                this.UpdateMainInstructionText();
-                this.UpdateContentText();
-                this.UpdateExpandedInformation();
-                this.UpdateButtonEnabled();
+                this.UpdateMainInstructionText(hwnd);
+                this.UpdateContentText(hwnd);
+                this.UpdateExpandedInformation(hwnd);
+                this.UpdateButtonEnabled(hwnd);
                 SendMessageW(hwnd, (int)TASKDIALOG_MESSAGES.TDM_SET_PROGRESS_BAR_MARQUEE, 1, 0);
 
                 // Bring to front
+                ShowWindow(hwnd, SW.SW_SHOW);
                 SetWindowPos(hwnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SWP.SWP_NOSIZE | SWP.SWP_NOMOVE);
                 SetWindowPos(hwnd, HWND.HWND_NOTOPMOST, 0, 0, 0, 0, SWP.SWP_NOSIZE | SWP.SWP_NOMOVE);
-                ShowWindow(hwnd, SW.SW_SHOW);
                 SetForegroundWindow(hwnd);
                 SetFocus(hwnd);
                 SetActiveWindow(hwnd);
                 return S.S_OK;
 
-            case TASKDIALOG_NOTIFICATIONS.TDN_DESTROYED:
-                this.hwndTaskDialog = default;
-                return S.S_OK;
-
             case TASKDIALOG_NOTIFICATIONS.TDN_TIMER:
-                this.UpdateContentText();
-                this.UpdateExpandedInformation();
+                this.UpdateMainInstructionText(hwnd);
+                this.UpdateContentText(hwnd);
+                this.UpdateExpandedInformation(hwnd);
+                this.UpdateButtonEnabled(hwnd);
                 return S.S_OK;
         }
 
         return S.S_OK;
     }
 
-    private void ThreadStart()
+    private unsafe void ThreadStart()
     {
         // We don't have access to the asset service here.
         var workingDirectory = Service<Dalamud>.Get().StartInfo.WorkingDirectory;
@@ -386,7 +360,7 @@ internal sealed unsafe class LoadingDialog
 
                 gch = GCHandle.Alloc((Func<HWND, uint, WPARAM, LPARAM, HRESULT>)this.TaskDialogCallback);
                 taskDialogConfig.lpCallbackData = GCHandle.ToIntPtr(gch);
-                TaskDialogIndirect(&taskDialogConfig, null, null, null).ThrowOnError();
+                TaskDialogIndirect(&taskDialogConfig, null, null, null);
             }
             catch (Exception e)
             {
