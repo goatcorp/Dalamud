@@ -57,6 +57,7 @@ internal class DataWindow : Window, IDisposable
         new TexWidget(),
         new ToastWidget(),
         new UiColorWidget(),
+        new UldWidget(),
     };
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;

@@ -310,6 +310,34 @@ public class SigScanner : IDisposable, ISigScanner
         }
     }
 
+    /// <inheritddoc/>
+    public nint[] ScanAllText(string signature)
+    {
+        var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
+        var ret = new List<nint>();
+        while (mBase < this.TextSectionBase + this.TextSectionSize)
+        {
+            try
+            {
+                var scanRet = Scan(mBase, this.TextSectionSize, signature);
+                if (scanRet == IntPtr.Zero)
+                    break;
+
+                if (this.IsCopy)
+                    scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
+
+                ret.Add(scanRet);
+                mBase = scanRet + 1;
+            }
+            catch (KeyNotFoundException)
+            {
+                break;
+            }
+        }
+
+        return ret.ToArray();
+    }
+
     /// <inheritdoc/>
     public void Dispose()
     {
