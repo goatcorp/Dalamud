@@ -5,6 +5,7 @@ using System.Linq;
 using Dalamud.Game;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures;
@@ -22,10 +23,11 @@ namespace Dalamud.Hooking.Internal;
 #pragma warning restore SA1015
 internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternalDisposableService
 {
+    private readonly ModuleLog log = new("GameInteropProvider");
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
 
-    private readonly ConcurrentBag<IDalamudHook> trackedHooks = new();
+    private readonly ConcurrentBag<IDalamudHook> trackedHooks = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInteropProviderPluginScoped"/> class.
@@ -94,11 +96,11 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     {
         var notDisposed = this.trackedHooks.Where(x => !x.IsDisposed).ToArray();
         if (notDisposed.Length != 0)
-            Log.Warning("{PluginName} is leaking {Num} hooks! Make sure that all of them are disposed properly.", this.plugin.InternalName, notDisposed.Length);
+            this.log.Warning("{PluginName} is leaking {Num} hooks! Make sure that all of them are disposed properly.", this.plugin.InternalName, notDisposed.Length);
 
         foreach (var hook in notDisposed)
         {
-            Log.Warning("\t\t\tLeaked hook at +0x{Address:X}", hook.Address.ToInt64() - this.scanner.Module.BaseAddress.ToInt64());
+            this.log.Warning("\t\t\tLeaked hook at +0x{Address:X}", hook.Address.ToInt64() - this.scanner.Module.BaseAddress.ToInt64());
             hook.Dispose();
         }
         

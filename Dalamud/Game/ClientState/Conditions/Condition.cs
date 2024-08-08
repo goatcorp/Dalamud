@@ -3,7 +3,10 @@ using System.Linq;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -181,14 +184,19 @@ internal sealed class Condition : IInternalDisposableService, ICondition
 #pragma warning restore SA1015
 internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 {
+    private readonly ModuleLog log = new("Condition");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly Condition conditionService = Service<Condition>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConditionPluginScoped"/> class.
     /// </summary>
-    internal ConditionPluginScoped()
+    /// <param name="plugin">The plugin this service belongs to.</param>
+    internal ConditionPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.conditionService.ConditionChange += this.ConditionChangedForward;
     }
     
@@ -207,6 +215,8 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.ConditionChange);
+        
         this.conditionService.ConditionChange -= this.ConditionChangedForward;
 
         this.ConditionChange = null;

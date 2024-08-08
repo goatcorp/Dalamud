@@ -351,7 +351,7 @@ internal class GameInventory : IInternalDisposableService
 #pragma warning restore SA1015
 internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInventory
 {
-    private static readonly ModuleLog Log = new(nameof(GameInventoryPluginScoped));
+    private readonly ModuleLog log = new("GameInventory");
 
     [ServiceManager.ServiceDependency]
     private readonly GameInventory gameInventoryService = Service<GameInventory>.Get();
@@ -436,7 +436,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
         }
         catch (Exception e)
         {
-            Log.Error(
+            this.log.Error(
                 e,
                 "[{plugin}] Exception during {argType} callback",
                 Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
@@ -456,7 +456,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
         }
         catch (Exception e)
         {
-            Log.Error(
+            this.log.Error(
                 e,
                 "[{plugin}] Exception during {argType} callback",
                 Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
@@ -471,44 +471,44 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemAddedArgs> events) =>
-        Invoke(this.ItemAdded, this.ItemAddedExplicit, events);
+        this.Invoke(this.ItemAdded, this.ItemAddedExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemRemovedArgs> events) =>
-        Invoke(this.ItemRemoved, this.ItemRemovedExplicit, events);
+        this.Invoke(this.ItemRemoved, this.ItemRemovedExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemChangedArgs> events) =>
-        Invoke(this.ItemChanged, this.ItemChangedExplicit, events);
+        this.Invoke(this.ItemChanged, this.ItemChangedExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemMovedArgs> events) =>
-        Invoke(this.ItemMoved, this.ItemMovedExplicit, events);
+        this.Invoke(this.ItemMoved, this.ItemMovedExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemSplitArgs> events) =>
-        Invoke(this.ItemSplit, this.ItemSplitExplicit, events);
+        this.Invoke(this.ItemSplit, this.ItemSplitExplicit, events);
     
     /// <summary>
     /// Invoke the appropriate event handler.
     /// </summary>
     /// <param name="events">The data.</param>
     internal void Invoke(List<InventoryItemMergedArgs> events) =>
-        Invoke(this.ItemMerged, this.ItemMergedExplicit, events);
+        this.Invoke(this.ItemMerged, this.ItemMergedExplicit, events);
     
-    private static void Invoke<T>(
+    private void Invoke<T>(
         IGameInventory.InventoryChangedDelegate? cb,
         IGameInventory.InventoryChangedDelegate<T>? cbt,
         List<T> events) where T : InventoryEventArgs
@@ -521,7 +521,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
             }
             catch (Exception e)
             {
-                Log.Error(
+                log.Error(
                     e,
                     "[{plugin}] Exception during untyped callback for {evt}",
                     Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",
@@ -534,7 +534,7 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
             }
             catch (Exception e)
             {
-                Log.Error(
+                log.Error(
                     e,
                     "[{plugin}] Exception during typed callback for {evt}",
                     Service<PluginManager>.GetNullable()?.FindCallingPlugin(new(e))?.Name ?? "(unknown plugin)",

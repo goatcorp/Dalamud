@@ -5,7 +5,10 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.Gui.Toast;
 
@@ -383,14 +386,20 @@ internal sealed partial class ToastGui
 #pragma warning restore SA1015
 internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
 {
+    private readonly ModuleLog log = new("ToastGui");
+    private readonly LocalPlugin plugin;
+    
     [ServiceManager.ServiceDependency]
     private readonly ToastGui toastGuiService = Service<ToastGui>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ToastGuiPluginScoped"/> class.
     /// </summary>
-    internal ToastGuiPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal ToastGuiPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
+
         this.toastGuiService.Toast += this.ToastForward;
         this.toastGuiService.QuestToast += this.QuestToastForward;
         this.toastGuiService.ErrorToast += this.ErrorToastForward;
@@ -408,6 +417,8 @@ internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.Toast, this.QuestToast, this.ErrorToast);
+        
         this.toastGuiService.Toast -= this.ToastForward;
         this.toastGuiService.QuestToast -= this.QuestToastForward;
         this.toastGuiService.ErrorToast -= this.ErrorToastForward;

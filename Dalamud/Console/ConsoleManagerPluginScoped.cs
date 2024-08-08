@@ -24,7 +24,7 @@ public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
     
-    private readonly List<IConsoleEntry> trackedEntries = new();
+    private readonly List<IConsoleEntry> trackedEntries = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConsoleManagerPluginScoped"/> class.

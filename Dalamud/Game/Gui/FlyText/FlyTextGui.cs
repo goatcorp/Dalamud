@@ -5,8 +5,11 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using Serilog;
 
@@ -278,14 +281,19 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 #pragma warning restore SA1015
 internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
 {
+    private readonly ModuleLog log = new("FlyTextGui");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly FlyTextGui flyTextGuiService = Service<FlyTextGui>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FlyTextGuiPluginScoped"/> class.
     /// </summary>
-    internal FlyTextGuiPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal FlyTextGuiPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.flyTextGuiService.FlyTextCreated += this.FlyTextCreatedForward;
     }
 
@@ -295,6 +303,8 @@ internal class FlyTextGuiPluginScoped : IInternalDisposableService, IFlyTextGui
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.FlyTextCreated);
+        
         this.flyTextGuiService.FlyTextCreated -= this.FlyTextCreatedForward;
 
         this.FlyTextCreated = null;

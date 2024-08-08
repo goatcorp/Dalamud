@@ -237,12 +237,12 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
 #pragma warning restore SA1015
 internal class CommandManagerPluginScoped : IInternalDisposableService, ICommandManager
 {
-    private static readonly ModuleLog Log = new("Command");
+    private readonly ModuleLog log = new("Command");
     
     [ServiceManager.ServiceDependency]
     private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
 
-    private readonly List<string> pluginRegisteredCommands = new();
+    private readonly List<string> pluginRegisteredCommands = [];
     private readonly LocalPlugin pluginInfo;
 
     /// <summary>
@@ -289,7 +289,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         }
         else
         {
-            Log.Error($"Command {command} is already registered.");
+            this.log.Error($"Command {command} is already registered.");
         }
 
         return false;
@@ -308,7 +308,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         }
         else
         {
-            Log.Error($"Command {command} not found.");
+            this.log.Error($"Command {command} not found.");
         }
 
         return false;

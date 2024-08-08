@@ -3,6 +3,8 @@
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
@@ -258,6 +260,9 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
 #pragma warning restore SA1015
 internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
 {
+    private readonly ModuleLog log = new("GameConfig");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly GameConfig gameConfigService = Service<GameConfig>.Get();
 
@@ -266,8 +271,10 @@ internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigPluginScoped"/> class.
     /// </summary>
-    internal GameConfigPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal GameConfigPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.gameConfigService.Changed += this.ConfigChangedForward;
         this.initializationTask = this.gameConfigService.InitializationTask.ContinueWith(
             r =>
@@ -305,6 +312,8 @@ internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.Changed, this.SystemChanged, this.UiConfigChanged, this.UiControlChanged);
+        
         this.gameConfigService.Changed -= this.ConfigChangedForward;
         this.initializationTask.ContinueWith(
             r =>

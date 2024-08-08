@@ -12,6 +12,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
@@ -424,14 +425,19 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 #pragma warning restore SA1015
 internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
 {
+    private readonly ModuleLog log = new("ChatGui");
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly ChatGui chatGuiService = Service<ChatGui>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatGuiPluginScoped"/> class.
     /// </summary>
-    internal ChatGuiPluginScoped()
+    /// <param name="plugin">Information about the plugin using this service.</param>
+    internal ChatGuiPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.chatGuiService.ChatMessage += this.OnMessageForward;
         this.chatGuiService.CheckMessageHandled += this.OnCheckMessageForward;
         this.chatGuiService.ChatMessageHandled += this.OnMessageHandledForward;
@@ -462,6 +468,8 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        PluginCleanupNag.CheckEvent(this.plugin, this.log, this.ChatMessage, this.CheckMessageHandled, this.ChatMessageHandled, this.ChatMessageUnhandled);
+
         this.chatGuiService.ChatMessage -= this.OnMessageForward;
         this.chatGuiService.CheckMessageHandled -= this.OnCheckMessageForward;
         this.chatGuiService.ChatMessageHandled -= this.OnMessageHandledForward;
