@@ -89,6 +89,15 @@ public unsafe interface IGameGui
     public nint GetAddonByName(string name, int index = 1);
 
     /// <summary>
+    /// Gets the pointer to the Addon with the given name and index.
+    /// </summary>
+    /// <param name="name">Addon name to search for.</param>
+    /// <param name="index">Which instance of this addon to grab.</param>
+    /// <typeparam name="T">Pointer type to cast the result to.</typeparam>
+    /// <returns>A pointer to the addon if it exists, null otherwise.</returns>
+    public T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged;
+
+    /// <summary>
     /// Find the agent associated with an addon, if possible.
     /// </summary>
     /// <param name="addonName">The addon name.</param>

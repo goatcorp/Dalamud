@@ -1,4 +1,3 @@
-using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -18,7 +17,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
-using SharpDX;
 
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
@@ -261,6 +259,10 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         return (IntPtr)addon;
     }
+
+    /// <inheritdoc/>
+    public T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged 
+        => (T*)this.GetAddonByName(name, index);
 
     /// <inheritdoc/>
     public IntPtr FindAgentInterface(string addonName)
@@ -559,6 +561,10 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public IntPtr GetAddonByName(string name, int index = 1)
         => this.gameGuiService.GetAddonByName(name, index);
+
+    /// <inheritdoc/>
+    public unsafe T* GetAddonByName<T>(string name, int index = 1) where T : unmanaged
+        => this.gameGuiService.GetAddonByName<T>(name, index);
     
     /// <inheritdoc/>
     public IntPtr FindAgentInterface(string addonName)
