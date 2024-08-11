@@ -578,12 +578,12 @@ public enum BitmapFontIcon : uint
     /// <summary>
     /// The Alchemist icon.
     /// </summary>
-    Alchemist = 131,
+    Alchemist = 141,
 
     /// <summary>
     /// The Culinarian icon.
     /// </summary>
-    Culinarian = 132,
+    Culinarian = 142,
 
     /// <summary>
     /// The Miner icon.
