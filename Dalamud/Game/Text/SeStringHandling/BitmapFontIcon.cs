@@ -488,7 +488,7 @@ public enum BitmapFontIcon : uint
     /// <summary>
     /// A blue star icon with an orange exclamation mark.
     /// </summary>
-    BlueStarProblem = 121,
+    BlueStarProblem = 122,
 
     /// <summary>
     /// The Disconnecting icon.
