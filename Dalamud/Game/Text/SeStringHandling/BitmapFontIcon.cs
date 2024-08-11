@@ -731,7 +731,7 @@ public enum BitmapFontIcon : uint
     Pictomancer = 171,
 
     /// <summary>
-    /// The Moogle Treasure Trove icon.
+    /// The Venture Delivery Moogle icon.
     /// </summary>
-    MoogleTreasureTrove = 172,
+    VentureDeliveryMoogle = 172,
 }
