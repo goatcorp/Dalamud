@@ -714,4 +714,24 @@ public enum BitmapFontIcon : uint
     /// The Waiting For Duty Finder icon.
     /// </summary>
     WaitingForDutyFinder = 168,
+
+    /// <summary>
+    /// The Tuliyollal flag icon.
+    /// </summary>
+    Tuliyollal = 169,
+
+    /// <summary>
+    /// The Viper icon.
+    /// </summary>
+    Viper = 170,
+
+    /// <summary>
+    /// The Pictomancer icon.
+    /// </summary>
+    Pictomancer = 171,
+
+    /// <summary>
+    /// The Moogle Treasure Trove icon.
+    /// </summary>
+    MoogleTreasureTrove = 172,
 }
