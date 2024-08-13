@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using Iced.Intel;
 using Newtonsoft.Json;
@@ -21,8 +23,8 @@ public class SigScanner : IDisposable, ISigScanner
 {
     private readonly FileInfo? cacheFile;
 
-    private IntPtr moduleCopyPtr;
-    private long moduleCopyOffset;
+    private nint moduleCopyPtr;
+    private nint moduleCopyOffset;
 
     private ConcurrentDictionary<string, long>? textCache;
 
@@ -116,8 +118,8 @@ public class SigScanner : IDisposable, ISigScanner
     /// <returns>The found offset.</returns>
     public static IntPtr Scan(IntPtr baseAddress, int size, string signature)
     {
-        var (needle, mask) = ParseSignature(signature);
-        var index = IndexOf(baseAddress, size, needle, mask);
+        var (needle, mask, badShift) = ParseSignature(signature);
+        var index = IndexOf(baseAddress, size, needle, mask, badShift);
         if (index < 0)
             throw new KeyNotFoundException($"Can't find a signature of {signature}");
         return baseAddress + index;
@@ -310,32 +312,29 @@ public class SigScanner : IDisposable, ISigScanner
         }
     }
 
-    /// <inheritddoc/>
-    public nint[] ScanAllText(string signature)
+    /// <inheritdoc/>
+    public nint[] ScanAllText(string signature) => this.ScanAllText(signature, default).ToArray();
+
+    /// <inheritdoc/>
+    public IEnumerable<nint> ScanAllText(string signature, CancellationToken cancellationToken)
     {
+        var (needle, mask, badShift) = ParseSignature(signature);
         var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
-        var ret = new List<nint>();
         while (mBase < this.TextSectionBase + this.TextSectionSize)
         {
-            try
-            {
-                var scanRet = Scan(mBase, this.TextSectionSize, signature);
-                if (scanRet == IntPtr.Zero)
-                    break;
+            cancellationToken.ThrowIfCancellationRequested();
 
-                if (this.IsCopy)
-                    scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
-
-                ret.Add(scanRet);
-                mBase = scanRet + 1;
-            }
-            catch (KeyNotFoundException)
-            {
+            var index = IndexOf(mBase, this.TextSectionSize, needle, mask, badShift);
+            if (index < 0)
                 break;
-            }
-        }
 
-        return ret.ToArray();
+            var scanRet = mBase + index;
+            if (this.IsCopy)
+                scanRet -= this.moduleCopyOffset;
+
+            yield return scanRet;
+            mBase = scanRet + 1;
+        }
     }
 
     /// <inheritdoc/>
@@ -384,7 +383,7 @@ public class SigScanner : IDisposable, ISigScanner
         return IntPtr.Add(sigLocation, 5 + jumpOffset);
     }
 
-    private static (byte[] Needle, bool[] Mask) ParseSignature(string signature)
+    private static (byte[] Needle, bool[] Mask, int[] BadShift) ParseSignature(string signature)
     {
         signature = signature.Replace(" ", string.Empty);
         if (signature.Length % 2 != 0)
@@ -407,14 +406,13 @@ public class SigScanner : IDisposable, ISigScanner
             mask[i] = false;
         }
 
-        return (needle, mask);
+        return (needle, mask, BuildBadCharTable(needle, mask));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe int IndexOf(IntPtr bufferPtr, int bufferLength, byte[] needle, bool[] mask)
+    private static unsafe int IndexOf(nint bufferPtr, int bufferLength, byte[] needle, bool[] mask, int[] badShift)
     {
         if (needle.Length > bufferLength) return -1;
-        var badShift = BuildBadCharTable(needle, mask);
         var last = needle.Length - 1;
         var offset = 0;
         var maxoffset = bufferLength - needle.Length;
@@ -513,7 +511,7 @@ public class SigScanner : IDisposable, ISigScanner
             this.Module.ModuleMemorySize,
             this.Module.ModuleMemorySize);
 
-        this.moduleCopyOffset = this.moduleCopyPtr.ToInt64() - this.Module.BaseAddress.ToInt64();
+        this.moduleCopyOffset = this.moduleCopyPtr - this.Module.BaseAddress;
     }
 
     private void Load()

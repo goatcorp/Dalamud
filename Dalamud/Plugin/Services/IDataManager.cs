@@ -1,3 +1,6 @@
+using System.Threading;
+using System.Threading.Tasks;
+
 using Dalamud.Game;
 
 using Lumina;
@@ -60,6 +63,16 @@ public interface IDataManager
     /// <param name="path">The path inside of the game files.</param>
     /// <returns>The <see cref="FileResource"/> of the file.</returns>
     public T? GetFile<T>(string path) where T : FileResource;
+
+    /// <summary>
+    /// Get a <see cref="FileResource"/> with the given path, of the given type.
+    /// </summary>
+    /// <typeparam name="T">The type of resource.</typeparam>
+    /// <param name="path">The path inside of the game files.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="Task{TResult}"/> containing the <see cref="FileResource"/> of the file on success.
+    /// </returns>
+    public Task<T> GetFileAsync<T>(string path, CancellationToken cancellationToken) where T : FileResource;
 
     /// <summary>
     /// Check if the file with the given path exists within the game's index files.

@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Game;
 using Dalamud.IoC;
@@ -147,6 +148,16 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
             return default;
         return this.GameData.Repositories.TryGetValue(filePath.Repository, out var repository) ? repository.GetFile<T>(filePath.Category, filePath) : default;
     }
+
+    /// <inheritdoc/>
+    public Task<T> GetFileAsync<T>(string path, CancellationToken cancellationToken) where T : FileResource =>
+        GameData.ParseFilePath(path) is { } filePath &&
+        this.GameData.Repositories.TryGetValue(filePath.Repository, out var repository)
+            ? Task.Run(
+                () => repository.GetFile<T>(filePath.Category, filePath) ?? throw new FileNotFoundException(
+                          "Failed to load file, most likely because the file could not be found."),
+                cancellationToken)
+            : Task.FromException<T>(new FileNotFoundException("The file could not be found."));
 
     /// <inheritdoc/>
     public bool FileExists(string path) 

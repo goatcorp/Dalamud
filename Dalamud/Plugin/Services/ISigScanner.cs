@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Dalamud.Game;
 
@@ -153,4 +155,12 @@ public interface ISigScanner
     /// <param name="signature">The Signature.</param>
     /// <returns>The list of real offsets of the found elements based on signature.</returns>
     public nint[] ScanAllText(string signature);
+
+    /// <summary>
+    /// Scan for all matching byte signatures in the .text section.
+    /// </summary>
+    /// <param name="signature">The Signature.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Enumerable yielding the real offsets of the found elements based on signature.</returns>
+    public IEnumerable<nint> ScanAllText(string signature, CancellationToken cancellationToken);
 }
