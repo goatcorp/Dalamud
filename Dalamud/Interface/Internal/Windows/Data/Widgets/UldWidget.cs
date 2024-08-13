@@ -31,12 +31,32 @@ internal class UldWidget : IDataWindowWidget
     private static readonly string[] ThemeDisplayNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
     private static readonly string[] ThemeBasePaths = ["ui/uld/", "ui/uld/light/", "ui/uld/third/", "ui/uld/fourth/"];
 
+    // 48 8D 15 ?? ?? ?? ?? is the part of the signatures that contain the string location offset
+    // 48 = 64 bit register prefix
+    // 8D = LEA instruction
+    // 15 = register to store offset in (RDX in this case as Component::GUI::AtkUnitBase_LoadUldByName name component is loaded from RDX)
+    // ?? ?? ?? ?? = offset to string location
+    private static readonly (string Sig, nint Offset)[] UldSigLocations =
+    [
+        ("45 33 C0 48 8D 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9 ?? ?? ?? ??", 6),
+        ("48 8D 15 ?? ?? ?? ?? 45 33 C0 48 8B CE 48 8B 5C ?? ?? 48 8B 74 ?? ?? 48 83 C4 20 5F E9 ?? ?? ?? ??", 3),
+        ("48 8D 15 ?? ?? ?? ?? 45 33 C0 48 8B CB 48 83 C4 20 5B E9 ?? ?? ?? ??", 3),
+        ("48 8D 15 ?? ?? ?? ?? 41 B9 ?? ?? ?? ?? 45 33 C0 E8 ?? ?? ?? ??", 3),
+        ("48 8D 15 ?? ?? ?? ?? 41 B9 ?? ?? ?? ?? 45 33 C0 E9 ?? ?? ?? ??", 3),
+        ("48 8D 15 ?? ?? ?? ?? 45 33 C0 48 8B CB E8 ?? ?? ?? ??", 3),
+        ("48 8D 15 ?? ?? ?? ?? 41 B0 01 E9 ?? ?? ?? ??", 3),
+        ("48 8D 15 ?? ?? ?? ?? 45 33 C0 E9 ?? ?? ?? ??", 3)
+    ];
+
+    private CancellationTokenSource? cts;
+    private Task<string[]>? uldNamesTask;
+
     private int selectedUld;
     private int selectedFrameData;
     private int selectedTimeline;
     private int selectedParts;
     private int selectedTheme;
-    private Task<UldFile>? selectedUldFile;
+    private Task<UldFile>? selectedUldFileTask;
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = ["uld"];
@@ -50,28 +70,32 @@ internal class UldWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
-        UldWidgetData.ReloadStrings();
+        this.cts?.Cancel();
+        ClearTask(ref this.uldNamesTask);
+        this.uldNamesTask = null;
+        this.cts = new();
+
         this.Ready = true;
         this.selectedUld = this.selectedFrameData = this.selectedTimeline = this.selectedParts = 0;
         this.selectedTheme = 0;
-        this.selectedUldFile = null;
+        this.selectedUldFileTask = null;
     }
 
     /// <inheritdoc/>
     public void Draw()
     {
-        string[] display;
-        string[] path;
-        switch (UldWidgetData.GetUldStringsAsync())
+        string[] uldNames;
+        var ct = (this.cts ??= new()).Token;
+        switch (this.uldNamesTask ??= ParseUldStringsAsync(ct))
         {
             case { IsCompletedSuccessfully: true } t:
-                (display, path) = t.Result;
+                uldNames = t.Result;
                 break;
             case { Exception: { } loadException }:
                 ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, loadException.ToString());
                 return;
             case { IsCanceled: true }:
-                UldWidgetData.ReloadStrings();
+                ClearTask(ref this.uldNamesTask);
                 goto default;
             default:
                 ImGui.TextUnformatted("Loading...");
@@ -79,29 +103,29 @@ internal class UldWidget : IDataWindowWidget
         }
 
         var selectedUldPrev = this.selectedUld;
-        ImGui.Combo("##selectUld", ref this.selectedUld, display, display.Length); 
+        ImGui.Combo("##selectUld", ref this.selectedUld, uldNames, uldNames.Length);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectUldLeft", FontAwesomeIcon.AngleLeft))
-            this.selectedUld = ((this.selectedUld + display.Length) - 1) % display.Length; 
+            this.selectedUld = ((this.selectedUld + uldNames.Length) - 1) % uldNames.Length;
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectUldRight", FontAwesomeIcon.AngleRight))
-            this.selectedUld = (this.selectedUld + 1) % display.Length; 
+            this.selectedUld = (this.selectedUld + 1) % uldNames.Length;
         ImGui.SameLine();
         ImGui.TextUnformatted("Select ULD File");
         if (selectedUldPrev != this.selectedUld)
         {
             // reset selected parts when changing ULD
             this.selectedFrameData = this.selectedTimeline = this.selectedParts = 0;
-            this.selectedUldFile = null;
+            ClearTask(ref this.selectedUldFileTask);
         }
 
         ImGui.Combo("##selectTheme", ref this.selectedTheme, ThemeDisplayNames, ThemeDisplayNames.Length);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectThemeLeft", FontAwesomeIcon.AngleLeft))
-            this.selectedTheme = ((this.selectedTheme + ThemeDisplayNames.Length) - 1) % ThemeDisplayNames.Length; 
+            this.selectedTheme = ((this.selectedTheme + ThemeDisplayNames.Length) - 1) % ThemeDisplayNames.Length;
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectThemeRight", FontAwesomeIcon.AngleRight))
-            this.selectedTheme = (this.selectedTheme + 1) % ThemeDisplayNames.Length; 
+            this.selectedTheme = (this.selectedTheme + 1) % ThemeDisplayNames.Length;
         ImGui.SameLine();
         ImGui.TextUnformatted("Select Theme");
 
@@ -109,11 +133,11 @@ internal class UldWidget : IDataWindowWidget
         var textureManager = Service<TextureManager>.Get();
 
         UldFile uld;
-        switch (this.selectedUldFile ??=
-                    dataManager.GetFileAsync<UldFile>(path[this.selectedUld], UldWidgetData.CancellationToken))
+        switch (this.selectedUldFileTask ??=
+                    dataManager.GetFileAsync<UldFile>($"ui/uld/{uldNames[this.selectedUld]}.uld", ct))
         {
             case { IsCompletedSuccessfully: true }:
-                uld = this.selectedUldFile.Result;
+                uld = this.selectedUldFileTask.Result;
                 break;
             case { Exception: { } loadException }:
                 ImGuiHelpers.SafeTextColoredWrapped(
@@ -121,7 +145,7 @@ internal class UldWidget : IDataWindowWidget
                     $"Failed to load ULD file.\n{loadException}");
                 return;
             case { IsCanceled: true }:
-                this.selectedUldFile = null;
+                this.selectedUldFileTask = null;
                 goto default;
             default:
                 ImGui.TextUnformatted("Loading...");
@@ -192,6 +216,48 @@ internal class UldWidget : IDataWindowWidget
         static T? ForceNullable<T>(T smth) => smth;
     }
 
+    /// <summary>
+    /// Gets all known ULD locations in the game based on a few signatures.
+    /// </summary>
+    /// <returns>Uld locations.</returns>
+    private static Task<string[]> ParseUldStringsAsync(CancellationToken cancellationToken) =>
+        Task.Run(
+            () =>
+            {
+                // game contains possibly around 1500 ULD files but current sigs only find less than that due to how they are used
+                var locations = new List<string>(1000);
+                var sigScanner = new SigScanner(Process.GetCurrentProcess().MainModule!);
+                foreach (var (uldSig, strLocOffset) in UldSigLocations)
+                {
+                    foreach (var ea in sigScanner.ScanAllText(uldSig, cancellationToken))
+                    {
+                        var strLoc = ea + strLocOffset;
+                        // offset instruction is always 4 bytes so need to read as uint and cast to nint for offset calculation
+                        var offset = (nint)MemoryHelper.Read<uint>(strLoc);
+                        // strings are always stored as c strings and relative from end of offset instruction
+                        var str = MemoryHelper.ReadStringNullTerminated(strLoc + 4 + offset);
+                        locations.Add(str);
+                    }
+                }
+
+                return locations.Distinct().Order().ToArray();
+            },
+            cancellationToken);
+
+    private static void ClearTask<T>(ref Task<T>? task)
+    {
+        try
+        {
+            task?.Wait();
+        }
+        catch
+        {
+            // ignore
+        }
+
+        task = null;
+    }
+
     private static string GetStringNullTerminated(ReadOnlySpan<char> text)
     {
         var index = text.IndexOf((char)0);
@@ -203,13 +269,17 @@ internal class UldWidget : IDataWindowWidget
 
     private void DrawTextureEntry(UldRoot.TextureEntry textureEntry, TextureManager textureManager)
     {
+        var path = GetStringNullTerminated(textureEntry.Path);
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(textureEntry.Id.ToString());
 
         ImGui.TableNextColumn();
-        this.TextColumnCopiable(GetStringNullTerminated(textureEntry.Path), false, false);
+        this.TextColumnCopiable(path, false, false);
 
         ImGui.TableNextColumn();
+        if (string.IsNullOrWhiteSpace(path))
+            return;
+
         ImGui.TextUnformatted("Preview");
 
         if (ImGui.IsItemHovered())
@@ -478,87 +548,6 @@ internal class UldWidget : IDataWindowWidget
                 ImGui.TextUnformatted(texturePath);
                 ImGui.EndTooltip();
             }
-        }
-    }
-
-    /// <summary>
-    /// Contains the raw data for the ULD widget.
-    /// </summary>
-    private static class UldWidgetData
-    {
-        // 48 8D 15 ?? ?? ?? ?? is the part of the signatures that contain the string location offset
-        // 48 = 64 bit register prefix
-        // 8D = LEA instruction
-        // 15 = register to store offset in (RDX in this case as Component::GUI::AtkUnitBase_LoadUldByName name component is loaded from RDX)
-        // ?? ?? ?? ?? = offset to string location
-        private static readonly (string Sig, nint Offset)[] UldSigLocations =
-        [
-            ("45 33 C0 48 8D 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9 ?? ?? ?? ??", 6),
-            ("48 8D 15 ?? ?? ?? ?? 45 33 C0 48 8B CE 48 8B 5C ?? ?? 48 8B 74 ?? ?? 48 83 C4 20 5F E9 ?? ?? ?? ??", 3),
-            ("48 8D 15 ?? ?? ?? ?? 45 33 C0 48 8B CB 48 83 C4 20 5B E9 ?? ?? ?? ??", 3),
-            ("48 8D 15 ?? ?? ?? ?? 41 B9 ?? ?? ?? ?? 45 33 C0 E8 ?? ?? ?? ??", 3),
-            ("48 8D 15 ?? ?? ?? ?? 41 B9 ?? ?? ?? ?? 45 33 C0 E9 ?? ?? ?? ??", 3),
-            ("48 8D 15 ?? ?? ?? ?? 45 33 C0 48 8B CB E8 ?? ?? ?? ??", 3),
-            ("48 8D 15 ?? ?? ?? ?? 41 B0 01 E9 ?? ?? ?? ??", 3),
-            ("48 8D 15 ?? ?? ?? ?? 45 33 C0 E9 ?? ?? ?? ??", 3)
-        ];
-
-        private static CancellationTokenSource? parseCts;
-        private static Task<(string[] Display, string[] Path)>? parseTask;
-
-        public static CancellationToken CancellationToken => parseCts?.Token ?? default;
-
-        /// <summary>
-        /// Gets all known ULD locations in the game based on a few signatures.
-        /// </summary>
-        /// <returns>Uld locations.</returns>
-        internal static Task<(string[] Display, string[] Path)>? GetUldStringsAsync()
-        {
-            if (parseTask is not null)
-                return parseTask;
-            var cts = parseCts = new();
-            return parseTask = Task.Run(() => ParseUldStrings(cts.Token), cts.Token);
-        }
-
-        /// <summary>
-        /// Reloads the ULD strings.
-        /// </summary>
-        internal static void ReloadStrings()
-        {
-            parseCts?.Cancel();
-            try
-            {
-                parseTask?.Wait();
-            }
-            catch
-            {
-                // ignore
-            }
-
-            parseTask = null;
-        }
-
-        private static (string[] Display, string[] Path) ParseUldStrings(CancellationToken cancellationToken)
-        {
-            // game contains possibly around 1500 ULD files but current sigs only find less than that due to how they are used
-            var locations = new List<string>(1000);
-            var sigScanner = new SigScanner(Process.GetCurrentProcess().MainModule!);
-            foreach (var (uldSig, strLocOffset) in UldSigLocations)
-            {
-                foreach (var ea in sigScanner.ScanAllText(uldSig, cancellationToken))
-                {
-                    var strLoc = ea + strLocOffset;
-                    // offset instruction is always 4 bytes so need to read as uint and cast to nint for offset calculation
-                    var offset = (nint)MemoryHelper.Read<uint>(strLoc);
-                    // strings are always stored as c strings and relative from end of offset instruction
-                    var str = MemoryHelper.ReadStringNullTerminated(strLoc + 4 + offset);
-                    locations.Add(str);
-                }
-            }
-
-            var display = locations.Distinct().Order().ToArray();
-            var path = display.Select(static t => $"ui/uld/{t}.uld").ToArray();
-            return (display, path);
         }
     }
 }
