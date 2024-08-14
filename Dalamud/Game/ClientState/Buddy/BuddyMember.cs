@@ -45,17 +45,17 @@ public interface IBuddyMember
     /// <summary>
     /// Gets the Mount data related to this buddy. It should only be used with companion buddies.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.Mount> MountData { get; }
+    ExcelResolver<Lumina.Excel.Sheets.Mount> MountData { get; }
 
     /// <summary>
     /// Gets the Pet data related to this buddy. It should only be used with pet buddies.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.Pet> PetData { get; }
+    ExcelResolver<Lumina.Excel.Sheets.Pet> PetData { get; }
 
     /// <summary>
     /// Gets the Trust data related to this buddy. It should only be used with battle buddies.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.DawnGrowMember> TrustData { get; }
+    ExcelResolver<Lumina.Excel.Sheets.DawnGrowMember> TrustData { get; }
 }
 
 /// <summary>
@@ -94,13 +94,13 @@ internal unsafe class BuddyMember : IBuddyMember
     public uint DataID => this.Struct->DataId;
 
     /// <inheritdoc />
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.Mount> MountData => new(this.DataID);
+    public ExcelResolver<Lumina.Excel.Sheets.Mount> MountData => new(this.DataID);
 
     /// <inheritdoc />
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.Pet> PetData => new(this.DataID);
+    public ExcelResolver<Lumina.Excel.Sheets.Pet> PetData => new(this.DataID);
 
     /// <inheritdoc />
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.DawnGrowMember> TrustData => new(this.DataID);
+    public ExcelResolver<Lumina.Excel.Sheets.DawnGrowMember> TrustData => new(this.DataID);
 
     private FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember* Struct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember*)this.Address;
 }

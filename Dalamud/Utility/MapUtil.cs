@@ -1,11 +1,11 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Types;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Utility;
 
@@ -151,7 +151,7 @@ public static class MapUtil
 
         var territoryTransient = Service<DataManager>.Get()
                                                      .GetExcelSheet<TerritoryTypeTransient>()!
-                                                     .GetRow(agentMap->CurrentTerritoryId);
+                                                     .GetRowOrDefault(agentMap->CurrentTerritoryId);
 
         return WorldToMap(
             go.Position,

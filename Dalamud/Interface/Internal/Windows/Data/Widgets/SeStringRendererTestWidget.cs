@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -16,7 +16,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ImGuiNET;
 
-using Lumina.Excel.GeneratedSheets2;
+using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -157,7 +157,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 var tt = new SeStringBuilder();
                 foreach (var uc in Service<DataManager>.Get().GetExcelSheet<LogKind>()!)
                 {
-                    var ucsp = uc.Format.AsReadOnly().AsSpan();
+                    var ucsp = uc.Format.AsSpan();
                     if (ucsp.IsEmpty)
                         continue;
 
@@ -211,7 +211,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
-                        ImGuiHelpers.SeStringWrapped(this.addons[i].Text.AsReadOnly(), this.style);
+                        ImGuiHelpers.SeStringWrapped(this.addons[i].Text, this.style);
 
                         ImGui.TableNextColumn();
                         if (ImGui.Button("Print to Chat"))

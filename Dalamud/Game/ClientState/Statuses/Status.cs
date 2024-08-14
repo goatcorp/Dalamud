@@ -31,7 +31,7 @@ public unsafe class Status
     /// <summary>
     /// Gets the GameData associated with this status.
     /// </summary>
-    public Lumina.Excel.GeneratedSheets.Status GameData => new ExcelResolver<Lumina.Excel.GeneratedSheets.Status>(this.Struct->StatusId).GameData;
+    public Lumina.Excel.Sheets.Status? GameData => new ExcelResolver<Lumina.Excel.Sheets.Status>(this.Struct->StatusId).GameData;
 
     /// <summary>
     /// Gets the parameter value of the status.

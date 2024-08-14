@@ -129,11 +129,11 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     #region Lumina Wrappers
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow 
+    public ExcelSheet<T> GetExcelSheet<T>() where T : struct, IExcelRow<T> 
         => this.Excel.GetSheet<T>();
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow 
+    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : struct, IExcelRow<T>
         => this.Excel.GetSheet<T>(language.ToLumina());
 
     /// <inheritdoc/>

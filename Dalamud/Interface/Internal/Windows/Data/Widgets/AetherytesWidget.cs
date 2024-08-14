@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.Aetherytes;
+using Dalamud.Game.ClientState.Aetherytes;
 
 using ImGuiNET;
 
@@ -56,7 +56,7 @@ internal class AetherytesWidget : IDataWindowWidget
             ImGui.TextUnformatted($"{i}");
 
             ImGui.TableNextColumn(); // Name
-            ImGui.TextUnformatted($"{info.AetheryteData.GameData?.PlaceName.Value?.Name}");
+            ImGui.TextUnformatted($"{info.AetheryteData.GameData?.PlaceName.ValueNullable?.Name}");
 
             ImGui.TableNextColumn(); // ID
             ImGui.TextUnformatted($"{info.AetheryteId}");

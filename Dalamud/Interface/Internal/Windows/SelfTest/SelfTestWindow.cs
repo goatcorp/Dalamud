@@ -9,7 +9,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest;
 

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -148,7 +148,7 @@ public class ItemPayload : Payload
                 return null;
             }
 
-            this.item ??= this.DataResolver.GetExcelSheet<Item>()!.GetRow(this.ItemId);
+            this.item ??= this.DataResolver.GetExcelSheet<Item>()!.GetRowOrDefault(this.ItemId);
             return this.item;
         }
     }
@@ -183,7 +183,7 @@ public class ItemPayload : Payload
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - ItemId: {this.ItemId}, Kind: {this.Kind}, Name: {this.displayName ?? this.Item?.Name}";
+        return $"{this.Type} - ItemId: {this.ItemId}, Kind: {this.Kind}, Name: {this.displayName ?? this.Item?.Name.ExtractText()}";
     }
 
     /// <inheritdoc/>

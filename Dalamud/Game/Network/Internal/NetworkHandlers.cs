@@ -16,7 +16,7 @@ using Dalamud.Hooking;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Serilog;
 
 namespace Dalamud.Game.Network.Internal;
@@ -283,9 +283,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                 Util.FlashWindow();
 
             var cfConditionSheet = Service<DataManager>.Get().GetExcelSheet<ContentFinderCondition>()!;
-            var cfCondition = cfConditionSheet.GetRow(conditionId);
 
-            if (cfCondition == null)
+            if (cfConditionSheet.GetRowOrDefault(conditionId) is not { } cfCondition)
             {
                 Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
                 return result;
@@ -293,10 +292,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
             var cfcName = cfCondition.Name.ToDalamudString();
             if (cfcName.Payloads.Count == 0)
-            {
                 cfcName = "Duty Roulette";
-                cfCondition.Image = 112324;
-            }
 
             Task.Run(() =>
             {

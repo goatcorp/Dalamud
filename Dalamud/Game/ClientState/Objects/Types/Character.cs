@@ -4,7 +4,7 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 

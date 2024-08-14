@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -11,7 +11,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class StatusPayload : Payload
 {
-    private Status status;
+    private Status? status;
 
     [JsonProperty]
     private uint statusId;
@@ -44,12 +44,12 @@ public class StatusPayload : Payload
     /// The value is evaluated lazily and cached.
     /// </remarks>
     [JsonIgnore]
-    public Status Status => this.status ??= this.DataResolver.GetExcelSheet<Status>().GetRow(this.statusId);
+    public Status? Status => this.status ??= this.DataResolver.GetExcelSheet<Status>().GetRowOrDefault(this.statusId);
 
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - StatusId: {this.statusId}, Name: {this.Status.Name}";
+        return $"{this.Type} - StatusId: {this.statusId}, Name: {this.Status?.Name}";
     }
 
     /// <inheritdoc/>

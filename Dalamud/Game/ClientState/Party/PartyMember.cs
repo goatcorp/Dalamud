@@ -71,12 +71,12 @@ public interface IPartyMember
     /// <summary>
     /// Gets the territory this party member is located in.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> Territory { get; }
+    ExcelResolver<Lumina.Excel.Sheets.TerritoryType> Territory { get; }
 
     /// <summary>
     /// Gets the World this party member resides in.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.World> World { get; }
+    ExcelResolver<Lumina.Excel.Sheets.World> World { get; }
 
     /// <summary>
     /// Gets the displayname of this party member.
@@ -91,7 +91,7 @@ public interface IPartyMember
     /// <summary>
     /// Gets the classjob of this party member.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob { get; }
+    ExcelResolver<Lumina.Excel.Sheets.ClassJob> ClassJob { get; }
 
     /// <summary>
     /// Gets the level of this party member.
@@ -169,12 +169,12 @@ internal unsafe class PartyMember : IPartyMember
     /// <summary>
     /// Gets the territory this party member is located in.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> Territory => new(this.Struct->TerritoryType);
+    public ExcelResolver<Lumina.Excel.Sheets.TerritoryType> Territory => new(this.Struct->TerritoryType);
 
     /// <summary>
     /// Gets the World this party member resides in.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.World> World => new(this.Struct->HomeWorld);
+    public ExcelResolver<Lumina.Excel.Sheets.World> World => new(this.Struct->HomeWorld);
 
     /// <summary>
     /// Gets the displayname of this party member.
@@ -189,7 +189,7 @@ internal unsafe class PartyMember : IPartyMember
     /// <summary>
     /// Gets the classjob of this party member.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob => new(this.Struct->ClassJob);
+    public ExcelResolver<Lumina.Excel.Sheets.ClassJob> ClassJob => new(this.Struct->ClassJob);
 
     /// <summary>
     /// Gets the level of this party member.

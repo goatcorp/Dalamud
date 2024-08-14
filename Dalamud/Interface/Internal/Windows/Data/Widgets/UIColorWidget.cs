@@ -1,4 +1,4 @@
-﻿using System.Buffers.Binary;
+using System.Buffers.Binary;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -12,7 +12,7 @@ using Dalamud.Storage.Assets;
 
 using ImGuiNET;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -104,17 +104,17 @@ internal class UiColorWidget : IDataWindowWidget
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
                 ImGui.PushID($"row{id}_col3");
-                if (this.DrawColorColumn(this.colors[i].Unknown2) &&
+                if (this.DrawColorColumn(this.colors[i].Unknown0) &&
                     i + 1 < this.colors.Length && this.colors[i + 1].RowId == id + 1)
-                    DrawEdgePreview(id, this.colors[i].Unknown2, this.colors[i + 1].Unknown2);
+                    DrawEdgePreview(id, this.colors[i].Unknown0, this.colors[i + 1].Unknown0);
                 ImGui.PopID();
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
                 ImGui.PushID($"row{id}_col4");
-                if (this.DrawColorColumn(this.colors[i].Unknown3) &&
+                if (this.DrawColorColumn(this.colors[i].Unknown1) &&
                     i + 1 < this.colors.Length && this.colors[i + 1].RowId == id + 1)
-                    DrawEdgePreview(id, this.colors[i].Unknown3, this.colors[i + 1].Unknown3);
+                    DrawEdgePreview(id, this.colors[i].Unknown1, this.colors[i + 1].Unknown1);
                 ImGui.PopID();
             }
         }

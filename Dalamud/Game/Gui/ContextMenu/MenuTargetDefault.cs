@@ -5,7 +5,7 @@ using Dalamud.Game.Network.Structures.InfoProxy;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.ContextMenu;
 

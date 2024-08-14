@@ -12,7 +12,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
 /// </summary>
 /// <typeparam name="T">ExcelRow to run test on.</typeparam>
 internal class LuminaAgingStep<T> : IAgingStep
-    where T : ExcelRow
+    where T : struct, IExcelRow<T>
 {
     private int step = 0;
     private List<T> rows;

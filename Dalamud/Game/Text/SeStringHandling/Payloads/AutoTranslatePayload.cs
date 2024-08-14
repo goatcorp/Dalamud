@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -112,22 +114,15 @@ public class AutoTranslatePayload : Payload, ITextProvider
 
         var sheet = this.DataResolver.GetExcelSheet<Completion>();
 
-        Completion row = null;
-        try
-        {
-            // try to get the row in the Completion table itself, because this is 'easiest'
-            // The row may not exist at all (if the Key is for another table), or it could be the wrong row
-            // (again, if it's meant for another table)
-            row = sheet.GetRow(this.Key);
-        }
-        catch
-        {
-        } // don't care, row will be null
+        // try to get the row in the Completion table itself, because this is 'easiest'
+        // The row may not exist at all (if the Key is for another table), or it could be the wrong row
+        // (again, if it's meant for another table)
+        var row = sheet.GetRowOrDefault(this.Key);
 
         if (row?.Group == this.Group)
         {
             // if the row exists in this table and the group matches, this is actually the correct data
-            value = row.Text;
+            value = row!.Value.Text.ExtractText();
         }
         else
         {
@@ -137,11 +132,11 @@ public class AutoTranslatePayload : Payload, ITextProvider
                 // in this case, there will only be one entry for this group id
                 row = sheet.First(r => r.Group == this.Group);
                 // many of the names contain valid id ranges after the table name, but we don't need those
-                var actualTableName = row.LookupTable.RawString.Split('[')[0];
+                var actualTableName = row!.Value.LookupTable.ExtractText().Split('[')[0];
 
                 var name = actualTableName switch
                 {
-                    "Action" => this.DataResolver.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().GetRow(this.Key).Name,
+                    "Action" => this.DataResolver.GetExcelSheet<Lumina.Excel.Sheets.Action>().GetRow(this.Key).Name,
                     "ActionComboRoute" => this.DataResolver.GetExcelSheet<ActionComboRoute>().GetRow(this.Key).Name,
                     "BuddyAction" => this.DataResolver.GetExcelSheet<BuddyAction>().GetRow(this.Key).Name,
                     "ClassJob" => this.DataResolver.GetExcelSheet<ClassJob>().GetRow(this.Key).Name,
@@ -162,7 +157,7 @@ public class AutoTranslatePayload : Payload, ITextProvider
                     _ => throw new Exception(actualTableName),
                 };
 
-                value = name;
+                value = name.ExtractText();
             }
             catch (Exception e)
             {
@@ -173,11 +168,11 @@ public class AutoTranslatePayload : Payload, ITextProvider
         return value;
     }
 
-    private Lumina.Text.SeString ResolveTextCommand()
+    private ReadOnlySeString ResolveTextCommand()
     {
         // TextCommands prioritize the `Alias` field, if it not empty
         // Example for this is /rangerpose2l which becomes /blackrangerposeb in chat
         var result = this.DataResolver.GetExcelSheet<TextCommand>().GetRow(this.Key);
-        return result.Alias.Payloads.Count > 0 ? result.Alias : result.Command;
+        return !result.Alias.IsEmpty ? result.Alias : result.Command;
     }
 }

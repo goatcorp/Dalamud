@@ -21,7 +21,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Support;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Serilog;
 using TerraFX.Interop.Windows;
 using Windows.Win32.Storage.FileSystem;
@@ -813,7 +813,7 @@ public static class Util
         var names = data.GetExcelSheet<BNpcName>(ClientLanguage.English)!;
         var rng = new Random();
 
-        return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
+        return names.GetRowAt(rng.Next(0, names.Count - 1)).Singular.ExtractText();
     }
 
     /// <summary>

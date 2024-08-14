@@ -61,7 +61,7 @@ public interface IClientState
     /// <summary>
     /// Event that gets fired when a duty is ready.
     /// </summary>
-    public event Action<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
+    public event Action<Lumina.Excel.Sheets.ContentFinderCondition> CfPop;
 
     /// <summary>
     /// Gets the language of the client.

@@ -39,7 +39,7 @@ public interface IDataManager
     /// </summary>
     /// <typeparam name="T">The excel sheet type to get.</typeparam>
     /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow;
+    public ExcelSheet<T> GetExcelSheet<T>() where T : struct, IExcelRow<T>;
 
     /// <summary>
     /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type with a specified language.
@@ -47,7 +47,7 @@ public interface IDataManager
     /// <param name="language">Language of the sheet to get.</param>
     /// <typeparam name="T">The excel sheet type to get.</typeparam>
     /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow;
+    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : struct, IExcelRow<T>;
 
     /// <summary>
     /// Get a <see cref="FileResource"/> with the given path.

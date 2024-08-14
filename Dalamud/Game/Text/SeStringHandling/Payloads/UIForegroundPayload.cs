@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -11,7 +11,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class UIForegroundPayload : Payload
 {
-    private UIColor color;
+    private UIColor? color;
 
     [JsonProperty]
     private ushort colorKey;
@@ -55,7 +55,7 @@ public class UIForegroundPayload : Payload
     /// The value is evaluated lazily and cached.
     /// </remarks>
     [JsonIgnore]
-    public UIColor UIColor => this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+    public UIColor? UIColor => this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRowOrDefault(this.colorKey);
 
     /// <summary>
     /// Gets or sets the color key used as a lookup in the UIColor table for this foreground color.
@@ -80,13 +80,13 @@ public class UIForegroundPayload : Payload
     /// Gets the Red/Green/Blue/Alpha values for this foreground color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGBA => this.UIColor.UIForeground;
+    public uint RGBA => this.UIColor!.Value.UIForeground;
 
     /// <summary>
     /// Gets the ABGR value for this foreground color, as ImGui requires it in PushColor.
     /// </summary>
     [JsonIgnore]
-    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.UIForeground);
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor!.Value.UIForeground);
 
     /// <inheritdoc/>
     public override string ToString()

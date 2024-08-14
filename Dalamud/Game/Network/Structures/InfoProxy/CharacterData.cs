@@ -5,7 +5,7 @@ using Dalamud.Memory;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Network.Structures.InfoProxy;
 

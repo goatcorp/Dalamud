@@ -5,7 +5,7 @@ using Dalamud.Data;
 using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
@@ -233,7 +233,7 @@ internal class PartyFinderListing : IPartyFinderListing
         this.JobsPresent = listing.JobsPresent
                                   .Select(id => new Lazy<ClassJob>(
                                               () => id == 0
-                                                        ? null
+                                                        ? default
                                                         : dataManager.GetExcelSheet<ClassJob>().GetRow(id)))
                                   .ToArray();
     }
