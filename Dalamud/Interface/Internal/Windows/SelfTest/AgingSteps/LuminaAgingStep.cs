@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 using Dalamud.Data;
 using Dalamud.Utility;
 using Lumina.Excel;
@@ -11,31 +8,46 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
 /// Test setup for Lumina.
 /// </summary>
 /// <typeparam name="T">ExcelRow to run test on.</typeparam>
-internal class LuminaAgingStep<T> : IAgingStep
+/// <param name="isLargeSheet">Whether or not the sheet is large. If it is large, the self test will iterate through the full sheet in one frame and benchmark the time taken.</param>
+internal class LuminaAgingStep<T>(bool isLargeSheet) : IAgingStep
     where T : struct, IExcelRow<T>
 {
     private int step = 0;
-    private List<T> rows;
+    private ExcelSheet<T> rows;
 
     /// <inheritdoc/>
-    public string Name => "Test Lumina";
+    public string Name => $"Test Lumina ({typeof(T).Name})";
 
     /// <inheritdoc/>
     public SelfTestStepResult RunStep()
     {
-        var dataManager = Service<DataManager>.Get();
+        this.rows ??= Service<DataManager>.Get().GetExcelSheet<T>();
 
-        this.rows ??= dataManager.GetExcelSheet<T>().ToList();
+        if (isLargeSheet)
+        {
+            var i = 0;
+            T currentRow = default;
+            foreach (var row in this.rows)
+            {
+                i++;
+                currentRow = row;
+            }
 
-        Util.ShowObject(this.rows[this.step]);
+            Util.ShowObject(currentRow);
+            return SelfTestStepResult.Pass;
+        }
+        else
+        {
+            Util.ShowObject(this.rows.GetRowAt(this.step));
 
-        this.step++;
-        return this.step >= this.rows.Count ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
+            this.step++;
+            return this.step >= this.rows.Count ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
+        }
     }
 
     /// <inheritdoc/>
     public void CleanUp()
     {
-        // ignored
+        step = 0;
     }
 }
