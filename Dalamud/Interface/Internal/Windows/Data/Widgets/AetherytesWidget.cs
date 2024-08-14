@@ -56,7 +56,7 @@ internal class AetherytesWidget : IDataWindowWidget
             ImGui.TextUnformatted($"{i}");
 
             ImGui.TableNextColumn(); // Name
-            ImGui.TextUnformatted($"{info.AetheryteData.GameData?.PlaceName.ValueNullable?.Name}");
+            ImGui.TextUnformatted($"{info.AetheryteData.ValueNullable?.PlaceName.ValueNullable?.Name}");
 
             ImGui.TableNextColumn(); // ID
             ImGui.TextUnformatted($"{info.AetheryteId}");

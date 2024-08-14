@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
@@ -56,8 +56,8 @@ internal class ObjectTableWidget : IDataWindowWidget
         {
             stateString += $"ObjectTableLen: {objectTable.Length}\n";
             stateString += $"LocalPlayerName: {clientState.LocalPlayer.Name}\n";
-            stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.GameData?.Name : clientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
-            stateString += $"HomeWorldName: {(this.resolveGameData ? clientState.LocalPlayer.HomeWorld.GameData?.Name : clientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
+            stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.ValueNullable?.Name : clientState.LocalPlayer.CurrentWorld.RowId.ToString())}\n";
+            stateString += $"HomeWorldName: {(this.resolveGameData ? clientState.LocalPlayer.HomeWorld.ValueNullable?.Name : clientState.LocalPlayer.HomeWorld.RowId.ToString())}\n";
             stateString += $"LocalCID: {clientState.LocalContentId:X}\n";
             stateString += $"LastLinkedItem: {chatGui.LastLinkedItemId}\n";
             stateString += $"TerritoryType: {clientState.TerritoryType}\n\n";

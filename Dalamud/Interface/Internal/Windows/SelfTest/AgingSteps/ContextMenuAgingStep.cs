@@ -83,7 +83,7 @@ internal class ContextMenuAgingStep : IAgingStep
             case SubStep.TestDefault:
                 if (this.targetCharacter is { } character)
                 {
-                    ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.GameData!.Value.Abbreviation.ExtractText()})?");
+                    ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
 
                     if (ImGui.Button("Yes"))
                         this.currentSubStep++;
@@ -194,7 +194,7 @@ internal class ContextMenuAgingStep : IAgingStep
             {
                 var b = new StringBuilder();
                 b.AppendLine($"Target: {targetDefault.TargetName}");
-                b.AppendLine($"Home World: {targetDefault.TargetHomeWorld.GameData?.Name.ExtractText() ?? "Unknown"} ({targetDefault.TargetHomeWorld.Id})");
+                b.AppendLine($"Home World: {targetDefault.TargetHomeWorld.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({targetDefault.TargetHomeWorld.RowId})");
                 b.AppendLine($"Content Id: 0x{targetDefault.TargetContentId:X8}");
                 b.AppendLine($"Object Id: 0x{targetDefault.TargetObjectId:X8}");
                 Log.Verbose(b.ToString());
@@ -209,20 +209,20 @@ internal class ContextMenuAgingStep : IAgingStep
                 b.AppendLine($"Content Id: 0x{character.ContentId:X8}");
                 b.AppendLine($"FC Tag: {character.FCTag}");
 
-                b.AppendLine($"Job: {character.ClassJob.GameData?.Abbreviation.ExtractText() ?? "Unknown"} ({character.ClassJob.Id})");
-                b.AppendLine($"Statuses: {string.Join(", ", character.Statuses.Select(s => s.GameData?.Name.ExtractText() ?? s.Id.ToString()))}");
-                b.AppendLine($"Home World: {character.HomeWorld.GameData?.Name.ExtractText() ?? "Unknown"} ({character.HomeWorld.Id})");
-                b.AppendLine($"Current World: {character.CurrentWorld.GameData?.Name.ExtractText() ?? "Unknown"} ({character.CurrentWorld.Id})");
+                b.AppendLine($"Job: {character.ClassJob.ValueNullable?.Abbreviation.ExtractText() ?? "Unknown"} ({character.ClassJob.RowId})");
+                b.AppendLine($"Statuses: {string.Join(", ", character.Statuses.Select(s => s.ValueNullable?.Name.ExtractText() ?? s.RowId.ToString()))}");
+                b.AppendLine($"Home World: {character.HomeWorld.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({character.HomeWorld.RowId})");
+                b.AppendLine($"Current World: {character.CurrentWorld.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({character.CurrentWorld.RowId})");
                 b.AppendLine($"Is From Other Server: {character.IsFromOtherServer}");
 
                 b.Append("Location: ");
-                if (character.Location.GameData is { } location)
+                if (character.Location.ValueNullable is { } location)
                     b.Append($"{location.PlaceNameRegion.ValueNullable?.Name.ExtractText() ?? "Unknown"}/{location.PlaceNameZone.ValueNullable?.Name.ExtractText() ?? "Unknown"}/{location.PlaceName.ValueNullable?.Name.ExtractText() ?? "Unknown"}");
                 else
                     b.Append("Unknown");
-                b.AppendLine($" ({character.Location.Id})");
+                b.AppendLine($" ({character.Location.RowId})");
 
-                b.AppendLine($"Grand Company: {character.GrandCompany.GameData?.Name.ExtractText() ?? "Unknown"} ({character.GrandCompany.Id})");
+                b.AppendLine($"Grand Company: {character.GrandCompany.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({character.GrandCompany.RowId})");
                 b.AppendLine($"Client Language: {character.ClientLanguage}");
                 b.AppendLine($"Languages: {string.Join(", ", character.Languages)}");
                 b.AppendLine($"Gender: {character.Gender}");

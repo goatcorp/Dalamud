@@ -1,10 +1,11 @@
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Network.Structures.InfoProxy;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.ContextMenu;
@@ -46,7 +47,7 @@ public sealed unsafe class MenuTargetDefault : MenuTarget
     /// <summary>
     /// Gets the home world id of the target.
     /// </summary>
-    public ExcelResolver<World> TargetHomeWorld => new((uint)this.Context->TargetHomeWorldId);
+    public RowRef<World> TargetHomeWorld => LuminaUtils.CreateRef<World>((uint)this.Context->TargetHomeWorldId);
 
     /// <summary>
     /// Gets the currently targeted character. Only shows up for specific targets, like friends, party finder listings, or party members.

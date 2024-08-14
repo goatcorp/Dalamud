@@ -891,13 +891,13 @@ public static class Util
         if (actor is ICharacter chara)
         {
             actorString +=
-                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.GameData?.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
         }
 
         if (actor is IPlayerCharacter pc)
         {
             actorString +=
-                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.GameData?.Name : pc.HomeWorld.Id.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.GameData?.Name : pc.CurrentWorld.Id.ToString())} FC: {pc.CompanyTag}\n";
+                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
         ImGui.TextUnformatted(actorString);
@@ -925,13 +925,13 @@ public static class Util
         if (actor is Character chara)
         {
             actorString +=
-                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.GameData?.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
         }
 
         if (actor is PlayerCharacter pc)
         {
             actorString +=
-                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.GameData?.Name : pc.HomeWorld.Id.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.GameData?.Name : pc.CurrentWorld.Id.ToString())} FC: {pc.CompanyTag}\n";
+                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
         ImGui.TextUnformatted(actorString);

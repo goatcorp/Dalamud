@@ -1,11 +1,7 @@
-using System.Numerics;
-
-using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Resolvers;
-using Dalamud.Game.ClientState.Statuses;
-using Dalamud.Game.Text.SeStringHandling;
 
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.ClientState.Objects.SubKinds;
@@ -16,14 +12,14 @@ namespace Dalamud.Game.ClientState.Objects.SubKinds;
 public interface IPlayerCharacter : IBattleChara
 {
     /// <summary>
-    /// Gets the current <see cref="ExcelResolver{T}">world</see> of the character.
+    /// Gets the current <see cref="RowRef{T}">world</see> of the character.
     /// </summary>
-    ExcelResolver<World> CurrentWorld { get; }
+    RowRef<World> CurrentWorld { get; }
 
     /// <summary>
-    /// Gets the home <see cref="ExcelResolver{T}">world</see> of the character.
+    /// Gets the home <see cref="RowRef{T}">world</see> of the character.
     /// </summary>
-    ExcelResolver<World> HomeWorld { get; }
+    RowRef<World> HomeWorld { get; }
 }
 
 /// <summary>
@@ -42,10 +38,10 @@ internal unsafe class PlayerCharacter : BattleChara, IPlayerCharacter
     }
 
     /// <inheritdoc/>
-    public ExcelResolver<World> CurrentWorld => new(this.Struct->CurrentWorld);
+    public RowRef<World> CurrentWorld => LuminaUtils.CreateRef<World>(this.Struct->CurrentWorld);
 
     /// <inheritdoc/>
-    public ExcelResolver<World> HomeWorld => new(this.Struct->HomeWorld);
+    public RowRef<World> HomeWorld => LuminaUtils.CreateRef<World>(this.Struct->HomeWorld);
 
     /// <summary>
     /// Gets the target actor ID of the PlayerCharacter.

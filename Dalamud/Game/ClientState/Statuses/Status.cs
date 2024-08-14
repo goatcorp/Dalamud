@@ -1,6 +1,8 @@
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Resolvers;
+
+using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Statuses;
 
@@ -31,7 +33,7 @@ public unsafe class Status
     /// <summary>
     /// Gets the GameData associated with this status.
     /// </summary>
-    public Lumina.Excel.Sheets.Status? GameData => new ExcelResolver<Lumina.Excel.Sheets.Status>(this.Struct->StatusId).GameData;
+    public RowRef<Lumina.Excel.Sheets.Status> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Status>(this.Struct->StatusId);
 
     /// <summary>
     /// Gets the parameter value of the status.
