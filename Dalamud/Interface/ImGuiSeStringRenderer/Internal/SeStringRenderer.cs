@@ -225,13 +225,8 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         this.fragments.Clear();
         this.colorStackSet.Initialize(ref state);
 
-        // Handle cases where ImGui.AlignTextToFramePadding has been called.
-        var pCurrentWindow = *(nint*)(ImGui.GetCurrentContext() + ImGuiContextCurrentWindowOffset);
-        var pWindowDc = pCurrentWindow + ImGuiWindowDcOffset;
-        var currLineTextBaseOffset = *(float*)(pWindowDc + ImGuiWindowTempDataCurrLineTextBaseOffset);
-
         // Analyze the provided SeString and break it up to text fragments.
-        this.CreateTextFragments(ref state, currLineTextBaseOffset);
+        this.CreateTextFragments(ref state);
         var fragmentSpan = CollectionsMarshal.AsSpan(this.fragments);
 
         // Calculate size.
@@ -244,6 +239,18 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             return new() { Size = size };
 
         state.SplitDrawList();
+
+        // Handle cases where ImGui.AlignTextToFramePadding has been called.
+        var pCurrentWindow = *(nint*)(ImGui.GetCurrentContext() + ImGuiContextCurrentWindowOffset);
+        var pWindowDc = pCurrentWindow + ImGuiWindowDcOffset;
+        var currLineTextBaseOffset = *(float*)(pWindowDc + ImGuiWindowTempDataCurrLineTextBaseOffset);
+        var itemSize = size;
+        if (currLineTextBaseOffset != 0f)
+        {
+            itemSize.Y += 2 * currLineTextBaseOffset;
+            foreach (ref var f in fragmentSpan)
+                f.Offset += new Vector2(0, currLineTextBaseOffset);
+        }
 
         // Draw all text fragments.
         var lastRune = default(Rune);
@@ -259,7 +266,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
         // Create an ImGui item, if a target draw list is not manually set.
         if (drawParams.TargetDrawList is null)
-            ImGui.Dummy(size);
+            ImGui.Dummy(itemSize);
 
         // Handle link interactions.
         var clicked = false;
@@ -296,7 +303,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             if (!invisibleButtonDrawn)
             {
                 ImGui.SetCursorScreenPos(state.ScreenOffset);
-                clicked = ImGui.InvisibleButton("##text", size, buttonFlags);
+                clicked = ImGui.InvisibleButton("##text", itemSize, buttonFlags);
             }
 
             ImGui.PopID();
@@ -369,12 +376,10 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
     /// <summary>Creates text fragment, taking line and word breaking into account.</summary>
     /// <param name="state">Draw state.</param>
-    /// <param name="baseY">Y offset adjustment for all text fragments. Used to honor
-    /// <see cref="ImGui.AlignTextToFramePadding"/>.</param>
-    private void CreateTextFragments(ref SeStringDrawState state, float baseY)
+    private void CreateTextFragments(ref SeStringDrawState state)
     {
         var prev = 0;
-        var xy = new Vector2(0, baseY);
+        var xy = Vector2.Zero;
         var w = 0f;
         var link = -1;
         foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Span, UtfEnumeratorFlags.Utf8SeString))

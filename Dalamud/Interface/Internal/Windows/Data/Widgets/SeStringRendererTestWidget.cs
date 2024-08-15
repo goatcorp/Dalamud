@@ -38,6 +38,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     private SeStringDrawParams style;
     private bool interactable;
     private bool useEntity;
+    private bool alignToFramePadding;
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "SeStringRenderer Test";
@@ -56,6 +57,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         this.logkind = null;
         this.testString = string.Empty;
         this.interactable = this.useEntity = true;
+        this.alignToFramePadding = false;
         this.Ready = true;
     }
 
@@ -142,6 +144,11 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         t = this.useEntity;
         if (ImGui.Checkbox("Use Entity Replacements", ref t))
             this.useEntity = t;
+
+        ImGui.SameLine();
+        t = this.alignToFramePadding;
+        if (ImGui.Checkbox("Align to Frame Padding", ref t))
+            this.alignToFramePadding = t;
 
         if (ImGui.CollapsingHeader("LogKind Preview"))
         {
@@ -284,7 +291,9 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         if (this.testString == string.Empty && this.testStringBuffer.Length != 0)
             this.testString = Encoding.UTF8.GetString(this.testStringBuffer.DataSpan);
 
-        ImGui.Separator();
+        if (this.alignToFramePadding)
+            ImGui.AlignTextToFramePadding();
+
         if (this.interactable)
         {
             if (ImGuiHelpers.CompileSeStringWrapped(this.testString, this.style, new("this is an ImGui id")) is
@@ -294,15 +303,30 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                     Clicked: var clicked
                 })
             {
+                ImGui.Separator();
+                if (this.alignToFramePadding)
+                    ImGui.AlignTextToFramePadding();
                 ImGui.TextUnformatted($"Hovered[{offset}]: {new ReadOnlySeStringSpan(envelope).ToString()}; {payload}");
                 if (clicked && payload is DalamudLinkPayload { Plugin: "test" } dlp)
                     Util.OpenLink(dlp.ExtraString);
+            }
+            else
+            {
+                ImGui.Separator();
+                if (this.alignToFramePadding)
+                    ImGui.AlignTextToFramePadding();
+                ImGuiHelpers.CompileSeStringWrapped("If a link is hovered, it will be displayed here.", this.style);
             }
         }
         else
         {
             ImGuiHelpers.CompileSeStringWrapped(this.testString, this.style);
         }
+
+        ImGui.Separator();
+        if (this.alignToFramePadding)
+            ImGui.AlignTextToFramePadding();
+        ImGuiHelpers.CompileSeStringWrapped("Extra line for alignment testing.", this.style);
     }
 
     private SeStringReplacementEntity GetEntity(scoped in SeStringDrawState state, int byteOffset)
