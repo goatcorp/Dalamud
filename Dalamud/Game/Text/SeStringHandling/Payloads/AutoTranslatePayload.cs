@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Dalamud.Data;
+
 using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 
@@ -108,21 +110,28 @@ public class AutoTranslatePayload : Payload, ITextProvider
         this.Key = GetInteger(reader);
     }
 
+    private static ReadOnlySeString ResolveTextCommand(TextCommand command)
+    {
+        // TextCommands prioritize the `Alias` field, if it not empty
+        // Example for this is /rangerpose2l which becomes /blackrangerposeb in chat
+        return !command.Alias.IsEmpty ? command.Alias : command.Command;
+    }
+
     private string Resolve()
     {
         string value = null;
 
-        var sheet = this.DataResolver.GetExcelSheet<Completion>();
+        var excelModule = Service<DataManager>.Get().Excel;
+        var completionSheet = excelModule.GetSheet<Completion>();
 
         // try to get the row in the Completion table itself, because this is 'easiest'
         // The row may not exist at all (if the Key is for another table), or it could be the wrong row
         // (again, if it's meant for another table)
-        var row = sheet.GetRowOrDefault(this.Key);
 
-        if (row?.Group == this.Group)
+        if (completionSheet.GetRowOrDefault(this.Key) is { } completion && completion.Group == this.Group)
         {
             // if the row exists in this table and the group matches, this is actually the correct data
-            value = row!.Value.Text.ExtractText();
+            value = completion.Text.ExtractText();
         }
         else
         {
@@ -130,30 +139,30 @@ public class AutoTranslatePayload : Payload, ITextProvider
             {
                 // we need to get the linked table and do the lookup there instead
                 // in this case, there will only be one entry for this group id
-                row = sheet.First(r => r.Group == this.Group);
+                var row = completionSheet.First(r => r.Group == this.Group);
                 // many of the names contain valid id ranges after the table name, but we don't need those
-                var actualTableName = row!.Value.LookupTable.ExtractText().Split('[')[0];
+                var actualTableName = row.LookupTable.ExtractText().Split('[')[0];
 
                 var name = actualTableName switch
                 {
-                    "Action" => this.DataResolver.GetExcelSheet<Lumina.Excel.Sheets.Action>().GetRow(this.Key).Name,
-                    "ActionComboRoute" => this.DataResolver.GetExcelSheet<ActionComboRoute>().GetRow(this.Key).Name,
-                    "BuddyAction" => this.DataResolver.GetExcelSheet<BuddyAction>().GetRow(this.Key).Name,
-                    "ClassJob" => this.DataResolver.GetExcelSheet<ClassJob>().GetRow(this.Key).Name,
-                    "Companion" => this.DataResolver.GetExcelSheet<Companion>().GetRow(this.Key).Singular,
-                    "CraftAction" => this.DataResolver.GetExcelSheet<CraftAction>().GetRow(this.Key).Name,
-                    "GeneralAction" => this.DataResolver.GetExcelSheet<GeneralAction>().GetRow(this.Key).Name,
-                    "GuardianDeity" => this.DataResolver.GetExcelSheet<GuardianDeity>().GetRow(this.Key).Name,
-                    "MainCommand" => this.DataResolver.GetExcelSheet<MainCommand>().GetRow(this.Key).Name,
-                    "Mount" => this.DataResolver.GetExcelSheet<Mount>().GetRow(this.Key).Singular,
-                    "Pet" => this.DataResolver.GetExcelSheet<Pet>().GetRow(this.Key).Name,
-                    "PetAction" => this.DataResolver.GetExcelSheet<PetAction>().GetRow(this.Key).Name,
-                    "PetMirage" => this.DataResolver.GetExcelSheet<PetMirage>().GetRow(this.Key).Name,
-                    "PlaceName" => this.DataResolver.GetExcelSheet<PlaceName>().GetRow(this.Key).Name,
-                    "Race" => this.DataResolver.GetExcelSheet<Race>().GetRow(this.Key).Masculine,
-                    "TextCommand" => this.ResolveTextCommand(),
-                    "Tribe" => this.DataResolver.GetExcelSheet<Tribe>().GetRow(this.Key).Masculine,
-                    "Weather" => this.DataResolver.GetExcelSheet<Weather>().GetRow(this.Key).Name,
+                    "Action" => excelModule.GetSheet<Lumina.Excel.Sheets.Action>().GetRow(this.Key).Name,
+                    "ActionComboRoute" => excelModule.GetSheet<ActionComboRoute>().GetRow(this.Key).Name,
+                    "BuddyAction" => excelModule.GetSheet<BuddyAction>().GetRow(this.Key).Name,
+                    "ClassJob" => excelModule.GetSheet<ClassJob>().GetRow(this.Key).Name,
+                    "Companion" => excelModule.GetSheet<Companion>().GetRow(this.Key).Singular,
+                    "CraftAction" => excelModule.GetSheet<CraftAction>().GetRow(this.Key).Name,
+                    "GeneralAction" => excelModule.GetSheet<GeneralAction>().GetRow(this.Key).Name,
+                    "GuardianDeity" => excelModule.GetSheet<GuardianDeity>().GetRow(this.Key).Name,
+                    "MainCommand" => excelModule.GetSheet<MainCommand>().GetRow(this.Key).Name,
+                    "Mount" => excelModule.GetSheet<Mount>().GetRow(this.Key).Singular,
+                    "Pet" => excelModule.GetSheet<Pet>().GetRow(this.Key).Name,
+                    "PetAction" => excelModule.GetSheet<PetAction>().GetRow(this.Key).Name,
+                    "PetMirage" => excelModule.GetSheet<PetMirage>().GetRow(this.Key).Name,
+                    "PlaceName" => excelModule.GetSheet<PlaceName>().GetRow(this.Key).Name,
+                    "Race" => excelModule.GetSheet<Race>().GetRow(this.Key).Masculine,
+                    "TextCommand" => AutoTranslatePayload.ResolveTextCommand(excelModule.GetSheet<TextCommand>().GetRow(this.Key)),
+                    "Tribe" => excelModule.GetSheet<Tribe>().GetRow(this.Key).Masculine,
+                    "Weather" => excelModule.GetSheet<Weather>().GetRow(this.Key).Name,
                     _ => throw new Exception(actualTableName),
                 };
 
@@ -166,13 +175,5 @@ public class AutoTranslatePayload : Payload, ITextProvider
         }
 
         return value;
-    }
-
-    private ReadOnlySeString ResolveTextCommand()
-    {
-        // TextCommands prioritize the `Alias` field, if it not empty
-        // Example for this is /rangerpose2l which becomes /blackrangerposeb in chat
-        var result = this.DataResolver.GetExcelSheet<TextCommand>().GetRow(this.Key);
-        return !result.Alias.IsEmpty ? result.Alias : result.Command;
     }
 }

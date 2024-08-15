@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 
+using Dalamud.Data;
+
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
@@ -71,22 +74,19 @@ public class UIGlowPayload : Payload
     /// Gets the Red/Green/Blue/Alpha values for this glow color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGBA => this.UIColor!.Value.UIGlow;
+    public uint RGBA => this.UIColor.Value.UIGlow;
 
     /// <summary>
     /// Gets the ABGR value for this glow color, as ImGui requires it in PushColor.
     /// </summary>
     [JsonIgnore]
-    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor!.Value.UIGlow);
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.UIGlow);
 
     /// <summary>
     /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIGlow.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public UIColor? UIColor => this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+    public RowRef<UIColor> UIColor => LuminaUtils.CreateRef<UIColor>(this.colorKey);
 
     /// <inheritdoc/>
     public override string ToString()

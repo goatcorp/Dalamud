@@ -21,7 +21,7 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets game data linked to this Fate.
     /// </summary>
-    Lumina.Excel.Sheets.Fate GameData { get; }
+    RowRef<Lumina.Excel.Sheets.Fate> GameData { get; }
 
     /// <summary>
     /// Gets the time this <see cref="Fate"/> started.
@@ -186,7 +186,7 @@ internal unsafe partial class Fate : IFate
     public ushort FateId => this.Struct->FateId;
 
     /// <inheritdoc/>
-    public Lumina.Excel.Sheets.Fate GameData => Service<DataManager>.Get().GetExcelSheet<Lumina.Excel.Sheets.Fate>().GetRow(this.FateId);
+    public RowRef<Lumina.Excel.Sheets.Fate> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Fate>(this.FateId);
 
     /// <inheritdoc/>
     public int StartTimeEpoch => this.Struct->StartTimeEpoch;

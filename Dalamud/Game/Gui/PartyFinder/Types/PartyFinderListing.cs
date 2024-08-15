@@ -5,6 +5,7 @@ using Dalamud.Data;
 using Dalamud.Game.Gui.PartyFinder.Internal;
 using Dalamud.Game.Text.SeStringHandling;
 
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
@@ -48,7 +49,7 @@ public interface IPartyFinderListing
     /// <summary>
     /// Gets a list of the classes/jobs that are currently present in the party.
     /// </summary>
-    IReadOnlyCollection<Lazy<ClassJob>> JobsPresent { get; }
+    IReadOnlyCollection<RowRef<ClassJob>> JobsPresent { get; }
 
     /// <summary>
     /// Gets the ID assigned to this listing by the game's server.
@@ -73,17 +74,17 @@ public interface IPartyFinderListing
     /// <summary>
     /// Gets the world that this listing was created on.
     /// </summary>
-    Lazy<World> World { get; }
+    RowRef<World> World { get; }
 
     /// <summary>
     /// Gets the home world of the listing's host.
     /// </summary>
-    Lazy<World> HomeWorld { get; }
+    RowRef<World> HomeWorld { get; }
 
     /// <summary>
     /// Gets the current world of the listing's host.
     /// </summary>
-    Lazy<World> CurrentWorld { get; }
+    RowRef<World> CurrentWorld { get; }
 
     /// <summary>
     /// Gets the Party Finder category this listing is listed under.
@@ -98,7 +99,7 @@ public interface IPartyFinderListing
     /// <summary>
     /// Gets the duty this listing is for. May be null for non-duty listings.
     /// </summary>
-    Lazy<ContentFinderCondition> Duty { get; }
+    RowRef<ContentFinderCondition> Duty { get; }
 
     /// <summary>
     /// Gets the type of duty this listing is for.
@@ -216,12 +217,12 @@ internal class PartyFinderListing : IPartyFinderListing
         this.ContentId = listing.ContentId;
         this.Name = SeString.Parse(listing.Name.TakeWhile(b => b != 0).ToArray());
         this.Description = SeString.Parse(listing.Description.TakeWhile(b => b != 0).ToArray());
-        this.World = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.World));
-        this.HomeWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.HomeWorld));
-        this.CurrentWorld = new Lazy<World>(() => dataManager.GetExcelSheet<World>().GetRow(listing.CurrentWorld));
+        this.World = LuminaUtils.CreateRef<World>(listing.World);
+        this.HomeWorld = LuminaUtils.CreateRef<World>(listing.HomeWorld);
+        this.CurrentWorld = LuminaUtils.CreateRef<World>(listing.CurrentWorld);
         this.Category = (DutyCategory)listing.Category;
         this.RawDuty = listing.Duty;
-        this.Duty = new Lazy<ContentFinderCondition>(() => dataManager.GetExcelSheet<ContentFinderCondition>().GetRow(listing.Duty));
+        this.Duty = LuminaUtils.CreateRef<ContentFinderCondition>(listing.Duty);
         this.DutyType = (DutyType)listing.DutyType;
         this.BeginnersWelcome = listing.BeginnersWelcome == 1;
         this.SecondsRemaining = listing.SecondsRemaining;
@@ -231,10 +232,7 @@ internal class PartyFinderListing : IPartyFinderListing
         this.SlotsFilled = listing.NumSlotsFilled;
         this.LastPatchHotfixTimestamp = listing.LastPatchHotfixTimestamp;
         this.JobsPresent = listing.JobsPresent
-                                  .Select(id => new Lazy<ClassJob>(
-                                              () => id == 0
-                                                        ? default
-                                                        : dataManager.GetExcelSheet<ClassJob>().GetRow(id)))
+                                  .Select(id => LuminaUtils.CreateRef<ClassJob>(id))
                                   .ToArray();
     }
 
@@ -251,13 +249,13 @@ internal class PartyFinderListing : IPartyFinderListing
     public SeString Description { get; }
 
     /// <inheritdoc/>
-    public Lazy<World> World { get; }
+    public RowRef<World> World { get; }
 
     /// <inheritdoc/>
-    public Lazy<World> HomeWorld { get; }
+    public RowRef<World> HomeWorld { get; }
 
     /// <inheritdoc/>
-    public Lazy<World> CurrentWorld { get; }
+    public RowRef<World> CurrentWorld { get; }
 
     /// <inheritdoc/>
     public DutyCategory Category { get; }
@@ -266,7 +264,7 @@ internal class PartyFinderListing : IPartyFinderListing
     public ushort RawDuty { get; }
 
     /// <inheritdoc/>
-    public Lazy<ContentFinderCondition> Duty { get; }
+    public RowRef<ContentFinderCondition> Duty { get; }
 
     /// <inheritdoc/>
     public DutyType DutyType { get; }
@@ -314,7 +312,7 @@ internal class PartyFinderListing : IPartyFinderListing
     public IReadOnlyCollection<byte> RawJobsPresent => this.jobsPresent;
 
     /// <inheritdoc/>
-    public IReadOnlyCollection<Lazy<ClassJob>> JobsPresent { get; }
+    public IReadOnlyCollection<RowRef<ClassJob>> JobsPresent { get; }
 
     #region Indexers
 

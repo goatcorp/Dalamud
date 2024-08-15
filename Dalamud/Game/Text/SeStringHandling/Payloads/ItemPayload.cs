@@ -3,9 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using Dalamud.Data;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
@@ -14,8 +15,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class ItemPayload : Payload
 {
-    private Item? item;
-
     // mainly to allow overriding the name (for things like owo)
     // TODO: even though this is present in some item links, it may not really have a use at all
     //   For things like owo, changing the text payload is probably correct, whereas changing the
@@ -131,27 +130,13 @@ public class ItemPayload : Payload
     public uint RawItemId => this.rawItemId;
 
     /// <summary>
-    /// Gets the underlying Lumina Item represented by this payload.
+    /// Gets the underlying Lumina data represented by this payload. This is either a Item or EventItem <see cref="RowRef{T}"/>.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public Item? Item
-    {
-        get
-        {
-            // TODO(goat): This should be revamped/removed on an API level change.
-            if (this.Kind == ItemKind.EventItem)
-            {
-                Log.Warning("Event items cannot be fetched from the ItemPayload");
-                return null;
-            }
-
-            this.item ??= this.DataResolver.GetExcelSheet<Item>()!.GetRowOrDefault(this.ItemId);
-            return this.item;
-        }
-    }
+    public RowRef Item =>
+        this.Kind == ItemKind.EventItem
+            ? (RowRef)LuminaUtils.CreateRef<EventItem>(this.ItemId)
+            : (RowRef)LuminaUtils.CreateRef<Item>(this.ItemId);
 
     /// <summary>
     /// Gets a value indicating whether or not this item link is for a high-quality version of the item.
@@ -183,7 +168,8 @@ public class ItemPayload : Payload
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - ItemId: {this.ItemId}, Kind: {this.Kind}, Name: {this.displayName ?? this.Item?.Name.ExtractText()}";
+        var name = this.displayName ?? (this.Item.GetValueOrDefault<Item>()?.Name ?? this.Item.GetValueOrDefault<EventItem>()?.Name)?.ExtractText();
+        return $"{this.Type} - ItemId: {this.ItemId}, Kind: {this.Kind}, Name: {name}";
     }
 
     /// <inheritdoc/>

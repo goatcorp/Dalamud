@@ -360,8 +360,7 @@ public class SeString
         var mapSheet = data.GetExcelSheet<Map>();
 
         var matches = data.GetExcelSheet<PlaceName>()
-                          .Where(row => row.Name.ToString().ToLowerInvariant() == placeName.ToLowerInvariant())
-                          .ToArray();
+                          .Where(row => row.Name.ExtractText().Equals(placeName, StringComparison.InvariantCultureIgnoreCase));
 
         foreach (var place in matches)
         {

@@ -7,7 +7,6 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -45,9 +44,9 @@ internal class ContextMenuAgingStep : IAgingStep
     {
         var contextMenu = Service<ContextMenu>.Get();
         var dataMgr = Service<DataManager>.Get();
-        this.itemSheet = dataMgr.GetExcelSheet<Item>()!;
-        this.materiaSheet = dataMgr.GetExcelSheet<Materia>()!;
-        this.stainSheet = dataMgr.GetExcelSheet<Stain>()!;
+        this.itemSheet = dataMgr.GetExcelSheet<Item>();
+        this.materiaSheet = dataMgr.GetExcelSheet<Materia>();
+        this.stainSheet = dataMgr.GetExcelSheet<Stain>();
 
         ImGui.Text(this.currentSubStep.ToString());
 

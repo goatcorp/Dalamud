@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 
+using Dalamud.Data;
+
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
@@ -11,11 +14,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class MapLinkPayload : Payload
 {
-    private Map? map;
-    private TerritoryType? territoryType;
-    private string placeNameRegion;
-    private string placeName;
-
     [JsonProperty]
     private uint territoryTypeId;
 
@@ -38,8 +36,8 @@ public class MapLinkPayload : Payload
         // this fudge is necessary basically to ensure we don't shift down a full tenth
         // because essentially values are truncated instead of rounded, so 3.09999f will become
         // 3.0f and not 3.1f
-        this.RawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, this.Map!.Value.SizeFactor, this.Map!.Value.OffsetX);
-        this.RawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, this.Map!.Value.SizeFactor, this.Map!.Value.OffsetY);
+        this.RawX = this.ConvertMapCoordinateToRawPosition(niceXCoord + fudgeFactor, this.Map.Value.SizeFactor, this.Map.Value.OffsetX);
+        this.RawY = this.ConvertMapCoordinateToRawPosition(niceYCoord + fudgeFactor, this.Map.Value.SizeFactor, this.Map.Value.OffsetY);
     }
 
     /// <summary>
@@ -72,20 +70,14 @@ public class MapLinkPayload : Payload
     /// <summary>
     /// Gets the Map specified for this map link.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public Map? Map => this.map ??= this.DataResolver.GetExcelSheet<Map>().GetRowOrDefault(this.mapId);
+    public RowRef<Map> Map => LuminaUtils.CreateRef<Map>(this.mapId);
 
     /// <summary>
     /// Gets the TerritoryType specified for this map link.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public TerritoryType? TerritoryType => this.territoryType ??= this.DataResolver.GetExcelSheet<TerritoryType>().GetRowOrDefault(this.territoryTypeId);
+    public RowRef<TerritoryType> TerritoryType => LuminaUtils.CreateRef<TerritoryType>(this.territoryTypeId);
 
     /// <summary>
     /// Gets the internal x-coordinate for this map position.
@@ -102,13 +94,13 @@ public class MapLinkPayload : Payload
     /// <summary>
     /// Gets the readable x-coordinate position for this map link.  This value is approximate and unrounded.
     /// </summary>
-    public float XCoord => this.ConvertRawPositionToMapCoordinate(this.RawX, this.Map!.Value.SizeFactor, this.Map!.Value.OffsetX);
+    public float XCoord => this.ConvertRawPositionToMapCoordinate(this.RawX, this.Map.Value.SizeFactor, this.Map.Value.OffsetX);
 
     /// <summary>
     /// Gets the readable y-coordinate position for this map link.  This value is approximate and unrounded.
     /// </summary>
     [JsonIgnore]
-    public float YCoord => this.ConvertRawPositionToMapCoordinate(this.RawY, this.Map!.Value.SizeFactor, this.Map!.Value.OffsetY);
+    public float YCoord => this.ConvertRawPositionToMapCoordinate(this.RawY, this.Map.Value.SizeFactor, this.Map.Value.OffsetY);
 
     // there is no Z; it's purely in the text payload where applicable
 
@@ -143,13 +135,13 @@ public class MapLinkPayload : Payload
     /// Gets the region name for this map link. This corresponds to the upper zone name found in the actual in-game map UI. eg, "La Noscea".
     /// </summary>
     [JsonIgnore]
-    public string PlaceNameRegion => this.placeNameRegion ??= this.TerritoryType!.Value.PlaceNameRegion.Value.Name.ExtractText();
+    public string PlaceNameRegion => this.TerritoryType.Value.PlaceNameRegion.Value.Name.ExtractText();
 
     /// <summary>
     /// Gets the place name for this map link. This corresponds to the lower zone name found in the actual in-game map UI. eg, "Limsa Lominsa Upper Decks".
     /// </summary>
     [JsonIgnore]
-    public string PlaceName => this.placeName ??= this.TerritoryType!.Value.PlaceName.Value.Name.ExtractText();
+    public string PlaceName => this.TerritoryType.Value.PlaceName.Value.Name.ExtractText();
 
     /// <summary>
     /// Gets the data string for this map link, for use by internal game functions that take a string variant and not a binary payload.
