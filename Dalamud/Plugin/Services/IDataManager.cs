@@ -6,6 +6,7 @@ using Dalamud.Game;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
+using Lumina.Excel.Rsv;
 
 namespace Dalamud.Plugin.Services;
 
@@ -28,6 +29,11 @@ public interface IDataManager
     /// Gets an <see cref="ExcelModule"/> object which gives access to any of the game's sheet data.
     /// </summary>
     public ExcelModule Excel { get; }
+
+    /// <summary>
+    /// Gets a <see cref="IRsvProvider"/> object which gives access to all resolved RSV strings that the game has seen so far.
+    /// </summary>
+    public IRsvProvider RsvProvider { get; }
 
     /// <summary>
     /// Gets a value indicating whether the game data files have been modified by another third-party tool.

@@ -11,6 +11,8 @@ using Dalamud.Utility.Timing;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
+using Lumina.Excel.Rsv;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -28,6 +30,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
 {
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;
+    private readonly RsvProvider rsvProvider;
 
     [ServiceManager.ServiceConstructor]
     private DataManager(Dalamud dalamud)
@@ -107,6 +110,8 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
             Log.Error(ex, "Could not initialize Lumina");
             throw;
         }
+
+        this.rsvProvider = new();
     }
 
     /// <inheritdoc/>
@@ -117,6 +122,9 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
 
     /// <inheritdoc/>
     public ExcelModule Excel => this.GameData.Excel;
+
+    /// <inheritdoc/>
+    public IRsvProvider RsvProvider => this.rsvProvider;
 
     /// <inheritdoc/>
     public bool HasModifiedGameDataFiles { get; private set; }
@@ -168,6 +176,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.rsvProvider.Dispose();
         this.luminaCancellationTokenSource.Cancel();
         this.GameData.Dispose();
     }
