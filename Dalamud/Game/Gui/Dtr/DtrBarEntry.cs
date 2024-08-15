@@ -26,12 +26,12 @@ public interface IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets the text of this entry.
     /// </summary>
-    public SeString Text { get; }
+    public SeString? Text { get; }
     
     /// <summary>
     /// Gets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
-    public SeString Tooltip { get; }
+    public SeString? Tooltip { get; }
     
     /// <summary>
     /// Gets a value indicating whether this entry should be shown.
