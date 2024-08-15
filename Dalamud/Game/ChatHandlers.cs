@@ -146,7 +146,7 @@ internal class ChatHandlers : IServiceType
                     break;
                 }
 
-                Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.Item?.RowId}, HQ {itemLink.IsHQ}");
+                Log.Debug($"Probable retainer sale: {message}, decoded item {itemLink.Item.RowId}, HQ {itemLink.IsHQ}");
 
                 var valueInfo = matchInfo.Groups["value"];
                 // not sure if using a culture here would work correctly, so just strip symbols instead

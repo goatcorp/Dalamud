@@ -48,6 +48,6 @@ internal class LuminaAgingStep<T>(bool isLargeSheet) : IAgingStep
     /// <inheritdoc/>
     public void CleanUp()
     {
-        step = 0;
+        this.step = 0;
     }
 }

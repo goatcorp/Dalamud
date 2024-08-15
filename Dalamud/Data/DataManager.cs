@@ -11,7 +11,6 @@ using Dalamud.Utility.Timing;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
-using Lumina.Excel.Rsv;
 
 using Newtonsoft.Json;
 using Serilog;
@@ -30,12 +29,14 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
 {
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;
-    private readonly RsvProvider rsvProvider;
+    private readonly RsvResolver rsvResolver;
 
     [ServiceManager.ServiceConstructor]
     private DataManager(Dalamud dalamud)
     {
         this.Language = (ClientLanguage)dalamud.StartInfo.Language;
+
+        this.rsvResolver = new();
 
         try
         {
@@ -47,11 +48,8 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                 {
                     LoadMultithreaded = true,
                     CacheFileResources = true,
-#if NEVER // Lumina bug
                     PanicOnSheetChecksumMismatch = true,
-#else
-                    PanicOnSheetChecksumMismatch = false,
-#endif
+                    RsvResolver = this.rsvResolver.TryResolve,
                     DefaultExcelLanguage = this.Language.ToLumina(),
                 };
 
@@ -110,8 +108,6 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
             Log.Error(ex, "Could not initialize Lumina");
             throw;
         }
-
-        this.rsvProvider = new();
     }
 
     /// <inheritdoc/>
@@ -122,9 +118,6 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
 
     /// <inheritdoc/>
     public ExcelModule Excel => this.GameData.Excel;
-
-    /// <inheritdoc/>
-    public IRsvProvider RsvProvider => this.rsvProvider;
 
     /// <inheritdoc/>
     public bool HasModifiedGameDataFiles { get; private set; }
@@ -176,9 +169,9 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.rsvProvider.Dispose();
         this.luminaCancellationTokenSource.Cancel();
         this.GameData.Dispose();
+        this.rsvResolver.Dispose();
     }
 
     private class LauncherTroubleshootingInfo
