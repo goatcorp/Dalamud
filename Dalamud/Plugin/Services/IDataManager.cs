@@ -37,17 +37,24 @@ public interface IDataManager
     /// <summary>
     /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type.
     /// </summary>
+    /// <param name="language">Language of the sheet to get. Leave <see langword="null"/> or empty to use the default language.</param>
     /// <typeparam name="T">The excel sheet type to get.</typeparam>
     /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-    public ExcelSheet<T> GetExcelSheet<T>() where T : struct, IExcelRow<T>;
+    /// <remarks>
+    /// If the sheet type you want has subrows, use <see cref="GetSubrowExcelSheet{T}(ClientLanguage?)"/> instead.
+    /// </remarks>
+    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage? language = null) where T : struct, IExcelRow<T>;
 
     /// <summary>
-    /// Get an <see cref="ExcelSheet{T}"/> with the given Excel sheet row type with a specified language.
+    /// Get a <see cref="SubrowExcelSheet{T}"/> with the given Excel sheet row type.
     /// </summary>
-    /// <param name="language">Language of the sheet to get.</param>
+    /// <param name="language">Language of the sheet to get. Leave <see langword="null"/> or empty to use the default language.</param>
     /// <typeparam name="T">The excel sheet type to get.</typeparam>
-    /// <returns>The <see cref="ExcelSheet{T}"/>, giving access to game rows.</returns>
-    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage language) where T : struct, IExcelRow<T>;
+    /// <returns>The <see cref="SubrowExcelSheet{T}"/>, giving access to game rows.</returns>
+    /// <remarks>
+    /// If the sheet type you want has only rows, use <see cref="GetExcelSheet{T}(ClientLanguage?)"/> instead.
+    /// </remarks>
+    public SubrowExcelSheet<T> GetSubrowExcelSheet<T>(ClientLanguage? language = null) where T : struct, IExcelSubrow<T>;
 
     /// <summary>
     /// Get a <see cref="FileResource"/> with the given path.
