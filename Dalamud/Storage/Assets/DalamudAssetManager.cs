@@ -68,7 +68,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
             Task.WhenAll(
                     Enum.GetValues<DalamudAsset>()
                         .Where(x => x is not DalamudAsset.Empty4X4)
-                        .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
+                        .Where(x => x.GetAssetAttribute()?.Required is true)
                         .Select(this.CreateStreamAsync)
                         .Select(x => x.ToContentDisposedTask()))
                 .ContinueWith(
@@ -83,7 +83,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
         Task.WhenAll(
                 Enum.GetValues<DalamudAsset>()
                     .Where(x => x is not DalamudAsset.Empty4X4)
-                    .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
+                    .Where(x => x.GetAssetAttribute()?.Required is false)
                     .Select(this.CreateStreamAsync)
                     .Select(x => x.ToContentDisposedTask(true)))
             .ContinueWith(r => Log.Verbose($"Optional assets load state: {r}"));
@@ -120,7 +120,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
     /// <inheritdoc/>
     [Pure]
     public bool IsStreamImmediatelyAvailable(DalamudAsset asset) =>
-        asset.GetAttribute<DalamudAssetAttribute>()?.Data is not null
+        asset.GetAssetAttribute()?.Data is not null
         || this.fileStreams[asset]?.IsCompletedSuccessfully is true;
 
     /// <inheritdoc/>
@@ -140,7 +140,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
     [Pure]
     public Task<Stream> CreateStreamAsync(DalamudAsset asset)
     {
-        if (asset.GetAttribute<DalamudAssetAttribute>() is { Data: { } rawData })
+        if (asset.GetAssetAttribute() is { Data: { } rawData })
             return Task.FromResult<Stream>(new MemoryStream(rawData, false));
 
         Task<FileStream> task;
