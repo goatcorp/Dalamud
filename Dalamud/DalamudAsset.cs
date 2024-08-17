@@ -9,6 +9,7 @@ namespace Dalamud;
 /// <strong>Any asset can cease to exist at any point, even if the enum value exists.</strong><br />
 /// Either ship your own assets, or be prepared for errors.
 /// </summary>
+// Implementation notes: avoid specifying numbers too high here. Lookup table is currently implemented as an array.
 public enum DalamudAsset
 {
     /// <summary>
