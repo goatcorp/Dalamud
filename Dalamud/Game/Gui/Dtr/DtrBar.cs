@@ -157,7 +157,11 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.entriesLock.EnterWriteLock();
         var entry = new DtrBarEntry(this.configuration, title, null) { Text = text, OwnerPlugin = plugin };
         this.entries.Add(entry);
-        Log.Debug("Adding entry: {what}; owner: {owner}", title, plugin);
+        Log.Debug(
+            "Adding entry: {what}; owner: {owner}({id})",
+            title,
+            plugin?.InternalName,
+            plugin?.EffectiveWorkingPluginId);
 
         // Add the entry to the end of the order list, if it's not there already.
         var dtrOrder = this.configuration.DtrOrder ??= [];
