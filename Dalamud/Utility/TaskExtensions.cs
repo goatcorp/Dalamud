@@ -63,6 +63,21 @@ public static class TaskExtensions
 #pragma warning restore RS0030
     }
 
+    /// <summary>Ignores any exceptions thrown from the task.</summary>
+    /// <param name="task">Task to ignore exceptions.</param>
+    /// <returns>A task that completes when <paramref name="task"/> completes in any state.</returns>
+    public static async Task SuppressException(this Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
     private static bool IsWaitingValid(Task task)
     {
         // In the case the task has been started with the LongRunning flag, it will not be in the TPL thread pool and we can allow waiting regardless.

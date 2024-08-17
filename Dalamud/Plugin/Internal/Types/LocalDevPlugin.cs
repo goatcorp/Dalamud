@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,7 @@ namespace Dalamud.Plugin.Internal.Types;
 /// This class represents a dev plugin and all facets of its lifecycle.
 /// The DLL on disk, dependencies, loaded assembly, etc.
 /// </summary>
-internal class LocalDevPlugin : LocalPlugin, IDisposable
+internal class LocalDevPlugin : LocalPlugin
 {
     private static readonly ModuleLog Log = new("PLUGIN");
 
@@ -101,7 +100,7 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
     public List<string> DismissedValidationProblems => this.devSettings.DismissedValidationProblems;
 
     /// <inheritdoc/>
-    public new void Dispose()
+    public override ValueTask DisposeAsync()
     {
         if (this.fileWatcher != null)
         {
@@ -110,7 +109,7 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
             this.fileWatcher.Dispose();
         }
 
-        base.Dispose();
+        return base.DisposeAsync();
     }
 
     /// <summary>

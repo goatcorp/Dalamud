@@ -114,10 +114,42 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         {
             if (existingEntry.Title == title)
             {
-                existingEntry.ShouldBeRemoved = false;
+                if (existingEntry.ShouldBeRemoved)
+                {
+                    if (plugin == existingEntry.OwnerPlugin)
+                    {
+                        Log.Debug(
+                            "Reviving entry: {what}; owner: {plugin}({pluginId})",
+                            title,
+                            plugin?.InternalName,
+                            plugin?.EffectiveWorkingPluginId);
+                    }
+                    else
+                    {
+                        Log.Debug(
+                            "Reviving entry: {what}; old owner: {old}({oldId}); new owner: {new}({newId})",
+                            title,
+                            existingEntry.OwnerPlugin?.InternalName,
+                            existingEntry.OwnerPlugin?.EffectiveWorkingPluginId,
+                            plugin?.InternalName,
+                            plugin?.EffectiveWorkingPluginId);
+                        existingEntry.OwnerPlugin = plugin;
+                    }
+
+                    existingEntry.ShouldBeRemoved = false;
+                }
+
                 this.entriesLock.ExitUpgradeableReadLock();
                 if (plugin == existingEntry.OwnerPlugin)
                     return existingEntry;
+
+                Log.Debug(
+                    "Entry already has a different owner: {what}; owner: {old}({oldId}); requester: {new}({newId})",
+                    title,
+                    existingEntry.OwnerPlugin?.InternalName,
+                    existingEntry.OwnerPlugin?.EffectiveWorkingPluginId,
+                    plugin?.InternalName,
+                    plugin?.EffectiveWorkingPluginId);
                 throw new ArgumentException("An entry with the same title already exists.");
             }
         }
@@ -125,6 +157,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.entriesLock.EnterWriteLock();
         var entry = new DtrBarEntry(this.configuration, title, null) { Text = text, OwnerPlugin = plugin };
         this.entries.Add(entry);
+        Log.Debug("Adding entry: {what}; owner: {owner}", title, plugin);
 
         // Add the entry to the end of the order list, if it's not there already.
         var dtrOrder = this.configuration.DtrOrder ??= [];
@@ -159,14 +192,23 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             {
                 if (!entry.Added)
                 {
+                    Log.Debug("Removing entry immediately because it is not added yet: {what}", entry.Title);
                     this.entriesLock.EnterWriteLock();
                     this.RemoveEntry(entry);
                     this.entries.Remove(entry);
                     this.entriesReadOnlyCopy = null;
                     this.entriesLock.ExitWriteLock();
                 }
+                else if (!entry.ShouldBeRemoved)
+                {
+                    Log.Debug("Queueing entry for removal: {what}", entry.Title);
+                    entry.Remove();
+                }
+                else
+                {
+                    Log.Debug("Entry is already marked for removal: {what}", entry.Title);
+                }
 
-                entry.Remove();
                 break;
             }
         }
@@ -313,6 +355,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             var data = this.entries[i];
             if (data.ShouldBeRemoved)
             {
+                Log.Debug("Removing entry from Framework.Update: {what}", data.Title);
                 this.entriesLock.EnterWriteLock();
                 this.entries.RemoveAt(i);
                 this.RemoveEntry(data);
