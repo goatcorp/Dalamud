@@ -396,7 +396,9 @@ internal class PluginManager : IInternalDisposableService
                 await plugin.UnloadAsync(PluginLoaderDisposalMode.None).SuppressException();
 
             // Unload plugins that can be unloaded from any thread.
-            await Task.WhenAll(disposablePlugins.Select(plugin => plugin.UnloadAsync(PluginLoaderDisposalMode.None)))
+            await Task.WhenAll(
+                          disposablePlugins.Where(plugin => plugin.Manifest.CanUnloadAsync)
+                                           .Select(plugin => plugin.UnloadAsync(PluginLoaderDisposalMode.None)))
                       .SuppressException();
 
             // Just in case plugins still have tasks running that they didn't cancel when they should have,
