@@ -2,17 +2,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 using Dalamud.Console;
-using Dalamud.Game.Gui;
-using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+
+using FFXIVClientStructs.FFXIV.Client.System.String;
 
 namespace Dalamud.Game.Command;
 
@@ -20,40 +19,35 @@ namespace Dalamud.Game.Command;
 /// This class manages registered in-game slash commands.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed class CommandManager : IInternalDisposableService, ICommandManager
+internal sealed unsafe class CommandManager : IInternalDisposableService, ICommandManager
 {
     private static readonly ModuleLog Log = new("Command");
 
     private readonly ConcurrentDictionary<string, IReadOnlyCommandInfo> commandMap = new();
     private readonly ConcurrentDictionary<(string, IReadOnlyCommandInfo), string> commandAssemblyNameMap = new();
-    private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
-    private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
-    private readonly Regex commandRegexDe = new(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
-    private readonly Regex commandRegexFr = new(@"^La commande texte “(?<command>.+)” n'existe pas\.$", RegexOptions.Compiled);
-    private readonly Regex commandRegexCn = new(@"^^(“|「)(?<command>.+)(”|」)(出现问题：该命令不存在|出現問題：該命令不存在)。$", RegexOptions.Compiled);
-    private readonly Regex currentLangCommandRegex;
-
-    [ServiceManager.ServiceDependency]
-    private readonly ChatGui chatGui = Service<ChatGui>.Get();
+    
+    private readonly CommandManagerAddressResolver resolver;
+    private readonly Hook<TestCommandDelegate>? testCommandHook;
     
     [ServiceManager.ServiceDependency]
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private CommandManager(Dalamud dalamud)
+    private CommandManager(Dalamud dalamud, TargetSigScanner scanner)
     {
-        this.currentLangCommandRegex = (ClientLanguage)dalamud.StartInfo.Language switch
-        {
-            ClientLanguage.Japanese => this.commandRegexJp,
-            ClientLanguage.English => this.commandRegexEn,
-            ClientLanguage.German => this.commandRegexDe,
-            ClientLanguage.French => this.commandRegexFr,
-            _ => this.commandRegexEn,
-        };
+        this.resolver = new CommandManagerAddressResolver();
+        this.resolver.Setup(scanner);
+        
+        this.testCommandHook = Hook<TestCommandDelegate>.FromAddress(
+            this.resolver.CommandErrorHandler,
+            this.OnTestCommand);
+        this.testCommandHook.Enable();
 
-        this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
+        // this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
         this.console.Invoke += this.ConsoleOnInvoke;
     }
+    
+    private delegate int TestCommandDelegate(nint a1, Utf8String* command, nint a3);
 
     /// <inheritdoc/>
     public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => new(this.commandMap);
@@ -193,37 +187,20 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     void IInternalDisposableService.DisposeService()
     {
         this.console.Invoke -= this.ConsoleOnInvoke;
-        this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
+        this.testCommandHook?.Dispose();
     }
     
     private bool ConsoleOnInvoke(string arg)
     {
         return arg.StartsWith('/') && this.ProcessCommand(arg);
     }
-
-    private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    
+    private int OnTestCommand(nint a1, Utf8String* command, nint a3)
     {
-        if (type == XivChatType.ErrorMessage && timestamp == 0)
-        {
-            var cmdMatch = this.currentLangCommandRegex.Match(message.TextValue).Groups["command"];
-            if (cmdMatch.Success)
-            {
-                // Yes, it's a chat command.
-                var command = cmdMatch.Value;
-                if (this.ProcessCommand(command)) isHandled = true;
-            }
-            else
-            {
-                // Always match for china, since they patch in language files without changing the ClientLanguage.
-                cmdMatch = this.commandRegexCn.Match(message.TextValue).Groups["command"];
-                if (cmdMatch.Success)
-                {
-                    // Yes, it's a Chinese fallback chat command.
-                    var command = cmdMatch.Value;
-                    if (this.ProcessCommand(command)) isHandled = true;
-                }
-            }
-        }
+        var result = this.testCommandHook!.OriginalDisposeSafe(a1, command, a3);
+        if (result != -1) return result;
+
+        return this.ProcessCommand(command->ToString()) ? 0 : result;
     }
 }
 

@@ -158,7 +158,7 @@ public static class Util
         var asm = typeof(Util).Assembly;
         var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
 
-        return gitHashInternal = attrs.First(a => a.Key == "GitHash").Value;
+        return gitHashInternal = attrs.FirstOrDefault(a => a.Key == "GitHash")?.Value ?? "N/A";
     }
 
     /// <summary>
