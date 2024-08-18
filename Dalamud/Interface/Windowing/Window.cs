@@ -351,7 +351,7 @@ public abstract class Window
             }
         }
 
-        var additionsPopupName = "WindowSystemContextActions";
+        const string additionsPopupName = "WindowSystemContextActions";
         var flagsApplicableForTitleBarIcons = !flags.HasFlag(ImGuiWindowFlags.NoDecoration) &&
                                               !flags.HasFlag(ImGuiWindowFlags.NoTitleBar);
         var showAdditions = (this.AllowPinning || this.AllowClickthrough) &&
