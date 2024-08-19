@@ -491,6 +491,11 @@ public enum BitmapFontIcon : uint
     BlueStarProblem = 122,
 
     /// <summary>
+    /// The PlayStation Plus icon.
+    /// </summary>
+    PlayStationPlus = 123,
+
+    /// <summary>
     /// The Disconnecting icon.
     /// </summary>
     Disconnecting = 124,
@@ -716,9 +721,9 @@ public enum BitmapFontIcon : uint
     WaitingForDutyFinder = 168,
 
     /// <summary>
-    /// The Tuliyollal flag icon.
+    /// The Tural flag icon.
     /// </summary>
-    Tuliyollal = 169,
+    Tural = 169,
 
     /// <summary>
     /// The Viper icon.
