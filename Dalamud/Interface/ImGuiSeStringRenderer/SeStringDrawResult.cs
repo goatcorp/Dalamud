@@ -5,7 +5,7 @@ using Dalamud.Game.Text.SeStringHandling;
 
 namespace Dalamud.Interface.ImGuiSeStringRenderer;
 
-/// <summary>Represents the result of n rendered interactable SeString.</summary>
+/// <summary>Represents the result of a rendered interactable SeString.</summary>
 public ref struct SeStringDrawResult
 {
     private Payload? lazyPayload;

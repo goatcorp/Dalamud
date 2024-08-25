@@ -6,7 +6,7 @@ namespace Dalamud.Storage.Assets;
 public enum DalamudAssetPurpose
 {
     /// <summary>
-    /// The asset has no purpose.
+    /// The asset has no purpose, and is not valid and/or not accessible.
     /// </summary>
     Empty = 0,
     
