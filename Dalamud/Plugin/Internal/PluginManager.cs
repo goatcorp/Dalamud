@@ -375,54 +375,41 @@ internal class PluginManager : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        var disposablePlugins =
-            this.installedPluginsList.Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError).ToArray();
-        if (disposablePlugins.Any())
-        {
-            // Unload them first, just in case some of plugin codes are still running via callbacks initiated externally.
-            foreach (var plugin in disposablePlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
-            {
-                try
-                {
-                    plugin.UnloadAsync(true, false).Wait();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, $"Error unloading {plugin.Name}");
-                }
-            }
+        DisposeAsync(
+            this.installedPluginsList
+                .Where(plugin => plugin.State is PluginState.Loaded or PluginState.LoadError)
+                .ToArray(),
+            this.configuration).Wait();
+        return;
 
-            Task.WaitAll(disposablePlugins
-                             .Where(plugin => plugin.Manifest.CanUnloadAsync)
-                             .Select(plugin => Task.Run(async () =>
-                             {
-                                 try
-                                 {
-                                     await plugin.UnloadAsync(true, false);
-                                 }
-                                 catch (Exception ex)
-                                 {
-                                     Log.Error(ex, $"Error unloading {plugin.Name}");
-                                 }
-                             })).ToArray());
+        static async Task DisposeAsync(LocalPlugin[] disposablePlugins, DalamudConfiguration configuration)
+        {
+            if (disposablePlugins.Length == 0)
+                return;
+
+            // Any unload/dispose operation called from this function log errors on their own.
+            // Ignore all errors.
+
+            // Unload plugins that requires to be unloaded synchronously,
+            // just in case some plugin codes are still running via callbacks initiated externally.
+            foreach (var plugin in disposablePlugins.Where(plugin => !plugin.Manifest.CanUnloadAsync))
+                await plugin.UnloadAsync(PluginLoaderDisposalMode.None).SuppressException();
+
+            // Unload plugins that can be unloaded from any thread.
+            await Task.WhenAll(
+                          disposablePlugins.Where(plugin => plugin.Manifest.CanUnloadAsync)
+                                           .Select(plugin => plugin.UnloadAsync(PluginLoaderDisposalMode.None)))
+                      .SuppressException();
 
             // Just in case plugins still have tasks running that they didn't cancel when they should have,
             // give them some time to complete it.
-            Thread.Sleep(this.configuration.PluginWaitBeforeFree ?? PluginWaitBeforeFreeDefault);
+            // This helps avoid plugins being reloaded from conflicting with itself of previous instance.
+            await Task.Delay(configuration.PluginWaitBeforeFree ?? PluginWaitBeforeFreeDefault);
 
             // Now that we've waited enough, dispose the whole plugin.
-            // Since plugins should have been unloaded above, this should be done quickly.
-            foreach (var plugin in disposablePlugins)
-            {
-                try
-                {
-                    plugin.Dispose();
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, $"Error disposing {plugin.Name}");
-                }
-            }
+            // Since plugins should have been unloaded above, this should complete quickly.
+            await Task.WhenAll(disposablePlugins.Select(plugin => plugin.DisposeAsync().AsTask()))
+                      .SuppressException();
         }
 
         // NET8 CHORE
