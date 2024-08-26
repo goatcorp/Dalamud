@@ -12,6 +12,8 @@ using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.Shell;
 
 namespace Dalamud.Game.Command;
 
@@ -25,28 +27,22 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
     private readonly ConcurrentDictionary<string, IReadOnlyCommandInfo> commandMap = new();
     private readonly ConcurrentDictionary<(string, IReadOnlyCommandInfo), string> commandAssemblyNameMap = new();
-    
-    private readonly CommandManagerAddressResolver resolver;
-    private readonly Hook<TestCommandDelegate>? testCommandHook;
-    
+
+    private readonly Hook<ShellCommands.Delegates.TryInvokeDebugCommand>? tryInvokeDebugCommandHook;
+
     [ServiceManager.ServiceDependency]
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
 
     [ServiceManager.ServiceConstructor]
-    private CommandManager(Dalamud dalamud, TargetSigScanner scanner)
+    private CommandManager(Dalamud dalamud)
     {
-        this.resolver = new CommandManagerAddressResolver();
-        this.resolver.Setup(scanner);
-        
-        this.testCommandHook = Hook<TestCommandDelegate>.FromAddress(
-            this.resolver.CommandErrorHandler,
-            this.OnTestCommand);
-        this.testCommandHook.Enable();
+        this.tryInvokeDebugCommandHook = Hook<ShellCommands.Delegates.TryInvokeDebugCommand>.FromAddress(
+            (nint)ShellCommands.MemberFunctionPointers.TryInvokeDebugCommand,
+            this.OnTryInvokeDebugCommand);
+        this.tryInvokeDebugCommandHook.Enable();
 
         this.console.Invoke += this.ConsoleOnInvoke;
     }
-    
-    private delegate int TestCommandDelegate(nint a1, Utf8String* command, nint a3);
 
     /// <inheritdoc/>
     public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => new(this.commandMap);
@@ -106,7 +102,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             Log.Error(ex, "Error while dispatching command {CommandName} (Argument: {Argument})", command, argument);
         }
     }
-    
+
     /// <summary>
     /// Add a command handler, which you can use to add your own custom commands to the in-game chat.
     /// </summary>
@@ -124,7 +120,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             Log.Error("Command {CommandName} is already registered", command);
             return false;
         }
-        
+
         if (!this.commandAssemblyNameMap.TryAdd((command, info), loaderAssemblyName))
         {
             this.commandMap.Remove(command, out _);
@@ -177,7 +173,8 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     /// </summary>
     /// <param name="assemblyName">The name of the assembly.</param>
     /// <returns>A list of commands and their associated activation string.</returns>
-    public List<KeyValuePair<(string Command, IReadOnlyCommandInfo CommandInfo), string>> GetHandlersByAssemblyName(string assemblyName)
+    public List<KeyValuePair<(string Command, IReadOnlyCommandInfo CommandInfo), string>> GetHandlersByAssemblyName(
+        string assemblyName)
     {
         return this.commandAssemblyNameMap.Where(c => c.Value == assemblyName).ToList();
     }
@@ -186,17 +183,17 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     void IInternalDisposableService.DisposeService()
     {
         this.console.Invoke -= this.ConsoleOnInvoke;
-        this.testCommandHook?.Dispose();
+        this.tryInvokeDebugCommandHook?.Dispose();
     }
-    
+
     private bool ConsoleOnInvoke(string arg)
     {
         return arg.StartsWith('/') && this.ProcessCommand(arg);
     }
-    
-    private int OnTestCommand(nint a1, Utf8String* command, nint a3)
+
+    private int OnTryInvokeDebugCommand(ShellCommands* self, Utf8String* command, UIModule* uiModule)
     {
-        var result = this.testCommandHook!.OriginalDisposeSafe(a1, command, a3);
+        var result = this.tryInvokeDebugCommandHook!.OriginalDisposeSafe(self, command, uiModule);
         if (result != -1) return result;
 
         return this.ProcessCommand(command->ToString()) ? 0 : result;
@@ -214,7 +211,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 internal class CommandManagerPluginScoped : IInternalDisposableService, ICommandManager
 {
     private static readonly ModuleLog Log = new("Command");
-    
+
     [ServiceManager.ServiceDependency]
     private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
 
@@ -229,10 +226,10 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     {
         this.pluginInfo = localPlugin;
     }
-    
+
     /// <inheritdoc/>
     public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => this.commandManagerService.Commands;
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -240,7 +237,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         {
             this.commandManagerService.RemoveHandler(command);
         }
-        
+
         this.pluginRegisteredCommands.Clear();
     }
 
@@ -251,7 +248,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     public void DispatchCommand(string command, string argument, IReadOnlyCommandInfo info)
         => this.commandManagerService.DispatchCommand(command, argument, info);
-    
+
     /// <inheritdoc/>
     public bool AddHandler(string command, CommandInfo info)
     {
@@ -270,7 +267,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
 
         return false;
     }
-    
+
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
