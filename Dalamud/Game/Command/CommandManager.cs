@@ -43,7 +43,6 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             this.OnTestCommand);
         this.testCommandHook.Enable();
 
-        // this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
         this.console.Invoke += this.ConsoleOnInvoke;
     }
     
