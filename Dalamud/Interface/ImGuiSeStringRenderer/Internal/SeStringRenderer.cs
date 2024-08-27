@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -16,17 +15,15 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 using ImGuiNET;
 
 using Lumina.Excel.GeneratedSheets2;
+using Lumina.Text.Parse;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using static Dalamud.Game.Text.SeStringHandling.BitmapFontIcon;
-
-using SeStringBuilder = Lumina.Text.SeStringBuilder;
 
 namespace Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 
@@ -46,29 +43,11 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// of this placeholder. On its own, usually displayed like <c>[OBJ]</c>.</summary>
     private const int ObjectReplacementCharacter = '\uFFFC';
 
-    /// <summary>SeString to return instead, if macro encoder has failed and could not provide us the reason.</summary>
-    private static readonly ReadOnlySeString MacroEncoderEncodeStringError =
-        new SeStringBuilder()
-            .BeginMacro(MacroCode.ColorType).AppendIntExpression(508).EndMacro()
-            .BeginMacro(MacroCode.EdgeColorType).AppendIntExpression(509).EndMacro()
-            .Append(
-                "<encode failed, and error message generation failed because the part that caused the error was too long>"u8)
-            .BeginMacro(MacroCode.EdgeColorType).AppendIntExpression(0).EndMacro()
-            .BeginMacro(MacroCode.ColorType).AppendIntExpression(0).EndMacro()
-            .ToReadOnlySeString();
-
     [ServiceManager.ServiceDependency]
     private readonly GameConfig gameConfig = Service<GameConfig>.Get();
 
     /// <summary>Cache of compiled SeStrings from <see cref="CompileAndCache"/>.</summary>
     private readonly ConcurrentLru<string, ReadOnlySeString> cache = new(1024);
-
-    /// <summary>Sets the global invalid parameter handler. Used to suppress <c>vsprintf_s</c> from raising.</summary>
-    /// <remarks>There exists a thread local version of this, but as the game-provided implementation is what
-    /// effectively is a screaming tool that the game has a bug, it should be safe to fail in any means.</remarks>
-    private readonly delegate* unmanaged<
-        delegate* unmanaged<char*, char*, char*, int, nuint, void>,
-        delegate* unmanaged<char*, char*, char*, int, nuint, void>> setInvalidParameterHandler;
 
     /// <summary>Parsed <c>gfdata.gfd</c> file, containing bitmap font icon lookup table.</summary>
     private readonly GfdFile gfd;
@@ -90,14 +69,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         this.colorStackSet = new(
             dm.Excel.GetSheet<UIColor>() ?? throw new InvalidOperationException("Failed to access UIColor sheet."));
         this.gfd = dm.GetFile<GfdFile>("common/font/gfdata.gfd")!;
-
-        // SetUnhandledExceptionFilter(who cares);
-        // _set_purecall_handler(() => *(int*)0 = 0xff14);
-        // _set_invalid_parameter_handler(() => *(int*)0 = 0xff14);
-        var f = sigScanner.ScanText(
-                    "ff 15 ?? ?? ?? ?? 48 8d 0d ?? ?? ?? ?? e8 ?? ?? ?? ?? 48 8d 0d ?? ?? ?? ?? e8 ?? ?? ?? ??") + 26;
-        fixed (void* p = &this.setInvalidParameterHandler)
-            *(nint*)p = *(int*)f + f + 4;
     }
 
     /// <summary>Finalizes an instance of the <see cref="SeStringRenderer"/> class.</summary>
@@ -106,72 +77,16 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.ReleaseUnmanagedResources();
 
-    /// <summary>Compiles a SeString from a text macro representation.</summary>
-    /// <param name="text">SeString text macro representation.</param>
-    /// <returns>Compiled SeString.</returns>
-    public ReadOnlySeString Compile(ReadOnlySpan<byte> text)
-    {
-        // MacroEncoder looks stateful; disallowing calls from off main threads for now.
-        ThreadSafety.AssertMainThread();
-
-        var prev = this.setInvalidParameterHandler(&MsvcrtInvalidParameterHandlerDetour);
-        try
-        {
-            using var tmp = new Utf8String();
-            RaptureTextModule.Instance()->MacroEncoder.EncodeString(&tmp, text);
-            return new(tmp.AsSpan().ToArray());
-        }
-        catch (Exception)
-        {
-            return MacroEncoderEncodeStringError;
-        }
-        finally
-        {
-            this.setInvalidParameterHandler(prev);
-        }
-
-        [UnmanagedCallersOnly]
-        static void MsvcrtInvalidParameterHandlerDetour(char* a, char* b, char* c, int d, nuint e) =>
-            throw new InvalidOperationException();
-    }
-
-    /// <summary>Compiles a SeString from a text macro representation.</summary>
-    /// <param name="text">SeString text macro representation.</param>
-    /// <returns>Compiled SeString.</returns>
-    public ReadOnlySeString Compile(ReadOnlySpan<char> text)
-    {
-        var len = Encoding.UTF8.GetByteCount(text);
-        if (len >= 1024)
-        {
-            var buf = ArrayPool<byte>.Shared.Rent(len + 1);
-            buf[Encoding.UTF8.GetBytes(text, buf)] = 0;
-            var res = this.Compile(buf);
-            ArrayPool<byte>.Shared.Return(buf);
-            return res;
-        }
-        else
-        {
-            Span<byte> buf = stackalloc byte[len + 1];
-            buf[Encoding.UTF8.GetBytes(text, buf)] = 0;
-            return this.Compile(buf);
-        }
-    }
-
     /// <summary>Compiles and caches a SeString from a text macro representation.</summary>
     /// <param name="text">SeString text macro representation.
     /// Newline characters will be normalized to newline payloads.</param>
     /// <returns>Compiled SeString.</returns>
-    public ReadOnlySeString CompileAndCache(string text)
-    {
-        // MacroEncoder looks stateful; disallowing calls from off main threads for now.
-        // Note that this is replicated in context.Compile. Only access cache from the main thread.
-        ThreadSafety.AssertMainThread();
-
-        return this.cache.GetOrAdd(
+    public ReadOnlySeString CompileAndCache(string text) =>
+        this.cache.GetOrAdd(
             text,
-            static (text, context) => context.Compile(text.ReplaceLineEndings("<br>")),
-            this);
-    }
+            static text => ReadOnlySeString.FromMacroString(
+                text.ReplaceLineEndings("<br>"),
+                new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError }));
 
     /// <summary>Compiles and caches a SeString from a text macro representation, and then draws it.</summary>
     /// <param name="text">SeString text macro representation.
