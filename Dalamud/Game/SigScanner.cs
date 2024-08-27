@@ -276,8 +276,7 @@ public class SigScanner : IDisposable, ISigScanner
             }
         }
 
-        var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
-        var scanRet = Scan(mBase, this.TextSectionSize, signature);
+        var scanRet = Scan(this.TextSectionBase, this.TextSectionSize, signature);
 
         if (this.IsCopy)
             scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
@@ -285,7 +284,15 @@ public class SigScanner : IDisposable, ISigScanner
         var insnByte = Marshal.ReadByte(scanRet);
 
         if (insnByte == 0xE8 || insnByte == 0xE9)
+        {
             scanRet = ReadJmpCallSig(scanRet);
+            var rel = scanRet - this.Module.BaseAddress;
+            if (rel < 0 || rel >= this.TextSectionSize)
+            {
+                throw new KeyNotFoundException(
+                    $"Signature \"{signature}\" resolved to 0x{rel:X} which is outside .text section. Possible signature conflicts?");
+            }
+        }
 
         // If this is below the module, there's bound to be a problem with the sig/resolution... Let's not save it
         // TODO: THIS IS A HACK! FIX THE ROOT CAUSE!
@@ -319,8 +326,9 @@ public class SigScanner : IDisposable, ISigScanner
     public IEnumerable<nint> ScanAllText(string signature, CancellationToken cancellationToken)
     {
         var (needle, mask, badShift) = ParseSignature(signature);
-        var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
-        while (mBase < this.TextSectionBase + this.TextSectionSize)
+        var mBase = this.TextSectionBase;
+        var mTo = this.TextSectionBase + this.TextSectionSize;
+        while (mBase < mTo)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
