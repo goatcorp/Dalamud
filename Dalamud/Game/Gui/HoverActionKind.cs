@@ -14,35 +14,35 @@ public enum HoverActionKind
     /// <summary>
     /// A regular action is hovered.
     /// </summary>
-    Action = 21,
+    Action = 28,
 
     /// <summary>
     /// A general action is hovered.
     /// </summary>
-    GeneralAction = 23,
+    GeneralAction = 30,
 
     /// <summary>
     /// A companion order type of action is hovered.
     /// </summary>
-    CompanionOrder = 24,
+    CompanionOrder = 31,
 
     /// <summary>
     /// A main command type of action is hovered.
     /// </summary>
-    MainCommand = 25,
+    MainCommand = 32,
 
     /// <summary>
     /// An extras command type of action is hovered.
     /// </summary>
-    ExtraCommand = 26,
+    ExtraCommand = 33,
 
     /// <summary>
     /// A pet order type of action is hovered.
     /// </summary>
-    PetOrder = 28,
+    PetOrder = 35,
 
     /// <summary>
     /// A trait is hovered.
     /// </summary>
-    Trait = 29,
+    Trait = 36,
 }
