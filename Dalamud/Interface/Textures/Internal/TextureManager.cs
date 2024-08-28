@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -11,7 +12,9 @@ using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using Dalamud.Utility.TerraFxCom;
 
@@ -48,10 +51,14 @@ internal sealed partial class TextureManager
     [ServiceManager.ServiceDependency]
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
 
+    private readonly CancellationTokenSource disposeCts = new();
+    private readonly Thread oleThread;
+    private readonly ManualResetEvent oleThreadActionAvailable;
+    private readonly ConcurrentQueue<Action> oleThreadActions = new();
+
     private DynamicPriorityQueueLoader? dynamicPriorityTextureLoader;
     private SharedTextureManager? sharedTextureManager;
     private WicManager? wicManager;
-    private bool disposing;
     private ComPtr<ID3D11Device> device;
 
     [ServiceManager.ServiceConstructor]
@@ -68,6 +75,11 @@ internal sealed partial class TextureManager
         this.simpleDrawer.Setup(this.device.Get());
 
         failsafe.Cancel();
+
+        this.oleThread = new(this.OleThreadBody);
+        this.oleThread.SetApartmentState(ApartmentState.STA);
+        this.oleThreadActionAvailable = new(false);
+        this.oleThread.Start();
     }
 
     /// <summary>Finalizes an instance of the <see cref="TextureManager"/> class.</summary>
@@ -104,10 +116,12 @@ internal sealed partial class TextureManager
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        if (this.disposing)
+        if (this.disposeCts.IsCancellationRequested)
             return;
 
-        this.disposing = true;
+        this.disposeCts.Cancel();
+        this.oleThread.Join();
+        this.oleThreadActionAvailable.Dispose();
 
         Interlocked.Exchange(ref this.dynamicPriorityTextureLoader, null)?.Dispose();
         Interlocked.Exchange(ref this.simpleDrawer, null)?.Dispose();
@@ -270,6 +284,21 @@ internal sealed partial class TextureManager
     }
 
     /// <inheritdoc/>
+    public IDrawListTextureWrap CreateDrawListTexture(string? debugName = null) => this.CreateDrawListTexture(null, debugName);
+
+    /// <summary><inheritdoc cref="CreateDrawListTexture(string?)" path="/summary"/></summary>
+    /// <param name="plugin">Plugin that created the draw list.</param>
+    /// <param name="debugName"><inheritdoc cref="CreateDrawListTexture(string?)" path="/param[name=debugName]"/></param>
+    /// <returns><inheritdoc cref="CreateDrawListTexture(string?)" path="/returns"/></returns>
+    public IDrawListTextureWrap CreateDrawListTexture(LocalPlugin? plugin, string? debugName = null) =>
+        new DrawListTextureWrap(
+            new(this.device),
+            this,
+            Service<DalamudAssetManager>.Get().Empty4X4,
+            plugin,
+            debugName ?? $"{nameof(this.CreateDrawListTexture)}");
+
+    /// <inheritdoc/>
     bool ITextureProvider.IsDxgiFormatSupported(int dxgiFormat) =>
         this.IsDxgiFormatSupported((DXGI_FORMAT)dxgiFormat);
 
@@ -330,7 +359,7 @@ internal sealed partial class TextureManager
     /// <returns>The loaded texture.</returns>
     internal IDalamudTextureWrap NoThrottleCreateFromTexFile(TexFile file)
     {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
+        ObjectDisposedException.ThrowIf(this.disposeCts.IsCancellationRequested, this);
 
         var buffer = file.TextureBuffer;
         var (dxgiFormat, conversion) = TexFile.GetDxgiFormatFromTextureFormat(file.Header.Format, false);
@@ -354,7 +383,7 @@ internal sealed partial class TextureManager
     /// <returns>The loaded texture.</returns>
     internal IDalamudTextureWrap NoThrottleCreateFromTexFile(ReadOnlySpan<byte> fileBytes)
     {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
+        ObjectDisposedException.ThrowIf(this.disposeCts.IsCancellationRequested, this);
 
         if (!TexFileExtensions.IsPossiblyTexFile2D(fileBytes))
             throw new InvalidDataException("The file is not a TexFile.");

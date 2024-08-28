@@ -173,7 +173,7 @@ internal sealed partial class TextureManager
         ReadOnlyMemory<byte> bytes,
         CancellationToken cancellationToken = default)
     {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
+        ObjectDisposedException.ThrowIf(this.disposeCts.IsCancellationRequested, this);
         cancellationToken.ThrowIfCancellationRequested();
 
         try
@@ -204,7 +204,7 @@ internal sealed partial class TextureManager
         string path,
         CancellationToken cancellationToken = default)
     {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
+        ObjectDisposedException.ThrowIf(this.disposeCts.IsCancellationRequested, this);
         cancellationToken.ThrowIfCancellationRequested();
 
         try

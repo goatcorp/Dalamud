@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Numerics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,8 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
+
+using ImGuiNET;
 
 using Lumina.Data.Files;
 
@@ -45,6 +48,14 @@ public interface ITextureProvider
         bool cpuRead,
         bool cpuWrite,
         string? debugName = null);
+
+    /// <summary>Creates a texture that can be drawn from an <see cref="ImDrawList"/> or an <see cref="ImDrawData"/>.
+    /// </summary>
+    /// <param name="debugName">Name for debug display purposes.</param>
+    /// <returns>A new draw list texture.</returns>
+    /// <remarks>No new resource is allocated upfront; it will be done when <see cref="IDrawListTextureWrap.Size"/> is
+    /// set with positive values for both components.</remarks>
+    IDrawListTextureWrap CreateDrawListTexture(string? debugName = null);
 
     /// <summary>Creates a texture from the given existing texture, cropping and converting pixel format as needed.
     /// </summary>
