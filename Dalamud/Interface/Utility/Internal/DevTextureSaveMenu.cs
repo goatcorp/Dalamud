@@ -61,6 +61,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                .Replace('*', '_')
                .ToString();
 
+        var isCopy = false;
         try
         {
             var initiatorScreenOffset = ImGui.GetMousePos();
@@ -124,6 +125,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
 
             if (encoder is null)
             {
+                isCopy = true;
                 await textureManager.CopyToClipboardAsync(textureWrap, name, true);
             }
             else
@@ -176,7 +178,9 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                 e,
                 $"{nameof(DalamudInterface)}.{nameof(this.ShowTextureSaveMenuAsync)}({initiatorName}, {name})");
             Service<NotificationManager>.Get().AddNotification(
-                $"Failed to save file: {e}",
+                isCopy
+                    ? $"Failed to copy file: {e}"
+                    : $"Failed to save file: {e}",
                 initiatorName,
                 NotificationType.Error);
         }

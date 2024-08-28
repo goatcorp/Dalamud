@@ -421,7 +421,6 @@ public abstract class Window
                 if (!isAvailable)
                     ImGui.EndDisabled();
 
-                // TODO: localize
                 if (ImGui.Button(Loc.Localize("WindowSystemContextActionPrintWindow", "Print window")))
                     printWindow = true;
 
@@ -481,6 +480,8 @@ public abstract class Window
             }
         }
 
+        ImGui.End();
+
         if (printWindow)
         {
             var tex = Service<TextureManager>.Get().CreateDrawListTexture(
@@ -491,8 +492,6 @@ public abstract class Window
                 this.WindowName,
                 Task.FromResult<IDalamudTextureWrap>(tex));
         }
-
-        ImGui.End();
 
         this.PostDraw();
 
