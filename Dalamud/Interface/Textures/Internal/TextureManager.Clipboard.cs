@@ -248,32 +248,26 @@ internal sealed partial class TextureManager
         };
         while (true)
         {
-            switch (MsgWaitForMultipleObjects(ctshc, ctsh, false, INFINITE, QS.QS_ALLINPUT))
+            _ = MsgWaitForMultipleObjects(ctshc, ctsh, false, INFINITE, QS.QS_ALLINPUT);
+
+            if (this.disposeCts.IsCancellationRequested)
+                PostQuitMessage(0);
+
+            HandleActions();
+
+            MSG msg;
+            while (PeekMessageW(&msg, default, 0, 0, PM.PM_REMOVE))
             {
-                case WAIT.WAIT_OBJECT_0:
-                    PostQuitMessage(0);
-                    break;
-
-                case WAIT.WAIT_OBJECT_0 + 1:
+                if (msg.message == WM.WM_QUIT)
+                {
                     HandleActions();
-                    break;
+                    _ = OleFlushClipboard();
+                    OleUninitialize();
+                    return;
+                }
 
-                case WAIT.WAIT_OBJECT_0 + ctshc:
-                    MSG msg;
-                    while (PeekMessageW(&msg, default, 0, 0, PM.PM_REMOVE))
-                    {
-                        if (msg.message == WM.WM_QUIT)
-                        {
-                            HandleActions();
-                            OleUninitialize();
-                            return;
-                        }
-
-                        TranslateMessage(&msg);
-                        DispatchMessageW(&msg);
-                    }
-
-                    break;
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
             }
         }
 
@@ -295,5 +289,8 @@ internal sealed partial class TextureManager
 
         [DllImport("ole32.dll")]
         static extern void OleUninitialize();
+
+        [DllImport("ole32.dll")]
+        static extern int OleFlushClipboard();
     }
 }
