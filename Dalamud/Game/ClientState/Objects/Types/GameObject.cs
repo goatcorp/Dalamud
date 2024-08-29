@@ -80,12 +80,13 @@ public interface IGameObject : IEquatable<IGameObject>
 
     /// <summary>
     /// Gets the position of this <see cref="GameObject" />.
+    /// This is in yalms (x+ = east, x- = west, y+ = up, y- down, z+ = south, z- = north) (the numbers under the map have Y and Z are swapped and are not in yalms).
     /// </summary>
     public Vector3 Position { get; }
 
     /// <summary>
     /// Gets the rotation of this <see cref="GameObject" />.
-    /// This ranges from -pi to pi radians.
+    /// This ranges from -pi to pi radians (counterclockwise from south; for Atan2 trigonometry, use Position.Z as the x axis and Position.X as the y axis).
     /// </summary>
     public float Rotation { get; }
 
