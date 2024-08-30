@@ -40,7 +40,7 @@ internal sealed unsafe class RsvResolver : IDisposable
         this.addRsvStringHook.Dispose();
     }
 
-    private bool AddRsvStringDetour(LayoutWorld* @this, byte* rsvString, byte* resolvedString, nint resolvedStringSize)
+    private bool AddRsvStringDetour(LayoutWorld* @this, byte* rsvString, byte* resolvedString, nuint resolvedStringSize)
     {
         var rsv = new ReadOnlySeString(MemoryHelper.ReadRawNullTerminated((nint)rsvString));
         var resolved = new ReadOnlySeString(new ReadOnlySpan<byte>(resolvedString, (int)resolvedStringSize).ToArray());

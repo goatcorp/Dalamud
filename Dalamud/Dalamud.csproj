@@ -120,11 +120,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="ExdSheets">
-        <HintPath>..\..\ExdSheets\ExdSheets\bin\Release\net8.0\ExdSheets.dll</HintPath>
+      <Reference Include="Lumina.Excel">
+        <HintPath>..\..\Lumina.Excel\src\Lumina.Excel\bin\Release\net8.0\Lumina.Excel.dll</HintPath>
       </Reference>
       <Reference Include="Lumina">
-        <HintPath>..\..\ExdSheets\ExdSheets\bin\Release\net8.0\Lumina.dll</HintPath>
+        <HintPath>..\..\Lumina.Excel\src\Lumina.Excel\bin\Release\net8.0\Lumina.dll</HintPath>
       </Reference>
     </ItemGroup>
 
