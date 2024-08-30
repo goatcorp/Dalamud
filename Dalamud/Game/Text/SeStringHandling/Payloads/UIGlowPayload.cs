@@ -14,8 +14,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class UIGlowPayload : Payload
 {
-    private UIColor? color;
-
     [JsonProperty]
     private ushort colorKey;
 
@@ -60,7 +58,6 @@ public class UIGlowPayload : Payload
         set
         {
             this.colorKey = value;
-            this.color = null;
             this.Dirty = true;
         }
     }
