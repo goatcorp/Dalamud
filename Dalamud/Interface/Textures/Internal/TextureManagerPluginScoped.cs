@@ -268,6 +268,17 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public async Task<IDalamudTextureWrap> CreateFromClipboardAsync(
+        string? debugName = null,
+        CancellationToken cancellationToken = default)
+    {
+        var manager = await this.ManagerTask;
+        var textureWrap = await manager.CreateFromClipboardAsync(debugName, cancellationToken);
+        manager.Blame(textureWrap, this.plugin);
+        return textureWrap;
+    }
+
+    /// <inheritdoc/>
     public IEnumerable<IBitmapCodecInfo> GetSupportedImageDecoderInfos() =>
         this.ManagerOrThrow.Wic.GetSupportedDecoderInfos();
 
@@ -278,6 +289,9 @@ internal sealed class TextureManagerPluginScoped
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }
+
+    /// <inheritdoc/>
+    public bool HasClipboardImage() => this.ManagerOrThrow.HasClipboardImage();
 
     /// <inheritdoc/>
     public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture)

@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -52,9 +51,6 @@ internal sealed partial class TextureManager
     private readonly InterfaceManager interfaceManager = Service<InterfaceManager>.Get();
 
     private readonly CancellationTokenSource disposeCts = new();
-    private readonly Thread oleThread;
-    private readonly ManualResetEvent oleThreadActionAvailable;
-    private readonly ConcurrentQueue<Action> oleThreadActions = new();
 
     private DynamicPriorityQueueLoader? dynamicPriorityTextureLoader;
     private SharedTextureManager? sharedTextureManager;
@@ -75,11 +71,6 @@ internal sealed partial class TextureManager
         this.simpleDrawer.Setup(this.device.Get());
 
         failsafe.Cancel();
-
-        this.oleThread = new(this.OleThreadBody);
-        this.oleThread.SetApartmentState(ApartmentState.STA);
-        this.oleThreadActionAvailable = new(false);
-        this.oleThread.Start();
     }
 
     /// <summary>Finalizes an instance of the <see cref="TextureManager"/> class.</summary>
@@ -120,8 +111,6 @@ internal sealed partial class TextureManager
             return;
 
         this.disposeCts.Cancel();
-        this.oleThread.Join();
-        this.oleThreadActionAvailable.Dispose();
 
         Interlocked.Exchange(ref this.dynamicPriorityTextureLoader, null)?.Dispose();
         Interlocked.Exchange(ref this.simpleDrawer, null)?.Dispose();

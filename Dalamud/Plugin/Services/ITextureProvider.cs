@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Numerics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -181,6 +179,14 @@ public interface ITextureProvider
         string? debugName = null,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Creates a texture from clipboard.</summary>
+    /// <param name="debugName">Name for debug display purposes.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="Task"/> representing the status of the operation.</returns>
+    Task<IDalamudTextureWrap> CreateFromClipboardAsync(
+        string? debugName = null,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Gets the supported bitmap decoders.</summary>
     /// <returns>The supported bitmap decoders.</returns>
     /// <remarks>
@@ -203,6 +209,11 @@ public interface ITextureProvider
     /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
     /// </remarks>
     ISharedImmediateTexture GetFromGameIcon(in GameIconLookup lookup);
+
+    /// <summary>Gets a value indicating whether the current desktop clipboard contains an image that can be attempted
+    /// to read using <see cref="CreateFromClipboardAsync"/>.</summary>
+    /// <returns><c>true</c> if it is the case.</returns>
+    bool HasClipboardImage();
     
     /// <summary>Gets a shared texture corresponding to the given game resource icon specifier.</summary>
     /// <remarks>
