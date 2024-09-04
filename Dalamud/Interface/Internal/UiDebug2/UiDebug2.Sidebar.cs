@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -14,7 +16,7 @@ namespace Dalamud.Interface.Internal.UiDebug2;
 /// <inheritdoc cref="UiDebug2"/>
 internal unsafe partial class UiDebug2
 {
-    /// <summary>
+   /// <summary>
     /// All unit lists to check for addons.
     /// </summary>
     internal static readonly List<UnitListOption> UnitListOptions =
@@ -51,18 +53,18 @@ internal unsafe partial class UiDebug2
 
     private void DrawSidebar()
     {
-        ImGui.BeginGroup();
+        var g = ImRaii.Group();
 
         this.DrawNameSearch();
         this.DrawAddonSelectionList();
         this.elementSelector.DrawInterface();
 
-        ImGui.EndGroup();
+        g.Dispose();
     }
 
     private void DrawNameSearch()
     {
-        ImGui.BeginChild("###sidebar_nameSearch", new(250, 40), true);
+        var ch = ImRaii.Child("###sidebar_nameSearch", new(250, 40), true);
         var atkUnitBaseSearch = this.addonNameSearch;
 
         Vector4? defaultColor = this.visFilter ? new(0.0f, 0.8f, 0.2f, 1f) : new Vector4(0.6f, 0.6f, 0.6f, 1);
@@ -84,12 +86,12 @@ internal unsafe partial class UiDebug2
             this.addonNameSearch = atkUnitBaseSearch;
         }
 
-        ImGui.EndChild();
+        ch.Dispose();
     }
 
     private void DrawAddonSelectionList()
     {
-        ImGui.BeginChild("###sideBar_addonList", new(250, -44), true, ImGuiWindowFlags.AlwaysVerticalScrollbar);
+        var ch = ImRaii.Child("###sideBar_addonList", new(250, -44), true, ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         var unitListBaseAddr = GetUnitListBaseAddr();
 
@@ -98,7 +100,7 @@ internal unsafe partial class UiDebug2
             this.DrawUnitListOption(unitListBaseAddr, unit);
         }
 
-        ImGui.EndChild();
+        ch.Dispose();
     }
 
     private void DrawUnitListOption(AtkUnitList* unitListBaseAddr, UnitListOption unit)
@@ -144,26 +146,27 @@ internal unsafe partial class UiDebug2
             return;
         }
 
-        ImGui.PushStyleColor(ImGuiCol.Text, anyVisible ? new Vector4(1) : new Vector4(0.6f, 0.6f, 0.6f, 1));
         var countStr = $"{(usingFilter ? $"{matchCount}/" : string.Empty)}{totalCount}";
-        var treePush = ImGui.TreeNodeEx($"{unit.Name} [{countStr}]###unitListTree{unit.Index}");
-        ImGui.PopStyleColor();
 
-        if (treePush)
+        var col1 = ImRaii.PushColor(ImGuiCol.Text, anyVisible ? new Vector4(1) : new Vector4(0.6f, 0.6f, 0.6f, 1));
+        var tree = ImRaii.TreeNode($"{unit.Name} [{countStr}]###unitListTree{unit.Index}");
+        col1.Pop();
+
+        if (tree)
         {
             foreach (var option in options)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, option.Visible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new Vector4(0.6f, 0.6f, 0.6f, 1));
+                var col2 = ImRaii.PushColor(ImGuiCol.Text, option.Visible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new Vector4(0.6f, 0.6f, 0.6f, 1));
                 if (ImGui.Selectable($"{option.Name}##select{option.Name}", this.SelectedAddonName == option.Name))
                 {
                     this.SelectedAddonName = option.Name;
                 }
 
-                ImGui.PopStyleColor();
+                col2.Pop();
             }
-
-            ImGui.TreePop();
         }
+
+        tree.Dispose();
     }
 
     /// <summary>

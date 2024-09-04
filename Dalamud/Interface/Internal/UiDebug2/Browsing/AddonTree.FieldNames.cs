@@ -28,10 +28,8 @@ public unsafe partial class AddonTree
             return null;
         }
 
-        if (!AddonTypeDict.ContainsKey(this.AddonName))
+        if (AddonTypeDict.TryAdd(this.AddonName, null))
         {
-            AddonTypeDict.Add(this.AddonName, null);
-
             foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
@@ -104,13 +102,15 @@ public unsafe partial class AddonTree
             }
         }
 
+        return;
+
         void ParseExplicitField(nint fieldAddr, FieldInfo field, MemberInfo fieldType, string name)
         {
             try
             {
-                if (this.FieldNames.TryAdd(fieldAddr, new List<string>(path!) { name }) && fieldType.DeclaringType == baseType)
+                if (this.FieldNames.TryAdd(fieldAddr, [..path!, name]) && fieldType.DeclaringType == baseType)
                 {
-                    this.PopulateFieldNames(field.GetValue(obj), fieldAddr, new List<string>(path) { name });
+                    this.PopulateFieldNames(field.GetValue(obj), fieldAddr, [..path, name]);
                 }
             }
             catch (Exception ex)
@@ -140,12 +140,12 @@ public unsafe partial class AddonTree
                         var itemAddr = fieldAddr + (size * i);
                         var itemName = $"{name}[{i}]";
 
-                        this.FieldNames.TryAdd(itemAddr, new List<string>(path!) { itemName });
+                        this.FieldNames.TryAdd(itemAddr, [..path!, itemName]);
 
                         var item = Marshal.PtrToStructure(itemAddr, itemType);
                         if (itemType.DeclaringType == baseType)
                         {
-                            this.PopulateFieldNames(item, itemAddr, new List<string>(path) { name });
+                            this.PopulateFieldNames(item, itemAddr, [..path, itemName]);
                         }
                     }
                 }
@@ -176,16 +176,16 @@ public unsafe partial class AddonTree
                     return;
                 }
 
-                this.FieldNames.TryAdd(fieldAddr, new List<string>(path!) { name });
-                this.FieldNames.TryAdd(pointer, new List<string>(path) { name });
+                this.FieldNames.TryAdd(fieldAddr, [..path!, name]);
+                this.FieldNames.TryAdd(pointer, [..path, name]);
 
-                if (itemType?.DeclaringType != baseType || itemType.IsPointer)
+                if (itemType?.DeclaringType != baseType || itemType!.IsPointer)
                 {
                     return;
                 }
 
                 var item = Marshal.PtrToStructure(pointer, itemType);
-                this.PopulateFieldNames(item, pointer, new List<string>(path) { name });
+                this.PopulateFieldNames(item, pointer, [..path, name]);
             }
             catch (Exception ex)
             {

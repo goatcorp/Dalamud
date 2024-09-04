@@ -3,6 +3,8 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -13,6 +15,7 @@ using static Dalamud.Utility.Util;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeType;
 using static ImGuiNET.ImGuiTableColumnFlags;
 using static ImGuiNET.ImGuiTableFlags;
+using static ImGuiNET.ImGuiTreeNodeFlags;
 
 // ReSharper disable SuggestBaseTypeForParameter
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
@@ -20,9 +23,9 @@ namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 /// <summary>
 /// A struct allowing a node's animation timeline to be printed and browsed.
 /// </summary>
-public unsafe partial struct TimelineTree
+public readonly unsafe partial struct TimelineTree
 {
-    private AtkResNode* node;
+    private readonly AtkResNode* node;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TimelineTree"/> struct.
@@ -53,7 +56,9 @@ public unsafe partial struct TimelineTree
 
         if (count > 0)
         {
-            if (NestedTreePush($"Timeline##{(nint)this.node:X}timeline", out _))
+            var tree = ImRaii.TreeNode($"Timeline##{(nint)this.node:X}timeline", SpanFullWidth);
+
+            if (tree)
             {
                 PrintFieldValuePair("Timeline", $"{(nint)this.NodeTimeline:X}");
 
@@ -72,12 +77,12 @@ public unsafe partial struct TimelineTree
                 for (var a = 0; a < count; a++)
                 {
                     var animation = this.Resource->Animations[a];
-                    var isActive = this.ActiveAnimation != null && animation.Equals(*this.ActiveAnimation);
+                    var isActive = this.ActiveAnimation != null && &animation == this.ActiveAnimation;
                     this.PrintAnimation(animation, a, isActive, (nint)(this.NodeTimeline->Resource->Animations + (a * sizeof(AtkTimelineAnimation))));
                 }
-
-                ImGui.TreePop();
             }
+
+            tree.Dispose();
         }
     }
 
@@ -305,11 +310,11 @@ public unsafe partial struct TimelineTree
     {
         var columns = this.BuildColumns(animation);
 
-        ImGui.PushStyleColor(ImGuiCol.Text, isActive ? new Vector4(1, 0.65F, 0.4F, 1) : new(1));
-        var treePush = ImGui.TreeNode($"[#{a}] [Frames {animation.StartFrameIdx}-{animation.EndFrameIdx}] {(isActive ? " (Active)" : string.Empty)}###{(nint)this.node}animTree{a}");
-        ImGui.PopStyleColor();
+        var col = ImRaii.PushColor(ImGuiCol.Text, isActive ? new Vector4(1, 0.65F, 0.4F, 1) : new(1));
+        var tree = ImRaii.TreeNode($"[#{a}] [Frames {animation.StartFrameIdx}-{animation.EndFrameIdx}] {(isActive ? " (Active)" : string.Empty)}###{(nint)this.node}animTree{a}");
+        col.Dispose();
 
-        if (treePush)
+        if (tree)
         {
             PrintFieldValuePair("Animation", $"{address:X}");
 
@@ -317,7 +322,7 @@ public unsafe partial struct TimelineTree
 
             if (columns.Count > 0)
             {
-                ImGui.BeginTable($"##{(nint)this.node}animTable{a}", columns.Count, Borders | SizingFixedFit | RowBg | NoHostExtendX);
+                var table = ImRaii.Table($"##{(nint)this.node}animTable{a}", columns.Count, Borders | SizingFixedFit | RowBg | NoHostExtendX);
 
                 foreach (var c in columns)
                 {
@@ -339,11 +344,11 @@ public unsafe partial struct TimelineTree
                     }
                 }
 
-                ImGui.EndTable();
+                table.Dispose();
             }
-
-            ImGui.TreePop();
         }
+
+        tree.Dispose();
     }
 
     private List<IKeyGroupColumn> BuildColumns(AtkTimelineAnimation animation)

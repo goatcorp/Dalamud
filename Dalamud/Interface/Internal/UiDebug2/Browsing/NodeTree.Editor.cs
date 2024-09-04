@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
@@ -25,11 +26,11 @@ internal unsafe partial class ResNodeTree
     /// </summary>
     private protected void DrawNodeEditorTable()
     {
-        ImGui.BeginTable($"###Editor{(nint)this.Node}", 2, SizingStretchProp | NoHostExtendX);
+        var tab = ImRaii.Table($"###Editor{(nint)this.Node}", 2, SizingStretchProp | NoHostExtendX);
 
         this.DrawEditorRows();
 
-        ImGui.EndTable();
+        tab.Dispose();
     }
 
     /// <summary>
@@ -289,7 +290,7 @@ internal unsafe partial class NineGridNodeTree
 /// <inheritdoc cref="TextNodeTree"/>
 internal unsafe partial class TextNodeTree
 {
-    private static readonly List<FontType> FontList = Enum.GetValues<FontType>().ToList();
+    private static readonly List<FontType> FontList = [.. Enum.GetValues<FontType>()];
 
     private static readonly string[] FontNames = Enum.GetNames<FontType>();
 
@@ -370,8 +371,8 @@ internal unsafe partial class TextNodeTree
         var hAlign = (int)alignment % 3;
         var vAlign = ((int)alignment - hAlign) / 3;
 
-        var hAlignInput = IconSelectInput($"{label}H", ref hAlign, new() { 0, 1, 2 }, new() { AlignLeft, AlignCenter, AlignRight });
-        var vAlignInput = IconSelectInput($"{label}V", ref vAlign, new() { 0, 1, 2 }, new() { ArrowsUpToLine, GripLines, ArrowsDownToLine });
+        var hAlignInput = IconSelectInput($"{label}H", ref hAlign, [0, 1, 2], [AlignLeft, AlignCenter, AlignRight]);
+        var vAlignInput = IconSelectInput($"{label}V", ref vAlign, [0, 1, 2], [ArrowsUpToLine, GripLines, ArrowsDownToLine]);
 
         if (hAlignInput || vAlignInput)
         {

@@ -6,6 +6,8 @@ using System.Numerics;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
@@ -18,6 +20,7 @@ using static Dalamud.Interface.Utility.ImGuiHelpers;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeFlags;
 using static ImGuiNET.ImGuiCol;
 using static ImGuiNET.ImGuiWindowFlags;
+// ReSharper disable StructLacksIEquatable.Global
 
 #pragma warning disable CS0659
 
@@ -76,10 +79,10 @@ internal unsafe class ElementSelector : IDisposable
     /// </summary>
     internal void DrawInterface()
     {
-        ImGui.BeginChild("###sidebar_elementSelector", new(250, 0), true);
+        var ch = ImRaii.Child("###sidebar_elementSelector", new(250, 0), true);
 
-        ImGui.PushFont(IconFont);
-        ImGui.PushStyleColor(Text, this.Active ? new Vector4(1, 1, 0.2f, 1) : new(1));
+        var f = ImRaii.PushFont(IconFont);
+        var col = ImRaii.PushColor(Text, this.Active ? new Vector4(1, 1, 0.2f, 1) : new(1));
         if (ImGui.Button($"{(char)ObjectUngroup}"))
         {
             this.Active = !this.Active;
@@ -94,8 +97,8 @@ internal unsafe class ElementSelector : IDisposable
             }
         }
 
-        ImGui.PopStyleColor();
-        ImGui.PopFont();
+        col.Pop();
+        f.Pop();
         if (ImGui.IsItemHovered())
         {
             ImGui.SetTooltip("Element Selector");
@@ -112,7 +115,7 @@ internal unsafe class ElementSelector : IDisposable
             this.PerformSearch(address);
         }
 
-        ImGui.EndChild();
+        ch.Dispose();
     }
 
     /// <summary>
@@ -138,9 +141,9 @@ internal unsafe class ElementSelector : IDisposable
         var mousePos = ImGui.GetMousePos() - MainViewport.Pos;
         var addonResults = GetAtkUnitBaseAtPosition(mousePos);
 
-        ImGui.PushStyleColor(WindowBg, new Vector4(0.5f));
-        ImGui.BeginChild("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse);
-        ImGui.BeginGroup();
+        var col = ImRaii.PushColor(WindowBg, new Vector4(0.5f));
+        var ch = ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse);
+        var g = ImRaii.Group();
 
         Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
         ImGui.Spacing();
@@ -201,9 +204,9 @@ internal unsafe class ElementSelector : IDisposable
             }
         }
 
-        ImGui.EndGroup();
-        ImGui.EndChild();
-        ImGui.PopStyleColor();
+        g.Dispose();
+        ch.Dispose();
+        col.Pop();
     }
 
     private static List<AddonResult> GetAtkUnitBaseAtPosition(Vector2 position)
@@ -381,9 +384,9 @@ internal unsafe class ElementSelector : IDisposable
             return;
         }
 
-        ImGui.PushStyleColor(Text, selected ? new Vector4(1, 1, 0.2f, 1) : new(0.6f, 0.6f, 0.6f, 1));
+        var col = ImRaii.PushColor(Text, selected ? new Vector4(1, 1, 0.2f, 1) : new(0.6f, 0.6f, 0.6f, 1));
         ResNodeTree.GetOrCreate(node, tree).WriteTreeHeading();
-        ImGui.PopStyleColor();
+        col.Pop();
     }
 
     private void PerformSearch(nint address)

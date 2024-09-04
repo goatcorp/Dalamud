@@ -14,11 +14,7 @@ namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 /// </summary>
 internal unsafe class ComponentNodeTree : ResNodeTree
 {
-    private readonly AtkUldManager* uldManager;
-
     private readonly ComponentType componentType;
-
-    private readonly AtkComponentBase* component;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ComponentNodeTree"/> class.
@@ -28,17 +24,21 @@ internal unsafe class ComponentNodeTree : ResNodeTree
     internal ComponentNodeTree(AtkResNode* node, AddonTree addonTree)
         : base(node, addonTree)
     {
-        this.component = ((AtkComponentNode*)node)->Component;
-        this.uldManager = &this.component->UldManager;
         this.NodeType = 0;
-        this.componentType = ((AtkUldComponentInfo*)this.uldManager->Objects)->ComponentType;
+        this.componentType = ((AtkUldComponentInfo*)this.UldManager->Objects)->ComponentType;
     }
+
+    private AtkComponentBase* Component => this.CompNode->Component;
+
+    private AtkComponentNode* CompNode => (AtkComponentNode*)this.Node;
+
+    private AtkUldManager* UldManager => &this.Component->UldManager;
 
     /// <inheritdoc/>
     private protected override string GetHeaderText()
     {
-        var childCount = (int)this.uldManager->NodeListCount;
-        return $"{this.componentType} Component Node{(childCount > 0 ? $" [+{childCount}]" : string.Empty)} (Node: {(nint)this.Node:X} / Comp: {(nint)this.component:X})";
+        var childCount = (int)this.UldManager->NodeListCount;
+        return $"{this.componentType} Component Node{(childCount > 0 ? $" [+{childCount}]" : string.Empty)} (Node: {(nint)this.Node:X} / Comp: {(nint)this.Component:X})";
     }
 
     /// <inheritdoc/>
@@ -57,29 +57,30 @@ internal unsafe class ComponentNodeTree : ResNodeTree
     private protected override void PrintChildNodes()
     {
         base.PrintChildNodes();
-        var count = this.uldManager->NodeListCount;
-        PrintNodeListAsTree(this.uldManager->NodeList, count, $"Node List [{count}]:", this.AddonTree, new(0f, 0.5f, 0.8f, 1f));
+        var count = this.UldManager->NodeListCount;
+        PrintNodeListAsTree(this.UldManager->NodeList, count, $"Node List [{count}]:", this.AddonTree, new(0f, 0.5f, 0.8f, 1f));
     }
 
     /// <inheritdoc/>
     private protected override void PrintFieldNames()
     {
         this.PrintFieldName((nint)this.Node, new(0, 0.85F, 1, 1));
-        this.PrintFieldName((nint)this.component, new(0f, 0.5f, 0.8f, 1f));
+        this.PrintFieldName((nint)this.Component, new(0f, 0.5f, 0.8f, 1f));
     }
 
     /// <inheritdoc/>
     private protected override void PrintFieldsForNodeType(bool isEditorOpen = false)
     {
-        if (this.component == null)
+        if (this.Component == null)
         {
             return;
         }
 
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (this.componentType)
         {
             case TextInput:
-                var textInputComponent = (AtkComponentTextInput*)this.component;
+                var textInputComponent = (AtkComponentTextInput*)this.Component;
                 ImGui.Text(
                     $"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
                 ImGui.Text(
@@ -97,98 +98,96 @@ internal unsafe class ComponentNodeTree : ResNodeTree
                 break;
             case List:
             case TreeList:
-                var l = (AtkComponentList*)this.component;
+                var l = (AtkComponentList*)this.Component;
                 if (ImGui.SmallButton("Inc.Selected"))
                 {
                     l->SelectedItemIndex++;
                 }
 
                 break;
-            default:
-                break;
         }
     }
 
     private void PrintComponentObject()
     {
-        PrintFieldValuePair("Component", $"{(nint)this.component:X}");
+        PrintFieldValuePair("Component", $"{(nint)this.Component:X}");
 
         ImGui.SameLine();
 
         switch (this.componentType)
         {
             case Button:
-                ShowStruct((AtkComponentButton*)this.component);
+                ShowStruct((AtkComponentButton*)this.Component);
                 break;
             case Slider:
-                ShowStruct((AtkComponentSlider*)this.component);
+                ShowStruct((AtkComponentSlider*)this.Component);
                 break;
             case Window:
-                ShowStruct((AtkComponentWindow*)this.component);
+                ShowStruct((AtkComponentWindow*)this.Component);
                 break;
             case CheckBox:
-                ShowStruct((AtkComponentCheckBox*)this.component);
+                ShowStruct((AtkComponentCheckBox*)this.Component);
                 break;
             case GaugeBar:
-                ShowStruct((AtkComponentGaugeBar*)this.component);
+                ShowStruct((AtkComponentGaugeBar*)this.Component);
                 break;
             case RadioButton:
-                ShowStruct((AtkComponentRadioButton*)this.component);
+                ShowStruct((AtkComponentRadioButton*)this.Component);
                 break;
             case TextInput:
-                ShowStruct((AtkComponentTextInput*)this.component);
+                ShowStruct((AtkComponentTextInput*)this.Component);
                 break;
             case Icon:
-                ShowStruct((AtkComponentIcon*)this.component);
+                ShowStruct((AtkComponentIcon*)this.Component);
                 break;
             case NumericInput:
-                ShowStruct((AtkComponentNumericInput*)this.component);
+                ShowStruct((AtkComponentNumericInput*)this.Component);
                 break;
             case List:
-                ShowStruct((AtkComponentList*)this.component);
+                ShowStruct((AtkComponentList*)this.Component);
                 break;
             case TreeList:
-                ShowStruct((AtkComponentTreeList*)this.component);
+                ShowStruct((AtkComponentTreeList*)this.Component);
                 break;
             case DropDownList:
-                ShowStruct((AtkComponentDropDownList*)this.component);
+                ShowStruct((AtkComponentDropDownList*)this.Component);
                 break;
             case ScrollBar:
-                ShowStruct((AtkComponentScrollBar*)this.component);
+                ShowStruct((AtkComponentScrollBar*)this.Component);
                 break;
             case ListItemRenderer:
-                ShowStruct((AtkComponentListItemRenderer*)this.component);
+                ShowStruct((AtkComponentListItemRenderer*)this.Component);
                 break;
             case IconText:
-                ShowStruct((AtkComponentIconText*)this.component);
+                ShowStruct((AtkComponentIconText*)this.Component);
                 break;
             case ComponentType.DragDrop:
-                ShowStruct((AtkComponentDragDrop*)this.component);
+                ShowStruct((AtkComponentDragDrop*)this.Component);
                 break;
             case GuildLeveCard:
-                ShowStruct((AtkComponentGuildLeveCard*)this.component);
+                ShowStruct((AtkComponentGuildLeveCard*)this.Component);
                 break;
             case TextNineGrid:
-                ShowStruct((AtkComponentTextNineGrid*)this.component);
+                ShowStruct((AtkComponentTextNineGrid*)this.Component);
                 break;
             case JournalCanvas:
-                ShowStruct((AtkComponentJournalCanvas*)this.component);
+                ShowStruct((AtkComponentJournalCanvas*)this.Component);
                 break;
             case HoldButton:
-                ShowStruct((AtkComponentHoldButton*)this.component);
+                ShowStruct((AtkComponentHoldButton*)this.Component);
                 break;
             case Portrait:
-                ShowStruct((AtkComponentPortrait*)this.component);
+                ShowStruct((AtkComponentPortrait*)this.Component);
                 break;
             default:
-                ShowStruct(this.component);
+                ShowStruct(this.Component);
                 break;
         }
     }
 
     private void PrintComponentDataObject()
     {
-        var componentData = this.component->UldManager.ComponentData;
+        var componentData = this.Component->UldManager.ComponentData;
         PrintFieldValuePair("Data", $"{(nint)componentData:X}");
 
         if (componentData != null)

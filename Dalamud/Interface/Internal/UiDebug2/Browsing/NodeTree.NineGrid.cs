@@ -35,8 +35,7 @@ internal unsafe partial class NineGridNodeTree : ImageNodeTree
     private NineGridOffsets Offsets => new(this.NgNode);
 
     /// <inheritdoc/>
-    private protected override void DrawPartOutline(
-        uint partId, Vector2 cursorScreenPos, Vector2 cursorLocalPos, Vector4 col, bool reqHover = false)
+    private protected override void DrawPartOutline(uint partId, Vector2 cursorScreenPos, Vector2 cursorLocalPos, Vector4 col, bool reqHover = false)
     {
         var part = this.TexData.PartsList->Parts[partId];
 

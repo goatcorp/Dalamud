@@ -1,10 +1,12 @@
-using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -51,19 +53,19 @@ internal unsafe partial class TextNodeTree : ResNodeTree
 #pragma warning disable
         try
         {
-            var style = new SeStringDrawParams()
+            var style = new SeStringDrawParams
             {
-                Color = TxtNode->TextColor.RGBA,
-                EdgeColor = TxtNode->EdgeColor.RGBA,
+                Color = this.TxtNode->TextColor.RGBA,
+                EdgeColor = this.TxtNode->EdgeColor.RGBA,
                 ForceEdgeColor = true,
                 EdgeStrength = 1f
             };
 
-            ImGuiHelpers.SeStringWrapped(NodeText.AsSpan(), style);
+            ImGuiHelpers.SeStringWrapped(this.NodeText.AsSpan(), style);
         }
         catch
         {
-            ImGui.Text(Marshal.PtrToStringAnsi(new(NodeText.StringPtr)) ?? "");
+            ImGui.Text(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? "");
         }
 #pragma warning restore
 
@@ -81,7 +83,9 @@ internal unsafe partial class TextNodeTree : ResNodeTree
 
     private void PrintPayloads()
     {
-        if (ImGui.TreeNode($"Text Payloads##{(nint)this.Node:X}"))
+        var tree = ImRaii.TreeNode($"Text Payloads##{(nint)this.Node:X}");
+
+        if (tree)
         {
             var utf8String = this.NodeText;
             var seStringBytes = new byte[utf8String.BufUsed];
@@ -100,15 +104,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
                 {
                     case PayloadType.RawText when payload is TextPayload tp:
                     {
-                        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-                        ImGui.Text("Raw Text: '");
-                        ImGui.SameLine();
-                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.6f, 0.6f, 0.6f, 1));
-                        ImGui.Text(tp.Text);
-                        ImGui.PopStyleColor();
-                        ImGui.SameLine();
-                        ImGui.PopStyleVar();
-                        ImGui.Text("'");
+                        Gui.PrintFieldValuePair("Raw Text", tp.Text ?? string.Empty);
                         break;
                     }
 
@@ -119,8 +115,8 @@ internal unsafe partial class TextNodeTree : ResNodeTree
                     }
                 }
             }
-
-            ImGui.TreePop();
         }
+
+        tree.Dispose();
     }
 }

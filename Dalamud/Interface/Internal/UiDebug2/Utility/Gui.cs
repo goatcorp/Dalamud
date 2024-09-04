@@ -3,6 +3,8 @@ using System.Numerics;
 
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using ImGuiNET;
 
@@ -16,54 +18,6 @@ namespace Dalamud.Interface.Internal.UiDebug2.Utility;
 /// </summary>
 internal static class Gui
 {
-    /// <summary>
-    /// Begins a tree node that also displays a colored line to the left while open.
-    /// </summary>
-    /// <param name="label">The label of the tree.</param>
-    /// <param name="color">The color of the heading text.</param>
-    /// <param name="lineStart">A value representing where to begin drawing the left-side line.</param>
-    /// <param name="defOpen">Whether this tree should default to being open.</param>
-    /// <returns>true if the tree is open.</returns>
-    internal static bool NestedTreePush(string label, Vector4 color, out Vector2 lineStart, bool defOpen = false)
-    {
-        ImGui.PushStyleColor(Text, color);
-        var result = NestedTreePush(label, out lineStart, defOpen);
-        ImGui.PopStyleColor();
-        return result;
-    }
-
-    /// <inheritdoc cref="NestedTreePush(string, Vector4, out Vector2, bool)"/>
-    internal static bool NestedTreePush(string label, out Vector2 lineStart, bool defOpen = false)
-    {
-        var imGuiTreeNodeFlags = ImGuiTreeNodeFlags.SpanFullWidth;
-
-        if (defOpen)
-        {
-            imGuiTreeNodeFlags |= ImGuiTreeNodeFlags.DefaultOpen;
-        }
-
-        var treeNodeEx = ImGui.TreeNodeEx(label, imGuiTreeNodeFlags);
-        lineStart = ImGui.GetCursorScreenPos() + new Vector2(-10, 2);
-        return treeNodeEx;
-    }
-
-    /// <summary>
-    /// Completes a NestedTree.
-    /// </summary>
-    /// <param name="lineStart">The starting position calculated when the tree was pushed.</param>
-    /// <param name="color">The color of the left-side line.</param>
-    internal static void NestedTreePop(Vector2 lineStart, Vector4? color = null)
-    {
-        var lineEnd = lineStart with { Y = ImGui.GetCursorScreenPos().Y - 7 };
-
-        if (lineStart.Y < lineEnd.Y)
-        {
-            ImGui.GetWindowDrawList().AddLine(lineStart, lineEnd, RgbaVector4ToUint(color ?? new(1)), 1);
-        }
-
-        ImGui.TreePop();
-    }
-
     /// <summary>
     /// A radio-button-esque input that uses Fontawesome icon buttons.
     /// </summary>
@@ -150,31 +104,41 @@ internal static class Gui
     /// <remarks>Colors the text itself either white or black, depending on the luminosity of the background color.</remarks>
     internal static void PrintColor(Vector4 color, string fmt)
     {
+        var c = new ImRaii.Color().Push(Text, Luminosity(color) < 0.5f ? new Vector4(1) : new(0, 0, 0, 1))
+                                  .Push(Button, color)
+                                  .Push(ButtonActive, color)
+                                  .Push(ButtonHovered, color);
+
+        ImGui.SmallButton(fmt);
+
+        c.Pop(4);
+        return;
+
         static double Luminosity(Vector4 vector4) =>
             Math.Pow(
                 (Math.Pow(vector4.X, 2) * 0.299f) +
                 (Math.Pow(vector4.Y, 2) * 0.587f) +
                 (Math.Pow(vector4.Z, 2) * 0.114f),
                 0.5f) * vector4.W;
-
-        ImGui.PushStyleColor(Text, Luminosity(color) < 0.5f ? new Vector4(1) : new(0, 0, 0, 1));
-        ImGui.PushStyleColor(Button, color);
-        ImGui.PushStyleColor(ButtonActive, color);
-        ImGui.PushStyleColor(ButtonHovered, color);
-        ImGui.SmallButton(fmt);
-        ImGui.PopStyleColor(4);
     }
 
     /// <inheritdoc cref="ImGuiHelpers.ClickToCopyText"/>
     internal static void ClickToCopyText(string text, string? textCopy = null)
     {
-        ImGui.PushStyleColor(Text, new Vector4(0.6f, 0.6f, 0.6f, 1));
+        var c = ImRaii.PushColor(Text, new Vector4(0.6f, 0.6f, 0.6f, 1));
         ImGuiHelpers.ClickToCopyText(text, textCopy);
-        ImGui.PopStyleColor();
+        c.Pop();
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip($"{textCopy ?? text}");
+            var t = ImRaii.Tooltip();
+            var f = ImRaii.PushFont(UiBuilder.IconFont);
+            ImGui.Text(FontAwesomeIcon.Copy.ToIconString());
+            f.Pop();
+            ImGui.SameLine();
+            ImGui.Text($"{textCopy ?? text}");
+
+            t.Dispose();
         }
     }
 
@@ -197,7 +161,9 @@ internal static class Gui
 
         var index = (int)Math.Floor(prog * tooltips.Length);
 
-        ImGui.SetTooltip(tooltips[index]);
+        var t = ImRaii.Tooltip();
+        ImGui.Text(tooltips[index]);
+        t.Dispose();
 
         return true;
     }

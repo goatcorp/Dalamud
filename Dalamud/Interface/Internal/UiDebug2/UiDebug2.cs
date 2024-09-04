@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
@@ -43,7 +44,7 @@ internal partial class UiDebug2 : IDisposable
     internal static IGameGui GameGui { get; set; } = null!;
 
     /// <summary>
-    /// Gets a collection of <see cref="AddonTree"/> instances, each representing an <see cref="AtkUnitBase"/>.
+    /// Gets a collection of <see cref="AddonTree"/> instances, each representing an <see cref="FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase"/>.
     /// </summary>
     internal static Dictionary<string, AddonTree> AddonTrees { get; } = [];
 
@@ -85,7 +86,7 @@ internal partial class UiDebug2 : IDisposable
     private void DrawMainPanel()
     {
         ImGui.SameLine();
-        ImGui.BeginChild("###uiDebugMainPanel", new(-1, -1), true, HorizontalScrollbar);
+        var ch = ImRaii.Child("###uiDebugMainPanel", new(-1, -1), true, HorizontalScrollbar);
 
         if (this.elementSelector.Active)
         {
@@ -107,6 +108,6 @@ internal partial class UiDebug2 : IDisposable
             }
         }
 
-        ImGui.EndChild();
+        ch.Dispose();
     }
 }

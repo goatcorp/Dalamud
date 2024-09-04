@@ -1,6 +1,7 @@
 using System.Numerics;
 
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -49,9 +50,9 @@ internal unsafe class NodePopoutWindow : Window, IDisposable
     {
         if (this.Node != null && this.AddonTree.ContainsNode(this.Node))
         {
-            ImGui.BeginChild($"{(nint)this.Node:X}popoutChild", new(-1, -1), true);
+            var ch = ImRaii.Child($"{(nint)this.Node:X}popoutChild", new(-1, -1), true);
             ResNodeTree.GetOrCreate(this.Node, this.AddonTree).Print(null, this.firstDraw);
-            ImGui.EndChild();
+            ch.Dispose();
             this.firstDraw = false;
         }
         else

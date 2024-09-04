@@ -28,9 +28,7 @@ public unsafe struct NodeBounds
 
         var w = node->Width;
         var h = node->Height;
-        this.Points = w == 0 && h == 0 ?
-                     new() { new(0) } :
-                     new() { new(0), new(w, 0), new(w, h), new(0, h) };
+        this.Points = w == 0 && h == 0 ? [new(0)] : [new(0), new(w, 0), new(w, h), new(0, h)];
 
         this.TransformPoints(node);
     }
@@ -149,8 +147,7 @@ public unsafe struct NodeBounds
         var sinR = (float)Sin(r);
         var d = (p - o) * s;
 
-        return new(o.X + (d.X * cosR) - (d.Y * sinR),
-                   o.Y + (d.X * sinR) + (d.Y * cosR));
+        return new(o.X + (d.X * cosR) - (d.Y * sinR), o.Y + (d.X * sinR) + (d.Y * cosR));
     }
 
     private void TransformPoints(AtkResNode* transformNode)
