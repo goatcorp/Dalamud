@@ -1,4 +1,4 @@
-﻿using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+﻿using Lumina.Text.Parse;
 
 using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
 using DSeStringBuilder = Dalamud.Game.Text.SeStringHandling.SeStringBuilder;
@@ -24,44 +24,44 @@ public static class SeStringExtensions
     /// <param name="ssb">Target SeString builder.</param>
     /// <param name="macroString">Macro string in UTF-8 to compile and append to <paramref name="ssb"/>.</param>
     /// <returns><c>this</c> for method chaining.</returns>
-    /// <remarks>Must be called from the main thread.</remarks>
-    public static LSeStringBuilder AppendMacroString(this LSeStringBuilder ssb, ReadOnlySpan<byte> macroString)
-    {
-        ThreadSafety.AssertMainThread();
-        return ssb.Append(Service<SeStringRenderer>.Get().Compile(macroString));
-    }
+    [Obsolete($"Use {nameof(LSeStringBuilder)}.{nameof(LSeStringBuilder.AppendMacroString)} directly instead.")]
+    [Api11ToDo("Remove")]
+    public static LSeStringBuilder AppendMacroString(this LSeStringBuilder ssb, ReadOnlySpan<byte> macroString) =>
+        ssb.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
 
     /// <summary>Compiles and appends a macro string.</summary>
     /// <param name="ssb">Target SeString builder.</param>
     /// <param name="macroString">Macro string in UTF-16 to compile and append to <paramref name="ssb"/>.</param>
     /// <returns><c>this</c> for method chaining.</returns>
-    /// <remarks>Must be called from the main thread.</remarks>
-    public static LSeStringBuilder AppendMacroString(this LSeStringBuilder ssb, ReadOnlySpan<char> macroString)
-    {
-        ThreadSafety.AssertMainThread();
-        return ssb.Append(Service<SeStringRenderer>.Get().Compile(macroString));
-    }
+    [Obsolete($"Use {nameof(LSeStringBuilder)}.{nameof(LSeStringBuilder.AppendMacroString)} directly instead.")]
+    [Api11ToDo("Remove")]
+    public static LSeStringBuilder AppendMacroString(this LSeStringBuilder ssb, ReadOnlySpan<char> macroString) =>
+        ssb.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
 
     /// <summary>Compiles and appends a macro string.</summary>
     /// <param name="ssb">Target SeString builder.</param>
     /// <param name="macroString">Macro string in UTF-8 to compile and append to <paramref name="ssb"/>.</param>
     /// <returns><c>this</c> for method chaining.</returns>
-    /// <remarks>Must be called from the main thread.</remarks>
     public static DSeStringBuilder AppendMacroString(this DSeStringBuilder ssb, ReadOnlySpan<byte> macroString)
     {
-        ThreadSafety.AssertMainThread();
-        return ssb.Append(DSeString.Parse(Service<SeStringRenderer>.Get().Compile(macroString)));
+        var lssb = LSeStringBuilder.SharedPool.Get();
+        lssb.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
+        ssb.Append(DSeString.Parse(lssb.ToReadOnlySeString().Data.Span));
+        LSeStringBuilder.SharedPool.Return(lssb);
+        return ssb;
     }
 
     /// <summary>Compiles and appends a macro string.</summary>
     /// <param name="ssb">Target SeString builder.</param>
     /// <param name="macroString">Macro string in UTF-16 to compile and append to <paramref name="ssb"/>.</param>
     /// <returns><c>this</c> for method chaining.</returns>
-    /// <remarks>Must be called from the main thread.</remarks>
     public static DSeStringBuilder AppendMacroString(this DSeStringBuilder ssb, ReadOnlySpan<char> macroString)
     {
-        ThreadSafety.AssertMainThread();
-        return ssb.Append(DSeString.Parse(Service<SeStringRenderer>.Get().Compile(macroString)));
+        var lssb = LSeStringBuilder.SharedPool.Get();
+        lssb.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
+        ssb.Append(DSeString.Parse(lssb.ToReadOnlySeString().Data.Span));
+        LSeStringBuilder.SharedPool.Return(lssb);
+        return ssb;
     }
 
     /// <summary>

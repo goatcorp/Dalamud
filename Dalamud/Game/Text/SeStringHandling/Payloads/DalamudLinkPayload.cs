@@ -37,17 +37,19 @@ public class DalamudLinkPayload : Payload
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
-        return new Lumina.Text.SeStringBuilder()
-               .BeginMacro(MacroCode.Link)
-               .AppendIntExpression((int)EmbeddedInfoType.DalamudLink - 1)
-               .AppendUIntExpression(this.CommandId)
-               .AppendIntExpression(this.Extra1)
-               .AppendIntExpression(this.Extra2)
-               .BeginStringExpression()
-               .Append(JsonConvert.SerializeObject(new[] { this.Plugin, this.ExtraString }))
-               .EndExpression()
-               .EndMacro()
-               .ToArray();
+        var ssb = Lumina.Text.SeStringBuilder.SharedPool.Get();
+        var res = ssb.BeginMacro(MacroCode.Link)
+                     .AppendIntExpression((int)EmbeddedInfoType.DalamudLink - 1)
+                     .AppendUIntExpression(this.CommandId)
+                     .AppendIntExpression(this.Extra1)
+                     .AppendIntExpression(this.Extra2)
+                     .BeginStringExpression()
+                     .Append(JsonConvert.SerializeObject(new[] { this.Plugin, this.ExtraString }))
+                     .EndExpression()
+                     .EndMacro()
+                     .ToArray();
+        Lumina.Text.SeStringBuilder.SharedPool.Return(ssb);
+        return res;
     }
 
     /// <inheritdoc/>
