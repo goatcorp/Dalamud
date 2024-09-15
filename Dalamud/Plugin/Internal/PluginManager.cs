@@ -318,6 +318,7 @@ internal class PluginManager : IInternalDisposableService
                                     new UIForegroundPayload(0),
                                     new TextPayload("]"),
                                 }),
+                            Type = this.configuration.GeneralChatType,
                         });
 
                     foreach (var metadata in updateMetadata)
