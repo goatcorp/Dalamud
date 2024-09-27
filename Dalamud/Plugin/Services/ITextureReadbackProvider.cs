@@ -22,6 +22,9 @@ public interface ITextureReadbackProvider
     /// <remarks>
     /// <para>The length of the returned <c>RawData</c> may not match
     /// <see cref="RawImageSpecification.Height"/> * <see cref="RawImageSpecification.Pitch"/>.</para>
+    /// <para><see cref="RawImageSpecification.Pitch"/> may not be the minimal value required to represent the texture
+    /// bitmap data. For example, if a texture is 4x4 B8G8R8A8, the minimal pitch would be 32, but the function may
+    /// return 64 instead.</para>
     /// <para>This function may throw an exception.</para>
     /// </remarks>
     Task<(RawImageSpecification Specification, byte[] RawData)> GetRawImageAsync(

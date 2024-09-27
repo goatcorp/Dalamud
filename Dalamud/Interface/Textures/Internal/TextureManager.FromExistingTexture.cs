@@ -2,13 +2,14 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.TerraFxCom;
+
+using Lumina.Data.Files;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -18,6 +19,72 @@ namespace Dalamud.Interface.Textures.Internal;
 /// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
 internal sealed partial class TextureManager
 {
+    /// <inheritdoc/>
+    unsafe nint ITextureProvider.ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen) =>
+        (nint)this.ConvertToKernelTexture(wrap, leaveWrapOpen);
+
+    /// <inheritdoc cref="ITextureProvider.ConvertToKernelTexture"/>
+    public unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture* ConvertToKernelTexture(
+        IDalamudTextureWrap wrap,
+        bool leaveWrapOpen = false)
+    {
+        using var wrapAux = new WrapAux(wrap, leaveWrapOpen);
+
+        var flags = TexFile.Attribute.TextureType2D;
+        if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_IMMUTABLE)
+            flags |= TexFile.Attribute.Immutable;
+        if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_DYNAMIC)
+            flags |= TexFile.Attribute.ReadWrite;
+        if ((wrapAux.Desc.CPUAccessFlags & (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ) != 0)
+            flags |= TexFile.Attribute.CpuRead;
+        if ((wrapAux.Desc.BindFlags & (uint)D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET) != 0)
+            flags |= TexFile.Attribute.TextureRenderTarget;
+        if ((wrapAux.Desc.BindFlags & (uint)D3D11_BIND_FLAG.D3D11_BIND_DEPTH_STENCIL) != 0)
+            flags |= TexFile.Attribute.TextureDepthStencil;
+        if (wrapAux.Desc.ArraySize != 1)
+            throw new NotSupportedException("TextureArray2D is currently not supported.");
+
+        var gtex = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture.CreateTexture2D(
+            (int)wrapAux.Desc.Width,
+            (int)wrapAux.Desc.Height,
+            (byte)wrapAux.Desc.MipLevels,
+            (uint)TexFile.TextureFormat.Null, // instructs the game to skip preprocessing it seems
+            (uint)flags,
+            0);
+
+        // Kernel::Texture owns these resources. We're passing the ownership to them.
+        wrapAux.TexPtr->AddRef();
+        wrapAux.SrvPtr->AddRef();
+
+        // Not sure this is needed
+        var ltf = wrapAux.Desc.Format switch
+        {
+            DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => TexFile.TextureFormat.R32G32B32A32F,
+            DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => TexFile.TextureFormat.R16G16B16A16F,
+            DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT => TexFile.TextureFormat.R32G32F,
+            DXGI_FORMAT.DXGI_FORMAT_R16G16_FLOAT => TexFile.TextureFormat.R16G16F,
+            DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT => TexFile.TextureFormat.R32F,
+            DXGI_FORMAT.DXGI_FORMAT_R24G8_TYPELESS => TexFile.TextureFormat.D24S8,
+            DXGI_FORMAT.DXGI_FORMAT_R16_TYPELESS => TexFile.TextureFormat.D16,
+            DXGI_FORMAT.DXGI_FORMAT_A8_UNORM => TexFile.TextureFormat.A8,
+            DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM => TexFile.TextureFormat.BC1,
+            DXGI_FORMAT.DXGI_FORMAT_BC2_UNORM => TexFile.TextureFormat.BC2,
+            DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM => TexFile.TextureFormat.BC3,
+            DXGI_FORMAT.DXGI_FORMAT_BC5_UNORM => TexFile.TextureFormat.BC5,
+            DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM => TexFile.TextureFormat.B4G4R4A4,
+            DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM => TexFile.TextureFormat.B5G5R5A1,
+            DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM => TexFile.TextureFormat.B8G8R8A8,
+            DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM => TexFile.TextureFormat.B8G8R8X8,
+            DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM => TexFile.TextureFormat.BC7,
+            _ => TexFile.TextureFormat.Null,
+        };
+        gtex->TextureFormat = (FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.TextureFormat)ltf;
+
+        gtex->D3D11Texture2D = wrapAux.TexPtr;
+        gtex->D3D11ShaderResourceView = wrapAux.SrvPtr;
+        return gtex;
+    }
+
     /// <inheritdoc/>
     bool ITextureProvider.IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat) =>
         this.IsDxgiFormatSupportedForCreateFromExistingTextureAsync((DXGI_FORMAT)dxgiFormat);

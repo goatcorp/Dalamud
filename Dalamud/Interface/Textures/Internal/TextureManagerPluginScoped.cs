@@ -135,6 +135,10 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public unsafe nint ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false) =>
+        (nint)this.ManagerOrThrow.ConvertToKernelTexture(wrap, leaveWrapOpen);
+
+    /// <inheritdoc/>
     public IDalamudTextureWrap CreateEmpty(
         RawImageSpecification specs,
         bool cpuRead,
