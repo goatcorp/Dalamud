@@ -41,8 +41,6 @@ HRESULT InitializeClrAndGetEntryPoint(
 
     int result;
     SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");
-    SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", L"1");
-    SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
     SetEnvironmentVariable(L"COMPLUS_ForceENC", L"1");
     SetEnvironmentVariable(L"DOTNET_ForceENC", L"1");
 
@@ -82,6 +80,25 @@ HRESULT InitializeClrAndGetEntryPoint(
         std::filesystem::path fs_app_data(_appdata);
         dotnet_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
     }
+
+    bool legacy_corrupted_state_exceptions_policy = false;
+    buffer.resize(0);
+    result = GetEnvironmentVariableW(L"DALAMUD_LEGACY_CORRUPTED_STATE_EXCEPTION", &buffer[0], 0);
+
+    if (result)
+    {
+        buffer.resize(result); // The first pass returns the required length
+        result = GetEnvironmentVariableW(L"DALAMUD_LEGACY_CORRUPTED_STATE_EXCEPTION", &buffer[0], result);
+        legacy_corrupted_state_exceptions_policy = buffer == L"1";
+    }
+    else
+    {
+        // Legacy fallback is true to preserve past behaviour
+        legacy_corrupted_state_exceptions_policy = true;
+    }
+
+    SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", legacy_corrupted_state_exceptions_policy ? L"1" : L"0");
+    SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", legacy_corrupted_state_exceptions_policy ? L"1" : L"0");
 
     // =========================================================================== //
 
