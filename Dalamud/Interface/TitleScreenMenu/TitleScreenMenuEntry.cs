@@ -9,6 +9,8 @@ using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface;
 
+using Textures;
+
 /// <summary>
 /// A interface representing an entry in the title screen menu.
 /// </summary>
@@ -64,7 +66,13 @@ public interface IReadOnlyTitleScreenMenuEntry
     /// <summary>
     /// Gets the texture of this entry.
     /// </summary>
+    [Obsolete("Will be removed in API11")]
     IDalamudTextureWrap Texture { get; }
+
+    /// <summary>
+    /// Gets the immediate texture of this entry.
+    /// </summary>
+    ISharedImmediateTexture ImmediateTexture { get; }
 }
 
 /// <summary>
@@ -87,14 +95,14 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
         Assembly? callingAssembly,
         ulong priority,
         string text,
-        IDalamudTextureWrap texture,
+        ISharedImmediateTexture texture,
         Action onTriggered,
         IEnumerable<VirtualKey>? showConditionKeys = null)
     {
         this.CallingAssembly = callingAssembly;
         this.Priority = priority;
         this.Name = text;
-        this.Texture = texture;
+        this.ImmediateTexture = texture;
         this.onTriggered = onTriggered;
         this.ShowConditionKeys = (showConditionKeys ?? Array.Empty<VirtualKey>()).ToImmutableSortedSet();
     }
@@ -106,7 +114,10 @@ public class TitleScreenMenuEntry : ITitleScreenMenuEntry
     public string Name { get; set; }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap Texture { get; set; }
+    public IDalamudTextureWrap Texture => this.ImmediateTexture.GetWrapOrEmpty();
+
+    /// <inheritdoc/>
+    public ISharedImmediateTexture ImmediateTexture { get; set; }
         
     /// <inheritdoc/>
     public bool IsInternal { get; set; }
