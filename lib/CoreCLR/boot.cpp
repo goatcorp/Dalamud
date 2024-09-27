@@ -30,6 +30,7 @@ std::optional<CoreCLR> g_clr;
 HRESULT InitializeClrAndGetEntryPoint(
     void* calling_module,
     bool enable_etw,
+    bool enable_gcServer,
     std::wstring runtimeconfig_path,
     std::wstring module_path,
     std::wstring entrypoint_assembly_name,
@@ -55,6 +56,7 @@ HRESULT InitializeClrAndGetEntryPoint(
     SetEnvironmentVariable(L"DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP3SUPPORT", L"0");
 
     SetEnvironmentVariable(L"COMPlus_ETWEnabled", enable_etw ? L"1" : L"0");
+    SetEnvironmentVariable(L"DOTNET_gcServer", enable_gcServer ? L"1" : L"0");
 
     wchar_t* dotnet_path;
     wchar_t* _appdata;
