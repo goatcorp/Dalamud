@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         branches:
-          - WORKFLOW_DISABLED_REMOVE_BEFORE_RUNNING
+          - api11
 
     defaults:
       run:
