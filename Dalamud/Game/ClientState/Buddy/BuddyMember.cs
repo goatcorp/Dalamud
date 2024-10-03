@@ -1,6 +1,8 @@
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Resolvers;
+
+using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Buddy;
 
@@ -45,17 +47,17 @@ public interface IBuddyMember
     /// <summary>
     /// Gets the Mount data related to this buddy. It should only be used with companion buddies.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.Mount> MountData { get; }
+    RowRef<Lumina.Excel.Sheets.Mount> MountData { get; }
 
     /// <summary>
     /// Gets the Pet data related to this buddy. It should only be used with pet buddies.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.Pet> PetData { get; }
+    RowRef<Lumina.Excel.Sheets.Pet> PetData { get; }
 
     /// <summary>
     /// Gets the Trust data related to this buddy. It should only be used with battle buddies.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.DawnGrowMember> TrustData { get; }
+    RowRef<Lumina.Excel.Sheets.DawnGrowMember> TrustData { get; }
 }
 
 /// <summary>
@@ -94,13 +96,13 @@ internal unsafe class BuddyMember : IBuddyMember
     public uint DataID => this.Struct->DataId;
 
     /// <inheritdoc />
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.Mount> MountData => new(this.DataID);
+    public RowRef<Lumina.Excel.Sheets.Mount> MountData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Mount>(this.DataID);
 
     /// <inheritdoc />
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.Pet> PetData => new(this.DataID);
+    public RowRef<Lumina.Excel.Sheets.Pet> PetData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Pet>(this.DataID);
 
     /// <inheritdoc />
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.DawnGrowMember> TrustData => new(this.DataID);
+    public RowRef<Lumina.Excel.Sheets.DawnGrowMember> TrustData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.DawnGrowMember>(this.DataID);
 
     private FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember* Struct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember*)this.Address;
 }

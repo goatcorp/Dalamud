@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 
-using Dalamud.Game.ClientState.Resolvers;
-using Dalamud.Memory;
+using Dalamud.Data;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Network.Structures.InfoProxy;
 
@@ -92,15 +92,15 @@ public unsafe class CharacterData
     /// <summary>
     /// Gets the applicable statues of the character.
     /// </summary>
-    public IReadOnlyList<ExcelResolver<OnlineStatus>> Statuses
+    public IReadOnlyList<RowRef<OnlineStatus>> Statuses
     {
         get
         {
-            var statuses = new List<ExcelResolver<OnlineStatus>>();
+            var statuses = new List<RowRef<OnlineStatus>>();
             for (var i = 0; i < 64; i++)
             {
                 if ((this.StatusMask & (1UL << i)) != 0)
-                    statuses.Add(new((uint)i));
+                    statuses.Add(LuminaUtils.CreateRef<OnlineStatus>((uint)i));
             }
 
             return statuses;
@@ -125,22 +125,22 @@ public unsafe class CharacterData
     /// <summary>
     /// Gets the current world of the character.
     /// </summary>
-    public ExcelResolver<World> CurrentWorld => new(this.Struct->CurrentWorld);
+    public RowRef<World> CurrentWorld => LuminaUtils.CreateRef<World>(this.Struct->CurrentWorld);
 
     /// <summary>
     /// Gets the home world of the character.
     /// </summary>
-    public ExcelResolver<World> HomeWorld => new(this.Struct->HomeWorld);
+    public RowRef<World> HomeWorld => LuminaUtils.CreateRef<World>(this.Struct->HomeWorld);
 
     /// <summary>
     /// Gets the location of the character.
     /// </summary>
-    public ExcelResolver<TerritoryType> Location => new(this.Struct->Location);
+    public RowRef<TerritoryType> Location => LuminaUtils.CreateRef<TerritoryType>(this.Struct->Location);
 
     /// <summary>
     /// Gets the grand company of the character.
     /// </summary>
-    public ExcelResolver<GrandCompany> GrandCompany => new((uint)this.Struct->GrandCompany);
+    public RowRef<GrandCompany> GrandCompany => LuminaUtils.CreateRef<GrandCompany>((uint)this.Struct->GrandCompany);
 
     /// <summary>
     /// Gets the primary client language of the character.
@@ -178,7 +178,7 @@ public unsafe class CharacterData
     /// <summary>
     /// Gets the job of the character.
     /// </summary>
-    public ExcelResolver<ClassJob> ClassJob => new(this.Struct->Job);
+    public RowRef<ClassJob> ClassJob => LuminaUtils.CreateRef<ClassJob>(this.Struct->Job);
 
     /// <summary>
     /// Gets the name of the character.

@@ -18,7 +18,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 
 using ImGuiNET;
 
-using Lumina.Excel.GeneratedSheets2;
+using Lumina.Excel.Sheets;
 using Lumina.Text.Parse;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;

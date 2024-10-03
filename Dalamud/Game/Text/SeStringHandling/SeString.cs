@@ -7,7 +7,7 @@ using System.Text;
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling;
@@ -200,12 +200,12 @@ public class SeString
                 case ItemPayload.ItemKind.Normal:
                 case ItemPayload.ItemKind.Collectible:
                 case ItemPayload.ItemKind.Hq:
-                    var item = data.GetExcelSheet<Item>()?.GetRow(itemId);
-                    displayName = item?.Name;
+                    var item = data.GetExcelSheet<Item>()?.GetRowOrDefault(itemId);
+                    displayName = item?.Name.ExtractText();
                     rarity = item?.Rarity ?? 1;
                     break;
                 case ItemPayload.ItemKind.EventItem:
-                    displayName = data.GetExcelSheet<EventItem>()?.GetRow(itemId)?.Name;
+                    displayName = data.GetExcelSheet<EventItem>()?.GetRowOrDefault(itemId)?.Name.ExtractText();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
@@ -251,7 +251,7 @@ public class SeString
     /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
     public static SeString CreateItemLink(Item item, bool isHq, string? displayNameOverride = null)
     {
-        return CreateItemLink(item.RowId, isHq, displayNameOverride ?? item.Name);
+        return CreateItemLink(item.RowId, isHq, displayNameOverride ?? item.Name.ExtractText());
     }
 
     /// <summary>
@@ -360,15 +360,14 @@ public class SeString
         var mapSheet = data.GetExcelSheet<Map>();
 
         var matches = data.GetExcelSheet<PlaceName>()
-                          .Where(row => row.Name.ToString().ToLowerInvariant() == placeName.ToLowerInvariant())
-                          .ToArray();
+                          .Where(row => row.Name.ExtractText().Equals(placeName, StringComparison.InvariantCultureIgnoreCase));
 
         foreach (var place in matches)
         {
-            var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
-            if (map != null && map.TerritoryType.Row != 0)
+            var map = mapSheet.Cast<Map?>().FirstOrDefault(row => row!.Value.PlaceName.RowId == place.RowId);
+            if (map.HasValue && map.Value.TerritoryType.RowId != 0)
             {
-                return CreateMapLinkWithInstance(map.TerritoryType.Row, map.RowId, instance, xCoord, yCoord, fudgeFactor);
+                return CreateMapLinkWithInstance(map.Value.TerritoryType.RowId, map.Value.RowId, instance, xCoord, yCoord, fudgeFactor);
             }
         }
 

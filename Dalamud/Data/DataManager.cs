@@ -11,6 +11,7 @@ using Dalamud.Utility.Timing;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -28,11 +29,14 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
 {
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;
+    private readonly RsvResolver rsvResolver;
 
     [ServiceManager.ServiceConstructor]
     private DataManager(Dalamud dalamud)
     {
         this.Language = (ClientLanguage)dalamud.StartInfo.Language;
+
+        this.rsvResolver = new();
 
         try
         {
@@ -44,11 +48,8 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                 {
                     LoadMultithreaded = true,
                     CacheFileResources = true,
-#if NEVER // Lumina bug
                     PanicOnSheetChecksumMismatch = true,
-#else
-                    PanicOnSheetChecksumMismatch = false,
-#endif
+                    RsvResolver = this.rsvResolver.TryResolve,
                     DefaultExcelLanguage = this.Language.ToLumina(),
                 };
 
@@ -129,12 +130,12 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     #region Lumina Wrappers
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow 
-        => this.Excel.GetSheet<T>();
+    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelRow<T> 
+        => this.Excel.GetSheet<T>(language?.ToLumina(), name);
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow 
-        => this.Excel.GetSheet<T>(language.ToLumina());
+    public SubrowExcelSheet<T> GetSubrowExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelSubrow<T>
+        => this.Excel.GetSubrowSheet<T>(language?.ToLumina(), name);
 
     /// <inheritdoc/>
     public FileResource? GetFile(string path) 
@@ -170,6 +171,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     {
         this.luminaCancellationTokenSource.Cancel();
         this.GameData.Dispose();
+        this.rsvResolver.Dispose();
     }
 
     private class LauncherTroubleshootingInfo

@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Utility;
@@ -39,7 +39,7 @@ internal class GaugeWidget : IDataWindowWidget
             return;
         }
 
-        var jobID = player.ClassJob.Id;
+        var jobID = player.ClassJob.RowId;
         JobGaugeBase? gauge = jobID switch
         {
             19 => jobGauges.Get<PLDGauge>(),

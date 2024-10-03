@@ -7,10 +7,9 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Utility;
 using ImGuiNET;
 using Lumina.Excel;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
@@ -45,9 +44,9 @@ internal class ContextMenuAgingStep : IAgingStep
     {
         var contextMenu = Service<ContextMenu>.Get();
         var dataMgr = Service<DataManager>.Get();
-        this.itemSheet = dataMgr.GetExcelSheet<Item>()!;
-        this.materiaSheet = dataMgr.GetExcelSheet<Materia>()!;
-        this.stainSheet = dataMgr.GetExcelSheet<Stain>()!;
+        this.itemSheet = dataMgr.GetExcelSheet<Item>();
+        this.materiaSheet = dataMgr.GetExcelSheet<Materia>();
+        this.stainSheet = dataMgr.GetExcelSheet<Stain>();
 
         ImGui.Text(this.currentSubStep.ToString());
 
@@ -83,7 +82,7 @@ internal class ContextMenuAgingStep : IAgingStep
             case SubStep.TestDefault:
                 if (this.targetCharacter is { } character)
                 {
-                    ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.GameData!.Abbreviation.ToDalamudString()})?");
+                    ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
 
                     if (ImGui.Button("Yes"))
                         this.currentSubStep++;
@@ -146,7 +145,7 @@ internal class ContextMenuAgingStep : IAgingStep
                             var targetItem = (a.Target as MenuTargetInventory)!.TargetItem;
                             if (targetItem is { } item)
                             {
-                                name = (this.itemSheet.GetRow(item.ItemId)?.Name.ToDalamudString() ?? $"Unknown ({item.ItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
+                                name = (this.itemSheet.GetRowOrDefault(item.ItemId)?.Name.ExtractText() ?? $"Unknown ({item.ItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
                                 count = item.Quantity;
                             }
                             else
@@ -194,7 +193,7 @@ internal class ContextMenuAgingStep : IAgingStep
             {
                 var b = new StringBuilder();
                 b.AppendLine($"Target: {targetDefault.TargetName}");
-                b.AppendLine($"Home World: {targetDefault.TargetHomeWorld.GameData?.Name.ToDalamudString() ?? "Unknown"} ({targetDefault.TargetHomeWorld.Id})");
+                b.AppendLine($"Home World: {targetDefault.TargetHomeWorld.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({targetDefault.TargetHomeWorld.RowId})");
                 b.AppendLine($"Content Id: 0x{targetDefault.TargetContentId:X8}");
                 b.AppendLine($"Object Id: 0x{targetDefault.TargetObjectId:X8}");
                 Log.Verbose(b.ToString());
@@ -209,20 +208,20 @@ internal class ContextMenuAgingStep : IAgingStep
                 b.AppendLine($"Content Id: 0x{character.ContentId:X8}");
                 b.AppendLine($"FC Tag: {character.FCTag}");
 
-                b.AppendLine($"Job: {character.ClassJob.GameData?.Abbreviation.ToDalamudString() ?? "Unknown"} ({character.ClassJob.Id})");
-                b.AppendLine($"Statuses: {string.Join(", ", character.Statuses.Select(s => s.GameData?.Name.ToDalamudString() ?? s.Id.ToString()))}");
-                b.AppendLine($"Home World: {character.HomeWorld.GameData?.Name.ToDalamudString() ?? "Unknown"} ({character.HomeWorld.Id})");
-                b.AppendLine($"Current World: {character.CurrentWorld.GameData?.Name.ToDalamudString() ?? "Unknown"} ({character.CurrentWorld.Id})");
+                b.AppendLine($"Job: {character.ClassJob.ValueNullable?.Abbreviation.ExtractText() ?? "Unknown"} ({character.ClassJob.RowId})");
+                b.AppendLine($"Statuses: {string.Join(", ", character.Statuses.Select(s => s.ValueNullable?.Name.ExtractText() ?? s.RowId.ToString()))}");
+                b.AppendLine($"Home World: {character.HomeWorld.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({character.HomeWorld.RowId})");
+                b.AppendLine($"Current World: {character.CurrentWorld.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({character.CurrentWorld.RowId})");
                 b.AppendLine($"Is From Other Server: {character.IsFromOtherServer}");
 
                 b.Append("Location: ");
-                if (character.Location.GameData is { } location)
-                    b.Append($"{location.PlaceNameRegion.Value?.Name.ToDalamudString() ?? "Unknown"}/{location.PlaceNameZone.Value?.Name.ToDalamudString() ?? "Unknown"}/{location.PlaceName.Value?.Name.ToDalamudString() ?? "Unknown"}");
+                if (character.Location.ValueNullable is { } location)
+                    b.Append($"{location.PlaceNameRegion.ValueNullable?.Name.ExtractText() ?? "Unknown"}/{location.PlaceNameZone.ValueNullable?.Name.ExtractText() ?? "Unknown"}/{location.PlaceName.ValueNullable?.Name.ExtractText() ?? "Unknown"}");
                 else
                     b.Append("Unknown");
-                b.AppendLine($" ({character.Location.Id})");
+                b.AppendLine($" ({character.Location.RowId})");
 
-                b.AppendLine($"Grand Company: {character.GrandCompany.GameData?.Name.ToDalamudString() ?? "Unknown"} ({character.GrandCompany.Id})");
+                b.AppendLine($"Grand Company: {character.GrandCompany.ValueNullable?.Name.ExtractText() ?? "Unknown"} ({character.GrandCompany.RowId})");
                 b.AppendLine($"Client Language: {character.ClientLanguage}");
                 b.AppendLine($"Languages: {string.Join(", ", character.Languages)}");
                 b.AppendLine($"Gender: {character.Gender}");
@@ -241,7 +240,7 @@ internal class ContextMenuAgingStep : IAgingStep
             if (targetInventory.TargetItem is { } item)
             {
                 var b = new StringBuilder();
-                b.AppendLine($"Item: {(item.IsEmpty ? "None" : this.itemSheet.GetRow(item.ItemId)?.Name.ToDalamudString())} ({item.ItemId})");
+                b.AppendLine($"Item: {(item.IsEmpty ? "None" : this.itemSheet.GetRowOrDefault(item.ItemId)?.Name.ExtractText())} ({item.ItemId})");
                 b.AppendLine($"Container: {item.ContainerType}");
                 b.AppendLine($"Slot: {item.InventorySlot}");
                 b.AppendLine($"Quantity: {item.Quantity}");
@@ -259,7 +258,7 @@ internal class ContextMenuAgingStep : IAgingStep
                     Log.Verbose($"{materiaId} {materiaGrade}");
                     if (this.materiaSheet.GetRow(materiaId) is { } materia &&
                         materia.Item[materiaGrade].Value is { } materiaItem)
-                        materias.Add($"{materiaItem.Name.ToDalamudString()}");
+                        materias.Add($"{materiaItem.Name.ExtractText()}");
                     else
                         materias.Add($"Unknown (Id: {materiaId}, Grade: {materiaGrade})");
                 }
@@ -275,7 +274,7 @@ internal class ContextMenuAgingStep : IAgingStep
                     var stainId = item.Stains[i];
                     if (stainId != 0)
                     {
-                        var stainName = this.stainSheet.GetRow(stainId)?.Name.ToDalamudString().ToString() ?? "Unknown";
+                        var stainName = this.stainSheet.GetRowOrDefault(stainId)?.Name.ExtractText() ?? "Unknown";
                         b.AppendLine($"  Stain {i + 1}: {stainName} ({stainId})");
                     }
                     else
@@ -285,13 +284,13 @@ internal class ContextMenuAgingStep : IAgingStep
                 }
 
                 if (item.Stains[0] != 0)
-                    b.AppendLine($"{this.stainSheet.GetRow(item.Stains[0])?.Name.ToDalamudString() ?? "Unknown"} ({item.Stains[0]})");
+                    b.AppendLine($"{this.stainSheet.GetRowOrDefault(item.Stains[0])?.Name.ExtractText() ?? "Unknown"} ({item.Stains[0]})");
                 else
                     b.AppendLine("None");
 
                 b.Append("Glamoured Item: ");
                 if (item.GlamourId != 0)
-                    b.AppendLine($"{this.itemSheet.GetRow(item.GlamourId)?.Name.ToDalamudString() ?? "Unknown"} ({item.GlamourId})");
+                    b.AppendLine($"{this.itemSheet.GetRowOrDefault(item.GlamourId)?.Name.ExtractText() ?? "Unknown"} ({item.GlamourId})");
                 else
                     b.AppendLine("None");
 

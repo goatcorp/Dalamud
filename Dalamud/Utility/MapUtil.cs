@@ -1,11 +1,11 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Types;
 
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Utility;
 
@@ -149,9 +149,7 @@ public static class MapUtil
         if (agentMap == null || agentMap->CurrentMapId == 0)
             throw new InvalidOperationException("Could not determine active map - data may not be loaded yet?");
 
-        var territoryTransient = Service<DataManager>.Get()
-                                                     .GetExcelSheet<TerritoryTypeTransient>()!
-                                                     .GetRow(agentMap->CurrentTerritoryId);
+        var territoryTransient = LuminaUtils.CreateRef<TerritoryTypeTransient>(agentMap->CurrentTerritoryId);
 
         return WorldToMap(
             go.Position,
@@ -161,7 +159,7 @@ public static class MapUtil
              */
             -agentMap->CurrentOffsetX,
             -agentMap->CurrentOffsetY,
-            territoryTransient?.OffsetZ ?? 0,
+            territoryTransient.ValueNullable?.OffsetZ ?? 0,
             (uint)agentMap->CurrentMapSizeFactor,
             correctZOffset);
     }

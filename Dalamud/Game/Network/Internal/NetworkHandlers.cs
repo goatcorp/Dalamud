@@ -16,7 +16,7 @@ using Dalamud.Hooking;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Serilog;
 
 namespace Dalamud.Game.Network.Internal;
@@ -282,21 +282,17 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             if (this.configuration.DutyFinderTaskbarFlash)
                 Util.FlashWindow();
 
-            var cfConditionSheet = Service<DataManager>.Get().GetExcelSheet<ContentFinderCondition>()!;
-            var cfCondition = cfConditionSheet.GetRow(conditionId);
+            var cfCondition = LuminaUtils.CreateRef<ContentFinderCondition>(conditionId);
 
-            if (cfCondition == null)
+            if (!cfCondition.IsValid)
             {
                 Log.Error("CFC key {ConditionId} not in Lumina data", conditionId);
                 return result;
             }
 
-            var cfcName = cfCondition.Name.ToDalamudString();
+            var cfcName = cfCondition.Value.Name.ToDalamudString();
             if (cfcName.Payloads.Count == 0)
-            {
                 cfcName = "Duty Roulette";
-                cfCondition.Image = 112324;
-            }
 
             Task.Run(() =>
             {
@@ -308,7 +304,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                     Service<ChatGui>.GetNullable()?.Print(b.Build());
                 }
 
-                this.CfPop.InvokeSafely(cfCondition);
+                this.CfPop.InvokeSafely(cfCondition.Value);
             }).ContinueWith(
                 task => Log.Error(task.Exception, "CfPop.Invoke failed"),
                 TaskContinuationOptions.OnlyOnFaulted);
