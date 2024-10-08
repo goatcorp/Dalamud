@@ -22,6 +22,7 @@
         <Reference Include="ImGuiScene" Private="false" />
         <Reference Include="Lumina" Private="false" />
         <Reference Include="Lumina.Excel" Private="false" />
+        <Reference Include="Serilog" Private="false" />
     </ItemGroup>
 
     <Target Name="Message" BeforeTargets="BeforeBuild">

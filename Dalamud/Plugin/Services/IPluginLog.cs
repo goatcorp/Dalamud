@@ -1,4 +1,5 @@
-﻿using Serilog.Events;
+﻿using Serilog;
+using Serilog.Events;
 
 #pragma warning disable CS1573 // See https://github.com/dotnet/roslyn/issues/40325
 
@@ -9,6 +10,12 @@ namespace Dalamud.Plugin.Services;
 /// </summary>
 public interface IPluginLog
 {
+    /// <summary>
+    /// Gets a Serilog ILogger instance for this plugin. This is the entrypoint for plugins that wish to use more
+    /// advanced logging functionality.
+    /// </summary>
+    public ILogger Logger { get; }
+    
     /// <summary>
     /// Gets or sets the minimum log level that will be recorded from this plugin to Dalamud's logs. This may be set
     /// by either the plugin or by Dalamud itself.
