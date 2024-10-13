@@ -205,6 +205,13 @@ internal class PluginRepository
             return false;
         }
 
+        if (manifest.TestingAssemblyVersion != null &&
+            manifest.TestingAssemblyVersion > manifest.AssemblyVersion &&
+            manifest.TestingDalamudApiLevel == null)
+        {
+            Log.Warning("Plugin {PluginName} in {RepoLink} has a testing version, but no testing API associated with it, \"TestingDalamudApiLevel\" is required.", manifest.InternalName, this.PluginMasterUrl);
+        }
+
         return true;
     }
 
