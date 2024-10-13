@@ -209,7 +209,7 @@ internal class PluginRepository
             manifest.TestingAssemblyVersion > manifest.AssemblyVersion &&
             manifest.TestingDalamudApiLevel == null)
         {
-            Log.Warning("Plugin {PluginName} in {RepoLink} has a testing version, but no testing API associated with it, \"TestingDalamudApiLevel\" is required.", manifest.InternalName, this.PluginMasterUrl);
+            Log.Warning("The plugin {PluginName} in {RepoLink} has a testing version available, but it lacks an associated testing API. The 'TestingDalamudApiLevel' property is required.", manifest.InternalName, this.PluginMasterUrl);
         }
 
         return true;
