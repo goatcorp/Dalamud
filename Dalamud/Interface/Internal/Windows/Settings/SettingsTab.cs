@@ -44,6 +44,14 @@ public abstract class SettingsTab : IDisposable
         ImGuiHelpers.ScaledDummy(15);
     }
 
+    public virtual void PostDraw()
+    {
+        foreach (var settingsEntry in this.Entries)
+        {
+            settingsEntry.PostDraw();
+        }
+    }
+
     public virtual void Load()
     {
         foreach (var settingsEntry in this.Entries)
