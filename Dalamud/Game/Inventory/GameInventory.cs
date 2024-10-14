@@ -404,6 +404,9 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
     public event IGameInventory.InventoryChangedDelegate<InventoryItemMergedArgs>? ItemMergedExplicit;
 
     /// <inheritdoc/>
+    public ReadOnlySpan<GameInventoryItem> GetInventoryItems(GameInventoryType type) => GameInventoryItem.GetReadOnlySpanOfInventory(type);
+
+    /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
         this.gameInventoryService.Unsubscribe(this);
