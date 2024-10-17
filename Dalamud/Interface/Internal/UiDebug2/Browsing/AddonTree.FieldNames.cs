@@ -16,8 +16,10 @@ public unsafe partial class AddonTree
 {
     private static readonly Dictionary<string, Type?> AddonTypeDict = [];
 
+    private static readonly Assembly? ClientStructs = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(static a => a.GetName().Name == "FFXIVClientStructs");
+
     /// <summary>
-    /// Gets or sets a collection of names corresponding to pointers documented within the addon struct.
+    /// Gets or sets a collection of names for field offsets that have been documented in FFXIVClientStructs.
     /// </summary>
     internal Dictionary<nint, List<string>> FieldNames { get; set; } = [];
 
@@ -28,27 +30,24 @@ public unsafe partial class AddonTree
             return null;
         }
 
-        if (AddonTypeDict.TryAdd(this.AddonName, null))
+        if (AddonTypeDict.TryAdd(this.AddonName, null) && ClientStructs != null)
         {
-            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            try
             {
-                try
+                foreach (var t in from t in ClientStructs.GetTypes()
+                                  where t.IsPublic
+                                  let xivAddonAttr = (Addon?)t.GetCustomAttribute(typeof(Addon), false)
+                                  where xivAddonAttr != null
+                                  where xivAddonAttr.AddonIdentifiers.Contains(this.AddonName)
+                                  select t)
                 {
-                    foreach (var t in from t in a.GetTypes()
-                                      where t.IsPublic
-                                      let xivAddonAttr = (Addon?)t.GetCustomAttribute(typeof(Addon), false)
-                                      where xivAddonAttr != null
-                                      where xivAddonAttr.AddonIdentifiers.Contains(this.AddonName)
-                                      select t)
-                    {
-                        AddonTypeDict[this.AddonName] = t;
-                        break;
-                    }
+                    AddonTypeDict[this.AddonName] = t;
+                    break;
                 }
-                catch
-                {
-                    // ignored
-                }
+            }
+            catch
+            {
+                // ignored
             }
         }
 
@@ -108,7 +107,7 @@ public unsafe partial class AddonTree
         {
             try
             {
-                if (this.FieldNames.TryAdd(fieldAddr, [..path!, name]) && fieldType.DeclaringType == baseType)
+                if (this.FieldNames.TryAdd(fieldAddr, [..path, name]) && fieldType.DeclaringType == baseType)
                 {
                     this.PopulateFieldNames(field.GetValue(obj), fieldAddr, [..path, name]);
                 }
@@ -140,7 +139,7 @@ public unsafe partial class AddonTree
                         var itemAddr = fieldAddr + (size * i);
                         var itemName = $"{name}[{i}]";
 
-                        this.FieldNames.TryAdd(itemAddr, [..path!, itemName]);
+                        this.FieldNames.TryAdd(itemAddr, [..path, itemName]);
 
                         var item = Marshal.PtrToStructure(itemAddr, itemType);
                         if (itemType.DeclaringType == baseType)
@@ -176,10 +175,10 @@ public unsafe partial class AddonTree
                     return;
                 }
 
-                this.FieldNames.TryAdd(fieldAddr, [..path!, name]);
+                this.FieldNames.TryAdd(fieldAddr, [..path, name]);
                 this.FieldNames.TryAdd(pointer, [..path, name]);
 
-                if (itemType?.DeclaringType != baseType || itemType!.IsPointer)
+                if (itemType?.DeclaringType != baseType || itemType.IsPointer)
                 {
                     return;
                 }

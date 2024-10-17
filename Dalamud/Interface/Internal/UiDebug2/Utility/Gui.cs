@@ -24,8 +24,8 @@ internal static class Gui
     /// <typeparam name="T">The type of value being set.</typeparam>
     /// <param name="label">The label for the inputs.</param>
     /// <param name="val">The value being set.</param>
-    /// <param name="options">A list of all options to create buttons for.</param>
-    /// <param name="icons">A list of the icons to use for each option.</param>
+    /// <param name="options">A list of all options.</param>
+    /// <param name="icons">A list of icons corresponding to the options.</param>
     /// <returns>true if a button is clicked.</returns>
     internal static unsafe bool IconSelectInput<T>(string label, ref T val, List<T> options, List<FontAwesomeIcon> icons)
     {
@@ -104,14 +104,11 @@ internal static class Gui
     /// <remarks>Colors the text itself either white or black, depending on the luminosity of the background color.</remarks>
     internal static void PrintColor(Vector4 color, string fmt)
     {
-        var c = new ImRaii.Color().Push(Text, Luminosity(color) < 0.5f ? new Vector4(1) : new(0, 0, 0, 1))
-                                  .Push(Button, color)
-                                  .Push(ButtonActive, color)
-                                  .Push(ButtonHovered, color);
+        using (new ImRaii.Color().Push(Text, Luminosity(color) < 0.5f ? new Vector4(1) : new(0, 0, 0, 1)).Push(Button, color).Push(ButtonActive, color).Push(ButtonHovered, color))
+        {
+            ImGui.SmallButton(fmt);
+        }
 
-        ImGui.SmallButton(fmt);
-
-        c.Pop(4);
         return;
 
         static double Luminosity(Vector4 vector4) =>
@@ -125,20 +122,21 @@ internal static class Gui
     /// <inheritdoc cref="ImGuiHelpers.ClickToCopyText"/>
     internal static void ClickToCopyText(string text, string? textCopy = null)
     {
-        var c = ImRaii.PushColor(Text, new Vector4(0.6f, 0.6f, 0.6f, 1));
-        ImGuiHelpers.ClickToCopyText(text, textCopy);
-        c.Pop();
+        using (ImRaii.PushColor(Text, new Vector4(0.6f, 0.6f, 0.6f, 1)))
+        {
+            ImGuiHelpers.ClickToCopyText(text, textCopy);
+        }
 
         if (ImGui.IsItemHovered())
         {
-            var t = ImRaii.Tooltip();
-            var f = ImRaii.PushFont(UiBuilder.IconFont);
-            ImGui.Text(FontAwesomeIcon.Copy.ToIconString());
-            f.Pop();
-            ImGui.SameLine();
-            ImGui.Text($"{textCopy ?? text}");
-
-            t.Dispose();
+            using (ImRaii.Tooltip())
+            {
+                using var f = ImRaii.PushFont(UiBuilder.IconFont);
+                ImGui.Text(FontAwesomeIcon.Copy.ToIconString());
+                f.Pop();
+                ImGui.SameLine();
+                ImGui.Text($"{textCopy ?? text}");
+            }
         }
     }
 
@@ -161,9 +159,10 @@ internal static class Gui
 
         var index = (int)Math.Floor(prog * tooltips.Length);
 
-        var t = ImRaii.Tooltip();
-        ImGui.Text(tooltips[index]);
-        t.Dispose();
+        using (ImRaii.Tooltip())
+        {
+            ImGui.Text(tooltips[index]);
+        }
 
         return true;
     }

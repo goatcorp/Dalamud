@@ -56,7 +56,7 @@ public readonly unsafe partial struct TimelineTree
 
         if (count > 0)
         {
-            var tree = ImRaii.TreeNode($"Timeline##{(nint)this.node:X}timeline", SpanFullWidth);
+            using var tree = ImRaii.TreeNode($"Timeline##{(nint)this.node:X}timeline", SpanFullWidth);
 
             if (tree)
             {
@@ -81,8 +81,6 @@ public readonly unsafe partial struct TimelineTree
                     this.PrintAnimation(animation, a, isActive, (nint)(this.NodeTimeline->Resource->Animations + (a * sizeof(AtkTimelineAnimation))));
                 }
             }
-
-            tree.Dispose();
         }
     }
 
@@ -310,45 +308,46 @@ public readonly unsafe partial struct TimelineTree
     {
         var columns = this.BuildColumns(animation);
 
-        var col = ImRaii.PushColor(ImGuiCol.Text, isActive ? new Vector4(1, 0.65F, 0.4F, 1) : new(1));
-        var tree = ImRaii.TreeNode($"[#{a}] [Frames {animation.StartFrameIdx}-{animation.EndFrameIdx}] {(isActive ? " (Active)" : string.Empty)}###{(nint)this.node}animTree{a}");
-        col.Dispose();
-
-        if (tree)
+        using (ImRaii.PushColor(ImGuiCol.Text, new Vector4(1, 0.65F, 0.4F, 1), isActive))
         {
-            PrintFieldValuePair("Animation", $"{address:X}");
+            using var tree = ImRaii.TreeNode($"[#{a}] [Frames {animation.StartFrameIdx}-{animation.EndFrameIdx}] {(isActive ? " (Active)" : string.Empty)}###{(nint)this.node}animTree{a}");
 
-            ShowStruct((AtkTimelineAnimation*)address);
-
-            if (columns.Count > 0)
+            if (tree)
             {
-                var table = ImRaii.Table($"##{(nint)this.node}animTable{a}", columns.Count, Borders | SizingFixedFit | RowBg | NoHostExtendX);
+                PrintFieldValuePair("Animation", $"{address:X}");
 
-                foreach (var c in columns)
+                ShowStruct((AtkTimelineAnimation*)address);
+
+                if (columns.Count > 0)
                 {
-                    ImGui.TableSetupColumn(c.Name, WidthFixed, c.Width);
-                }
-
-                ImGui.TableHeadersRow();
-
-                var rows = columns.Select(static c => c.Count).Max();
-
-                for (var i = 0; i < rows; i++)
-                {
-                    ImGui.TableNextRow();
-
-                    foreach (var c in columns)
+                    using (ImRaii.Table(
+                               $"##{(nint)this.node}animTable{a}",
+                               columns.Count,
+                               Borders | SizingFixedFit | RowBg | NoHostExtendX))
                     {
-                        ImGui.TableNextColumn();
-                        c.PrintValueAt(i);
+                        foreach (var c in columns)
+                        {
+                            ImGui.TableSetupColumn(c.Name, WidthFixed, c.Width);
+                        }
+
+                        ImGui.TableHeadersRow();
+
+                        var rows = columns.Select(static c => c.Count).Max();
+
+                        for (var i = 0; i < rows; i++)
+                        {
+                            ImGui.TableNextRow();
+
+                            foreach (var c in columns)
+                            {
+                                ImGui.TableNextColumn();
+                                c.PrintValueAt(i);
+                            }
+                        }
                     }
                 }
-
-                table.Dispose();
             }
         }
-
-        tree.Dispose();
     }
 
     private List<IKeyGroupColumn> BuildColumns(AtkTimelineAnimation animation)

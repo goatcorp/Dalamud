@@ -31,17 +31,13 @@ internal partial class UiDebug2 : IDisposable
     internal UiDebug2()
     {
         this.elementSelector = new(this);
-
-        GameGui = Service<GameGui>.Get();
-
-        Log = new ModuleLog("UiDebug2");
     }
 
     /// <inheritdoc cref="ModuleLog"/>
-    internal static ModuleLog Log { get; set; } = null!;
+    internal static ModuleLog Log { get; set; } = new("UiDebug2");
 
     /// <inheritdoc cref="IGameGui"/>
-    internal static IGameGui GameGui { get; set; } = null!;
+    internal static IGameGui GameGui { get; set; } = Service<GameGui>.Get();
 
     /// <summary>
     /// Gets a collection of <see cref="AddonTree"/> instances, each representing an <see cref="FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase"/>.
@@ -86,28 +82,28 @@ internal partial class UiDebug2 : IDisposable
     private void DrawMainPanel()
     {
         ImGui.SameLine();
-        var ch = ImRaii.Child("###uiDebugMainPanel", new(-1, -1), true, HorizontalScrollbar);
 
-        if (this.elementSelector.Active)
+        using (ImRaii.Child("###uiDebugMainPanel", new(-1, -1), true, HorizontalScrollbar))
         {
-            this.elementSelector.DrawSelectorOutput();
-        }
-        else
-        {
-            if (this.SelectedAddonName != null)
+            if (this.elementSelector.Active)
             {
-                var addonTree = AddonTree.GetOrCreate(this.SelectedAddonName);
-
-                if (addonTree == null)
+                this.elementSelector.DrawSelectorOutput();
+            }
+            else
+            {
+                if (this.SelectedAddonName != null)
                 {
-                    this.SelectedAddonName = null;
-                    return;
-                }
+                    var addonTree = AddonTree.GetOrCreate(this.SelectedAddonName);
 
-                addonTree.Draw();
+                    if (addonTree == null)
+                    {
+                        this.SelectedAddonName = null;
+                        return;
+                    }
+
+                    addonTree.Draw();
+                }
             }
         }
-
-        ch.Dispose();
     }
 }

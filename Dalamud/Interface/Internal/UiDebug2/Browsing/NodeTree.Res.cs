@@ -90,11 +90,11 @@ internal unsafe partial class ResNodeTree : IDisposable
                     NodeType.ClippingMask => new ClippingMaskNodeTree(node, addonTree),
                     NodeType.Counter => new CounterNodeTree(node, addonTree),
                     NodeType.Collision => new CollisionNodeTree(node, addonTree),
-                    _ => new ResNodeTree(node, addonTree),
+                    _ => new ResNodeTree(node, addonTree)
                 };
 
     /// <summary>
-    /// Prints a list of NodeTree for a given list of nodes.
+    /// Prints a list of NodeTrees for a given list of nodes.
     /// </summary>
     /// <param name="nodeList">The address of the start of the list.</param>
     /// <param name="count">The number of nodes in the list.</param>
@@ -122,8 +122,8 @@ internal unsafe partial class ResNodeTree : IDisposable
             return;
         }
 
-        var c = ImRaii.PushColor(Text, color);
-        var tree = ImRaii.TreeNode($"{label}##{(nint)nodeList:X}", SpanFullWidth);
+        using var c = ImRaii.PushColor(Text, color);
+        using var tree = ImRaii.TreeNode($"{label}##{(nint)nodeList:X}", SpanFullWidth);
         c.Pop();
 
         if (tree)
@@ -139,8 +139,6 @@ internal unsafe partial class ResNodeTree : IDisposable
                 ImGui.GetWindowDrawList().AddLine(lineStart, lineEnd, RgbaVector4ToUint(color), 1);
             }
         }
-
-        tree.Dispose();
     }
 
     /// <summary>
@@ -275,8 +273,8 @@ internal unsafe partial class ResNodeTree : IDisposable
             ImGui.SetNextItemOpen(true, ImGuiCond.Always);
         }
 
-        var col = ImRaii.PushColor(Text, displayColor);
-        var tree = ImRaii.TreeNode(label, SpanFullWidth);
+        using var col = ImRaii.PushColor(Text, displayColor);
+        using var tree = ImRaii.TreeNode(label, SpanFullWidth);
 
         if (ImGui.IsItemHovered())
         {
@@ -331,8 +329,6 @@ internal unsafe partial class ResNodeTree : IDisposable
                 ImGui.GetWindowDrawList().AddLine(lineStart, lineEnd, RgbaVector4ToUint(displayColor), 1);
             }
         }
-
-        tree.Dispose();
     }
 
     private void DrawBasicControls()

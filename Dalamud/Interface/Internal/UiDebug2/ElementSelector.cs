@@ -79,43 +79,53 @@ internal unsafe class ElementSelector : IDisposable
     /// </summary>
     internal void DrawInterface()
     {
-        var ch = ImRaii.Child("###sidebar_elementSelector", new(250, 0), true);
-
-        var f = ImRaii.PushFont(IconFont);
-        var col = ImRaii.PushColor(Text, this.Active ? new Vector4(1, 1, 0.2f, 1) : new(1));
-        if (ImGui.Button($"{(char)ObjectUngroup}"))
+        using (ImRaii.Child("###sidebar_elementSelector", new(250, 0), true))
         {
-            this.Active = !this.Active;
-        }
+            using var f = ImRaii.PushFont(IconFont);
+            using var col = ImRaii.PushColor(Text, new Vector4(1, 1, 0.2f, 1), this.Active);
 
-        if (Countdown > 0)
-        {
-            Countdown -= 1;
-            if (Countdown < 0)
+            if (ImGui.Button($"{(char)ObjectUngroup}"))
             {
-                Countdown = 0;
+                this.Active = !this.Active;
+            }
+
+            if (Countdown > 0)
+            {
+                Countdown -= 1;
+                if (Countdown < 0)
+                {
+                    Countdown = 0;
+                }
+            }
+
+            col.Pop();
+            f.Pop();
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Element Selector");
+            }
+
+            ImGui.SameLine();
+
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 32);
+            ImGui.InputTextWithHint(
+                "###addressSearchInput",
+                "Address Search",
+                ref this.addressSearchInput,
+                18,
+                ImGuiInputTextFlags.AutoSelectAll);
+            ImGui.SameLine();
+
+            if (ImGuiComponents.IconButton("###elemSelectorAddrSearch", Search) && nint.TryParse(
+                    this.addressSearchInput,
+                    NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier,
+                    InvariantInfo,
+                    out var address))
+            {
+                this.PerformSearch(address);
             }
         }
-
-        col.Pop();
-        f.Pop();
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetTooltip("Element Selector");
-        }
-
-        ImGui.SameLine();
-
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 32);
-        ImGui.InputTextWithHint("###addressSearchInput", "Address Search", ref this.addressSearchInput, 18, ImGuiInputTextFlags.AutoSelectAll);
-        ImGui.SameLine();
-
-        if (ImGuiComponents.IconButton("###elemSelectorAddrSearch", Search) && nint.TryParse(this.addressSearchInput, NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier, InvariantInfo, out var address))
-        {
-            this.PerformSearch(address);
-        }
-
-        ch.Dispose();
     }
 
     /// <summary>
@@ -141,72 +151,71 @@ internal unsafe class ElementSelector : IDisposable
         var mousePos = ImGui.GetMousePos() - MainViewport.Pos;
         var addonResults = GetAtkUnitBaseAtPosition(mousePos);
 
-        var col = ImRaii.PushColor(WindowBg, new Vector4(0.5f));
-        var ch = ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse);
-        var g = ImRaii.Group();
-
-        Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
-        ImGui.Spacing();
-        ImGui.Text("RESULTS:\n");
-
-        var i = 0;
-        foreach (var a in addonResults)
+        using var col = ImRaii.PushColor(WindowBg, new Vector4(0.5f));
+        using (ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse))
         {
-            var name = a.Addon->NameString;
-            ImGui.Text($"[Addon] {name}");
-            ImGui.Indent(15);
-            foreach (var n in a.Nodes)
+            using (ImRaii.Group())
             {
-                var nSelected = i++ == this.index;
+                Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
+                ImGui.Spacing();
+                ImGui.Text("RESULTS:\n");
 
-                PrintNodeHeaderOnly(n.Node, nSelected, a.Addon);
-
-                if (nSelected && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                var i = 0;
+                foreach (var a in addonResults)
                 {
-                    this.Active = false;
-
-                    this.uiDebug2.SelectedAddonName = a.Addon->NameString;
-
-                    var ptrList = new List<nint> { (nint)n.Node };
-
-                    var nextNode = n.Node->ParentNode;
-                    while (nextNode != null)
+                    var name = a.Addon->NameString;
+                    ImGui.Text($"[Addon] {name}");
+                    ImGui.Indent(15);
+                    foreach (var n in a.Nodes)
                     {
-                        ptrList.Add((nint)nextNode);
-                        nextNode = nextNode->ParentNode;
+                        var nSelected = i++ == this.index;
+
+                        PrintNodeHeaderOnly(n.Node, nSelected, a.Addon);
+
+                        if (nSelected && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                        {
+                            this.Active = false;
+
+                            this.uiDebug2.SelectedAddonName = a.Addon->NameString;
+
+                            var ptrList = new List<nint> { (nint)n.Node };
+
+                            var nextNode = n.Node->ParentNode;
+                            while (nextNode != null)
+                            {
+                                ptrList.Add((nint)nextNode);
+                                nextNode = nextNode->ParentNode;
+                            }
+
+                            SearchResults = [.. ptrList];
+                            Countdown = 100;
+                            Scrolled = false;
+                        }
+
+                        if (nSelected)
+                        {
+                            n.NodeBounds.DrawFilled(new(1, 1, 0.2f, 1));
+                        }
                     }
 
-                    SearchResults = [.. ptrList];
-                    Countdown = 100;
-                    Scrolled = false;
+                    ImGui.Indent(-15);
                 }
 
-                if (nSelected)
+                if (i != 0)
                 {
-                    n.NodeBounds.DrawFilled(new(1, 1, 0.2f, 1));
+                    this.index -= (int)ImGui.GetIO().MouseWheel;
+                    while (this.index < 0)
+                    {
+                        this.index += i;
+                    }
+
+                    while (this.index >= i)
+                    {
+                        this.index -= i;
+                    }
                 }
             }
-
-            ImGui.Indent(-15);
         }
-
-        if (i != 0)
-        {
-            this.index -= (int)ImGui.GetIO().MouseWheel;
-            while (this.index < 0)
-            {
-                this.index += i;
-            }
-
-            while (this.index >= i)
-            {
-                this.index -= i;
-            }
-        }
-
-        g.Dispose();
-        ch.Dispose();
-        col.Pop();
     }
 
     private static List<AddonResult> GetAtkUnitBaseAtPosition(Vector2 position)
@@ -384,9 +393,8 @@ internal unsafe class ElementSelector : IDisposable
             return;
         }
 
-        var col = ImRaii.PushColor(Text, selected ? new Vector4(1, 1, 0.2f, 1) : new(0.6f, 0.6f, 0.6f, 1));
+        using var col = ImRaii.PushColor(Text, selected ? new Vector4(1, 1, 0.2f, 1) : new(0.6f, 0.6f, 0.6f, 1));
         ResNodeTree.GetOrCreate(node, tree).WriteTreeHeading();
-        col.Pop();
     }
 
     private void PerformSearch(nint address)

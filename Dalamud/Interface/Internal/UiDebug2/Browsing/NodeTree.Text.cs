@@ -50,7 +50,6 @@ internal unsafe partial class TextNodeTree : ResNodeTree
         ImGui.TextColored(new(1), "Text:");
         ImGui.SameLine();
 
-#pragma warning disable
         try
         {
             var style = new SeStringDrawParams
@@ -61,13 +60,14 @@ internal unsafe partial class TextNodeTree : ResNodeTree
                 EdgeStrength = 1f
             };
 
+#pragma warning disable SeStringRenderer
             ImGuiHelpers.SeStringWrapped(this.NodeText.AsSpan(), style);
+#pragma warning restore SeStringRenderer
         }
         catch
         {
             ImGui.Text(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? "");
         }
-#pragma warning restore
 
         PrintFieldValuePairs(
             ("Font", $"{this.TxtNode->FontType}"),
@@ -83,7 +83,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
 
     private void PrintPayloads()
     {
-        var tree = ImRaii.TreeNode($"Text Payloads##{(nint)this.Node:X}");
+        using var tree = ImRaii.TreeNode($"Text Payloads##{(nint)this.Node:X}");
 
         if (tree)
         {
@@ -116,7 +116,5 @@ internal unsafe partial class TextNodeTree : ResNodeTree
                 }
             }
         }
-
-        tree.Dispose();
     }
 }

@@ -16,7 +16,7 @@ namespace Dalamud.Interface.Internal.UiDebug2;
 /// <inheritdoc cref="UiDebug2"/>
 internal unsafe partial class UiDebug2
 {
-   /// <summary>
+    /// <summary>
     /// All unit lists to check for addons.
     /// </summary>
     internal static readonly List<UnitListOption> UnitListOptions =
@@ -38,7 +38,7 @@ internal unsafe partial class UiDebug2
         new(12, "Depth Layer 13"),
         new(15, "Units 16"),
         new(16, "Units 17"),
-        new(17, "Units 18"),
+        new(17, "Units 18")
     ];
 
     private string addonNameSearch = string.Empty;
@@ -53,54 +53,54 @@ internal unsafe partial class UiDebug2
 
     private void DrawSidebar()
     {
-        var g = ImRaii.Group();
-
-        this.DrawNameSearch();
-        this.DrawAddonSelectionList();
-        this.elementSelector.DrawInterface();
-
-        g.Dispose();
+        using (ImRaii.Group())
+        {
+            this.DrawNameSearch();
+            this.DrawAddonSelectionList();
+            this.elementSelector.DrawInterface();
+        }
     }
 
     private void DrawNameSearch()
     {
-        var ch = ImRaii.Child("###sidebar_nameSearch", new(250, 40), true);
-        var atkUnitBaseSearch = this.addonNameSearch;
-
-        Vector4? defaultColor = this.visFilter ? new(0.0f, 0.8f, 0.2f, 1f) : new Vector4(0.6f, 0.6f, 0.6f, 1);
-        if (ImGuiComponents.IconButton("filter", LowVision, defaultColor))
+        using (ImRaii.Child("###sidebar_nameSearch", new(250, 40), true))
         {
-            this.visFilter = !this.visFilter;
+            var atkUnitBaseSearch = this.addonNameSearch;
+
+            Vector4? defaultColor = this.visFilter ? new(0.0f, 0.8f, 0.2f, 1f) : new Vector4(0.6f, 0.6f, 0.6f, 1);
+            if (ImGuiComponents.IconButton("filter", LowVision, defaultColor))
+            {
+                this.visFilter = !this.visFilter;
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Filter by visibility");
+            }
+
+            ImGui.SameLine();
+
+            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+            if (ImGui.InputTextWithHint("###atkUnitBaseSearch", "Filter by name", ref atkUnitBaseSearch, 0x20))
+            {
+                this.addonNameSearch = atkUnitBaseSearch;
+            }
         }
-
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetTooltip("Filter by visibility");
-        }
-
-        ImGui.SameLine();
-
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.InputTextWithHint("###atkUnitBaseSearch", "Filter by name", ref atkUnitBaseSearch, 0x20))
-        {
-            this.addonNameSearch = atkUnitBaseSearch;
-        }
-
-        ch.Dispose();
     }
 
     private void DrawAddonSelectionList()
     {
-        var ch = ImRaii.Child("###sideBar_addonList", new(250, -44), true, ImGuiWindowFlags.AlwaysVerticalScrollbar);
-
-        var unitListBaseAddr = GetUnitListBaseAddr();
-
-        foreach (var unit in UnitListOptions)
+        using (ImRaii.Child("###sideBar_addonList", new(250, -44), true, ImGuiWindowFlags.AlwaysVerticalScrollbar))
         {
-            this.DrawUnitListOption(unitListBaseAddr, unit);
-        }
+            var unitListBaseAddr = GetUnitListBaseAddr();
 
-        ch.Dispose();
+            foreach (var unit in UnitListOptions)
+            {
+                this.DrawUnitListOption(unitListBaseAddr, unit);
+            }
+
+            ;
+        }
     }
 
     private void DrawUnitListOption(AtkUnitList* unitListBaseAddr, UnitListOption unit)
@@ -148,25 +148,23 @@ internal unsafe partial class UiDebug2
 
         var countStr = $"{(usingFilter ? $"{matchCount}/" : string.Empty)}{totalCount}";
 
-        var col1 = ImRaii.PushColor(ImGuiCol.Text, anyVisible ? new Vector4(1) : new Vector4(0.6f, 0.6f, 0.6f, 1));
-        var tree = ImRaii.TreeNode($"{unit.Name} [{countStr}]###unitListTree{unit.Index}");
+        using var col1 = ImRaii.PushColor(ImGuiCol.Text, anyVisible ? new Vector4(1) : new Vector4(0.6f, 0.6f, 0.6f, 1));
+        using var tree = ImRaii.TreeNode($"{unit.Name} [{countStr}]###unitListTree{unit.Index}");
         col1.Pop();
 
         if (tree)
         {
             foreach (var option in options)
             {
-                var col2 = ImRaii.PushColor(ImGuiCol.Text, option.Visible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new Vector4(0.6f, 0.6f, 0.6f, 1));
-                if (ImGui.Selectable($"{option.Name}##select{option.Name}", this.SelectedAddonName == option.Name))
+                using (ImRaii.PushColor(ImGuiCol.Text, option.Visible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new Vector4(0.6f, 0.6f, 0.6f, 1)))
                 {
-                    this.SelectedAddonName = option.Name;
+                    if (ImGui.Selectable($"{option.Name}##select{option.Name}", this.SelectedAddonName == option.Name))
+                    {
+                        this.SelectedAddonName = option.Name;
+                    }
                 }
-
-                col2.Pop();
             }
         }
-
-        tree.Dispose();
     }
 
     /// <summary>

@@ -26,11 +26,10 @@ internal unsafe partial class ResNodeTree
     /// </summary>
     private protected void DrawNodeEditorTable()
     {
-        var tab = ImRaii.Table($"###Editor{(nint)this.Node}", 2, SizingStretchProp | NoHostExtendX);
-
-        this.DrawEditorRows();
-
-        tab.Dispose();
+        using (ImRaii.Table($"###Editor{(nint)this.Node}", 2, SizingStretchProp | NoHostExtendX))
+        {
+            this.DrawEditorRows();
+        }
     }
 
     /// <summary>
