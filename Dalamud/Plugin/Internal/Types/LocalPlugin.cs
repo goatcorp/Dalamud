@@ -599,7 +599,7 @@ internal class LocalPlugin : IAsyncDisposable
         // Changes to Lumina should be upstreamed if feasible, and if there is a desire to re-add unpinned Lumina we
         // will need to put this behind some kind of feature flag somewhere.
         config.SharedAssemblies.Add((typeof(Lumina.GameData).Assembly.GetName(), true));
-        config.SharedAssemblies.Add((typeof(Lumina.Excel.ExcelSheetImpl).Assembly.GetName(), true));
+        config.SharedAssemblies.Add((typeof(Lumina.Excel.Sheets.Addon).Assembly.GetName(), true));
     }
 
     private void EnsureLoader()
