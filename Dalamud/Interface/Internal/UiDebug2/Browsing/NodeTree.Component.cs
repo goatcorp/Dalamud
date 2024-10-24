@@ -81,19 +81,19 @@ internal unsafe class ComponentNodeTree : ResNodeTree
         {
             case TextInput:
                 var textInputComponent = (AtkComponentTextInput*)this.Component;
-                ImGui.Text(
+                ImGui.TextUnformatted(
                     $"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
-                ImGui.Text(
+                ImGui.TextUnformatted(
                     $"InputBase Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText2.StringPtr))}");
-                ImGui.Text(
+                ImGui.TextUnformatted(
                     $"Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText01.StringPtr))}");
-                ImGui.Text(
+                ImGui.TextUnformatted(
                     $"Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText02.StringPtr))}");
-                ImGui.Text(
+                ImGui.TextUnformatted(
                     $"Text3: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText03.StringPtr))}");
-                ImGui.Text(
+                ImGui.TextUnformatted(
                     $"Text4: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText04.StringPtr))}");
-                ImGui.Text(
+                ImGui.TextUnformatted(
                     $"Text5: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText05.StringPtr))}");
                 break;
             case List:

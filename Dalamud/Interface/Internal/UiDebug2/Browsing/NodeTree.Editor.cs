@@ -370,8 +370,8 @@ internal unsafe partial class TextNodeTree
         var hAlign = (int)alignment % 3;
         var vAlign = ((int)alignment - hAlign) / 3;
 
-        var hAlignInput = IconSelectInput($"{label}H", ref hAlign, [0, 1, 2], [AlignLeft, AlignCenter, AlignRight]);
-        var vAlignInput = IconSelectInput($"{label}V", ref vAlign, [0, 1, 2], [ArrowsUpToLine, GripLines, ArrowsDownToLine]);
+        var hAlignInput = IconButtonSelect($"{label}H", ref hAlign, [0, 1, 2], [AlignLeft, AlignCenter, AlignRight]);
+        var vAlignInput = IconButtonSelect($"{label}V", ref vAlign, [0, 1, 2], [ArrowsUpToLine, GripLines, ArrowsDownToLine]);
 
         if (hAlignInput || vAlignInput)
         {

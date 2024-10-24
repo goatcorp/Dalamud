@@ -57,7 +57,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
                 Color = this.TxtNode->TextColor.RGBA,
                 EdgeColor = this.TxtNode->EdgeColor.RGBA,
                 ForceEdgeColor = true,
-                EdgeStrength = 1f
+                EdgeStrength = 1f,
             };
 
 #pragma warning disable SeStringRenderer
@@ -66,7 +66,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
         }
         catch
         {
-            ImGui.Text(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? "");
+            ImGui.TextUnformatted(Marshal.PtrToStringAnsi(new(this.NodeText.StringPtr)) ?? string.Empty);
         }
 
         PrintFieldValuePairs(
@@ -98,7 +98,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
             for (var i = 0; i < seString.Payloads.Count; i++)
             {
                 var payload = seString.Payloads[i];
-                ImGui.Text($"[{i}]");
+                ImGui.TextUnformatted($"[{i}]");
                 ImGui.SameLine();
                 switch (payload.Type)
                 {
@@ -110,7 +110,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
 
                     default:
                     {
-                        ImGui.Text(payload.ToString());
+                        ImGui.TextUnformatted(payload.ToString());
                         break;
                     }
                 }

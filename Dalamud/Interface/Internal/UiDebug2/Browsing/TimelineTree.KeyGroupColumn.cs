@@ -66,7 +66,7 @@ public readonly partial struct TimelineTree
         /// The default print function, if none is specified.
         /// </summary>
         /// <param name="value">The value to print.</param>
-        public static void PlainTextCell(T value) => ImGui.Text($"{value}");
+        public static void PlainTextCell(T value) => ImGui.TextUnformatted($"{value}");
 
         /// <summary>
         /// Adds a value to this column.

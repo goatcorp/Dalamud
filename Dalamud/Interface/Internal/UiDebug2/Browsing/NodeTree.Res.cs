@@ -90,7 +90,7 @@ internal unsafe partial class ResNodeTree : IDisposable
                     NodeType.ClippingMask => new ClippingMaskNodeTree(node, addonTree),
                     NodeType.Counter => new CounterNodeTree(node, addonTree),
                     NodeType.Collision => new CollisionNodeTree(node, addonTree),
-                    _ => new ResNodeTree(node, addonTree)
+                    _ => new ResNodeTree(node, addonTree),
                 };
 
     /// <summary>
@@ -163,7 +163,7 @@ internal unsafe partial class ResNodeTree : IDisposable
     /// </summary>
     internal void WriteTreeHeading()
     {
-        ImGui.Text(this.GetHeaderText());
+        ImGui.TextUnformatted(this.GetHeaderText());
         this.PrintFieldNames();
     }
 

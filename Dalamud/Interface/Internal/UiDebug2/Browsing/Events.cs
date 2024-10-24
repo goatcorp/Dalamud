@@ -27,6 +27,7 @@ public static class Events
         }
 
         using var tree = ImRaii.TreeNode($"Events##{(nint)node:X}eventTree");
+
         if (tree)
         {
             using (ImRaii.Table($"##{(nint)node:X}eventTable", 7, Resizable | SizingFixedFit | Borders | RowBg))
@@ -45,15 +46,15 @@ public static class Events
                 while (evt != null)
                 {
                     ImGui.TableNextColumn();
-                    ImGui.Text($"{i++}");
+                    ImGui.TextUnformatted($"{i++}");
                     ImGui.TableNextColumn();
-                    ImGui.Text($"{evt->Type}");
+                    ImGui.TextUnformatted($"{evt->Type}");
                     ImGui.TableNextColumn();
-                    ImGui.Text($"{evt->Param}");
+                    ImGui.TextUnformatted($"{evt->Param}");
                     ImGui.TableNextColumn();
-                    ImGui.Text($"{evt->Flags}");
+                    ImGui.TextUnformatted($"{evt->Flags}");
                     ImGui.TableNextColumn();
-                    ImGui.Text($"{evt->Unk29}");
+                    ImGui.TextUnformatted($"{evt->Unk29}");
                     ImGui.TableNextColumn();
                     Gui.ClickToCopyText($"{(nint)evt->Target:X}");
                     ImGui.TableNextColumn();

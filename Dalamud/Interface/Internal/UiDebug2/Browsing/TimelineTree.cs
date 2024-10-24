@@ -138,7 +138,7 @@ public readonly unsafe partial struct TimelineTree
             return;
         }
 
-        var rotColumn = new KeyGroupColumn<float>("Rotation", static r => ImGui.Text($"{r * (180d / Math.PI):F1}°"));
+        var rotColumn = new KeyGroupColumn<float>("Rotation", static r => ImGui.TextUnformatted($"{r * (180d / Math.PI):F1}°"));
 
         for (var f = 0; f < keyGroup.KeyFrameCount; f++)
         {

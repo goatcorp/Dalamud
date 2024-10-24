@@ -98,8 +98,6 @@ internal unsafe partial class UiDebug2
             {
                 this.DrawUnitListOption(unitListBaseAddr, unit);
             }
-
-            ;
         }
     }
 

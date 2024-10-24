@@ -81,25 +81,25 @@ internal unsafe class ElementSelector : IDisposable
     {
         using (ImRaii.Child("###sidebar_elementSelector", new(250, 0), true))
         {
-            using var f = ImRaii.PushFont(IconFont);
-            using var col = ImRaii.PushColor(Text, new Vector4(1, 1, 0.2f, 1), this.Active);
-
-            if (ImGui.Button($"{(char)ObjectUngroup}"))
+            using (ImRaii.PushFont(IconFont))
             {
-                this.Active = !this.Active;
-            }
-
-            if (Countdown > 0)
-            {
-                Countdown -= 1;
-                if (Countdown < 0)
+                using (ImRaii.PushColor(Text, new Vector4(1, 1, 0.2f, 1), this.Active))
                 {
-                    Countdown = 0;
+                    if (ImGui.Button($"{(char)ObjectUngroup}"))
+                    {
+                        this.Active = !this.Active;
+                    }
+
+                    if (Countdown > 0)
+                    {
+                        Countdown -= 1;
+                        if (Countdown < 0)
+                        {
+                            Countdown = 0;
+                        }
+                    }
                 }
             }
-
-            col.Pop();
-            f.Pop();
 
             if (ImGui.IsItemHovered())
             {
@@ -151,67 +151,69 @@ internal unsafe class ElementSelector : IDisposable
         var mousePos = ImGui.GetMousePos() - MainViewport.Pos;
         var addonResults = GetAtkUnitBaseAtPosition(mousePos);
 
-        using var col = ImRaii.PushColor(WindowBg, new Vector4(0.5f));
-        using (ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse))
+        using (ImRaii.PushColor(WindowBg, new Vector4(0.5f)))
         {
-            using (ImRaii.Group())
+            using (ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse))
             {
-                Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
-                ImGui.Spacing();
-                ImGui.Text("RESULTS:\n");
-
-                var i = 0;
-                foreach (var a in addonResults)
+                using (ImRaii.Group())
                 {
-                    var name = a.Addon->NameString;
-                    ImGui.Text($"[Addon] {name}");
-                    ImGui.Indent(15);
-                    foreach (var n in a.Nodes)
+                    Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
+                    ImGui.Spacing();
+                    ImGui.Text("RESULTS:\n");
+
+                    var i = 0;
+                    foreach (var a in addonResults)
                     {
-                        var nSelected = i++ == this.index;
-
-                        PrintNodeHeaderOnly(n.Node, nSelected, a.Addon);
-
-                        if (nSelected && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                        var name = a.Addon->NameString;
+                        ImGui.TextUnformatted($"[Addon] {name}");
+                        ImGui.Indent(15);
+                        foreach (var n in a.Nodes)
                         {
-                            this.Active = false;
+                            var nSelected = i++ == this.index;
 
-                            this.uiDebug2.SelectedAddonName = a.Addon->NameString;
+                            PrintNodeHeaderOnly(n.Node, nSelected, a.Addon);
 
-                            var ptrList = new List<nint> { (nint)n.Node };
-
-                            var nextNode = n.Node->ParentNode;
-                            while (nextNode != null)
+                            if (nSelected && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                             {
-                                ptrList.Add((nint)nextNode);
-                                nextNode = nextNode->ParentNode;
+                                this.Active = false;
+
+                                this.uiDebug2.SelectedAddonName = a.Addon->NameString;
+
+                                var ptrList = new List<nint> { (nint)n.Node };
+
+                                var nextNode = n.Node->ParentNode;
+                                while (nextNode != null)
+                                {
+                                    ptrList.Add((nint)nextNode);
+                                    nextNode = nextNode->ParentNode;
+                                }
+
+                                SearchResults = [.. ptrList];
+                                Countdown = 100;
+                                Scrolled = false;
                             }
 
-                            SearchResults = [.. ptrList];
-                            Countdown = 100;
-                            Scrolled = false;
+                            if (nSelected)
+                            {
+                                n.NodeBounds.DrawFilled(new(1, 1, 0.2f, 1));
+                            }
                         }
 
-                        if (nSelected)
+                        ImGui.Indent(-15);
+                    }
+
+                    if (i != 0)
+                    {
+                        this.index -= (int)ImGui.GetIO().MouseWheel;
+                        while (this.index < 0)
                         {
-                            n.NodeBounds.DrawFilled(new(1, 1, 0.2f, 1));
+                            this.index += i;
                         }
-                    }
 
-                    ImGui.Indent(-15);
-                }
-
-                if (i != 0)
-                {
-                    this.index -= (int)ImGui.GetIO().MouseWheel;
-                    while (this.index < 0)
-                    {
-                        this.index += i;
-                    }
-
-                    while (this.index >= i)
-                    {
-                        this.index -= i;
+                        while (this.index >= i)
+                        {
+                            this.index -= i;
+                        }
                     }
                 }
             }
@@ -393,8 +395,10 @@ internal unsafe class ElementSelector : IDisposable
             return;
         }
 
-        using var col = ImRaii.PushColor(Text, selected ? new Vector4(1, 1, 0.2f, 1) : new(0.6f, 0.6f, 0.6f, 1));
-        ResNodeTree.GetOrCreate(node, tree).WriteTreeHeading();
+        using (ImRaii.PushColor(Text, selected ? new Vector4(1, 1, 0.2f, 1) : new(0.6f, 0.6f, 0.6f, 1)))
+        {
+            ResNodeTree.GetOrCreate(node, tree).WriteTreeHeading();
+        }
     }
 
     private void PerformSearch(nint address)

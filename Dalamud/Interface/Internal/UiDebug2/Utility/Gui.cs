@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics;
@@ -27,20 +26,19 @@ internal static class Gui
     /// <param name="options">A list of all options.</param>
     /// <param name="icons">A list of icons corresponding to the options.</param>
     /// <returns>true if a button is clicked.</returns>
-    internal static unsafe bool IconSelectInput<T>(string label, ref T val, List<T> options, List<FontAwesomeIcon> icons)
+    internal static unsafe bool IconButtonSelect<T>(string label, ref T val, List<T> options, List<FontAwesomeIcon> icons)
     {
         var ret = false;
+
         for (var i = 0; i < options.Count; i++)
         {
-            var option = options[i];
-            var icon = icons[i];
-
             if (i > 0)
             {
-                ImGui.SameLine();
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ((ImGui.GetFontSize() / -6f) + 7f));
+                ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
             }
 
+            var option = options[i];
+            var icon = icons.Count > i ? icons[i] : FontAwesomeIcon.Question;
             var color = *ImGui.GetStyleColorVec4(val is not null && val.Equals(option) ? ButtonActive : Button);
 
             if (ImGuiComponents.IconButton($"{label}{option}{i}", icon, color))
@@ -61,7 +59,7 @@ internal static class Gui
     /// <param name="copy">Whether to enable click-to-copy.</param>
     internal static void PrintFieldValuePair(string fieldName, string value, bool copy = true)
     {
-        ImGui.Text($"{fieldName}:");
+        ImGui.TextUnformatted($"{fieldName}:");
         ImGui.SameLine();
         if (copy)
         {
@@ -119,24 +117,36 @@ internal static class Gui
                 0.5f) * vector4.W;
     }
 
-    /// <inheritdoc cref="ImGuiHelpers.ClickToCopyText"/>
+    /// <summary>
+    /// Print out text that can be copied when clicked.
+    /// </summary>
+    /// <param name="text">The text to show.</param>
+    /// <param name="textCopy">The text to copy when clicked.</param>
     internal static void ClickToCopyText(string text, string? textCopy = null)
     {
         using (ImRaii.PushColor(Text, new Vector4(0.6f, 0.6f, 0.6f, 1)))
         {
-            ImGuiHelpers.ClickToCopyText(text, textCopy);
+            textCopy ??= text;
+            ImGui.TextUnformatted($"{text}");
         }
 
         if (ImGui.IsItemHovered())
         {
             using (ImRaii.Tooltip())
             {
-                using var f = ImRaii.PushFont(UiBuilder.IconFont);
-                ImGui.Text(FontAwesomeIcon.Copy.ToIconString());
-                f.Pop();
+                using (ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    ImGui.TextUnformatted(FontAwesomeIcon.Copy.ToIconString());
+                }
+
                 ImGui.SameLine();
-                ImGui.Text($"{textCopy ?? text}");
+                ImGui.TextUnformatted($"{textCopy}");
             }
+        }
+
+        if (ImGui.IsItemClicked())
+        {
+            ImGui.SetClipboardText($"{textCopy}");
         }
     }
 
@@ -161,7 +171,7 @@ internal static class Gui
 
         using (ImRaii.Tooltip())
         {
-            ImGui.Text(tooltips[index]);
+            ImGui.TextUnformatted(tooltips[index]);
         }
 
         return true;
