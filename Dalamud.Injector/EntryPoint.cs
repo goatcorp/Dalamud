@@ -828,14 +828,14 @@ namespace Dalamud.Injector
                 gamePath,
                 gameArgumentString,
                 noFixAcl,
-                p =>
+                (p, hThread) =>
                 {
                     if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)
                     {
                         var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                         Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
                         Marshal.ThrowExceptionForHR(
-                            RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)));
+                            RewriteRemoteEntryPointW(p.Handle, hThread, JsonConvert.SerializeObject(startInfo)));
                         Log.Verbose("RewriteRemoteEntryPointW called!");
                     }
                 },
@@ -978,7 +978,7 @@ namespace Dalamud.Injector
         }
 
         [DllImport("Dalamud.Boot.dll")]
-        private static extern int RewriteRemoteEntryPointW(IntPtr hProcess, [MarshalAs(UnmanagedType.LPWStr)] string gamePath, [MarshalAs(UnmanagedType.LPWStr)] string loadInfoJson);
+        private static extern int RewriteRemoteEntryPointW(IntPtr hProcess, IntPtr hThread, [MarshalAs(UnmanagedType.LPWStr)] string loadInfoJson);
 
         /// <summary>
         ///     This routine appends the given argument to a command line such that

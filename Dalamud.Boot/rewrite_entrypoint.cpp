@@ -122,113 +122,9 @@ std::filesystem::path get_path_from_local_module(HMODULE hModule) {
     return result;
 }
 
-/// @brief Get the base address of the mapped file/image corresponding to the path given in the target process
-/// @param hProcess Process handle.
-/// @param path Path to the memory-mapped file to find.
-/// @return Base address (lowest address) of the memory mapped file in the target process.
-void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path& path) {
-    std::ifstream exe(path, std::ios::binary);
-
-    IMAGE_DOS_HEADER exe_dos_header;
-    exe.read(reinterpret_cast<char*>(&exe_dos_header), sizeof exe_dos_header);
-    if (!exe || exe_dos_header.e_magic != IMAGE_DOS_SIGNATURE)
-        throw std::runtime_error("Game executable is corrupt (DOS header).");
-
-    union {
-        IMAGE_NT_HEADERS32 exe_nt_header32;
-        IMAGE_NT_HEADERS64 exe_nt_header64;
-    };
-    exe.seekg(exe_dos_header.e_lfanew, std::ios::beg);
-    exe.read(reinterpret_cast<char*>(&exe_nt_header64), sizeof exe_nt_header64);
-    if (!exe || exe_nt_header64.Signature != IMAGE_NT_SIGNATURE)
-        throw std::runtime_error("Game executable is corrupt (NT header).");
-
-    std::vector<IMAGE_SECTION_HEADER> exe_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
-    exe.seekg(exe_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader) + exe_nt_header64.FileHeader.SizeOfOptionalHeader, std::ios::beg);
-    exe.read(reinterpret_cast<char*>(&exe_section_headers[0]), sizeof IMAGE_SECTION_HEADER * exe_section_headers.size());
-    if (!exe)
-        throw std::runtime_error("Game executable is corrupt (Truncated section header).");
-
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    
-    for (MEMORY_BASIC_INFORMATION mbi{};
-        VirtualQueryEx(hProcess, mbi.BaseAddress, &mbi, sizeof mbi);
-        mbi.BaseAddress = static_cast<char*>(mbi.BaseAddress) + mbi.RegionSize) {
-
-        // wine: apparently there exists a RegionSize of 0xFFF
-        mbi.RegionSize = (mbi.RegionSize + sysinfo.dwPageSize - 1) / sysinfo.dwPageSize * sysinfo.dwPageSize;
-
-        if (!(mbi.State & MEM_COMMIT) || mbi.Type != MEM_IMAGE)
-            continue;
-
-        // Previous Wine versions do not support GetMappedFileName, so we check the content of memory instead.
-
-        try {
-            IMAGE_DOS_HEADER compare_dos_header;
-            read_process_memory_or_throw(hProcess, mbi.BaseAddress, compare_dos_header);
-            if (compare_dos_header.e_magic != exe_dos_header.e_magic)
-                continue;
-
-            union {
-                IMAGE_NT_HEADERS32 compare_nt_header32;
-                IMAGE_NT_HEADERS64 compare_nt_header64;
-            };
-            read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew, &compare_nt_header32, offsetof(IMAGE_NT_HEADERS32, OptionalHeader));
-            if (compare_nt_header32.Signature != exe_nt_header32.Signature)
-                continue;
-
-            if (compare_nt_header32.FileHeader.TimeDateStamp != exe_nt_header32.FileHeader.TimeDateStamp)
-                continue;
-
-            if (compare_nt_header32.FileHeader.SizeOfOptionalHeader != exe_nt_header32.FileHeader.SizeOfOptionalHeader)
-                continue;
-
-            if (compare_nt_header32.FileHeader.NumberOfSections != exe_nt_header32.FileHeader.NumberOfSections)
-                continue;
-
-            if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER32) {
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS32, OptionalHeader), compare_nt_header32.OptionalHeader);
-                if (compare_nt_header32.OptionalHeader.SizeOfImage != exe_nt_header32.OptionalHeader.SizeOfImage)
-                    continue;
-                if (compare_nt_header32.OptionalHeader.CheckSum != exe_nt_header32.OptionalHeader.CheckSum)
-                    continue;
-
-                std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header32.FileHeader.NumberOfSections);
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header32, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
-                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
-                    continue;
-
-            } else if (compare_nt_header32.FileHeader.SizeOfOptionalHeader == sizeof IMAGE_OPTIONAL_HEADER64) {
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + offsetof(IMAGE_NT_HEADERS64, OptionalHeader), compare_nt_header64.OptionalHeader);
-                if (compare_nt_header64.OptionalHeader.SizeOfImage != exe_nt_header64.OptionalHeader.SizeOfImage)
-                    continue;
-                if (compare_nt_header64.OptionalHeader.CheckSum != exe_nt_header64.OptionalHeader.CheckSum)
-                    continue;
-
-                std::vector<IMAGE_SECTION_HEADER> compare_section_headers(exe_nt_header64.FileHeader.NumberOfSections);
-                read_process_memory_or_throw(hProcess, static_cast<char*>(mbi.BaseAddress) + compare_dos_header.e_lfanew + sizeof compare_nt_header64, &compare_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size());
-                if (memcmp(&compare_section_headers[0], &exe_section_headers[0], sizeof IMAGE_SECTION_HEADER * compare_section_headers.size()) != 0)
-                    continue;
-
-            } else
-                continue;
-
-            // Should be close enough(tm) at this point, as the only two loaded modules should be ntdll.dll and the game executable itself.
-
-            return mbi.AllocationBase;
-
-        } catch (const std::exception& e) {
-            logging::W("Failed to check memory block 0x{:X}(len=0x{:X}): {}", mbi.BaseAddress, mbi.RegionSize, e.what());
-            continue;
-        }
-    }
-    throw std::runtime_error("corresponding base address not found");
-}
-
 /// @brief Rewrite target process' entry point so that this DLL can be loaded and executed first.
 /// @param hProcess Process handle.
-/// @param pcwzPath Path to target process.
+/// @param hThread Thread handle.
 /// @param pcwzLoadInfo JSON string to be passed to Initialize.
 /// @return null if successful; memory containing wide string allocated via GlobalAlloc if unsuccessful
 /// 
@@ -236,27 +132,19 @@ void* get_mapped_image_base_address(HANDLE hProcess, const std::filesystem::path
 /// Instead, we have to enumerate through all the files mapped into target process' virtual address space and find the base address
 /// of memory region corresponding to the path given.
 /// 
-extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, const wchar_t* pcwzPath, const wchar_t* pcwzLoadInfo) {
+extern "C" HRESULT WINAPI RewriteRemoteEntryPointW(HANDLE hProcess, HANDLE hThread, const wchar_t* pcwzLoadInfo) {
     std::wstring last_operation;
     SetLastError(ERROR_SUCCESS);
     try {
-        last_operation = L"get_mapped_image_base_address";
-        const auto base_address = static_cast<char*>(get_mapped_image_base_address(hProcess, pcwzPath));
+        last_operation = L"GetThreadContext";
+        CONTEXT context{ .ContextFlags = CONTEXT_FULL };
+        if (!GetThreadContext(hThread, &context))
+            throw std::exception();
 
-        IMAGE_DOS_HEADER dos_header{};
-        union {
-            IMAGE_NT_HEADERS32 nt_header32;
-            IMAGE_NT_HEADERS64 nt_header64{};
-        };
-
-        last_operation = L"read_process_memory_or_throw(base_address)";
-        read_process_memory_or_throw(hProcess, base_address, dos_header);
-
-        last_operation = L"read_process_memory_or_throw(base_address + dos_header.e_lfanew)";
-        read_process_memory_or_throw(hProcess, base_address + dos_header.e_lfanew, nt_header64);
-        const auto entrypoint = base_address + (nt_header32.OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC
-            ? nt_header32.OptionalHeader.AddressOfEntryPoint
-            : nt_header64.OptionalHeader.AddressOfEntryPoint);
+        // RCX contains entry point; RDX contains PEB.
+        // While this behavior is not contractual, in reality commercial packers just assume that this is a fact,
+        // which probably means that we can rely on this behavior too.
+        const auto entrypoint = reinterpret_cast<char*>(context.Rcx);
 
         last_operation = L"get_path_from_local_module(g_hModule)";
         auto local_module_path = get_path_from_local_module(g_hModule);

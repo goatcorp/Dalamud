@@ -28,7 +28,7 @@ namespace Dalamud.Injector
         /// <returns>The started process.</returns>
         /// <exception cref="Win32Exception">Thrown when a win32 error occurs.</exception>
         /// <exception cref="GameStartException">Thrown when the process did not start correctly.</exception>
-        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, bool waitForGameWindow = true)
+        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process, IntPtr> beforeResume, bool waitForGameWindow = true)
         {
             Process process = null;
 
@@ -117,7 +117,7 @@ namespace Dalamud.Injector
 
                 process = new ExistingProcess(lpProcessInformation.hProcess);
 
-                beforeResume?.Invoke(process);
+                beforeResume?.Invoke(process, lpProcessInformation.hThread);
 
                 PInvoke.ResumeThread(lpProcessInformation.hThread);
 
