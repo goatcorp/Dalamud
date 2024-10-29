@@ -27,6 +27,15 @@ public interface INamePlateGui
     event OnPlateUpdateDelegate? OnNamePlateUpdate;
 
     /// <summary>
+    /// An event which fires after nameplate data is updated and at least one nameplate had important updates. The
+    /// subscriber is provided with a list of handlers for nameplates with important updates.
+    /// </summary>
+    /// <remarks>
+    /// Fires before <see cref="OnPostDataUpdate"/>.
+    /// </remarks>
+    event OnPlateUpdateDelegate? OnPostNamePlateUpdate;
+
+    /// <summary>
     /// An event which fires when nameplate data is updated. The subscriber is provided with a list of handlers for all
     /// nameplates.
     /// </summary>
@@ -35,6 +44,16 @@ public interface INamePlateGui
     /// <see cref="OnNamePlateUpdate"/> is preferred. Fires before <see cref="OnNamePlateUpdate"/>.
     /// </remarks>
     event OnPlateUpdateDelegate? OnDataUpdate;
+
+    /// <summary>
+    /// An event which fires after nameplate data is updated. The subscriber is provided with a list of handlers for all
+    /// nameplates.
+    /// </summary>
+    /// <remarks>
+    /// This event is likely to fire every frame even when no nameplates are actually updated, so in most cases
+    /// <see cref="OnNamePlateUpdate"/> is preferred. Fires after <see cref="OnPostNamePlateUpdate"/>.
+    /// </remarks>
+    event OnPlateUpdateDelegate? OnPostDataUpdate;
 
     /// <summary>
     /// Requests that all nameplates should be redrawn on the following frame.
