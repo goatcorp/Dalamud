@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
+using Dalamud.Data;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
@@ -56,6 +57,7 @@ internal class DalamudInterface : IInternalDisposableService
     private readonly Dalamud dalamud;
     private readonly DalamudConfiguration configuration;
     private readonly InterfaceManager interfaceManager;
+    private readonly DataManager dataManager;
 
     private readonly ChangelogWindow changelogWindow;
     private readonly ColorDemoWindow colorDemoWindow;
@@ -97,6 +99,7 @@ internal class DalamudInterface : IInternalDisposableService
         DalamudConfiguration configuration,
         FontAtlasFactory fontAtlasFactory,
         InterfaceManager interfaceManager,
+        DataManager dataManager,
         PluginImageCache pluginImageCache,
         DalamudAssetManager dalamudAssetManager,
         Game.Framework framework,
@@ -108,6 +111,7 @@ internal class DalamudInterface : IInternalDisposableService
         this.dalamud = dalamud;
         this.configuration = configuration;
         this.interfaceManager = interfaceManager;
+        this.dataManager = dataManager;
 
         this.WindowSystem = new WindowSystem("DalamudCore");
         
