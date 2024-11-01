@@ -136,16 +136,16 @@
     </PropertyGroup>
 
     <Target Name="GetVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'=='Release'">
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-list --count HEAD">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-list --count HEAD" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitCount" />
         </Exec>
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --match=NeVeRmAtCh --always --abbrev=40 --dirty">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --match=NeVeRmAtCh --always --abbrev=40 --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitHash" />
         </Exec>
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
         </Exec>
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
         </Exec>
 
