@@ -454,11 +454,11 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         var titleVersionText = new SeStringBuilder()
                                .AddText(addon->AtkValues[1].GetValueAsString())
                                .AddText("\n\n")
+                               .AddUiGlow(10)
                                .AddUiForeground(SeIconChar.BoxedLetterD.ToIconString(), 539)
-                               .AddUiForeground(561)
+                               .AddUiGlowOff()
                                .AddText($" Dalamud: {Util.GetScmVersion()}")
-                               .AddText($" - {pluginCount} {(pluginCount != 1 ? "plugins" : "plugin")} loaded")
-                               .AddUiForegroundOff();
+                               .AddText($" - {pluginCount} {(pluginCount != 1 ? "plugins" : "plugin")} loaded");
 
         if (pm?.SafeMode ?? false) 
             titleVersionText.AddUiForeground(" [SAFE MODE]", 17);
