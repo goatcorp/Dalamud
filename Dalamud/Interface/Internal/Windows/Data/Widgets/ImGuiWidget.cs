@@ -364,7 +364,7 @@ internal class ImGuiWidget : IDataWindowWidget
 
         public static readonly string[] AssetSources =
             Enum.GetValues<DalamudAsset>()
-                .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Purpose is DalamudAssetPurpose.TextureFromPng)
+                .Where(x => x.GetPurpose() is DalamudAssetPurpose.TextureFromPng)
                 .Select(Enum.GetName)
                 .ToArray();
 

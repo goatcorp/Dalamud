@@ -287,7 +287,7 @@ public abstract class Window
 
                 this.IsFocused = false;
                 
-                if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnCloseSfxId, 0, 0, 0);
+                if (doSoundEffects && !this.DisableWindowSounds) UIGlobals.PlaySoundEffect(this.OnCloseSfxId, 0, 0, 0);
             }
 
             return;
@@ -307,7 +307,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (doSoundEffects && !this.DisableWindowSounds) UIModule.PlaySound(this.OnOpenSfxId, 0, 0, 0);
+            if (doSoundEffects && !this.DisableWindowSounds) UIGlobals.PlaySoundEffect(this.OnOpenSfxId, 0, 0, 0);
         }
 
         this.PreDraw();
@@ -347,11 +347,11 @@ public abstract class Window
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Error during Draw(): {this.WindowName}");
+                Log.Error(ex, "Error during Draw(): {WindowName}", this.WindowName);
             }
         }
 
-        var additionsPopupName = "WindowSystemContextActions";
+        const string additionsPopupName = "WindowSystemContextActions";
         var flagsApplicableForTitleBarIcons = !flags.HasFlag(ImGuiWindowFlags.NoDecoration) &&
                                               !flags.HasFlag(ImGuiWindowFlags.NoTitleBar);
         var showAdditions = (this.AllowPinning || this.AllowClickthrough) &&

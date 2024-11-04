@@ -37,7 +37,11 @@ public abstract class ForwardingTextureWrap : IDalamudTextureWrap
     public Vector2 Size
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => new(this.Width, this.Height);
+        get
+        {
+            var wrap = this.GetWrap();
+            return new(wrap.Width, wrap.Height);
+        }
     }
 
     /// <inheritdoc/>

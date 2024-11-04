@@ -72,6 +72,7 @@ public interface IFontHandle : IDisposable
     /// <code>
     /// fontHandle.Push();
     /// ImGui.TextUnformatted("Test 2");
+    /// fontHandle.Pop();
     /// </code>
     /// <b>Push a font between two choices.</b>
     /// <code>

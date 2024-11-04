@@ -490,7 +490,7 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     private AddonNamePlate.NamePlateObject* NamePlateObject =>
         &this.context.Addon->NamePlateObjectArray[this.NamePlateIndex];
 
-    private AddonNamePlate.NamePlateIntArrayData.NamePlateObjectIntArrayData* ObjectData =>
+    private AddonNamePlate.AddonNamePlateNumberArray.NamePlateObjectIntArrayData* ObjectData =>
         this.context.NumberStruct->ObjectData.GetPointer(this.ArrayIndex);
 
     /// <inheritdoc/>

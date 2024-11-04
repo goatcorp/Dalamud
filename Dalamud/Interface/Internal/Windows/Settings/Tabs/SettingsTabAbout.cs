@@ -140,7 +140,7 @@ Dale
 Arcane Disgea
 Risu
 Tom
-Blyoom
+Blooym
 Valk
 
 
