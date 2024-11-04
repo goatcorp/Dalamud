@@ -16,7 +16,7 @@ public unsafe partial class AddonTree
 {
     private static readonly Dictionary<string, Type?> AddonTypeDict = [];
 
-    private static readonly Assembly? ClientStructs = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(static a => a.GetName().Name == "FFXIVClientStructs");
+    private static readonly Assembly? ClientStructsAssembly = typeof(Addon).Assembly;
 
     /// <summary>
     /// Gets or sets a collection of names for field offsets that have been documented in FFXIVClientStructs.
@@ -30,11 +30,11 @@ public unsafe partial class AddonTree
             return null;
         }
 
-        if (AddonTypeDict.TryAdd(this.AddonName, null) && ClientStructs != null)
+        if (AddonTypeDict.TryAdd(this.AddonName, null) && ClientStructsAssembly != null)
         {
             try
             {
-                foreach (var t in from t in ClientStructs.GetTypes()
+                foreach (var t in from t in ClientStructsAssembly.GetTypes()
                                   where t.IsPublic
                                   let xivAddonAttr = (Addon?)t.GetCustomAttribute(typeof(Addon), false)
                                   where xivAddonAttr != null
