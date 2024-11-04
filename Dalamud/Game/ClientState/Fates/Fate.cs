@@ -71,7 +71,13 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets a value indicating whether or not this <see cref="Fate"/> has a EXP bonus.
     /// </summary>
+    [Obsolete("Use HasBonus instead")]
     bool HasExpBonus { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not this <see cref="Fate"/> has a bonus.
+    /// </summary>
+    bool HasBonus { get; }
 
     /// <summary>
     /// Gets the icon id of this <see cref="Fate"/>.
@@ -216,7 +222,11 @@ internal unsafe partial class Fate : IFate
     public byte Progress => this.Struct->Progress;
 
     /// <inheritdoc/>
+    [Obsolete("Use HasBonus instead")]
     public bool HasExpBonus => this.Struct->IsExpBonus;
+
+    /// <inheritdoc/>
+    public bool HasBonus => this.Struct->IsBonus;
 
     /// <inheritdoc/>
     public uint IconId => this.Struct->IconId;
