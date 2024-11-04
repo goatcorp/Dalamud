@@ -454,7 +454,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         var titleVersionText = new SeStringBuilder()
                                .AddText(addon->AtkValues[1].GetValueAsString())
                                .AddText("\n\n")
-                               .AddUiGlow(10)
+                               .AddUiGlow(701)
                                .AddUiForeground(SeIconChar.BoxedLetterD.ToIconString(), 539)
                                .AddUiGlowOff()
                                .AddText($" Dalamud: {Util.GetScmVersion()}")
