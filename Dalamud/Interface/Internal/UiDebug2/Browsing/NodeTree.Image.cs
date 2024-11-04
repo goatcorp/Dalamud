@@ -172,7 +172,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
         var cursorScreenPos = ImGui.GetCursorScreenPos();
         var cursorLocalPos = ImGui.GetCursorPos();
 
-        ImGui.Image(new(this.TexData.Texture->D3D11ShaderResourceView), new(this.TexData.Texture->Width, this.TexData.Texture->Height));
+        ImGui.Image(new(this.TexData.Texture->D3D11ShaderResourceView), new(this.TexData.Texture->ActualWidth, this.TexData.Texture->ActualHeight));
 
         for (uint p = 0; p < this.TexData.PartsList->PartCount; p++)
         {
@@ -197,8 +197,8 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
             ImGui.TableHeadersRow();
 
-            var tWidth = this.TexData.Texture->Width;
-            var tHeight = this.TexData.Texture->Height;
+            var tWidth = this.TexData.Texture->ActualWidth;
+            var tHeight = this.TexData.Texture->ActualHeight;
             var textureSize = new Vector2(tWidth, tHeight);
 
             for (ushort i = 0; i < this.TexData.PartCount; i++)

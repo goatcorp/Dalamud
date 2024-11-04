@@ -9,7 +9,6 @@ namespace Dalamud.Plugin.Ipc;
 /// </summary>
 public interface ICallGateSubscriber
 {
-
     /// <inheritdoc cref="CallGatePubSubBase.HasAction"/>
     public bool HasAction { get; }
     

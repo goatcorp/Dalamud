@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+using FFXIVClientStructs.FFXIV.Client.UI;
+
 namespace Dalamud.Utility;
 
 /// <summary>
@@ -40,7 +42,7 @@ public static class StringExtensions
     public static bool IsValidCharacterName(this string value, bool includeLegacy = true)
     {
         if (string.IsNullOrEmpty(value)) return false;
-        if (!FFXIVClientStructs.FFXIV.Client.UI.UIModule.IsPlayerCharacterName(value)) return false;
+        if (!UIGlobals.IsValidPlayerCharacterName(value)) return false;
         return includeLegacy || value.Length <= 21;
     }
 }

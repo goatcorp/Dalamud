@@ -4,6 +4,7 @@ using Dalamud.Data;
 using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.ClientState.Fates;
 
@@ -70,7 +71,13 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets a value indicating whether or not this <see cref="Fate"/> has a EXP bonus.
     /// </summary>
+    [Api11ToDo("Remove this")]
     bool HasExpBonus { get; }
+    
+    /// <summary>
+    /// Gets a value indicating whether or not this <see cref="Fate"/> has a EXP bonus.
+    /// </summary>
+    bool HasBonus { get; }
 
     /// <summary>
     /// Gets the icon id of this <see cref="Fate"/>.
@@ -215,7 +222,10 @@ internal unsafe partial class Fate : IFate
     public byte Progress => this.Struct->Progress;
 
     /// <inheritdoc/>
-    public bool HasExpBonus => this.Struct->IsExpBonus;
+    public bool HasExpBonus => this.Struct->IsBonus;
+    
+    /// <inheritdoc/>
+    public bool HasBonus => this.Struct->IsBonus;
 
     /// <inheritdoc/>
     public uint IconId => this.Struct->IconId;
