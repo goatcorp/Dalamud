@@ -103,4 +103,11 @@ public interface IGameInventory
 
     /// <inheritdoc cref="ItemMerged"/>
     public event InventoryChangedDelegate<InventoryItemMergedArgs> ItemMergedExplicit;
+
+    /// <summary>
+    /// Gets all item slots of the specified inventory type.
+    /// </summary>
+    /// <param name="type">The type of inventory to get the items for.</param>
+    /// <returns>A read-only span of all items in the specified inventory type.</returns>
+    public ReadOnlySpan<GameInventoryItem> GetInventoryItems(GameInventoryType type);
 }
