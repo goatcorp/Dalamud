@@ -63,6 +63,11 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     public IntPtr SetupTerritoryType { get; private set; }
 
     /// <summary>
+    /// Gets the address of the method which sets up the player.
+    /// </summary>
+    public IntPtr ProcessPacketPlayerSetup { get; private set; }
+
+    /// <summary>
     /// Gets the address of the method which polls the gamepads for data.
     /// Called every frame, even when `Enable Gamepad` is off in the settings.
     /// </summary>
@@ -86,6 +91,8 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
         this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 33 ED") + 0x8;
 
         this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 57 48 83 EC 20 0F B7 DA");
+
+        this.ProcessPacketPlayerSetup = sig.ScanText("40 53 48 83 EC 20 48 8D 0D ?? ?? ?? ?? 48 8B DA E8 ?? ?? ?? ?? 48 8B D3");
 
         // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
         // lea   rcx, ds:1DB9F74h[rax*4]          KeyboardState
