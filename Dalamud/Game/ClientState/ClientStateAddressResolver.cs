@@ -31,11 +31,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     public IntPtr GroupManager { get; private set; }
 
     /// <summary>
-    /// Gets the address of the local content id.
-    /// </summary>
-    public IntPtr LocalContentId { get; private set; }
-
-    /// <summary>
     /// Gets the address of job gauge data.
     /// </summary>
     public IntPtr JobGaugeData { get; private set; }
@@ -82,7 +77,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
 
         this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 77 71");
 
-        this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 0D ?? ?? ?? ?? 48 8D 57 08");
         this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 33 ED") + 0x8;
 
         this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 57 48 83 EC 20 0F B7 DA");
