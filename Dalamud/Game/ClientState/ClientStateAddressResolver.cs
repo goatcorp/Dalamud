@@ -8,14 +8,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     // Static offsets
 
     /// <summary>
-    /// Gets the address of a pointer to the fate table.
-    /// </summary>
-    /// <remarks>
-    /// This is a static address to a pointer, not the address of the table itself.
-    /// </remarks>
-    public IntPtr FateTablePtr { get; private set; }
-
-    /// <summary>
     /// Gets the address of the Group Manager.
     /// </summary>
     public IntPtr GroupManager { get; private set; }
@@ -59,8 +51,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F1 44 0F B7 41");
-
         this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 77 71");
 
         this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 33 ED") + 0x8;
