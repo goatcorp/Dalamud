@@ -40,7 +40,7 @@ public static class StringExtensions
     public static bool IsValidCharacterName(this string value, bool includeLegacy = true)
     {
         if (string.IsNullOrEmpty(value)) return false;
-        if (!FFXIVClientStructs.FFXIV.Client.UI.UIModule.IsPlayerCharacterName(value)) return false;
+        if (!FFXIVClientStructs.FFXIV.Client.UI.UIGlobals.IsValidPlayerCharacterName(value)) return false;
         return includeLegacy || value.Length <= 21;
     }
 }

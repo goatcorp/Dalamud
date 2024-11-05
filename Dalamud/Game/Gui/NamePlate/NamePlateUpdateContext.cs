@@ -127,7 +127,7 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     /// <summary>
     /// Gets a pointer to the NamePlate addon's number array entries as a struct.
     /// </summary>
-    internal AddonNamePlate.NamePlateIntArrayData* NumberStruct { get; private set; }
+    internal AddonNamePlate.AddonNamePlateNumberArray* NumberStruct { get; private set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether any handler in the current context has instantiated a part builder.
@@ -142,7 +142,7 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     {
         this.Addon = (AddonNamePlate*)args.Addon;
         this.NumberData = ((NumberArrayData**)args.NumberArrayData)![NamePlateGui.NumberArrayIndex];
-        this.NumberStruct = (AddonNamePlate.NamePlateIntArrayData*)this.NumberData->IntArray;
+        this.NumberStruct = (AddonNamePlate.AddonNamePlateNumberArray*)this.NumberData->IntArray;
         this.StringData = ((StringArrayData**)args.StringArrayData)![NamePlateGui.StringArrayIndex];
         this.HasParts = false;
 

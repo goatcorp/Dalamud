@@ -153,7 +153,7 @@ internal class FateTableWidget : IDataWindowWidget
             }
 
             ImGui.TableNextColumn(); // HasExpBonus
-            ImGui.TextUnformatted(fate.HasExpBonus.ToString());
+            ImGui.TextUnformatted(fate.HasBonus.ToString());
 
             ImGui.TableNextColumn(); // Position
             DrawCopyableText(fate.Position.ToString(), "Click to copy Position");

@@ -141,7 +141,7 @@ internal class ContextMenuAgingStep : IAgingStep
                         OnClicked = (IMenuItemClickedArgs a) =>
                         {
                             SeString name;
-                            uint count;
+                            int count;
                             var targetItem = (a.Target as MenuTargetInventory)!.TargetItem;
                             if (targetItem is { } item)
                             {
