@@ -13,11 +13,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     public IntPtr ObjectTable { get; private set; }
 
     /// <summary>
-    /// Gets the address of the buddy list.
-    /// </summary>
-    public IntPtr BuddyList { get; private set; }
-
-    /// <summary>
     /// Gets the address of a pointer to the fate table.
     /// </summary>
     /// <remarks>
@@ -70,8 +65,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     protected override void Setup64Bit(ISigScanner sig)
     {
         this.ObjectTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83 ?? ?? ?? ?? C6 83 ?? ?? ?? ?? ??");
-
-        this.BuddyList = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 45 84 E4 75 1A F6 45 12 04");
 
         this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F1 44 0F B7 41");
 
