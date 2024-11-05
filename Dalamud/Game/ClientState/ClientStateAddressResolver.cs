@@ -8,11 +8,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     // Static offsets
 
     /// <summary>
-    /// Gets the address of the Group Manager.
-    /// </summary>
-    public IntPtr GroupManager { get; private set; }
-
-    /// <summary>
     /// Gets the address of job gauge data.
     /// </summary>
     public IntPtr JobGaugeData { get; private set; }
@@ -51,8 +46,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 77 71");
-
         this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 33 ED") + 0x8;
 
         this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 57 48 83 EC 20 0F B7 DA");
