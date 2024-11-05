@@ -8,11 +8,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     // Static offsets
 
     /// <summary>
-    /// Gets the address of the actor table.
-    /// </summary>
-    public IntPtr ObjectTable { get; private set; }
-
-    /// <summary>
     /// Gets the address of a pointer to the fate table.
     /// </summary>
     /// <remarks>
@@ -64,8 +59,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.ObjectTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83 ?? ?? ?? ?? C6 83 ?? ?? ?? ?? ??");
-
         this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F1 44 0F B7 41");
 
         this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 77 71");
