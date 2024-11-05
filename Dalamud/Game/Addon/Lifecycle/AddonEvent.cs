@@ -52,7 +52,7 @@ public enum AddonEvent
     PostDraw,
 
     /// <summary>
-    /// An event that is fired immediately before an addon is finalized via <see cref="AtkUnitBase.Finalize"/> and
+    /// An event that is fired immediately before an addon is finalized via <see cref="AtkUnitBase.Finalizer"/> and
     /// destroyed. After this event, the addon will destruct its UI node data as well as free any allocated memory.
     /// This event can be used for cleanup and tracking tasks.
     /// </summary>

@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 
@@ -73,6 +74,11 @@ public interface IFate : IEquatable<IFate>
     /// </summary>
     [Obsolete("Use HasBonus instead")]
     bool HasExpBonus { get; }
+    
+    /// <summary>
+    /// Gets a value indicating whether or not this <see cref="Fate"/> has a EXP bonus.
+    /// </summary>
+    bool HasBonus { get; }
 
     /// <summary>
     /// Gets a value indicating whether or not this <see cref="Fate"/> has a bonus.

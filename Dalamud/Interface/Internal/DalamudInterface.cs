@@ -106,7 +106,8 @@ internal class DalamudInterface : IInternalDisposableService
         ClientState clientState,
         TitleScreenMenu titleScreenMenu,
         GameGui gameGui,
-        ConsoleManager consoleManager)
+        ConsoleManager consoleManager,
+        AddonLifecycle addonLifecycle)
     {
         this.dalamud = dalamud;
         this.configuration = configuration;
@@ -133,7 +134,8 @@ internal class DalamudInterface : IInternalDisposableService
             framework,
             gameGui,
             titleScreenMenu,
-            consoleManager) { IsOpen = false };
+            consoleManager,
+            addonLifecycle) { IsOpen = false };
         this.changelogWindow = new ChangelogWindow(
             this.titleScreenMenuWindow,
             fontAtlasFactory,
