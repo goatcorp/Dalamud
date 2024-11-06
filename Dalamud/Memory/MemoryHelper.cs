@@ -1023,6 +1023,20 @@ public static unsafe class MemoryHelper
     #region Utility
 
     /// <summary>
+    /// Converts a given byte array to an unsafe byte pointer.
+    /// </summary>
+    /// <param name="bytes">The byte array to convert to a pointer. It must not be null or empty.</param>
+    /// <returns>A pointer to the first element of the byte array.</returns>
+    /// <remarks>
+    /// This method should be used with caution. Ensure that the byte array remains in scope
+    /// while the pointer is in use to avoid memory access issues. <br/>
+    /// Use <see cref="NullTerminate"/> before calling this function if a null terminator at the
+    /// end of the array is needed.
+    /// </remarks>
+    public static unsafe byte* AsPointer(this byte[] bytes)
+        => (byte*)Unsafe.AsPointer(ref bytes[0]);
+
+    /// <summary>
     /// Null-terminate a byte array.
     /// </summary>
     /// <param name="bytes">The byte array to terminate.</param>
