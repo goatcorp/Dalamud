@@ -41,7 +41,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private readonly Hook<HandleActionHoverDelegate> handleActionHoverHook;
     private readonly Hook<HandleActionOutDelegate> handleActionOutHook;
     private readonly Hook<HandleImmDelegate> handleImmHook;
-    private readonly Hook<ToggleUiHideDelegate> toggleUiHideHook;
+    private readonly Hook<RaptureAtkModule.Delegates.SetUiVisibility> setUiVisibilityHook;
     private readonly Hook<Utf8StringFromSequenceDelegate> utf8StringFromSequenceHook;
 
     private GetUIMapObjectDelegate? getUIMapObject;
@@ -65,13 +65,13 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.handleImmHook = Hook<HandleImmDelegate>.FromAddress(this.address.HandleImm, this.HandleImmDetour);
 
-        this.toggleUiHideHook = Hook<ToggleUiHideDelegate>.FromAddress(this.address.ToggleUiHide, this.ToggleUiHideDetour);
+        this.setUiVisibilityHook = Hook<RaptureAtkModule.Delegates.SetUiVisibility>.FromAddress((nint)RaptureAtkModule.StaticVirtualTablePointer->SetUiVisibility, this.SetUiVisibilityDetour);
 
         this.utf8StringFromSequenceHook = Hook<Utf8StringFromSequenceDelegate>.FromAddress(this.address.Utf8StringFromSequence, this.Utf8StringFromSequenceDetour);
 
         this.setGlobalBgmHook.Enable();
         this.handleImmHook.Enable();
-        this.toggleUiHideHook.Enable();
+        this.setUiVisibilityHook.Enable();
         this.handleActionHoverHook.Enable();
         this.handleActionOutHook.Enable();
         this.utf8StringFromSequenceHook.Enable();
@@ -101,9 +101,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr ToggleUiHideDelegate(IntPtr thisPtr, bool uiVisible);
     
     /// <inheritdoc/>
     public event EventHandler<bool>? UiHideToggled;
@@ -303,7 +300,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.setGlobalBgmHook.Dispose();
         this.handleImmHook.Dispose();
-        this.toggleUiHideHook.Dispose();
+        this.setUiVisibilityHook.Dispose();
         this.handleActionHoverHook.Dispose();
         this.handleActionOutHook.Dispose();
         this.utf8StringFromSequenceHook.Dispose();
@@ -388,16 +385,14 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         return retVal;
     }
 
-    private IntPtr ToggleUiHideDetour(IntPtr thisPtr, bool unknownByte)
+    private unsafe void SetUiVisibilityDetour(RaptureAtkModule* thisPtr, bool uiVisible)
     {
-        var result = this.toggleUiHideHook.Original(thisPtr, unknownByte);
+        this.setUiVisibilityHook.Original(thisPtr, uiVisible);
 
         this.GameUiHidden = !RaptureAtkModule.Instance()->IsUiVisible;
         this.UiHideToggled?.InvokeSafely(this, this.GameUiHidden);
 
-        Log.Debug("UiHide toggled: {0}", this.GameUiHidden);
-
-        return result;
+        Log.Debug("GameUiHidden: {0}", this.GameUiHidden);
     }
 
     private char HandleImmDetour(IntPtr framework, char a2, byte a3)
