@@ -137,33 +137,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     /// <inheritdoc/>
     public bool OpenMapWithMapLink(MapLinkPayload mapLink)
-    {
-        var uiModule = this.GetUIModule();
-
-        if (uiModule == IntPtr.Zero)
-        {
-            Log.Error("OpenMapWithMapLink: Null pointer returned from getUIObject()");
-            return false;
-        }
-
-        this.getUIMapObject ??= this.address.GetVirtualFunction<GetUIMapObjectDelegate>(uiModule, 0, 8);
-
-        var uiMapObjectPtr = this.getUIMapObject(uiModule);
-
-        if (uiMapObjectPtr == IntPtr.Zero)
-        {
-            Log.Error("OpenMapWithMapLink: Null pointer returned from GetUIMapObject()");
-            return false;
-        }
-
-        this.openMapWithFlag ??= this.address.GetVirtualFunction<OpenMapWithFlagDelegate>(uiMapObjectPtr, 0, 63);
-
-        var mapLinkString = mapLink.DataString;
-
-        Log.Debug($"OpenMapWithMapLink: Opening Map Link: {mapLinkString}");
-
-        return this.openMapWithFlag(uiMapObjectPtr, mapLinkString);
-    }
+        => RaptureAtkModule.Instance()->OpenMapWithMapLink(mapLink.DataString);
 
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
