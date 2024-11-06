@@ -31,12 +31,12 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning restore SA1015
 internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
-    private const int ObjectTableLength = 599;
-
     private static readonly ModuleLog Log = new("ObjectTable");
 
+    private static int objectTableLength;
+
     private readonly ClientState clientState;
-    private readonly CachedEntry[] cachedObjectTable = new CachedEntry[ObjectTableLength];
+    private readonly CachedEntry[] cachedObjectTable;
 
     private readonly ObjectPool<Enumerator> multiThreadedEnumerators =
         new DefaultObjectPoolProvider().Create<Enumerator>();
@@ -51,6 +51,9 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         this.clientState = clientState;
 
         var nativeObjectTable = CSGameObjectManager.Instance()->Objects.IndexSorted;
+        objectTableLength = nativeObjectTable.Length;
+
+        this.cachedObjectTable = new CachedEntry[objectTableLength];
         for (var i = 0; i < this.cachedObjectTable.Length; i++)
             this.cachedObjectTable[i] = new(nativeObjectTable.GetPointer(i));
 
@@ -70,7 +73,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     }
 
     /// <inheritdoc/>
-    public int Length => ObjectTableLength;
+    public int Length => objectTableLength;
 
     /// <inheritdoc/>
     public IGameObject? this[int index]
@@ -79,7 +82,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         {
             _ = this.WarnMultithreadedUsage();
 
-            return index is >= ObjectTableLength or < 0 ? null : this.cachedObjectTable[index].Update();
+            return (index >= objectTableLength || index < 0) ? null : this.cachedObjectTable[index].Update();
         }
     }
 
@@ -122,7 +125,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         _ = this.WarnMultithreadedUsage();
 
-        return index is < 0 or >= ObjectTableLength ? nint.Zero : (nint)this.cachedObjectTable[index].Address;
+        return (index >= objectTableLength || index < 0) ? nint.Zero : (nint)this.cachedObjectTable[index].Address;
     }
 
     /// <inheritdoc/>
@@ -274,11 +277,11 @@ internal sealed partial class ObjectTable
 
         public bool MoveNext()
         {
-            if (this.index == ObjectTableLength)
+            if (this.index == objectTableLength)
                 return false;
 
             var cache = this.owner!.cachedObjectTable.AsSpan();
-            for (this.index++; this.index < ObjectTableLength; this.index++)
+            for (this.index++; this.index < objectTableLength; this.index++)
             {
                 if (cache[this.index].Update() is { } ao)
                 {
