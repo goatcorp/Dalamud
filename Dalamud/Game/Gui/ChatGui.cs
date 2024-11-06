@@ -14,6 +14,8 @@ using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
@@ -33,7 +35,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
-    private readonly Hook<PopulateItemLinkDelegate> populateItemLinkHook;
+    private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
     private readonly Hook<InteractableLinkClickedDelegate> interactableLinkClickedHook;
 
     [ServiceManager.ServiceDependency]
@@ -47,20 +49,17 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         this.address = new ChatGuiAddressResolver();
         this.address.Setup(sigScanner);
 
-        this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress((nint)RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
-        this.populateItemLinkHook = Hook<PopulateItemLinkDelegate>.FromAddress(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
+        this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
+        this.inventoryItemCopyHook = Hook<InventoryItem.Delegates.Copy>.FromAddress(InventoryItem.Addresses.Copy.Value, this.InventoryItemCopyDetour);
         this.interactableLinkClickedHook = Hook<InteractableLinkClickedDelegate>.FromAddress(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
 
         this.printMessageHook.Enable();
-        this.populateItemLinkHook.Enable();
+        this.inventoryItemCopyHook.Enable();
         this.interactableLinkClickedHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void PopulateItemLinkDelegate(IntPtr linkObjectPtr, IntPtr itemInfoPtr);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate void InteractableLinkClickedDelegate(IntPtr managerPtr, IntPtr messagePtr);
@@ -78,7 +77,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
 
     /// <inheritdoc/>
-    public int LastLinkedItemId { get; private set; }
+    public uint LastLinkedItemId { get; private set; }
 
     /// <inheritdoc/>
     public byte LastLinkedItemFlags { get; private set; }
@@ -106,7 +105,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     void IInternalDisposableService.DisposeService()
     {
         this.printMessageHook.Dispose();
-        this.populateItemLinkHook.Dispose();
+        this.inventoryItemCopyHook.Dispose();
         this.interactableLinkClickedHook.Dispose();
     }
 
@@ -275,21 +274,20 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         });
     }
 
-    private void HandlePopulateItemLinkDetour(IntPtr linkObjectPtr, IntPtr itemInfoPtr)
+    private void InventoryItemCopyDetour(InventoryItem* thisPtr, InventoryItem* otherPtr)
     {
+        this.inventoryItemCopyHook.Original(thisPtr, otherPtr);
+
         try
         {
-            this.populateItemLinkHook.Original(linkObjectPtr, itemInfoPtr);
+            this.LastLinkedItemId = otherPtr->ItemId;
+            this.LastLinkedItemFlags = (byte)otherPtr->Flags;
 
-            this.LastLinkedItemId = Marshal.ReadInt32(itemInfoPtr, 8);
-            this.LastLinkedItemFlags = Marshal.ReadByte(itemInfoPtr, 0x14);
-
-            // Log.Verbose($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{this.LastLinkedItemId}");
+            // Log.Verbose($"InventoryItemCopyDetour {thisPtr} {otherPtr} - linked:{this.LastLinkedItemId}");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Exception onPopulateItemLink hook.");
-            this.populateItemLinkHook.Original(linkObjectPtr, itemInfoPtr);
+            Log.Error(ex, "Exception in InventoryItemCopyHook");
         }
     }
 
@@ -451,7 +449,7 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
 
     /// <inheritdoc/>
-    public int LastLinkedItemId => this.chatGuiService.LastLinkedItemId;
+    public uint LastLinkedItemId => this.chatGuiService.LastLinkedItemId;
 
     /// <inheritdoc/>
     public byte LastLinkedItemFlags => this.chatGuiService.LastLinkedItemFlags;
