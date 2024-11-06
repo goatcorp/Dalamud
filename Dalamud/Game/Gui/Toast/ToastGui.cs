@@ -5,7 +5,10 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+
+using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace Dalamud.Game.Gui.Toast;
 
@@ -16,8 +19,6 @@ namespace Dalamud.Game.Gui.Toast;
 internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
 {
     private const uint QuestToastCheckmarkMagic = 60081;
-
-    private readonly ToastGuiAddressResolver address;
 
     private readonly Queue<(byte[] Message, ToastOptions Options)> normalQueue = new();
     private readonly Queue<(byte[] Message, QuestToastOptions Options)> questQueue = new();
@@ -30,16 +31,12 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
     /// <summary>
     /// Initializes a new instance of the <see cref="ToastGui"/> class.
     /// </summary>
-    /// <param name="sigScanner">Sig scanner to use.</param>
     [ServiceManager.ServiceConstructor]
-    private ToastGui(TargetSigScanner sigScanner)
+    private unsafe ToastGui()
     {
-        this.address = new ToastGuiAddressResolver();
-        this.address.Setup(sigScanner);
-
-        this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress(this.address.ShowNormalToast, this.HandleNormalToastDetour);
-        this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress(this.address.ShowQuestToast, this.HandleQuestToastDetour);
-        this.showErrorToastHook = Hook<ShowErrorToastDelegate>.FromAddress(this.address.ShowErrorToast, this.HandleErrorToastDetour);
+        this.showNormalToastHook = Hook<ShowNormalToastDelegate>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowWideText, this.HandleNormalToastDetour);
+        this.showQuestToastHook = Hook<ShowQuestToastDelegate>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowText, this.HandleQuestToastDetour);
+        this.showErrorToastHook = Hook<ShowErrorToastDelegate>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ShowErrorText, this.HandleErrorToastDetour);
 
         this.showNormalToastHook.Enable();
         this.showQuestToastHook.Enable();
@@ -48,16 +45,16 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
 
     #region Marshal delegates
 
-    private delegate IntPtr ShowNormalToastDelegate(IntPtr manager, IntPtr text, int layer, byte isTop, byte isFast, int logMessageId);
+    private unsafe delegate void ShowNormalToastDelegate(UIModule* thisPtr, byte* text, int layer, byte isTop, byte isFast, uint logMessageId);
 
-    private delegate byte ShowQuestToastDelegate(IntPtr manager, int position, IntPtr text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound);
+    private unsafe delegate void ShowQuestToastDelegate(UIModule* thisPtr, int position, byte* text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound);
 
-    private delegate byte ShowErrorToastDelegate(IntPtr manager, IntPtr text, byte respectsHidingMaybe);
+    private unsafe delegate void ShowErrorToastDelegate(UIModule* thisPtr, byte* text, byte respectsHidingMaybe);
 
     #endregion
 
     #region Events
-    
+
     /// <inheritdoc/>
     public event IToastGui.OnNormalToastDelegate? Toast;
 
@@ -102,32 +99,6 @@ internal sealed partial class ToastGui : IInternalDisposableService, IToastGui
             this.ShowError(message);
         }
     }
-
-    private static byte[] Terminate(byte[] source)
-    {
-        var terminated = new byte[source.Length + 1];
-        Array.Copy(source, 0, terminated, 0, source.Length);
-        terminated[^1] = 0;
-
-        return terminated;
-    }
-
-    private SeString ParseString(IntPtr text)
-    {
-        var bytes = new List<byte>();
-        unsafe
-        {
-            var ptr = (byte*)text;
-            while (*ptr != 0)
-            {
-                bytes.Add(*ptr);
-                ptr += 1;
-            }
-        }
-
-        // call events
-        return SeString.Parse(bytes.ToArray());
-    }
 }
 
 /// <summary>
@@ -149,36 +120,27 @@ internal sealed partial class ToastGui
         this.normalQueue.Enqueue((message.Encode(), options));
     }
 
-    private void ShowNormal(byte[] bytes, ToastOptions? options = null)
+    private unsafe void ShowNormal(byte[] bytes, ToastOptions? options = null)
     {
         options ??= new ToastOptions();
 
-        var manager = Service<GameGui>.GetNullable()?.GetUIModule();
-        if (manager == null)
-            return;
-
-        // terminate the string
-        var terminated = Terminate(bytes);
-
-        unsafe
-        {
-            fixed (byte* ptr = terminated)
-            {
-                this.HandleNormalToastDetour(manager!.Value, (IntPtr)ptr, 5, (byte)options.Position, (byte)options.Speed, 0);
-            }
-        }
+        this.HandleNormalToastDetour(
+            UIModule.Instance(),
+            bytes.NullTerminate().AsPointer(),
+            5,
+            (byte)options.Position,
+            (byte)options.Speed,
+            0);
     }
 
-    private IntPtr HandleNormalToastDetour(IntPtr manager, IntPtr text, int layer, byte isTop, byte isFast, int logMessageId)
+    private unsafe void HandleNormalToastDetour(UIModule* thisPtr, byte* text, int layer, byte isTop, byte isFast, uint logMessageId)
     {
-        if (text == IntPtr.Zero)
-        {
-            return IntPtr.Zero;
-        }
+        if (text == null)
+            return;
 
         // call events
         var isHandled = false;
-        var str = this.ParseString(text);
+        var str = MemoryHelper.ReadSeStringNullTerminated((nint)text);
         var options = new ToastOptions
         {
             Position = (ToastPosition)isTop,
@@ -189,19 +151,15 @@ internal sealed partial class ToastGui
 
         // do nothing if handled
         if (isHandled)
-        {
-            return IntPtr.Zero;
-        }
+            return;
 
-        var terminated = Terminate(str.Encode());
-
-        unsafe
-        {
-            fixed (byte* message = terminated)
-            {
-                return this.showNormalToastHook.Original(manager, (IntPtr)message, layer, (byte)options.Position, (byte)options.Speed, logMessageId);
-            }
-        }
+        this.showNormalToastHook.Original(
+            thisPtr,
+            str.EncodeWithNullTerminator().AsPointer(),
+            layer,
+            (byte)(options.Position == ToastPosition.Top ? 1 : 0),
+            (byte)(options.Speed == ToastSpeed.Fast ? 1 : 0),
+            logMessageId);
     }
 }
 
@@ -224,45 +182,30 @@ internal sealed partial class ToastGui
         this.questQueue.Enqueue((message.Encode(), options));
     }
 
-    private void ShowQuest(byte[] bytes, QuestToastOptions? options = null)
+    private unsafe void ShowQuest(byte[] bytes, QuestToastOptions? options = null)
     {
         options ??= new QuestToastOptions();
 
-        var manager = Service<GameGui>.GetNullable()?.GetUIModule();
-        if (manager == null)
-            return;
-
-        // terminate the string
-        var terminated = Terminate(bytes);
-
         var (ioc1, ioc2) = this.DetermineParameterOrder(options);
 
-        unsafe
-        {
-            fixed (byte* ptr = terminated)
-            {
-                this.HandleQuestToastDetour(
-                    manager!.Value,
-                    (int)options.Position,
-                    (IntPtr)ptr,
-                    ioc1,
-                    options.PlaySound ? (byte)1 : (byte)0,
-                    ioc2,
-                    0);
-            }
-        }
+        this.HandleQuestToastDetour(
+            UIModule.Instance(),
+            (int)options.Position,
+            bytes.NullTerminate().AsPointer(),
+            ioc1,
+            (byte)(options.PlaySound ? 1 : 0),
+            ioc2,
+            0);
     }
 
-    private byte HandleQuestToastDetour(IntPtr manager, int position, IntPtr text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound)
+    private unsafe void HandleQuestToastDetour(UIModule* thisPtr, int position, byte* text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound)
     {
-        if (text == IntPtr.Zero)
-        {
-            return 0;
-        }
+        if (text == null)
+            return;
 
         // call events
         var isHandled = false;
-        var str = this.ParseString(text);
+        var str = SeString.Parse(text);
         var options = new QuestToastOptions
         {
             Position = (QuestToastPosition)position,
@@ -275,28 +218,18 @@ internal sealed partial class ToastGui
 
         // do nothing if handled
         if (isHandled)
-        {
-            return 0;
-        }
-
-        var terminated = Terminate(str.Encode());
+            return;
 
         var (ioc1, ioc2) = this.DetermineParameterOrder(options);
 
-        unsafe
-        {
-            fixed (byte* message = terminated)
-            {
-                return this.showQuestToastHook.Original(
-                    manager,
-                    (int)options.Position,
-                    (IntPtr)message,
-                    ioc1,
-                    options.PlaySound ? (byte)1 : (byte)0,
-                    ioc2,
-                    0);
-            }
-        }
+        this.showQuestToastHook.Original(
+            UIModule.Instance(),
+            (int)options.Position,
+            str.EncodeWithNullTerminator().AsPointer(),
+            ioc1,
+            (byte)(options.PlaySound ? 1 : 0),
+            ioc2,
+            0);
     }
 
     private (uint IconOrCheck1, uint IconOrCheck2) DetermineParameterOrder(QuestToastOptions options)
@@ -324,52 +257,27 @@ internal sealed partial class ToastGui
         this.errorQueue.Enqueue(message.Encode());
     }
 
-    private void ShowError(byte[] bytes)
+    private unsafe void ShowError(byte[] bytes)
     {
-        var manager = Service<GameGui>.GetNullable()?.GetUIModule();
-        if (manager == null)
-            return;
-
-        // terminate the string
-        var terminated = Terminate(bytes);
-
-        unsafe
-        {
-            fixed (byte* ptr = terminated)
-            {
-                this.HandleErrorToastDetour(manager!.Value, (IntPtr)ptr, 0);
-            }
-        }
+        this.HandleErrorToastDetour(UIModule.Instance(), bytes.NullTerminate().AsPointer(), 0);
     }
 
-    private byte HandleErrorToastDetour(IntPtr manager, IntPtr text, byte respectsHidingMaybe)
+    private unsafe void HandleErrorToastDetour(UIModule* thisPtr, byte* text, byte respectsHidingMaybe)
     {
-        if (text == IntPtr.Zero)
-        {
-            return 0;
-        }
+        if (text == null)
+            return;
 
         // call events
         var isHandled = false;
-        var str = this.ParseString(text);
+        var str = SeString.Parse(text);
 
         this.ErrorToast?.Invoke(ref str, ref isHandled);
 
         // do nothing if handled
         if (isHandled)
-        {
-            return 0;
-        }
+            return;
 
-        var terminated = Terminate(str.Encode());
-
-        unsafe
-        {
-            fixed (byte* message = terminated)
-            {
-                return this.showErrorToastHook.Original(manager, (IntPtr)message, respectsHidingMaybe);
-            }
-        }
+        this.showErrorToastHook.Original(thisPtr, str.EncodeWithNullTerminator().AsPointer(), respectsHidingMaybe);
     }
 }
 
