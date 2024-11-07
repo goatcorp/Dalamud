@@ -306,33 +306,32 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             // Call events
             var isHandled = false;
 
-            var invocationList = this.CheckMessageHandled!.GetInvocationList();
-            foreach (var @delegate in invocationList)
+            if (this.CheckMessageHandled is { } handledCallback)
             {
-                try
-                {
-                    var messageHandledDelegate = @delegate as IChatGui.OnCheckMessageHandledDelegate;
-                    messageHandledDelegate!.Invoke(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not invoke registered OnCheckMessageHandledDelegate for {Name}", @delegate.Method.Name);
-                }
-            }
-
-            if (!isHandled)
-            {
-                invocationList = this.ChatMessage!.GetInvocationList();
-                foreach (var @delegate in invocationList)
+                foreach (var action in handledCallback.GetInvocationList().Cast<IChatGui.OnCheckMessageHandledDelegate>())
                 {
                     try
                     {
-                        var messageHandledDelegate = @delegate as IChatGui.OnMessageDelegate;
-                        messageHandledDelegate!.Invoke(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                        action(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                     }
                     catch (Exception e)
                     {
-                        Log.Error(e, "Could not invoke registered OnMessageDelegate for {Name}", @delegate.Method.Name);
+                        Log.Error(e, "Could not invoke registered OnCheckMessageHandledDelegate for {Name}", action.Method);
+                    }
+                }
+            }
+
+            if (!isHandled && this.ChatMessage is { } callback)
+            {
+                foreach (var action in callback.GetInvocationList().Cast<IChatGui.OnMessageDelegate>())
+                {
+                    try
+                    {
+                        action(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Could not invoke registered OnMessageDelegate for {Name}", action.Method);
                     }
                 }
             }
