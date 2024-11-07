@@ -297,8 +297,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
         try
         {
-            var originalSenderData = sender->AsSpan().ToArray();
-            var originalMessageData = message->AsSpan().ToArray();
+            var originalSenderData = sender->AsSpan();
+            var originalMessageData = message->AsSpan();
 
             var parsedSender = SeString.Parse(originalSenderData);
             var parsedMessage = SeString.Parse(originalMessageData);
@@ -340,13 +340,13 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             var possiblyModifiedSenderData = parsedSender.Encode();
             var possiblyModifiedMessageData = parsedMessage.Encode();
 
-            if (!Util.FastByteArrayCompare(originalSenderData, possiblyModifiedSenderData))
+            if (!originalSenderData.SequenceEqual(possiblyModifiedSenderData))
             {
                 Log.Verbose($"HandlePrintMessageDetour Sender modified: {SeString.Parse(originalSenderData)} -> {parsedSender}");
                 sender->SetString(possiblyModifiedSenderData);
             }
 
-            if (!Util.FastByteArrayCompare(originalMessageData, possiblyModifiedMessageData))
+            if (!originalMessageData.SequenceEqual(possiblyModifiedMessageData))
             {
                 Log.Verbose($"HandlePrintMessageDetour Message modified: {SeString.Parse(originalMessageData)} -> {parsedMessage}");
                 message->SetString(possiblyModifiedMessageData);
