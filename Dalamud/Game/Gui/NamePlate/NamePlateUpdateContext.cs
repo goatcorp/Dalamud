@@ -140,9 +140,9 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     public void ResetState(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
     {
         this.Addon = (AddonNamePlate*)addon;
-        this.NumberData = numberArrayData[NamePlateGui.NumberArrayIndex];
+        this.NumberData = AtkStage.Instance()->GetNumberArrayData(NumberArrayType.NamePlate);
         this.NumberStruct = (AddonNamePlate.AddonNamePlateNumberArray*)this.NumberData->IntArray;
-        this.StringData = stringArrayData[NamePlateGui.StringArrayIndex];
+        this.StringData = AtkStage.Instance()->GetStringArrayData(StringArrayType.NamePlate);
         this.HasParts = false;
 
         this.ActiveNamePlateCount = this.NumberStruct->ActiveNamePlateCount;
