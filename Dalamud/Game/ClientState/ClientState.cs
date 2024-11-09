@@ -120,14 +120,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public IPlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as IPlayerCharacter;
 
     /// <inheritdoc/>
-    public unsafe ulong LocalContentId
-    {
-        get
-        {
-            var playerState = PlayerState.Instance();
-            return playerState != null ? playerState->ContentId : 0;
-        }
-    }
+    public unsafe ulong LocalContentId => PlayerState.Instance()->ContentId;
 
     /// <inheritdoc/>
     public bool IsLoggedIn { get; private set; }
