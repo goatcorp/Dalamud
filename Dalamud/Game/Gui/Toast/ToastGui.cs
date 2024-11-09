@@ -124,13 +124,16 @@ internal sealed partial class ToastGui
     {
         options ??= new ToastOptions();
 
-        this.HandleNormalToastDetour(
-            UIModule.Instance(),
-            bytes.NullTerminate().AsPointer(),
-            5,
-            (byte)options.Position,
-            (byte)options.Speed,
-            0);
+        fixed (byte* ptr = bytes.NullTerminate())
+        {
+            this.HandleNormalToastDetour(
+                UIModule.Instance(),
+                ptr,
+                5,
+                (byte)options.Position,
+                (byte)options.Speed,
+                0);
+        }
     }
 
     private unsafe void HandleNormalToastDetour(UIModule* thisPtr, byte* text, int layer, byte isTop, byte isFast, uint logMessageId)
@@ -153,13 +156,16 @@ internal sealed partial class ToastGui
         if (isHandled)
             return;
 
-        this.showNormalToastHook.Original(
-            thisPtr,
-            str.EncodeWithNullTerminator().AsPointer(),
-            layer,
-            (byte)(options.Position == ToastPosition.Top ? 1 : 0),
-            (byte)(options.Speed == ToastSpeed.Fast ? 1 : 0),
-            logMessageId);
+        fixed (byte* ptr = str.EncodeWithNullTerminator())
+        {
+            this.showNormalToastHook.Original(
+                thisPtr,
+                ptr,
+                layer,
+                (byte)(options.Position == ToastPosition.Top ? 1 : 0),
+                (byte)(options.Speed == ToastSpeed.Fast ? 1 : 0),
+                logMessageId);
+        }
     }
 }
 
@@ -188,14 +194,17 @@ internal sealed partial class ToastGui
 
         var (ioc1, ioc2) = this.DetermineParameterOrder(options);
 
-        this.HandleQuestToastDetour(
-            UIModule.Instance(),
-            (int)options.Position,
-            bytes.NullTerminate().AsPointer(),
-            ioc1,
-            (byte)(options.PlaySound ? 1 : 0),
-            ioc2,
-            0);
+        fixed (byte* ptr = bytes.NullTerminate())
+        {
+            this.HandleQuestToastDetour(
+                UIModule.Instance(),
+                (int)options.Position,
+                ptr,
+                ioc1,
+                (byte)(options.PlaySound ? 1 : 0),
+                ioc2,
+                0);
+        }
     }
 
     private unsafe void HandleQuestToastDetour(UIModule* thisPtr, int position, byte* text, uint iconOrCheck1, byte playSound, uint iconOrCheck2, byte alsoPlaySound)
@@ -222,14 +231,17 @@ internal sealed partial class ToastGui
 
         var (ioc1, ioc2) = this.DetermineParameterOrder(options);
 
-        this.showQuestToastHook.Original(
-            UIModule.Instance(),
-            (int)options.Position,
-            str.EncodeWithNullTerminator().AsPointer(),
-            ioc1,
-            (byte)(options.PlaySound ? 1 : 0),
-            ioc2,
-            0);
+        fixed (byte* ptr = str.EncodeWithNullTerminator())
+        {
+            this.showQuestToastHook.Original(
+                UIModule.Instance(),
+                (int)options.Position,
+                ptr,
+                ioc1,
+                (byte)(options.PlaySound ? 1 : 0),
+                ioc2,
+                0);
+        }
     }
 
     private (uint IconOrCheck1, uint IconOrCheck2) DetermineParameterOrder(QuestToastOptions options)
@@ -259,7 +271,10 @@ internal sealed partial class ToastGui
 
     private unsafe void ShowError(byte[] bytes)
     {
-        this.HandleErrorToastDetour(UIModule.Instance(), bytes.NullTerminate().AsPointer(), 0);
+        fixed (byte* ptr = bytes.NullTerminate())
+        {
+            this.HandleErrorToastDetour(UIModule.Instance(), ptr, 0);
+        }
     }
 
     private unsafe void HandleErrorToastDetour(UIModule* thisPtr, byte* text, byte respectsHidingMaybe)
@@ -277,7 +292,10 @@ internal sealed partial class ToastGui
         if (isHandled)
             return;
 
-        this.showErrorToastHook.Original(thisPtr, str.EncodeWithNullTerminator().AsPointer(), respectsHidingMaybe);
+        fixed (byte* ptr = str.EncodeWithNullTerminator())
+        {
+            this.showErrorToastHook.Original(thisPtr, ptr, respectsHidingMaybe);
+        }
     }
 }
 
