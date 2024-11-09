@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -136,15 +137,6 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             0);
     }
 
-    private static byte[] Terminate(byte[] source)
-    {
-        var terminated = new byte[source.Length + 1];
-        Array.Copy(source, 0, terminated, 0, source.Length);
-        terminated[^1] = 0;
-
-        return terminated;
-    }
-
     private IntPtr CreateFlyTextDetour(
         IntPtr addonFlyText,
         FlyTextKind kind,
@@ -174,8 +166,8 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             var tmpDamageTypeIcon = damageTypeIcon;
             var tmpYOffset = yOffset;
 
-            var cmpText1 = tmpText1.ToString();
-            var cmpText2 = tmpText2.ToString();
+            var originalText1 = tmpText1.EncodeWithNullTerminator();
+            var originalText2 = tmpText2.EncodeWithNullTerminator();
 
             Log.Verbose($"[FlyText] Called with addonFlyText({addonFlyText.ToInt64():X}) " +
                         $"kind({kind}) val1({val1}) val2({val2}) damageTypeIcon({damageTypeIcon}) " +
@@ -204,12 +196,15 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
                 return IntPtr.Zero;
             }
 
+            var maybeModifiedText1 = tmpText1.EncodeWithNullTerminator();
+            var maybeModifiedText2 = tmpText2.EncodeWithNullTerminator();
+
             // Check if any values have changed
             var dirty = tmpKind != kind ||
                         tmpVal1 != val1 ||
                         tmpVal2 != val2 ||
-                        tmpText1.ToString() != cmpText1 ||
-                        tmpText2.ToString() != cmpText2 ||
+                        !maybeModifiedText1.SequenceEqual(originalText1) ||
+                        !maybeModifiedText2.SequenceEqual(originalText2) ||
                         tmpDamageTypeIcon != damageTypeIcon ||
                         tmpColor != color ||
                         tmpIcon != icon ||
@@ -223,12 +218,10 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
                                                        damageTypeIcon, text1, yOffset);
             }
 
-            var terminated1 = Terminate(tmpText1.Encode());
-            var terminated2 = Terminate(tmpText2.Encode());
-            var pText1 = Marshal.AllocHGlobal(terminated1.Length);
-            var pText2 = Marshal.AllocHGlobal(terminated2.Length);
-            Marshal.Copy(terminated1, 0, pText1, terminated1.Length);
-            Marshal.Copy(terminated2, 0, pText2, terminated2.Length);
+            var pText1 = Marshal.AllocHGlobal(maybeModifiedText1.Length);
+            var pText2 = Marshal.AllocHGlobal(maybeModifiedText2.Length);
+            Marshal.Copy(maybeModifiedText1, 0, pText1, maybeModifiedText1.Length);
+            Marshal.Copy(maybeModifiedText2, 0, pText2, maybeModifiedText2.Length);
             Log.Verbose("[FlyText] Allocated and set strings.");
 
             retVal = this.createFlyTextHook.Original(
