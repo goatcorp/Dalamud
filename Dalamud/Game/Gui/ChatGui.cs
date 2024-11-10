@@ -11,13 +11,19 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using LinkMacroPayloadType = Lumina.Text.Payloads.LinkMacroPayloadType;
+using LuminaSeStringBuilder = Lumina.Text.SeStringBuilder;
+using ReadOnlySePayloadType = Lumina.Text.ReadOnly.ReadOnlySePayloadType;
+using ReadOnlySeStringSpan = Lumina.Text.ReadOnly.ReadOnlySeStringSpan;
 
 namespace Dalamud.Game.Gui;
 
@@ -29,14 +35,12 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
     private static readonly ModuleLog Log = new("ChatGui");
 
-    private readonly ChatGuiAddressResolver address;
-
     private readonly Queue<XivChatEntry> chatQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
     private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
-    private readonly Hook<InteractableLinkClickedDelegate> interactableLinkClickedHook;
+    private readonly Hook<LogViewer.Delegates.HandleLinkClick> handleLinkClickHook;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -44,25 +48,19 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private ImmutableDictionary<(string PluginName, uint CommandId), Action<uint, SeString>>? dalamudLinkHandlersCopy;
 
     [ServiceManager.ServiceConstructor]
-    private ChatGui(TargetSigScanner sigScanner)
+    private ChatGui()
     {
-        this.address = new ChatGuiAddressResolver();
-        this.address.Setup(sigScanner);
-
         this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
         this.inventoryItemCopyHook = Hook<InventoryItem.Delegates.Copy>.FromAddress(InventoryItem.Addresses.Copy.Value, this.InventoryItemCopyDetour);
-        this.interactableLinkClickedHook = Hook<InteractableLinkClickedDelegate>.FromAddress(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
+        this.handleLinkClickHook = Hook<LogViewer.Delegates.HandleLinkClick>.FromAddress(LogViewer.Addresses.HandleLinkClick.Value, this.HandleLinkClickDetour);
 
         this.printMessageHook.Enable();
         this.inventoryItemCopyHook.Enable();
-        this.interactableLinkClickedHook.Enable();
+        this.handleLinkClickHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void InteractableLinkClickedDelegate(IntPtr managerPtr, IntPtr messagePtr);
 
     /// <inheritdoc/>
     public event IChatGui.OnMessageDelegate? ChatMessage;
@@ -106,7 +104,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     {
         this.printMessageHook.Dispose();
         this.inventoryItemCopyHook.Dispose();
-        this.interactableLinkClickedHook.Dispose();
+        this.handleLinkClickHook.Dispose();
     }
 
     /// <inheritdoc/>
@@ -371,42 +369,57 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         return messageId;
     }
 
-    private void InteractableLinkClickedDetour(IntPtr managerPtr, IntPtr messagePtr)
+    private void HandleLinkClickDetour(LogViewer* thisPtr, LinkData* linkData)
     {
+        if ((Payload.EmbeddedInfoType)(linkData->LinkType + 1) != Payload.EmbeddedInfoType.DalamudLink)
+        {
+            this.handleLinkClickHook.Original(thisPtr, linkData);
+            return;
+        }
+
+        Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
+
+        var sb = LuminaSeStringBuilder.SharedPool.Get();
         try
         {
-            var interactableType = (Payload.EmbeddedInfoType)(Marshal.ReadByte(messagePtr, 0x1B) + 1);
+            var seStringSpan = new ReadOnlySeStringSpan(linkData->Payload);
 
-            if (interactableType != Payload.EmbeddedInfoType.DalamudLink)
+            // read until link terminator
+            foreach (var payload in seStringSpan)
             {
-                this.interactableLinkClickedHook.Original(managerPtr, messagePtr);
-                return;
+                sb.Append(payload);
+
+                if (payload.Type == ReadOnlySePayloadType.Macro &&
+                    payload.MacroCode == Lumina.Text.Payloads.MacroCode.Link &&
+                    payload.TryGetExpression(out var expr1) &&
+                    expr1.TryGetInt(out var expr1Val) &&
+                    expr1Val == (int)LinkMacroPayloadType.Terminator)
+                {
+                    break;
+                }
             }
 
-            Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
+            var seStr = SeString.Parse(sb.ToArray());
+            if (seStr.Payloads.Count == 0 || seStr.Payloads[0] is not DalamudLinkPayload link)
+                return;
 
-            var payloadPtr = Marshal.ReadIntPtr(messagePtr, 0x10);
-            var seStr = MemoryHelper.ReadSeStringNullTerminated(payloadPtr);
-            var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
-            var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
-            if (payloads.Count == 0) return;
-            var linkPayload = payloads[0];
-            if (linkPayload is DalamudLinkPayload link)
+            if (this.RegisteredLinkHandlers.TryGetValue((link.Plugin, link.CommandId), out var value))
             {
-                if (this.RegisteredLinkHandlers.TryGetValue((link.Plugin, link.CommandId), out var value))
-                {
-                    Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
-                    value.Invoke(link.CommandId, new SeString(payloads));
-                }
-                else
-                {
-                    Log.Debug($"No DalamudLink registered for {link.Plugin} with ID of {link.CommandId}");
-                }
+                Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
+                value.Invoke(link.CommandId, seStr);
+            }
+            else
+            {
+                Log.Debug($"No DalamudLink registered for {link.Plugin} with ID of {link.CommandId}");
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Exception on InteractableLinkClicked hook");
+            Log.Error(ex, "Exception in HandleLinkClickDetour");
+        }
+        finally
+        {
+            LuminaSeStringBuilder.SharedPool.Return(sb);
         }
     }
 }
