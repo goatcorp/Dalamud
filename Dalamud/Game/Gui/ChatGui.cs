@@ -297,11 +297,11 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
         try
         {
-            var originalSenderData = sender->AsSpan();
-            var originalMessageData = message->AsSpan();
+            var parsedSender = SeString.Parse(sender->AsSpan());
+            var parsedMessage = SeString.Parse(message->AsSpan());
 
-            var parsedSender = SeString.Parse(originalSenderData);
-            var parsedMessage = SeString.Parse(originalMessageData);
+            var terminatedSender = parsedSender.EncodeWithNullTerminator();
+            var terminatedMessage = parsedMessage.EncodeWithNullTerminator();
 
             // Call events
             var isHandled = false;
@@ -336,18 +336,18 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 }
             }
 
-            var possiblyModifiedSenderData = parsedSender.Encode();
-            var possiblyModifiedMessageData = parsedMessage.Encode();
+            var possiblyModifiedSenderData = parsedSender.EncodeWithNullTerminator();
+            var possiblyModifiedMessageData = parsedMessage.EncodeWithNullTerminator();
 
-            if (!originalSenderData.SequenceEqual(possiblyModifiedSenderData))
+            if (!terminatedSender.SequenceEqual(possiblyModifiedSenderData))
             {
-                Log.Verbose($"HandlePrintMessageDetour Sender modified: {SeString.Parse(originalSenderData)} -> {parsedSender}");
+                Log.Verbose($"HandlePrintMessageDetour Sender modified: {SeString.Parse(terminatedSender)} -> {parsedSender}");
                 sender->SetString(possiblyModifiedSenderData);
             }
 
-            if (!originalMessageData.SequenceEqual(possiblyModifiedMessageData))
+            if (!terminatedMessage.SequenceEqual(possiblyModifiedMessageData))
             {
-                Log.Verbose($"HandlePrintMessageDetour Message modified: {SeString.Parse(originalMessageData)} -> {parsedMessage}");
+                Log.Verbose($"HandlePrintMessageDetour Message modified: {SeString.Parse(terminatedMessage)} -> {parsedMessage}");
                 message->SetString(possiblyModifiedMessageData);
             }
 
