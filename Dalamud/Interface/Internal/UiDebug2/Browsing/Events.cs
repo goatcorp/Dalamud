@@ -36,7 +36,7 @@ public static class Events
                 ImGui.TableSetupColumn("Type", WidthFixed);
                 ImGui.TableSetupColumn("Param", WidthFixed);
                 ImGui.TableSetupColumn("Flags", WidthFixed);
-                ImGui.TableSetupColumn("Unk29", WidthFixed);
+                ImGui.TableSetupColumn("StateFlags1", WidthFixed);
                 ImGui.TableSetupColumn("Target", WidthFixed);
                 ImGui.TableSetupColumn("Listener", WidthFixed);
 
@@ -48,13 +48,13 @@ public static class Events
                     ImGui.TableNextColumn();
                     ImGui.TextUnformatted($"{i++}");
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{evt->Type}");
+                    ImGui.TextUnformatted($"{evt->State.EventType}");
                     ImGui.TableNextColumn();
                     ImGui.TextUnformatted($"{evt->Param}");
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{evt->Flags}");
+                    ImGui.TextUnformatted($"{evt->State.StateFlags}");
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{evt->Unk29}");
+                    ImGui.TextUnformatted($"{evt->State.UnkFlags1}");
                     ImGui.TableNextColumn();
                     Gui.ClickToCopyText($"{(nint)evt->Target:X}");
                     ImGui.TableNextColumn();
