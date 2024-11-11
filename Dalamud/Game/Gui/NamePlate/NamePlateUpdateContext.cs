@@ -1,4 +1,3 @@
-using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -54,13 +53,11 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     /// Initializes a new instance of the <see cref="NamePlateUpdateContext"/> class.
     /// </summary>
     /// <param name="objectTable">An object table.</param>
-    /// <param name="args">The addon lifecycle arguments for the update request.</param>
-    internal NamePlateUpdateContext(ObjectTable objectTable, AddonRequestedUpdateArgs args)
+    internal NamePlateUpdateContext(ObjectTable objectTable)
     {
         this.ObjectTable = objectTable;
         this.RaptureAtkModule = FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkModule.Instance();
         this.Ui3DModule = UIModule.Instance()->GetUI3DModule();
-        this.ResetState(args);
     }
 
     /// <summary>
@@ -137,13 +134,15 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     /// <summary>
     /// Resets the state of the context based on the provided addon lifecycle arguments.
     /// </summary>
-    /// <param name="args">The addon lifecycle arguments for the update request.</param>
-    internal void ResetState(AddonRequestedUpdateArgs args)
+    /// <param name="addon">A pointer to the addon.</param>
+    /// <param name="numberArrayData">A pointer to the global number array data struct.</param>
+    /// <param name="stringArrayData">A pointer to the global string array data struct.</param>
+    public void ResetState(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
     {
-        this.Addon = (AddonNamePlate*)args.Addon;
-        this.NumberData = ((NumberArrayData**)args.NumberArrayData)![NamePlateGui.NumberArrayIndex];
+        this.Addon = (AddonNamePlate*)addon;
+        this.NumberData = numberArrayData[NamePlateGui.NumberArrayIndex];
         this.NumberStruct = (AddonNamePlate.AddonNamePlateNumberArray*)this.NumberData->IntArray;
-        this.StringData = ((StringArrayData**)args.StringArrayData)![NamePlateGui.StringArrayIndex];
+        this.StringData = stringArrayData[NamePlateGui.StringArrayIndex];
         this.HasParts = false;
 
         this.ActiveNamePlateCount = this.NumberStruct->ActiveNamePlateCount;

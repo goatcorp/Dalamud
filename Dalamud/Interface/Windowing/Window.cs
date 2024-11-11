@@ -347,7 +347,7 @@ public abstract class Window
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Error during Draw(): {this.WindowName}");
+                Log.Error(ex, "Error during Draw(): {WindowName}", this.WindowName);
             }
         }
 

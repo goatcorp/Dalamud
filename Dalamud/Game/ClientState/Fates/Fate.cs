@@ -71,7 +71,7 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets a value indicating whether or not this <see cref="Fate"/> has a EXP bonus.
     /// </summary>
-    [Obsolete("Use HasBonus instead")]
+    [Obsolete($"Use {nameof(HasBonus)} instead")]
     bool HasExpBonus { get; }
 
     /// <summary>
@@ -222,7 +222,7 @@ internal unsafe partial class Fate : IFate
     public byte Progress => this.Struct->Progress;
 
     /// <inheritdoc/>
-    [Obsolete("Use HasBonus instead")]
+    [Obsolete($"Use {nameof(HasBonus)} instead")]
     public bool HasExpBonus => this.Struct->IsExpBonus;
 
     /// <inheritdoc/>
