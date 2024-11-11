@@ -6,7 +6,7 @@ using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
-using static System.Math;
+using static System.MathF;
 using static Dalamud.Interface.ColorHelpers;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Utility;
@@ -133,7 +133,7 @@ public unsafe struct NodeBounds
             if (p.Y > Min(p1.Y, p2.Y) &&
                 p.Y <= Max(p1.Y, p2.Y) &&
                 p.X <= Max(p1.X, p2.X) &&
-                (p1.X.Equals(p2.X) || p.X <= ((p.Y - p1.Y) * (p2.X - p1.X) / (p2.Y - p1.Y)) + p1.X))
+                (p1.X.Equals(p2.X) || p.X <= (((p.Y - p1.Y) * (p2.X - p1.X)) / (p2.Y - p1.Y)) + p1.X))
             {
                 inside = !inside;
             }
@@ -144,13 +144,12 @@ public unsafe struct NodeBounds
 
     private static Vector2 TransformPoint(Vector2 p, Vector2 o, float r, Vector2 s)
     {
-        var cosR = (float)Cos(r);
-        var sinR = (float)Sin(r);
+        var cosR = Cos(r);
+        var sinR = Sin(r);
         var d = (p - o) * s;
 
-        return new(
-            o.X + (d.X * cosR) - (d.Y * sinR),
-            o.Y + (d.X * sinR) + (d.Y * cosR));
+        return new(o.X + (d.X * cosR) - (d.Y * sinR),
+                   o.Y + (d.X * sinR) + (d.Y * cosR));
     }
 
     private void TransformPoints(AtkResNode* transformNode)

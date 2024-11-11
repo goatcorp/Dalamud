@@ -1,5 +1,7 @@
 using System.Numerics;
 
+using Dalamud.Interface.Utility.Raii;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
@@ -21,15 +23,17 @@ public static partial class ImGuiComponents
     /// <returns>Indicator if button is clicked.</returns>
     public static bool DisabledButton(FontAwesomeIcon icon, int? id = null, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, float alphaMult = .5f)
     {
-        ImGui.PushFont(UiBuilder.IconFont);
+        bool button;
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            var text = icon.ToIconString();
+            if (id.HasValue)
+            {
+                text = $"{text}##{id}";
+            }
 
-        var text = icon.ToIconString();
-        if (id.HasValue)
-            text = $"{text}##{id}";
-
-        var button = DisabledButton(text, defaultColor, activeColor, hoveredColor, alphaMult);
-
-        ImGui.PopFont();
+            button = DisabledButton(text, defaultColor, activeColor, hoveredColor, alphaMult);
+        }
 
         return button;
     }
@@ -45,31 +49,28 @@ public static partial class ImGuiComponents
     /// <returns>Indicator if button is clicked.</returns>
     public static bool DisabledButton(string labelWithId, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, float alphaMult = .5f)
     {
+        using var col = new ImRaii.Color();
+
         if (defaultColor.HasValue)
-            ImGui.PushStyleColor(ImGuiCol.Button, defaultColor.Value);
+        {
+            col.Push(ImGuiCol.Button, defaultColor.Value);
+        }
 
         if (activeColor.HasValue)
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, activeColor.Value);
+        {
+            col.Push(ImGuiCol.ButtonActive, activeColor.Value);
+        }
 
         if (hoveredColor.HasValue)
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, hoveredColor.Value);
+        {
+            col.Push(ImGuiCol.ButtonHovered, hoveredColor.Value);
+        }
 
         var style = ImGui.GetStyle();
-        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, style.Alpha * alphaMult);
 
-        var button = ImGui.Button(labelWithId);
-
-        ImGui.PopStyleVar();
-
-        if (defaultColor.HasValue)
-            ImGui.PopStyleColor();
-
-        if (activeColor.HasValue)
-            ImGui.PopStyleColor();
-
-        if (hoveredColor.HasValue)
-            ImGui.PopStyleColor();
-
-        return button;
+        using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, style.Alpha * alphaMult))
+        {
+            return ImGui.Button(labelWithId);
+        }
     }
 }

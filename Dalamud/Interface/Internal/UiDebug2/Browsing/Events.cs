@@ -1,4 +1,7 @@
+using System.Numerics;
+
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -56,9 +59,9 @@ public static class Events
                     ImGui.TableNextColumn();
                     ImGui.TextUnformatted($"{evt->State.UnkFlags1}");
                     ImGui.TableNextColumn();
-                    Gui.ClickToCopyText($"{(nint)evt->Target:X}");
+                    ImGuiHelpers.ClickToCopyText($"{(nint)evt->Target:X}", null, new Vector4(0.6f, 0.6f, 0.6f, 1));
                     ImGui.TableNextColumn();
-                    Gui.ClickToCopyText($"{(nint)evt->Listener:X}");
+                    ImGuiHelpers.ClickToCopyText($"{(nint)evt->Listener:X}", null, new Vector4(0.6f, 0.6f, 0.6f, 1));
                     evt = evt->NextEvent;
                 }
             }

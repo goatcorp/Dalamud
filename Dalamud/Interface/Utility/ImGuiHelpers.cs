@@ -167,17 +167,41 @@ public static class ImGuiHelpers
     /// </summary>
     /// <param name="text">The text to show.</param>
     /// <param name="textCopy">The text to copy when clicked.</param>
-    public static void ClickToCopyText(string text, string? textCopy = null)
+    /// <param name="color">The color of the text.</param>
+    public static void ClickToCopyText(string text, string? textCopy = null, Vector4? color = null)
     {
         textCopy ??= text;
-        ImGui.Text($"{text}");
+
+        using (var col = new ImRaii.Color())
+        {
+            if (color.HasValue)
+            {
+                col.Push(ImGuiCol.Text, color.Value);
+            }
+
+            ImGui.TextUnformatted($"{text}");
+        }
+
         if (ImGui.IsItemHovered())
         {
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            if (textCopy != text) ImGui.SetTooltip(textCopy);
+
+            using (ImRaii.Tooltip())
+            {
+                using (ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    ImGui.TextUnformatted(FontAwesomeIcon.Copy.ToIconString());
+                }
+
+                ImGui.SameLine();
+                ImGui.TextUnformatted($"{textCopy}");
+            }
         }
 
-        if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
+        if (ImGui.IsItemClicked())
+        {
+            ImGui.SetClipboardText($"{textCopy}");
+        }
     }
 
     /// <summary>Draws a SeString.</summary>
