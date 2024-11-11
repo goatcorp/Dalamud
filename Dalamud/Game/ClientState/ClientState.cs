@@ -14,6 +14,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Application.Network;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -37,15 +38,11 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     private readonly ClientStateAddressResolver address;
     private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
     private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
-
-    [ServiceManager.ServiceDependency]
-    private readonly Framework framework = Service<Framework>.Get();
+    private readonly Hook<ProcessPacketPlayerSetupDelegate> processPacketPlayerSetupHook;
+    private readonly Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
 
     [ServiceManager.ServiceDependency]
     private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
-
-    private bool lastConditionNone = true;
-    private bool lastFramePvP;
 
     [ServiceManager.ServiceConstructor]
     private unsafe ClientState(TargetSigScanner sigScanner, Dalamud dalamud, GameLifecycle lifecycle)
@@ -62,17 +59,21 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         this.setupTerritoryTypeHook = Hook<SetupTerritoryTypeDelegate>.FromAddress(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
         this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress((nint)UIModule.StaticVirtualTablePointer->HandlePacket, this.UIModuleHandlePacketDetour);
-
-        this.framework.Update += this.FrameworkOnOnUpdateEvent;
+        this.processPacketPlayerSetupHook = Hook<ProcessPacketPlayerSetupDelegate>.FromAddress(this.address.ProcessPacketPlayerSetup, this.ProcessPacketPlayerSetupDetour);
+        this.onLogoutHook = Hook<LogoutCallbackInterface.Delegates.OnLogout>.FromAddress((nint)LogoutCallbackInterface.StaticVirtualTablePointer->OnLogout, this.OnLogoutDetour);
 
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
 
         this.setupTerritoryTypeHook.Enable();
         this.uiModuleHandlePacketHook.Enable();
+        this.processPacketPlayerSetupHook.Enable();
+        this.onLogoutHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private unsafe delegate void SetupTerritoryTypeDelegate(EventFramework* eventFramework, ushort terriType);
+
+    private unsafe delegate void ProcessPacketPlayerSetupDelegate(nint a1, nint packet);
 
     /// <inheritdoc/>
     public event Action<ushort>? TerritoryChanged;
@@ -87,7 +88,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public event Action? Login;
 
     /// <inheritdoc/>
-    public event Action? Logout;
+    public event IClientState.LogoutDelegate? Logout;
 
     /// <inheritdoc/>
     public event Action? EnterPvP;
@@ -165,23 +166,46 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     {
         this.setupTerritoryTypeHook.Dispose();
         this.uiModuleHandlePacketHook.Dispose();
-        this.framework.Update -= this.FrameworkOnOnUpdateEvent;
+        this.processPacketPlayerSetupHook.Dispose();
+        this.onLogoutHook.Dispose();
         this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
     }
 
     private unsafe void SetupTerritoryTypeDetour(EventFramework* eventFramework, ushort territoryType)
     {
+        Log.Debug("TerritoryType changed: {0}", territoryType);
+
         this.TerritoryType = territoryType;
         this.TerritoryChanged?.InvokeSafely(territoryType);
 
-        Log.Debug("TerritoryType changed: {0}", territoryType);
+        var rowRef = LuminaUtils.CreateRef<TerritoryType>(territoryType);
+        if (rowRef.IsValid)
+        {
+            var isPvP = rowRef.Value.IsPvpZone;
+            if (isPvP != this.IsPvP)
+            {
+                this.IsPvP = isPvP;
+                this.IsPvPExcludingDen = this.IsPvP && this.TerritoryType != 250;
+
+                if (this.IsPvP)
+                {
+                    Log.Debug("EnterPvP");
+                    this.EnterPvP?.InvokeSafely();
+                }
+                else
+                {
+                    Log.Debug("LeavePvP");
+                    this.LeavePvP?.InvokeSafely();
+                }
+            }
+        }
 
         this.setupTerritoryTypeHook.Original(eventFramework, territoryType);
     }
 
     private unsafe void UIModuleHandlePacketDetour(UIModule* thisPtr, UIModulePacketType type, uint uintParam, void* packet)
     {
-        this.uiModuleHandlePacketHook!.Original(thisPtr, type, uintParam, packet);
+        this.uiModuleHandlePacketHook.Original(thisPtr, type, uintParam, packet);
 
         switch (type)
         {
@@ -226,58 +250,73 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         }
     }
 
+    private unsafe void ProcessPacketPlayerSetupDetour(nint a1, nint packet)
+    {
+        // Call original first, so everything is set up.
+        this.processPacketPlayerSetupHook.Original(a1, packet);
+
+        var gameGui = Service<GameGui>.GetNullable();
+
+        try
+        {
+            Log.Debug("Login");
+            this.IsLoggedIn = true;
+            this.Login?.InvokeSafely();
+            gameGui?.ResetUiHideState();
+            this.lifecycle.ResetLogout();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Exception during ProcessPacketPlayerSetupDetour");
+        }
+    }
+
+    private unsafe void OnLogoutDetour(LogoutCallbackInterface* thisPtr, LogoutCallbackInterface.LogoutParams* logoutParams)
+    {
+        var gameGui = Service<GameGui>.GetNullable();
+
+        if (logoutParams != null)
+        {
+            try
+            {
+                var type = logoutParams->Type;
+                var code = logoutParams->Code;
+
+                Log.Debug("Logout: Type {type}, Code {code}", type, code);
+
+                this.IsLoggedIn = false;
+
+                if (this.Logout is { } callback)
+                {
+                    foreach (var action in callback.GetInvocationList().Cast<IClientState.LogoutDelegate>())
+                    {
+                        try
+                        {
+                            action(type, code);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                        }
+                    }
+                }
+
+                gameGui?.ResetUiHideState();
+
+                this.lifecycle.SetLogout();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during OnLogoutDetour");
+            }
+        }
+
+        this.onLogoutHook.Original(thisPtr, logoutParams);
+    }
+
     private void NetworkHandlersOnCfPop(ContentFinderCondition e)
     {
         this.CfPop?.InvokeSafely(e);
-    }
-
-    private void FrameworkOnOnUpdateEvent(IFramework framework1)
-    {
-        var condition = Service<Conditions.Condition>.GetNullable();
-        var gameGui = Service<GameGui>.GetNullable();
-        var data = Service<DataManager>.GetNullable();
-
-        if (condition == null || gameGui == null || data == null)
-            return;
-
-        if (condition.Any() && this.lastConditionNone && this.LocalPlayer != null)
-        {
-            Log.Debug("Is login");
-            this.lastConditionNone = false;
-            this.IsLoggedIn = true;
-            this.Login?.InvokeSafely();
-            gameGui.ResetUiHideState();
-
-            this.lifecycle.ResetLogout();
-        }
-
-        if (!condition.Any() && this.lastConditionNone == false)
-        {
-            Log.Debug("Is logout");
-            this.lastConditionNone = true;
-            this.IsLoggedIn = false;
-            this.Logout?.InvokeSafely();
-            gameGui.ResetUiHideState();
-
-            this.lifecycle.SetLogout();
-        }
-
-        this.IsPvP = GameMain.IsInPvPArea();
-        this.IsPvPExcludingDen = this.IsPvP && this.TerritoryType != 250;
-
-        if (this.IsPvP != this.lastFramePvP)
-        {
-            this.lastFramePvP = this.IsPvP;
-
-            if (this.IsPvP)
-            {
-                this.EnterPvP?.InvokeSafely();
-            }
-            else
-            {
-                this.LeavePvP?.InvokeSafely();
-            }
-        }
     }
 }
 
@@ -322,7 +361,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     public event Action? Login;
 
     /// <inheritdoc/>
-    public event Action? Logout;
+    public event IClientState.LogoutDelegate? Logout;
 
     /// <inheritdoc/>
     public event Action? EnterPvP;
@@ -394,7 +433,7 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
 
     private void LoginForward() => this.Login?.Invoke();
 
-    private void LogoutForward() => this.Logout?.Invoke();
+    private void LogoutForward(int type, int code) => this.Logout?.Invoke(type, code);
 
     private void EnterPvPForward() => this.EnterPvP?.Invoke();
 

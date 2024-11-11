@@ -23,6 +23,13 @@ public interface IClientState
     public delegate void LevelChangeDelegate(uint classJobId, uint level);
 
     /// <summary>
+    /// A delegate type used for the <see cref="Logout"/> event.
+    /// </summary>
+    /// <param name="type">The type of logout.</param>
+    /// <param name="code">The success/failure code.</param>
+    public delegate void LogoutDelegate(int type, int code);
+
+    /// <summary>
     /// Event that gets fired when the current Territory changes.
     /// </summary>
     public event Action<ushort> TerritoryChanged;
@@ -46,7 +53,7 @@ public interface IClientState
     /// <summary>
     /// Event that fires when a character is logging out.
     /// </summary>
-    public event Action Logout;
+    public event LogoutDelegate Logout;
 
     /// <summary>
     /// Event that fires when a character is entering PvP.
