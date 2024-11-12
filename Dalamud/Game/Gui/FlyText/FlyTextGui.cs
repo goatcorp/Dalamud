@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -7,6 +8,9 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using Serilog;
 
@@ -29,7 +33,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
     private readonly Hook<CreateFlyTextDelegate> createFlyTextHook;
 
     [ServiceManager.ServiceConstructor]
-    private FlyTextGui(TargetSigScanner sigScanner)
+    private unsafe FlyTextGui(TargetSigScanner sigScanner)
     {
         this.Address = new FlyTextGuiAddressResolver();
         this.Address.Setup(sigScanner);
@@ -43,29 +47,29 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
     /// <summary>
     /// Private delegate for the native CreateFlyText function's hook.
     /// </summary>
-    private delegate IntPtr CreateFlyTextDelegate(
-        IntPtr addonFlyText,
+    private unsafe delegate nint CreateFlyTextDelegate(
+        AtkUnitBase* thisPtr,
         FlyTextKind kind,
         int val1,
         int val2,
-        IntPtr text2,
+        byte* text2,
         uint color,
         uint icon,
         uint damageTypeIcon,
-        IntPtr text1,
+        byte* text1,
         float yOffset);
 
     /// <summary>
     /// Private delegate for the native AddFlyText function pointer.
     /// </summary>
-    private delegate void AddFlyTextDelegate(
-        IntPtr addonFlyText,
+    private unsafe delegate void AddFlyTextDelegate(
+        AtkUnitBase* thisPtr,
         uint actorIndex,
         uint messageMax,
-        IntPtr numbers,
+        NumberArrayData* numberArrayData,
         uint offsetNum,
         uint offsetNumMax,
-        IntPtr strings,
+        StringArrayData* stringArrayData,
         uint offsetStr,
         uint offsetStrMax,
         int unknown);
@@ -87,26 +91,16 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
     public unsafe void AddFlyText(FlyTextKind kind, uint actorIndex, uint val1, uint val2, SeString text1, SeString text2, uint color, uint icon, uint damageTypeIcon)
     {
         // Known valid flytext region within the atk arrays
-        var numIndex = 30;
-        var strIndex = 27;
         var numOffset = 161u;
         var strOffset = 28u;
 
-        // Get the UI module and flytext addon pointers
-        var gameGui = Service<GameGui>.GetNullable();
-        if (gameGui == null)
-            return;
-
-        var ui = (FFXIVClientStructs.FFXIV.Client.UI.UIModule*)gameGui.GetUIModule();
-        var flytext = gameGui.GetAddonByName("_FlyText");
-
-        if (ui == null || flytext == IntPtr.Zero)
+        var flytext = RaptureAtkUnitManager.Instance()->GetAddonByName("_FlyText");
+        if (flytext == null)
             return;
 
         // Get the number and string arrays we need
-        var atkArrayDataHolder = ui->GetRaptureAtkModule()->AtkModule.AtkArrayDataHolder;
-        var numArray = atkArrayDataHolder._NumberArrays[numIndex];
-        var strArray = atkArrayDataHolder._StringArrays[strIndex];
+        var numArray = AtkStage.Instance()->GetNumberArrayData(NumberArrayType.FlyText);
+        var strArray = AtkStage.Instance()->GetStringArrayData(StringArrayType.FlyText);
 
         // Write the values to the arrays using a known valid flytext region
         numArray->IntArray[numOffset + 0] = 1; // Some kind of "Enabled" flag for this section
@@ -120,44 +114,35 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
         numArray->IntArray[numOffset + 8] = 0; // Unknown
         numArray->IntArray[numOffset + 9] = 0; // Unknown, has something to do with yOffset
 
-        strArray->SetValue((int)strOffset + 0, text1.Encode(), false, true, false);
-        strArray->SetValue((int)strOffset + 1, text2.Encode(), false, true, false);
+        strArray->SetValue((int)strOffset + 0, text1.EncodeWithNullTerminator(), false, true, false);
+        strArray->SetValue((int)strOffset + 1, text2.EncodeWithNullTerminator(), false, true, false);
 
         this.addFlyTextNative(
             flytext,
             actorIndex,
             1,
-            (IntPtr)numArray,
+            numArray,
             numOffset,
             10,
-            (IntPtr)strArray,
+            strArray,
             strOffset,
             2,
             0);
     }
 
-    private static byte[] Terminate(byte[] source)
-    {
-        var terminated = new byte[source.Length + 1];
-        Array.Copy(source, 0, terminated, 0, source.Length);
-        terminated[^1] = 0;
-
-        return terminated;
-    }
-
-    private IntPtr CreateFlyTextDetour(
-        IntPtr addonFlyText,
+    private unsafe nint CreateFlyTextDetour(
+        AtkUnitBase* thisPtr,
         FlyTextKind kind,
         int val1,
         int val2,
-        IntPtr text2,
+        byte* text2,
         uint color,
         uint icon,
         uint damageTypeIcon,
-        IntPtr text1,
+        byte* text1,
         float yOffset)
     {
-        var retVal = IntPtr.Zero;
+        var retVal = nint.Zero;
         try
         {
             Log.Verbose("[FlyText] Enter CreateFlyText detour!");
@@ -167,19 +152,19 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             var tmpKind = kind;
             var tmpVal1 = val1;
             var tmpVal2 = val2;
-            var tmpText1 = text1 == IntPtr.Zero ? string.Empty : MemoryHelper.ReadSeStringNullTerminated(text1);
-            var tmpText2 = text2 == IntPtr.Zero ? string.Empty : MemoryHelper.ReadSeStringNullTerminated(text2);
+            var tmpText1 = text1 == null ? string.Empty : MemoryHelper.ReadSeStringNullTerminated((nint)text1);
+            var tmpText2 = text2 == null ? string.Empty : MemoryHelper.ReadSeStringNullTerminated((nint)text2);
             var tmpColor = color;
             var tmpIcon = icon;
             var tmpDamageTypeIcon = damageTypeIcon;
             var tmpYOffset = yOffset;
 
-            var cmpText1 = tmpText1.ToString();
-            var cmpText2 = tmpText2.ToString();
+            var originalText1 = tmpText1.EncodeWithNullTerminator();
+            var originalText2 = tmpText2.EncodeWithNullTerminator();
 
-            Log.Verbose($"[FlyText] Called with addonFlyText({addonFlyText.ToInt64():X}) " +
+            Log.Verbose($"[FlyText] Called with addonFlyText({(nint)thisPtr:X}) " +
                         $"kind({kind}) val1({val1}) val2({val2}) damageTypeIcon({damageTypeIcon}) " +
-                        $"text1({text1.ToInt64():X}, \"{tmpText1}\") text2({text2.ToInt64():X}, \"{tmpText2}\") " +
+                        $"text1({(nint)text1:X}, \"{tmpText1}\") text2({(nint)text2:X}, \"{tmpText2}\") " +
                         $"color({color:X}) icon({icon}) yOffset({yOffset})");
             Log.Verbose("[FlyText] Calling flytext events!");
             this.FlyTextCreated?.Invoke(
@@ -204,12 +189,15 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
                 return IntPtr.Zero;
             }
 
+            var maybeModifiedText1 = tmpText1.EncodeWithNullTerminator();
+            var maybeModifiedText2 = tmpText2.EncodeWithNullTerminator();
+
             // Check if any values have changed
             var dirty = tmpKind != kind ||
                         tmpVal1 != val1 ||
                         tmpVal2 != val2 ||
-                        tmpText1.ToString() != cmpText1 ||
-                        tmpText2.ToString() != cmpText2 ||
+                        !maybeModifiedText1.SequenceEqual(originalText1) ||
+                        !maybeModifiedText2.SequenceEqual(originalText2) ||
                         tmpDamageTypeIcon != damageTypeIcon ||
                         tmpColor != color ||
                         tmpIcon != icon ||
@@ -219,28 +207,26 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             if (!dirty)
             {
                 Log.Verbose("[FlyText] Calling flytext with original args.");
-                return this.createFlyTextHook.Original(addonFlyText, kind, val1, val2, text2, color, icon,
+                return this.createFlyTextHook.Original(thisPtr, kind, val1, val2, text2, color, icon,
                                                        damageTypeIcon, text1, yOffset);
             }
 
-            var terminated1 = Terminate(tmpText1.Encode());
-            var terminated2 = Terminate(tmpText2.Encode());
-            var pText1 = Marshal.AllocHGlobal(terminated1.Length);
-            var pText2 = Marshal.AllocHGlobal(terminated2.Length);
-            Marshal.Copy(terminated1, 0, pText1, terminated1.Length);
-            Marshal.Copy(terminated2, 0, pText2, terminated2.Length);
+            var pText1 = Marshal.AllocHGlobal(maybeModifiedText1.Length);
+            var pText2 = Marshal.AllocHGlobal(maybeModifiedText2.Length);
+            Marshal.Copy(maybeModifiedText1, 0, pText1, maybeModifiedText1.Length);
+            Marshal.Copy(maybeModifiedText2, 0, pText2, maybeModifiedText2.Length);
             Log.Verbose("[FlyText] Allocated and set strings.");
 
             retVal = this.createFlyTextHook.Original(
-                addonFlyText,
+                thisPtr,
                 tmpKind,
                 tmpVal1,
                 tmpVal2,
-                pText2,
+                (byte*)pText2,
                 tmpColor,
                 tmpIcon,
                 tmpDamageTypeIcon,
-                pText1,
+                (byte*)pText1,
                 tmpYOffset);
 
             Log.Verbose("[FlyText] Returned from original. Delaying free task.");

@@ -181,7 +181,7 @@ internal unsafe class PartyMember : IPartyMember
     /// <summary>
     /// Gets the displayname of this party member.
     /// </summary>
-    public SeString Name => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref Struct->Name[0]), 0x40);
+    public SeString Name => SeString.Parse(this.Struct->Name);
 
     /// <summary>
     /// Gets the sex of this party member.

@@ -161,7 +161,7 @@ internal unsafe class Character : GameObject, ICharacter
     public byte[] Customize => this.Struct->DrawData.CustomizeData.Data.ToArray();
 
     /// <inheritdoc/>
-    public SeString CompanyTag => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->FreeCompanyTag[0]), 6);
+    public SeString CompanyTag => SeString.Parse(this.Struct->FreeCompanyTag);
 
     /// <summary>
     /// Gets the target object ID of the character.

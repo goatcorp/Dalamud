@@ -17,6 +17,7 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Application.Network;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
@@ -111,7 +112,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         get
         {
             var agentMap = AgentMap.Instance();
-            return agentMap != null ? AgentMap.Instance()->CurrentMapId : 0;
+            return agentMap != null ? agentMap->CurrentMapId : 0;
         }
     }
 
@@ -119,7 +120,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public IPlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as IPlayerCharacter;
 
     /// <inheritdoc/>
-    public ulong LocalContentId => (ulong)Marshal.ReadInt64(this.address.LocalContentId);
+    public unsafe ulong LocalContentId => PlayerState.Instance()->ContentId;
 
     /// <inheritdoc/>
     public bool IsLoggedIn { get; private set; }
