@@ -20,7 +20,7 @@ public unsafe class NINGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     public byte Ninki => this.Struct->Ninki;
     
     /// <summary>
-    /// Gets the current charges for Kazematoi
+    /// Gets the current charges for Kazematoi.
     /// </summary>
     public byte Kazematoi => this.Struct->Kazematoi;
 }

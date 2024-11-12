@@ -28,10 +28,9 @@ internal sealed class Condition : IInternalDisposableService, ICondition
     private bool isDisposed;
 
     [ServiceManager.ServiceConstructor]
-    private Condition(ClientState clientState)
+    private unsafe Condition()
     {
-        var resolver = clientState.AddressResolver;
-        this.Address = resolver.ConditionFlags;
+        this.Address = (nint)FFXIVClientStructs.FFXIV.Client.Game.Conditions.Instance();
 
         // Initialization
         for (var i = 0; i < MaxConditionEntries; i++)

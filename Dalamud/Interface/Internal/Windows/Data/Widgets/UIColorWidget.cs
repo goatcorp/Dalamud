@@ -1,22 +1,34 @@
-﻿using System.Numerics;
+using System.Buffers.Binary;
+using System.Linq;
+using System.Numerics;
+using System.Text;
 
 using Dalamud.Data;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Interface.Utility;
+using Dalamud.Storage.Assets;
 
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
 /// Widget for displaying all UI Colors from Lumina.
 /// </summary>
-internal class UIColorWidget : IDataWindowWidget
+internal class UiColorWidget : IDataWindowWidget
 {
+    private ExcelSheet<UIColor> colors;
+
     /// <inheritdoc/>
-    public string[]? CommandShortcuts { get; init; } = { "uicolor" };
-    
+    public string[]? CommandShortcuts { get; init; } = ["uicolor"];
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "UIColor"; 
+    public string DisplayName { get; init; } = "UIColor";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -25,40 +37,173 @@ internal class UIColorWidget : IDataWindowWidget
     public void Load()
     {
         this.Ready = true;
+        this.colors = Service<DataManager>.Get().GetExcelSheet<UIColor>();
     }
 
     /// <inheritdoc/>
-    public void Draw()
+    public unsafe void Draw()
     {
-        var colorSheet = Service<DataManager>.Get().GetExcelSheet<UIColor>();
-        if (colorSheet is null) return;
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(
+            "· Color notation is #" +
+            "<edgecolor(0xFFEEEE)><color(0xFF0000)>RR<color(stackcolor)><edgecolor(stackcolor)>" +
+            "<edgecolor(0xEEFFEE)><color(0x00FF00)>GG<color(stackcolor)><edgecolor(stackcolor)>" +
+            "<edgecolor(0xEEEEFF)><color(0x0000FF)>BB<color(stackcolor)><edgecolor(stackcolor)>.<br>" +
+            "· Click on a color to copy the color code.<br>" +
+            "· Hover on a color to preview the text with edge, when the next color has been used together.");
+        if (!ImGui.BeginTable("UIColor", 5))
+            return;
 
-        foreach (var color in colorSheet)
+        ImGui.TableSetupScrollFreeze(0, 1);
+        var rowidw = ImGui.CalcTextSize("9999999").X;
+        var colorw = ImGui.CalcTextSize("#999999").X;
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#AAAAAA").X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#BBBBBB").X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#CCCCCC").X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#DDDDDD").X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#EEEEEE").X);
+        colorw = Math.Max(colorw, ImGui.CalcTextSize("#FFFFFF").X);
+        colorw += ImGui.GetFrameHeight() + ImGui.GetStyle().FramePadding.X;
+        ImGui.TableSetupColumn("Row ID", ImGuiTableColumnFlags.WidthFixed, rowidw);
+        ImGui.TableSetupColumn("Dark", ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Light", ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Classic FF", ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableSetupColumn("Clear Blue", ImGuiTableColumnFlags.WidthFixed, colorw);
+        ImGui.TableHeadersRow();
+
+        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        clipper.Begin(this.colors.Count, ImGui.GetFrameHeightWithSpacing());
+        while (clipper.Step())
         {
-            this.DrawUiColor(color);
-        }
-    }
-    
-    private void DrawUiColor(UIColor color)
-    {
-        ImGui.Text($"[{color.RowId:D3}] ");
-        ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.Unknown2), $"Unknown2 ");
-        ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.UIForeground), "UIForeground ");
-        ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.Unknown3), "Unknown3 ");
-        ImGui.SameLine();
-        ImGui.TextColored(this.ConvertToVector4(color.UIGlow), "UIGlow");
-    }
-    
-    private Vector4 ConvertToVector4(uint color)
-    {
-        var r = (byte)(color >> 24);
-        var g = (byte)(color >> 16);
-        var b = (byte)(color >> 8);
-        var a = (byte)color;
+            for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+            {
+                var row = this.colors.GetRowAt(i);
+                UIColor? adjacentRow = null;
+                if (i + 1 < this.colors.Count)
+                {
+                    var adjRow = this.colors.GetRowAt(i + 1);
+                    if (adjRow.RowId == row.RowId + 1)
+                    {
+                        adjacentRow = adjRow;
+                    }
+                }
 
-        return new Vector4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+                var id = row.RowId;
+
+                ImGui.TableNextRow();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.TextUnformatted($"{id}");
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_col1");
+                if (this.DrawColorColumn(row.UIForeground) &&
+                    adjacentRow.HasValue)
+                    DrawEdgePreview(id, row.UIForeground, adjacentRow.Value.UIForeground);
+                ImGui.PopID();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_col2");
+                if (this.DrawColorColumn(row.UIGlow) &&
+                    adjacentRow.HasValue)
+                    DrawEdgePreview(id, row.UIGlow, adjacentRow.Value.UIGlow);
+                ImGui.PopID();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_col3");
+                if (this.DrawColorColumn(row.Unknown0) &&
+                    adjacentRow.HasValue)
+                    DrawEdgePreview(id, row.Unknown0, adjacentRow.Value.Unknown0);
+                ImGui.PopID();
+
+                ImGui.TableNextColumn();
+                ImGui.AlignTextToFramePadding();
+                ImGui.PushID($"row{id}_col4");
+                if (this.DrawColorColumn(row.Unknown1) &&
+                    adjacentRow.HasValue)
+                    DrawEdgePreview(id, row.Unknown1, adjacentRow.Value.Unknown1);
+                ImGui.PopID();
+            }
+        }
+
+        clipper.Destroy();
+        ImGui.EndTable();
+    }
+
+    private static void DrawEdgePreview(uint id, uint sheetColor, uint sheetColor2)
+    {
+        ImGui.BeginTooltip();
+        Span<byte> buf = stackalloc byte[256];
+        var ptr = 0;
+        ptr += Encoding.UTF8.GetBytes("<colortype(", buf[ptr..]);
+        id.TryFormat(buf[ptr..], out var bytesWritten);
+        ptr += bytesWritten;
+        ptr += Encoding.UTF8.GetBytes(")><edgecolortype(", buf[ptr..]);
+        (id + 1).TryFormat(buf[ptr..], out bytesWritten);
+        ptr += bytesWritten;
+        ptr += Encoding.UTF8.GetBytes(")>", buf[ptr..]);
+        Service<SeStringRenderer>.Get().Draw(
+            buf[..ptr],
+            new()
+            {
+                Edge = true,
+                Color = BinaryPrimitives.ReverseEndianness(sheetColor) | 0xFF000000u,
+                EdgeColor = BinaryPrimitives.ReverseEndianness(sheetColor2) | 0xFF000000u,
+                WrapWidth = float.PositiveInfinity,
+            });
+
+        ptr = 0;
+        ptr += Encoding.UTF8.GetBytes("<colortype(", buf[ptr..]);
+        (id + 1).TryFormat(buf[ptr..], out bytesWritten);
+        ptr += bytesWritten;
+        ptr += Encoding.UTF8.GetBytes(")><edgecolortype(", buf[ptr..]);
+        id.TryFormat(buf[ptr..], out bytesWritten);
+        ptr += bytesWritten;
+        ptr += Encoding.UTF8.GetBytes(")>", buf[ptr..]);
+        Service<SeStringRenderer>.Get().Draw(
+            buf[..ptr],
+            new()
+            {
+                Edge = true,
+                Color = BinaryPrimitives.ReverseEndianness(sheetColor2) | 0xFF000000u,
+                EdgeColor = BinaryPrimitives.ReverseEndianness(sheetColor) | 0xFF000000u,
+                WrapWidth = float.PositiveInfinity,
+            });
+        ImGui.EndTooltip();
+    }
+
+    private bool DrawColorColumn(uint sheetColor)
+    {
+        sheetColor = BinaryPrimitives.ReverseEndianness(sheetColor);
+        var rgbtext = $"#{sheetColor & 0xFF:X02}{(sheetColor >> 8) & 0xFF:X02}{(sheetColor >> 16) & 0xFF:X02}";
+        var size = new Vector2(ImGui.GetFrameHeight());
+        size.X += ImGui.CalcTextSize(rgbtext).X + ImGui.GetStyle().FramePadding.X;
+
+        var off = ImGui.GetCursorScreenPos();
+        ImGui.GetWindowDrawList().AddRectFilled(
+            off,
+            off + new Vector2(size.Y),
+            sheetColor | 0xFF000000u);
+        ImGui.GetWindowDrawList().AddText(
+            off + ImGui.GetStyle().FramePadding + new Vector2(size.Y, 0),
+            ImGui.GetColorU32(ImGuiCol.Text),
+            rgbtext);
+
+        if (ImGui.InvisibleButton("##copy", size))
+        {
+            ImGui.SetClipboardText(rgbtext);
+            Service<NotificationManager>.Get().AddNotification(
+                new()
+                {
+                    Content = $"Copied \"{rgbtext}\".",
+                    Title = this.DisplayName,
+                    Type = NotificationType.Success,
+                });
+        }
+
+        return ImGui.IsItemHovered();
     }
 }

@@ -1,10 +1,12 @@
 using System.Runtime.CompilerServices;
 
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using Lumina.Excel.GeneratedSheets;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.ClientState.Objects.Types;
 
@@ -61,7 +63,7 @@ public interface ICharacter : IGameObject
     /// <summary>
     /// Gets the ClassJob of this Chara.
     /// </summary>
-    public ExcelResolver<ClassJob> ClassJob { get; }
+    public RowRef<ClassJob> ClassJob { get; }
 
     /// <summary>
     /// Gets the level of this Chara.
@@ -87,12 +89,24 @@ public interface ICharacter : IGameObject
     /// <summary>
     /// Gets the current online status of the character.
     /// </summary>
-    public ExcelResolver<OnlineStatus> OnlineStatus { get; }
+    public RowRef<OnlineStatus> OnlineStatus { get; }
 
     /// <summary>
     /// Gets the status flags.
     /// </summary>
     public StatusFlags StatusFlags { get; }
+    
+    /// <summary>
+    /// Gets the current mount for this character. Will be <c>null</c> if the character doesn't have a mount.
+    /// </summary>
+    public RowRef<Mount>? CurrentMount { get; }
+    
+    /// <summary>
+    /// Gets the current minion summoned for this character. Will be <c>null</c> if the character doesn't have a minion.
+    /// This method *will* return information about a spawned (but invisible) minion, e.g. if the character is riding a
+    /// mount.
+    /// </summary>
+    public RowRef<Companion>? CurrentMinion { get; }
 }
 
 /// <summary>
@@ -138,7 +152,7 @@ internal unsafe class Character : GameObject, ICharacter
     public byte ShieldPercentage => this.Struct->CharacterData.ShieldValue;
 
     /// <inheritdoc/>
-    public ExcelResolver<ClassJob> ClassJob => new(this.Struct->CharacterData.ClassJob);
+    public RowRef<ClassJob> ClassJob => LuminaUtils.CreateRef<ClassJob>(this.Struct->CharacterData.ClassJob);
 
     /// <inheritdoc/>
     public byte Level => this.Struct->CharacterData.Level;
@@ -147,7 +161,7 @@ internal unsafe class Character : GameObject, ICharacter
     public byte[] Customize => this.Struct->DrawData.CustomizeData.Data.ToArray();
 
     /// <inheritdoc/>
-    public SeString CompanyTag => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->FreeCompanyTag[0]), 6);
+    public SeString CompanyTag => SeString.Parse(this.Struct->FreeCompanyTag);
 
     /// <summary>
     /// Gets the target object ID of the character.
@@ -158,7 +172,7 @@ internal unsafe class Character : GameObject, ICharacter
     public uint NameId => this.Struct->NameId;
 
     /// <inheritdoc/>
-    public ExcelResolver<OnlineStatus> OnlineStatus => new(this.Struct->CharacterData.OnlineStatus);
+    public RowRef<OnlineStatus> OnlineStatus => LuminaUtils.CreateRef<OnlineStatus>(this.Struct->CharacterData.OnlineStatus);
 
     /// <summary>
     /// Gets the status flags.
@@ -172,6 +186,32 @@ internal unsafe class Character : GameObject, ICharacter
         (this.Struct->IsAllianceMember ? StatusFlags.AllianceMember : StatusFlags.None) |
         (this.Struct->IsFriend ? StatusFlags.Friend : StatusFlags.None) |
         (this.Struct->IsCasting ? StatusFlags.IsCasting : StatusFlags.None);
+    
+    /// <inheritdoc />
+    public RowRef<Mount>? CurrentMount
+    {
+        get
+        {
+            if (this.Struct->IsNotMounted()) return null; // just for safety.
+            
+            var mountId = this.Struct->Mount.MountId;
+            return mountId == 0 ? null : LuminaUtils.CreateRef<Mount>(mountId);
+        }
+    }
+
+    /// <inheritdoc />
+    public RowRef<Companion>? CurrentMinion
+    {
+        get
+        {
+            if (this.Struct->CompanionObject != null) 
+                return LuminaUtils.CreateRef<Companion>(this.Struct->CompanionObject->BaseId);
+
+            // this is only present if a minion is summoned but hidden (e.g. the player's on a mount).
+            var hiddenCompanionId = this.Struct->CompanionData.CompanionId;
+            return hiddenCompanionId == 0 ? null : LuminaUtils.CreateRef<Companion>(hiddenCompanionId);
+        }
+    }
 
     /// <summary>
     /// Gets the underlying structure.

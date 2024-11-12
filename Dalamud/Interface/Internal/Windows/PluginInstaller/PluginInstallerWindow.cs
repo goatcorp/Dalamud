@@ -98,6 +98,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private bool deletePluginConfigWarningModalDrawing = true;
     private bool deletePluginConfigWarningModalOnNextFrame = false;
+    private bool deletePluginConfigWarningModalExplainTesting = false;
     private string deletePluginConfigWarningModalPluginName = string.Empty;
     private TaskCompletionSource<bool>? deletePluginConfigWarningModalTaskCompletionSource;
 
@@ -305,7 +306,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     return;
                 
                 var versionInfo = t.Result;
-                if (versionInfo.AssemblyVersion != Util.GetGitHash() &&
+                if (versionInfo.AssemblyVersion != Util.GetScmVersion() &&
                     versionInfo.Track != "release" &&
                     string.Equals(versionInfo.Key, config.DalamudBetaKey, StringComparison.OrdinalIgnoreCase))
                     this.staleDalamudNewVersion = versionInfo.AssemblyVersion;
@@ -732,7 +733,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
     }
-
+    
     private void DrawFooter()
     {
         var configuration = Service<DalamudConfiguration>.Get();
@@ -972,10 +973,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private Task<bool> ShowDeletePluginConfigWarningModal(string pluginName)
+    private Task<bool> ShowDeletePluginConfigWarningModal(string pluginName, bool explainTesting = false)
     {
         this.deletePluginConfigWarningModalOnNextFrame = true;
         this.deletePluginConfigWarningModalPluginName = pluginName;
+        this.deletePluginConfigWarningModalExplainTesting = explainTesting;
         this.deletePluginConfigWarningModalTaskCompletionSource = new TaskCompletionSource<bool>();
         return this.deletePluginConfigWarningModalTaskCompletionSource.Task;
     }
@@ -986,6 +988,13 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.deletePluginConfigWarningModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
+            if (this.deletePluginConfigWarningModalExplainTesting)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
+                ImGui.Text(Locs.DeletePluginConfigWarningModal_ExplainTesting());
+                ImGui.PopStyleColor();
+            }
+            
             ImGui.Text(Locs.DeletePluginConfigWarningModal_Body(this.deletePluginConfigWarningModalPluginName));
             ImGui.Spacing();
 
@@ -1564,7 +1573,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             DrawWarningIcon();
             DrawLinesCentered("A new version of Dalamud is available.\n" +
                               "Please restart the game to ensure compatibility with updated plugins.\n" +
-                              $"old: {Util.GetGitHash()} new: {this.staleDalamudNewVersion}");
+                              $"old: {Util.GetScmVersion()} new: {this.staleDalamudNewVersion}");
 
             ImGuiHelpers.ScaledDummy(10);
         }
@@ -2898,7 +2907,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.MenuItem(Locs.PluginContext_DeletePluginConfigReload))
             {
-                this.ShowDeletePluginConfigWarningModal(plugin.Manifest.Name).ContinueWith(t =>
+                this.ShowDeletePluginConfigWarningModal(plugin.Manifest.Name, optIn != null).ContinueWith(t =>
                 {
                     var shouldDelete = t.Result;
 
@@ -3942,7 +3951,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         
         public static string TabBody_NoPluginsUpdateable => Loc.Localize("InstallerNoPluginsUpdate", "No plugins have updates available at the moment.");
         
-        public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them some the settings.");
+        public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them from the settings.");
         
         #endregion
 
@@ -4263,7 +4272,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string DeletePluginConfigWarningModal_Title => Loc.Localize("InstallerDeletePluginConfigWarning", "Warning###InstallerDeletePluginConfigWarning");
 
-        public static string DeletePluginConfigWarningModal_Body(string pluginName) => Loc.Localize("InstallerDeletePluginConfigWarningBody", "Are you sure you want to delete all data and configuration for {0}?").Format(pluginName);
+        public static string DeletePluginConfigWarningModal_ExplainTesting() => Loc.Localize("InstallerDeletePluginConfigWarningExplainTesting", "Do not select this option if you are only trying to disable testing!");
+
+        public static string DeletePluginConfigWarningModal_Body(string pluginName) => Loc.Localize("InstallerDeletePluginConfigWarningBody", "Are you sure you want to delete all data and configuration for {0}?\nYou will lose all of your settings for this plugin.").Format(pluginName);
 
         public static string DeletePluginConfirmWarningModal_Yes => Loc.Localize("InstallerDeletePluginConfigWarningYes", "Yes");
 

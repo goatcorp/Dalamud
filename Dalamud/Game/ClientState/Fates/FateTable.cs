@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
-using Serilog;
+using CSFateManager = FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager;
 
 namespace Dalamud.Game.ClientState.Fates;
 
@@ -20,54 +19,33 @@ namespace Dalamud.Game.ClientState.Fates;
 #pragma warning restore SA1015
 internal sealed partial class FateTable : IServiceType, IFateTable
 {
-    private readonly ClientStateAddressResolver address;
-
     [ServiceManager.ServiceConstructor]
-    private FateTable(ClientState clientState)
+    private FateTable()
     {
-        this.address = clientState.AddressResolver;
-
-        Log.Verbose($"Fate table address {Util.DescribeAddress(this.address.FateTablePtr)}");
     }
 
     /// <inheritdoc/>
-    public IntPtr Address => this.address.FateTablePtr;
+    public unsafe IntPtr Address => (nint)CSFateManager.Instance();
 
     /// <inheritdoc/>
     public unsafe int Length
     {
         get
         {
-            var fateTable = this.FateTableAddress;
-            if (fateTable == IntPtr.Zero)
+            var fateManager = CSFateManager.Instance();
+            if (fateManager == null)
                 return 0;
 
             // Sonar used this to check if the table was safe to read
-            if (Struct->FateDirector == null)
+            if (fateManager->FateDirector == null)
                 return 0;
 
-            if (Struct->Fates.First == null || Struct->Fates.Last == null)
+            if (fateManager->Fates.First == null || fateManager->Fates.Last == null)
                 return 0;
 
-            return Struct->Fates.Count;
+            return fateManager->Fates.Count;
         }
     }
-
-    /// <summary>
-    /// Gets the address of the Fate table.
-    /// </summary>
-    internal unsafe IntPtr FateTableAddress
-    {
-        get
-        {
-            if (this.address.FateTablePtr == IntPtr.Zero)
-                return IntPtr.Zero;
-
-            return *(IntPtr*)this.address.FateTablePtr;
-        }
-    }
-
-    private unsafe FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Fate.FateManager*)this.FateTableAddress;
 
     /// <inheritdoc/>
     public IFate? this[int index]
@@ -99,11 +77,11 @@ internal sealed partial class FateTable : IServiceType, IFateTable
         if (index >= this.Length)
             return IntPtr.Zero;
 
-        var fateTable = this.FateTableAddress;
-        if (fateTable == IntPtr.Zero)
+        var fateManager = CSFateManager.Instance();
+        if (fateManager == null)
             return IntPtr.Zero;
 
-        return (IntPtr)this.Struct->Fates[index].Value;
+        return (IntPtr)fateManager->Fates[index].Value;
     }
 
     /// <inheritdoc/>

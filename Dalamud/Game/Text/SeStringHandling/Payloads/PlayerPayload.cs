@@ -2,7 +2,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Data;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -12,8 +15,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class PlayerPayload : Payload
 {
-    private World world;
-
     [JsonProperty]
     private uint serverId;
 
@@ -43,11 +44,8 @@ public class PlayerPayload : Payload
     /// <summary>
     /// Gets the Lumina object representing the player's home server.
     /// </summary>
-    /// <remarks>
-    /// Value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public World World => this.world ??= this.DataResolver.GetExcelSheet<World>().GetRow(this.serverId);
+    public RowRef<World> World => LuminaUtils.CreateRef<World>(this.serverId);
 
     /// <summary>
     /// Gets or sets the player's displayed name.  This does not contain the server name.
@@ -72,7 +70,7 @@ public class PlayerPayload : Payload
     /// The world name will always be present.
     /// </summary>
     [JsonIgnore]
-    public string DisplayedName => $"{this.PlayerName}{(char)SeIconChar.CrossWorld}{this.World.Name}";
+    public string DisplayedName => $"{this.PlayerName}{(char)SeIconChar.CrossWorld}{this.World.ValueNullable?.Name}";
 
     /// <inheritdoc/>
     public override PayloadType Type => PayloadType.Player;
@@ -80,7 +78,7 @@ public class PlayerPayload : Payload
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - PlayerName: {this.PlayerName}, ServerId: {this.serverId}, ServerName: {this.World.Name}";
+        return $"{this.Type} - PlayerName: {this.PlayerName}, ServerId: {this.serverId}, ServerName: {this.World.ValueNullable?.Name}";
     }
 
     /// <inheritdoc/>

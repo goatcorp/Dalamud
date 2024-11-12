@@ -1,8 +1,9 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
 using Reloaded.Memory;
 
 using DreadCombo = Dalamud.Game.ClientState.JobGauge.Enums.DreadCombo;
+using SerpentCombo = Dalamud.Game.ClientState.JobGauge.Enums.SerpentCombo;
 
 namespace Dalamud.Game.ClientState.JobGauge.Types;
 
@@ -39,4 +40,9 @@ public unsafe class VPRGauge : JobGaugeBase<ViperGauge>
     /// Gets the last Weaponskill used in DreadWinder/Pit of Dread combo.
     /// </summary>
     public DreadCombo DreadCombo => (DreadCombo)Struct->DreadCombo;
+
+    /// <summary>
+    /// Gets current ability for Serpent's Tail.
+    /// </summary>
+    public SerpentCombo SerpentCombo => (SerpentCombo)Struct->SerpentCombo;
 }

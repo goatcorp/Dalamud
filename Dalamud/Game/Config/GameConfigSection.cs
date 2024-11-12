@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text;
 
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -355,6 +356,40 @@ public class GameConfigSection
         }
 
         return value;
+    }
+
+    /// <summary>Attempts to get a string config value as an enum value.</summary>
+    /// <param name="name">Name of the config option.</param>
+    /// <param name="value">The returned value of the config option.</param>
+    /// <typeparam name="T">Type of the enum. Name of each enum fields are compared against.</typeparam>
+    /// <returns>A value representing the success.</returns>
+    public unsafe bool TryGetStringAsEnum<T>(string name, out T value) where T : struct, Enum
+    {
+        value = default;
+        if (!this.TryGetIndex(name, out var index))
+        {
+            return false;
+        }
+
+        if (!this.TryGetEntry(index, out var entry))
+        {
+            return false;
+        }
+
+        if (entry->Type != 4)
+        {
+            return false;
+        }
+
+        if (entry->Value.String == null)
+        {
+            return false;
+        }
+
+        var n8 = entry->Value.String->AsSpan();
+        Span<char> n16 = stackalloc char[Encoding.UTF8.GetCharCount(n8)];
+        Encoding.UTF8.GetChars(n8, n16);
+        return Enum.TryParse(n16, out value);
     }
 
     /// <summary>

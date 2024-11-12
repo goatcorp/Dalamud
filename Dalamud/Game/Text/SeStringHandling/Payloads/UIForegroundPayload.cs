@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Data;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -11,8 +14,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class UIForegroundPayload : Payload
 {
-    private UIColor color;
-
     [JsonProperty]
     private ushort colorKey;
 
@@ -51,11 +52,8 @@ public class UIForegroundPayload : Payload
     /// <summary>
     /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIForeground.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public UIColor UIColor => this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+    public RowRef<UIColor> UIColor => LuminaUtils.CreateRef<UIColor>(this.colorKey);
 
     /// <summary>
     /// Gets or sets the color key used as a lookup in the UIColor table for this foreground color.
@@ -63,15 +61,11 @@ public class UIForegroundPayload : Payload
     [JsonIgnore]
     public ushort ColorKey
     {
-        get
-        {
-            return this.colorKey;
-        }
+        get => this.colorKey;
 
         set
         {
             this.colorKey = value;
-            this.color = null;
             this.Dirty = true;
         }
     }
@@ -80,13 +74,13 @@ public class UIForegroundPayload : Payload
     /// Gets the Red/Green/Blue/Alpha values for this foreground color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGBA => this.UIColor.UIForeground;
+    public uint RGBA => this.UIColor.Value.UIForeground;
 
     /// <summary>
     /// Gets the ABGR value for this foreground color, as ImGui requires it in PushColor.
     /// </summary>
     [JsonIgnore]
-    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.UIForeground);
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.UIForeground);
 
     /// <inheritdoc/>
     public override string ToString()

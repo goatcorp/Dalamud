@@ -135,6 +135,10 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public unsafe nint ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false) =>
+        (nint)this.ManagerOrThrow.ConvertToKernelTexture(wrap, leaveWrapOpen);
+
+    /// <inheritdoc/>
     public IDalamudTextureWrap CreateEmpty(
         RawImageSpecification specs,
         bool cpuRead,
@@ -309,6 +313,14 @@ internal sealed class TextureManagerPluginScoped
     public ISharedImmediateTexture GetFromFile(FileInfo file)
     {
         var shared = this.ManagerOrThrow.Shared.GetFromFile(file);
+        shared.AddOwnerPlugin(this.plugin);
+        return shared;
+    }
+
+    /// <inheritdoc/>
+    public ISharedImmediateTexture GetFromFileAbsolute(string fullPath)
+    {
+        var shared = this.ManagerOrThrow.Shared.GetFromFileAbsolute(fullPath);
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }

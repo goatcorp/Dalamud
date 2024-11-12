@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -232,6 +231,15 @@ public interface ITextureProvider
     /// </remarks>
     ISharedImmediateTexture GetFromFile(FileInfo file);
 
+    /// <summary>Gets a shared texture corresponding to the given file on the filesystem.</summary>
+    /// <param name="fullPath">The file on the filesystem to load. Requires a full path.</param>
+    /// <returns>The shared texture that you may use to obtain the loaded texture wrap and load states.</returns>
+    /// <remarks>
+    /// <para>This function does not throw exceptions.</para>
+    /// <para>Caching the returned object is not recommended. Performance benefit will be minimal.</para>
+    /// </remarks>
+    ISharedImmediateTexture GetFromFileAbsolute(string fullPath);
+
     /// <summary>Gets a shared texture corresponding to the given file of the assembly manifest resources.</summary>
     /// <param name="assembly">The assembly containing manifest resources.</param>
     /// <param name="name">The case-sensitive name of the manifest resource being requested.</param>
@@ -272,4 +280,20 @@ public interface ITextureProvider
     /// <returns><c>true</c> if supported.</returns>
     /// <remarks><para>This function does not throw exceptions.</para></remarks>
     bool IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat);
+
+    /// <summary>Converts an existing <see cref="IDalamudTextureWrap"/> instance to a new instance of
+    /// <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/> which can be used to supply a custom
+    /// texture onto an in-game addon (UI element.)</summary>
+    /// <param name="wrap">Instance of <see cref="IDalamudTextureWrap"/> to convert.</param>
+    /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
+    /// <returns>Address of the new <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture"/>.</returns>
+    /// <example>See <c>PrintTextureInfo</c> in <see cref="Interface.Internal.UiDebug.PrintSimpleNode"/> for an example
+    /// of replacing the texture of an image node.</example>
+    /// <remarks>
+    /// <para>If the returned kernel texture is to be destroyed, call the fourth function in its vtable, by calling
+    /// <see cref="FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture.DecRef"/> or
+    /// <c>((delegate* unmanaged&lt;nint, void&gt;)(*(nint**)ptr)[3](ptr)</c>.</para>
+    /// </remarks>
+    nint ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false);
 }

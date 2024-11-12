@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.ImGuiNotification;
-using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -457,7 +455,7 @@ internal class TexWidget : IDataWindowWidget
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                this.TextCopiable($"0x{wrap.ResourceAddress:X}", true, true);
+                this.TextColumnCopiable($"0x{wrap.ResourceAddress:X}", true, true);
 
                 ImGui.TableNextColumn();
                 if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
@@ -476,24 +474,24 @@ internal class TexWidget : IDataWindowWidget
                 }
 
                 ImGui.TableNextColumn();
-                this.TextCopiable(wrap.Name, false, true);
+                this.TextColumnCopiable(wrap.Name, false, true);
 
                 ImGui.TableNextColumn();
-                this.TextCopiable($"{wrap.Width:n0}", true, true);
+                this.TextColumnCopiable($"{wrap.Width:n0}", true, true);
 
                 ImGui.TableNextColumn();
-                this.TextCopiable($"{wrap.Height:n0}", true, true);
+                this.TextColumnCopiable($"{wrap.Height:n0}", true, true);
 
                 ImGui.TableNextColumn();
-                this.TextCopiable(Enum.GetName(wrap.Format)?[12..] ?? wrap.Format.ToString(), false, true);
+                this.TextColumnCopiable(Enum.GetName(wrap.Format)?[12..] ?? wrap.Format.ToString(), false, true);
 
                 ImGui.TableNextColumn();
                 var bytes = wrap.RawSpecs.EstimatedBytes;
-                this.TextCopiable(bytes < 0 ? "?" : $"{bytes:n0}", true, true);
+                this.TextColumnCopiable(bytes < 0 ? "?" : $"{bytes:n0}", true, true);
 
                 ImGui.TableNextColumn();
                 lock (wrap.OwnerPlugins)
-                    this.TextCopiable(string.Join(", ", wrap.OwnerPlugins.Select(static x => x.Name)), false, true);
+                    this.TextColumnCopiable(string.Join(", ", wrap.OwnerPlugins.Select(static x => x.Name)), false, true);
 
                 ImGui.PopID();
             }
@@ -570,16 +568,16 @@ internal class TexWidget : IDataWindowWidget
 
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
-                    this.TextCopiable($"{texture.InstanceIdForDebug:n0}", true, true);
+                    this.TextColumnCopiable($"{texture.InstanceIdForDebug:n0}", true, true);
 
                     ImGui.TableNextColumn();
-                    this.TextCopiable(texture.SourcePathForDebug, false, true);
+                    this.TextColumnCopiable(texture.SourcePathForDebug, false, true);
 
                     ImGui.TableNextColumn();
-                    this.TextCopiable($"{texture.RefCountForDebug:n0}", true, true);
+                    this.TextColumnCopiable($"{texture.RefCountForDebug:n0}", true, true);
 
                     ImGui.TableNextColumn();
-                    this.TextCopiable(remain <= 0 ? "-" : $"{remain:00.000}", true, true);
+                    this.TextColumnCopiable(remain <= 0 ? "-" : $"{remain:00.000}", true, true);
 
                     ImGui.TableNextColumn();
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Save))
@@ -862,47 +860,6 @@ internal class TexWidget : IDataWindowWidget
             this.textureModificationArgs.Uv1 = vec2;
 
         ImGuiHelpers.ScaledDummy(10);
-    }
-
-    private void TextCopiable(string s, bool alignRight, bool framepad)
-    {
-        var offset = ImGui.GetCursorScreenPos() + new Vector2(0, framepad ? ImGui.GetStyle().FramePadding.Y : 0);
-        if (framepad)
-            ImGui.AlignTextToFramePadding();
-        if (alignRight)
-        {
-            var width = ImGui.CalcTextSize(s).X;
-            var xoff = ImGui.GetColumnWidth() - width;
-            offset.X += xoff;
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + xoff);
-            ImGui.TextUnformatted(s);
-        }
-        else
-        {
-            ImGui.TextUnformatted(s);
-        }
-
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetNextWindowPos(offset - ImGui.GetStyle().WindowPadding);
-            var vp = ImGui.GetWindowViewport();
-            var wrx = (vp.WorkPos.X + vp.WorkSize.X) - offset.X;
-            ImGui.SetNextWindowSizeConstraints(Vector2.One, new(wrx, float.MaxValue));
-            ImGui.BeginTooltip();
-            ImGui.PushTextWrapPos(wrx);
-            ImGui.TextWrapped(s.Replace("%", "%%"));
-            ImGui.PopTextWrapPos();
-            ImGui.EndTooltip();
-        }
-
-        if (ImGui.IsItemClicked())
-        {
-            ImGui.SetClipboardText(s);
-            Service<NotificationManager>.Get().AddNotification(
-                $"Copied {ImGui.TableGetColumnName()} to clipboard.",
-                this.DisplayName,
-                NotificationType.Success);
-        }
     }
 
     private record TextureEntry(

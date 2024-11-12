@@ -27,7 +27,12 @@ public enum BattleNpcSubKind : byte
     Chocobo = 3,
 
     /// <summary>
-    /// BattleNpc representing a standard enemy.
+    /// BattleNpc representing a standard enemy. This includes allies (overworld guards and allies in single-player duties).
     /// </summary>
     Enemy = 5,
+
+    /// <summary>
+    /// BattleNpc representing an NPC party member (from Duty Support, Trust, or Grand Company Command Mission).
+    /// </summary>
+    NpcPartyMember = 9,
 }

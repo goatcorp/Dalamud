@@ -28,10 +28,12 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IInternalDisposableServi
 {
     private const int CImGuiImDrawListAddPolyLineOffset = 0x589B0;
     private const int CImGuiImDrawListAddRectFilled = 0x59FD0;
+    private const int CImGuiImDrawListAddImageRounded = 0x58390;
     private const int CImGuiImDrawListSharedDataTexIdCommonOffset = 0;
 
     private readonly Hook<ImDrawListAddPolyLine> hookImDrawListAddPolyline;
     private readonly Hook<ImDrawListAddRectFilled> hookImDrawListAddRectFilled;
+    private readonly Hook<ImDrawListAddImageRounded> hookImDrawListAddImageRounded;
 
     [ServiceManager.ServiceConstructor]
     private ImGuiDrawListFixProvider(InterfaceManager.InterfaceManagerWithScene imws)
@@ -48,8 +50,12 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IInternalDisposableServi
         this.hookImDrawListAddRectFilled = Hook<ImDrawListAddRectFilled>.FromAddress(
             cimgui + CImGuiImDrawListAddRectFilled,
             this.ImDrawListAddRectFilledDetour);
+        this.hookImDrawListAddImageRounded = Hook<ImDrawListAddImageRounded>.FromAddress(
+            cimgui + CImGuiImDrawListAddImageRounded,
+            this.ImDrawListAddImageRoundedDetour);
         this.hookImDrawListAddPolyline.Enable();
         this.hookImDrawListAddRectFilled.Enable();
+        this.hookImDrawListAddImageRounded.Enable();
     }
 
     private delegate void ImDrawListAddPolyLine(
@@ -68,11 +74,56 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IInternalDisposableServi
         float rounding,
         ImDrawFlags flags);
 
+    private delegate void ImDrawListAddImageRounded(
+        ImDrawListPtr drawListPtr,
+        nint userTextureId,        ref Vector2 xy0,
+        ref Vector2 xy1,
+        ref Vector2 uv0,
+        ref Vector2 uv1,
+        uint col,
+        float rounding,
+        ImDrawFlags flags);
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
         this.hookImDrawListAddPolyline.Dispose();
         this.hookImDrawListAddRectFilled.Dispose();
+        this.hookImDrawListAddImageRounded.Dispose();
+    }
+
+    private static ImDrawFlags FixRectCornerFlags(ImDrawFlags flags)
+    {
+#if !IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+        // Legacy Support for hard coded ~0 (used to be a suggested equivalent to ImDrawCornerFlags_All)
+        //   ~0   --> ImDrawFlags_RoundCornersAll or 0
+        if ((int)flags == ~0)
+            return ImDrawFlags.RoundCornersAll;
+
+        // Legacy Support for hard coded 0x01 to 0x0F (matching 15 out of 16 old flags combinations)
+        //   0x01 --> ImDrawFlags_RoundCornersTopLeft (VALUE 0x01 OVERLAPS ImDrawFlags_Closed but ImDrawFlags_Closed is never valid in this path!)
+        //   0x02 --> ImDrawFlags_RoundCornersTopRight
+        //   0x03 --> ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersTopRight
+        //   0x04 --> ImDrawFlags_RoundCornersBotLeft
+        //   0x05 --> ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBotLeft
+        //   ...
+        //   0x0F --> ImDrawFlags_RoundCornersAll or 0
+        // (See all values in ImDrawCornerFlags_)
+        if ((int)flags >= 0x01 && (int)flags <= 0x0F)
+            return (ImDrawFlags)((int)flags << 4);
+
+        // We cannot support hard coded 0x00 with 'float rounding > 0.0f' --> replace with ImDrawFlags_RoundCornersNone or use 'float rounding = 0.0f'
+#endif
+
+        // If this triggers, please update your code replacing hardcoded values with new ImDrawFlags_RoundCorners* values.
+        // Note that ImDrawFlags_Closed (== 0x01) is an invalid flag for AddRect(), AddRectFilled(), PathRect() etc...
+        if (((int)flags & 0x0F) != 0)
+            throw new ArgumentException("Misuse of legacy hardcoded ImDrawCornerFlags values!");
+
+        if ((flags & ImDrawFlags.RoundCornersMask) == 0)
+            flags |= ImDrawFlags.RoundCornersAll;
+
+        return flags;
     }
 
     private void ImDrawListAddRectFilledDetour(
@@ -129,5 +180,43 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IInternalDisposableServi
 
         if (pushTextureId)
             drawListPtr.PopTextureID();
+    }
+
+    private void ImDrawListAddImageRoundedDetour(ImDrawListPtr drawListPtr, nint userTextureId, ref Vector2 xy0, ref Vector2 xy1, ref Vector2 uv0, ref Vector2 uv1, uint col, float rounding, ImDrawFlags flags)
+    {
+        // Skip drawing if we're drawing something with alpha value of 0.
+        if ((col & 0xFF000000) == 0)
+            return;
+
+        // Handle non-rounded cases.
+        flags = FixRectCornerFlags(flags);
+        if (rounding < 0.5f || (flags & ImDrawFlags.RoundCornersMask) == ImDrawFlags.RoundCornersNone)
+        {
+            drawListPtr.AddImage(userTextureId, xy0, xy1, uv0, uv1, col);
+            return;
+        }
+
+        // Temporary provide the requested image as the common texture ID, so that the underlying
+        // ImDrawList::AddConvexPolyFilled does not create a separate draw command and then revert back.
+        // ImDrawList::AddImageRounded will temporarily push the texture ID provided by the user if the latest draw
+        // command does not point to the texture we're trying to draw. Once pushed, ImDrawList::AddConvexPolyFilled
+        // will leave the list of draw commands alone, so that ImGui::ShadeVertsLinearUV can safely work on the latest
+        // draw command.
+        ref var texIdCommon = ref *(nint*)(drawListPtr._Data + CImGuiImDrawListSharedDataTexIdCommonOffset);
+        var texIdCommonPrev = texIdCommon;
+        texIdCommon = userTextureId;
+
+        this.hookImDrawListAddImageRounded.Original(
+            drawListPtr,
+            texIdCommon,
+            ref xy0,
+            ref xy1,
+            ref uv0,
+            ref uv1,
+            col,
+            rounding,
+            flags);
+
+        texIdCommon = texIdCommonPrev;
     }
 }

@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
@@ -36,10 +37,9 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
     private const int DownloadAttemptCount = 10;
     private const int RenameAttemptCount = 10;
 
-    private readonly object syncRoot = new();
     private readonly DisposeSafety.ScopedFinalizer scopedFinalizer = new();
-    private readonly Dictionary<DalamudAsset, Task<FileStream>?> fileStreams;
-    private readonly Dictionary<DalamudAsset, Task<IDalamudTextureWrap>?> textureWraps;
+    private readonly Task<FileStream>?[] fileStreams;
+    private readonly Task<IDalamudTextureWrap>?[] textureWraps;
     private readonly Dalamud dalamud;
     private readonly HappyHttpClient httpClient;
     private readonly string localSourceDirectory;
@@ -59,18 +59,18 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
         Directory.CreateDirectory(this.localSourceDirectory);
         this.scopedFinalizer.Add(this.cancellationTokenSource = new());
 
-        this.fileStreams = Enum.GetValues<DalamudAsset>().ToDictionary(x => x, _ => (Task<FileStream>?)null);
-        this.textureWraps = Enum.GetValues<DalamudAsset>().ToDictionary(x => x, _ => (Task<IDalamudTextureWrap>?)null);
+        var numDalamudAssetSlots = Enum.GetValues<DalamudAsset>().Max(x => (int)x) + 1;
+        this.fileStreams = new Task<FileStream>?[numDalamudAssetSlots];
+        this.textureWraps = new Task<IDalamudTextureWrap>?[numDalamudAssetSlots];
 
         // Block until all the required assets to be ready.
         var loadTimings = Timings.Start("DAM LoadAll");
         registerStartupBlocker(
             Task.WhenAll(
                     Enum.GetValues<DalamudAsset>()
-                        .Where(x => x is not DalamudAsset.Empty4X4)
-                        .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is true)
+                        .Where(static x => x.GetAssetAttribute() is { Required: true, Data: null })
                         .Select(this.CreateStreamAsync)
-                        .Select(x => x.ToContentDisposedTask()))
+                        .Select(static x => x.ToContentDisposedTask()))
                 .ContinueWith(
                     r =>
                     {
@@ -80,13 +80,13 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                 .Unwrap(),
             "Prevent Dalamud from loading more stuff, until we've ensured that all required assets are available.");
 
+        // Begin preloading optional(non-required) assets.
         Task.WhenAll(
                 Enum.GetValues<DalamudAsset>()
-                    .Where(x => x is not DalamudAsset.Empty4X4)
-                    .Where(x => x.GetAttribute<DalamudAssetAttribute>()?.Required is false)
+                    .Where(static x => x.GetAssetAttribute() is { Required: false, Data: null })
                     .Select(this.CreateStreamAsync)
-                    .Select(x => x.ToContentDisposedTask(true)))
-            .ContinueWith(r => Log.Verbose($"Optional assets load state: {r}"));
+                    .Select(static x => x.ToContentDisposedTask(true)))
+            .ContinueWith(static r => Log.Verbose($"Optional assets load state: {r}"));
     }
 
     /// <inheritdoc/>
@@ -98,77 +98,97 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        lock (this.syncRoot)
-        {
-            if (this.isDisposed)
-                return;
+        if (this.isDisposed)
+            return;
 
-            this.isDisposed = true;
-        }
+        this.isDisposed = true;
 
         this.cancellationTokenSource.Cancel();
         Task.WaitAll(
             Array.Empty<Task>()
-                 .Concat(this.fileStreams.Values)
-                 .Concat(this.textureWraps.Values)
-                 .Where(x => x is not null)
-                 .Select(x => x.ContinueWith(r => { _ = r.Exception; }))
-                 .ToArray());
+                 .Concat(this.fileStreams)
+                 .Concat(this.textureWraps)
+                 .Where(static x => x is not null)
+                 .Select(static x => x.ContinueWith(static r => _ = r.Exception))
+                 .ToArray<Task>());
         this.scopedFinalizer.Dispose();
     }
 
     /// <inheritdoc/>
     [Pure]
     public bool IsStreamImmediatelyAvailable(DalamudAsset asset) =>
-        asset.GetAttribute<DalamudAssetAttribute>()?.Data is not null
-        || this.fileStreams[asset]?.IsCompletedSuccessfully is true;
+        asset.GetAssetAttribute().Data is not null
+        || this.fileStreams[(int)asset]?.IsCompletedSuccessfully is true;
 
     /// <inheritdoc/>
     [Pure]
-    public Stream CreateStream(DalamudAsset asset)
-    {
-        var s = this.CreateStreamAsync(asset);
-        s.Wait();
-        if (s.IsCompletedSuccessfully)
-            return s.Result;
-        if (s.Exception is not null)
-            throw new AggregateException(s.Exception.InnerExceptions);
-        throw new OperationCanceledException();
-    }
+    public Stream CreateStream(DalamudAsset asset) => this.CreateStreamAsync(asset).Result;
 
     /// <inheritdoc/>
     [Pure]
     public Task<Stream> CreateStreamAsync(DalamudAsset asset)
     {
-        if (asset.GetAttribute<DalamudAssetAttribute>() is { Data: { } rawData })
-            return Task.FromResult<Stream>(new MemoryStream(rawData, false));
+        ObjectDisposedException.ThrowIf(this.isDisposed, this);
 
-        Task<FileStream> task;
-        lock (this.syncRoot)
+        var attribute = asset.GetAssetAttribute();
+
+        // The corresponding asset does not exist.
+        if (attribute.Purpose is DalamudAssetPurpose.Empty)
+            return Task.FromException<Stream>(new ArgumentOutOfRangeException(nameof(asset), asset, null));
+
+        // Special case: raw data is specified from asset definition.
+        if (attribute.Data is not null)
+            return Task.FromResult<Stream>(new MemoryStream(attribute.Data, false));
+
+        // Range is guaranteed to be satisfied if the asset has a purpose; get the slot for the stream task.
+        ref var streamTaskRef = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(this.fileStreams), (int)asset);
+
+        // The stream task is already set.
+        if (streamTaskRef is not null)
+            return CloneFileStreamAsync(streamTaskRef);
+
+        var tcs = new TaskCompletionSource<FileStream>();
+        if (Interlocked.CompareExchange(ref streamTaskRef, tcs.Task, null) is not { } streamTask)
         {
-            if (this.isDisposed)
-                throw new ObjectDisposedException(nameof(DalamudAssetManager));
-
-            task = this.fileStreams[asset] ??= CreateInnerAsync();
+            // The stream task has just been set. Actually start the operation.
+            // In case it did not correctly finish the task in tcs, set the task to a failed state.
+            // Do not pass cancellation token here; we always want to touch tcs.
+            Task.Run(
+                async () =>
+                {
+                    try
+                    {
+                        tcs.SetResult(await CreateInnerAsync(this, asset));
+                    }
+                    catch (Exception e)
+                    {
+                        tcs.SetException(e);
+                    }
+                },
+                default);
+            return CloneFileStreamAsync(tcs.Task);
         }
 
-        return this.TransformImmediate(
-            task,
-            x => (Stream)new FileStream(
-                x.Name,
+        // Discard the new task, and return the already created task.
+        tcs.SetCanceled();
+        return CloneFileStreamAsync(streamTask);
+
+        static async Task<Stream> CloneFileStreamAsync(Task<FileStream> fileStreamTask) =>
+            new FileStream(
+                (await fileStreamTask).Name,
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.Read,
                 4096,
-                FileOptions.Asynchronous | FileOptions.SequentialScan));
+                FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-        async Task<FileStream> CreateInnerAsync()
+        static async Task<FileStream> CreateInnerAsync(DalamudAssetManager dam, DalamudAsset asset)
         {
             string path;
             List<Exception?> exceptions = null;
-            foreach (var name in asset.GetAttributes<DalamudAssetPathAttribute>().Select(x => x.FileName))
+            foreach (var name in asset.GetAttributes<DalamudAssetPathAttribute>().Select(static x => x.FileName))
             {
-                if (!File.Exists(path = Path.Combine(this.dalamud.AssetDirectory.FullName, name)))
+                if (!File.Exists(path = Path.Combine(dam.dalamud.AssetDirectory.FullName, name)))
                     continue;
 
                 try
@@ -177,12 +197,12 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                 }
                 catch (Exception e) when (e is not OperationCanceledException)
                 {
-                    exceptions ??= new();
+                    exceptions ??= [];
                     exceptions.Add(e);
                 }
             }
 
-            if (File.Exists(path = Path.Combine(this.localSourceDirectory, asset.ToString())))
+            if (File.Exists(path = Path.Combine(dam.localSourceDirectory, asset.ToString())))
             {
                 try
                 {
@@ -190,7 +210,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                 }
                 catch (Exception e) when (e is not OperationCanceledException)
                 {
-                    exceptions ??= new();
+                    exceptions ??= [];
                     exceptions.Add(e);
                 }
             }
@@ -211,9 +231,9 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                             await using (var tempPathStream = File.Open(tempPath, FileMode.Create, FileAccess.Write))
                             {
                                 await url.DownloadAsync(
-                                    this.httpClient.SharedHttpClient,
+                                    dam.httpClient.SharedHttpClient,
                                     tempPathStream,
-                                    this.cancellationTokenSource.Token);
+                                    dam.cancellationTokenSource.Token);
                             }
 
                             for (var j = RenameAttemptCount; ; j--)
@@ -232,7 +252,7 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                                         nameof(DalamudAssetManager),
                                         asset,
                                         j);
-                                    await Task.Delay(1000, this.cancellationTokenSource.Token);
+                                    await Task.Delay(1000, dam.cancellationTokenSource.Token);
                                     continue;
                                 }
 
@@ -255,14 +275,18 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                         nameof(DalamudAssetManager),
                         asset,
                         delay);
-                    await Task.Delay(delay * 1000, this.cancellationTokenSource.Token);
+                    await Task.Delay(delay * 1000, dam.cancellationTokenSource.Token);
                 }
 
                 throw new FileNotFoundException($"Failed to load the asset {asset}.", asset.ToString());
             }
-            catch (Exception e) when (e is not OperationCanceledException)
+            catch (OperationCanceledException)
             {
-                exceptions ??= new();
+                throw;
+            }
+            catch (Exception e)
+            {
+                exceptions ??= [];
                 exceptions.Add(e);
                 try
                 {
@@ -272,9 +296,9 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                 {
                     // don't care
                 }
-            }
 
-            throw new AggregateException(exceptions);
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
@@ -296,33 +320,63 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
     [Pure]
     public Task<IDalamudTextureWrap> GetDalamudTextureWrapAsync(DalamudAsset asset)
     {
-        var purpose = asset.GetPurpose();
-        if (purpose is not DalamudAssetPurpose.TextureFromPng and not DalamudAssetPurpose.TextureFromRaw)
-            throw new ArgumentOutOfRangeException(nameof(asset), asset, "The asset cannot be taken as a Texture2D.");
+        ObjectDisposedException.ThrowIf(this.isDisposed, this);
 
-        Task<IDalamudTextureWrap> task;
-        lock (this.syncRoot)
+        // Check if asset is a texture asset.
+        if (asset.GetPurpose() is not DalamudAssetPurpose.TextureFromPng and not DalamudAssetPurpose.TextureFromRaw)
         {
-            if (this.isDisposed)
-                throw new ObjectDisposedException(nameof(DalamudAssetManager));
-
-            task = this.textureWraps[asset] ??= CreateInnerAsync();
+            return Task.FromException<IDalamudTextureWrap>(
+                new ArgumentOutOfRangeException(
+                    nameof(asset),
+                    asset,
+                    "The asset does not exist or cannot be taken as a Texture2D."));
         }
 
-        return task;
+        // Range is guaranteed to be satisfied if the asset has a purpose; get the slot for the wrap task.
+        ref var wrapTaskRef = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(this.textureWraps), (int)asset);
 
-        async Task<IDalamudTextureWrap> CreateInnerAsync()
+        // The wrap task is already set.
+        if (wrapTaskRef is not null)
+            return wrapTaskRef;
+
+        var tcs = new TaskCompletionSource<IDalamudTextureWrap>();
+        if (Interlocked.CompareExchange(ref wrapTaskRef, tcs.Task, null) is not { } wrapTask)
+        {
+            // The stream task has just been set. Actually start the operation.
+            // In case it did not correctly finish the task in tcs, set the task to a failed state.
+            // Do not pass cancellation token here; we always want to touch tcs.
+            Task.Run(
+                async () =>
+                {
+                    try
+                    {
+                        tcs.SetResult(await CreateInnerAsync(this, asset));
+                    }
+                    catch (Exception e)
+                    {
+                        tcs.SetException(e);
+                    }
+                },
+                default);
+            return tcs.Task;
+        }
+
+        // Discard the new task, and return the already created task.
+        tcs.SetCanceled();
+        return wrapTask;
+
+        static async Task<IDalamudTextureWrap> CreateInnerAsync(DalamudAssetManager dam, DalamudAsset asset)
         {
             var buf = Array.Empty<byte>();
             try
             {
                 var tm = await Service<TextureManager>.GetAsync();
-                await using var stream = await this.CreateStreamAsync(asset);
+                await using var stream = await dam.CreateStreamAsync(asset);
                 var length = checked((int)stream.Length);
                 buf = ArrayPool<byte>.Shared.Rent(length);
                 stream.ReadExactly(buf, 0, length);
                 var name = $"{nameof(DalamudAsset)}[{Enum.GetName(asset)}]";
-                var image = purpose switch
+                var texture = asset.GetPurpose() switch
                 {
                     DalamudAssetPurpose.TextureFromPng => await tm.CreateFromImageAsync(buf, name),
                     DalamudAssetPurpose.TextureFromRaw =>
@@ -330,31 +384,14 @@ internal sealed class DalamudAssetManager : IInternalDisposableService, IDalamud
                             ? await tm.CreateFromRawAsync(raw.Specification, buf, name)
                             : throw new InvalidOperationException(
                                   "TextureFromRaw must accompany a DalamudAssetRawTextureAttribute."),
-                    _ => null,
+                    _ => throw new InvalidOperationException(), // cannot happen
                 };
-                var disposeDeferred =
-                    this.scopedFinalizer.Add(image)
-                    ?? throw new InvalidOperationException("Something went wrong very badly");
-                return new DisposeSuppressingTextureWrap(disposeDeferred);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "[{name}] Failed to load {asset}.", nameof(DalamudAssetManager), asset);
-                throw;
+                return new DisposeSuppressingTextureWrap(dam.scopedFinalizer.Add(texture));
             }
             finally
             {
                 ArrayPool<byte>.Shared.Return(buf);
             }
         }
-    }
-
-    private Task<TOut> TransformImmediate<TIn, TOut>(Task<TIn> task, Func<TIn, TOut> transformer)
-    {
-        if (task.IsCompletedSuccessfully)
-            return Task.FromResult(transformer(task.Result));
-        if (task.Exception is { } exc)
-            return Task.FromException<TOut>(exc);
-        return task.ContinueWith(_ => this.TransformImmediate(task, transformer)).Unwrap();
     }
 }

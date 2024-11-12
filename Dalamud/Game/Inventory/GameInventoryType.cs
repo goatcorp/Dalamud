@@ -42,7 +42,12 @@ public enum GameInventoryType : ushort
     Crystals = 2001,
 
     /// <summary>
-    /// Mail container.
+    /// Item attachments of a letter the player is currently composing.
+    /// </summary>
+    MailEdit = 2002,
+
+    /// <summary>
+    /// Item attachments of a letter the player is currently reading.
     /// </summary>
     Mail = 2003,
 
@@ -57,7 +62,7 @@ public enum GameInventoryType : ushort
     HandIn = 2005,
 
     /// <summary>
-    /// DamagedGear container.
+    /// Repair window container.
     /// </summary>
     DamagedGear = 2007,
 
@@ -65,6 +70,21 @@ public enum GameInventoryType : ushort
     /// Examine window container.
     /// </summary>
     Examine = 2009,
+
+    /// <summary>
+    /// Estate Possession Retrieval container.
+    /// </summary>
+    Reclaim = 2010,
+
+    /// <summary>
+    /// Container for items when changing the exterior housing appearance.
+    /// </summary>
+    HousingExteriorAppearanceEdit = 2011,
+
+    /// <summary>
+    /// Container for items when changing the interior housing appearance.
+    /// </summary>
+    HousingInteriorAppearanceEdit = 2012,
 
     /// <summary>
     /// Doman Enclave Reconstruction Reclamation Box.
@@ -93,10 +113,10 @@ public enum GameInventoryType : ushort
 
     /// <summary>
     /// Armory waist container.
+    /// </summary>
     /// <remarks>
     /// This container should be unused as belt items were removed from the game in Shadowbringers.
     /// </remarks>
-    /// </summary>  
     ArmoryWaist = 3204,
 
     /// <summary>

@@ -122,7 +122,7 @@ public class SettingsTabLook : SettingsTab
 
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingToggleTsm", "Show title screen menu"),
-            Loc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen."),
+            Loc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen.\nDisabling this will also hide the Dalamud version text on the title screen."),
             c => c.ShowTsm,
             (v, c) => c.ShowTsm = v),
         

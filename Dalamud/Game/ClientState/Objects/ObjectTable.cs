@@ -7,15 +7,17 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.Interop;
+
 using Microsoft.Extensions.ObjectPool;
 
-using Serilog;
-
 using CSGameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
+using CSGameObjectManager = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager;
 
 namespace Dalamud.Game.ClientState.Objects;
 
@@ -29,10 +31,12 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning restore SA1015
 internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
-    private const int ObjectTableLength = 599;
+    private static readonly ModuleLog Log = new("ObjectTable");
+
+    private static int objectTableLength;
 
     private readonly ClientState clientState;
-    private readonly CachedEntry[] cachedObjectTable = new CachedEntry[ObjectTableLength];
+    private readonly CachedEntry[] cachedObjectTable;
 
     private readonly ObjectPool<Enumerator> multiThreadedEnumerators =
         new DefaultObjectPoolProvider().Create<Enumerator>();
@@ -46,29 +50,30 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         this.clientState = clientState;
 
-        var nativeObjectTableAddress = (CSGameObject**)this.clientState.AddressResolver.ObjectTable;
+        var nativeObjectTable = CSGameObjectManager.Instance()->Objects.IndexSorted;
+        objectTableLength = nativeObjectTable.Length;
+
+        this.cachedObjectTable = new CachedEntry[objectTableLength];
         for (var i = 0; i < this.cachedObjectTable.Length; i++)
-            this.cachedObjectTable[i] = new(nativeObjectTableAddress, i);
+            this.cachedObjectTable[i] = new(nativeObjectTable.GetPointer(i));
 
         for (var i = 0; i < this.frameworkThreadEnumerators.Length; i++)
             this.frameworkThreadEnumerators[i] = new(this, i);
-
-        Log.Verbose($"Object table address {Util.DescribeAddress(this.clientState.AddressResolver.ObjectTable)}");
     }
 
     /// <inheritdoc/>
-    public nint Address
+    public unsafe nint Address
     {
         get
         {
             _ = this.WarnMultithreadedUsage();
 
-            return this.clientState.AddressResolver.ObjectTable;
+            return (nint)(&CSGameObjectManager.Instance()->Objects);
         }
     }
 
     /// <inheritdoc/>
-    public int Length => ObjectTableLength;
+    public int Length => objectTableLength;
 
     /// <inheritdoc/>
     public IGameObject? this[int index]
@@ -77,7 +82,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         {
             _ = this.WarnMultithreadedUsage();
 
-            return index is >= ObjectTableLength or < 0 ? null : this.cachedObjectTable[index].Update();
+            return (index >= objectTableLength || index < 0) ? null : this.cachedObjectTable[index].Update();
         }
     }
 
@@ -120,7 +125,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         _ = this.WarnMultithreadedUsage();
 
-        return index is < 0 or >= ObjectTableLength ? nint.Zero : (nint)this.cachedObjectTable[index].Address;
+        return (index >= objectTableLength || index < 0) ? nint.Zero : (nint)this.cachedObjectTable[index].Address;
     }
 
     /// <inheritdoc/>
@@ -150,7 +155,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         };
     }
 
-    [Api10ToDo("Use ThreadSafety.AssertMainThread() instead of this.")]
+    [Api11ToDo("Use ThreadSafety.AssertMainThread() instead of this.")]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool WarnMultithreadedUsage()
     {
@@ -172,33 +177,21 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     }
 
     /// <summary>Stores an object table entry, with preallocated concrete types.</summary>
-    internal readonly unsafe struct CachedEntry
+    /// <remarks>Initializes a new instance of the <see cref="CachedEntry"/> struct.</remarks>
+    /// <param name="gameObjectPtr">A pointer to the object table entry this entry should be pointing to.</param>
+    internal readonly unsafe struct CachedEntry(Pointer<CSGameObject>* gameObjectPtr)
     {
-        private readonly CSGameObject** gameObjectPtrPtr;
-        private readonly PlayerCharacter playerCharacter;
-        private readonly BattleNpc battleNpc;
-        private readonly Npc npc;
-        private readonly EventObj eventObj;
-        private readonly GameObject gameObject;
-
-        /// <summary>Initializes a new instance of the <see cref="CachedEntry"/> struct.</summary>
-        /// <param name="ownerTable">The object table that this entry should be pointing to.</param>
-        /// <param name="slot">The slot index inside the table.</param>
-        public CachedEntry(CSGameObject** ownerTable, int slot)
-        {
-            this.gameObjectPtrPtr = ownerTable + slot;
-            this.playerCharacter = new(nint.Zero);
-            this.battleNpc = new(nint.Zero);
-            this.npc = new(nint.Zero);
-            this.eventObj = new(nint.Zero);
-            this.gameObject = new(nint.Zero);
-        }
+        private readonly PlayerCharacter playerCharacter = new(nint.Zero);
+        private readonly BattleNpc battleNpc = new(nint.Zero);
+        private readonly Npc npc = new(nint.Zero);
+        private readonly EventObj eventObj = new(nint.Zero);
+        private readonly GameObject gameObject = new(nint.Zero);
 
         /// <summary>Gets the address of the underlying native object. May be null.</summary>
         public CSGameObject* Address
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => *this.gameObjectPtrPtr;
+            get => gameObjectPtr->Value;
         }
 
         /// <summary>Updates and gets the wrapped game object pointed by this struct.</summary>
@@ -284,11 +277,11 @@ internal sealed partial class ObjectTable
 
         public bool MoveNext()
         {
-            if (this.index == ObjectTableLength)
+            if (this.index == objectTableLength)
                 return false;
 
             var cache = this.owner!.cachedObjectTable.AsSpan();
-            for (this.index++; this.index < ObjectTableLength; this.index++)
+            for (this.index++; this.index < objectTableLength; this.index++)
             {
                 if (cache[this.index].Update() is { } ao)
                 {

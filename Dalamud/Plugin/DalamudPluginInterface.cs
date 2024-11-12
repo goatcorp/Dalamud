@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
@@ -25,6 +26,8 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
+
+using Serilog;
 
 namespace Dalamud.Plugin;
 
@@ -458,33 +461,51 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     #region Dependency Injection
 
-    /// <summary>
-    /// Create a new object of the provided type using its default constructor, then inject objects and properties.
-    /// </summary>
-    /// <param name="scopedObjects">Objects to inject additionally.</param>
-    /// <typeparam name="T">The type to create.</typeparam>
-    /// <returns>The created and initialized type.</returns>
+    /// <inheritdoc/>
     public T? Create<T>(params object[] scopedObjects) where T : class
     {
-        var svcContainer = Service<IoC.Internal.ServiceContainer>.Get();
+        var t = this.CreateAsync<T>(scopedObjects);
+        t.Wait();
 
-        return (T)this.plugin.ServiceScope!.CreateAsync(
-            typeof(T),
-            this.GetPublicIocScopes(scopedObjects)).GetAwaiter().GetResult();
+        if (t.Exception is { } e)
+        {
+            Log.Error(
+                e,
+                "{who}: Exception during {where}: {what}",
+                this.plugin.Name,
+                nameof(this.Create),
+                typeof(T).FullName ?? typeof(T).Name);
+        }
+
+        return t.IsCompletedSuccessfully ? t.Result : null;
     }
 
-    /// <summary>
-    /// Inject services into properties on the provided object instance.
-    /// </summary>
-    /// <param name="instance">The instance to inject services into.</param>
-    /// <param name="scopedObjects">Objects to inject additionally.</param>
-    /// <returns>Whether or not the injection succeeded.</returns>
+    /// <inheritdoc/>
+    public async Task<T> CreateAsync<T>(params object[] scopedObjects) where T : class =>
+        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), this.GetPublicIocScopes(scopedObjects));
+
+    /// <inheritdoc/>
     public bool Inject(object instance, params object[] scopedObjects)
     {
-        return this.plugin.ServiceScope!.InjectPropertiesAsync(
-            instance,
-            this.GetPublicIocScopes(scopedObjects)).GetAwaiter().GetResult();
+        var t = this.InjectAsync(instance, scopedObjects);
+        t.Wait();
+
+        if (t.Exception is { } e)
+        {
+            Log.Error(
+                e,
+                "{who}: Exception during {where}: {what}",
+                this.plugin.Name,
+                nameof(this.Inject),
+                instance.GetType().FullName ?? instance.GetType().Name);
+        }
+
+        return t.IsCompletedSuccessfully;
     }
+
+    /// <inheritdoc/>
+    public Task InjectAsync(object instance, params object[] scopedObjects) =>
+        this.plugin.ServiceScope!.InjectPropertiesAsync(instance, this.GetPublicIocScopes(scopedObjects));
 
     #endregion
 
@@ -505,13 +526,40 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
     internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
     {
-        this.ActivePluginsChanged?.Invoke(kind, affectedThisPlugin);
+        if (this.ActivePluginsChanged is { } callback)
+        {
+            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.ActivePluginsChangedDelegate>())
+            {
+                try
+                {
+                    action(kind, affectedThisPlugin);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                }
+            }
+        }
     }
 
     private void OnLocalizationChanged(string langCode)
     {
         this.UiLanguage = langCode;
-        this.LanguageChanged?.Invoke(langCode);
+
+        if (this.LanguageChanged is { } callback)
+        {
+            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.LanguageChangedDelegate>())
+            {
+                try
+                {
+                    action(langCode);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                }
+            }
+        }
     }
 
     private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)

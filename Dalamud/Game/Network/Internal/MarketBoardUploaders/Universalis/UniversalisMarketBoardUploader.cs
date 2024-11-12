@@ -46,7 +46,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var uploadObject = new UniversalisItemUploadRequest
         {
-            WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+            WorldId = clientState.LocalPlayer?.CurrentWorld.RowId ?? 0,
             UploaderId = uploader.ToString(),
             ItemId = request.Listings.FirstOrDefault()?.CatalogId ?? 0,
             Listings = [],
@@ -120,7 +120,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var taxUploadObject = new UniversalisTaxUploadRequest
         {
-            WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+            WorldId = clientState.LocalPlayer?.CurrentWorld.RowId ?? 0,
             UploaderId = clientState.LocalContentId.ToString(),
             TaxData = new UniversalisTaxData
             {
@@ -158,7 +158,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
             return;
 
         var itemId = purchaseHandler.CatalogId;
-        var worldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0;
+        var worldId = clientState.LocalPlayer?.CurrentWorld.RowId ?? 0;
 
         // ====================================================================================
 

@@ -63,7 +63,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the quantity of items in this item stack.
     /// </summary>
-    public uint Quantity => this.InternalItem.Quantity;
+    public int Quantity => this.InternalItem.Quantity;
 
     /// <summary>
     /// Gets the spiritbond of this item.

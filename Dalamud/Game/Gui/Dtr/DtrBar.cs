@@ -1,6 +1,7 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon.Events;
@@ -10,6 +11,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics;
@@ -48,10 +50,12 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private readonly AddonLifecycleEventListener dtrPostRequestedUpdateListener;
     private readonly AddonLifecycleEventListener dtrPreFinalizeListener;
 
-    private readonly ConcurrentBag<DtrBarEntry> newEntries = new();
-    private readonly List<DtrBarEntry> entries = new();
+    private readonly ReaderWriterLockSlim entriesLock = new();
+    private readonly List<DtrBarEntry> entries = [];
 
     private readonly Dictionary<uint, List<IAddonEventHandle>> eventHandles = new();
+
+    private ImmutableList<IReadOnlyDtrBarEntry>? entriesReadOnlyCopy;
 
     private Utf8String* emptyString;
     
@@ -71,40 +75,153 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         
         this.framework.Update += this.Update;
 
-        this.configuration.DtrOrder ??= new List<string>();
-        this.configuration.DtrIgnore ??= new List<string>();
+        this.configuration.DtrOrder ??= [];
+        this.configuration.DtrIgnore ??= [];
         this.configuration.QueueSave();
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.entries;
-    
-    /// <inheritdoc/>
-    public IDtrBarEntry Get(string title, SeString? text = null)
+    public IReadOnlyList<IReadOnlyDtrBarEntry> Entries
     {
-        if (this.entries.Any(x => x.Title == title) || this.newEntries.Any(x => x.Title == title))
-            throw new ArgumentException("An entry with the same title already exists.");
-
-        var entry = new DtrBarEntry(this.configuration, title, null);
-        entry.Text = text;
-
-        // Add the entry to the end of the order list, if it's not there already.
-        if (!this.configuration.DtrOrder!.Contains(title))
-            this.configuration.DtrOrder!.Add(title);
-
-        this.newEntries.Add(entry);
-
-        return entry;
-    }
-    
-    /// <inheritdoc/>
-    public void Remove(string title)
-    {
-        if (this.entries.FirstOrDefault(entry => entry.Title == title) is { } dtrBarEntry)
+        get
         {
-            dtrBarEntry.Remove();
+            var erc = this.entriesReadOnlyCopy;
+            if (erc is null)
+            {
+                this.entriesLock.EnterReadLock();
+                this.entriesReadOnlyCopy = erc = [..this.entries];
+                this.entriesLock.ExitReadLock();
+            }
+
+            return erc;
         }
     }
+
+    /// <summary>
+    /// Get a DTR bar entry.
+    /// This allows you to add your own text, and users to sort it.
+    /// </summary>
+    /// <param name="plugin">Plugin that owns the DTR bar, or <c>null</c> if owned by Dalamud.</param>
+    /// <param name="title">A user-friendly name for sorting.</param>
+    /// <param name="text">The text the entry shows.</param>
+    /// <returns>The entry object used to update, hide and remove the entry.</returns>
+    /// <exception cref="ArgumentException">Thrown when an entry with the specified title exists.</exception>
+    public IDtrBarEntry Get(LocalPlugin? plugin, string title, SeString? text = null)
+    {
+        this.entriesLock.EnterUpgradeableReadLock();
+
+        foreach (var existingEntry in this.entries)
+        {
+            if (existingEntry.Title == title)
+            {
+                if (existingEntry.ShouldBeRemoved)
+                {
+                    if (plugin == existingEntry.OwnerPlugin)
+                    {
+                        Log.Debug(
+                            "Reviving entry: {what}; owner: {plugin}({pluginId})",
+                            title,
+                            plugin?.InternalName,
+                            plugin?.EffectiveWorkingPluginId);
+                    }
+                    else
+                    {
+                        Log.Debug(
+                            "Reviving entry: {what}; old owner: {old}({oldId}); new owner: {new}({newId})",
+                            title,
+                            existingEntry.OwnerPlugin?.InternalName,
+                            existingEntry.OwnerPlugin?.EffectiveWorkingPluginId,
+                            plugin?.InternalName,
+                            plugin?.EffectiveWorkingPluginId);
+                        existingEntry.OwnerPlugin = plugin;
+                    }
+
+                    existingEntry.ShouldBeRemoved = false;
+                }
+
+                this.entriesLock.ExitUpgradeableReadLock();
+                if (plugin == existingEntry.OwnerPlugin)
+                    return existingEntry;
+
+                Log.Debug(
+                    "Entry already has a different owner: {what}; owner: {old}({oldId}); requester: {new}({newId})",
+                    title,
+                    existingEntry.OwnerPlugin?.InternalName,
+                    existingEntry.OwnerPlugin?.EffectiveWorkingPluginId,
+                    plugin?.InternalName,
+                    plugin?.EffectiveWorkingPluginId);
+                throw new ArgumentException("An entry with the same title already exists.");
+            }
+        }
+
+        this.entriesLock.EnterWriteLock();
+        var entry = new DtrBarEntry(this.configuration, title, null) { Text = text, OwnerPlugin = plugin };
+        this.entries.Add(entry);
+        Log.Debug(
+            "Adding entry: {what}; owner: {owner}({id})",
+            title,
+            plugin?.InternalName,
+            plugin?.EffectiveWorkingPluginId);
+
+        // Add the entry to the end of the order list, if it's not there already.
+        var dtrOrder = this.configuration.DtrOrder ??= [];
+        if (!dtrOrder.Contains(entry.Title))
+            dtrOrder.Add(entry.Title);
+        this.ApplySortUnsafe(dtrOrder);
+
+        this.entriesReadOnlyCopy = null;
+        this.entriesLock.ExitWriteLock();
+
+        this.entriesLock.ExitUpgradeableReadLock();
+        return entry;
+    }
+
+    /// <inheritdoc/>
+    public IDtrBarEntry Get(string title, SeString? text = null) => this.Get(null, title, text);
+
+    /// <summary>
+    /// Removes a DTR bar entry from the system.
+    /// </summary>
+    /// <param name="plugin">Plugin that owns the DTR bar, or <c>null</c> if owned by Dalamud.</param>
+    /// <param name="title">Title of the entry to remove, or <c>null</c> to remove all entries under the plugin.</param>
+    /// <remarks>Remove operation is not immediate. If you try to add right after removing, the operation may fail.
+    /// </remarks>
+    public void Remove(LocalPlugin? plugin, string? title)
+    {
+        this.entriesLock.EnterUpgradeableReadLock();
+
+        foreach (var entry in this.entries)
+        {
+            if ((title is null || entry.Title == title) && (plugin is null || entry.OwnerPlugin == plugin))
+            {
+                if (!entry.Added)
+                {
+                    Log.Debug("Removing entry immediately because it is not added yet: {what}", entry.Title);
+                    this.entriesLock.EnterWriteLock();
+                    this.RemoveEntry(entry);
+                    this.entries.Remove(entry);
+                    this.entriesReadOnlyCopy = null;
+                    this.entriesLock.ExitWriteLock();
+                }
+                else if (!entry.ShouldBeRemoved)
+                {
+                    Log.Debug("Queueing entry for removal: {what}", entry.Title);
+                    entry.Remove();
+                }
+                else
+                {
+                    Log.Debug("Entry is already marked for removal: {what}", entry.Title);
+                }
+
+                break;
+            }
+        }
+
+        this.entriesLock.ExitUpgradeableReadLock();
+    }
+
+    /// <inheritdoc/>
+    public void Remove(string title) => this.Remove(null, title);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -113,10 +230,17 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.addonLifecycle.UnregisterListener(this.dtrPostRequestedUpdateListener);
         this.addonLifecycle.UnregisterListener(this.dtrPreFinalizeListener);
 
-        foreach (var entry in this.entries)
-            this.RemoveEntry(entry);
+        this.framework.RunOnFrameworkThread(
+            () =>
+            {
+                this.entriesLock.EnterWriteLock();
+                foreach (var entry in this.entries)
+                    this.RemoveEntry(entry);
+                this.entries.Clear();
+                this.entriesReadOnlyCopy = null;
+                this.entriesLock.ExitWriteLock();
+            }).Wait();
 
-        this.entries.Clear();
         this.framework.Update -= this.Update;
 
         if (this.emptyString != null)
@@ -124,22 +248,6 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             this.emptyString->Dtor();
             this.emptyString = null;
         }
-    }
-
-    /// <summary>
-    /// Remove nodes marked as "should be removed" from the bar.
-    /// </summary>
-    internal void HandleRemovedNodes()
-    {
-        foreach (var data in this.entries)
-        {
-            if (data.ShouldBeRemoved)
-            {
-                this.RemoveEntry(data);
-            }
-        }
-
-        this.entries.RemoveAll(d => d.ShouldBeRemoved);
     }
 
     /// <summary>
@@ -162,7 +270,17 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// </summary>
     /// <param name="title">The title to check for.</param>
     /// <returns>Whether or not an entry with that title is registered.</returns>
-    internal bool HasEntry(string title) => this.entries.Any(x => x.Title == title);
+    internal bool HasEntry(string title)
+    {
+        var found = false;
+
+        this.entriesLock.EnterReadLock();
+        for (var i = 0; i < this.entries.Count && !found; i++)
+            found = this.entries[i].Title == title;
+        this.entriesLock.ExitReadLock();
+
+        return found;
+    }
 
     /// <summary>
     /// Dirty the DTR bar entry with the specified title.
@@ -171,12 +289,19 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// <returns>Whether the entry was found.</returns>
     internal bool MakeDirty(string title)
     {
-        var entry = this.entries.FirstOrDefault(x => x.Title == title);
-        if (entry == null)
-            return false;
+        var found = false;
 
-        entry.Dirty = true;
-        return true;
+        this.entriesLock.EnterReadLock();
+        for (var i = 0; i < this.entries.Count && !found; i++)
+        {
+            found = this.entries[i].Title == title;
+            if (found)
+                this.entries[i].Dirty = true;
+        }
+
+        this.entriesLock.ExitReadLock();
+
+        return found;
     }
 
     /// <summary>
@@ -184,11 +309,17 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// </summary>
     internal void ApplySort()
     {
+        this.entriesLock.EnterWriteLock();
+        this.ApplySortUnsafe(this.configuration.DtrOrder ??= []);
+        this.entriesLock.ExitWriteLock();
+    }
+
+    private void ApplySortUnsafe(List<string> dtrOrder)
+    {
         // Sort the current entry list, based on the order in the configuration.
-        var positions = this.configuration
-                            .DtrOrder!
-                            .Select(entry => (entry, index: this.configuration.DtrOrder!.IndexOf(entry)))
-                            .ToDictionary(x => x.entry, x => x.index);
+        var positions = dtrOrder
+                        .Select(entry => (entry, index: dtrOrder.IndexOf(entry)))
+                        .ToDictionary(x => x.entry, x => x.index);
 
         this.entries.Sort((x, y) =>
         {
@@ -196,15 +327,13 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             var yPos = positions.TryGetValue(y.Title, out var yIndex) ? yIndex : int.MaxValue;
             return xPos.CompareTo(yPos);
         });
+        this.entriesReadOnlyCopy = null;
     }
 
     private AtkUnitBase* GetDtr() => (AtkUnitBase*)this.gameGui.GetAddonByName("_DTR").ToPointer();
 
     private void Update(IFramework unused)
     {
-        this.HandleRemovedNodes();
-        this.HandleAddedNodes();
-
         var dtr = this.GetDtr();
         if (dtr == null || dtr->RootNode == null || dtr->RootNode->ChildNode == null) return;
 
@@ -224,12 +353,27 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         var runningXPos = this.entryStartPos;
 
-        foreach (var data in this.entries)
+        this.entriesLock.EnterUpgradeableReadLock();
+        for (var i = 0; i < this.entries.Count; i++)
         {
-            if (!data.Added)
+            var data = this.entries[i];
+            if (data.ShouldBeRemoved)
             {
-                data.Added = this.AddNode(data.TextNode);
+                Log.Debug("Removing entry from Framework.Update: {what}", data.Title);
+                this.entriesLock.EnterWriteLock();
+                this.entries.RemoveAt(i);
+                this.RemoveEntry(data);
+                this.entriesReadOnlyCopy = null;
+                this.entriesLock.ExitWriteLock();
+                i--;
+                continue;
             }
+
+            if (!data.Added)
+                data.Added = this.AddNode(data);
+
+            if (!data.Added || data.TextNode is null) // TextNode check is unnecessary, but just in case.
+                continue;
 
             var isHide = !data.Shown || data.UserHidden;
             var node = data.TextNode;
@@ -277,23 +421,10 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
             data.Dirty = false;
         }
+
+        this.entriesLock.ExitUpgradeableReadLock();
     }
 
-    private void HandleAddedNodes()
-    {
-        if (!this.newEntries.IsEmpty)
-        {
-            foreach (var newEntry in this.newEntries)
-            {
-                newEntry.TextNode = this.MakeNode(++this.runningNodeIds);
-                this.entries.Add(newEntry);
-            }
-            
-            this.newEntries.Clear();
-            this.ApplySort();
-        }
-    }
-    
     private void FixCollision(AddonEvent eventType, AddonArgs addonInfo)
     {
         var addon = (AtkUnitBase*)addonInfo.Addon;
@@ -303,7 +434,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         var additionalWidth = 0;
         AtkResNode* collisionNode = null;
 
-        foreach (var index in Enumerable.Range(0, addon->UldManager.NodeListCount))
+        for (var index = 0; index < addon->UldManager.NodeListCount; index++)
         {
             var node = addon->UldManager.NodeList[index];
             if (node->IsVisible())
@@ -369,22 +500,20 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private void RecreateNodes()
     {
         this.runningNodeIds = BaseNodeId;
-        if (this.entries.Any())
-        {
-            this.eventHandles.Clear();
-        }
 
+        this.entriesLock.EnterReadLock();
+        this.eventHandles.Clear();
         foreach (var entry in this.entries)
-        {
-            entry.TextNode = this.MakeNode(++this.runningNodeIds);
             entry.Added = false;
-        }
+        this.entriesLock.ExitReadLock();
     }
 
-    private bool AddNode(AtkTextNode* node)
+    private bool AddNode(DtrBarEntry data)
     {
         var dtr = this.GetDtr();
-        if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null || node == null) return false;
+        if (dtr == null || dtr->RootNode == null || dtr->UldManager.NodeList == null) return false;
+
+        var node = data.TextNode = this.MakeNode(++this.runningNodeIds);
 
         this.eventHandles.TryAdd(node->AtkResNode.NodeId, new List<IAddonEventHandle>());
         this.eventHandles[node->AtkResNode.NodeId].AddRange(new List<IAddonEventHandle>
@@ -407,6 +536,8 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         dtr->UldManager.UpdateDrawNodeList();
         dtr->UpdateCollisionNodeList(false);
         Log.Debug("Updated node draw list");
+
+        data.Dirty = true;
         return true;
     }
 
@@ -484,7 +615,15 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         var addon = (AtkUnitBase*)atkUnitBase;
         var node = (AtkResNode*)atkResNode;
 
-        if (this.entries.FirstOrDefault(entry => entry.TextNode == node) is not { } dtrBarEntry) return;
+        DtrBarEntry? dtrBarEntry = null;
+        this.entriesLock.EnterReadLock();
+        foreach (var entry in this.entries)
+        {
+            if (entry.TextNode == node)
+                dtrBarEntry = entry;
+        }
+
+        this.entriesLock.ExitReadLock();
 
         if (dtrBarEntry is { Tooltip: not null })
         {
@@ -524,48 +663,29 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 /// Plugin-scoped version of a AddonEventManager service.
 /// </summary>
 [PluginInterface]
-
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IDtrBar>]
 #pragma warning restore SA1015
-internal class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
+internal sealed class DtrBarPluginScoped : IInternalDisposableService, IDtrBar
 {
+    private readonly LocalPlugin plugin;
+
     [ServiceManager.ServiceDependency]
     private readonly DtrBar dtrBarService = Service<DtrBar>.Get();
 
-    private readonly Dictionary<string, IDtrBarEntry> pluginEntries = new();
-    
+    [ServiceManager.ServiceConstructor]
+    private DtrBarPluginScoped(LocalPlugin plugin) => this.plugin = plugin;
+
     /// <inheritdoc/>
     public IReadOnlyList<IReadOnlyDtrBarEntry> Entries => this.dtrBarService.Entries;
 
     /// <inheritdoc/>
-    void IInternalDisposableService.DisposeService()
-    {
-        foreach (var entry in this.pluginEntries)
-        {
-            entry.Value.Remove();
-        }
-        
-        this.pluginEntries.Clear();
-    }
+    void IInternalDisposableService.DisposeService() => this.dtrBarService.Remove(this.plugin, null);
 
     /// <inheritdoc/>
-    public IDtrBarEntry Get(string title, SeString? text = null)
-    {
-        // If we already have a known entry for this plugin, return it.
-        if (this.pluginEntries.TryGetValue(title, out var existingEntry)) return existingEntry;
+    public IDtrBarEntry Get(string title, SeString? text = null) => this.dtrBarService.Get(this.plugin, title, text);
 
-        return this.pluginEntries[title] = this.dtrBarService.Get(title, text);
-    }
-    
     /// <inheritdoc/>
-    public void Remove(string title)
-    {
-        if (this.pluginEntries.TryGetValue(title, out var existingEntry))
-        {
-            existingEntry.Remove();
-            this.pluginEntries.Remove(title);
-        }
-    }
+    public void Remove(string title) => this.dtrBarService.Remove(this.plugin, title);
 }
