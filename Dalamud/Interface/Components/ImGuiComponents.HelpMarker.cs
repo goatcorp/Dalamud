@@ -15,7 +15,7 @@ public static partial class ImGuiComponents
     /// HelpMarker component to add a help icon with text on hover.
     /// </summary>
     /// <param name="helpText">The text to display on hover.</param>
-    public static void HelpMarker(string helpText) => HelpMarker(helpText, FontAwesomeIcon.InfoCircle, null);
+    public static void HelpMarker(string helpText) => HelpMarker(helpText, FontAwesomeIcon.InfoCircle);
 
     /// <summary>
     /// HelpMarker component to add a custom icon with text on hover.

@@ -12,8 +12,6 @@ namespace Dalamud.Interface.Components;
 /// </summary>
 public static partial class ImGuiComponents
 {
-    /* icon only */
-
     /// <summary>
     /// IconButton component to use an icon as a button.
     /// </summary>
@@ -27,7 +25,7 @@ public static partial class ImGuiComponents
     /// <param name="icon">The icon for the button.</param>
     /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon.</param>
     /// <returns>Indicator if button is clicked.</returns>
-    public static bool IconButton(FontAwesomeIcon icon, Vector2? size) => IconButton(icon, null, null, null, size);
+    public static bool IconButton(FontAwesomeIcon icon, Vector2 size) => IconButton(icon, null, null, null, size);
 
     /// <summary>
     /// IconButton component to use an icon as a button.
@@ -39,8 +37,6 @@ public static partial class ImGuiComponents
     /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon.</param>
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButton(FontAwesomeIcon icon, Vector4? defaultColor, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null) => IconButton($"{icon.ToIconString()}", defaultColor, activeColor, hoveredColor, size);
-
-    /* int id + icon */
 
     /// <summary>
     /// IconButton component to use an icon as a button.
@@ -57,7 +53,7 @@ public static partial class ImGuiComponents
     /// <param name="icon">The icon for the button.</param>
     /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon.</param>
     /// <returns>Indicator if button is clicked.</returns>
-    public static bool IconButton(int id, FontAwesomeIcon icon, Vector2? size) => IconButton(id, icon, null, null, null, size);
+    public static bool IconButton(int id, FontAwesomeIcon icon, Vector2 size) => IconButton(id, icon, null, null, null, size);
 
     /// <summary>
     /// IconButton component to use an icon as a button with color options.
@@ -70,8 +66,6 @@ public static partial class ImGuiComponents
     /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon.</param>
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButton(int id, FontAwesomeIcon icon, Vector4? defaultColor, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null) => IconButton($"{icon.ToIconString()}##{id}", defaultColor, activeColor, hoveredColor, size);
-
-    /* string id + icon */
 
     /// <summary>
     /// IconButton component to use an icon as a button.
@@ -88,7 +82,7 @@ public static partial class ImGuiComponents
     /// <param name="icon">The icon for the button.</param>
     /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon.</param>
     /// <returns>Indicator if button is clicked.</returns>
-    public static bool IconButton(string id, FontAwesomeIcon icon, Vector2? size)
+    public static bool IconButton(string id, FontAwesomeIcon icon, Vector2 size)
         => IconButton(id, icon, null, null, null, size);
 
     /// <summary>
@@ -104,8 +98,6 @@ public static partial class ImGuiComponents
     public static bool IconButton(string id, FontAwesomeIcon icon, Vector4? defaultColor, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null)
         => IconButton($"{icon.ToIconString()}##{id}", defaultColor, activeColor, hoveredColor, size);
 
-    /* iconText */
-
     /// <summary>
     /// IconButton component to use an icon as a button.
     /// </summary>
@@ -119,9 +111,7 @@ public static partial class ImGuiComponents
     /// <param name="iconText">Text already containing the icon string.</param>
     /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon.</param>
     /// <returns>Indicator if button is clicked.</returns>
-    public static bool IconButton(string iconText, Vector2? size) => IconButton(iconText, null, null, null, size);
-
-    /* endpoint method */
+    public static bool IconButton(string iconText, Vector2 size) => IconButton(iconText, null, null, null, size);
 
     /// <summary>
     /// IconButton component to use an icon as a button with color options.
@@ -157,9 +147,9 @@ public static partial class ImGuiComponents
         }
 
         var icon = iconText;
-        if (icon.Contains("#"))
+        if (icon.Contains('#'))
         {
-            icon = icon[..icon.IndexOf("#", StringComparison.Ordinal)];
+            icon = icon[..icon.IndexOf('#', StringComparison.Ordinal)];
         }
 
         bool button;
@@ -168,8 +158,6 @@ public static partial class ImGuiComponents
         {
             var iconSize = ImGui.CalcTextSize(icon);
             var cursor = ImGui.GetCursorScreenPos();
-
-            // Draw a blank ImGuiButton
 
             var width = size is { X: not 0 } ? size.Value.X : iconSize.X + (ImGui.GetStyle().FramePadding.X * 2);
             var height = size is { Y: not 0 } ? size.Value.Y : ImGui.GetFrameHeight();
@@ -181,8 +169,6 @@ public static partial class ImGuiComponents
                 button = ImGui.Button(string.Empty, buttonSize);
             }
 
-            // Draw the icon over the button
-
             var iconPos = cursor + ((buttonSize - iconSize) / 2f);
 
             ImGui.GetWindowDrawList().AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon);
@@ -190,6 +176,15 @@ public static partial class ImGuiComponents
 
         return button;
     }
+
+    /// <summary>
+    /// IconButton component to use an icon as a button with color options.
+    /// </summary>
+    /// <param name="icon">Icon to show.</param>
+    /// <param name="text">Text to show.</param>
+    /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon & text.</param>
+    /// <returns>Indicator if button is clicked.</returns>
+    public static bool IconButtonWithText(FontAwesomeIcon icon, string text, Vector2 size) => IconButtonWithText(icon, text, null, null, null, size);
 
     /// <summary>
     /// IconButton component to use an icon as a button with color options.
@@ -234,9 +229,9 @@ public static partial class ImGuiComponents
         }
 
         var textStr = text;
-        if (textStr.Contains("#"))
+        if (textStr.Contains('#'))
         {
-            textStr = textStr[..textStr.IndexOf("#", StringComparison.Ordinal)];
+            textStr = textStr[..textStr.IndexOf('#', StringComparison.Ordinal)];
         }
 
         var framePadding = ImGui.GetStyle().FramePadding;
@@ -248,7 +243,6 @@ public static partial class ImGuiComponents
         {
             var textSize = ImGui.CalcTextSize(textStr);
 
-            // Draw a blank ImGui button
             var width = size is { X: not 0 } ? size.Value.X : iconSize.X + textSize.X + (framePadding.X * 2) + iconPadding;
             var height = size is { Y: not 0 } ? size.Value.Y : ImGui.GetFrameHeight();
 
@@ -260,13 +254,11 @@ public static partial class ImGuiComponents
 
         var dl = ImGui.GetWindowDrawList();
 
-        // Draw the icon on the window drawlist
         using (ImRaii.PushFont(UiBuilder.IconFont))
         {
             dl.AddText(iconPos, ImGui.GetColorU32(ImGuiCol.Text), icon.ToIconString());
         }
 
-        // Draw the text on the window drawlist
         dl.AddText(textPos, ImGui.GetColorU32(ImGuiCol.Text), textStr);
 
         return button;

@@ -1,7 +1,3 @@
-// <copyright file="ImGuiComponents.IconButtonSelect.cs" company="PlaceholderCompany">
-// Copyright (c) PlaceholderCompany. All rights reserved.
-// </copyright>
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -30,7 +26,7 @@ public static partial class ImGuiComponents
     /// <returns>True if any button is clicked.</returns>
     internal static bool IconButtonSelect<T>(string label, ref T val, IEnumerable<FontAwesomeIcon> optionIcons, IEnumerable<T> optionValues, uint columns = 0, Vector2? buttonSize = null, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
     {
-        var options = optionIcons.Zip(optionValues, static (icon,value) => new KeyValuePair<FontAwesomeIcon,T>(icon,value));
+        var options = optionIcons.Zip(optionValues, static (icon, value) => new KeyValuePair<FontAwesomeIcon, T>(icon, value));
         return IconButtonSelect(label, ref val, options, columns, buttonSize, defaultColor, activeColor, hoveredColor);
     }
 

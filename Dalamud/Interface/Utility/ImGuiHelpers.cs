@@ -194,13 +194,13 @@ public static class ImGuiHelpers
                 }
 
                 ImGui.SameLine();
-                ImGui.TextUnformatted($"{textCopy}");
+                ImGui.TextUnformatted(textCopy);
             }
         }
 
         if (ImGui.IsItemClicked())
         {
-            ImGui.SetClipboardText($"{textCopy}");
+            ImGui.SetClipboardText(textCopy);
         }
     }
 
