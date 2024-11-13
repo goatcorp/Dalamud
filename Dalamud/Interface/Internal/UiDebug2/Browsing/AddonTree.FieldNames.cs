@@ -16,7 +16,7 @@ public unsafe partial class AddonTree
 {
     private static readonly Dictionary<string, Type?> AddonTypeDict = [];
 
-    private static readonly Assembly? ClientStructsAssembly = typeof(Addon).Assembly;
+    private static readonly Assembly? ClientStructsAssembly = typeof(AddonAttribute).Assembly;
 
     /// <summary>
     /// Gets or sets a collection of names for field offsets that have been documented in FFXIVClientStructs.
@@ -36,7 +36,7 @@ public unsafe partial class AddonTree
             {
                 foreach (var t in from t in ClientStructsAssembly.GetTypes()
                                   where t.IsPublic
-                                  let xivAddonAttr = (Addon?)t.GetCustomAttribute(typeof(Addon), false)
+                                  let xivAddonAttr = (AddonAttribute?)t.GetCustomAttribute(typeof(AddonAttribute), false)
                                   where xivAddonAttr != null
                                   where xivAddonAttr.AddonIdentifiers.Contains(this.AddonName)
                                   select t)

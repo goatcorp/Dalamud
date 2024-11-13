@@ -49,7 +49,11 @@ internal unsafe partial class UiDebug2
     /// Gets the base address for all unit lists.
     /// </summary>
     /// <returns>The address, if found.</returns>
-    internal static AtkUnitList* GetUnitListBaseAddr() => &((UIModule*)GameGui.GetUIModule())->GetRaptureAtkModule()->RaptureAtkUnitManager.AtkUnitManager.DepthLayerOneList;
+    internal static AtkUnitList* GetUnitListBaseAddr()
+    {
+        var stage = AtkStage.Instance();
+        return &stage->RaptureAtkUnitManager->AtkUnitManager.DepthLayerOneList;
+    }
 
     private void DrawSidebar()
     {
