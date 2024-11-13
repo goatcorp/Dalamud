@@ -24,7 +24,7 @@ public class IconBrowserWidget : IDataWindowWidget
     private Task<List<(int ItemId, string Path)>>? iconIdsTask;
 
     private int startRange;
-    private int stopRange = 200000;
+    private int stopRange = 220000;
     private bool showTooltipImage;
 
     private Vector2 mouseDragStart;
@@ -53,8 +53,8 @@ public class IconBrowserWidget : IDataWindowWidget
             {
                 var texm = Service<TextureManager>.Get();
 
-                var result = new List<(int ItemId, string Path)>(200000);
-                for (var iconId = 0; iconId < 200000; iconId++)
+                var result = new List<(int ItemId, string Path)>(220000);
+                for (var iconId = 0; iconId < 220000; iconId++)
                 {
                     // // Remove range 170,000 -> 180,000 by default, this specific range causes exceptions.
                     // if (iconId is >= 170000 and < 180000)
