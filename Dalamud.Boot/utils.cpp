@@ -103,7 +103,7 @@ bool utils::loaded_module::find_imported_function_pointer(const char* pcszDllNam
     ppFunctionAddress = nullptr;
 
     // This span might be too long in terms of meaningful data; it only serves to prevent accessing memory outsides boundaries.
-    for (const auto& importDescriptor : span_as<IMAGE_IMPORT_DESCRIPTOR>(directory.VirtualAddress, directory.Size / sizeof IMAGE_IMPORT_DESCRIPTOR)) {
+    for (const auto& importDescriptor : span_as<IMAGE_IMPORT_DESCRIPTOR>(directory.VirtualAddress, directory.Size / sizeof(IMAGE_IMPORT_DESCRIPTOR))) {
 
         // Having all zero values signals the end of the table. We didn't find anything.
         if (!importDescriptor.OriginalFirstThunk && !importDescriptor.TimeDateStamp && !importDescriptor.ForwarderChain && !importDescriptor.FirstThunk)
