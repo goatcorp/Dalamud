@@ -48,7 +48,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         {
             WorldId = clientState.LocalPlayer?.CurrentWorld.RowId ?? 0,
             UploaderId = uploader.ToString(),
-            ItemId = request.Listings.FirstOrDefault()?.CatalogId ?? 0,
+            ItemId = request.CatalogId,
             Listings = [],
             Sales = [],
         };
@@ -106,7 +106,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         // ====================================================================================
 
-        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.Listings.FirstOrDefault()?.CatalogId ?? 0);
+        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.CatalogId);
     }
 
     /// <inheritdoc/>

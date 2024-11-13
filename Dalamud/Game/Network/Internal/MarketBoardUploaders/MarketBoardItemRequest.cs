@@ -31,6 +31,11 @@ internal class MarketBoardItemRequest
     public uint AmountToArrive { get; private set; }
 
     /// <summary>
+    /// Gets or sets the offered catalog id used in this listing.
+    /// </summary>
+    public uint CatalogId { get; internal set; }
+
+    /// <summary>
     /// Gets the offered item listings.
     /// </summary>
     public List<MarketBoardCurrentOfferings.MarketBoardItemListing> Listings { get; } = [];

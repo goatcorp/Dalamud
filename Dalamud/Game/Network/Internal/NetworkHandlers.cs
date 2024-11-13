@@ -367,7 +367,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                        }));
     }
 
-    private IObservable<List<MarketBoardHistory.MarketBoardHistoryListing>> OnMarketBoardSalesBatch(
+    private IObservable<(uint CatalogId, List<MarketBoardHistory.MarketBoardHistoryListing> Sales)> OnMarketBoardSalesBatch(
         IObservable<MarketBoardItemRequest> start)
     {
         var historyObservable = this.MbHistoryObservable.Publish().RefCount();
@@ -390,6 +390,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         // When a start packet is observed, begin observing a window of history packets.
         // We should only get one packet, which the window closing function ensures.
         // This packet is flattened to its sale entries and emitted.
+        uint catalogId = 0;
         return historyObservable
                .Do(LogHistoryObserved)
                .Window(start, UntilBatchEnd)
@@ -398,9 +399,12 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                        new List<MarketBoardHistory.MarketBoardHistoryListing>(),
                        (agg, next) =>
                        {
+                           catalogId = next.CatalogId;
+
                            agg.AddRange(next.InternalHistoryListings);
                            return agg;
-                       }));
+                       }))
+               .Select(o => (catalogId, o));
     }
 
     private IDisposable HandleMarketBoardItemRequest()
@@ -411,7 +415,8 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         }
 
         var startObservable = this.MbItemRequestObservable
-                                  .Where(request => request.Ok).Do(LogStartObserved)
+                                  .Where(request => request.Ok)
+                                  .Do(LogStartObserved)
                                   .Publish()
                                   .RefCount();
         return Observable.When(
@@ -432,10 +437,10 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private void UploadMarketBoardData(
         MarketBoardItemRequest request,
-        ICollection<MarketBoardHistory.MarketBoardHistoryListing> sales,
+        (uint CatalogId, ICollection<MarketBoardHistory.MarketBoardHistoryListing> Sales) sales,
         ICollection<MarketBoardCurrentOfferings.MarketBoardItemListing> listings)
     {
-        var catalogId = listings.FirstOrDefault()?.CatalogId ?? 0;
+        var catalogId = sales.CatalogId;
         if (listings.Count != request.AmountToArrive)
         {
             Log.Error(
@@ -448,10 +453,11 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             "Market Board request resolved, starting upload: item#{CatalogId} listings#{ListingsObserved} sales#{SalesObserved}",
             catalogId,
             listings.Count,
-            sales.Count);
+            sales.Sales.Count);
 
+        request.CatalogId = catalogId;
         request.Listings.AddRange(listings);
-        request.History.AddRange(sales);
+        request.History.AddRange(sales.Sales);
 
         Task.Run(() => this.uploader.Upload(request))
             .ContinueWith(
