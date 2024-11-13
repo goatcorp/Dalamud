@@ -162,29 +162,7 @@ public static class Util
     }
 
     /// <summary>
-    /// Gets the amount of commits in the current branch, or null if undetermined.
-    /// </summary>
-    /// <returns>The amount of commits in the current branch.</returns>
-    [Obsolete($"Planned for removal in API 11. Use {nameof(GetScmVersion)} for version tracking.")]
-    public static int? GetGitCommitCount()
-    {
-        if (gitCommitCountInternal != null)
-            return gitCommitCountInternal.Value;
-
-        var asm = typeof(Util).Assembly;
-        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
-
-        var value = attrs.First(a => a.Key == "GitCommitCount").Value;
-        if (value == null)
-            return null;
-
-        gitCommitCountInternal = int.Parse(value);
-        return gitCommitCountInternal.Value;
-    }
-
-    /// <summary>
-    /// Gets the git hash value from the assembly
-    /// or null if it cannot be found.
+    /// Gets the git hash value from the assembly or null if it cannot be found.
     /// </summary>
     /// <returns>The git hash of the assembly.</returns>
     public static string? GetGitHashClientStructs()
