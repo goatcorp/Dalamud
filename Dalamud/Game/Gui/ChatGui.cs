@@ -51,7 +51,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private ChatGui()
     {
         this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
-        this.inventoryItemCopyHook = Hook<InventoryItem.Delegates.Copy>.FromAddress(InventoryItem.Addresses.Copy.Value, this.InventoryItemCopyDetour);
+        this.inventoryItemCopyHook = Hook<InventoryItem.Delegates.Copy>.FromAddress((nint)InventoryItem.StaticVirtualTablePointer->Copy, this.InventoryItemCopyDetour);
         this.handleLinkClickHook = Hook<LogViewer.Delegates.HandleLinkClick>.FromAddress(LogViewer.Addresses.HandleLinkClick.Value, this.HandleLinkClickDetour);
 
         this.printMessageHook.Enable();
