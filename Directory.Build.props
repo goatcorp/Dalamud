@@ -1,5 +1,13 @@
-<!-- Code analysis settings for all Dalamud projects. -->
+<!-- Shared settings for all Dalamud projects. -->
 <Project>
+    
+    <PropertyGroup Label="Target">
+        <TargetFramework>net9.0-windows</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <Platforms>x64;AnyCPU</Platforms>
+        <LangVersion>13.0</LangVersion>
+    </PropertyGroup>
+    
     <ItemGroup Label="Code Analysis">
         <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
         <AdditionalFiles Include="$(MSBuildThisFileDirectory)tools\BannedSymbols.txt" />
