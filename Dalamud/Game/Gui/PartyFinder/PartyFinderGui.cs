@@ -7,6 +7,8 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
+
 using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder;
@@ -15,12 +17,11 @@ namespace Dalamud.Game.Gui.PartyFinder;
 /// This class handles interacting with the native PartyFinder window.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
+internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
-    private readonly PartyFinderAddressResolver address;
     private readonly nint memory;
 
-    private readonly Hook<ReceiveListingDelegate> receiveListingHook;
+    private readonly Hook<InfoProxyCrossRealm.Delegates.ReceiveListing> receiveListingHook;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
@@ -29,17 +30,11 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
     [ServiceManager.ServiceConstructor]
     private PartyFinderGui(TargetSigScanner sigScanner)
     {
-        this.address = new PartyFinderAddressResolver();
-        this.address.Setup(sigScanner);
-
         this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
-        this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, this.HandleReceiveListingDetour);
+        this.receiveListingHook = Hook<InfoProxyCrossRealm.Delegates.ReceiveListing>.FromAddress(InfoProxyCrossRealm.Addresses.ReceiveListing.Value, this.HandleReceiveListingDetour);
         this.receiveListingHook.Enable();
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ReceiveListingDelegate(nint managerPtr, nint data);
 
     /// <inheritdoc/>
     public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
@@ -61,18 +56,18 @@ internal sealed class PartyFinderGui : IInternalDisposableService, IPartyFinderG
         }
     }
 
-    private void HandleReceiveListingDetour(nint managerPtr, nint data)
+    private void HandleReceiveListingDetour(InfoProxyCrossRealm* infoProxy, nint packet)
     {
         try
         {
-            this.HandleListingEvents(data);
+            this.HandleListingEvents(packet);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Exception on ReceiveListing hook.");
         }
 
-        this.receiveListingHook.Original(managerPtr, data);
+        this.receiveListingHook.Original(infoProxy, packet);
     }
 
     private void HandleListingEvents(nint data)

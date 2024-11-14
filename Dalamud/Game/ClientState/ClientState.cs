@@ -37,7 +37,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
     private readonly GameLifecycle lifecycle;
     private readonly ClientStateAddressResolver address;
-    private readonly Hook<SetupTerritoryTypeDelegate> setupTerritoryTypeHook;
+    private readonly Hook<EventFramework.Delegates.SetTerritoryTypeId> setupTerritoryTypeHook;
     private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
     private readonly Hook<ProcessPacketPlayerSetupDelegate> processPacketPlayerSetupHook;
     private readonly Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
@@ -56,9 +56,10 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         this.ClientLanguage = (ClientLanguage)dalamud.StartInfo.Language;
 
-        Log.Verbose($"SetupTerritoryType address {Util.DescribeAddress(this.address.SetupTerritoryType)}");
+        var setTerritoryTypeAddr = EventFramework.Addresses.SetTerritoryTypeId.Value;
+        Log.Verbose($"SetupTerritoryType address {Util.DescribeAddress(setTerritoryTypeAddr)}");
 
-        this.setupTerritoryTypeHook = Hook<SetupTerritoryTypeDelegate>.FromAddress(this.address.SetupTerritoryType, this.SetupTerritoryTypeDetour);
+        this.setupTerritoryTypeHook = Hook<EventFramework.Delegates.SetTerritoryTypeId>.FromAddress(setTerritoryTypeAddr, this.SetupTerritoryTypeDetour);
         this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress((nint)UIModule.StaticVirtualTablePointer->HandlePacket, this.UIModuleHandlePacketDetour);
         this.processPacketPlayerSetupHook = Hook<ProcessPacketPlayerSetupDelegate>.FromAddress(this.address.ProcessPacketPlayerSetup, this.ProcessPacketPlayerSetupDetour);
         this.onLogoutHook = Hook<LogoutCallbackInterface.Delegates.OnLogout>.FromAddress((nint)LogoutCallbackInterface.StaticVirtualTablePointer->OnLogout, this.OnLogoutDetour);
@@ -70,10 +71,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.processPacketPlayerSetupHook.Enable();
         this.onLogoutHook.Enable();
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private unsafe delegate void SetupTerritoryTypeDelegate(EventFramework* eventFramework, ushort terriType);
-
+    
     private unsafe delegate void ProcessPacketPlayerSetupDelegate(nint a1, nint packet);
 
     /// <inheritdoc/>

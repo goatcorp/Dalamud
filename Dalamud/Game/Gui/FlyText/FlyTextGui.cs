@@ -23,61 +23,20 @@ namespace Dalamud.Game.Gui.FlyText;
 internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 {
     /// <summary>
-    /// The native function responsible for adding fly text to the UI. See <see cref="FlyTextGuiAddressResolver.AddFlyText"/>.
+    /// The hook that fires when the game creates a fly text element.
     /// </summary>
-    private readonly AddFlyTextDelegate addFlyTextNative;
-
-    /// <summary>
-    /// The hook that fires when the game creates a fly text element. See <see cref="FlyTextGuiAddressResolver.CreateFlyText"/>.
-    /// </summary>
-    private readonly Hook<CreateFlyTextDelegate> createFlyTextHook;
+    private readonly Hook<AddonFlyText.Delegates.CreateFlyText> createFlyTextHook;
 
     [ServiceManager.ServiceConstructor]
     private unsafe FlyTextGui(TargetSigScanner sigScanner)
     {
-        this.Address = new FlyTextGuiAddressResolver();
-        this.Address.Setup(sigScanner);
-
-        this.addFlyTextNative = Marshal.GetDelegateForFunctionPointer<AddFlyTextDelegate>(this.Address.AddFlyText);
-        this.createFlyTextHook = Hook<CreateFlyTextDelegate>.FromAddress(this.Address.CreateFlyText, this.CreateFlyTextDetour);
+        this.createFlyTextHook = Hook<AddonFlyText.Delegates.CreateFlyText>.FromAddress(AddonFlyText.Addresses.CreateFlyText.Value, this.CreateFlyTextDetour);
 
         this.createFlyTextHook.Enable();
     }
 
-    /// <summary>
-    /// Private delegate for the native CreateFlyText function's hook.
-    /// </summary>
-    private unsafe delegate nint CreateFlyTextDelegate(
-        AtkUnitBase* thisPtr,
-        FlyTextKind kind,
-        int val1,
-        int val2,
-        byte* text2,
-        uint color,
-        uint icon,
-        uint damageTypeIcon,
-        byte* text1,
-        float yOffset);
-
-    /// <summary>
-    /// Private delegate for the native AddFlyText function pointer.
-    /// </summary>
-    private unsafe delegate void AddFlyTextDelegate(
-        AtkUnitBase* thisPtr,
-        uint actorIndex,
-        uint messageMax,
-        NumberArrayData* numberArrayData,
-        uint offsetNum,
-        uint offsetNumMax,
-        StringArrayData* stringArrayData,
-        uint offsetStr,
-        uint offsetStrMax,
-        int unknown);
-
     /// <inheritdoc/>
     public event IFlyTextGui.OnFlyTextCreatedDelegate? FlyTextCreated;
-
-    private FlyTextGuiAddressResolver Address { get; }
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.
@@ -94,7 +53,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
         var numOffset = 161u;
         var strOffset = 28u;
 
-        var flytext = RaptureAtkUnitManager.Instance()->GetAddonByName("_FlyText");
+        var flytext = (AddonFlyText*)RaptureAtkUnitManager.Instance()->GetAddonByName("_FlyText");
         if (flytext == null)
             return;
 
@@ -116,23 +75,13 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 
         strArray->SetValue((int)strOffset + 0, text1.EncodeWithNullTerminator(), false, true, false);
         strArray->SetValue((int)strOffset + 1, text2.EncodeWithNullTerminator(), false, true, false);
-
-        this.addFlyTextNative(
-            flytext,
-            actorIndex,
-            1,
-            numArray,
-            numOffset,
-            10,
-            strArray,
-            strOffset,
-            2,
-            0);
+        
+        flytext->AddFlyText(actorIndex, 1, numArray, numOffset, 10, strArray, strOffset, 2, 0);
     }
 
     private unsafe nint CreateFlyTextDetour(
-        AtkUnitBase* thisPtr,
-        FlyTextKind kind,
+        AddonFlyText* thisPtr,
+        int kind,
         int val1,
         int val2,
         byte* text2,
@@ -149,7 +98,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 
             var handled = false;
 
-            var tmpKind = kind;
+            var tmpKind = (FlyTextKind)kind;
             var tmpVal1 = val1;
             var tmpVal2 = val2;
             var tmpText1 = text1 == null ? string.Empty : MemoryHelper.ReadSeStringNullTerminated((nint)text1);
@@ -193,7 +142,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
             var maybeModifiedText2 = tmpText2.EncodeWithNullTerminator();
 
             // Check if any values have changed
-            var dirty = tmpKind != kind ||
+            var dirty = (int)tmpKind != kind ||
                         tmpVal1 != val1 ||
                         tmpVal2 != val2 ||
                         !maybeModifiedText1.SequenceEqual(originalText1) ||
@@ -219,7 +168,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 
             retVal = this.createFlyTextHook.Original(
                 thisPtr,
-                tmpKind,
+                (int)tmpKind,
                 tmpVal1,
                 tmpVal2,
                 (byte*)pText2,
