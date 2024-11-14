@@ -38,7 +38,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private readonly GameGuiAddressResolver address;
 
     private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
-    private readonly Hook<AgentActionDetail.Delegates.HandleActionHover> handleActionHoverHook;
+    private readonly Hook<HandleActionHoverDelegate> handleActionHoverHook;
     private readonly Hook<HandleActionOutDelegate> handleActionOutHook;
     private readonly Hook<HandleImmDelegate> handleImmHook;
     private readonly Hook<RaptureAtkModule.Delegates.SetUiVisibility> setUiVisibilityHook;
@@ -57,7 +57,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
-        this.handleActionHoverHook = Hook<AgentActionDetail.Delegates.HandleActionHover>.FromAddress(AgentActionDetail.Addresses.HandleActionHover.Value, this.HandleActionHoverDetour);
+        this.handleActionHoverHook = Hook<HandleActionHoverDelegate>.FromAddress(AgentActionDetail.Addresses.HandleActionHover.Value, this.HandleActionHoverDetour);
         this.handleActionOutHook = Hook<HandleActionOutDelegate>.FromAddress(this.address.HandleActionOut, this.HandleActionOutDetour);
 
         this.handleImmHook = Hook<HandleImmDelegate>.FromAddress(this.address.HandleImm, this.HandleImmDetour);
@@ -83,6 +83,9 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr SetGlobalBgmDelegate(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6);
+
+    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    private delegate void HandleActionHoverDelegate(IntPtr hoverState, HoverActionKind a2, uint a3, int a4, byte a5);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr HandleActionOutDelegate(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4);
@@ -306,15 +309,15 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         return retVal;
     }
 
-    private void HandleActionHoverDetour(AgentActionDetail* hoverState, ActionKind actionKind, uint actionId, int flag, byte unk)
+    private void HandleActionHoverDetour(IntPtr hoverState, HoverActionKind actionKind, uint actionId, int a4, byte a5)
     {
-        this.handleActionHoverHook.Original(hoverState, actionKind, actionId, flag, unk);
-        this.HoveredAction.ActionKind = (HoverActionKind)actionKind;
+        this.handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5);
+        this.HoveredAction.ActionKind = actionKind;
         this.HoveredAction.BaseActionID = actionId;
-        this.HoveredAction.ActionID = hoverState->ActionId;
+        this.HoveredAction.ActionID = (uint)Marshal.ReadInt32(hoverState, 0x3C);
         this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
 
-        Log.Verbose($"HoverActionId: {actionKind}/{actionId} this:{(nint)hoverState:X}");
+        Log.Verbose($"HoverActionId: {actionKind}/{actionId} this:{hoverState.ToInt64():X}");
     }
 
     private IntPtr HandleActionOutDetour(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4)
