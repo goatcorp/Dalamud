@@ -38,7 +38,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private readonly GameGuiAddressResolver address;
 
     private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
-    private readonly Hook<HandleActionHoverDelegate> handleActionHoverHook;
+    private readonly Hook<AgentActionDetail.Delegates.HandleActionHover> handleActionHoverHook;
     private readonly Hook<HandleActionOutDelegate> handleActionOutHook;
     private readonly Hook<HandleImmDelegate> handleImmHook;
     private readonly Hook<RaptureAtkModule.Delegates.SetUiVisibility> setUiVisibilityHook;
@@ -57,7 +57,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
-        this.handleActionHoverHook = Hook<HandleActionHoverDelegate>.FromAddress(AgentActionDetail.Addresses.HandleActionHover.Value, this.HandleActionHoverDetour);
+        this.handleActionHoverHook = Hook<AgentActionDetail.Delegates.HandleActionHover>.FromAddress(AgentActionDetail.Addresses.HandleActionHover.Value, this.HandleActionHoverDetour);
         this.handleActionOutHook = Hook<HandleActionOutDelegate>.FromAddress(this.address.HandleActionOut, this.HandleActionOutDetour);
 
         this.handleImmHook = Hook<HandleImmDelegate>.FromAddress(this.address.HandleImm, this.HandleImmDetour);
@@ -85,14 +85,11 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private delegate IntPtr SetGlobalBgmDelegate(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void HandleActionHoverDelegate(IntPtr hoverState, HoverActionKind a2, uint a3, int a4, byte a5);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr HandleActionOutDelegate(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
-    
+
     /// <inheritdoc/>
     public event EventHandler<bool>? UiHideToggled;
 
@@ -138,7 +135,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
             inView = false;
             return false;
         }
-        
+
         pCoords *= MathF.Abs(1.0f / pCoords.W);
         screenPos = new Vector2(pCoords.X, pCoords.Y);
 
@@ -166,7 +163,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
             worldPos = default;
             return false;
         }
-        
+
         var camera = FFXIVClientStructs.FFXIV.Client.Graphics.Scene.CameraManager.Instance()->CurrentCamera;
         if (camera == null)
         {
@@ -221,7 +218,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     /// <inheritdoc/>
     public IntPtr FindAgentInterface(void* addon) => this.FindAgentInterface((IntPtr)addon);
-    
+
     /// <inheritdoc/>
     public IntPtr FindAgentInterface(IntPtr addonPtr)
     {
@@ -309,15 +306,15 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         return retVal;
     }
 
-    private void HandleActionHoverDetour(IntPtr hoverState, HoverActionKind actionKind, uint actionId, int a4, byte a5)
+    private void HandleActionHoverDetour(AgentActionDetail* hoverState, ActionKind actionKind, uint actionId, int flag, byte unk)
     {
-        this.handleActionHoverHook.Original(hoverState, actionKind, actionId, a4, a5);
-        this.HoveredAction.ActionKind = actionKind;
+        this.handleActionHoverHook.Original(hoverState, actionKind, actionId, flag, unk);
+        this.HoveredAction.ActionKind = (HoverActionKind)actionKind;
         this.HoveredAction.BaseActionID = actionId;
-        this.HoveredAction.ActionID = (uint)Marshal.ReadInt32(hoverState, 0x3C);
+        this.HoveredAction.ActionID = hoverState->ActionId;
         this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
 
-        Log.Verbose($"HoverActionId: {actionKind}/{actionId} this:{hoverState.ToInt64():X}");
+        Log.Verbose($"HoverActionId: {actionKind}/{actionId} this:{(nint)hoverState:X}");
     }
 
     private IntPtr HandleActionOutDetour(IntPtr agentActionDetail, IntPtr a2, IntPtr a3, int a4)
@@ -422,13 +419,13 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         this.gameGuiService.HoveredItemChanged += this.HoveredItemForward;
         this.gameGuiService.HoveredActionChanged += this.HoveredActionForward;
     }
-    
+
     /// <inheritdoc/>
     public event EventHandler<bool>? UiHideToggled;
-    
+
     /// <inheritdoc/>
     public event EventHandler<ulong>? HoveredItemChanged;
-    
+
     /// <inheritdoc/>
     public event EventHandler<HoveredAction>? HoveredActionChanged;
 
@@ -444,7 +441,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
 
     /// <inheritdoc/>
     public HoveredAction HoveredAction => this.gameGuiService.HoveredAction;
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -456,7 +453,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         this.HoveredItemChanged = null;
         this.HoveredActionChanged = null;
     }
-    
+
     /// <inheritdoc/>
     public bool OpenMapWithMapLink(MapLinkPayload mapLink)
         => this.gameGuiService.OpenMapWithMapLink(mapLink);
@@ -464,7 +461,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
         => this.gameGuiService.WorldToScreen(worldPos, out screenPos);
-    
+
     /// <inheritdoc/>
     public bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out bool inView)
         => this.gameGuiService.WorldToScreen(worldPos, out screenPos, out inView);
@@ -476,26 +473,26 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public IntPtr GetUIModule()
         => this.gameGuiService.GetUIModule();
-    
+
     /// <inheritdoc/>
     public IntPtr GetAddonByName(string name, int index = 1)
         => this.gameGuiService.GetAddonByName(name, index);
-    
+
     /// <inheritdoc/>
     public IntPtr FindAgentInterface(string addonName)
         => this.gameGuiService.FindAgentInterface(addonName);
-    
+
     /// <inheritdoc/>
-    public unsafe IntPtr FindAgentInterface(void* addon) 
+    public unsafe IntPtr FindAgentInterface(void* addon)
         => this.gameGuiService.FindAgentInterface(addon);
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(IntPtr addonPtr) 
+    public IntPtr FindAgentInterface(IntPtr addonPtr)
         => this.gameGuiService.FindAgentInterface(addonPtr);
 
     private void UiHideToggledForward(object sender, bool toggled) => this.UiHideToggled?.Invoke(sender, toggled);
-    
+
     private void HoveredItemForward(object sender, ulong itemId) => this.HoveredItemChanged?.Invoke(sender, itemId);
-    
+
     private void HoveredActionForward(object sender, HoveredAction hoverAction) => this.HoveredActionChanged?.Invoke(sender, hoverAction);
 }
