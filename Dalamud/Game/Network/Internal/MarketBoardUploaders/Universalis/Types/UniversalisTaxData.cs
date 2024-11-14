@@ -48,4 +48,10 @@ internal class UniversalisTaxData
     /// </summary>
     [JsonProperty("sharlayan")]
     public uint Sharlayan { get; set; }
+
+    /// <summary>
+    /// Gets or sets Tuliyollal's current tax rate.
+    /// </summary>
+    [JsonProperty("tuliyollal")]
+    public uint Tuliyollal { get; set; }
 }
