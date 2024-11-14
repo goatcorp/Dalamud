@@ -9,7 +9,7 @@ namespace Dalamud.Game.Inventory;
 /// <summary>
 /// Dalamud wrapper around a ClientStructs InventoryItem.
 /// </summary>
-[StructLayout(LayoutKind.Explicit, Size = StructSizeInBytes)]
+[StructLayout(LayoutKind.Explicit, Size = InventoryItem.StructSize)]
 public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
 {
     /// <summary>
@@ -17,22 +17,12 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// </summary>
     [FieldOffset(0)]
     internal readonly InventoryItem InternalItem;
-
-    private const int StructSizeInBytes = 0x48;
-
+    
     /// <summary>
     /// The view of the backing data, in <see cref="ulong"/>.
     /// </summary>
     [FieldOffset(0)]
-    private fixed ulong dataUInt64[StructSizeInBytes / 0x8];
-
-    static GameInventoryItem()
-    {
-        Debug.Assert(
-            sizeof(InventoryItem) == StructSizeInBytes,
-            $"Definition of {nameof(InventoryItem)} has been changed. " +
-            $"Update {nameof(StructSizeInBytes)} to {sizeof(InventoryItem)} to accommodate for the size change.");
-    }
+    private fixed ulong dataUInt64[InventoryItem.StructSize / 0x8];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInventoryItem"/> struct.
@@ -157,7 +147,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <returns><c>true</c> if the current object is equal to the <paramref name="other" /> parameter; otherwise, <c>false</c>.</returns>
     public readonly bool Equals(in GameInventoryItem other)
     {
-        for (var i = 0; i < StructSizeInBytes / 8; i++)
+        for (var i = 0; i < InventoryItem.StructSize / 8; i++)
         {
             if (this.dataUInt64[i] != other.dataUInt64[i])
                 return false;
@@ -173,7 +163,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     public override int GetHashCode()
     {
         var k = 0x5a8447b91aff51b4UL;
-        for (var i = 0; i < StructSizeInBytes / 8; i++)
+        for (var i = 0; i < InventoryItem.StructSize / 8; i++)
             k ^= this.dataUInt64[i];
         return unchecked((int)(k ^ (k >> 32)));
     }
