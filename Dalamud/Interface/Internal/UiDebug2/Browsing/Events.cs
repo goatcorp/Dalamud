@@ -1,6 +1,5 @@
 using System.Numerics;
 
-using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 

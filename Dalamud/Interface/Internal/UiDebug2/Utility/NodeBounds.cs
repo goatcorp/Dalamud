@@ -148,8 +148,9 @@ public unsafe struct NodeBounds
         var sinR = Sin(r);
         var d = (p - o) * s;
 
-        return new(o.X + (d.X * cosR) - (d.Y * sinR),
-                   o.Y + (d.X * sinR) + (d.Y * cosR));
+        return new(
+            (o.X + (d.X * cosR)) - (d.Y * sinR),
+            o.Y + (d.X * sinR) + (d.Y * cosR));
     }
 
     private void TransformPoints(AtkResNode* transformNode)

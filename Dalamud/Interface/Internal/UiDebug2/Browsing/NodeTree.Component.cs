@@ -34,11 +34,13 @@ internal unsafe class ComponentNodeTree : ResNodeTree
 
     private AtkUldManager* UldManager => &this.Component->UldManager;
 
+    private int? ComponentFieldOffset { get; set; }
+
     /// <inheritdoc/>
     private protected override string GetHeaderText()
     {
         var childCount = (int)this.UldManager->NodeListCount;
-        return $"{this.componentType} Component Node{(childCount > 0 ? $" [+{childCount}]" : string.Empty)} (Node: {(nint)this.Node:X} / Comp: {(nint)this.Component:X})";
+        return $"{this.componentType} Component Node{(childCount > 0 ? $" [+{childCount}]" : string.Empty)}";
     }
 
     /// <inheritdoc/>
@@ -62,10 +64,10 @@ internal unsafe class ComponentNodeTree : ResNodeTree
     }
 
     /// <inheritdoc/>
-    private protected override void PrintFieldNames()
+    private protected override void PrintFieldLabels()
     {
-        this.PrintFieldName((nint)this.Node, new(0, 0.85F, 1, 1));
-        this.PrintFieldName((nint)this.Component, new(0f, 0.5f, 0.8f, 1f));
+        this.PrintFieldLabel((nint)this.Node, new(0, 0.85F, 1, 1), this.NodeFieldOffset);
+        this.PrintFieldLabel((nint)this.Component, new(0f, 0.5f, 0.8f, 1f), this.ComponentFieldOffset);
     }
 
     /// <inheritdoc/>
@@ -105,6 +107,34 @@ internal unsafe class ComponentNodeTree : ResNodeTree
                 }
 
                 break;
+        }
+    }
+
+    /// <inheritdoc/>
+    private protected override void GetFieldOffset()
+    {
+        var nodeFound = false;
+        var componentFound = false;
+        for (var i = 0; i < this.AddonTree.AddonSize; i += 0x8)
+        {
+            var readPtr = Marshal.ReadIntPtr(this.AddonTree.InitialPtr + i);
+
+            if (readPtr == (nint)this.Node)
+            {
+                this.NodeFieldOffset = i;
+                nodeFound = true;
+            }
+
+            if (readPtr == (nint)this.Component)
+            {
+                this.ComponentFieldOffset = i;
+                componentFound = true;
+            }
+
+            if (nodeFound && componentFound)
+            {
+                break;
+            }
         }
     }
 

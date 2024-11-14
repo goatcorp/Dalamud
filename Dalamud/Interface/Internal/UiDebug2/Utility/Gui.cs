@@ -112,4 +112,23 @@ internal static class Gui
 
         return true;
     }
+
+    /// <summary>
+    /// Draws a separator with some padding above and below.
+    /// </summary>
+    /// <param name="mask">Governs whether to pad above, below, or both.</param>
+    /// <param name="padding">The amount of padding.</param>
+    internal static void PaddedSeparator(uint mask = 0b11, float padding = 5f)
+    {
+        if ((mask & 0b10) > 0)
+        {
+            ImGui.Dummy(new(padding * ImGui.GetIO().FontGlobalScale));
+        }
+
+        ImGui.Separator();
+        if ((mask & 0b01) > 0)
+        {
+            ImGui.Dummy(new(padding * ImGui.GetIO().FontGlobalScale));
+        }
+    }
 }
