@@ -57,7 +57,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
-        this.handleActionHoverHook = Hook<HandleActionHoverDelegate>.FromAddress(this.address.HandleActionHover, this.HandleActionHoverDetour);
+        this.handleActionHoverHook = Hook<HandleActionHoverDelegate>.FromAddress(AgentActionDetail.Addresses.HandleActionHover.Value, this.HandleActionHoverDetour);
         this.handleActionOutHook = Hook<HandleActionOutDelegate>.FromAddress(this.address.HandleActionOut, this.HandleActionOutDetour);
 
         this.handleImmHook = Hook<HandleImmDelegate>.FromAddress(this.address.HandleImm, this.HandleImmDetour);

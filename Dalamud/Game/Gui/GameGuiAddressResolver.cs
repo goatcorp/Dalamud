@@ -16,11 +16,6 @@ internal sealed class GameGuiAddressResolver : BaseAddressResolver
     public IntPtr SetGlobalBgm { get; private set; }
 
     /// <summary>
-    /// Gets the address of the native HandleActionHover method.
-    /// </summary>
-    public IntPtr HandleActionHover { get; private set; }
-
-    /// <summary>
     /// Gets the address of the native HandleActionOut method.
     /// </summary>
     public IntPtr HandleActionOut { get; private set; }
@@ -39,7 +34,6 @@ internal sealed class GameGuiAddressResolver : BaseAddressResolver
     protected override void Setup64Bit(ISigScanner sig)
     {
         this.SetGlobalBgm = sig.ScanText("E8 ?? ?? ?? ?? 8B 2F");
-        this.HandleActionHover = sig.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 83 F8 0F");
         this.HandleActionOut = sig.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B DA 48 8B F9 4D 85 C0 74 1F");
         this.HandleImm = sig.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 48 83 FF 09");
         
