@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Runtime.InteropServices;
 
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Conditions;
@@ -71,7 +70,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.processPacketPlayerSetupHook.Enable();
         this.onLogoutHook.Enable();
     }
-    
+
     private unsafe delegate void ProcessPacketPlayerSetupDelegate(nint a1, nint packet);
 
     /// <inheritdoc/>
@@ -121,7 +120,14 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public unsafe ulong LocalContentId => PlayerState.Instance()->ContentId;
 
     /// <inheritdoc/>
-    public bool IsLoggedIn { get; private set; }
+    public unsafe bool IsLoggedIn
+    {
+        get
+        {
+            var agentLobby = AgentLobby.Instance();
+            return agentLobby != null && agentLobby->IsLoggedIn;
+        }
+    }
 
     /// <inheritdoc/>
     public bool IsPvP { get; private set; }
@@ -259,7 +265,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         try
         {
             Log.Debug("Login");
-            this.IsLoggedIn = true;
             this.Login?.InvokeSafely();
             gameGui?.ResetUiHideState();
             this.lifecycle.ResetLogout();
@@ -282,8 +287,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                 var code = logoutParams->Code;
 
                 Log.Debug("Logout: Type {type}, Code {code}", type, code);
-
-                this.IsLoggedIn = false;
 
                 if (this.Logout is { } callback)
                 {
