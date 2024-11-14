@@ -20,11 +20,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     // Functions
 
     /// <summary>
-    /// Gets the address of the method which sets the territory type.
-    /// </summary>
-    public IntPtr SetupTerritoryType { get; private set; }
-
-    /// <summary>
     /// Gets the address of the method which sets up the player.
     /// </summary>
     public IntPtr ProcessPacketPlayerSetup { get; private set; }
@@ -41,9 +36,7 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 7C 24 ?? 41 56 48 83 EC ?? 48 8B D9 48 89 6C 24");
-
-        this.ProcessPacketPlayerSetup = sig.ScanText("40 53 48 83 EC 20 48 8D 0D ?? ?? ?? ?? 48 8B DA E8 ?? ?? ?? ?? 48 8B D3");
+        this.ProcessPacketPlayerSetup = sig.ScanText("40 53 48 83 EC 20 48 8D 0D ?? ?? ?? ?? 48 8B DA E8 ?? ?? ?? ?? 48 8B D3"); // not in cs struct
 
         // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
         // lea   rcx, ds:1DB9F74h[rax*4]          KeyboardState
@@ -51,6 +44,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
         this.KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
         this.KeyboardStateIndexArray = sig.ScanText("0F B6 94 33 ?? ?? ?? ?? 84 D2") + 0x4;
 
-        this.GamepadPoll = sig.ScanText("40 55 53 57 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 44 0F 29 B4 24");
+        this.GamepadPoll = sig.ScanText("40 55 53 57 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 44 0F 29 B4 24");  // unnamed in cs
     }
 }

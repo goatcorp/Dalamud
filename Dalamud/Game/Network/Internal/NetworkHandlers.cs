@@ -15,6 +15,8 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Lumina.Excel.Sheets;
 using Serilog;
@@ -35,7 +37,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private readonly NetworkHandlersAddressResolver addressResolver;
 
-    private readonly Hook<CfPopDelegate> cfPopHook;
+    private readonly Hook<PublicContentDirector.Delegates.HandleEnterContentInfoPacket> cfPopHook;
     private readonly Hook<MarketBoardPurchasePacketHandler> mbPurchaseHook;
     private readonly Hook<MarketBoardHistoryPacketHandler> mbHistoryHook;
     private readonly Hook<CustomTalkReceiveResponse> customTalkHook; // used for marketboard taxes
@@ -166,7 +168,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             this.MarketBoardSendPurchaseRequestDetour);
         this.mbSendPurchaseRequestHook.Enable();
 
-        this.cfPopHook = Hook<CfPopDelegate>.FromAddress(this.addressResolver.CfPopPacketHandler, this.CfPopDetour);
+        this.cfPopHook = Hook<PublicContentDirector.Delegates.HandleEnterContentInfoPacket>.FromAddress(PublicContentDirector.Addresses.HandleEnterContentInfoPacket.Value, this.CfPopDetour);
         this.cfPopHook.Enable();
     }
 
@@ -182,8 +184,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private delegate byte InfoProxyItemSearchAddPage(nint self, nint packetRef);
 
     private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxyItemSearch* infoProxy);
-
-    private delegate nint CfPopDelegate(nint packetData);
 
     /// <summary>
     /// Event which gets fired when a duty is ready.
@@ -263,7 +263,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.cfPopHook.Dispose();
     }
 
-    private unsafe nint CfPopDetour(nint packetData)
+    private unsafe nint CfPopDetour(PublicContentDirector.EnterContentInfoPacket* packetData)
     {
         var result = this.cfPopHook.OriginalDisposeSafe(packetData);
 
