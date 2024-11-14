@@ -36,9 +36,14 @@ public static partial class ImGuiComponents
         }
 
         if (ImGui.IsItemHovered())
+        {
             drawList.AddRectFilled(p, new Vector2(p.X + width, p.Y + height), ImGui.GetColorU32(!v ? colors[(int)ImGuiCol.ButtonActive] : new Vector4(0.78f, 0.78f, 0.78f, 1.0f)), height * 0.5f);
+        }
         else
+        {
             drawList.AddRectFilled(p, new Vector2(p.X + width, p.Y + height), ImGui.GetColorU32(!v ? colors[(int)ImGuiCol.Button] * 0.6f : new Vector4(0.35f, 0.35f, 0.35f, 1.0f)), height * 0.50f);
+        }
+
         drawList.AddCircleFilled(new Vector2(p.X + radius + ((v ? 1 : 0) * (width - (radius * 2.0f))), p.Y + radius), radius - 1.5f, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1)));
 
         return changed;
@@ -62,7 +67,7 @@ public static partial class ImGuiComponents
         // TODO: animate
         ImGui.InvisibleButton(id, new Vector2(width, height));
 
-        var dimFactor = 0.5f;
+        const float dimFactor = 0.5f;
 
         drawList.AddRectFilled(p, new Vector2(p.X + width, p.Y + height), ImGui.GetColorU32(v ? colors[(int)ImGuiCol.Button] * dimFactor : new Vector4(0.55f, 0.55f, 0.55f, 1.0f) * dimFactor), height * 0.50f);
         drawList.AddCircleFilled(new Vector2(p.X + radius + ((v ? 1 : 0) * (width - (radius * 2.0f))), p.Y + radius), radius - 1.5f, ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 1, 1) * dimFactor));

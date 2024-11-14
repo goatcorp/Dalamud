@@ -1,3 +1,7 @@
+using Dalamud.Interface.Utility.Raii;
+
+using FFXIVClientStructs.FFXIV.Common.Math;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
@@ -18,17 +22,32 @@ public static partial class ImGuiComponents
     /// </summary>
     /// <param name="helpText">The text to display on hover.</param>
     /// <param name="icon">The icon to use.</param>
-    public static void HelpMarker(string helpText, FontAwesomeIcon icon)
+    /// <param name="color">The color of the icon.</param>
+    public static void HelpMarker(string helpText, FontAwesomeIcon icon, Vector4? color = null)
     {
+        using var col = new ImRaii.Color();
+
+        if (color.HasValue)
+        {
+            col.Push(ImGuiCol.TextDisabled, color.Value);
+        }
+
         ImGui.SameLine();
-        ImGui.PushFont(UiBuilder.IconFont);
-        ImGui.TextDisabled(icon.ToIconString());
-        ImGui.PopFont();
-        if (!ImGui.IsItemHovered()) return;
-        ImGui.BeginTooltip();
-        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
-        ImGui.TextUnformatted(helpText);
-        ImGui.PopTextWrapPos();
-        ImGui.EndTooltip();
+
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+        {
+            ImGui.TextDisabled(icon.ToIconString());
+        }
+
+        if (ImGui.IsItemHovered())
+        {
+            using (ImRaii.Tooltip())
+            {
+                using (ImRaii.TextWrapPos(ImGui.GetFontSize() * 35.0f))
+                {
+                    ImGui.TextUnformatted(helpText);
+                }
+            }
+        }
     }
 }
