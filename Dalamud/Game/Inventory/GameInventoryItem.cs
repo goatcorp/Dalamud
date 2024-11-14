@@ -18,7 +18,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     [FieldOffset(0)]
     internal readonly InventoryItem InternalItem;
 
-    private const int StructSizeInBytes = 0x40;
+    private const int StructSizeInBytes = 0x48;
 
     /// <summary>
     /// The view of the backing data, in <see cref="ulong"/>.
