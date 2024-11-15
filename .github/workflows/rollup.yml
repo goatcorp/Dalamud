@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         branches:
-          - api11
+          - net9
 
     defaults:
       run:
