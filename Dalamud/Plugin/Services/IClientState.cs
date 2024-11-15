@@ -35,7 +35,7 @@ public interface IClientState
     public event Action<ushort> TerritoryChanged;
 
     /// <summary>
-    /// Event that fires when a characters ClassJob changed.
+    /// Event that fires when the local player character's ClassJob has changed.
     /// </summary>
     public event ClassJobChangeDelegate? ClassJobChanged;
 
@@ -46,22 +46,22 @@ public interface IClientState
     public event LevelChangeDelegate? LevelChanged;
 
     /// <summary>
-    /// Event that fires when a character is logging in, and the local character object is available.
+    /// Event that fires when the local player is logging in.
     /// </summary>
     public event Action Login;
 
     /// <summary>
-    /// Event that fires when a character is logging out.
+    /// Event that fires when the local player is logging out.
     /// </summary>
     public event LogoutDelegate Logout;
 
     /// <summary>
-    /// Event that fires when a character is entering PvP.
+    /// Event that fires when the local player is entering a PvP territory.
     /// </summary>
     public event Action EnterPvP;
 
     /// <summary>
-    /// Event that fires when a character is leaving PvP.
+    /// Event that fires when the local player is leaving a PvP territory.
     /// </summary>
     public event Action LeavePvP;
 
