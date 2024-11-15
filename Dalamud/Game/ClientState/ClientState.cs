@@ -22,8 +22,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 using Lumina.Excel.Sheets;
 
-using TerraFX.Interop.Windows;
-
 using Action = System.Action;
 
 namespace Dalamud.Game.ClientState;
