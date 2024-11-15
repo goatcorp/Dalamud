@@ -28,7 +28,7 @@ internal class JobGauges : IServiceType, IJobGauges
     }
 
     /// <inheritdoc/>
-    public unsafe IntPtr Address => (nint)(&CSJobGaugeManager.Instance()->CurrentGauge);
+    public unsafe IntPtr Address => (nint)(CSJobGaugeManager.Instance()->CurrentGauge);
 
     /// <inheritdoc/>
     public T Get<T>() where T : JobGaugeBase
