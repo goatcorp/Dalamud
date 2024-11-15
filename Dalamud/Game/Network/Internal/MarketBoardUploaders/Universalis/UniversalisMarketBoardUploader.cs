@@ -46,9 +46,9 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var uploadObject = new UniversalisItemUploadRequest
         {
-            WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+            WorldId = clientState.LocalPlayer?.CurrentWorld.RowId ?? 0,
             UploaderId = uploader.ToString(),
-            ItemId = request.Listings.FirstOrDefault()?.CatalogId ?? 0,
+            ItemId = request.CatalogId,
             Listings = [],
             Sales = [],
         };
@@ -106,7 +106,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         // ====================================================================================
 
-        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.Listings.FirstOrDefault()?.CatalogId ?? 0);
+        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.CatalogId);
     }
 
     /// <inheritdoc/>
@@ -120,7 +120,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
         var taxUploadObject = new UniversalisTaxUploadRequest
         {
-            WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
+            WorldId = clientState.LocalPlayer?.CurrentWorld.RowId ?? 0,
             UploaderId = clientState.LocalContentId.ToString(),
             TaxData = new UniversalisTaxData
             {
@@ -131,6 +131,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 Kugane = taxRates.KuganeTax,
                 Crystarium = taxRates.CrystariumTax,
                 Sharlayan = taxRates.SharlayanTax,
+                Tuliyollal = taxRates.TuliyollalTax,
             },
         };
 
@@ -158,7 +159,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
             return;
 
         var itemId = purchaseHandler.CatalogId;
-        var worldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0;
+        var worldId = clientState.LocalPlayer?.CurrentWorld.RowId ?? 0;
 
         // ====================================================================================
 

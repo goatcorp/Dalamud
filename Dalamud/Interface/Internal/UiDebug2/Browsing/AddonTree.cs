@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Components;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
@@ -19,14 +20,12 @@ namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 /// </summary>
 public unsafe partial class AddonTree : IDisposable
 {
-    private readonly nint initialPtr;
-
     private AddonPopoutWindow? window;
 
     private AddonTree(string name, nint ptr)
     {
         this.AddonName = name;
-        this.initialPtr = ptr;
+        this.InitialPtr = ptr;
         this.PopulateFieldNames(ptr);
     }
 
@@ -34,6 +33,11 @@ public unsafe partial class AddonTree : IDisposable
     /// Gets the name of the addon this tree represents.
     /// </summary>
     internal string AddonName { get; init; }
+
+    /// <summary>
+    /// Gets the addon's pointer at the time this <see cref="AddonTree"/> was created.
+    /// </summary>
+    internal nint InitialPtr { get; init; }
 
     /// <summary>
     /// Gets or sets a collection of trees representing nodes within this addon.
@@ -81,7 +85,7 @@ public unsafe partial class AddonTree : IDisposable
             {
                 if (AddonTrees.TryGetValue(name, out var tree))
                 {
-                    if (tree.initialPtr == ptr)
+                    if (tree.InitialPtr == ptr)
                     {
                         return tree;
                     }
@@ -143,34 +147,47 @@ public unsafe partial class AddonTree : IDisposable
             ImGui.SetTooltip("Toggle Popout Window");
         }
 
-        ImGui.Separator();
-
-        PrintFieldValuePair("Address", $"{(nint)addon:X}");
+        PaddedSeparator(1);
 
         var uldManager = addon->UldManager;
+
+        PrintFieldValuePair("Address", $"{(nint)addon:X}");
+        PrintFieldValuePair("Agent", $"{GameGui.FindAgentInterface(addon):X}");
+
         PrintFieldValuePairs(
             ("X", $"{addon->X}"),
-            ("Y", $"{addon->X}"),
+            ("Y", $"{addon->Y}"),
             ("Scale", $"{addon->Scale}"),
             ("Widget Count", $"{uldManager.ObjectCount}"));
-
-        ImGui.Separator();
 
         var addonObj = this.GetAddonObj(addon);
         if (addonObj != null)
         {
+            PaddedSeparator();
             ShowStruct(addonObj, (ulong)addon);
         }
 
-        ImGui.Dummy(new(25 * ImGui.GetIO().FontGlobalScale));
-        ImGui.Separator();
+        PaddedSeparator();
 
-        ResNodeTree.PrintNodeList(uldManager.NodeList, uldManager.NodeListCount, this);
+        PrintAtkValues(addon);
 
-        ImGui.Dummy(new(25 * ImGui.GetIO().FontGlobalScale));
-        ImGui.Separator();
+        if (addon->RootNode != null)
+        {
+            ResNodeTree.GetOrCreate(addon->RootNode, this).Print(0);
+            PaddedSeparator();
+        }
 
-        ResNodeTree.PrintNodeListAsTree(addon->CollisionNodeList, (int)addon->CollisionNodeListCount, "Collision List", this, new(0.5F, 0.7F, 1F, 1F));
+        if (uldManager.NodeList != null)
+        {
+            var count = uldManager.NodeListCount;
+            ResNodeTree.PrintNodeListAsTree(uldManager.NodeList, count, $"Node List [{count}]:", this, new(0, 0.85F, 1, 1));
+            PaddedSeparator();
+        }
+
+        if (addon->CollisionNodeList != null)
+        {
+            ResNodeTree.PrintNodeListAsTree(addon->CollisionNodeList, (int)addon->CollisionNodeListCount, "Collision List", this, new(0.5F, 0.7F, 1F, 1F));
+        }
 
         if (SearchResults.Length > 0 && Countdown <= 0)
         {
@@ -218,7 +235,7 @@ public unsafe partial class AddonTree : IDisposable
     private bool ValidateAddon(out AtkUnitBase* addon)
     {
         addon = (AtkUnitBase*)GameGui.GetAddonByName(this.AddonName);
-        if (addon == null || (nint)addon != this.initialPtr)
+        if (addon == null || (nint)addon != this.InitialPtr)
         {
             this.Dispose();
             return false;
@@ -231,7 +248,7 @@ public unsafe partial class AddonTree : IDisposable
     {
         if (this.window == null)
         {
-            this.window = new AddonPopoutWindow(this, $"{this.AddonName}###addonPopout{this.initialPtr}");
+            this.window = new AddonPopoutWindow(this, $"{this.AddonName}###addonPopout{this.InitialPtr}");
             PopoutWindows.AddWindow(this.window);
         }
         else

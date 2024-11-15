@@ -9,7 +9,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest;
 
@@ -39,7 +39,11 @@ internal class SelfTestWindow : Window
             new GamepadStateAgingStep(),
             new ChatAgingStep(),
             new HoverAgingStep(),
-            new LuminaAgingStep<TerritoryType>(),
+            new LuminaAgingStep<Item>(true),
+            new LuminaAgingStep<Level>(true),
+            new LuminaAgingStep<Lumina.Excel.Sheets.Action>(true),
+            new LuminaAgingStep<Quest>(true),
+            new LuminaAgingStep<TerritoryType>(false),
             new AddonLifecycleAgingStep(),
             new PartyFinderAgingStep(),
             new HandledExceptionAgingStep(),

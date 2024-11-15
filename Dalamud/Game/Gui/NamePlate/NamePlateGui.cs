@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Objects;
@@ -20,16 +20,6 @@ namespace Dalamud.Game.Gui.NamePlate;
 [ServiceManager.EarlyLoadedService]
 internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 {
-    /// <summary>
-    /// The index for the number array used by the NamePlate addon.
-    /// </summary>
-    public const int NumberArrayIndex = 5;
-
-    /// <summary>
-    /// The index for the string array used by the NamePlate addon.
-    /// </summary>
-    public const int StringArrayIndex = 4;
-
     /// <summary>
     /// The index for of the FullUpdate entry in the NamePlate number array.
     /// </summary>
@@ -81,18 +71,11 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     /// <inheritdoc/>
     public unsafe void RequestRedraw()
     {
-        var addon = this.gameGui.GetAddonByName("NamePlate");
-        if (addon != 0)
+        var addon = (AddonNamePlate*)this.gameGui.GetAddonByName("NamePlate");
+        if (addon != null)
         {
-            var raptureAtkModule = RaptureAtkModule.Instance();
-            if (raptureAtkModule == null)
-            {
-                return;
-            }
-
-            ((AddonNamePlate*)addon)->DoFullUpdate = 1;
-            var namePlateNumberArrayData = raptureAtkModule->AtkArrayDataHolder.NumberArrays[NumberArrayIndex];
-            namePlateNumberArrayData->SetValue(NumberArrayFullUpdateIndex, 1);
+            addon->DoFullUpdate = 1;
+            AtkStage.Instance()->GetNumberArrayData(NumberArrayType.NamePlate)->SetValue(NumberArrayFullUpdateIndex, 1);
         }
     }
 

@@ -169,6 +169,7 @@ internal class MarketBoardAgingStep : IAgingStep
                     ImGui.Text($"Kugane: {this.marketTaxRate.KuganeTax.ToString()}");
                     ImGui.Text($"Crystarium: {this.marketTaxRate.CrystariumTax.ToString()}");
                     ImGui.Text($"Sharlayan: {this.marketTaxRate.SharlayanTax.ToString()}");
+                    ImGui.Text($"Tuliyollal: {this.marketTaxRate.TuliyollalTax.ToString()}");
                     ImGui.Separator();
                     if (ImGui.Button("Looks Correct / Skip"))
                     {

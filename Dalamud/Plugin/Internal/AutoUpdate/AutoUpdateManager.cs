@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -89,7 +89,7 @@ internal class AutoUpdateManager : IServiceType
             t =>
             {
                 t.Result.Login += this.OnLogin;
-                t.Result.Logout += this.OnLogout;
+                t.Result.Logout += (int type, int code) => this.OnLogout();
             });
         Service<Framework>.GetAsync().ContinueWith(t => { t.Result.Update += this.OnUpdate; });
         

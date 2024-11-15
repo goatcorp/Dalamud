@@ -40,6 +40,9 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
 
         this.Logger = loggerConfiguration.CreateLogger();
     }
+    
+    /// <inheritdoc />
+    public ILogger Logger { get; }
 
     /// <inheritdoc />
     public LogEventLevel MinimumLogLevel
@@ -47,12 +50,7 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
         get => this.levelSwitch.MinimumLevel;
         set => this.levelSwitch.MinimumLevel = value;
     }
-
-    /// <summary>
-    /// Gets a logger that may be exposed to plugins some day.
-    /// </summary>
-    public ILogger Logger { get; }
-
+    
     /// <inheritdoc />
     public void Fatal(string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Fatal, null, messageTemplate, values);

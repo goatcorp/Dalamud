@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.13" />
+        <PackageReference Include="DalamudPackager" Version="11.0.0" />
         <Reference Include="FFXIVClientStructs" Private="false" />
         <Reference Include="Newtonsoft.Json" Private="false" />
         <Reference Include="Dalamud" Private="false" />
@@ -22,6 +22,7 @@
         <Reference Include="ImGuiScene" Private="false" />
         <Reference Include="Lumina" Private="false" />
         <Reference Include="Lumina.Excel" Private="false" />
+        <Reference Include="Serilog" Private="false" />
     </ItemGroup>
 
     <Target Name="Message" BeforeTargets="BeforeBuild">

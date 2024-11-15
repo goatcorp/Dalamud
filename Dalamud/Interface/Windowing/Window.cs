@@ -287,7 +287,7 @@ public abstract class Window
 
                 this.IsFocused = false;
                 
-                if (doSoundEffects && !this.DisableWindowSounds) UIGlobals.PlaySoundEffect(this.OnCloseSfxId, 0, 0, 0);
+                if (doSoundEffects && !this.DisableWindowSounds) UIGlobals.PlaySoundEffect(this.OnCloseSfxId);
             }
 
             return;
@@ -307,7 +307,7 @@ public abstract class Window
             this.internalLastIsOpen = this.internalIsOpen;
             this.OnOpen();
 
-            if (doSoundEffects && !this.DisableWindowSounds) UIGlobals.PlaySoundEffect(this.OnOpenSfxId, 0, 0, 0);
+            if (doSoundEffects && !this.DisableWindowSounds) UIGlobals.PlaySoundEffect(this.OnOpenSfxId);
         }
 
         this.PreDraw();

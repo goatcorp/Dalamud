@@ -8,39 +8,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     // Static offsets
 
     /// <summary>
-    /// Gets the address of the actor table.
-    /// </summary>
-    public IntPtr ObjectTable { get; private set; }
-
-    /// <summary>
-    /// Gets the address of the buddy list.
-    /// </summary>
-    public IntPtr BuddyList { get; private set; }
-
-    /// <summary>
-    /// Gets the address of a pointer to the fate table.
-    /// </summary>
-    /// <remarks>
-    /// This is a static address to a pointer, not the address of the table itself.
-    /// </remarks>
-    public IntPtr FateTablePtr { get; private set; }
-
-    /// <summary>
-    /// Gets the address of the Group Manager.
-    /// </summary>
-    public IntPtr GroupManager { get; private set; }
-
-    /// <summary>
-    /// Gets the address of the local content id.
-    /// </summary>
-    public IntPtr LocalContentId { get; private set; }
-
-    /// <summary>
-    /// Gets the address of job gauge data.
-    /// </summary>
-    public IntPtr JobGaugeData { get; private set; }
-
-    /// <summary>
     /// Gets the address of the keyboard state.
     /// </summary>
     public IntPtr KeyboardState { get; private set; }
@@ -50,17 +17,12 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// </summary>
     public IntPtr KeyboardStateIndexArray { get; private set; }
 
-    /// <summary>
-    /// Gets the address of the condition flag array.
-    /// </summary>
-    public IntPtr ConditionFlags { get; private set; }
-
     // Functions
 
     /// <summary>
-    /// Gets the address of the method which sets the territory type.
+    /// Gets the address of the method which sets up the player.
     /// </summary>
-    public IntPtr SetupTerritoryType { get; private set; }
+    public IntPtr ProcessPacketPlayerSetup { get; private set; }
 
     /// <summary>
     /// Gets the address of the method which polls the gamepads for data.
@@ -74,18 +36,7 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     /// <param name="sig">The signature scanner to facilitate setup.</param>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.ObjectTable = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 44 0F B6 83 ?? ?? ?? ?? C6 83 ?? ?? ?? ?? ??");
-
-        this.BuddyList = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 45 84 E4 75 1A F6 45 12 04");
-
-        this.FateTablePtr = sig.GetStaticAddressFromSig("48 8B 15 ?? ?? ?? ?? 48 8B F1 44 0F B7 41");
-
-        this.GroupManager = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 80 B8 ?? ?? ?? ?? ?? 77 71");
-
-        this.LocalContentId = sig.GetStaticAddressFromSig("48 0F 44 0D ?? ?? ?? ?? 48 8D 57 08");
-        this.JobGaugeData = sig.GetStaticAddressFromSig("48 8B 3D ?? ?? ?? ?? 33 ED") + 0x8;
-
-        this.SetupTerritoryType = sig.ScanText("48 89 5C 24 ?? 48 89 6C 24 ?? 57 48 83 EC 20 0F B7 DA");
+        this.ProcessPacketPlayerSetup = sig.ScanText("40 53 48 83 EC 20 48 8D 0D ?? ?? ?? ?? 48 8B DA E8 ?? ?? ?? ?? 48 8B D3"); // not in cs struct
 
         // These resolve to fixed offsets only, without the base address added in, so GetStaticAddressFromSig() can't be used.
         // lea   rcx, ds:1DB9F74h[rax*4]          KeyboardState
@@ -93,8 +44,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
         this.KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
         this.KeyboardStateIndexArray = sig.ScanText("0F B6 94 33 ?? ?? ?? ?? 84 D2") + 0x4;
 
-        this.ConditionFlags = sig.GetStaticAddressFromSig("48 8D 0D ?? ?? ?? ?? 8B D3 E8 ?? ?? ?? ?? 32 C0 48 83 C4 20");
-        
-        this.GamepadPoll = sig.ScanText("40 55 53 57 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 44 0F 29 B4 24");
+        this.GamepadPoll = sig.ScanText("40 55 53 57 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 44 0F 29 B4 24");  // unnamed in cs
     }
 }

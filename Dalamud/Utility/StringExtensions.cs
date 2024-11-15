@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 

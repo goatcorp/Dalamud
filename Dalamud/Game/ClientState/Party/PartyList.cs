@@ -6,9 +6,8 @@ using System.Runtime.InteropServices;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
-using Serilog;
+using CSGroupManager = FFXIVClientStructs.FFXIV.Client.Game.Group.GroupManager;
 
 namespace Dalamud.Game.ClientState.Party;
 
@@ -28,14 +27,9 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();
 
-    private readonly ClientStateAddressResolver address;
-
     [ServiceManager.ServiceConstructor]
     private PartyList()
     {
-        this.address = this.clientState.AddressResolver;
-
-        Log.Verbose($"Group manager address {Util.DescribeAddress(this.address.GroupManager)}");
     }
 
     /// <inheritdoc/>
@@ -48,7 +42,7 @@ internal sealed unsafe partial class PartyList : IServiceType, IPartyList
     public bool IsAlliance => this.GroupManagerStruct->MainGroup.AllianceFlags > 0;
 
     /// <inheritdoc/>
-    public IntPtr GroupManagerAddress => this.address.GroupManager;
+    public unsafe IntPtr GroupManagerAddress => (nint)CSGroupManager.Instance();
 
     /// <inheritdoc/>
     public IntPtr GroupListAddress => (IntPtr)Unsafe.AsPointer(ref GroupManagerStruct->MainGroup.PartyMembers[0]);

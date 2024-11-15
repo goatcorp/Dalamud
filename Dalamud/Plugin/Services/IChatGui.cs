@@ -72,7 +72,7 @@ public interface IChatGui
     /// <summary>
     /// Gets the ID of the last linked item.
     /// </summary>
-    public int LastLinkedItemId { get; }
+    public uint LastLinkedItemId { get; }
     
     /// <summary>
     /// Gets the flags of the last linked item.

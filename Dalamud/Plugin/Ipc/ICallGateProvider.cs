@@ -13,7 +13,7 @@ public interface ICallGateProvider
 {
     /// <inheritdoc cref="CallGatePubSubBase.SubscriptionCount"/>
     public int SubscriptionCount { get; }
-    
+
     /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
     public void UnregisterAction();
 
@@ -29,14 +29,6 @@ public interface ICallGateProvider<TRet> : ICallGateProvider
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<TRet> func);
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage();
@@ -50,14 +42,6 @@ public interface ICallGateProvider<T1, TRet> : ICallGateProvider
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<T1, TRet> func);
-        
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage(T1 arg1);
@@ -71,14 +55,6 @@ public interface ICallGateProvider<T1, T2, TRet> : ICallGateProvider
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<T1, T2, TRet> func);
-        
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage(T1 arg1, T2 arg2);
@@ -92,14 +68,6 @@ public interface ICallGateProvider<T1, T2, T3, TRet> : ICallGateProvider
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<T1, T2, T3, TRet> func);
-        
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage(T1 arg1, T2 arg2, T3 arg3);
@@ -113,14 +81,6 @@ public interface ICallGateProvider<T1, T2, T3, T4, TRet> : ICallGateProvider
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<T1, T2, T3, T4, TRet> func);
-        
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
@@ -134,14 +94,6 @@ public interface ICallGateProvider<T1, T2, T3, T4, T5, TRet> : ICallGateProvider
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<T1, T2, T3, T4, T5, TRet> func);
-        
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
@@ -155,14 +107,6 @@ public interface ICallGateProvider<T1, T2, T3, T4, T5, T6, TRet> : ICallGateProv
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, TRet> func);
-        
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
@@ -176,14 +120,6 @@ public interface ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, TRet> : ICallGate
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, T7, TRet> func);
-        
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7);
@@ -197,14 +133,6 @@ public interface ICallGateProvider<T1, T2, T3, T4, T5, T6, T7, T8, TRet> : ICall
 
     /// <inheritdoc cref="CallGatePubSubBase.RegisterFunc"/>
     public void RegisterFunc(Func<T1, T2, T3, T4, T5, T6, T7, T8, TRet> func);
-        
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterAction"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterAction();
-    
-    /// <inheritdoc cref="CallGatePubSubBase.UnregisterFunc"/>
-    [Api11ToDo("Remove, it's in the base interface")]
-    public new void UnregisterFunc();
 
     /// <inheritdoc cref="CallGatePubSubBase.SendMessage"/>
     public void SendMessage(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8);

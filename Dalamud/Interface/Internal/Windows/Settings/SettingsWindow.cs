@@ -154,15 +154,23 @@ internal class SettingsWindow : Window
                         }
 
                         // Don't add padding for the about tab(credits)
-                        using var padding = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(2, 2),
-                            settingsTab is not SettingsTabAbout);
-                        using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ImGui.GetColorU32(ImGuiCol.ChildBg));
-                        using var tabChild = ImRaii.Child(
-                            $"###settings_scrolling_{settingsTab.Title}",
-                            new Vector2(-1, -1),
-                            true);
-                        if (tabChild)
-                            settingsTab.Draw();
+                        {
+                            using var padding = ImRaii.PushStyle(
+                                ImGuiStyleVar.WindowPadding,
+                                new Vector2(2, 2),
+                                settingsTab is not SettingsTabAbout);
+                            using var borderColor = ImRaii.PushColor(
+                                ImGuiCol.Border,
+                                ImGui.GetColorU32(ImGuiCol.ChildBg));
+                            using var tabChild = ImRaii.Child(
+                                $"###settings_scrolling_{settingsTab.Title}",
+                                new Vector2(-1, -1),
+                                true);
+                            if (tabChild)
+                                settingsTab.Draw();
+                        }
+
+                        settingsTab.PostDraw();
                     }
                     else if (settingsTab.IsOpen)
                     {

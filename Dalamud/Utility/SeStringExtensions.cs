@@ -1,4 +1,6 @@
-﻿using Lumina.Text.Parse;
+using Lumina.Text.Parse;
+
+using Lumina.Text.ReadOnly;
 
 using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
 using DSeStringBuilder = Dalamud.Game.Text.SeStringHandling.SeStringBuilder;
@@ -20,11 +22,27 @@ public static class SeStringExtensions
     /// <returns>The re-parsed Dalamud SeString.</returns>
     public static DSeString ToDalamudString(this LSeString originalString) => DSeString.Parse(originalString.RawData);
 
+    /// <summary>
+    /// Convert a Lumina ReadOnlySeString into a Dalamud SeString.
+    /// This conversion re-parses the string.
+    /// </summary>
+    /// <param name="originalString">The original Lumina ReadOnlySeString.</param>
+    /// <returns>The re-parsed Dalamud SeString.</returns>
+    public static DSeString ToDalamudString(this ReadOnlySeString originalString) => DSeString.Parse(originalString.Data.Span);
+
+    /// <summary>
+    /// Convert a Lumina ReadOnlySeStringSpan into a Dalamud SeString.
+    /// This conversion re-parses the string.
+    /// </summary>
+    /// <param name="originalString">The original Lumina ReadOnlySeStringSpan.</param>
+    /// <returns>The re-parsed Dalamud SeString.</returns>
+    public static DSeString ToDalamudString(this ReadOnlySeStringSpan originalString) => DSeString.Parse(originalString.Data);
+
     /// <summary>Compiles and appends a macro string.</summary>
     /// <param name="ssb">Target SeString builder.</param>
     /// <param name="macroString">Macro string in UTF-8 to compile and append to <paramref name="ssb"/>.</param>
     /// <returns><c>this</c> for method chaining.</returns>
-    [Obsolete($"Use {nameof(LSeStringBuilder)}.{nameof(LSeStringBuilder.AppendMacroString)} directly instead.")]
+    [Obsolete($"Use {nameof(LSeStringBuilder)}.{nameof(LSeStringBuilder.AppendMacroString)} directly instead.", true)]
     [Api11ToDo("Remove")]
     public static LSeStringBuilder AppendMacroString(this LSeStringBuilder ssb, ReadOnlySpan<byte> macroString) =>
         ssb.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
@@ -33,7 +51,7 @@ public static class SeStringExtensions
     /// <param name="ssb">Target SeString builder.</param>
     /// <param name="macroString">Macro string in UTF-16 to compile and append to <paramref name="ssb"/>.</param>
     /// <returns><c>this</c> for method chaining.</returns>
-    [Obsolete($"Use {nameof(LSeStringBuilder)}.{nameof(LSeStringBuilder.AppendMacroString)} directly instead.")]
+    [Obsolete($"Use {nameof(LSeStringBuilder)}.{nameof(LSeStringBuilder.AppendMacroString)} directly instead.", true)]
     [Api11ToDo("Remove")]
     public static LSeStringBuilder AppendMacroString(this LSeStringBuilder ssb, ReadOnlySpan<char> macroString) =>
         ssb.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });

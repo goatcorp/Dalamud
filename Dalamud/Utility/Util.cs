@@ -21,7 +21,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Support;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Serilog;
 using TerraFX.Interop.Windows;
 using Windows.Win32.Storage.FileSystem;
@@ -162,29 +162,7 @@ public static class Util
     }
 
     /// <summary>
-    /// Gets the amount of commits in the current branch, or null if undetermined.
-    /// </summary>
-    /// <returns>The amount of commits in the current branch.</returns>
-    [Obsolete($"Planned for removal in API 11. Use {nameof(GetScmVersion)} for version tracking.")]
-    public static int? GetGitCommitCount()
-    {
-        if (gitCommitCountInternal != null)
-            return gitCommitCountInternal.Value;
-
-        var asm = typeof(Util).Assembly;
-        var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
-
-        var value = attrs.First(a => a.Key == "GitCommitCount").Value;
-        if (value == null)
-            return null;
-
-        gitCommitCountInternal = int.Parse(value);
-        return gitCommitCountInternal.Value;
-    }
-
-    /// <summary>
-    /// Gets the git hash value from the assembly
-    /// or null if it cannot be found.
+    /// Gets the git hash value from the assembly or null if it cannot be found.
     /// </summary>
     /// <returns>The git hash of the assembly.</returns>
     public static string? GetGitHashClientStructs()
@@ -813,7 +791,7 @@ public static class Util
         var names = data.GetExcelSheet<BNpcName>(ClientLanguage.English)!;
         var rng = new Random();
 
-        return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
+        return names.GetRowAt(rng.Next(0, names.Count - 1)).Singular.ExtractText();
     }
 
     /// <summary>
@@ -891,13 +869,13 @@ public static class Util
         if (actor is ICharacter chara)
         {
             actorString +=
-                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.GameData?.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
         }
 
         if (actor is IPlayerCharacter pc)
         {
             actorString +=
-                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.GameData?.Name : pc.HomeWorld.Id.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.GameData?.Name : pc.CurrentWorld.Id.ToString())} FC: {pc.CompanyTag}\n";
+                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
         ImGui.TextUnformatted(actorString);
@@ -925,13 +903,13 @@ public static class Util
         if (actor is Character chara)
         {
             actorString +=
-                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.GameData?.Name : chara.ClassJob.Id.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
+                $"       Level: {chara.Level} ClassJob: {(resolveGameData ? chara.ClassJob.ValueNullable?.Name : chara.ClassJob.RowId.ToString())} CHP: {chara.CurrentHp} MHP: {chara.MaxHp} CMP: {chara.CurrentMp} MMP: {chara.MaxMp}\n       Customize: {BitConverter.ToString(chara.Customize).Replace("-", " ")} StatusFlags: {chara.StatusFlags}\n";
         }
 
         if (actor is PlayerCharacter pc)
         {
             actorString +=
-                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.GameData?.Name : pc.HomeWorld.Id.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.GameData?.Name : pc.CurrentWorld.Id.ToString())} FC: {pc.CompanyTag}\n";
+                $"       HomeWorld: {(resolveGameData ? pc.HomeWorld.ValueNullable?.Name : pc.HomeWorld.RowId.ToString())} CurrentWorld: {(resolveGameData ? pc.CurrentWorld.ValueNullable?.Name : pc.CurrentWorld.RowId.ToString())} FC: {pc.CompanyTag}\n";
         }
 
         ImGui.TextUnformatted(actorString);

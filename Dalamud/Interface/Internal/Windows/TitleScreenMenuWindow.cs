@@ -432,9 +432,9 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
     private unsafe void OnVersionStringDraw(AddonEvent ev, AddonArgs args)
     {
-        if (args is not AddonDrawArgs setupArgs) return;
+        if (args is not AddonDrawArgs drawArgs) return;
 
-        var addon = (AtkUnitBase*)setupArgs.Addon;
+        var addon = (AtkUnitBase*)drawArgs.Addon;
         var textNode = addon->GetTextNodeById(3);
         
         // look and feel init. should be harmless to set.

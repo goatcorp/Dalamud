@@ -197,7 +197,7 @@ internal partial class GameObject
 internal unsafe partial class GameObject : IGameObject
 {
     /// <inheritdoc/>
-    public SeString Name => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref this.Struct->Name[0]), 64);
+    public SeString Name => SeString.Parse(this.Struct->Name);
 
     /// <inheritdoc/>
     public ulong GameObjectId => this.Struct->GetGameObjectId();

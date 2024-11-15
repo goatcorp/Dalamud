@@ -16,12 +16,17 @@ public unsafe partial class AddonTree
 {
     private static readonly Dictionary<string, Type?> AddonTypeDict = [];
 
-    private static readonly Assembly? ClientStructsAssembly = typeof(Addon).Assembly;
+    private static readonly Assembly? ClientStructsAssembly = typeof(AddonAttribute).Assembly;
 
     /// <summary>
     /// Gets or sets a collection of names for field offsets that have been documented in FFXIVClientStructs.
     /// </summary>
     internal Dictionary<nint, List<string>> FieldNames { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the size of the addon according to its Attributes in FFXIVClientStructs.
+    /// </summary>
+    internal int AddonSize { get; set; }
 
     private object? GetAddonObj(AtkUnitBase* addon)
     {
@@ -36,12 +41,19 @@ public unsafe partial class AddonTree
             {
                 foreach (var t in from t in ClientStructsAssembly.GetTypes()
                                   where t.IsPublic
-                                  let xivAddonAttr = (Addon?)t.GetCustomAttribute(typeof(Addon), false)
+                                  let xivAddonAttr = (AddonAttribute?)t.GetCustomAttribute(typeof(AddonAttribute), false)
                                   where xivAddonAttr != null
                                   where xivAddonAttr.AddonIdentifiers.Contains(this.AddonName)
                                   select t)
                 {
                     AddonTypeDict[this.AddonName] = t;
+
+                    var size = t.StructLayoutAttribute?.Size;
+                    if (size != null)
+                    {
+                        this.AddonSize = size.Value;
+                    }
+
                     break;
                 }
             }
