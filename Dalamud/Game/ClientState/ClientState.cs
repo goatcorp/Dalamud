@@ -22,6 +22,8 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 using Lumina.Excel.Sheets;
 
+using TerraFX.Interop.Windows;
+
 using Action = System.Action;
 
 namespace Dalamud.Game.ClientState;
@@ -309,6 +311,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                 }
 
                 gameGui?.ResetUiHideState();
+                this.lastConditionNone = true; // unblock login flag
 
                 this.lifecycle.SetLogout();
             }
