@@ -16,25 +16,25 @@ public struct GamepadInput
     /// <summary>
     /// Left analogue stick's horizontal value, -99 for left, 99 for right.
     /// </summary>
-    [FieldOffset(0x88)]
+    [FieldOffset(0x78)]
     public int LeftStickX;
 
     /// <summary>
     /// Left analogue stick's vertical value, -99 for down, 99 for up.
     /// </summary>
-    [FieldOffset(0x8C)]
+    [FieldOffset(0x7C)]
     public int LeftStickY;
 
     /// <summary>
     /// Right analogue stick's horizontal value, -99 for left, 99 for right.
     /// </summary>
-    [FieldOffset(0x90)]
+    [FieldOffset(0x80)]
     public int RightStickX;
 
     /// <summary>
     /// Right analogue stick's vertical value, -99 for down, 99 for up.
     /// </summary>
-    [FieldOffset(0x94)]
+    [FieldOffset(0x84)]
     public int RightStickY;
 
     /// <summary>
@@ -43,7 +43,7 @@ public struct GamepadInput
     /// <remarks>
     /// This is a bitfield.
     /// </remarks>
-    [FieldOffset(0x98)]
+    [FieldOffset(0x88)]
     public ushort ButtonsRaw;
 
     /// <summary>
@@ -52,7 +52,7 @@ public struct GamepadInput
     /// <remarks>
     /// This is a bitfield.
     /// </remarks>
-    [FieldOffset(0x9C)]
+    [FieldOffset(0x8C)]
     public ushort ButtonsPressed;
 
     /// <summary>
@@ -61,7 +61,7 @@ public struct GamepadInput
     /// <remarks>
     /// This is a bitfield.
     /// </remarks>
-    [FieldOffset(0xA0)]
+    [FieldOffset(0x90)]
     public ushort ButtonsReleased;
 
     /// <summary>
@@ -70,6 +70,6 @@ public struct GamepadInput
     /// <remarks>
     /// This is a bitfield.
     /// </remarks>
-    [FieldOffset(0xA4)]
+    [FieldOffset(0x94)]
     public ushort ButtonsRepeat;
 }
