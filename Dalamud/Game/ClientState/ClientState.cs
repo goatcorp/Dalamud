@@ -38,11 +38,16 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     private readonly ClientStateAddressResolver address;
     private readonly Hook<EventFramework.Delegates.SetTerritoryTypeId> setupTerritoryTypeHook;
     private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
-    private readonly Hook<ProcessPacketPlayerSetupDelegate> processPacketPlayerSetupHook;
     private readonly Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
 
     [ServiceManager.ServiceDependency]
+    private readonly Framework framework = Service<Framework>.Get();
+    
+    [ServiceManager.ServiceDependency]
     private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
+    
+    private bool lastConditionNone = true;
+
 
     [ServiceManager.ServiceConstructor]
     private unsafe ClientState(TargetSigScanner sigScanner, Dalamud dalamud, GameLifecycle lifecycle)
@@ -60,14 +65,13 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
         this.setupTerritoryTypeHook = Hook<EventFramework.Delegates.SetTerritoryTypeId>.FromAddress(setTerritoryTypeAddr, this.SetupTerritoryTypeDetour);
         this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress((nint)UIModule.StaticVirtualTablePointer->HandlePacket, this.UIModuleHandlePacketDetour);
-        this.processPacketPlayerSetupHook = Hook<ProcessPacketPlayerSetupDelegate>.FromAddress(this.address.ProcessPacketPlayerSetup, this.ProcessPacketPlayerSetupDetour);
         this.onLogoutHook = Hook<LogoutCallbackInterface.Delegates.OnLogout>.FromAddress((nint)LogoutCallbackInterface.StaticVirtualTablePointer->OnLogout, this.OnLogoutDetour);
 
+        this.framework.Update += this.FrameworkOnOnUpdateEvent;
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
 
         this.setupTerritoryTypeHook.Enable();
         this.uiModuleHandlePacketHook.Enable();
-        this.processPacketPlayerSetupHook.Enable();
         this.onLogoutHook.Enable();
     }
 
@@ -171,8 +175,9 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     {
         this.setupTerritoryTypeHook.Dispose();
         this.uiModuleHandlePacketHook.Dispose();
-        this.processPacketPlayerSetupHook.Dispose();
         this.onLogoutHook.Dispose();
+
+        this.framework.Update -= this.FrameworkOnOnUpdateEvent; 
         this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
     }
 
@@ -255,23 +260,23 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         }
     }
 
-    private unsafe void ProcessPacketPlayerSetupDetour(nint a1, nint packet)
+    private void FrameworkOnOnUpdateEvent(IFramework framework1)
     {
-        // Call original first, so everything is set up.
-        this.processPacketPlayerSetupHook.Original(a1, packet);
-
+        var condition = Service<Conditions.Condition>.GetNullable();
         var gameGui = Service<GameGui>.GetNullable();
+        var data = Service<DataManager>.GetNullable();
 
-        try
+        if (condition == null || gameGui == null || data == null)
+            return;
+
+        if (condition.Any() && this.lastConditionNone && this.LocalPlayer != null)
         {
-            Log.Debug("Login");
+            Log.Debug("Is login");
+            this.lastConditionNone = false;
             this.Login?.InvokeSafely();
-            gameGui?.ResetUiHideState();
+            gameGui.ResetUiHideState();
+
             this.lifecycle.ResetLogout();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Exception during ProcessPacketPlayerSetupDetour");
         }
     }
 
