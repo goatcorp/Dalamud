@@ -9,7 +9,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
 /// </summary>
 internal class FateTableAgingStep : IAgingStep
 {
-    private int index = 0;
+    private byte index = 0;
 
     /// <inheritdoc/>
     public string Name => "Test FateTable";
@@ -20,6 +20,12 @@ internal class FateTableAgingStep : IAgingStep
         var fateTable = Service<FateTable>.Get();
 
         ImGui.Text("Checking fate table...");
+
+        if (fateTable.Length == 0)
+        {
+            ImGui.Text("Go to a zone that has FATEs currently up.");
+            return SelfTestStepResult.Waiting;
+        }
 
         if (this.index == fateTable.Length - 1)
         {
