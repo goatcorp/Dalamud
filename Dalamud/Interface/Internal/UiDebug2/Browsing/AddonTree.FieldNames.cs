@@ -23,6 +23,11 @@ public unsafe partial class AddonTree
     /// </summary>
     internal Dictionary<nint, List<string>> FieldNames { get; set; } = [];
 
+    /// <summary>
+    /// Gets or sets the size of the addon according to its Attributes in FFXIVClientStructs.
+    /// </summary>
+    internal int AddonSize { get; set; }
+
     private object? GetAddonObj(AtkUnitBase* addon)
     {
         if (addon == null)
@@ -42,6 +47,13 @@ public unsafe partial class AddonTree
                                   select t)
                 {
                     AddonTypeDict[this.AddonName] = t;
+
+                    var size = t.StructLayoutAttribute?.Size;
+                    if (size != null)
+                    {
+                        this.AddonSize = size.Value;
+                    }
+
                     break;
                 }
             }

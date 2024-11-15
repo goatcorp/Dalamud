@@ -131,6 +131,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 Kugane = taxRates.KuganeTax,
                 Crystarium = taxRates.CrystariumTax,
                 Sharlayan = taxRates.SharlayanTax,
+                Tuliyollal = taxRates.TuliyollalTax,
             },
         };
 

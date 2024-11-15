@@ -24,7 +24,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("DalamudAtkTweaks");
 
-    private readonly Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
+    private readonly Hook<AgentHUD.Delegates.OpenSystemMenu> hookAgentHudOpenSystemMenu;
 
     // TODO: Make this into events in Framework.Gui
     private readonly Hook<UIModule.Delegates.ExecuteMainCommand> hookUiModuleExecuteMainCommand;
@@ -45,9 +45,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private DalamudAtkTweaks(TargetSigScanner sigScanner)
     {
-        var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B CF 4C 89 B4 24 B8 08 00 00");
-
-        this.hookAgentHudOpenSystemMenu = Hook<AgentHudOpenSystemMenuPrototype>.FromAddress(openSystemMenuAddress, this.AgentHudOpenSystemMenuDetour);
+        this.hookAgentHudOpenSystemMenu = Hook<AgentHUD.Delegates.OpenSystemMenu>.FromAddress(AgentHUD.Addresses.OpenSystemMenu.Value, this.AgentHudOpenSystemMenuDetour);
         this.hookUiModuleExecuteMainCommand = Hook<UIModule.Delegates.ExecuteMainCommand>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ExecuteMainCommand, this.UiModuleExecuteMainCommandDetour);
         this.hookAtkUnitBaseReceiveGlobalEvent = Hook<AtkUnitBase.Delegates.ReceiveGlobalEvent>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->ReceiveGlobalEvent, this.AtkUnitBaseReceiveGlobalEventDetour);
 

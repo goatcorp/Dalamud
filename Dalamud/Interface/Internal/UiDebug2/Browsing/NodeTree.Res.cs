@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
@@ -59,6 +60,11 @@ internal unsafe partial class ResNodeTree : IDisposable
     /// Gets this node's type.
     /// </summary>
     private protected NodeType NodeType { get; init; }
+
+    /// <summary>
+    /// Gets or sets the offset of this node within its parent Addon.
+    /// </summary>
+    private protected int? NodeFieldOffset { get; set; }
 
     /// <summary>
     /// Clears this NodeTree's popout window, if it has one.
@@ -164,19 +170,26 @@ internal unsafe partial class ResNodeTree : IDisposable
     internal void WriteTreeHeading()
     {
         ImGui.TextUnformatted(this.GetHeaderText());
-        this.PrintFieldNames();
+        this.PrintFieldLabels();
     }
 
     /// <summary>
-    /// If the given pointer has been identified as a field within the addon struct, this method prints that field's name.
+    /// If the given pointer is referenced with the addon struct, the offset within the addon will be printed. If the given pointer has been identified as a field within the addon struct, this method also prints that field's name.
     /// </summary>
     /// <param name="ptr">The pointer to check.</param>
     /// <param name="color">The text color to use.</param>
-    private protected void PrintFieldName(nint ptr, Vector4 color)
+    /// <param name="fieldOffset">The field offset of the pointer, if it was found in the addon.</param>
+    private protected void PrintFieldLabel(nint ptr, Vector4 color, int? fieldOffset)
     {
+        if (fieldOffset != null)
+        {
+            ImGui.SameLine(0, -1);
+            ImGui.TextColored(color * 0.85f, $"[0x{fieldOffset:X}]");
+        }
+
         if (this.AddonTree.FieldNames.TryGetValue(ptr, out var result))
         {
-            ImGui.SameLine();
+            ImGui.SameLine(0, -1);
             ImGui.TextColored(color, string.Join(".", result));
         }
     }
@@ -188,7 +201,15 @@ internal unsafe partial class ResNodeTree : IDisposable
     private protected virtual string GetHeaderText()
     {
         var count = this.GetDirectChildCount();
-        return $"{this.NodeType} Node{(count > 0 ? $" [+{count}]" : string.Empty)} ({(nint)this.Node:X})";
+        return $"{this.NodeType} Node{(count > 0 ? $" [+{count}]" : string.Empty)}";
+    }
+
+    /// <summary>
+    /// Prints any field names for the node.
+    /// </summary>
+    private protected virtual void PrintFieldLabels()
+    {
+        this.PrintFieldLabel((nint)this.Node, new(0, 0.85F, 1, 1), this.NodeFieldOffset);
     }
 
     /// <summary>
@@ -200,11 +221,6 @@ internal unsafe partial class ResNodeTree : IDisposable
         ImGui.SameLine();
         ImGui.NewLine();
     }
-
-    /// <summary>
-    /// Prints any field names for the node.
-    /// </summary>
-    private protected virtual void PrintFieldNames() => this.PrintFieldName((nint)this.Node, new(0, 0.85F, 1, 1));
 
     /// <summary>
     /// Prints all direct children of this node.
@@ -225,6 +241,21 @@ internal unsafe partial class ResNodeTree : IDisposable
     /// <param name="isEditorOpen">Whether the "Edit" box is currently checked.</param>
     private protected virtual void PrintFieldsForNodeType(bool isEditorOpen = false)
     {
+    }
+
+    /// <summary>
+    /// Attempts to retrieve the field offset of the given pointer within the parent addon.
+    /// </summary>
+    private protected virtual void GetFieldOffset()
+    {
+        for (var i = 0; i < this.AddonTree.AddonSize; i += 0x8)
+        {
+            if (Marshal.ReadIntPtr(this.AddonTree.InitialPtr + i) == (nint)this.Node)
+            {
+                this.NodeFieldOffset = i;
+                break;
+            }
+        }
     }
 
     private int GetDirectChildCount()
@@ -273,6 +304,8 @@ internal unsafe partial class ResNodeTree : IDisposable
             ImGui.SetNextItemOpen(true, ImGuiCond.Always);
         }
 
+        this.GetFieldOffset();
+
         using var col = ImRaii.PushColor(Text, displayColor);
         using var tree = ImRaii.TreeNode(label, SpanFullWidth);
 
@@ -281,7 +314,7 @@ internal unsafe partial class ResNodeTree : IDisposable
             new NodeBounds(this.Node).Draw(visible ? new(0.1f, 1f, 0.1f, 1f) : new(1f, 0f, 0.2f, 1f));
         }
 
-        ImGui.SameLine();
+        ImGui.SameLine(0, -1);
         this.WriteTreeHeading();
 
         col.Pop();

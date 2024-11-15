@@ -6,6 +6,9 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Network;
+
 using Serilog;
 
 namespace Dalamud.Game.Network;
@@ -14,10 +17,10 @@ namespace Dalamud.Game.Network;
 /// This class handles interacting with game network events.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
+internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetwork
 {
     private readonly GameNetworkAddressResolver address;
-    private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
+    private readonly Hook<PacketDispatcher.Delegates.OnReceivePacket> processZonePacketDownHook;
     private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
 
     private readonly HitchDetector hitchDetectorUp;
@@ -25,11 +28,9 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-
-    private IntPtr baseAddress;
-
+    
     [ServiceManager.ServiceConstructor]
-    private GameNetwork(TargetSigScanner sigScanner)
+    private unsafe GameNetwork(TargetSigScanner sigScanner)
     {
         this.hitchDetectorUp = new HitchDetector("GameNetworkUp", this.configuration.GameNetworkUpHitch);
         this.hitchDetectorDown = new HitchDetector("GameNetworkDown", this.configuration.GameNetworkDownHitch);
@@ -37,19 +38,18 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
         this.address = new GameNetworkAddressResolver();
         this.address.Setup(sigScanner);
 
+        var onReceivePacketAddress = (nint)PacketDispatcher.StaticVirtualTablePointer->OnReceivePacket;
+
         Log.Verbose("===== G A M E N E T W O R K =====");
-        Log.Verbose($"ProcessZonePacketDown address {Util.DescribeAddress(this.address.ProcessZonePacketDown)}");
+        Log.Verbose($"OnReceivePacket address {Util.DescribeAddress(onReceivePacketAddress)}");
         Log.Verbose($"ProcessZonePacketUp address {Util.DescribeAddress(this.address.ProcessZonePacketUp)}");
 
-        this.processZonePacketDownHook = Hook<ProcessZonePacketDownDelegate>.FromAddress(this.address.ProcessZonePacketDown, this.ProcessZonePacketDownDetour);
+        this.processZonePacketDownHook = Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(onReceivePacketAddress, this.ProcessZonePacketDownDetour);
         this.processZonePacketUpHook = Hook<ProcessZonePacketUpDelegate>.FromAddress(this.address.ProcessZonePacketUp, this.ProcessZonePacketUpDetour);
 
         this.processZonePacketDownHook.Enable();
         this.processZonePacketUpHook.Enable();
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ProcessZonePacketDownDelegate(IntPtr a, uint targetId, IntPtr dataPtr);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
@@ -64,10 +64,8 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
         this.processZonePacketUpHook.Dispose();
     }
 
-    private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)
+    private void ProcessZonePacketDownDetour(PacketDispatcher* dispatcher, uint targetId, IntPtr dataPtr)
     {
-        this.baseAddress = a;
-
         this.hitchDetectorDown.Start();
 
         // Go back 0x10 to get back to the start of the packet header
@@ -78,7 +76,7 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
             // Call events
             this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
 
-            this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
+            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
         }
         catch (Exception ex)
         {
@@ -96,7 +94,7 @@ internal sealed class GameNetwork : IInternalDisposableService, IGameNetwork
 
             Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
 
-            this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
+            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
         }
 
         this.hitchDetectorDown.Stop();

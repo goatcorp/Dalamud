@@ -15,6 +15,9 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Lumina.Excel.Sheets;
 using Serilog;
@@ -35,13 +38,13 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private readonly NetworkHandlersAddressResolver addressResolver;
 
-    private readonly Hook<CfPopDelegate> cfPopHook;
-    private readonly Hook<MarketBoardPurchasePacketHandler> mbPurchaseHook;
-    private readonly Hook<MarketBoardHistoryPacketHandler> mbHistoryHook;
+    private readonly Hook<PublicContentDirector.Delegates.HandleEnterContentInfoPacket> cfPopHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleMarketBoardPurchasePacket> mbPurchaseHook;
+    private readonly Hook<InfoProxyItemSearch.Delegates.ProcessItemHistory> mbHistoryHook;
     private readonly Hook<CustomTalkReceiveResponse> customTalkHook; // used for marketboard taxes
-    private readonly Hook<MarketBoardItemRequestStartPacketHandler> mbItemRequestStartHook;
-    private readonly Hook<InfoProxyItemSearchAddPage> mbOfferingsHook;
-    private readonly Hook<MarketBoardSendPurchaseRequestPacket> mbSendPurchaseRequestHook;
+    private readonly Hook<PacketDispatcher.Delegates.HandleMarketBoardItemRequestStartPacket> mbItemRequestStartHook;
+    private readonly Hook<InfoProxyItemSearch.Delegates.AddPage> mbOfferingsHook;
+    private readonly Hook<InfoProxyItemSearch.Delegates.SendPurchaseRequestPacket> mbSendPurchaseRequestHook;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -134,14 +137,14 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.handleMarketBoardPurchaseHandler = this.HandleMarketBoardPurchaseHandler();
 
         this.mbPurchaseHook =
-            Hook<MarketBoardPurchasePacketHandler>.FromAddress(
-                this.addressResolver.MarketBoardPurchasePacketHandler,
+            Hook<PacketDispatcher.Delegates.HandleMarketBoardPurchasePacket>.FromAddress(
+                PacketDispatcher.Addresses.HandleMarketBoardPurchasePacket.Value,
                 this.MarketPurchasePacketDetour);
         this.mbPurchaseHook.Enable();
 
         this.mbHistoryHook =
-            Hook<MarketBoardHistoryPacketHandler>.FromAddress(
-                this.addressResolver.MarketBoardHistoryPacketHandler,
+            Hook<InfoProxyItemSearch.Delegates.ProcessItemHistory>.FromAddress(
+                InfoProxyItemSearch.Addresses.ProcessItemHistory.Value,
                 this.MarketHistoryPacketDetour);
         this.mbHistoryHook.Enable();
 
@@ -151,22 +154,22 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                 this.CustomTalkReceiveResponseDetour);
         this.customTalkHook.Enable();
 
-        this.mbItemRequestStartHook = Hook<MarketBoardItemRequestStartPacketHandler>.FromAddress(
-            this.addressResolver.MarketBoardItemRequestStartPacketHandler,
+        this.mbItemRequestStartHook = Hook<PacketDispatcher.Delegates.HandleMarketBoardItemRequestStartPacket>.FromAddress(
+            PacketDispatcher.Addresses.HandleMarketBoardItemRequestStartPacket.Value,
             this.MarketItemRequestStartDetour);
         this.mbItemRequestStartHook.Enable();
 
-        this.mbOfferingsHook = Hook<InfoProxyItemSearchAddPage>.FromAddress(
-            this.addressResolver.InfoProxyItemSearchAddPage,
+        this.mbOfferingsHook = Hook<InfoProxyItemSearch.Delegates.AddPage>.FromAddress(
+            (nint)InfoProxyItemSearch.StaticVirtualTablePointer->AddPage,
             this.MarketBoardOfferingsDetour);
         this.mbOfferingsHook.Enable();
 
-        this.mbSendPurchaseRequestHook = Hook<MarketBoardSendPurchaseRequestPacket>.FromAddress(
-            this.addressResolver.BuildMarketBoardPurchaseHandlerPacket,
+        this.mbSendPurchaseRequestHook = Hook<InfoProxyItemSearch.Delegates.SendPurchaseRequestPacket>.FromAddress(
+            InfoProxyItemSearch.Addresses.SendPurchaseRequestPacket.Value,
             this.MarketBoardSendPurchaseRequestDetour);
         this.mbSendPurchaseRequestHook.Enable();
 
-        this.cfPopHook = Hook<CfPopDelegate>.FromAddress(this.addressResolver.CfPopPacketHandler, this.CfPopDetour);
+        this.cfPopHook = Hook<PublicContentDirector.Delegates.HandleEnterContentInfoPacket>.FromAddress(PublicContentDirector.Addresses.HandleEnterContentInfoPacket.Value, this.CfPopDetour);
         this.cfPopHook.Enable();
     }
 
@@ -182,8 +185,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private delegate byte InfoProxyItemSearchAddPage(nint self, nint packetRef);
 
     private delegate byte MarketBoardSendPurchaseRequestPacket(InfoProxyItemSearch* infoProxy);
-
-    private delegate nint CfPopDelegate(nint packetData);
 
     /// <summary>
     /// Event which gets fired when a duty is ready.
@@ -263,7 +264,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.cfPopHook.Dispose();
     }
 
-    private unsafe nint CfPopDetour(nint packetData)
+    private unsafe nint CfPopDetour(PublicContentDirector.EnterContentInfoPacket* packetData)
     {
         var result = this.cfPopHook.OriginalDisposeSafe(packetData);
 
@@ -529,7 +530,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         return this.configuration.IsMbCollect;
     }
 
-    private nint MarketPurchasePacketDetour(nint a1, nint packetData)
+    private void MarketPurchasePacketDetour(PacketDispatcher* a1, nint packetData)
     {
         try
         {
@@ -540,10 +541,10 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Error(ex, "MarketPurchasePacketHandler threw an exception");
         }
 
-        return this.mbPurchaseHook.OriginalDisposeSafe(a1, packetData);
+        this.mbPurchaseHook.OriginalDisposeSafe(a1, packetData);
     }
 
-    private nint MarketHistoryPacketDetour(nint a1, nint packetData, uint a3, char a4)
+    private void MarketHistoryPacketDetour(InfoProxyItemSearch* a1, nint packetData)
     {
         try
         {
@@ -554,7 +555,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Error(ex, "MarketHistoryPacketDetour threw an exception");
         }
 
-        return this.mbHistoryHook.OriginalDisposeSafe(a1, packetData, a3, a4);
+        this.mbHistoryHook.OriginalDisposeSafe(a1, packetData);
     }
 
     private void CustomTalkReceiveResponseDetour(nuint a1, ushort eventId, byte responseId, uint* args, byte argCount)
@@ -573,7 +574,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.customTalkHook.OriginalDisposeSafe(a1, eventId, responseId, args, argCount);
     }
 
-    private nint MarketItemRequestStartDetour(nint a1, nint packetRef)
+    private void MarketItemRequestStartDetour(PacketDispatcher* a1, nint packetRef)
     {
         try
         {
@@ -584,10 +585,10 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Error(ex, "MarketItemRequestStartDetour threw an exception");
         }
 
-        return this.mbItemRequestStartHook.OriginalDisposeSafe(a1, packetRef);
+        this.mbItemRequestStartHook.OriginalDisposeSafe(a1, packetRef);
     }
 
-    private byte MarketBoardOfferingsDetour(nint a1, nint packetRef)
+    private void MarketBoardOfferingsDetour(InfoProxyItemSearch* a1, nint packetRef)
     {
         try
         {
@@ -598,10 +599,10 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Error(ex, "MarketBoardOfferingsDetour threw an exception");
         }
 
-        return this.mbOfferingsHook.OriginalDisposeSafe(a1, packetRef);
+        this.mbOfferingsHook.OriginalDisposeSafe(a1, packetRef);
     }
 
-    private byte MarketBoardSendPurchaseRequestDetour(InfoProxyItemSearch* infoProxyItemSearch)
+    private bool MarketBoardSendPurchaseRequestDetour(InfoProxyItemSearch* infoProxyItemSearch)
     {
         try
         {
