@@ -118,6 +118,7 @@ public enum UiConfigOption
     /// System option with the internal name LockonDefaultZoom_179.
     /// This option is a Float.
     /// </summary>
+    [Obsolete("This option won't work. Use LockonDefaultZoom.")]
     [GameConfigOption("LockonDefaultZoom_179", ConfigType.Float)]
     LockonDefaultZoom_179,
 
@@ -3578,4 +3579,25 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("PadMode", ConfigType.UInt)]
     PadMode,
+
+    /// <summary>
+    /// System option with the internal name EnableMoveTiltCharacter.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("EnableMoveTiltCharacter", ConfigType.UInt)]
+    EnableMoveTiltCharacter,
+
+    /// <summary>
+    /// System option with the internal name EnableMoveTiltMountGround.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("EnableMoveTiltMountGround", ConfigType.UInt)]
+    EnableMoveTiltMountGround,
+
+    /// <summary>
+    /// System option with the internal name EnableMoveTiltMountFly.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("EnableMoveTiltMountFly", ConfigType.UInt)]
+    EnableMoveTiltMountFly,
 }
