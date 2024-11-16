@@ -32,12 +32,11 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 {
     private static readonly ModuleLog Log = new("GameGui");
 
-    [ServiceManager.ServiceDependency]
-    private readonly Framework framework = Service<Framework>.Get();
-
     private readonly GameGuiAddressResolver address;
 
     private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
+    private readonly Hook<HandleItemHoverDelegate> handleItemHoverHook;
+    private readonly Hook<HandleItemOutDelegate> handleItemOutHook;
     private readonly Hook<AgentActionDetail.Delegates.HandleActionHover> handleActionHoverHook;
     private readonly Hook<AgentActionDetail.Delegates.ReceiveEvent> handleActionOutHook;
     private readonly Hook<HandleImmDelegate> handleImmHook;
@@ -57,6 +56,9 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
+        this.handleItemHoverHook = Hook<HandleItemHoverDelegate>.FromAddress(this.address.HandleItemHover, this.HandleItemHoverDetour);
+        this.handleItemOutHook = Hook<HandleItemOutDelegate>.FromAddress(this.address.HandleItemOut, this.HandleItemOutDetour);
+
         this.handleActionHoverHook = Hook<AgentActionDetail.Delegates.HandleActionHover>.FromAddress(AgentActionDetail.Addresses.HandleActionHover.Value, this.HandleActionHoverDetour);
         this.handleActionOutHook = Hook<AgentActionDetail.Delegates.ReceiveEvent>.FromAddress((nint)AgentActionDetail.StaticVirtualTablePointer->ReceiveEvent, this.HandleActionOutDetour);
 
@@ -67,19 +69,25 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.utf8StringFromSequenceHook = Hook<Utf8String.Delegates.Ctor_FromSequence>.FromAddress(Utf8String.Addresses.Ctor_FromSequence.Value, this.Utf8StringFromSequenceDetour);
 
         this.setGlobalBgmHook.Enable();
+        this.handleItemHoverHook.Enable();
+        this.handleItemOutHook.Enable();
         this.handleImmHook.Enable();
         this.setUiVisibilityHook.Enable();
         this.handleActionHoverHook.Enable();
         this.handleActionOutHook.Enable();
         this.utf8StringFromSequenceHook.Enable();
-
-        this.framework.Update += this.FrameworkUpdate;
     }
 
     // Hooked delegates
     
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr SetGlobalBgmDelegate(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6);
+
+    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    private delegate IntPtr HandleItemHoverDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
+
+    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+    private delegate IntPtr HandleItemOutDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
@@ -252,8 +260,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.framework.Update -= this.FrameworkUpdate;
-
         this.setGlobalBgmHook.Dispose();
         this.handleImmHook.Dispose();
         this.setUiVisibilityHook.Dispose();
@@ -296,6 +302,51 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         var retVal = this.setGlobalBgmHook.Original(bgmKey, a2, a3, a4, a5, a6);
 
         Log.Verbose("SetGlobalBgm: {0} {1} {2} {3} {4} {5} -> {6}", bgmKey, a2, a3, a4, a5, a6, retVal);
+
+        return retVal;
+    }
+
+    private IntPtr HandleItemHoverDetour(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4)
+    {
+        var retVal = this.handleItemHoverHook.Original(hoverState, a2, a3, a4);
+
+        if (retVal.ToInt64() == 22)
+        {
+            var itemId = (ulong)Marshal.ReadInt32(hoverState, 0x138);
+            this.HoveredItem = itemId;
+
+            this.HoveredItemChanged?.InvokeSafely(this, itemId);
+
+            Log.Verbose($"HoverItemId:{itemId} this:{hoverState.ToInt64()}");
+        }
+
+        return retVal;
+    }
+
+    private IntPtr HandleItemOutDetour(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4)
+    {
+        var retVal = this.handleItemOutHook.Original(hoverState, a2, a3, a4);
+
+        if (a3 != IntPtr.Zero && a4 == 1)
+        {
+            var a3Val = Marshal.ReadByte(a3, 0x8);
+
+            if (a3Val == 255)
+            {
+                this.HoveredItem = 0ul;
+
+                try
+                {
+                    this.HoveredItemChanged?.Invoke(this, 0ul);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Could not dispatch HoveredItemChanged event.");
+                }
+
+                Log.Verbose("HoverItemId: 0");
+            }
+        }
 
         return retVal;
     }
@@ -370,24 +421,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
             thisPtr->Ctor(); // this is in ClientStructs but you could do it manually too
 
         return thisPtr; // this function shouldn't need to return but the original asm moves this into rax before returning so be safe?
-    }
-
-    private unsafe void FrameworkUpdate(IFramework framework)
-    {
-        var agentItemDetail = AgentItemDetail.Instance();
-        if (agentItemDetail != null)
-        {
-            var itemId = agentItemDetail->ItemId;
-
-            if (this.HoveredItem != itemId)
-            {
-                Log.Verbose($"HoveredItem changed: {itemId}");
-
-                this.HoveredItem = itemId;
-
-                this.HoveredItemChanged?.InvokeSafely(this, itemId);
-            }
-        }
     }
 }
 
