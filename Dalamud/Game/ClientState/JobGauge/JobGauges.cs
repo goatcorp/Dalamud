@@ -35,7 +35,8 @@ internal class JobGauges : IServiceType, IJobGauges
     {
         // This is cached to mitigate the effects of using activator for instantiation.
         // Since the gauge itself reads from live memory, there isn't much downside to doing this.
-        if (!this.cache.TryGetValue(typeof(T), out var gauge))
+        // Will also recache if the address of the gauge changes to prevent corruption (this could happen if you tried to access a gauge very early on during login for example)
+        if (!this.cache.TryGetValue(typeof(T), out var gauge) || gauge.Address != this.Address)
         {
             gauge = this.cache[typeof(T)] = (T)Activator.CreateInstance(typeof(T), BindingFlags.NonPublic | BindingFlags.Instance, null, new object[] { this.Address }, null);
         }
