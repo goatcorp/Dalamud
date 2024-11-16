@@ -324,7 +324,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     {
         var ret = this.handleItemOutHook.Original(thisPtr, returnValue, values, valueCount, eventKind);
 
-        if (values != null && valueCount == 1 && values->Byte == 255)
+        if (values != null && valueCount == 1 && values->Int == -1)
         {
             this.HoveredItem = 0;
 
