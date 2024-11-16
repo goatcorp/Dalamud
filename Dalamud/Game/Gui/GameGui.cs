@@ -36,7 +36,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
     private readonly Hook<HandleItemHoverDelegate> handleItemHoverHook;
-    private readonly Hook<HandleItemOutDelegate> handleItemOutHook;
+    private readonly Hook<AgentItemDetail.Delegates.ReceiveEvent> handleItemOutHook;
     private readonly Hook<AgentActionDetail.Delegates.HandleActionHover> handleActionHoverHook;
     private readonly Hook<AgentActionDetail.Delegates.ReceiveEvent> handleActionOutHook;
     private readonly Hook<HandleImmDelegate> handleImmHook;
@@ -57,7 +57,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
         this.handleItemHoverHook = Hook<HandleItemHoverDelegate>.FromAddress(this.address.HandleItemHover, this.HandleItemHoverDetour);
-        this.handleItemOutHook = Hook<HandleItemOutDelegate>.FromAddress(this.address.HandleItemOut, this.HandleItemOutDetour);
+        this.handleItemOutHook = Hook<AgentItemDetail.Delegates.ReceiveEvent>.FromAddress(this.address.HandleItemOut, this.HandleItemOutDetour);
 
         this.handleActionHoverHook = Hook<AgentActionDetail.Delegates.HandleActionHover>.FromAddress(AgentActionDetail.Addresses.HandleActionHover.Value, this.HandleActionHoverDetour);
         this.handleActionOutHook = Hook<AgentActionDetail.Delegates.ReceiveEvent>.FromAddress((nint)AgentActionDetail.StaticVirtualTablePointer->ReceiveEvent, this.HandleActionOutDetour);
@@ -84,10 +84,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private delegate IntPtr SetGlobalBgmDelegate(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr HandleItemHoverDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr HandleItemOutDelegate(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4);
+    private delegate void HandleItemHoverDelegate(AgentItemDetail* thisPtr, NumberArrayData* numberArray, StringArrayData* stringArray, float frameDelta);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
@@ -306,49 +303,42 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         return retVal;
     }
 
-    private IntPtr HandleItemHoverDetour(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4)
+    private void HandleItemHoverDetour(AgentItemDetail* thisPtr, NumberArrayData* numberArray, StringArrayData* stringArray, float frameDelta)
     {
-        var retVal = this.handleItemHoverHook.Original(hoverState, a2, a3, a4);
+        this.handleItemHoverHook.Original(thisPtr, numberArray, stringArray, frameDelta);
 
-        if (retVal.ToInt64() == 22)
+        if (thisPtr->IsAgentActive())
         {
-            var itemId = (ulong)Marshal.ReadInt32(hoverState, 0x138);
+            var itemId = (ulong)thisPtr->ItemId;
             this.HoveredItem = itemId;
 
             this.HoveredItemChanged?.InvokeSafely(this, itemId);
 
-            Log.Verbose($"HoverItemId:{itemId} this:{hoverState.ToInt64()}");
+            Log.Verbose($"HoveredItem changed: {itemId}");
         }
-
-        return retVal;
     }
 
-    private IntPtr HandleItemOutDetour(IntPtr hoverState, IntPtr a2, IntPtr a3, ulong a4)
+    private AtkValue* HandleItemOutDetour(AgentItemDetail* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
     {
-        var retVal = this.handleItemOutHook.Original(hoverState, a2, a3, a4);
+        var ret = this.handleItemOutHook.Original(thisPtr, returnValue, values, valueCount, eventKind);
 
-        if (a3 != IntPtr.Zero && a4 == 1)
+        if (values != null && valueCount == 1 && values->Byte == 255)
         {
-            var a3Val = Marshal.ReadByte(a3, 0x8);
+            this.HoveredItem = 0;
 
-            if (a3Val == 255)
+            try
             {
-                this.HoveredItem = 0ul;
-
-                try
-                {
-                    this.HoveredItemChanged?.Invoke(this, 0ul);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not dispatch HoveredItemChanged event.");
-                }
-
-                Log.Verbose("HoverItemId: 0");
+                this.HoveredItemChanged?.Invoke(this, 0);
             }
+            catch (Exception e)
+            {
+                Log.Error(e, "Could not dispatch HoveredItemChanged event.");
+            }
+
+            Log.Verbose("HoveredItem changed: 0");
         }
 
-        return retVal;
+        return ret;
     }
 
     private void HandleActionHoverDetour(AgentActionDetail* hoverState, ActionKind actionKind, uint actionId, int a4, byte a5)
