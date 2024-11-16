@@ -16,16 +16,6 @@ internal sealed class GameGuiAddressResolver : BaseAddressResolver
     public IntPtr SetGlobalBgm { get; private set; }
 
     /// <summary>
-    /// Gets the address of the native HandleItemHover method.
-    /// </summary>
-    public IntPtr HandleItemHover { get; private set; }
-
-    /// <summary>
-    /// Gets the address of the native HandleItemOut method.
-    /// </summary>
-    public IntPtr HandleItemOut { get; private set; }
-
-    /// <summary>
     /// Gets the address of the native HandleImm method.
     /// </summary>
     public IntPtr HandleImm { get; private set; }
@@ -33,16 +23,7 @@ internal sealed class GameGuiAddressResolver : BaseAddressResolver
     /// <inheritdoc/>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        // unnamed in CS
-        this.SetGlobalBgm = sig.ScanText("E8 ?? ?? ?? ?? 8B 2F");
-
-        // a function inside AgentItemDetail.Update. can be replaced with AgentItemDetail.Update
-        this.HandleItemHover = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 6C 24 48 48 8B 74 24 50 4C 89 B7 08 01 00 00");
-
-        // AgentItemDetail.ReceiveEvent
-        this.HandleItemOut = sig.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 4D");
-
-        // unnamed in CS
-        this.HandleImm = sig.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 48 83 FF 09");
+        this.SetGlobalBgm = sig.ScanText("E8 ?? ?? ?? ?? 8B 2F");                 // unnamed in CS
+        this.HandleImm = sig.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 48 83 FF 09");  // unnamed in CS
     }
 }

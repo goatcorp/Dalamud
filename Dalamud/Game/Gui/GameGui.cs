@@ -35,7 +35,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     private readonly GameGuiAddressResolver address;
 
     private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
-    private readonly Hook<HandleItemHoverDelegate> handleItemHoverHook;
+    private readonly Hook<AgentItemDetail.Delegates.Update> handleItemHoverHook;
     private readonly Hook<AgentItemDetail.Delegates.ReceiveEvent> handleItemOutHook;
     private readonly Hook<AgentActionDetail.Delegates.HandleActionHover> handleActionHoverHook;
     private readonly Hook<AgentActionDetail.Delegates.ReceiveEvent> handleActionOutHook;
@@ -56,8 +56,8 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
-        this.handleItemHoverHook = Hook<HandleItemHoverDelegate>.FromAddress(this.address.HandleItemHover, this.HandleItemHoverDetour);
-        this.handleItemOutHook = Hook<AgentItemDetail.Delegates.ReceiveEvent>.FromAddress(this.address.HandleItemOut, this.HandleItemOutDetour);
+        this.handleItemHoverHook = Hook<AgentItemDetail.Delegates.Update>.FromAddress((nint)AgentItemDetail.StaticVirtualTablePointer->Update, this.HandleItemHoverDetour);
+        this.handleItemOutHook = Hook<AgentItemDetail.Delegates.ReceiveEvent>.FromAddress((nint)AgentItemDetail.StaticVirtualTablePointer->ReceiveEvent, this.HandleItemOutDetour);
 
         this.handleActionHoverHook = Hook<AgentActionDetail.Delegates.HandleActionHover>.FromAddress(AgentActionDetail.Addresses.HandleActionHover.Value, this.HandleActionHoverDetour);
         this.handleActionOutHook = Hook<AgentActionDetail.Delegates.ReceiveEvent>.FromAddress((nint)AgentActionDetail.StaticVirtualTablePointer->ReceiveEvent, this.HandleActionOutDetour);
@@ -82,9 +82,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate IntPtr SetGlobalBgmDelegate(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void HandleItemHoverDelegate(AgentItemDetail* thisPtr, NumberArrayData* numberArray, StringArrayData* stringArray, float frameDelta);
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
@@ -303,9 +300,9 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         return retVal;
     }
 
-    private void HandleItemHoverDetour(AgentItemDetail* thisPtr, NumberArrayData* numberArray, StringArrayData* stringArray, float frameDelta)
+    private void HandleItemHoverDetour(AgentItemDetail* thisPtr, uint frameCount)
     {
-        this.handleItemHoverHook.Original(thisPtr, numberArray, stringArray, frameDelta);
+        this.handleItemHoverHook.Original(thisPtr, frameCount);
 
         if (!thisPtr->IsAgentActive())
             return;
