@@ -33,9 +33,16 @@ internal sealed class GameGuiAddressResolver : BaseAddressResolver
     /// <inheritdoc/>
     protected override void Setup64Bit(ISigScanner sig)
     {
-        this.SetGlobalBgm = sig.ScanText("E8 ?? ?? ?? ?? 8B 2F");                 // unnamed in CS
-        this.HandleItemHover = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 6C 24 48 48 8B 74 24 50 4C 89 B7 08 01 00 00"); // unnamed in CS
-        this.HandleItemOut = sig.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 4D"); // AgentItemDetail.ReceiveEvent
-        this.HandleImm = sig.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 48 83 FF 09");  // unnamed in CS
+        // unnamed in CS
+        this.SetGlobalBgm = sig.ScanText("E8 ?? ?? ?? ?? 8B 2F");
+
+        // a function inside AgentItemDetail.Update. can be replaced with AgentItemDetail.Update
+        this.HandleItemHover = sig.ScanText("E8 ?? ?? ?? ?? 48 8B 6C 24 48 48 8B 74 24 50 4C 89 B7 08 01 00 00");
+
+        // AgentItemDetail.ReceiveEvent
+        this.HandleItemOut = sig.ScanText("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 4D");
+
+        // unnamed in CS
+        this.HandleImm = sig.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 48 83 FF 09");
     }
 }
