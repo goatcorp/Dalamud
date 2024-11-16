@@ -307,15 +307,17 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     {
         this.handleItemHoverHook.Original(thisPtr, numberArray, stringArray, frameDelta);
 
-        if (thisPtr->IsAgentActive())
-        {
-            var itemId = (ulong)thisPtr->ItemId;
-            this.HoveredItem = itemId;
+        if (!thisPtr->IsAgentActive())
+            return;
 
-            this.HoveredItemChanged?.InvokeSafely(this, itemId);
+        var itemId = (ulong)thisPtr->ItemId;
+        if (this.HoveredItem == itemId)
+            return;
 
-            Log.Verbose($"HoveredItem changed: {itemId}");
-        }
+        this.HoveredItem = itemId;
+        this.HoveredItemChanged?.InvokeSafely(this, itemId);
+
+        Log.Verbose($"HoveredItem changed: {itemId}");
     }
 
     private AtkValue* HandleItemOutDetour(AgentItemDetail* thisPtr, AtkValue* returnValue, AtkValue* values, uint valueCount, ulong eventKind)
