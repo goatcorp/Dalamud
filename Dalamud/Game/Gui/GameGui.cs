@@ -255,6 +255,8 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     void IInternalDisposableService.DisposeService()
     {
         this.setGlobalBgmHook.Dispose();
+        this.handleItemHoverHook.Dispose();
+        this.handleItemOutHook.Dispose();
         this.handleImmHook.Dispose();
         this.setUiVisibilityHook.Dispose();
         this.handleActionHoverHook.Dispose();
