@@ -1203,6 +1203,8 @@ public static class Util
                                  .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
             {
                 var fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
+                var offset = (FieldOffsetAttribute)f.GetCustomAttribute(typeof(FieldOffsetAttribute));
+
                 if (fixedBuffer != null)
                 {
                     ImGui.Text($"fixed");
@@ -1212,6 +1214,11 @@ public static class Util
                 }
                 else
                 {
+                    if (offset != null)
+                    {
+                        ImGui.TextDisabled($"[0x{offset.Value:X}]");
+                        ImGui.SameLine();
+                    }
                     ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
                 }
 
@@ -1224,6 +1231,8 @@ public static class Util
                 {
                     if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
                         ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                    else if (f.FieldType == typeof(bool) && offset != null)
+                        ShowValue(addr, pathList, f.FieldType, Marshal.ReadByte((nint)addr + offset.Value) > 0, hideAddress);
                     else
                         ShowValue(addr, pathList, f.FieldType, f.GetValue(obj), hideAddress);
                 }
