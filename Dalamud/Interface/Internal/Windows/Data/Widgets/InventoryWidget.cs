@@ -139,10 +139,10 @@ internal class InventoryWidget : IDataWindowWidget
             ImGui.TextUnformatted(slotIndex.ToString());
 
             ImGui.TableNextColumn(); // ItemId
-            ImGui.TextUnformatted(item.ItemId.ToString());
+            ImGuiHelpers.ClickToCopyText(item.ItemId.ToString());
 
             ImGui.TableNextColumn(); // Quantity
-            ImGui.TextUnformatted(item.Quantity.ToString());
+            ImGuiHelpers.ClickToCopyText(item.Quantity.ToString());
 
             ImGui.TableNextColumn(); // Item
             if (item.ItemId != 0 && item.Quantity != 0)
