@@ -149,12 +149,11 @@ internal class InventoryWidget : IDataWindowWidget
             {
                 var itemName = this.GetItemName(item.ItemId);
                 var iconId = this.GetItemIconId(item.ItemId);
-                var isHQ = this.IsHighQuality(item.ItemId);
 
-                if (isHQ)
+                if (item.IsHq)
                     itemName += " " + SeIconChar.HighQuality.ToIconString();
 
-                if (this.textureManager.Shared.TryGetFromGameIcon(new GameIconLookup(iconId, isHQ), out var tex) && tex.TryGetWrap(out var texture, out _))
+                if (this.textureManager.Shared.TryGetFromGameIcon(new GameIconLookup(iconId, item.IsHq), out var tex) && tex.TryGetWrap(out var texture, out _))
                 {
                     ImGui.Image(texture.ImGuiHandle, new Vector2(ImGui.GetTextLineHeight()));
 
@@ -216,7 +215,6 @@ internal class InventoryWidget : IDataWindowWidget
                     ImGuiHelpers.ClickToCopyText(value2);
                 }
 
-                AddKeyValueRow("Base ItemId", this.GetBaseItemId(item.ItemId).ToString());
                 AddKeyValueRow("ItemId", item.ItemId.ToString());
                 AddKeyValueRow("Quantity", item.Quantity.ToString());
                 AddKeyValueRow("GlamourId", item.GlamourId.ToString());
