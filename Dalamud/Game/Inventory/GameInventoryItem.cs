@@ -122,7 +122,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the color used for this item.
     /// </summary>
-    public ReadOnlySpan<ushort> Stains => new(Unsafe.AsPointer(ref this.InternalItem.Stains[0]), 2);
+    public ReadOnlySpan<byte> Stains => new(Unsafe.AsPointer(ref this.InternalItem.Stains[0]), 2);
 
     /// <summary>
     /// Gets the glamour id for this item.
