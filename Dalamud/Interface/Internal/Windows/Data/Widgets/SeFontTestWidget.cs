@@ -1,6 +1,8 @@
 ﻿using Dalamud.Game.Text;
 using ImGuiNET;
 
+using System.Linq;
+
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
 /// <summary>
@@ -28,8 +30,11 @@ internal class SeFontTestWidget : IDataWindowWidget
     {
         var specialChars = string.Empty;
 
-        for (var i = 0xE020; i <= 0xE0DB; i++)
-            specialChars += $"0x{i:X} - {(SeIconChar)i} - {(char)i}\n";
+        var min = (char)Enum.GetValues<SeIconChar>().Min();
+        var max = (char)Enum.GetValues<SeIconChar>().Max();
+
+        for (var i = min; i <= max; i++)
+            specialChars += $"0x{(int)i:X} - {(SeIconChar)i} - {i}\n";
 
         ImGui.TextUnformatted(specialChars);
     }
