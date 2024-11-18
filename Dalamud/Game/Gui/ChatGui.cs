@@ -22,6 +22,8 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
+using Lumina.Text.Payloads;
+
 using LinkMacroPayloadType = Lumina.Text.Payloads.LinkMacroPayloadType;
 using LuminaSeStringBuilder = Lumina.Text.SeStringBuilder;
 using ReadOnlySePayloadType = Lumina.Text.ReadOnly.ReadOnlySePayloadType;
@@ -206,7 +208,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 {
                     sb.Append(parts[i]);
                     if (i < parts.Length - 1)
-                        sb.AppendMacroString("<nbsp>");
+                        sb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
                 }
             }
 
