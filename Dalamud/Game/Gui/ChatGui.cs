@@ -195,8 +195,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 }
 
                 var text = Encoding.UTF8.GetString(payload.Body);
-                var index = text.IndexOf('\u202F');
-                if (index == -1)
+                if (!text.Contains('\u202F'))
                 {
                     sb.Append(payload);
                     continue;
