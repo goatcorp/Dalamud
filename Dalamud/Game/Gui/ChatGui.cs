@@ -201,7 +201,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                     if (c.Value.IntValue == 0x202F)
                         sb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
                     else
-                        sb.Append(c);
+                        sb.Append(c.EffectiveChar);
                 }
             }
 
