@@ -12,6 +12,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -203,11 +204,11 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 }
             }
 
-            var output = sb.ToReadOnlySeString();
+            var output = sb.ToArray();
             LuminaSeStringBuilder.SharedPool.Return(sb);
 
-            var sender = Utf8String.FromSequence(chat.Name);
-            var message = Utf8String.FromSequence(output);
+            var sender = Utf8String.FromSequence(chat.Name.NullTerminate());
+            var message = Utf8String.FromSequence(output.NullTerminate());
 
             var targetChannel = chat.Type ?? this.configuration.GeneralChatType;
 
