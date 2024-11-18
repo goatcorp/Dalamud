@@ -37,7 +37,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
     private static readonly ModuleLog Log = new("ChatGui");
 
-    private readonly Queue<XivChatEntryReadOnly> chatQueue = new();
+    private readonly Queue<XivChatEntryRaw> chatQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
@@ -112,7 +112,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <inheritdoc/>
     public void Print(XivChatEntry chat)
     {
-        this.chatQueue.Enqueue(new XivChatEntryReadOnly(chat.Name.Encode(), chat.Message.Encode(), chat.Type, chat.Timestamp, chat.Silent));
+        this.chatQueue.Enqueue(new XivChatEntryRaw(chat.Name.Encode(), chat.Message.Encode(), chat.Type, chat.Timestamp, chat.Silent));
     }
 
     #region DalamudSeString
@@ -146,7 +146,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     #region LuminaSeString
 
     /// <inheritdoc/>
-    public void Print(XivChatEntryReadOnly chat)
+    public void Print(XivChatEntryRaw chat)
     {
         this.chatQueue.Enqueue(chat);
     }
@@ -310,7 +310,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
         }
 
-        this.Print(new XivChatEntryReadOnly(builder.Append(message).ToArray(), type: channel));
+        this.Print(new XivChatEntryRaw(builder.Append(message).ToArray(), type: channel));
     }
 
     private void InventoryItemCopyDetour(InventoryItem* thisPtr, InventoryItem* otherPtr)
@@ -545,7 +545,7 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
         => this.chatGuiService.PrintError(message, messageTag, tagColor);
 
     /// <inheritdoc/>
-    public void Print(XivChatEntryReadOnly chat)
+    public void Print(XivChatEntryRaw chat)
         => this.chatGuiService.Print(chat);
 
     /// <inheritdoc/>

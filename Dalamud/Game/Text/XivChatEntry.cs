@@ -34,9 +34,9 @@ public sealed class XivChatEntry
 }
 
 /// <summary>
-/// This class represents a readonly chat message ready to be posted.
+/// This class represents a raw chat message.
 /// </summary>
-public struct XivChatEntryReadOnly
+public struct XivChatEntryRaw
 {
     /// <summary>
     /// Gets the type of entry.
@@ -63,7 +63,7 @@ public struct XivChatEntryReadOnly
     /// </summary>
     public bool Silent { get; }
 
-    public XivChatEntryReadOnly(byte[] message, byte[]? name = null, XivChatType? type = null, int timestamp = 0, bool silent = false)
+    public XivChatEntryRaw(byte[] message, byte[]? name = null, XivChatType? type = null, int timestamp = 0, bool silent = false)
     {
         this.Type = type;
         this.Timestamp = timestamp;
