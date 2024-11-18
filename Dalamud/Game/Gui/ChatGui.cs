@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -111,6 +111,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         this.handleLinkClickHook.Dispose();
     }
 
+    #region DalamudSeString
+
     /// <inheritdoc/>
     public void Print(XivChatEntry chat)
     {
@@ -123,8 +125,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             Silent = chat.Silent,
         });
     }
-
-    #region DalamudSeString
 
     /// <inheritdoc/>
     public void Print(string message, string? messageTag = null, ushort? tagColor = null)
@@ -196,16 +196,9 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                     continue;
                 }
 
-                var text = Encoding.UTF8.GetString(payload.Body);
-                if (!text.Contains('\u202F'))
+                foreach (var c in UtfEnumerator.From(payload.Body, UtfEnumeratorFlags.Default))
                 {
-                    sb.Append(payload);
-                    continue;
-                }
-
-                foreach (var c in text)
-                {
-                    if (c == 0x202f)
+                    if (c.Value.IntValue == 0x202F)
                         sb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
                     else
                         sb.Append(c);
