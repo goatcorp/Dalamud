@@ -203,12 +203,12 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                     continue;
                 }
 
-                var parts = text.Split('\u202F');
-                for (var i = 0; i < parts.Length; i++)
+                foreach (var c in text)
                 {
-                    sb.Append(parts[i]);
-                    if (i < parts.Length - 1)
+                    if (c == 0x202f)
                         sb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
+                    else
+                        sb.Append(c);
                 }
             }
 
