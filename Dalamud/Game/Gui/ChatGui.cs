@@ -112,7 +112,14 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <inheritdoc/>
     public void Print(XivChatEntry chat)
     {
-        this.chatQueue.Enqueue(new XivChatEntryRaw(chat.Name.Encode(), chat.Message.Encode(), chat.Type, chat.Timestamp, chat.Silent));
+        this.chatQueue.Enqueue(new XivChatEntryRaw
+        {
+            Type = chat.Type,
+            Timestamp = chat.Timestamp,
+            Message = chat.Message.Encode(),
+            Name = chat.Name.Encode(),
+            Silent = chat.Silent,
+        });
     }
 
     #region DalamudSeString
@@ -310,7 +317,11 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
         }
 
-        this.Print(new XivChatEntryRaw(builder.Append(message).ToArray(), type: channel));
+        this.Print(new XivChatEntryRaw
+        {
+            Message = builder.Append((ReadOnlySeStringSpan)message).ToArray(),
+            Type = channel,
+        });
     }
 
     private void InventoryItemCopyDetour(InventoryItem* thisPtr, InventoryItem* otherPtr)

@@ -36,39 +36,30 @@ public sealed class XivChatEntry
 /// <summary>
 /// This class represents a raw chat message.
 /// </summary>
-public struct XivChatEntryRaw
+public struct XivChatEntryRaw()
 {
     /// <summary>
     /// Gets the type of entry.
     /// </summary>
-    public XivChatType? Type { get; }
+    public XivChatType? Type { get; set; }
 
     /// <summary>
     /// Gets the message timestamp.
     /// </summary>
-    public int Timestamp { get; }
+    public int Timestamp { get; set; }
 
     /// <summary>
     /// Gets the sender name.
     /// </summary>
-    public byte[] Name { get; }
+    public byte[] Name { get; set; } = [];
 
     /// <summary>
     /// Gets the message.
     /// </summary>
-    public byte[] Message { get; }
+    public byte[] Message { get; set; } = [];
 
     /// <summary>
     /// Gets a value indicating whether new message sounds should be silenced or not.
     /// </summary>
-    public bool Silent { get; }
-
-    public XivChatEntryRaw(byte[] message, byte[]? name = null, XivChatType? type = null, int timestamp = 0, bool silent = false)
-    {
-        this.Type = type;
-        this.Timestamp = timestamp;
-        this.Name = name ?? [];
-        this.Message = message;
-        this.Silent = silent;
-    }
+    public bool Silent { get; set; }
 }
