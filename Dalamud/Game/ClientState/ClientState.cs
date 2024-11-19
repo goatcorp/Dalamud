@@ -105,7 +105,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public ClientLanguage ClientLanguage { get; }
 
     /// <inheritdoc/>
-    public ushort TerritoryType { get; private set; }
+    public ushort TerritoryType => this.GetCurrentTerritoryTypeId();
 
     /// <inheritdoc/>
     public unsafe uint MapId
@@ -185,7 +185,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     {
         Log.Debug("TerritoryType changed: {0}", territoryType);
 
-        this.TerritoryType = territoryType;
         this.TerritoryChanged?.InvokeSafely(territoryType);
 
         var rowRef = LuminaUtils.CreateRef<TerritoryType>(territoryType);
@@ -325,6 +324,11 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     private void NetworkHandlersOnCfPop(ContentFinderCondition e)
     {
         this.CfPop?.InvokeSafely(e);
+    }
+    
+    private unsafe ushort GetCurrentTerritoryTypeId()
+    {
+        return (ushort)GameMain.Instance()->CurrentTerritoryTypeId;
     }
 }
 
