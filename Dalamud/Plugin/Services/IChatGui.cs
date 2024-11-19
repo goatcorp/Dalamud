@@ -125,12 +125,6 @@ public interface IChatGui
     /// <summary>
     /// Queue a chat message. Dalamud will send queued messages on the next framework event.
     /// </summary>
-    /// <param name="chat">A message to send.</param>
-    public void Print(XivChatEntryRaw chat);
-
-    /// <summary>
-    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
-    /// </summary>
     /// <param name="message">A message to send.</param>
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>

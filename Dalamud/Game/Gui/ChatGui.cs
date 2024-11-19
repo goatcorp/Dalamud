@@ -39,7 +39,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
     private static readonly ModuleLog Log = new("ChatGui");
 
-    private readonly Queue<XivChatEntryRaw> chatQueue = new();
+    private readonly Queue<XivChatEntry> chatQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
@@ -116,14 +116,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <inheritdoc/>
     public void Print(XivChatEntry chat)
     {
-        this.chatQueue.Enqueue(new XivChatEntryRaw
-        {
-            Type = chat.Type,
-            Timestamp = chat.Timestamp,
-            Message = chat.Message.Encode(),
-            Name = chat.Name.Encode(),
-            Silent = chat.Silent,
-        });
+        this.chatQueue.Enqueue(chat);
     }
 
     /// <inheritdoc/>
@@ -155,12 +148,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     #region LuminaSeString
 
     /// <inheritdoc/>
-    public void Print(XivChatEntryRaw chat)
-    {
-        this.chatQueue.Enqueue(chat);
-    }
-
-    /// <inheritdoc/>
     public void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
     {
         this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
@@ -183,7 +170,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         {
             var chat = this.chatQueue.Dequeue();
             var sb = LuminaSeStringBuilder.SharedPool.Get();
-            var rosss = (ReadOnlySeStringSpan)chat.Message;
+            var rosss = (ReadOnlySeStringSpan)chat.MessageBytes;
 
             foreach (var payload in rosss)
             {
@@ -208,7 +195,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             var output = sb.ToArray();
             LuminaSeStringBuilder.SharedPool.Return(sb);
 
-            var sender = Utf8String.FromSequence(chat.Name.NullTerminate());
+            var sender = Utf8String.FromSequence(chat.NameBytes.NullTerminate());
             var message = Utf8String.FromSequence(output.NullTerminate());
 
             var targetChannel = chat.Type ?? this.configuration.GeneralChatType;
@@ -311,9 +298,9 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             }
         }
 
-        this.Print(new XivChatEntryRaw
+        this.Print(new XivChatEntry
         {
-            Message = builder.Append((ReadOnlySeStringSpan)message).ToArray(),
+            MessageBytes = builder.Append((ReadOnlySeStringSpan)message).ToArray(),
             Type = channel,
         });
     }
@@ -548,10 +535,6 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     /// <inheritdoc/>
     public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
         => this.chatGuiService.PrintError(message, messageTag, tagColor);
-
-    /// <inheritdoc/>
-    public void Print(XivChatEntryRaw chat)
-        => this.chatGuiService.Print(chat);
 
     /// <inheritdoc/>
     public void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)

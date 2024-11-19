@@ -20,46 +20,33 @@ public sealed class XivChatEntry
     /// <summary>
     /// Gets or sets the sender name.
     /// </summary>
-    public SeString Name { get; set; } = string.Empty;
+    public SeString Name
+    {
+        get => SeString.Parse(this.NameBytes);
+        set => this.NameBytes = value.Encode();
+    }
 
     /// <summary>
     /// Gets or sets the message.
     /// </summary>
-    public SeString Message { get; set; } = string.Empty;
+    public SeString Message
+    {
+        get => SeString.Parse(this.MessageBytes);
+        set => this.MessageBytes = value.Encode();
+    }
+
+    /// <summary>
+    /// Gets or Sets the name payloads
+    /// </summary>
+    public byte[] NameBytes { get; set; } = [];
+
+    /// <summary>
+    /// Gets or Sets the message payloads.
+    /// </summary>
+    public byte[] MessageBytes { get; set; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether new message sounds should be silenced or not.
-    /// </summary>
-    public bool Silent { get; set; }
-}
-
-/// <summary>
-/// This class represents a raw chat message.
-/// </summary>
-public struct XivChatEntryRaw()
-{
-    /// <summary>
-    /// Gets the type of entry.
-    /// </summary>
-    public XivChatType? Type { get; set; }
-
-    /// <summary>
-    /// Gets the message timestamp.
-    /// </summary>
-    public int Timestamp { get; set; }
-
-    /// <summary>
-    /// Gets the sender name.
-    /// </summary>
-    public byte[] Name { get; set; } = [];
-
-    /// <summary>
-    /// Gets the message.
-    /// </summary>
-    public byte[] Message { get; set; } = [];
-
-    /// <summary>
-    /// Gets a value indicating whether new message sounds should be silenced or not.
     /// </summary>
     public bool Silent { get; set; }
 }
