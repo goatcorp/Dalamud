@@ -103,8 +103,6 @@ public class PlayerPayload : Payload
         var body = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position));
         var rosps = new ReadOnlySePayloadSpan(ReadOnlySePayloadType.Macro, MacroCode.Link, body.AsSpan());
 
-        // PushLink( LinkMacroPayloadType.Character, 0u, worldId, 0u, characterName );
-
         if (!rosps.TryGetExpression(out _, out var worldIdExpression, out _, out var characterNameExpression))
             return;
 
