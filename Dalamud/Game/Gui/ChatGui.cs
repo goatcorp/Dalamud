@@ -412,7 +412,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     private void HandleLinkClickDetour(LogViewer* thisPtr, LinkData* linkData)
     {
-        if ((Payload.EmbeddedInfoType)(linkData->LinkType + 1) != Payload.EmbeddedInfoType.DalamudLink)
+        if (linkData == null || linkData->Payload == null || (Payload.EmbeddedInfoType)(linkData->LinkType + 1) != Payload.EmbeddedInfoType.DalamudLink)
         {
             this.handleLinkClickHook.Original(thisPtr, linkData);
             return;
