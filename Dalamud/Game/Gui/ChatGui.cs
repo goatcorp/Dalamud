@@ -8,7 +8,6 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
-using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
@@ -22,12 +21,13 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
+using Lumina.Text;
 using Lumina.Text.Payloads;
+using Lumina.Text.ReadOnly;
 
-using LinkMacroPayloadType = Lumina.Text.Payloads.LinkMacroPayloadType;
-using LuminaSeStringBuilder = Lumina.Text.SeStringBuilder;
-using ReadOnlySePayloadType = Lumina.Text.ReadOnly.ReadOnlySePayloadType;
-using ReadOnlySeStringSpan = Lumina.Text.ReadOnly.ReadOnlySeStringSpan;
+using LSeStringBuilder = Lumina.Text.SeStringBuilder;
+using SeString = Dalamud.Game.Text.SeStringHandling.SeString;
+using SeStringBuilder = Dalamud.Game.Text.SeStringHandling.SeStringBuilder;
 
 namespace Dalamud.Game.Gui;
 
@@ -166,45 +166,51 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// </summary>
     public void UpdateQueue()
     {
-        while (this.chatQueue.Count > 0)
+        if (this.chatQueue.Count == 0)
+            return;
+
+        var sb = LSeStringBuilder.SharedPool.Get();
+        Span<byte> namebuf = stackalloc byte[256];
+        using var sender = new Utf8String();
+        using var message = new Utf8String();
+        while (this.chatQueue.TryDequeue(out var chat))
         {
-            var chat = this.chatQueue.Dequeue();
-            var sb = LuminaSeStringBuilder.SharedPool.Get();
-            var rosss = (ReadOnlySeStringSpan)chat.MessageBytes;
-
-            foreach (var payload in rosss)
+            sb.Clear();
+            foreach (var c in UtfEnumerator.From(chat.MessageBytes, UtfEnumeratorFlags.Utf8SeString))
             {
-                if (payload.Type == ReadOnlySePayloadType.Invalid)
-                    continue;
-
-                if (payload.Type != ReadOnlySePayloadType.Text)
-                {
-                    sb.Append(payload);
-                    continue;
-                }
-
-                foreach (var c in UtfEnumerator.From(payload.Body, UtfEnumeratorFlags.Default))
-                {
-                    if (c.Value.IntValue == 0x202F)
-                        sb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
-                    else
-                        sb.Append(c.EffectiveChar);
-                }
+                if (c.IsSeStringPayload)
+                    sb.Append((ReadOnlySeStringSpan)chat.MessageBytes.AsSpan(c.ByteOffset, c.ByteLength));
+                else if (c.Value.IntValue == 0x202F)
+                    sb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
+                else
+                    sb.Append(c);
             }
 
-            var output = sb.ToArray();
-            LuminaSeStringBuilder.SharedPool.Return(sb);
+            if (chat.NameBytes.Length + 1 < namebuf.Length)
+            {
+                chat.NameBytes.AsSpan().CopyTo(namebuf);
+                namebuf[chat.NameBytes.Length] = 0;
+                sender.SetString(namebuf);
+            }
+            else
+            {
+                sender.SetString(chat.NameBytes.NullTerminate());
+            }
 
-            var sender = Utf8String.FromSequence(chat.NameBytes.NullTerminate());
-            var message = Utf8String.FromSequence(output.NullTerminate());
+            message.SetString(sb.GetViewAsSpan());
 
             var targetChannel = chat.Type ?? this.configuration.GeneralChatType;
 
-            this.HandlePrintMessageDetour(RaptureLogModule.Instance(), targetChannel, sender, message, chat.Timestamp, (byte)(chat.Silent ? 1 : 0));
-
-            sender->Dtor(true);
-            message->Dtor(true);
+            this.HandlePrintMessageDetour(
+                RaptureLogModule.Instance(),
+                targetChannel,
+                &sender,
+                &message,
+                chat.Timestamp,
+                (byte)(chat.Silent ? 1 : 0));
         }
+
+        LSeStringBuilder.SharedPool.Return(sb);
     }
 
     /// <summary>
@@ -282,27 +288,29 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     private void PrintTagged(ReadOnlySpan<byte> message, XivChatType channel, string? tag, ushort? color)
     {
-        var builder = new LuminaSeStringBuilder();
+        var sb = LSeStringBuilder.SharedPool.Get();
 
         if (!tag.IsNullOrEmpty())
         {
             if (color is not null)
             {
-                builder.PushColorType(color.Value);
-                builder.Append($"[{tag}] ");
-                builder.PopColorType();
+                sb.PushColorType(color.Value);
+                sb.Append($"[{tag}] ");
+                sb.PopColorType();
             }
             else
             {
-                builder.Append($"[{tag}] ");
+                sb.Append($"[{tag}] ");
             }
         }
 
         this.Print(new XivChatEntry
         {
-            MessageBytes = builder.Append((ReadOnlySeStringSpan)message).ToArray(),
+            MessageBytes = sb.Append((ReadOnlySeStringSpan)message).ToArray(),
             Type = channel,
         });
+
+        LSeStringBuilder.SharedPool.Return(sb);
     }
 
     private void InventoryItemCopyDetour(InventoryItem* thisPtr, InventoryItem* otherPtr)
@@ -412,7 +420,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
         Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
 
-        var sb = LuminaSeStringBuilder.SharedPool.Get();
+        var sb = LSeStringBuilder.SharedPool.Get();
         try
         {
             var seStringSpan = new ReadOnlySeStringSpan(linkData->Payload);
@@ -423,7 +431,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                 sb.Append(payload);
 
                 if (payload.Type == ReadOnlySePayloadType.Macro &&
-                    payload.MacroCode == Lumina.Text.Payloads.MacroCode.Link &&
+                    payload.MacroCode == MacroCode.Link &&
                     payload.TryGetExpression(out var expr1) &&
                     expr1.TryGetInt(out var expr1Val) &&
                     expr1Val == (int)LinkMacroPayloadType.Terminator)
@@ -452,7 +460,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
         }
         finally
         {
-            LuminaSeStringBuilder.SharedPool.Return(sb);
+            LSeStringBuilder.SharedPool.Return(sb);
         }
     }
 }

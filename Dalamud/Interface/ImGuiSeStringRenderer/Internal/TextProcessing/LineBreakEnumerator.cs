@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
+using Lumina.Text;
+
 using static Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing.UnicodeEastAsianWidthClass;
 using static Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing.UnicodeGeneralCategory;
 using static Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing.UnicodeLineBreakClass;
