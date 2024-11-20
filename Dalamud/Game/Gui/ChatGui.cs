@@ -166,7 +166,11 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// </summary>
     public void UpdateQueue()
     {
+        if (this.chatQueue.Count == 0)
+            return;
+
         var sb = LSeStringBuilder.SharedPool.Get();
+        Span<byte> namebuf = stackalloc byte[256];
         using var sender = new Utf8String();
         using var message = new Utf8String();
         while (this.chatQueue.TryDequeue(out var chat))
@@ -182,8 +186,18 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
                     sb.Append(c);
             }
 
-            sender.SetString(chat.NameBytes.NullTerminate());
-            message.SetString(sb.ToArray().NullTerminate());
+            if (chat.NameBytes.Length + 1 < namebuf.Length)
+            {
+                chat.NameBytes.AsSpan().CopyTo(namebuf);
+                namebuf[chat.NameBytes.Length] = 0;
+                sender.SetString(namebuf);
+            }
+            else
+            {
+                sender.SetString(chat.NameBytes.NullTerminate());
+            }
+
+            message.SetString(sb.GetViewAsSpan());
 
             var targetChannel = chat.Type ?? this.configuration.GeneralChatType;
 
