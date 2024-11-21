@@ -25,6 +25,7 @@ using Dalamud.Storage.Assets;
 using Dalamud.Support;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ImGuiNET;
@@ -122,7 +123,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         framework.Update += this.FrameworkOnUpdate;
         this.scopedFinalizer.Add(() => framework.Update -= this.FrameworkOnUpdate);
         
-        this.versionStringListener = new AddonLifecycleEventListener(AddonEvent.PreDraw, "_TitleRevision", this.OnVersionStringDraw);
+        this.versionStringListener = new AddonLifecycleEventListener(AddonEvent.PostRequestedUpdate, "_TitleRevision", this.OnVersionStringUpdate);
         addonLifecycle.RegisterListener(this.versionStringListener);
         this.scopedFinalizer.Add(() => addonLifecycle.UnregisterListener(this.versionStringListener));
     }
@@ -430,10 +431,12 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             this.IsOpen = false;
     }
 
-    private unsafe void OnVersionStringDraw(AddonEvent ev, AddonArgs args)
+    private unsafe void OnVersionStringUpdate(AddonEvent ev, AddonArgs args)
     {
-        if (args is not AddonDrawArgs drawArgs) return;
-
+        if (args is not AddonRequestedUpdateArgs drawArgs) return;
+        
+        Serilog.Log.Warning("blorp");
+        
         var addon = (AtkUnitBase*)drawArgs.Addon;
         var textNode = addon->GetTextNodeById(3);
         
