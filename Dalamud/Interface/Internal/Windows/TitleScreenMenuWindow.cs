@@ -433,11 +433,9 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
     private unsafe void OnVersionStringUpdate(AddonEvent ev, AddonArgs args)
     {
-        if (args is not AddonRequestedUpdateArgs drawArgs) return;
+        if (args is not AddonRequestedUpdateArgs) return;
         
-        Serilog.Log.Warning("blorp");
-        
-        var addon = (AtkUnitBase*)drawArgs.Addon;
+        var addon = (AtkUnitBase*)args.Addon;
         var textNode = addon->GetTextNodeById(3);
         
         // look and feel init. should be harmless to set.

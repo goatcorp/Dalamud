@@ -6,6 +6,7 @@ using System.Text;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
@@ -124,7 +125,12 @@ public class SettingsTabLook : SettingsTab
             Loc.Localize("DalamudSettingToggleTsm", "Show title screen menu"),
             Loc.Localize("DalamudSettingToggleTsmHint", "This will allow you to access certain Dalamud and Plugin functionality from the title screen.\nDisabling this will also hide the Dalamud version text on the title screen."),
             c => c.ShowTsm,
-            (v, c) => c.ShowTsm = v),
+            (v, c) =>
+            {
+                c.ShowTsm = v;
+
+                Service<GameGui>.GetNullable()?.RequestAddonUpdate("_TitleRevision", force: true);
+            }),
         
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingInstallerOpenDefault", "Open the Plugin Installer to the \"Installed Plugins\" tab by default"),

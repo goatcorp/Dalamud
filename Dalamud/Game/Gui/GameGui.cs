@@ -293,6 +293,26 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.GameUiHidden = false;
     }
 
+    /// <summary>
+    /// Requests an addon update immediately, assuming it's visible. Calls AtkUnitManager#AddonRequestUpdateById.
+    /// </summary> 
+    /// <param name="name">The name of the addon to request.</param>
+    /// <param name="index">The index to pass to GetAddonByName.</param>
+    /// <param name="force">A force flag to pass to AddonRequestUpdateById.</param>
+    internal void RequestAddonUpdate(string name, int index = 1, bool force = false)
+    {
+        var atkStage = AtkStage.Instance();
+        var addon = (AtkUnitBase*)this.GetAddonByName(name, index);
+        
+        if (addon == null || !addon->IsVisible) return;
+        
+        RaptureAtkUnitManager.Instance()->AddonRequestUpdateById(
+            addon->Id,
+            atkStage->GetNumberArrayData(),
+            atkStage->GetStringArrayData(),
+            force);
+    }
+
     private IntPtr HandleSetGlobalBgmDetour(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6)
     {
         var retVal = this.setGlobalBgmHook.Original(bgmKey, a2, a3, a4, a5, a6);
