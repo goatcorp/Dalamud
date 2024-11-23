@@ -10,7 +10,6 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -19,15 +18,18 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
-using Dalamud.Support;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ImGuiNET;
+
+using Lumina.Text.ReadOnly;
+
+using LSeStringBuilder = Lumina.Text.SeStringBuilder;
+using MacroCode = Lumina.Text.Payloads.MacroCode;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -38,6 +40,13 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 {
     private const float TargetFontSizePt = 18f;
     private const float TargetFontSizePx = TargetFontSizePt * 4 / 3;
+
+    private static readonly ReadOnlySeString TitleVersionStringDalamudSuffixMarker =
+        new LSeStringBuilder()
+            .BeginMacro(MacroCode.NewLine)
+            .AppendStringExpression("!Dalamud!"u8)
+            .EndMacro()
+            .ToReadOnlySeString();
 
     private readonly ClientState clientState;
     private readonly DalamudConfiguration configuration;
@@ -59,6 +68,8 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private InOutCubic? fadeOutEasing;
 
     private State state = State.Hide;
+
+    private int lastLoadedPluginCount = -1;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="TitleScreenMenuWindow"/> class.
@@ -441,29 +452,41 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         textNode->TextFlags |= (byte)TextFlags.MultiLine;
         textNode->AlignmentType = AlignmentType.TopLeft;
 
+        var containsDalamudVersionString =
+            new ReadOnlySeStringSpan(textNode->NodeText.StringPtr)
+                .Data
+                .EndsWith(TitleVersionStringDalamudSuffixMarker.Data.Span);
         if (!this.configuration.ShowTsm || !this.showTsm.Value)
         {
-            textNode->NodeText.SetString(addon->AtkValues[1].String);
+            if (containsDalamudVersionString)
+                textNode->NodeText.SetString(addon->AtkValues[1].String);
+            this.lastLoadedPluginCount = -1;
             return;
         }
 
         var pm = Service<PluginManager>.GetNullable();
+        var count = pm?.LoadedPluginCount ?? 0;
 
-        var pluginCount = pm?.InstalledPlugins.Count(c => c.State == PluginState.Loaded) ?? 0;
+        // Avoid rebuilding the string every frame.
+        if (containsDalamudVersionString && count == this.lastLoadedPluginCount)
+            return;
+        this.lastLoadedPluginCount = count;
 
-        var titleVersionText = new SeStringBuilder()
-                               .AddText(addon->AtkValues[1].GetValueAsString())
-                               .AddText("\n\n")
-                               .AddUiGlow(701)
-                               .AddUiForeground(SeIconChar.BoxedLetterD.ToIconString(), 539)
-                               .AddUiGlowOff()
-                               .AddText($" Dalamud: {Util.GetScmVersion()}")
-                               .AddText($" - {pluginCount} {(pluginCount != 1 ? "plugins" : "plugin")} loaded");
+        var lssb = LSeStringBuilder.SharedPool.Get();
+        lssb.Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String)).Append("\n\n");
+        lssb.PushEdgeColorType(701).PushColorType(539)
+            .Append(SeIconChar.BoxedLetterD.ToIconChar())
+            .PopColorType().PopEdgeColorType();
+        lssb.Append($" Dalamud: {Util.GetScmVersion()}");
 
-        if (pm?.SafeMode ?? false) 
-            titleVersionText.AddUiForeground(" [SAFE MODE]", 17);
+        lssb.Append($" - {count} {(count != 1 ? "plugins" : "plugin")} loaded");
 
-        textNode->NodeText.SetString(titleVersionText.Build().EncodeWithNullTerminator());
+        if (pm?.SafeMode is true)
+            lssb.PushColorType(17).Append(" [SAFE MODE]").PopColorType();
+
+        lssb.Append(TitleVersionStringDalamudSuffixMarker);
+        textNode->NodeText.SetString(lssb.GetViewAsSpan());
+        LSeStringBuilder.SharedPool.Return(lssb);
     }
 
     private void TitleScreenMenuEntryListChange() => this.privateAtlas.BuildFontsAsync();
