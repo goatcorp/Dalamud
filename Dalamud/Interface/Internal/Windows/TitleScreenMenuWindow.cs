@@ -29,7 +29,6 @@ using ImGuiNET;
 using Lumina.Text.ReadOnly;
 
 using LSeStringBuilder = Lumina.Text.SeStringBuilder;
-using MacroCode = Lumina.Text.Payloads.MacroCode;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -40,13 +39,6 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 {
     private const float TargetFontSizePt = 18f;
     private const float TargetFontSizePx = TargetFontSizePt * 4 / 3;
-
-    private static readonly ReadOnlySeString TitleVersionStringDalamudSuffixMarker =
-        new LSeStringBuilder()
-            .BeginMacro(MacroCode.NewLine)
-            .AppendStringExpression("!Dalamud!"u8)
-            .EndMacro()
-            .ToReadOnlySeString();
 
     private readonly ClientState clientState;
     private readonly DalamudConfiguration configuration;
@@ -452,14 +444,11 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         textNode->TextFlags |= (byte)TextFlags.MultiLine;
         textNode->AlignmentType = AlignmentType.TopLeft;
 
-        var containsDalamudVersionString =
-            new ReadOnlySeStringSpan(textNode->NodeText.StringPtr)
-                .Data
-                .EndsWith(TitleVersionStringDalamudSuffixMarker.Data.Span);
+        var containsDalamudVersionString = textNode->OriginalTextPointer == textNode->NodeText.StringPtr;
         if (!this.configuration.ShowTsm || !this.showTsm.Value)
         {
             if (containsDalamudVersionString)
-                textNode->NodeText.SetString(addon->AtkValues[1].String);
+                textNode->SetText(addon->AtkValues[1].String);
             this.lastLoadedPluginCount = -1;
             return;
         }
@@ -484,8 +473,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         if (pm?.SafeMode is true)
             lssb.PushColorType(17).Append(" [SAFE MODE]").PopColorType();
 
-        lssb.Append(TitleVersionStringDalamudSuffixMarker);
-        textNode->NodeText.SetString(lssb.GetViewAsSpan());
+        textNode->SetText(lssb.GetViewAsSpan());
         LSeStringBuilder.SharedPool.Return(lssb);
     }
 
