@@ -597,7 +597,11 @@ internal partial class InterfaceManager : IInternalDisposableService
             var startInfo = Service<Dalamud>.Get().StartInfo;
             var configuration = Service<DalamudConfiguration>.Get();
 
-            var iniFileInfo = new FileInfo(Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini"));
+            string filePath = Path.Combine(Path.GetDirectoryName(startInfo.ConfigurationPath)!, "dalamudUI.ini");
+            byte[] encodedFilePathBytes = Encoding.UTF8.GetBytes(filePath);
+            string encodedFilePath = Encoding.UTF8.GetString(encodedFilePathBytes);
+
+            var iniFileInfo = new FileInfo(encodedFilePath);
 
             try
             {
