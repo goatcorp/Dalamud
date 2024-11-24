@@ -27,7 +27,8 @@ internal unsafe partial class ResNodeTree
     /// </summary>
     private protected void DrawNodeEditorTable()
     {
-        using (ImRaii.Table($"###Editor{(nint)this.Node}", 2, SizingStretchProp | NoHostExtendX))
+        using var tbl = ImRaii.Table($"###Editor{(nint)this.Node}", 2, SizingStretchProp | NoHostExtendX);
+        if (tbl.Success)
         {
             this.DrawEditorRows();
         }

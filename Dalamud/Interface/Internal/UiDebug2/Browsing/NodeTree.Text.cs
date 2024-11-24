@@ -85,7 +85,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
     {
         using var tree = ImRaii.TreeNode($"Text Payloads##{(nint)this.Node:X}");
 
-        if (tree)
+        if (tree.Success)
         {
             var utf8String = this.NodeText;
             var seStringBytes = new byte[utf8String.BufUsed];

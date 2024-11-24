@@ -11,6 +11,7 @@ using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 
+/// <inheritdoc cref="AddonTree"/>
 public unsafe partial class AddonTree
 {
     /// <summary>
@@ -23,12 +24,11 @@ public unsafe partial class AddonTree
         if (addon->AtkValuesCount > 0 && atkValue != null)
         {
             using var tree = ImRaii.TreeNode($"Atk Values [{addon->AtkValuesCount}]###atkValues_{addon->NameString}");
-            if (tree)
+            if (tree.Success)
             {
-                using (ImRaii.Table(
-                           "atkUnitBase_atkValueTable",
-                           3,
-                           ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg))
+                using var tbl = ImRaii.Table("atkUnitBase_atkValueTable", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg);
+
+                if (tbl.Success)
                 {
                     ImGui.TableSetupColumn("Index");
                     ImGui.TableSetupColumn("Type");

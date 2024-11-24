@@ -50,7 +50,8 @@ internal unsafe class NodePopoutWindow : Window, IDisposable
     {
         if (this.Node != null && this.AddonTree.ContainsNode(this.Node))
         {
-            using (ImRaii.Child($"{(nint)this.Node:X}popoutChild", new(-1, -1), true))
+            using var ch = ImRaii.Child($"{(nint)this.Node:X}popoutChild", new(-1, -1), true);
+            if (ch.Success)
             {
                 ResNodeTree.GetOrCreate(this.Node, this.AddonTree).Print(null, this.firstDraw);
                 this.firstDraw = false;

@@ -65,7 +65,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
         using var tree = ImRaii.TreeNode($"Texture##texture{(nint)this.TexData.Texture->D3D11ShaderResourceView:X}", SpanFullWidth);
 
-        if (tree)
+        if (tree.Success)
         {
             PrintFieldValuePairs(
                 ("Texture Type", $"{this.TexData.TexType}"),
@@ -189,7 +189,8 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
     private void PrintPartsTable()
     {
-        using (ImRaii.Table($"partsTable##{(nint)this.TexData.Texture->D3D11ShaderResourceView:X}", 3, Borders | RowBg | Reorderable))
+        using var tbl = ImRaii.Table($"partsTable##{(nint)this.TexData.Texture->D3D11ShaderResourceView:X}", 3, Borders | RowBg | Reorderable);
+        if (tbl.Success)
         {
             ImGui.TableSetupColumn("Part ID", WidthFixed);
             ImGui.TableSetupColumn("Part Texture", WidthFixed);
