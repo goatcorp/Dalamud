@@ -137,7 +137,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public bool IsPvP { get; private set; }
 
     /// <inheritdoc/>
-    public bool IsPvPExcludingDen { get; private set; }
+    public bool IsPvPExcludingDen => this.IsPvP && this.TerritoryType != 250;
 
     /// <inheritdoc />
     public bool IsGPosing => GameMain.IsInGPose();
@@ -195,7 +195,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
             if (isPvP != this.IsPvP)
             {
                 this.IsPvP = isPvP;
-                this.IsPvPExcludingDen = this.IsPvP && this.TerritoryType != 250;
 
                 if (this.IsPvP)
                 {
