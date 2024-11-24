@@ -195,7 +195,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
             if (isPvP != this.IsPvP)
             {
                 this.IsPvP = isPvP;
-                this.IsPvPExcludingDen = this.IsPvP && this.TerritoryType != 250;
 
                 if (this.IsPvP)
                 {
@@ -208,6 +207,8 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
                     this.LeavePvP?.InvokeSafely();
                 }
             }
+
+            this.IsPvPExcludingDen = this.IsPvP && this.TerritoryType != 250;
         }
 
         this.setupTerritoryTypeHook.Original(eventFramework, territoryType);
