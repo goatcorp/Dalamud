@@ -128,11 +128,11 @@ internal unsafe partial class ResNodeTree : IDisposable
             return;
         }
 
-        using var c = ImRaii.PushColor(Text, color);
+        using var col = ImRaii.PushColor(Text, color);
         using var tree = ImRaii.TreeNode($"{label}##{(nint)nodeList:X}", SpanFullWidth);
-        c.Pop();
+        col.Pop();
 
-        if (tree)
+        if (tree.Success)
         {
             var lineStart = ImGui.GetCursorScreenPos() + new Vector2(-10, 2);
 
@@ -319,7 +319,7 @@ internal unsafe partial class ResNodeTree : IDisposable
 
         col.Pop();
 
-        if (tree)
+        if (tree.Success)
         {
             var lineStart = ImGui.GetCursorScreenPos() + new Vector2(-10, 2);
             try

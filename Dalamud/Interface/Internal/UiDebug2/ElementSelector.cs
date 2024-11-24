@@ -79,7 +79,9 @@ internal unsafe class ElementSelector : IDisposable
     /// </summary>
     internal void DrawInterface()
     {
-        using (ImRaii.Child("###sidebar_elementSelector", new(250, -1), true))
+        using var ch = ImRaii.Child("###sidebar_elementSelector", new(250, -1), true);
+
+        if (ch.Success)
         {
             using (ImRaii.PushFont(IconFont))
             {
@@ -153,9 +155,11 @@ internal unsafe class ElementSelector : IDisposable
 
         using (ImRaii.PushColor(WindowBg, new Vector4(0.5f)))
         {
-            using (ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse))
+            using var ch = ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse);
+            if (ch.Success)
             {
-                using (ImRaii.Group())
+                using var gr = ImRaii.Group();
+                if (gr.Success)
                 {
                     Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
                     ImGui.Spacing();

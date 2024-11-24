@@ -83,7 +83,9 @@ internal partial class UiDebug2 : IDisposable
     {
         ImGui.SameLine();
 
-        using (ImRaii.Child("###uiDebugMainPanel", new(-1, -1), true, HorizontalScrollbar))
+        using var ch = ImRaii.Child("###uiDebugMainPanel", new(-1, -1), true, HorizontalScrollbar);
+
+        if (ch.Success)
         {
             if (this.elementSelector.Active)
             {
