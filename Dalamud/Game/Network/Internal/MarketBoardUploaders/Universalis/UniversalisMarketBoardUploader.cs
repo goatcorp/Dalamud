@@ -102,11 +102,18 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
         var uploadPath = "/upload";
         var uploadData = JsonConvert.SerializeObject(uploadObject);
         Log.Verbose("{ListingPath}: {ListingUpload}", uploadPath, uploadData);
-        await this.httpClient.PostAsync($"{ApiBase}{uploadPath}/{ApiKey}", new StringContent(uploadData, Encoding.UTF8, "application/json"));
+        var response = await this.httpClient.PostAsync($"{ApiBase}{uploadPath}/{ApiKey}", new StringContent(uploadData, Encoding.UTF8, "application/json"));
 
-        // ====================================================================================
-
-        Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.CatalogId);
+        if (response.IsSuccessStatusCode)
+        {
+            Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.CatalogId);
+        }
+        else
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            Log.Warning("Universalis data upload for item#{CatalogId} returned status code {StatusCode}.\n" +
+                        "    Response Body: {Body}", request.CatalogId, response.StatusCode, body);
+        }
     }
 
     /// <inheritdoc/>
