@@ -1202,7 +1202,6 @@ public static class Util
 
             if (tree.Success)
             {
-                ImGui.PopStyleColor();
                 foreach (var f in obj.GetType()
                                      .GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
                 {
