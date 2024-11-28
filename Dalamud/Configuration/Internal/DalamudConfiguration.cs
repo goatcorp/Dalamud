@@ -57,7 +57,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public event DalamudConfigurationSavedDelegate? DalamudConfigurationSaved;
 
     /// <summary>
-    /// Gets or sets a list of muted works.
+    /// Gets or sets a list of muted words.
     /// </summary>
     public List<string>? BadWords { get; set; }
 

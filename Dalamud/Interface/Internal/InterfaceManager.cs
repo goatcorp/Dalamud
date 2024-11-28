@@ -604,9 +604,16 @@ internal partial class InterfaceManager : IInternalDisposableService
                 if (iniFileInfo.Length > 1200000)
                 {
                     Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                    iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName!, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                    iniFileInfo.CopyTo(
+                        Path.Combine(
+                            iniFileInfo.DirectoryName!,
+                            $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
                     iniFileInfo.Delete();
                 }
+            }
+            catch (FileNotFoundException)
+            {
+                Log.Warning("dalamudUI.ini did not exist, ImGUI will create a new one.");
             }
             catch (Exception ex)
             {

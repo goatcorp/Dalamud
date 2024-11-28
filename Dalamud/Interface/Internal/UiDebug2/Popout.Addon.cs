@@ -39,7 +39,8 @@ internal class AddonPopoutWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void Draw()
     {
-        using (ImRaii.Child($"{this.WindowName}child", new(-1, -1), true))
+        using var ch = ImRaii.Child($"{this.WindowName}child", new(-1, -1), true);
+        if (ch.Success)
         {
             this.addonTree.Draw();
         }

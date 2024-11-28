@@ -53,7 +53,8 @@ internal unsafe partial class UiDebug2
 
     private void DrawSidebar()
     {
-        using (ImRaii.Group())
+        using var gr = ImRaii.Group();
+        if (gr.Success)
         {
             this.DrawNameSearch();
             this.DrawAddonSelectionList();
@@ -63,7 +64,9 @@ internal unsafe partial class UiDebug2
 
     private void DrawNameSearch()
     {
-        using (ImRaii.Child("###sidebar_nameSearch", new(250, 40), true))
+        using var ch = ImRaii.Child("###sidebar_nameSearch", new(250, 40), true);
+
+        if (ch.Success)
         {
             var atkUnitBaseSearch = this.addonNameSearch;
 
@@ -90,7 +93,8 @@ internal unsafe partial class UiDebug2
 
     private void DrawAddonSelectionList()
     {
-        using (ImRaii.Child("###sideBar_addonList", new(250, -44), true, ImGuiWindowFlags.AlwaysVerticalScrollbar))
+        using var ch = ImRaii.Child("###sideBar_addonList", new(250, -44), true, ImGuiWindowFlags.AlwaysVerticalScrollbar);
+        if (ch.Success)
         {
             var unitListBaseAddr = GetUnitListBaseAddr();
 
@@ -146,11 +150,11 @@ internal unsafe partial class UiDebug2
 
         var countStr = $"{(usingFilter ? $"{matchCount}/" : string.Empty)}{totalCount}";
 
-        using var col1 = ImRaii.PushColor(ImGuiCol.Text, anyVisible ? new Vector4(1) : new Vector4(0.6f, 0.6f, 0.6f, 1));
+        using var col = ImRaii.PushColor(ImGuiCol.Text, anyVisible ? new Vector4(1) : new Vector4(0.6f, 0.6f, 0.6f, 1));
         using var tree = ImRaii.TreeNode($"{unit.Name} [{countStr}]###unitListTree{unit.Index}");
-        col1.Pop();
+        col.Pop();
 
-        if (tree)
+        if (tree.Success)
         {
             foreach (var option in options)
             {

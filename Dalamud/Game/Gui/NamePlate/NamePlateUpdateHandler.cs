@@ -328,9 +328,9 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     public ulong GameObjectId => this.gameObjectId ??= this.NamePlateInfo->ObjectId;
 
     /// <inheritdoc/>
-    public IGameObject? GameObject => this.gameObject ??= this.context.ObjectTable.CreateObjectReference(
-                                          (nint)this.context.Ui3DModule->NamePlateObjectInfoPointers[
-                                              this.ArrayIndex].Value->GameObject);
+    public IGameObject? GameObject => this.gameObject ??= this.context.ObjectTable[
+                                          this.context.Ui3DModule->NamePlateObjectInfoPointers[this.ArrayIndex]
+                                              .Value->GameObject->ObjectIndex];
 
     /// <inheritdoc/>
     public IBattleChara? BattleChara => this.GameObject as IBattleChara;

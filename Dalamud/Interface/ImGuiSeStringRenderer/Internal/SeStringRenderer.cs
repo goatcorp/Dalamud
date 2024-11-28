@@ -19,6 +19,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 
 using Lumina.Excel.Sheets;
+using Lumina.Text;
 using Lumina.Text.Parse;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -66,8 +67,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private SeStringRenderer(DataManager dm, TargetSigScanner sigScanner)
     {
-        this.colorStackSet = new(
-            dm.Excel.GetSheet<UIColor>() ?? throw new InvalidOperationException("Failed to access UIColor sheet."));
+        this.colorStackSet = new(dm.Excel.GetSheet<UIColor>());
         this.gfd = dm.GetFile<GfdFile>("common/font/gfdata.gfd")!;
     }
 

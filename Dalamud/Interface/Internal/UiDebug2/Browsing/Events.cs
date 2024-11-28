@@ -30,9 +30,11 @@ public static class Events
 
         using var tree = ImRaii.TreeNode($"Events##{(nint)node:X}eventTree");
 
-        if (tree)
+        if (tree.Success)
         {
-            using (ImRaii.Table($"##{(nint)node:X}eventTable", 7, Resizable | SizingFixedFit | Borders | RowBg))
+            using var tbl = ImRaii.Table($"##{(nint)node:X}eventTable", 7, Resizable | SizingFixedFit | Borders | RowBg);
+
+            if (tbl.Success)
             {
                 ImGui.TableSetupColumn("#", WidthFixed);
                 ImGui.TableSetupColumn("Type", WidthFixed);
