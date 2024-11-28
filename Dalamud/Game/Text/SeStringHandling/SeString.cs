@@ -133,9 +133,7 @@ public class SeString
         {
             while (stream.Position < len)
             {
-                var payload = Payload.Decode(reader);
-                if (payload != null)
-                    payloads.Add(payload);
+                payloads.Add(Payload.Decode(reader));
             }
         }
 

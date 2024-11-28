@@ -24,7 +24,7 @@ public static partial class ImGuiComponents
     /// <param name="activeColor">The color of the actively-selected button.</param>
     /// <param name="hoveredColor">The color of the buttons when hovered.</param>
     /// <returns>True if any button is clicked.</returns>
-    internal static bool IconButtonSelect<T>(string label, ref T val, IEnumerable<FontAwesomeIcon> optionIcons, IEnumerable<T> optionValues, uint columns = 0, Vector2? buttonSize = null, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
+    public static bool IconButtonSelect<T>(string label, ref T val, IEnumerable<FontAwesomeIcon> optionIcons, IEnumerable<T> optionValues, uint columns = 0, Vector2? buttonSize = null, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
     {
         var options = optionIcons.Zip(optionValues, static (icon, value) => new KeyValuePair<FontAwesomeIcon, T>(icon, value));
         return IconButtonSelect(label, ref val, options, columns, buttonSize, defaultColor, activeColor, hoveredColor);
@@ -43,7 +43,7 @@ public static partial class ImGuiComponents
     /// <param name="activeColor">The color of the actively-selected button.</param>
     /// <param name="hoveredColor">The color of the buttons when hovered.</param>
     /// <returns>True if any button is clicked.</returns>
-    internal static unsafe bool IconButtonSelect<T>(string label, ref T val, IEnumerable<KeyValuePair<FontAwesomeIcon, T>> options, uint columns = 0, Vector2? buttonSize = null, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
+    public static unsafe bool IconButtonSelect<T>(string label, ref T val, IEnumerable<KeyValuePair<FontAwesomeIcon, T>> options, uint columns = 0, Vector2? buttonSize = null, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null)
     {
         defaultColor ??= *ImGui.GetStyleColorVec4(ImGuiCol.Button);
         activeColor ??= *ImGui.GetStyleColorVec4(ImGuiCol.ButtonActive);

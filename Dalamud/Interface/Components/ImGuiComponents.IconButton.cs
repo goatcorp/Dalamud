@@ -270,7 +270,7 @@ public static partial class ImGuiComponents
     /// <param name="icon">Icon to use.</param>
     /// <param name="text">Text to use.</param>
     /// <returns>Width.</returns>
-    internal static float GetIconButtonWithTextWidth(FontAwesomeIcon icon, string text)
+    public static float GetIconButtonWithTextWidth(FontAwesomeIcon icon, string text)
     {
         using (ImRaii.PushFont(UiBuilder.IconFont))
         {

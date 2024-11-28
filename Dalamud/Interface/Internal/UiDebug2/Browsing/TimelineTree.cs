@@ -58,7 +58,7 @@ public readonly unsafe partial struct TimelineTree
         {
             using var tree = ImRaii.TreeNode($"Timeline##{(nint)this.node:X}timeline", SpanFullWidth);
 
-            if (tree)
+            if (tree.Success)
             {
                 PrintFieldValuePair("Timeline", $"{(nint)this.NodeTimeline:X}");
 
@@ -312,7 +312,7 @@ public readonly unsafe partial struct TimelineTree
         {
             using var tree = ImRaii.TreeNode($"[#{a}] [Frames {animation.StartFrameIdx}-{animation.EndFrameIdx}] {(isActive ? " (Active)" : string.Empty)}###{(nint)this.node}animTree{a}");
 
-            if (tree)
+            if (tree.Success)
             {
                 PrintFieldValuePair("Animation", $"{address:X}");
 
@@ -320,10 +320,9 @@ public readonly unsafe partial struct TimelineTree
 
                 if (columns.Count > 0)
                 {
-                    using (ImRaii.Table(
-                               $"##{(nint)this.node}animTable{a}",
-                               columns.Count,
-                               Borders | SizingFixedFit | RowBg | NoHostExtendX))
+                    using var tbl = ImRaii.Table($"##{(nint)this.node}animTable{a}", columns.Count, Borders | SizingFixedFit | RowBg | NoHostExtendX);
+
+                    if (tbl.Success)
                     {
                         foreach (var c in columns)
                         {

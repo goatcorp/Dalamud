@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -34,7 +33,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     private static readonly string[] ThemeNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
     private ImVectorWrapper<byte> testStringBuffer;
     private string testString = string.Empty;
-    private ExcelSheet<Addon> addons;
+    private ExcelSheet<Addon> addons = null!;
     private ReadOnlySeString? logkind;
     private SeStringDrawParams style;
     private bool interactable;
@@ -241,8 +240,9 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         if (ImGui.Button("Print to Chat Log"))
         {
-            fixed (byte* p = Service<SeStringRenderer>.Get().CompileAndCache(this.testString).Data.Span)
-                Service<ChatGui>.Get().Print(Game.Text.SeStringHandling.SeString.Parse(p));
+            Service<ChatGui>.Get().Print(
+                Game.Text.SeStringHandling.SeString.Parse(
+                    Service<SeStringRenderer>.Get().CompileAndCache(this.testString).Data.Span));
         }
 
         ImGuiHelpers.ScaledDummy(3);
