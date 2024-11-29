@@ -1,9 +1,11 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+
+using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -194,6 +196,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
     private readonly IFontAtlas privateAtlas;
 
     private string creditsText;
+    private bool isBgmSet;
 
     private bool resetNow = false;
     private IDalamudTextureWrap? logoTexture;
@@ -222,10 +225,14 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
         this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
 
-        var gg = Service<GameGui>.Get();
-        if (!gg.IsOnTitleScreen() && UIState.Instance() != null)
+        var gameGui = Service<GameGui>.Get();
+        var clientState = Service<ClientState>.Get();
+        var playerState = PlayerState.Instance();
+
+        if (!gameGui.IsOnTitleScreen() && clientState.IsClientIdle() && playerState != null)
         {
-            gg.SetBgm((ushort)(UIState.Instance()->PlayerState.MaxExpansion > 3 ? 833 : 132));
+            gameGui.SetBgm((ushort)(playerState->MaxExpansion > 3 ? 833 : 132));
+            this.isBgmSet = true;
         }
 
         this.creditsThrottler.Restart();
@@ -242,9 +249,16 @@ Contribute at: https://github.com/goatcorp/Dalamud
     {
         this.creditsThrottler.Reset();
 
-        var gg = Service<GameGui>.Get();
-        if (!gg.IsOnTitleScreen())
-            gg.SetBgm(9999);
+        var gameGui = Service<GameGui>.Get();
+        var clientState = Service<ClientState>.Get();
+
+        if (this.isBgmSet)
+        {
+            if (!gameGui.IsOnTitleScreen() && clientState.IsClientIdle())
+                gameGui.SetBgm(9999);
+
+            this.isBgmSet = false;
+        }
 
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(false);
     }
