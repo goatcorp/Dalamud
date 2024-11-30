@@ -9,6 +9,7 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Client.System.String;
@@ -16,6 +17,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using ImGuiNET;
 
 using Vector2 = System.Numerics.Vector2;
@@ -34,7 +36,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     private readonly GameGuiAddressResolver address;
 
-    private readonly Hook<SetGlobalBgmDelegate> setGlobalBgmHook;
     private readonly Hook<AgentItemDetail.Delegates.Update> handleItemHoverHook;
     private readonly Hook<AgentItemDetail.Delegates.ReceiveEvent> handleItemOutHook;
     private readonly Hook<AgentActionDetail.Delegates.HandleActionHover> handleActionHoverHook;
@@ -50,11 +51,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         this.address.Setup(sigScanner);
 
         Log.Verbose("===== G A M E G U I =====");
-        Log.Verbose($"GameGuiManager address {Util.DescribeAddress(this.address.BaseAddress)}");
-        Log.Verbose($"SetGlobalBgm address {Util.DescribeAddress(this.address.SetGlobalBgm)}");
         Log.Verbose($"HandleImm address {Util.DescribeAddress(this.address.HandleImm)}");
-
-        this.setGlobalBgmHook = Hook<SetGlobalBgmDelegate>.FromAddress(this.address.SetGlobalBgm, this.HandleSetGlobalBgmDetour);
 
         this.handleItemHoverHook = Hook<AgentItemDetail.Delegates.Update>.FromAddress((nint)AgentItemDetail.StaticVirtualTablePointer->Update, this.HandleItemHoverDetour);
         this.handleItemOutHook = Hook<AgentItemDetail.Delegates.ReceiveEvent>.FromAddress((nint)AgentItemDetail.StaticVirtualTablePointer->ReceiveEvent, this.HandleItemOutDetour);
@@ -68,7 +65,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
         this.utf8StringFromSequenceHook = Hook<Utf8String.Delegates.Ctor_FromSequence>.FromAddress(Utf8String.Addresses.Ctor_FromSequence.Value, this.Utf8StringFromSequenceDetour);
 
-        this.setGlobalBgmHook.Enable();
         this.handleItemHoverHook.Enable();
         this.handleItemOutHook.Enable();
         this.handleImmHook.Enable();
@@ -80,9 +76,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
 
     // Hooked delegates
     
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr SetGlobalBgmDelegate(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6);
-
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate char HandleImmDelegate(IntPtr framework, char a2, byte a3);
 
@@ -254,7 +247,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
-        this.setGlobalBgmHook.Dispose();
         this.handleItemHoverHook.Dispose();
         this.handleItemOutHook.Dispose();
         this.handleImmHook.Dispose();
@@ -265,25 +257,26 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     }
 
     /// <summary>
-    /// Indicates if the game is on the title screen.
+    /// Indicates if the game is in the lobby scene (title screen, chara select, chara make, aesthetician etc.).
     /// </summary>
-    /// <returns>A value indicating whether or not the game is on the title screen.</returns>
-    internal bool IsOnTitleScreen()
+    /// <returns>A value indicating whether or not the game is in the lobby scene.</returns>
+    internal bool IsInLobby()
     {
-        var charaSelect = this.GetAddonByName("CharaSelect");
-        var charaMake = this.GetAddonByName("CharaMake");
-        var titleDcWorldMap = this.GetAddonByName("TitleDCWorldMap");
-        if (charaMake != nint.Zero || charaSelect != nint.Zero || titleDcWorldMap != nint.Zero)
-            return false;
-
-        return !Service<ClientState.ClientState>.Get().IsLoggedIn;
+        return RaptureAtkModule.Instance()->CurrentUISceneString == "LobbyMain";
     }
 
     /// <summary>
-    /// Set the current background music.
+    /// Sets the current background music.
     /// </summary>
-    /// <param name="bgmKey">The background music key.</param>
-    internal void SetBgm(ushort bgmKey) => this.setGlobalBgmHook.Original(bgmKey, 0, 0, 0, 0, 0);
+    /// <param name="bgmId">The BGM row id.</param>
+    /// <param name="sceneId">The BGM scene index. Defaults to MiniGame scene to avoid conflicts.</param>
+    internal void SetBgm(ushort bgmId, uint sceneId = 2) => BGMSystem.SetBGM(bgmId, sceneId);
+
+    /// <summary>
+    /// Resets the current background music.
+    /// </summary>
+    /// <param name="sceneId">The BGM scene index.</param>
+    internal void ResetBgm(uint sceneId = 2) => BGMSystem.Instance()->ResetBGM(sceneId);
 
     /// <summary>
     /// Reset the stored "UI hide" state.
@@ -291,15 +284,6 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     internal void ResetUiHideState()
     {
         this.GameUiHidden = false;
-    }
-
-    private IntPtr HandleSetGlobalBgmDetour(ushort bgmKey, byte a2, uint a3, uint a4, uint a5, byte a6)
-    {
-        var retVal = this.setGlobalBgmHook.Original(bgmKey, a2, a3, a4, a5, a6);
-
-        Log.Verbose("SetGlobalBgm: {0} {1} {2} {3} {4} {5} -> {6}", bgmKey, a2, a3, a4, a5, a6, retVal);
-
-        return retVal;
     }
 
     private void HandleItemHoverDetour(AgentItemDetail* thisPtr, uint frameCount)
