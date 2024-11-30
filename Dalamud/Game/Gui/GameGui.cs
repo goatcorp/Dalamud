@@ -260,10 +260,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// Indicates if the game is in the lobby scene (title screen, chara select, chara make, aesthetician etc.).
     /// </summary>
     /// <returns>A value indicating whether or not the game is in the lobby scene.</returns>
-    internal bool IsInLobby()
-    {
-        return RaptureAtkModule.Instance()->CurrentUISceneString == "LobbyMain";
-    }
+    internal bool IsInLobby() => RaptureAtkModule.Instance()->CurrentUIScene.StartsWith("LobbyMain"u8);
 
     /// <summary>
     /// Sets the current background music.
