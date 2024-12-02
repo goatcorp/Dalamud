@@ -1,8 +1,12 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using Serilog;
@@ -23,16 +27,17 @@ namespace Dalamud.Injector
         /// <param name="exePath">The path to the executable file.</param>
         /// <param name="arguments">Arguments to pass to the executable file.</param>
         /// <param name="dontFixAcl">Don't actually fix the ACL.</param>
+        /// <param name="dontUnelevate">Don't unelevate, if ran as Administrator. Has no effect if UAC is disabled.</param>
         /// <param name="beforeResume">Action to execute before the process is started.</param>
         /// <param name="waitForGameWindow">Wait for the game window to be ready before proceeding.</param>
         /// <returns>The started process.</returns>
         /// <exception cref="Win32Exception">Thrown when a win32 error occurs.</exception>
         /// <exception cref="GameStartException">Thrown when the process did not start correctly.</exception>
-        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, Action<Process> beforeResume, bool waitForGameWindow = true)
+        public static Process LaunchGame(string workingDir, string exePath, string arguments, bool dontFixAcl, bool dontUnelevate, Action<Process>? beforeResume, bool waitForGameWindow = true)
         {
             Process process = null;
 
-            var psecDesc = IntPtr.Zero;
+            var psecDesc = nint.Zero;
             if (!dontFixAcl)
             {
                 var userName = Environment.UserName;
@@ -64,6 +69,63 @@ namespace Dalamud.Injector
                 Marshal.StructureToPtr(secDesc, psecDesc, true);
             }
 
+            var procAttrListBuffer = nint.Zero;
+            var parentProcessHandle = nint.Zero;
+            if (!dontUnelevate)
+            {
+                try
+                {
+                    if (PInvoke.GetWindowThreadProcessId(PInvoke.GetShellWindow(), out var shellProcessId) == 0)
+                        Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+
+                    parentProcessHandle = PInvoke.OpenProcess(PInvoke.PROCESS_CREATE_PROCESS, false, shellProcessId);
+                    if (parentProcessHandle == nint.Zero)
+                    {
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
+                    }
+
+                    var nAttrListSize = nint.Zero;
+
+                    // The following call is expected to fail with a specific win32 error code.
+                    if (PInvoke.InitializeProcThreadAttributeList(nint.Zero, 1, 0, ref nAttrListSize)
+                        || Marshal.GetLastWin32Error() != PInvoke.ERROR_INSUFFICIENT_BUFFER)
+                    {
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
+                    }
+
+                    procAttrListBuffer = Marshal.AllocHGlobal(nAttrListSize);
+                    // This one should succeed.
+                    if (!PInvoke.InitializeProcThreadAttributeList(procAttrListBuffer, 1, 0, ref nAttrListSize))
+                    {
+                        Marshal.FreeHGlobal(procAttrListBuffer);
+                        procAttrListBuffer = nint.Zero;
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
+                    }
+
+                    unsafe
+                    {
+                        if (!PInvoke.UpdateProcThreadAttribute(
+                                procAttrListBuffer,
+                                0,
+                                PInvoke.PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,
+                                (nint)(&parentProcessHandle),
+                                Marshal.SizeOf<nint>(),
+                                nint.Zero,
+                                nint.Zero))
+                        {
+                            PInvoke.DeleteProcThreadAttributeList(procAttrListBuffer);
+                            Marshal.FreeHGlobal(procAttrListBuffer);
+                            procAttrListBuffer = nint.Zero;
+                            throw new Win32Exception(Marshal.GetLastWin32Error());
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "[GameStart] Failed to prepare for launching the game unelevated.");
+                }
+            }
+
             var lpProcessInformation = default(PInvoke.PROCESS_INFORMATION);
             try
             {
@@ -74,42 +136,36 @@ namespace Dalamud.Injector
                     bInheritHandle = false,
                 };
 
-                var lpStartupInfo = new PInvoke.STARTUPINFO
+                var lpStartupInfo = new PInvoke.STARTUPINFOEX
                 {
-                    cb = Marshal.SizeOf<PInvoke.STARTUPINFO>(),
+                    StartupInfo = new PInvoke.STARTUPINFO
+                    {
+                        cb = procAttrListBuffer == 0 ? Marshal.SizeOf<PInvoke.STARTUPINFO>() : Marshal.SizeOf<PInvoke.STARTUPINFOEX>(),
+                    },
+                    lpAttributeList = procAttrListBuffer,
                 };
 
-                var compatLayerPrev = Environment.GetEnvironmentVariable("__COMPAT_LAYER");
+                var envvars = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().ToDictionary(x => (string)x.Key, x => (string)x.Value);
+                envvars["__COMPAT_LAYER"] = string.Join(
+                    ' ',
+                    Regex.Split(envvars.GetValueOrDefault("__COMPAT_LAYER", string.Empty), "\\s+")
+                         .Where(x => !string.IsNullOrEmpty(x))
+                         .Append("RunAsInvoker")
+                         .Distinct());
 
-                if (!string.IsNullOrEmpty(compatLayerPrev) && !compatLayerPrev.Contains("RunAsInvoker"))
+                if (!PInvoke.CreateProcess(
+                        exePath,
+                        $"\"{exePath}\" {arguments}",
+                        ref lpProcessAttributes,
+                        nint.Zero,
+                        false,
+                        PInvoke.CREATE_SUSPENDED | PInvoke.CREATE_UNICODE_ENVIRONMENT | (procAttrListBuffer == 0 ? 0 : PInvoke.EXTENDED_STARTUPINFO_PRESENT),
+                        string.Join('\0', envvars.Select(x => $"{x.Key}={x.Value}").Append(string.Empty)),
+                        workingDir,
+                        ref lpStartupInfo,
+                        out lpProcessInformation))
                 {
-                    Environment.SetEnvironmentVariable("__COMPAT_LAYER", $"RunAsInvoker {compatLayerPrev}");
-                }
-                else if (string.IsNullOrEmpty(compatLayerPrev))
-                {
-                    Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RunAsInvoker");
-                }
-
-                try
-                {
-                    if (!PInvoke.CreateProcess(
-                            null,
-                            $"\"{exePath}\" {arguments}",
-                            ref lpProcessAttributes,
-                            IntPtr.Zero,
-                            false,
-                            PInvoke.CREATE_SUSPENDED,
-                            IntPtr.Zero,
-                            workingDir,
-                            ref lpStartupInfo,
-                            out lpProcessInformation))
-                    {
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
-                    }
-                }
-                finally
-                {
-                    Environment.SetEnvironmentVariable("__COMPAT_LAYER", compatLayerPrev);
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
                 }
 
                 if (!dontFixAcl)
@@ -119,7 +175,8 @@ namespace Dalamud.Injector
 
                 beforeResume?.Invoke(process);
 
-                PInvoke.ResumeThread(lpProcessInformation.hThread);
+                if (PInvoke.ResumeThread(lpProcessInformation.hThread) == uint.MaxValue)
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
 
                 // Ensure that the game main window is prepared
                 if (waitForGameWindow)
@@ -170,9 +227,17 @@ namespace Dalamud.Injector
             }
             finally
             {
-                if (psecDesc != IntPtr.Zero)
+                if (psecDesc != nint.Zero)
                     Marshal.FreeHGlobal(psecDesc);
-                PInvoke.CloseHandle(lpProcessInformation.hThread);
+                if (lpProcessInformation.hThread != nint.Zero)
+                    PInvoke.CloseHandle(lpProcessInformation.hThread);
+                if (parentProcessHandle != nint.Zero)
+                    PInvoke.CloseHandle(parentProcessHandle);
+                if (procAttrListBuffer != nint.Zero)
+                {
+                    PInvoke.DeleteProcThreadAttributeList(procAttrListBuffer);
+                    Marshal.FreeHGlobal(procAttrListBuffer);
+                }
             }
 
             return process;
@@ -359,6 +424,12 @@ namespace Dalamud.Injector
             public const UInt32 SECURITY_DESCRIPTOR_REVISION = 1;
 
             public const UInt32 CREATE_SUSPENDED = 0x00000004;
+            public const UInt32 CREATE_UNICODE_ENVIRONMENT = 0x00000400;
+            public const UInt32 EXTENDED_STARTUPINFO_PRESENT = 0x00080000;
+
+            public const IntPtr PROC_THREAD_ATTRIBUTE_PARENT_PROCESS = 0x00020000;
+
+            public const UInt32 PROCESS_CREATE_PROCESS = 0x00000080;
 
             public const UInt32 TOKEN_QUERY = 0x0008;
             public const UInt32 TOKEN_ADJUST_PRIVILEGES = 0x0020;
@@ -369,6 +440,7 @@ namespace Dalamud.Injector
             public const UInt32 SE_PRIVILEGE_REMOVED = 0x00000004;
 
             public const UInt32 ERROR_NO_TOKEN = 0x000003F0;
+            public const UInt32 ERROR_INSUFFICIENT_BUFFER = 0x0000007A;
 
             public static readonly IntPtr INVALID_HANDLE_VALUE = new(-1);
 
@@ -440,6 +512,38 @@ namespace Dalamud.Injector
 
             #region Methods
 
+            [DllImport("kernel32.dll", SetLastError = true)]
+            public static extern IntPtr OpenProcess(
+                uint processAccess,
+                bool bInheritHandle,
+                uint processId);
+
+            [DllImport("user32.dll")]
+            public static extern IntPtr GetShellWindow();
+
+            [DllImport("kernel32.dll", SetLastError=true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool InitializeProcThreadAttributeList(
+                IntPtr lpAttributeList,
+                int dwAttributeCount,
+                int dwFlags,
+                ref IntPtr lpSize);
+
+            [DllImport("kernel32.dll", SetLastError=true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool UpdateProcThreadAttribute(
+                IntPtr lpAttributeList,
+                uint dwFlags,
+                IntPtr nAttribute,
+                IntPtr lpValue,
+                IntPtr cbSize,
+                IntPtr lpPreviousValue,
+                IntPtr lpReturnSize);
+
+            [DllImport("kernel32.dll", SetLastError=true)]
+            public static extern void DeleteProcThreadAttributeList(
+                IntPtr lpAttributeList);
+
             [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
             public static extern void BuildExplicitAccessWithName(
                 ref EXPLICIT_ACCESS pExplicitAccess,
@@ -467,17 +571,17 @@ namespace Dalamud.Injector
                 IntPtr pDacl,
                 bool bDaclDefaulted);
 
-            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern bool CreateProcess(
-               string lpApplicationName,
-               string lpCommandLine,
+               string? lpApplicationName,
+               string? lpCommandLine,
                ref SECURITY_ATTRIBUTES lpProcessAttributes,
                IntPtr lpThreadAttributes,
                bool bInheritHandles,
                UInt32 dwCreationFlags,
-               IntPtr lpEnvironment,
-               string lpCurrentDirectory,
-               [In] ref STARTUPINFO lpStartupInfo,
+               string? lpEnvironment,
+               string? lpCurrentDirectory,
+               [In] ref STARTUPINFOEX lpStartupInfo,
                out PROCESS_INFORMATION lpProcessInformation);
 
             [DllImport("kernel32.dll", SetLastError = true)]
@@ -625,6 +729,13 @@ namespace Dalamud.Injector
                 public IntPtr hStdInput;
                 public IntPtr hStdOutput;
                 public IntPtr hStdError;
+            }
+
+            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+            public struct STARTUPINFOEX
+            {
+                public STARTUPINFO StartupInfo;
+                public IntPtr lpAttributeList;
             }
 
             [StructLayout(LayoutKind.Sequential)]
