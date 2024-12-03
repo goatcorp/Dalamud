@@ -118,7 +118,7 @@ public enum UiConfigOption
     /// UiConfig option with the internal name LockonDefaultZoom_179.
     /// This option is a Float.
     /// </summary>
-    [Obsolete("This option won't work. Use LockonDefaultZoom.")]
+    [Obsolete("This option won't work. Use LockonDefaultZoom.", true)]
     [GameConfigOption("LockonDefaultZoom_179", ConfigType.Float)]
     LockonDefaultZoom_179,
 
