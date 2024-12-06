@@ -266,7 +266,7 @@ internal class DalamudCommands : IServiceType
         else
         {
             // Revert to the original BGM by specifying an invalid one
-            gameGui.SetBgm(9999);
+            gameGui.ResetBgm();
         }
     }
 
