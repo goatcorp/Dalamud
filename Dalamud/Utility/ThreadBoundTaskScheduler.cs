@@ -22,7 +22,13 @@ internal class ThreadBoundTaskScheduler : TaskScheduler
     public ThreadBoundTaskScheduler(Thread? boundThread = null)
     {
         this.BoundThread = boundThread;
+        this.TaskQueued += static () => { };
     }
+
+    /// <summary>
+    /// Event fired when a task has been posted.
+    /// </summary>
+    public event Action TaskQueued;
 
     /// <summary>
     /// Gets or sets the thread this task scheduler is bound to.
@@ -57,6 +63,7 @@ internal class ThreadBoundTaskScheduler : TaskScheduler
     /// <inheritdoc/>
     protected override void QueueTask(Task task)
     {
+        this.TaskQueued.Invoke();
         this.scheduledTasks[task] = Scheduled;
     }
 
