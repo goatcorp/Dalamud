@@ -60,9 +60,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
                 EdgeStrength = 1f,
             };
 
-#pragma warning disable SeStringRenderer
             ImGuiHelpers.SeStringWrapped(this.NodeText.AsSpan(), style);
-#pragma warning restore SeStringRenderer
         }
         catch
         {
