@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 using Dalamud.Console;
 using Dalamud.Hooking;
@@ -25,10 +26,13 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 {
     private static readonly ModuleLog Log = new("Command");
 
-    private readonly ConcurrentDictionary<string, IReadOnlyCommandInfo> commandMap = new();
+    private readonly ConcurrentDictionary<string, (IReadOnlyCommandInfo Info, int Order)> commandMap = new();
     private readonly ConcurrentDictionary<(string, IReadOnlyCommandInfo), string> commandAssemblyNameMap = new();
 
     private readonly Hook<ShellCommands.Delegates.TryInvokeDebugCommand>? tryInvokeDebugCommandHook;
+
+    // This variable is only incremented using `Interlocked.Increment` to ensure atomic operation
+    private int addOrderCounter;
 
     [ServiceManager.ServiceDependency]
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
@@ -45,7 +49,13 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     }
 
     /// <inheritdoc/>
-    public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => new(this.commandMap);
+    public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => new(this.commandMap.ToDictionary(cInfo => cInfo.Key, cInfo => cInfo.Value.Info));
+
+    /// <inheritdoc/>
+    public (string Command, IReadOnlyCommandInfo Info)[] SortedCommands =>
+    [
+        ..this.commandMap.OrderBy(cInfo => cInfo.Value.Order).Select(cInfo => (cInfo.Key, cInfo.Value.Info))
+    ];
 
     /// <inheritdoc/>
     public bool ProcessCommand(string content)
@@ -86,7 +96,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (!this.commandMap.TryGetValue(command, out var handler)) // Command was not found.
             return false;
 
-        this.DispatchCommand(command, argument, handler);
+        this.DispatchCommand(command, argument, handler.Info);
         return true;
     }
 
@@ -115,7 +125,8 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (info == null)
             throw new ArgumentNullException(nameof(info), "Command handler is null.");
 
-        if (!this.commandMap.TryAdd(command, info))
+        Interlocked.Increment(ref this.addOrderCounter);
+        if (!this.commandMap.TryAdd(command, (info, this.addOrderCounter)))
         {
             Log.Error("Command {CommandName} is already registered", command);
             return false;
@@ -137,7 +148,8 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (info == null)
             throw new ArgumentNullException(nameof(info), "Command handler is null.");
 
-        if (!this.commandMap.TryAdd(command, info))
+        Interlocked.Increment(ref this.addOrderCounter);
+        if (!this.commandMap.TryAdd(command, (info, this.addOrderCounter)))
         {
             Log.Error("Command {CommandName} is already registered.", command);
             return false;
@@ -229,6 +241,9 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
 
     /// <inheritdoc/>
     public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => this.commandManagerService.Commands;
+
+    /// <inheritdoc/>
+    public (string Command, IReadOnlyCommandInfo Info)[] SortedCommands => this.commandManagerService.SortedCommands;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

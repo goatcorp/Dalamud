@@ -10,9 +10,14 @@ namespace Dalamud.Plugin.Services;
 public interface ICommandManager
 {
     /// <summary>
-    /// Gets a read-only list of all registered commands.
+    /// Gets a read-only dict of all registered commands.
     /// </summary>
     public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands { get; }
+
+    /// <summary>
+    /// Gets an array of all registered commands, sorted by their registration order.
+    /// </summary>
+    public (string Command, IReadOnlyCommandInfo Info)[] SortedCommands { get; }
 
     /// <summary>
     /// Process a command in full.
