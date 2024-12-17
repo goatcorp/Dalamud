@@ -212,7 +212,6 @@ public static class ImGuiHelpers
     /// <returns>Interaction result of the rendered text.</returns>
     /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
     /// The function definition is stable; only in the next API version a function may be removed.</remarks>
-    [Experimental("SeStringRenderer")]
     public static SeStringDrawResult SeStringWrapped(
         ReadOnlySpan<byte> sss,
         scoped in SeStringDrawParams style = default,
@@ -229,7 +228,6 @@ public static class ImGuiHelpers
     /// <returns>Interaction result of the rendered text.</returns>
     /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
     /// The function definition is stable; only in the next API version a function may be removed.</remarks>
-    [Experimental("SeStringRenderer")]
     public static SeStringDrawResult CompileSeStringWrapped(
         string text,
         scoped in SeStringDrawParams style = default,
