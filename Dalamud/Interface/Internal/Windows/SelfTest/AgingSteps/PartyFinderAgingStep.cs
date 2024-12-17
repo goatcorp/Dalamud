@@ -34,7 +34,7 @@ internal class PartyFinderAgingStep : IAgingStep
             return SelfTestStepResult.Pass;
         }
 
-        ImGui.Text("Open Party Finder");
+        ImGui.TextUnformatted("Open Party Finder");
 
         return SelfTestStepResult.Waiting;
     }

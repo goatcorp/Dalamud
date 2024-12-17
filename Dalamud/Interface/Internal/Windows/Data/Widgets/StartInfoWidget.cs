@@ -10,9 +10,9 @@ internal class StartInfoWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "startinfo" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Start Info"; 
+    public string DisplayName { get; init; } = "Start Info";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -28,6 +28,6 @@ internal class StartInfoWidget : IDataWindowWidget
     {
         var startInfo = Service<Dalamud>.Get().StartInfo;
 
-        ImGui.Text(JsonConvert.SerializeObject(startInfo, Formatting.Indented));
+        ImGui.TextUnformatted(JsonConvert.SerializeObject(startInfo, Formatting.Indented));
     }
 }

@@ -19,7 +19,7 @@ internal class ActorTableAgingStep : IAgingStep
     {
         var objectTable = Service<ObjectTable>.Get();
 
-        ImGui.Text("Checking actor table...");
+        ImGui.TextUnformatted("Checking actor table...");
 
         if (this.index == objectTable.Length - 1)
         {

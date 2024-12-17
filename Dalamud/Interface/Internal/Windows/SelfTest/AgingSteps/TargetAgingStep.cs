@@ -32,7 +32,7 @@ internal class TargetAgingStep : IAgingStep
                 break;
 
             case 1:
-                ImGui.Text("Target a player...");
+                ImGui.TextUnformatted("Target a player...");
 
                 var cTarget = targetManager.Target;
                 if (cTarget is PlayerCharacter)
@@ -43,7 +43,7 @@ internal class TargetAgingStep : IAgingStep
                 break;
 
             case 2:
-                ImGui.Text("Focus-Target a Battle NPC...");
+                ImGui.TextUnformatted("Focus-Target a Battle NPC...");
 
                 var fTarget = targetManager.FocusTarget;
                 if (fTarget is BattleNpc)
@@ -54,7 +54,7 @@ internal class TargetAgingStep : IAgingStep
                 break;
 
             case 3:
-                ImGui.Text("Soft-Target an EventObj...");
+                ImGui.TextUnformatted("Soft-Target an EventObj...");
 
                 var sTarget = targetManager.SoftTarget;
                 if (sTarget is EventObj)

@@ -111,7 +111,7 @@ public static class ImGuiHelpers
     /// </summary>
     /// <param name="size">The size of the indent.</param>
     public static void ScaledIndent(float size) => ImGui.Indent(size * GlobalScale);
-    
+
     /// <summary>
     /// Use a relative ImGui.SameLine() from your current cursor position, scaled by the Dalamud global scale.
     /// </summary>
@@ -238,10 +238,44 @@ public static class ImGuiHelpers
         Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags);
 
     /// <summary>
+    /// Write unformatted disabled text.
+    /// </summary>
+    /// <param name="text">The text to write.</param>
+    public static void SafeTextDisabled(string text)
+    {
+        // TextDisabled(const char* fmt, ...) = shortcut for PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]); Text(fmt, ...); PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled)))
+        {
+            ImGui.TextUnformatted(text);
+        }
+    }
+
+    /// <summary>
+    /// Write unformatted text with a color.
+    /// </summary>
+    /// <param name="color">The color of the text.</param>
+    /// <param name="text">The text to write.</param>
+    public static void SafeTextColored(Vector4 color, string text)
+    {
+        // TextColored(const ImVec4& col, const char* fmt, ...) = shortcut for PushStyleColor(ImGuiCol_Text, col); Text(fmt, ...); PopStyleColor()
+        using (ImRaii.PushColor(ImGuiCol.Text, color))
+        {
+            ImGui.TextUnformatted(text);
+        }
+    }
+
+    /// <summary>
     /// Write unformatted text wrapped.
     /// </summary>
     /// <param name="text">The text to write.</param>
-    public static void SafeTextWrapped(string text) => ImGui.TextWrapped(text.Replace("%", "%%"));
+    public static void SafeTextWrapped(string text)
+    {
+        // TextWrapped(const char* fmt, ...) = shortcut for PushTextWrapPos(0.0f); Text(fmt, ...); PopTextWrapPos();
+        using (ImRaii.TextWrapPos(0.0f))
+        {
+            ImGui.TextUnformatted(text);
+        }
+    }
 
     /// <summary>
     /// Write unformatted text wrapped.
@@ -252,7 +286,7 @@ public static class ImGuiHelpers
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
-            ImGui.TextWrapped(text.Replace("%", "%%"));
+            SafeTextWrapped(text);
         }
     }
 
@@ -292,7 +326,7 @@ public static class ImGuiHelpers
 
         foreach (ref var kp in new Span<ImFontKerningPair>((void*)font->KerningPairs.Data, font->KerningPairs.Size))
             kp.AdvanceXAdjustment = rounder(kp.AdvanceXAdjustment * scale);
-        
+
         foreach (ref var fkp in new Span<float>((void*)font->FrequentKerningPairs.Data, font->FrequentKerningPairs.Size))
             fkp = rounder(fkp * scale);
     }
@@ -541,7 +575,7 @@ public static class ImGuiHelpers
         builder.BuildRanges(out var vec);
         return new ReadOnlySpan<ushort>((void*)vec.Data, vec.Size).ToArray();
     }
-    
+
     /// <inheritdoc cref="CreateImGuiRangesFrom(IEnumerable{UnicodeRange})"/>
     public static ushort[] CreateImGuiRangesFrom(params UnicodeRange[] ranges)
         => CreateImGuiRangesFrom((IEnumerable<UnicodeRange>)ranges);
@@ -624,7 +658,7 @@ public static class ImGuiHelpers
             ImGuiNative.ImGuiInputTextCallbackData_InsertChars(data, 0, pBuf, pBuf + len);
         ImGuiNative.ImGuiInputTextCallbackData_SelectAll(data);
     }
-    
+
     /// <summary>
     /// Finds the corresponding ImGui viewport ID for the given window handle.
     /// </summary>

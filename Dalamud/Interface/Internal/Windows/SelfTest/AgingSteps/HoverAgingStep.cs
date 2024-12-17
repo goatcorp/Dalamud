@@ -22,7 +22,7 @@ internal class HoverAgingStep : IAgingStep
 
         if (!this.clearedItem)
         {
-            ImGui.Text("Hover WHM soul crystal...");
+            ImGui.TextUnformatted("Hover WHM soul crystal...");
 
             if (gameGui.HoveredItem == 4547)
             {
@@ -32,7 +32,7 @@ internal class HoverAgingStep : IAgingStep
 
         if (!this.clearedAction)
         {
-            ImGui.Text("Hover \"Open Linkshells\" action...");
+            ImGui.TextUnformatted("Hover \"Open Linkshells\" action...");
 
             if (gameGui.HoveredAction != null &&
                 gameGui.HoveredAction.ActionKind == HoverActionKind.MainCommand &&

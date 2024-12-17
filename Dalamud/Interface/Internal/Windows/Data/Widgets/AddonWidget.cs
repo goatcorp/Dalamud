@@ -15,7 +15,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
     private nint findAgentInterfacePtr;
 
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Addon"; 
+    public string DisplayName { get; init; } = "Addon";
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; }
@@ -44,7 +44,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
 
         if (address == nint.Zero)
         {
-            ImGui.Text("Null");
+            ImGui.TextUnformatted("Null");
             return;
         }
 

@@ -43,7 +43,7 @@ public class ProfilerWindow : Window
         var actualMin = Timings.AllTimings.Keys.Min(x => x.StartTime);
         var actualMax = Timings.AllTimings.Keys.Max(x => x.EndTime);
 
-        ImGui.Text("Timings");
+        ImGui.TextUnformatted("Timings");
 
         var childHeight = Math.Max(300, 20 * (2.5f + this.occupied.Count));
 
@@ -192,7 +192,7 @@ public class ProfilerWindow : Window
 
             var eventsXPos = new List<float>();
             const float eventsXPosFudge = 5f;
-            
+
             foreach (var timingEvent in Timings.Events)
             {
                 var startX = (timingEvent.StartTime - this.min) / (this.max - this.min) * width;
@@ -217,7 +217,7 @@ public class ProfilerWindow : Window
                 {
                     textPos.X = pos.X + (uint)startX - textSize.X - padding;
                 }
-                
+
                 var numClashes = eventsXPos.Count(x => Math.Abs(x - textPos.X) < textSize.X + eventsXPosFudge);
                 if (numClashes > 0)
                 {
@@ -228,7 +228,7 @@ public class ProfilerWindow : Window
                     textPos,
                     ImGui.GetColorU32(ImGuiColors.DalamudWhite),
                     timingEvent.Name);
-                
+
                 eventsXPos.Add(textPos.X);
             }
         }
@@ -254,9 +254,9 @@ public class ProfilerWindow : Window
             this.max = this.min + (sizeShown * 1000f);
         }
 
-        ImGui.Text("Min: " + actualMin.ToString("0.000"));
-        ImGui.Text("Max: " + actualMax.ToString("0.000"));
-        ImGui.Text("Timings: " + Timings.AllTimings.Count);
+        ImGui.TextUnformatted("Min: " + actualMin.ToString("0.000"));
+        ImGui.TextUnformatted("Max: " + actualMax.ToString("0.000"));
+        ImGui.TextUnformatted("Timings: " + Timings.AllTimings.Count);
     }
 
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "Internals")]

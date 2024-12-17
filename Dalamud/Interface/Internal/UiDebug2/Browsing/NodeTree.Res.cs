@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -184,13 +185,13 @@ internal unsafe partial class ResNodeTree : IDisposable
         if (fieldOffset != null)
         {
             ImGui.SameLine(0, -1);
-            ImGui.TextColored(color * 0.85f, $"[0x{fieldOffset:X}]");
+            ImGuiHelpers.SafeTextColored(color * 0.85f, $"[0x{fieldOffset:X}]");
         }
 
         if (this.AddonTree.FieldNames.TryGetValue(ptr, out var result))
         {
             ImGui.SameLine(0, -1);
-            ImGui.TextColored(color, string.Join(".", result));
+            ImGuiHelpers.SafeTextColored(color, string.Join(".", result));
         }
     }
 
@@ -352,7 +353,7 @@ internal unsafe partial class ResNodeTree : IDisposable
             }
             catch (Exception ex)
             {
-                ImGui.TextDisabled($"Couldn't display node!\n\n{ex}");
+                ImGuiHelpers.SafeTextDisabled($"Couldn't display node!\n\n{ex}");
             }
 
             var lineEnd = lineStart with { Y = ImGui.GetCursorScreenPos().Y - 7 };

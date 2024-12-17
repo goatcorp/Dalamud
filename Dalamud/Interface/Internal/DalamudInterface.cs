@@ -93,7 +93,7 @@ internal class DalamudInterface : IInternalDisposableService
     private bool isImPlotDrawDemoWindow = false;
     private bool isImGuiTestWindowsInMonospace = false;
     private bool isImGuiDrawMetricsWindow = false;
-    
+
     [ServiceManager.ServiceConstructor]
     private DalamudInterface(
         Dalamud dalamud,
@@ -116,7 +116,7 @@ internal class DalamudInterface : IInternalDisposableService
         this.dataManager = dataManager;
 
         this.WindowSystem = new WindowSystem("DalamudCore");
-        
+
         this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
         this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
         this.dataWindow = new DataWindow() { IsOpen = false };
@@ -197,7 +197,7 @@ internal class DalamudInterface : IInternalDisposableService
 
         this.creditsDarkeningAnimation.Point1 = Vector2.Zero;
         this.creditsDarkeningAnimation.Point2 = new Vector2(CreditsDarkeningMaxAlpha);
-        
+
         // This is temporary, until we know the repercussions of vtable hooking mode
         consoleManager.AddCommand(
             "dalamud.interface.swapchain_mode",
@@ -216,14 +216,14 @@ internal class DalamudInterface : IInternalDisposableService
                         Log.Error("Unknown swapchain mode: {Mode}", mode);
                         return false;
                 }
-                
+
                 this.configuration.QueueSave();
                 return true;
             });
     }
-    
+
     private delegate nint CrashDebugDelegate(nint self);
-    
+
     /// <summary>
     /// Gets the number of frames since Dalamud has loaded.
     /// </summary>
@@ -323,7 +323,7 @@ internal class DalamudInterface : IInternalDisposableService
         this.pluginStatWindow.IsOpen = true;
         this.pluginStatWindow.BringToFront();
     }
-    
+
     /// <summary>
     /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
     /// </summary>
@@ -388,7 +388,7 @@ internal class DalamudInterface : IInternalDisposableService
         this.profilerWindow.IsOpen = true;
         this.profilerWindow.BringToFront();
     }
-    
+
     /// <summary>
     /// Opens the <see cref="HitchSettingsWindow"/>.
     /// </summary>
@@ -653,7 +653,7 @@ internal class DalamudInterface : IInternalDisposableService
                         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMouseInputs |
                         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings))
                 {
-                    ImGui.TextColored(ImGuiColors.DalamudRed, "Is force MinHook!");
+                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "Is force MinHook!");
                 }
 
                 ImGui.End();
@@ -700,7 +700,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                         ImGui.EndMenu();
                     }
-                    
+
                     var logSynchronously = this.configuration.LogSynchronously;
                     if (ImGui.MenuItem("Log Synchronously", null, ref logSynchronously))
                     {
@@ -792,14 +792,14 @@ internal class DalamudInterface : IInternalDisposableService
                     }
 
                     ImGui.Separator();
-                    
+
                     if (ImGui.BeginMenu("Crash game"))
                     {
                         if (ImGui.MenuItem("Access Violation"))
                         {
                             Marshal.ReadByte(IntPtr.Zero);
-                        }                    
-                        
+                        }
+
                         if (ImGui.MenuItem("Set UiModule to NULL"))
                         {
                             unsafe
@@ -808,7 +808,7 @@ internal class DalamudInterface : IInternalDisposableService
                                 framework->UIModule = (UIModule*)0;
                             }
                         }
-                        
+
                         if (ImGui.MenuItem("Set UiModule to invalid ptr"))
                         {
                             unsafe
@@ -817,7 +817,7 @@ internal class DalamudInterface : IInternalDisposableService
                                 framework->UIModule = (UIModule*)0x12345678;
                             }
                         }
-                        
+
                         if (ImGui.MenuItem("Deref nullptr in Hook"))
                         {
                             unsafe
@@ -832,7 +832,7 @@ internal class DalamudInterface : IInternalDisposableService
                                 hook.Enable();
                             }
                         }
-                        
+
                         ImGui.EndMenu();
                     }
 
@@ -848,7 +848,7 @@ internal class DalamudInterface : IInternalDisposableService
                     {
                         this.OpenBranchSwitcher();
                     }
-                    
+
                     ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
                     ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
@@ -924,7 +924,7 @@ internal class DalamudInterface : IInternalDisposableService
                     {
                         this.configuration.ShowDevBarInfo = !this.configuration.ShowDevBarInfo;
                     }
-                    
+
                     ImGui.Separator();
 
                     if (ImGui.MenuItem("Show loading window"))

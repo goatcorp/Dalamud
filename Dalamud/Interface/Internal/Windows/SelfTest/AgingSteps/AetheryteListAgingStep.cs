@@ -19,7 +19,7 @@ internal class AetheryteListAgingStep : IAgingStep
     {
         var list = Service<AetheryteList>.Get();
 
-        ImGui.Text("Checking aetheryte list...");
+        ImGui.TextUnformatted("Checking aetheryte list...");
 
         if (this.index == list.Length - 1)
         {

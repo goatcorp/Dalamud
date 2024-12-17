@@ -13,9 +13,9 @@ internal class GaugeWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "gauge", "jobgauge", "job" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Job Gauge"; 
+    public string DisplayName { get; init; } = "Job Gauge";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -35,7 +35,7 @@ internal class GaugeWidget : IDataWindowWidget
         var player = clientState.LocalPlayer;
         if (player == null)
         {
-            ImGui.Text("Player is not present");
+            ImGui.TextUnformatted("Player is not present");
             return;
         }
 
@@ -68,7 +68,7 @@ internal class GaugeWidget : IDataWindowWidget
 
         if (gauge == null)
         {
-            ImGui.Text("No supported gauge exists for this job.");
+            ImGui.TextUnformatted("No supported gauge exists for this job.");
             return;
         }
 

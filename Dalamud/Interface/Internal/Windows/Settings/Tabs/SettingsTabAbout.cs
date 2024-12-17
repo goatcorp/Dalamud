@@ -276,7 +276,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
         using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero))
         {
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 20f);
-            ImGui.Text(string.Empty);
+            ImGui.TextUnformatted(string.Empty);
 
             const float imageSize = 190f;
             ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));

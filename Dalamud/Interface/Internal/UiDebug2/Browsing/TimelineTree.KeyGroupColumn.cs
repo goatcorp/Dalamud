@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using Dalamud.Interface.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
@@ -83,7 +85,7 @@ public readonly partial struct TimelineTree
             }
             else
             {
-                ImGui.TextDisabled("...");
+                ImGuiHelpers.SafeTextDisabled("...");
             }
         }
     }

@@ -17,7 +17,7 @@ internal class KeyStateAgingStep : IAgingStep
     {
         var keyState = Service<KeyState>.Get();
 
-        ImGui.Text("Hold down D,A,L,M,U");
+        ImGui.TextUnformatted("Hold down D,A,L,M,U");
 
         if (keyState[VirtualKey.D]
             && keyState[VirtualKey.A]

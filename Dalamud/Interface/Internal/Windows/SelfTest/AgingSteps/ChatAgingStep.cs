@@ -32,7 +32,7 @@ internal class ChatAgingStep : IAgingStep
                 break;
 
             case 1:
-                ImGui.Text("Type \"/e DALAMUD\" in chat...");
+                ImGui.TextUnformatted("Type \"/e DALAMUD\" in chat...");
 
                 if (!this.subscribed)
                 {

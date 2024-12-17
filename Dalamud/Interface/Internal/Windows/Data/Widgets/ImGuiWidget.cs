@@ -47,16 +47,15 @@ internal class ImGuiWidget : IDataWindowWidget
         var interfaceManager = Service<InterfaceManager>.Get();
         var nm = Service<NotificationManager>.Get();
 
-        ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
-        ImGui.Text("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
+        ImGui.TextUnformatted("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
+        ImGui.TextUnformatted("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
 
         ImGui.Button("THIS IS A BUTTON###hoverTestButton");
         interfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted(
-            $"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
+        ImGui.TextUnformatted($"WindowSystem.TimeSinceLastAnyFocus: {WindowSystem.TimeSinceLastAnyFocus.TotalMilliseconds:0}ms");
 
         ImGui.Separator();
 
@@ -303,7 +302,7 @@ internal class ImGuiWidget : IDataWindowWidget
                 };
             }
         }
-        
+
         ImGui.SameLine();
         if (ImGui.Button("Replace images using setter"))
         {

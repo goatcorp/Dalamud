@@ -127,11 +127,11 @@ internal class SelfTestWindow : Window
 
             if (this.stepResults.Any(x => x.Result == SelfTestStepResult.Fail))
             {
-                ImGui.TextColored(ImGuiColors.DalamudRed, "One or more checks failed!");
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "One or more checks failed!");
             }
             else
             {
-                ImGui.TextColored(ImGuiColors.HealerGreen, "All checks passed!");
+                ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, "All checks passed!");
             }
 
             return;
@@ -189,10 +189,10 @@ internal class SelfTestWindow : Window
                 ImGui.TableNextRow();
 
                 ImGui.TableSetColumnIndex(0);
-                ImGui.Text(i.ToString());
+                ImGui.TextUnformatted(i.ToString());
 
                 ImGui.TableSetColumnIndex(1);
-                ImGui.Text(step.Name);
+                ImGui.TextUnformatted(step.Name);
 
                 ImGui.TableSetColumnIndex(2);
                 ImGui.PushFont(Interface.Internal.InterfaceManager.MonoFont);
@@ -203,13 +203,13 @@ internal class SelfTestWindow : Window
                     switch (result.Result)
                     {
                         case SelfTestStepResult.Pass:
-                            ImGui.TextColored(ImGuiColors.HealerGreen, "PASS");
+                            ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, "PASS");
                             break;
                         case SelfTestStepResult.Fail:
-                            ImGui.TextColored(ImGuiColors.DalamudRed, "FAIL");
+                            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "FAIL");
                             break;
                         default:
-                            ImGui.TextColored(ImGuiColors.DalamudGrey, "NR");
+                            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "NR");
                             break;
                     }
                 }
@@ -217,11 +217,11 @@ internal class SelfTestWindow : Window
                 {
                     if (this.selfTestRunning && this.currentStep == i)
                     {
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, "WAIT");
+                        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "WAIT");
                     }
                     else
                     {
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, "NR");
+                        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "NR");
                     }
                 }
 

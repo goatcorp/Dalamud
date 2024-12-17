@@ -24,7 +24,7 @@ internal class ConditionAgingStep : IAgingStep
             return SelfTestStepResult.Fail;
         }
 
-        ImGui.Text("Please jump...");
+        ImGui.TextUnformatted("Please jump...");
 
         return condition[ConditionFlag.Jumping] ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
     }

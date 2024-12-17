@@ -6,6 +6,7 @@ using System.Numerics;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -144,10 +145,10 @@ internal unsafe class ElementSelector : IDisposable
             return;
         }
 
-        ImGui.Text("ELEMENT SELECTOR");
-        ImGui.TextDisabled("Use the mouse to hover and identify UI elements, then click to jump to them in the inspector");
-        ImGui.TextDisabled("Use the scrollwheel to choose between overlapping elements");
-        ImGui.TextDisabled("Press ESCAPE to cancel");
+        ImGui.TextUnformatted("ELEMENT SELECTOR");
+        SafeTextDisabled("Use the mouse to hover and identify UI elements, then click to jump to them in the inspector");
+        SafeTextDisabled("Use the scrollwheel to choose between overlapping elements");
+        SafeTextDisabled("Press ESCAPE to cancel");
         ImGui.Spacing();
 
         var mousePos = ImGui.GetMousePos() - MainViewport.Pos;
@@ -163,7 +164,7 @@ internal unsafe class ElementSelector : IDisposable
                 {
                     Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
                     ImGui.Spacing();
-                    ImGui.Text("RESULTS:\n");
+                    ImGui.TextUnformatted("RESULTS:\n");
 
                     var i = 0;
                     foreach (var a in addonResults)

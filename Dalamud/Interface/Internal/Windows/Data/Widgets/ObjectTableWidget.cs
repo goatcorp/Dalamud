@@ -19,24 +19,24 @@ internal class ObjectTableWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "ot", "objecttable" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Object Table"; 
+    public string DisplayName { get; init; } = "Object Table";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
-    
+
     /// <inheritdoc/>
     public void Load()
     {
         this.Ready = true;
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
         ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
-        
+
         var chatGui = Service<ChatGui>.Get();
         var clientState = Service<ClientState>.Get();
         var gameGui = Service<GameGui>.Get();
@@ -112,7 +112,7 @@ internal class ObjectTableWidget : IDataWindowWidget
                             ImGuiWindowFlags.NoDocking |
                             ImGuiWindowFlags.NoFocusOnAppearing |
                             ImGuiWindowFlags.NoNav))
-                        ImGui.Text(objectText);
+                        ImGui.TextUnformatted(objectText);
                     ImGui.End();
                 }
             }

@@ -20,7 +20,7 @@ internal class DutyStateAgingStep : IAgingStep
     {
         var dutyState = Service<DutyState>.Get();
 
-        ImGui.Text("Enter a duty now...");
+        ImGui.TextUnformatted("Enter a duty now...");
 
         if (!this.subscribed)
         {

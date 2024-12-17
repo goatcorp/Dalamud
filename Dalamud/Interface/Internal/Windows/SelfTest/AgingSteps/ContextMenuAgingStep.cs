@@ -48,7 +48,7 @@ internal class ContextMenuAgingStep : IAgingStep
         this.materiaSheet = dataMgr.GetExcelSheet<Materia>();
         this.stainSheet = dataMgr.GetExcelSheet<Stain>();
 
-        ImGui.Text(this.currentSubStep.ToString());
+        ImGui.TextUnformatted(this.currentSubStep.ToString());
 
         switch (this.currentSubStep)
         {
@@ -59,7 +59,7 @@ internal class ContextMenuAgingStep : IAgingStep
             case SubStep.TestInventoryAndSubmenu:
                 if (this.targetInventorySubmenuOpened == true)
                 {
-                    ImGui.Text($"Is the data in the submenu correct?");
+                    ImGui.TextUnformatted($"Is the data in the submenu correct?");
 
                     if (ImGui.Button("Yes"))
                         this.currentSubStep++;
@@ -71,7 +71,7 @@ internal class ContextMenuAgingStep : IAgingStep
                 }
                 else
                 {
-                    ImGui.Text("Right-click an item and select \"Self Test\".");
+                    ImGui.TextUnformatted("Right-click an item and select \"Self Test\".");
 
                     if (ImGui.Button("Skip"))
                         this.currentSubStep++;
@@ -82,7 +82,7 @@ internal class ContextMenuAgingStep : IAgingStep
             case SubStep.TestDefault:
                 if (this.targetCharacter is { } character)
                 {
-                    ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
+                    ImGui.TextUnformatted($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
 
                     if (ImGui.Button("Yes"))
                         this.currentSubStep++;
@@ -94,7 +94,7 @@ internal class ContextMenuAgingStep : IAgingStep
                 }
                 else
                 {
-                    ImGui.Text("Right-click a character.");
+                    ImGui.TextUnformatted("Right-click a character.");
 
                     if (ImGui.Button("Skip"))
                         this.currentSubStep++;
@@ -110,7 +110,7 @@ internal class ContextMenuAgingStep : IAgingStep
 
         return SelfTestStepResult.Waiting;
     }
-    
+
     /// <inheritdoc/>
     public void CleanUp()
     {

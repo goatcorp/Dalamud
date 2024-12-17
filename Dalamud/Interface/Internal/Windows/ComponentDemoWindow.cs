@@ -73,7 +73,7 @@ internal sealed class ComponentDemoWindow : Window
     /// <inheritdoc/>
     public override void Draw()
     {
-        ImGui.Text("This is a collection of UI components you can use in your plugin.");
+        ImGui.TextUnformatted("This is a collection of UI components you can use in your plugin.");
 
         for (var i = 0; i < this.componentDemos.Count; i++)
         {
@@ -93,13 +93,13 @@ internal sealed class ComponentDemoWindow : Window
 
     private static void HelpMarkerDemo()
     {
-        ImGui.Text("Hover over the icon to learn more.");
+        ImGui.TextUnformatted("Hover over the icon to learn more.");
         ImGuiComponents.HelpMarker("help me!");
     }
 
     private static void IconButtonDemo()
     {
-        ImGui.Text("Click on the icon to use as a button.");
+        ImGui.TextUnformatted("Click on the icon to use as a button.");
         ImGui.SameLine();
         if (ImGuiComponents.IconButton(1, FontAwesomeIcon.Carrot))
         {
@@ -108,7 +108,7 @@ internal sealed class ComponentDemoWindow : Window
 
         if (ImGui.BeginPopup("IconButtonDemoPopup"))
         {
-            ImGui.Text("You clicked!");
+            ImGui.TextUnformatted("You clicked!");
             ImGui.EndPopup();
         }
     }
@@ -147,14 +147,14 @@ internal sealed class ComponentDemoWindow : Window
             ImGui.Bullet();
 
             ImGui.SetCursorPos(cursor + new Vector2(0, 10));
-            ImGui.Text($"{easing.GetType().Name} ({easing.Value})");
+            ImGui.TextUnformatted($"{easing.GetType().Name} ({easing.Value})");
             ImGuiHelpers.ScaledDummy(5);
         }
     }
 
     private void ColorPickerWithPaletteDemo()
     {
-        ImGui.Text("Click on the color button to use the picker.");
+        ImGui.TextUnformatted("Click on the color button to use the picker.");
         ImGui.SameLine();
         this.defaultColor = ImGuiComponents.ColorPickerWithPalette(1, "ColorPickerWithPalette Demo", this.defaultColor);
     }

@@ -44,7 +44,7 @@ internal class ItemPayloadAgingStep : IAgingStep
 
         SeString? toPrint = null;
 
-        ImGui.Text(this.currentSubStep.ToString());
+        ImGui.TextUnformatted(this.currentSubStep.ToString());
 
         switch (this.currentSubStep)
         {
@@ -53,7 +53,7 @@ internal class ItemPayloadAgingStep : IAgingStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverNormalItem:
-                ImGui.Text("Hover the item.");
+                ImGui.TextUnformatted("Hover the item.");
                 if (gameGui.HoveredItem != normalItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -63,7 +63,7 @@ internal class ItemPayloadAgingStep : IAgingStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverHqItem:
-                ImGui.Text("Hover the item.");
+                ImGui.TextUnformatted("Hover the item.");
                 if (gameGui.HoveredItem != 1_000_000 + hqItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -73,7 +73,7 @@ internal class ItemPayloadAgingStep : IAgingStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverCollectable:
-                ImGui.Text("Hover the item.");
+                ImGui.TextUnformatted("Hover the item.");
                 if (gameGui.HoveredItem != 500_000 + collectableItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -83,7 +83,7 @@ internal class ItemPayloadAgingStep : IAgingStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverEventItem:
-                ImGui.Text("Hover the item.");
+                ImGui.TextUnformatted("Hover the item.");
                 if (gameGui.HoveredItem != eventItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;
@@ -93,7 +93,7 @@ internal class ItemPayloadAgingStep : IAgingStep
                 this.currentSubStep++;
                 break;
             case SubStep.HoverNormalWithText:
-                ImGui.Text("Hover the item.");
+                ImGui.TextUnformatted("Hover the item.");
                 if (gameGui.HoveredItem != normalItemId)
                     return SelfTestStepResult.Waiting;
                 this.currentSubStep++;

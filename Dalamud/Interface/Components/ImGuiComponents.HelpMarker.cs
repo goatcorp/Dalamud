@@ -1,3 +1,4 @@
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Common.Math;
@@ -36,7 +37,7 @@ public static partial class ImGuiComponents
 
         using (ImRaii.PushFont(UiBuilder.IconFont))
         {
-            ImGui.TextDisabled(icon.ToIconString());
+            ImGuiHelpers.SafeTextDisabled(icon.ToIconString());
         }
 
         if (ImGui.IsItemHovered())

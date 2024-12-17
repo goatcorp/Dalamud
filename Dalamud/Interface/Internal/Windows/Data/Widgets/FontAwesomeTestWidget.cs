@@ -19,12 +19,12 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     private string iconSearchInput = string.Empty;
     private bool iconSearchChanged = true;
     private bool useFixedWidth = false;
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "fa", "fatest", "fontawesome" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Font Awesome Test"; 
+    public string DisplayName { get; init; } = "Font Awesome Test";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -81,22 +81,22 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
         {
             this.iconSearchChanged = true;
         }
-        
+
         ImGui.Checkbox("Use fixed width font", ref this.useFixedWidth);
 
         ImGuiHelpers.ScaledDummy(10f);
         for (var i = 0; i < this.icons?.Count; i++)
         {
-            ImGui.Text($"0x{(int)this.icons[i].ToIconChar():X}");
+            ImGui.TextUnformatted($"0x{(int)this.icons[i].ToIconChar():X}");
             ImGuiHelpers.ScaledRelativeSameLine(50f);
-            ImGui.Text($"{this.iconNames?[i]}");
+            ImGui.TextUnformatted($"{this.iconNames?[i]}");
             ImGuiHelpers.ScaledRelativeSameLine(280f);
             ImGui.PushFont(this.useFixedWidth ? InterfaceManager.IconFontFixedWidth : InterfaceManager.IconFont);
-            ImGui.Text(this.icons[i].ToIconString());
+            ImGui.TextUnformatted(this.icons[i].ToIconString());
             ImGui.PopFont();
             ImGuiHelpers.ScaledDummy(2f);
         }
-        
+
         ImGui.PopStyleVar();
     }
 }

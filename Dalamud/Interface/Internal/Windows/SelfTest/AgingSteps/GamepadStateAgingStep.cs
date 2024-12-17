@@ -17,7 +17,7 @@ internal class GamepadStateAgingStep : IAgingStep
     {
         var gamepadState = Service<GamepadState>.Get();
 
-        ImGui.Text("Hold down North, East, L1");
+        ImGui.TextUnformatted("Hold down North, East, L1");
 
         if (gamepadState.Raw(GamepadButtons.North) == 1
             && gamepadState.Raw(GamepadButtons.East) == 1

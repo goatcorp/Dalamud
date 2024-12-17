@@ -20,7 +20,7 @@ internal class LogoutEventAgingStep : IAgingStep
     {
         var clientState = Service<ClientState>.Get();
 
-        ImGui.Text("Log out now...");
+        ImGui.TextUnformatted("Log out now...");
 
         if (!this.subscribed)
         {

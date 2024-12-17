@@ -34,12 +34,12 @@ internal class TaskSchedulerWidget : IDataWindowWidget
     private Task? downloadTask = null;
     private (long Downloaded, long Total, float Percentage) downloadState;
     private CancellationTokenSource taskSchedulerCancelSource = new();
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "tasksched", "taskscheduler" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Task Scheduler"; 
+    public string DisplayName { get; init; } = "Task Scheduler";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -73,7 +73,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             this.taskSchedulerCancelSource = new();
         }
 
-        ImGui.Text("Run in any thread: ");
+        ImGui.TextUnformatted("Run in any thread: ");
         ImGui.SameLine();
 
         if (ImGui.Button("Short Task.Run"))
@@ -108,7 +108,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             });
         }
 
-        ImGui.Text("Run in Framework.Update: ");
+        ImGui.TextUnformatted("Run in Framework.Update: ");
         ImGui.SameLine();
 
         if (ImGui.Button("ASAP"))
@@ -250,7 +250,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             ImGui.InputText("URL", this.urlBytes, (uint)this.urlBytes.Length);
             ImGui.InputText("Local Path", this.localPathBytes, (uint)this.localPathBytes.Length);
             ImGui.SameLine();
-            
+
             if (ImGuiComponents.IconButton("##localpathpicker", FontAwesomeIcon.File))
             {
                 var defaultFileName = Encoding.UTF8.GetString(this.urlBytes).Split('\0', 2)[0].Split('/').Last();
@@ -339,31 +339,31 @@ internal class TaskSchedulerWidget : IDataWindowWidget
         {
             var token = this.taskSchedulerCancelSource.Token;
             Task.Run(
-                () => 
+                () =>
                 {
                     for (var i = 0; i < 100; i++)
                     {
                         token.ThrowIfCancellationRequested();
                         Task.Run(
-                            () => 
+                            () =>
                             {
                                 for (var j = 0; j < 100; j++)
                                 {
                                     token.ThrowIfCancellationRequested();
                                     Task.Run(
-                                        () => 
+                                        () =>
                                         {
                                             for (var k = 0; k < 100; k++)
                                             {
                                                 token.ThrowIfCancellationRequested();
                                                 Task.Run(
-                                                    () => 
+                                                    () =>
                                                     {
                                                         for (var l = 0; l < 100; l++)
                                                         {
                                                             token.ThrowIfCancellationRequested();
                                                             Task.Run(
-                                                                async () => 
+                                                                async () =>
                                                                 {
                                                                     for (var m = 0; m < 100; m++)
                                                                     {
@@ -380,7 +380,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     }
                 });
         }
-        
+
         ImGui.SameLine();
 
         ImGuiHelpers.ScaledDummy(20);
@@ -442,7 +442,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                 if (task.Exception != null)
                 {
                     ImGuiHelpers.ScaledDummy(15);
-                    ImGui.TextColored(ImGuiColors.DalamudRed, "EXCEPTION:");
+                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "EXCEPTION:");
                     ImGui.TextUnformatted(task.Exception.ToString());
                 }
             }
@@ -456,7 +456,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         this.fileDialogManager.Draw();
     }
-    
+
     private async Task TestTaskInTaskDelay(CancellationToken token)
     {
         await Task.Delay(5000, token);
