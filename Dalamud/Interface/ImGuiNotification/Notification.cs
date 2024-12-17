@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
 
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
+using Serilog;
 
 namespace Dalamud.Interface.ImGuiNotification;
-
 /// <summary>Represents a blueprint for a notification.</summary>
 public sealed record Notification : INotification
 {
@@ -30,14 +30,43 @@ public sealed record Notification : INotification
     public INotificationIcon? Icon { get; set; }
 
     /// <inheritdoc/>
+    public ISharedImmediateTexture? ImmediateIconTexture { get; set; }
+
+    /// <inheritdoc/>
     public IDalamudTextureWrap? IconTexture
     {
-        get => this.IconTextureTask?.IsCompletedSuccessfully is true ? this.IconTextureTask.Result : null;
-        set => this.IconTextureTask = value is null ? null : Task.FromResult(value);
+        get => this.ImmediateIconTexture?.GetWrapOrDefault();
+        set => this.ImmediateIconTexture = value != null ? new ForwardingSharedImmediateTexture(value) : null;
     }
 
     /// <inheritdoc/>
-    public Task<IDalamudTextureWrap?>? IconTextureTask { get; set; }
+    public Task<IDalamudTextureWrap?>? IconTextureTask
+    {
+        get => Task.FromResult(this.ImmediateIconTexture?.GetWrapOrDefault());
+
+        set
+        {
+            if (value == null)
+            {
+                this.ImmediateIconTexture = null;
+            }
+            else
+            {
+                try
+                {
+                    var dalamudTextureWrap = value.Result;
+                    this.ImmediateIconTexture = dalamudTextureWrap == null ? null : new ForwardingSharedImmediateTexture(dalamudTextureWrap);
+                }
+                catch (Exception exception)
+                {
+                    Log.Error(
+                        exception,
+                        $"[{nameof(Notification)}: IconTextureTask provided threw exception.");
+                    this.ImmediateIconTexture = null;
+                }
+            }
+        }
+    }
 
     /// <inheritdoc/>
     public DateTime HardExpiry { get; set; } = DateTime.MaxValue;
