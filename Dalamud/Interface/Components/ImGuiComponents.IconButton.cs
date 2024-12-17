@@ -272,15 +272,14 @@ public static partial class ImGuiComponents
     /// <returns>Width.</returns>
     public static float GetIconButtonWithTextWidth(FontAwesomeIcon icon, string text)
     {
+        Vector2 iconSize;
         using (ImRaii.PushFont(UiBuilder.IconFont))
         {
-            var iconSize = ImGui.CalcTextSize(icon.ToIconString());
-
-            var textSize = ImGui.CalcTextSize(text);
-
-            var iconPadding = 3 * ImGuiHelpers.GlobalScale;
-
-            return iconSize.X + textSize.X + (ImGui.GetStyle().FramePadding.X * 2) + iconPadding;
+            iconSize = ImGui.CalcTextSize(icon.ToIconString());
         }
+
+        var textSize = ImGui.CalcTextSize(text);
+        var iconPadding = 3 * ImGuiHelpers.GlobalScale;
+        return iconSize.X + textSize.X + (ImGui.GetStyle().FramePadding.X * 2) + iconPadding;
     }
 }

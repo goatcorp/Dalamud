@@ -32,19 +32,21 @@ internal static partial class DalamudComponents
         var pm = Service<PluginManager>.GetNullable();
         if (pm == null)
             return 0;
-        
+
         var addPluginToProfilePopupId = ImGui.GetID(id);
         using var popup = ImRaii.Popup(id);
 
         if (popup.Success)
         {
             var width = ImGuiHelpers.GlobalScale * 300;
-                
+
             ImGui.SetNextItemWidth(width);
             ImGui.InputTextWithHint("###pluginPickerSearch", Locs.SearchHint, ref pickerSearch, 255);
 
             var currentSearchString = pickerSearch;
-            if (ImGui.BeginListBox("###pluginPicker", new Vector2(width, width - 80)))
+
+            using var listBox = ImRaii.ListBox("###pluginPicker", new Vector2(width, width - 80));
+            if (listBox.Success)
             {
                 // TODO: Plugin searching should be abstracted... installer and this should use the same search
                 var plugins = pm.InstalledPlugins.Where(
@@ -53,19 +55,15 @@ internal static partial class DalamudComponents
                                               currentSearchString,
                                               StringComparison.InvariantCultureIgnoreCase)))
                                 .Where(pluginFiltered ?? (_ => true));
-                
+
                 foreach (var plugin in plugins)
                 {
-                    using var disabled2 =
-                        ImRaii.Disabled(pluginDisabled(plugin));
-
+                    using var disabled2 = ImRaii.Disabled(pluginDisabled(plugin));
                     if (ImGui.Selectable($"{plugin.Manifest.Name}{(plugin is LocalDevPlugin ? "(dev plugin)" : string.Empty)}###selector{plugin.Manifest.InternalName}"))
                     {
                         onClicked(plugin);
                     }
                 }
-
-                ImGui.EndListBox();
             }
         }
 
