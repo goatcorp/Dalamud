@@ -18,8 +18,6 @@ using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
-#pragma warning disable SeStringRenderer
-
 /// <summary>
 /// Widget for displaying inventory data.
 /// </summary>

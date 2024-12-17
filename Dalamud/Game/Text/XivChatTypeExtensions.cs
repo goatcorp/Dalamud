@@ -12,7 +12,7 @@ public static class XivChatTypeExtensions
     /// </summary>
     /// <param name="chatType">The chat type.</param>
     /// <returns>The info attribute.</returns>
-    public static XivChatTypeInfoAttribute GetDetails(this XivChatType chatType)
+    public static XivChatTypeInfoAttribute? GetDetails(this XivChatType chatType)
     {
         return chatType.GetAttribute<XivChatTypeInfoAttribute>();
     }
