@@ -106,4 +106,17 @@ public interface ITextureReadbackProvider
         IReadOnlyDictionary<string, object>? props = null,
         bool leaveWrapOpen = false,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Copies the texture to clipboard.</summary>
+    /// <param name="wrap">Texture wrap to copy.</param>
+    /// <param name="preferredFileNameWithoutExtension">Preferred file name.</param>
+    /// <param name="leaveWrapOpen">Whether to leave <paramref name="wrap"/> non-disposed when the returned
+    /// <see cref="Task{TResult}"/> completes.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A <see cref="Task"/> representing the status of the operation.</returns>
+    Task CopyToClipboardAsync(
+        IDalamudTextureWrap wrap,
+        string? preferredFileNameWithoutExtension = null,
+        bool leaveWrapOpen = false,
+        CancellationToken cancellationToken = default);
 }
