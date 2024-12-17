@@ -178,12 +178,12 @@ internal class DalamudCommands : IServiceType
         if (arguments.IsNullOrWhitespace())
         {
             chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
-            foreach (var cmd in commandManager.Commands)
+            foreach (var cmd in commandManager.SortedCommands)
             {
-                if (!cmd.Value.ShowInHelp)
+                if (!cmd.Info.ShowInHelp)
                     continue;
 
-                chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+                chatGui.Print($"{cmd.Command}: {cmd.Info.HelpMessage}");
             }
         }
         else
