@@ -42,7 +42,7 @@ internal class MarketBoardAgingStep : IAgingStep
             this.SubscribeToEvents();
         }
 
-        ImGui.Text($"Testing: {this.currentSubStep.ToString()}");
+        ImGui.TextUnformatted($"Testing: {this.currentSubStep.ToString()}");
 
         switch (this.currentSubStep)
         {
@@ -50,16 +50,16 @@ internal class MarketBoardAgingStep : IAgingStep
 
                 if (this.historyListing == null)
                 {
-                    ImGui.Text("Goto a Market Board. Open any item that has historical sale listings.");
+                    ImGui.TextUnformatted("Goto a Market Board. Open any item that has historical sale listings.");
                 }
                 else
                 {
-                    ImGui.Text("Does one of the historical sales match this information?");
+                    ImGui.TextUnformatted("Does one of the historical sales match this information?");
                     ImGui.Separator();
-                    ImGui.Text($"Quantity: {this.historyListing.Quantity.ToString()}");
-                    ImGui.Text($"Buyer: {this.historyListing.BuyerName}");
-                    ImGui.Text($"Sale Price: {this.historyListing.SalePrice.ToString()}");
-                    ImGui.Text($"Purchase Time: {this.historyListing.PurchaseTime.ToString(CultureInfo.InvariantCulture)}");
+                    ImGui.TextUnformatted($"Quantity: {this.historyListing.Quantity.ToString()}");
+                    ImGui.TextUnformatted($"Buyer: {this.historyListing.BuyerName}");
+                    ImGui.TextUnformatted($"Sale Price: {this.historyListing.SalePrice.ToString()}");
+                    ImGui.TextUnformatted($"Purchase Time: {this.historyListing.PurchaseTime.ToString(CultureInfo.InvariantCulture)}");
                     ImGui.Separator();
                     if (ImGui.Button("Looks Correct / Skip"))
                     {
@@ -78,16 +78,16 @@ internal class MarketBoardAgingStep : IAgingStep
 
                 if (this.itemListing == null)
                 {
-                    ImGui.Text("Goto a Market Board. Open any item that has sale listings.");
+                    ImGui.TextUnformatted("Goto a Market Board. Open any item that has sale listings.");
                 }
                 else
                 {
-                    ImGui.Text("Does one of the sales match this information?");
+                    ImGui.TextUnformatted("Does one of the sales match this information?");
                     ImGui.Separator();
-                    ImGui.Text($"Quantity: {this.itemListing.ItemQuantity.ToString()}");
-                    ImGui.Text($"Price Per Unit: {this.itemListing.PricePerUnit}");
-                    ImGui.Text($"Retainer Name: {this.itemListing.RetainerName}");
-                    ImGui.Text($"Is HQ?: {(this.itemListing.IsHq ? "Yes" : "No")}");
+                    ImGui.TextUnformatted($"Quantity: {this.itemListing.ItemQuantity.ToString()}");
+                    ImGui.TextUnformatted($"Price Per Unit: {this.itemListing.PricePerUnit}");
+                    ImGui.TextUnformatted($"Retainer Name: {this.itemListing.RetainerName}");
+                    ImGui.TextUnformatted($"Is HQ?: {(this.itemListing.IsHq ? "Yes" : "No")}");
                     ImGui.Separator();
                     if (ImGui.Button("Looks Correct / Skip"))
                     {
@@ -105,15 +105,15 @@ internal class MarketBoardAgingStep : IAgingStep
             case SubStep.PurchaseRequests:
                 if (this.marketBoardPurchaseRequest == null)
                 {
-                    ImGui.Text("Goto a Market Board. Purchase any item, the cheapest you can find.");
+                    ImGui.TextUnformatted("Goto a Market Board. Purchase any item, the cheapest you can find.");
                 }
                 else
                 {
-                    ImGui.Text("Does this information match the purchase you made? This is testing the request to the server.");
+                    ImGui.TextUnformatted("Does this information match the purchase you made? This is testing the request to the server.");
                     ImGui.Separator();
-                    ImGui.Text($"Quantity: {this.marketBoardPurchaseRequest.ItemQuantity.ToString()}");
-                    ImGui.Text($"Item ID: {this.marketBoardPurchaseRequest.CatalogId}");
-                    ImGui.Text($"Price Per Unit: {this.marketBoardPurchaseRequest.PricePerUnit}");
+                    ImGui.TextUnformatted($"Quantity: {this.marketBoardPurchaseRequest.ItemQuantity.ToString()}");
+                    ImGui.TextUnformatted($"Item ID: {this.marketBoardPurchaseRequest.CatalogId}");
+                    ImGui.TextUnformatted($"Price Per Unit: {this.marketBoardPurchaseRequest.PricePerUnit}");
                     ImGui.Separator();
                     if (ImGui.Button("Looks Correct / Skip"))
                     {
@@ -131,14 +131,14 @@ internal class MarketBoardAgingStep : IAgingStep
             case SubStep.Purchases:
                 if (this.marketBoardPurchase == null)
                 {
-                    ImGui.Text("Goto a Market Board. Purchase any item, the cheapest you can find.");
+                    ImGui.TextUnformatted("Goto a Market Board. Purchase any item, the cheapest you can find.");
                 }
                 else
                 {
-                    ImGui.Text("Does this information match the purchase you made? This is testing the response from the server.");
+                    ImGui.TextUnformatted("Does this information match the purchase you made? This is testing the response from the server.");
                     ImGui.Separator();
-                    ImGui.Text($"Quantity: {this.marketBoardPurchase.ItemQuantity.ToString()}");
-                    ImGui.Text($"Item ID: {this.marketBoardPurchase.CatalogId}");
+                    ImGui.TextUnformatted($"Quantity: {this.marketBoardPurchase.ItemQuantity.ToString()}");
+                    ImGui.TextUnformatted($"Item ID: {this.marketBoardPurchase.CatalogId}");
                     ImGui.Separator();
                     if (ImGui.Button("Looks Correct / Skip"))
                     {
@@ -156,20 +156,20 @@ internal class MarketBoardAgingStep : IAgingStep
             case SubStep.Taxes:
                 if (this.marketTaxRate == null)
                 {
-                    ImGui.Text("Goto a Retainer Vocate and talk to then. Click the 'View market tax rates' menu item.");
+                    ImGui.TextUnformatted("Goto a Retainer Vocate and talk to then. Click the 'View market tax rates' menu item.");
                 }
                 else
                 {
-                    ImGui.Text("Does this market tax rate information look correct?");
+                    ImGui.TextUnformatted("Does this market tax rate information look correct?");
                     ImGui.Separator();
-                    ImGui.Text($"Uldah: {this.marketTaxRate.UldahTax.ToString()}");
-                    ImGui.Text($"Gridania: {this.marketTaxRate.GridaniaTax.ToString()}");
-                    ImGui.Text($"Limsa Lominsa: {this.marketTaxRate.LimsaLominsaTax.ToString()}");
-                    ImGui.Text($"Ishgard: {this.marketTaxRate.IshgardTax.ToString()}");
-                    ImGui.Text($"Kugane: {this.marketTaxRate.KuganeTax.ToString()}");
-                    ImGui.Text($"Crystarium: {this.marketTaxRate.CrystariumTax.ToString()}");
-                    ImGui.Text($"Sharlayan: {this.marketTaxRate.SharlayanTax.ToString()}");
-                    ImGui.Text($"Tuliyollal: {this.marketTaxRate.TuliyollalTax.ToString()}");
+                    ImGui.TextUnformatted($"Uldah: {this.marketTaxRate.UldahTax.ToString()}");
+                    ImGui.TextUnformatted($"Gridania: {this.marketTaxRate.GridaniaTax.ToString()}");
+                    ImGui.TextUnformatted($"Limsa Lominsa: {this.marketTaxRate.LimsaLominsaTax.ToString()}");
+                    ImGui.TextUnformatted($"Ishgard: {this.marketTaxRate.IshgardTax.ToString()}");
+                    ImGui.TextUnformatted($"Kugane: {this.marketTaxRate.KuganeTax.ToString()}");
+                    ImGui.TextUnformatted($"Crystarium: {this.marketTaxRate.CrystariumTax.ToString()}");
+                    ImGui.TextUnformatted($"Sharlayan: {this.marketTaxRate.SharlayanTax.ToString()}");
+                    ImGui.TextUnformatted($"Tuliyollal: {this.marketTaxRate.TuliyollalTax.ToString()}");
                     ImGui.Separator();
                     if (ImGui.Button("Looks Correct / Skip"))
                     {

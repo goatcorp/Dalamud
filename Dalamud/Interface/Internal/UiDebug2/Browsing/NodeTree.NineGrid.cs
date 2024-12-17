@@ -1,4 +1,5 @@
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
@@ -66,7 +67,7 @@ internal unsafe partial class NineGridNodeTree : ImageNodeTree
             ImGui.GetWindowDrawList().AddRect(ngBegin2, ngEnd2, ngCol);
 
             ImGui.SetCursorPos(cursorLocalPos + uv + new Vector2(0, -20));
-            ImGui.TextColored(col, $"[#{partId}]\t{part.U}, {part.V}\t{part.Width}x{part.Height}");
+            ImGuiHelpers.SafeTextColored(col, $"[#{partId}]\t{part.U}, {part.V}\t{part.Width}x{part.Height}");
         }
 
         ImGui.SetCursorPos(savePos);
@@ -80,7 +81,7 @@ internal unsafe partial class NineGridNodeTree : ImageNodeTree
     {
         if (!isEditorOpen)
         {
-            ImGui.Text("NineGrid Offsets:\t");
+            ImGui.TextUnformatted("NineGrid Offsets:\t");
             ImGui.SameLine();
             this.Offsets.Print();
         }

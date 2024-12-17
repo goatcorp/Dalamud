@@ -41,9 +41,9 @@ internal class ConsoleWindow : Window, IDisposable
     // Fields below should be touched only from the main thread.
     private readonly RollingList<LogEntry> logText;
     private readonly RollingList<LogEntry> filteredLogEntries;
-    
+
     private readonly List<PluginFilterEntry> pluginFilters = new();
-    
+
     private readonly DalamudConfiguration configuration;
 
     private int newRolledLines;
@@ -87,14 +87,14 @@ internal class ConsoleWindow : Window, IDisposable
         : base("Dalamud Console", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         this.configuration = configuration;
-        
+
         this.autoScroll = configuration.LogAutoScroll;
         this.autoOpen = configuration.LogOpenAtStartup;
 
         Service<Framework>.GetAsync().ContinueWith(r => r.Result.Update += this.FrameworkOnUpdate);
-            
+
         var cm = Service<ConsoleManager>.Get();
-        cm.AddCommand("clear", "Clear the console log", () => 
+        cm.AddCommand("clear", "Clear the console log", () =>
         {
             this.QueueClear();
             return true;
@@ -150,17 +150,13 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (this.exceptionLogFilter is not null)
         {
-            ImGui.TextColored(
-                ImGuiColors.DalamudRed,
-                $"Regex Filter Error: {this.exceptionLogFilter.GetType().Name}");
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, $"Regex Filter Error: {this.exceptionLogFilter.GetType().Name}");
             ImGui.TextUnformatted(this.exceptionLogFilter.Message);
         }
 
         if (this.exceptionLogHighlight is not null)
         {
-            ImGui.TextColored(
-                ImGuiColors.DalamudRed,
-                $"Regex Highlight Error: {this.exceptionLogHighlight.GetType().Name}");
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, $"Regex Highlight Error: {this.exceptionLogHighlight.GetType().Name}");
             ImGui.TextUnformatted(this.exceptionLogHighlight.Message);
         }
 
@@ -578,7 +574,7 @@ internal class ConsoleWindow : Window, IDisposable
             inputWidth = ImGui.GetWindowWidth() - (ImGui.GetStyle().WindowPadding.X * 2);
 
             if (!breakInputLines)
-                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2; 
+                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2;
         }
         else
         {
@@ -721,7 +717,7 @@ internal class ConsoleWindow : Window, IDisposable
 
             if (!sourceNames.Any())
             {
-                ImGui.TextColored(ImGuiColors.DalamudRed, "No Results");
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "No Results");
             }
 
             foreach (var selectable in sourceNames)
@@ -749,7 +745,7 @@ internal class ConsoleWindow : Window, IDisposable
             }
 
             ImGui.TableNextColumn();
-            ImGui.Text(entry.Source);
+            ImGui.TextUnformatted(entry.Source);
 
             ImGui.TableNextColumn();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
@@ -799,15 +795,15 @@ internal class ConsoleWindow : Window, IDisposable
         {
             if (string.IsNullOrEmpty(this.commandText))
                 return;
-            
+
             this.historyPos = -1;
-            
+
             if (this.commandText != this.configuration.LogCommandHistory.LastOrDefault())
                 this.configuration.LogCommandHistory.Add(this.commandText);
-            
+
             if (this.configuration.LogCommandHistory.Count > HistorySize)
                 this.configuration.LogCommandHistory.RemoveAt(0);
-            
+
             this.configuration.QueueSave();
 
             this.lastCmdSuccess = Service<ConsoleManager>.Get().ProcessCommand(this.commandText);
@@ -832,7 +828,7 @@ internal class ConsoleWindow : Window, IDisposable
                 this.completionZipText = null;
                 this.completionTabIdx = 0;
                 break;
-            
+
             case ImGuiInputTextFlags.CallbackCompletion:
                 var textBytes = new byte[data->BufTextLen];
                 Marshal.Copy((IntPtr)data->Buf, textBytes, 0, data->BufTextLen);
@@ -843,11 +839,11 @@ internal class ConsoleWindow : Window, IDisposable
                 // We can't do any completion for parameters at the moment since it just calls into CommandHandler
                 if (words.Length > 1)
                     return 0;
-                
+
                 var wordToComplete = words[0];
                 if (wordToComplete.IsNullOrWhitespace())
                     return 0;
-                
+
                 if (this.completionZipText is not null)
                     wordToComplete = this.completionZipText;
 
@@ -878,7 +874,7 @@ internal class ConsoleWindow : Window, IDisposable
                         toComplete = candidates.ElementAt(this.completionTabIdx);
                         this.completionTabIdx = (this.completionTabIdx + 1) % candidates.Count();
                     }
-                
+
                     if (toComplete != null)
                     {
                         ptr.DeleteChars(0, ptr.BufTextLen);

@@ -19,7 +19,7 @@ internal class AddressesWidget : IDataWindowWidget
     public string[]? CommandShortcuts { get; init; } = { "address" };
 
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Addresses"; 
+    public string DisplayName { get; init; } = "Addresses";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -29,7 +29,7 @@ internal class AddressesWidget : IDataWindowWidget
     {
         this.Ready = true;
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
@@ -47,7 +47,7 @@ internal class AddressesWidget : IDataWindowWidget
             }
         }
 
-        ImGui.Text($"Result: {this.sigResult.ToInt64():X}");
+        ImGui.TextUnformatted($"Result: {this.sigResult.ToInt64():X}");
         ImGui.SameLine();
         if (ImGui.Button($"C##{this.sigResult.ToInt64():X}"))
             ImGui.SetClipboardText(this.sigResult.ToInt64().ToString("X"));
@@ -57,8 +57,7 @@ internal class AddressesWidget : IDataWindowWidget
             ImGui.TextUnformatted($"{debugScannedValue.Key}");
             foreach (var valueTuple in debugScannedValue.Value)
             {
-                ImGui.TextUnformatted(
-                    $"      {valueTuple.ClassName} - {Util.DescribeAddress(valueTuple.Address)}");
+                ImGui.TextUnformatted($"      {valueTuple.ClassName} - {Util.DescribeAddress(valueTuple.Address)}");
                 ImGui.SameLine();
 
                 if (ImGui.Button($"C##{valueTuple.Address.ToInt64():X}"))

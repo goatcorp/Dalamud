@@ -42,7 +42,7 @@ internal class SettingsWindow : Window
         };
 
         this.SizeCondition = ImGuiCond.FirstUseEver;
-        
+
         this.tabs =
         [
             new SettingsTabGeneral(),
@@ -143,7 +143,7 @@ internal class SettingsWindow : Window
                         flags |= ImGuiTabItemFlags.SetSelected;
                         this.setActiveTab = null;
                     }
- 
+
                     using var tab = ImRaii.TabItem(settingsTab.Title, flags);
                     if (tab)
                     {
@@ -194,7 +194,7 @@ internal class SettingsWindow : Window
 
                         any = true;
 
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, settingsTab.Title);
+                        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, settingsTab.Title);
                         ImGui.Dummy(new Vector2(5));
 
                         foreach (var settingsTabEntry in eligible)
@@ -209,7 +209,7 @@ internal class SettingsWindow : Window
                     }
 
                     if (!any)
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, "No results found...");
+                        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "No results found...");
 
                     ImGui.EndTabItem();
                 }

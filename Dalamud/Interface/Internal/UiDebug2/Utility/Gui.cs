@@ -33,7 +33,7 @@ internal static class Gui
         }
         else
         {
-            ImGui.TextColored(grey60, value);
+            ImGuiHelpers.SafeTextColored(grey60, value);
         }
     }
 

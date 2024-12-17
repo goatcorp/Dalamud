@@ -41,7 +41,7 @@ internal class NamePlateAgingStep : IAgingStep
                 break;
 
             case SubStep.Confirm:
-                ImGui.Text("Click to redraw all visible nameplates");
+                ImGui.TextUnformatted("Click to redraw all visible nameplates");
                 if (ImGui.Button("Request redraw"))
                     namePlateGui.RequestRedraw();
 

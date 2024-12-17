@@ -12,9 +12,9 @@ internal class KeyStateWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "keystate" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "KeyState"; 
+    public string DisplayName { get; init; } = "KeyState";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -40,7 +40,7 @@ internal class KeyStateWidget : IDataWindowWidget
 
             ImGui.PushStyleColor(ImGuiCol.Text, value ? ImGuiColors.HealerGreen : ImGuiColors.DPSRed);
 
-            ImGui.Text($"{vkCode} ({code})");
+            ImGui.TextUnformatted($"{vkCode} ({code})");
 
             ImGui.PopStyleColor();
 

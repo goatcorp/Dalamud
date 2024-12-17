@@ -20,7 +20,7 @@ internal class LoginEventAgingStep : IAgingStep
     {
         var clientState = Service<ClientState>.Get();
 
-        ImGui.Text("Log in now...");
+        ImGui.TextUnformatted("Log in now...");
 
         if (!this.subscribed)
         {

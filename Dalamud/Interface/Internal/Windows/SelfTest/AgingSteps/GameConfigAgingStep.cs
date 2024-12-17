@@ -44,7 +44,7 @@ internal class GameConfigAgingStep : IAgingStep
                 }
                 else
                 {
-                    ImGui.Text("Switch Movement Type to Standard");
+                    ImGui.TextUnformatted("Switch Movement Type to Standard");
                 }
 
                 return SelfTestStepResult.Waiting;
@@ -58,7 +58,7 @@ internal class GameConfigAgingStep : IAgingStep
                 }
                 else
                 {
-                    ImGui.Text("Switch Movement Type to Legacy");
+                    ImGui.TextUnformatted("Switch Movement Type to Legacy");
                 }
 
                 return SelfTestStepResult.Waiting;
@@ -74,7 +74,7 @@ internal class GameConfigAgingStep : IAgingStep
                  }
                  else
                  {
-                     ImGui.Text("Switch Movement Type to Legacy");
+                     ImGui.TextUnformatted("Switch Movement Type to Legacy");
                  }
 
                  return SelfTestStepResult.Waiting;
@@ -88,7 +88,7 @@ internal class GameConfigAgingStep : IAgingStep
                  }
                  else
                  {
-                     ImGui.Text("Switch Movement Type to Standard");
+                     ImGui.TextUnformatted("Switch Movement Type to Standard");
                  }
 
                  return SelfTestStepResult.Waiting;

@@ -50,11 +50,11 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private readonly Lazy<IFontHandle> myFontHandle;
     private readonly Lazy<IDalamudTextureWrap> shadeTexture;
     private readonly AddonLifecycleEventListener versionStringListener;
-    
+
     private readonly Dictionary<Guid, InOutCubic> shadeEasings = new();
     private readonly Dictionary<Guid, InOutQuint> moveEasings = new();
     private readonly Dictionary<Guid, InOutCubic> logoEasings = new();
-    
+
     private readonly IConsoleVariable<bool> showTsm;
 
     private InOutCubic? fadeOutEasing;
@@ -62,7 +62,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     private State state = State.Hide;
 
     private int lastLoadedPluginCount = -1;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TitleScreenMenuWindow"/> class.
     /// </summary>
@@ -91,7 +91,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus)
     {
         this.showTsm = consoleManager.AddVariable("dalamud.show_tsm", "Show the Title Screen Menu", true);
-        
+
         this.clientState = clientState;
         this.configuration = configuration;
         this.gameGui = gameGui;
@@ -124,7 +124,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         framework.Update += this.FrameworkOnUpdate;
         this.scopedFinalizer.Add(() => framework.Update -= this.FrameworkOnUpdate);
-        
+
         this.versionStringListener = new AddonLifecycleEventListener(AddonEvent.PreDraw, "_TitleRevision", this.OnVersionStringDraw);
         addonLifecycle.RegisterListener(this.versionStringListener);
         this.scopedFinalizer.Add(() => addonLifecycle.UnregisterListener(this.versionStringListener));
@@ -136,7 +136,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         Show,
         FadeOut,
     }
-    
+
     /// <summary>
     /// Gets or sets a value indicating whether drawing is allowed.
     /// </summary>
@@ -165,7 +165,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     {
         if (!this.AllowDrawing || !this.showTsm.Value)
             return;
-        
+
         var scale = ImGui.GetIO().FontGlobalScale;
         var entries = this.titleScreenMenu.PluginEntries;
 
@@ -174,7 +174,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             ImGuiHoveredFlags.AllowWhenBlockedByActiveItem);
 
         Service<InterfaceManager>.Get().OverrideGameCursor = !hovered;
-        
+
         switch (this.state)
         {
             case State.Show:
@@ -401,12 +401,12 @@ internal class TitleScreenMenuWindow : Window, IDisposable
             for (int i = 0, to = (int)Math.Ceiling(1 * scale); i < to; i++)
             {
                 ImGui.SetCursorPos(new Vector2(cursor.X, cursor.Y + i));
-                ImGui.Text(entry.Name);
+                ImGui.TextUnformatted(entry.Name);
             }
         }
 
         ImGui.SetCursorPos(cursor);
-        ImGui.Text(entry.Name);
+        ImGui.TextUnformatted(entry.Name);
 
         if (overrideAlpha)
         {
@@ -439,7 +439,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         var addon = (AtkUnitBase*)drawArgs.Addon;
         var textNode = addon->GetTextNodeById(3);
-        
+
         // look and feel init. should be harmless to set.
         textNode->TextFlags |= (byte)TextFlags.MultiLine;
         textNode->AlignmentType = AlignmentType.TopLeft;
