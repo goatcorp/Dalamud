@@ -1,5 +1,12 @@
-<!-- Code analysis settings for all Dalamud projects. -->
 <Project>
+    <!-- Dependency versions -->
+    <PropertyGroup Label="Dependency Versions">
+        <LuminaVersion>5.6.0</LuminaVersion>
+        <LuminaExcelVersion>7.1.3</LuminaExcelVersion>
+        <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
+    </PropertyGroup>
+
+    <!-- Code analysis settings for all Dalamud projects. -->
     <ItemGroup Label="Code Analysis">
         <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
         <AdditionalFiles Include="$(MSBuildThisFileDirectory)tools\BannedSymbols.txt" />
