@@ -39,6 +39,8 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IInternalDisposableServi
     private ImGuiDrawListFixProvider(InterfaceManager.InterfaceManagerWithScene imws)
     {
         // Force cimgui.dll to be loaded.
+        // TODO(goat): Apply fixes in natives
+        /*
         _ = ImGui.GetCurrentContext();
         var cimgui = Process.GetCurrentProcess().Modules.Cast<ProcessModule>()
                             .First(x => x.ModuleName == "cimgui.dll")
@@ -56,6 +58,7 @@ internal sealed unsafe class ImGuiDrawListFixProvider : IInternalDisposableServi
         this.hookImDrawListAddPolyline.Enable();
         this.hookImDrawListAddRectFilled.Enable();
         this.hookImDrawListAddImageRounded.Enable();
+        */
     }
 
     private delegate void ImDrawListAddPolyLine(
