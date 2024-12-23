@@ -103,6 +103,44 @@
         <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj" />
     </ItemGroup>
 
+    <!-- cimgui, cimplot, cimguizmo -->
+    <!-- TEMP: We will move these to ImGuiScene once it is in-tree -->
+    <ItemGroup>
+        <ProjectReference Include="..\external\cimguizmo\cimguizmo.vcxproj" />
+        <ProjectReference Include="..\external\cimgui\cimgui.vcxproj" />
+        <ProjectReference Include="..\external\cimplot\cimplot.vcxproj" />
+
+        <Content Include="..\$(Platform)\$(Configuration)\*.dll">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+
+        <Content Include="..\$(Platform)\$(Configuration)\*.dll">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+
+        <Content Include="..\$(Platform)\$(Configuration)\*.dll">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        
+        <Content Include="..\$(Platform)\$(Configuration)\*.pdb">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+
+        <Content Include="..\$(Platform)\$(Configuration)\*.pdb">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+
+        <Content Include="..\$(Platform)\$(Configuration)\*.pdb">
+            <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
     <ItemGroup>
         <AdditionalFiles Include="..\stylecop.json" />
     </ItemGroup>
