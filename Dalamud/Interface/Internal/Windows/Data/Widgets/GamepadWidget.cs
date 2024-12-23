@@ -12,9 +12,9 @@ internal class GamepadWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "gamepad", "controller" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Gamepad"; 
+    public string DisplayName { get; init; } = "Gamepad";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -30,7 +30,7 @@ internal class GamepadWidget : IDataWindowWidget
     {
         var gamepadState = Service<GamepadState>.Get();
 
-        ImGui.Text($"GamepadInput {Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
+        ImGui.TextUnformatted($"GamepadInput {Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
 
 #if DEBUG
         if (ImGui.IsItemHovered())
@@ -56,28 +56,28 @@ internal class GamepadWidget : IDataWindowWidget
             "Buttons Released",
             gamepadState.ButtonsReleased,
             gamepadState.Released);
-        ImGui.Text($"LeftStick {gamepadState.LeftStick}");
-        ImGui.Text($"RightStick {gamepadState.RightStick}");
+        ImGui.TextUnformatted($"LeftStick {gamepadState.LeftStick}");
+        ImGui.TextUnformatted($"RightStick {gamepadState.RightStick}");
     }
-    
+
     private void DrawHelper(string text, uint mask, Func<GamepadButtons, float> resolve)
     {
-        ImGui.Text($"{text} {mask:X4}");
-        ImGui.Text($"DPadLeft {resolve(GamepadButtons.DpadLeft)} " +
-                   $"DPadUp {resolve(GamepadButtons.DpadUp)} " +
-                   $"DPadRight {resolve(GamepadButtons.DpadRight)} " +
-                   $"DPadDown {resolve(GamepadButtons.DpadDown)} ");
-        ImGui.Text($"West {resolve(GamepadButtons.West)} " +
-                   $"North {resolve(GamepadButtons.North)} " +
-                   $"East {resolve(GamepadButtons.East)} " +
-                   $"South {resolve(GamepadButtons.South)} ");
-        ImGui.Text($"L1 {resolve(GamepadButtons.L1)} " +
-                   $"L2 {resolve(GamepadButtons.L2)} " +
-                   $"R1 {resolve(GamepadButtons.R1)} " +
-                   $"R2 {resolve(GamepadButtons.R2)} ");
-        ImGui.Text($"Select {resolve(GamepadButtons.Select)} " +
-                   $"Start {resolve(GamepadButtons.Start)} " +
-                   $"L3 {resolve(GamepadButtons.L3)} " +
-                   $"R3 {resolve(GamepadButtons.R3)} ");
+        ImGui.TextUnformatted($"{text} {mask:X4}");
+        ImGui.TextUnformatted($"DPadLeft {resolve(GamepadButtons.DpadLeft)} " +
+                              $"DPadUp {resolve(GamepadButtons.DpadUp)} " +
+                              $"DPadRight {resolve(GamepadButtons.DpadRight)} " +
+                              $"DPadDown {resolve(GamepadButtons.DpadDown)} ");
+        ImGui.TextUnformatted($"West {resolve(GamepadButtons.West)} " +
+                              $"North {resolve(GamepadButtons.North)} " +
+                              $"East {resolve(GamepadButtons.East)} " +
+                              $"South {resolve(GamepadButtons.South)} ");
+        ImGui.TextUnformatted($"L1 {resolve(GamepadButtons.L1)} " +
+                              $"L2 {resolve(GamepadButtons.L2)} " +
+                              $"R1 {resolve(GamepadButtons.R1)} " +
+                              $"R2 {resolve(GamepadButtons.R2)} ");
+        ImGui.TextUnformatted($"Select {resolve(GamepadButtons.Select)} " +
+                              $"Start {resolve(GamepadButtons.Start)} " +
+                              $"L3 {resolve(GamepadButtons.L3)} " +
+                              $"R3 {resolve(GamepadButtons.R3)} ");
     }
 }

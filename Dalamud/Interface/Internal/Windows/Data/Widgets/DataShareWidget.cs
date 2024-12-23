@@ -148,7 +148,7 @@ internal class DataShareWidget : IDataWindowWidget
     {
         if (mi is null)
             return "-";
-        
+
         var sb = new StringBuilder();
         sb.Append(ReprType(mi.DeclaringType))
           .Append("::")
@@ -236,7 +236,7 @@ internal class DataShareWidget : IDataWindowWidget
             using (ImRaii.Tooltip())
             {
                 ImGui.PushTextWrapPos(wrx);
-                ImGui.TextWrapped((tooltip?.Invoke() ?? s).Replace("%", "%%"));
+                ImGuiHelpers.SafeTextWrapped(tooltip?.Invoke() ?? s);
                 ImGui.PopTextWrapPos();
             }
         }

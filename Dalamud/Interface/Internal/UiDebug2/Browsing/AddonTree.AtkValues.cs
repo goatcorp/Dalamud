@@ -1,4 +1,5 @@
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -42,21 +43,21 @@ public unsafe partial class AddonTree
                             ImGui.TableNextColumn();
                             if (atkValue->Type == 0)
                             {
-                                ImGui.TextDisabled($"#{i}");
+                                ImGuiHelpers.SafeTextDisabled($"#{i}");
                             }
                             else
                             {
-                                ImGui.Text($"#{i}");
+                                ImGui.TextUnformatted($"#{i}");
                             }
 
                             ImGui.TableNextColumn();
                             if (atkValue->Type == 0)
                             {
-                                ImGui.TextDisabled("Not Set");
+                                ImGuiHelpers.SafeTextDisabled("Not Set");
                             }
                             else
                             {
-                                ImGui.Text($"{atkValue->Type}");
+                                ImGui.TextUnformatted($"{atkValue->Type}");
                             }
 
                             ImGui.TableNextColumn();
@@ -78,7 +79,7 @@ public unsafe partial class AddonTree
                                 {
                                     if (atkValue->String == null)
                                     {
-                                        ImGui.TextDisabled("null");
+                                        ImGuiHelpers.SafeTextDisabled("null");
                                     }
                                     else
                                     {
@@ -101,7 +102,7 @@ public unsafe partial class AddonTree
 
                                 default:
                                 {
-                                    ImGui.TextDisabled("Unhandled Type");
+                                    ImGuiHelpers.SafeTextDisabled("Unhandled Type");
                                     ImGui.SameLine();
                                     Util.ShowStruct(atkValue);
                                     break;
@@ -113,7 +114,7 @@ public unsafe partial class AddonTree
                     }
                     catch (Exception ex)
                     {
-                        ImGui.TextColored(new(1, 0, 0, 1), $"{ex}");
+                        ImGuiHelpers.SafeTextColored(new(1, 0, 0, 1), $"{ex}");
                     }
                 }
             }

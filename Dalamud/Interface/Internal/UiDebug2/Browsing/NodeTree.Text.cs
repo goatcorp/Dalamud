@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Text.SeStringHandling;
@@ -47,7 +48,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
             return;
         }
 
-        ImGui.TextColored(new(1), "Text:");
+        ImGuiHelpers.SafeTextColored(Vector4.One, "Text:");
         ImGui.SameLine();
 
         try

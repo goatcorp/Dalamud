@@ -13,7 +13,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
 internal class AddonLifecycleAgingStep : IAgingStep
 {
     private readonly List<AddonLifecycleEventListener> listeners;
-    
+
     private AddonLifecycle? service;
     private TestStep currentStep = TestStep.CharacterRefresh;
     private bool listenersRegistered;
@@ -33,7 +33,7 @@ internal class AddonLifecycleAgingStep : IAgingStep
             new(AddonEvent.PreFinalize, "Character", this.PreFinalize),
         };
     }
-    
+
     private enum TestStep
     {
         CharacterRefresh,
@@ -44,10 +44,10 @@ internal class AddonLifecycleAgingStep : IAgingStep
         CharacterFinalize,
         Complete,
     }
-    
+
     /// <inheritdoc/>
     public string Name => "Test AddonLifecycle";
-    
+
     /// <inheritdoc/>
     public SelfTestStepResult RunStep()
     {
@@ -60,26 +60,26 @@ internal class AddonLifecycleAgingStep : IAgingStep
             {
                 this.service.RegisterListener(listener);
             }
-            
+
             this.listenersRegistered = true;
         }
 
         switch (this.currentStep)
         {
             case TestStep.CharacterRefresh:
-                ImGui.Text("Open Character Window.");
+                ImGui.TextUnformatted("Open Character Window.");
                 break;
 
             case TestStep.CharacterSetup:
-                ImGui.Text("Open Character Window.");
+                ImGui.TextUnformatted("Open Character Window.");
                 break;
 
             case TestStep.CharacterRequestedUpdate:
-                ImGui.Text("Change tabs, or un-equip/equip gear.");
+                ImGui.TextUnformatted("Change tabs, or un-equip/equip gear.");
                 break;
 
             case TestStep.CharacterFinalize:
-                ImGui.Text("Close Character Window.");
+                ImGui.TextUnformatted("Close Character Window.");
                 break;
 
             case TestStep.CharacterUpdate:
@@ -89,7 +89,7 @@ internal class AddonLifecycleAgingStep : IAgingStep
                 // Nothing to report to tester.
                 break;
         }
-        
+
         return this.currentStep is TestStep.Complete ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
     }
 
@@ -101,32 +101,32 @@ internal class AddonLifecycleAgingStep : IAgingStep
             this.service?.UnregisterListener(listener);
         }
     }
-    
+
     private void PostSetup(AddonEvent eventType, AddonArgs addonInfo)
-    {        
+    {
         if (this.currentStep is TestStep.CharacterSetup) this.currentStep++;
     }
-    
+
     private void PostUpdate(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterUpdate) this.currentStep++;
     }
-    
+
     private void PostDraw(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterDraw) this.currentStep++;
     }
-    
+
     private void PostRefresh(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterRefresh) this.currentStep++;
     }
-    
+
     private void PostRequestedUpdate(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterRequestedUpdate) this.currentStep++;
     }
-    
+
     private void PreFinalize(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterFinalize) this.currentStep++;

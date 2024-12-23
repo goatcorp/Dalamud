@@ -19,11 +19,11 @@ public class AddonLifecycleWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Addon Lifecycle";
-    
+
     /// <inheritdoc/>
     [MemberNotNullWhen(true, "AddonLifecycle")]
     public bool Ready { get; set; }
-    
+
     private AddonLifecycle? AddonLifecycle { get; set; }
 
     /// <inheritdoc/>
@@ -38,13 +38,13 @@ public class AddonLifecycleWidget : IDataWindowWidget
                     this.Ready = true;
                 });
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
         if (!this.Ready)
         {
-            ImGui.Text("AddonLifecycle Reference is null, reload module.");
+            ImGui.TextUnformatted("AddonLifecycle Reference is null, reload module.");
             return;
         }
 
@@ -62,11 +62,11 @@ public class AddonLifecycleWidget : IDataWindowWidget
             ImGui.Unindent();
         }
     }
-    
+
     private void DrawEventListeners()
     {
         if (!this.Ready) return;
-        
+
         foreach (var eventType in Enum.GetValues<AddonEvent>())
         {
             if (ImGui.CollapsingHeader(eventType.ToString()))
@@ -76,9 +76,9 @@ public class AddonLifecycleWidget : IDataWindowWidget
 
                 if (listeners.Count == 0)
                 {
-                    ImGui.Text("No Listeners Registered for Event");
+                    ImGui.TextUnformatted("No Listeners Registered for Event");
                 }
-                
+
                 if (ImGui.BeginTable("AddonLifecycleListenersTable", 2))
                 {
                     ImGui.TableSetupColumn("##AddonName", ImGuiTableColumnFlags.WidthFixed, 100.0f * ImGuiHelpers.GlobalScale);
@@ -87,15 +87,15 @@ public class AddonLifecycleWidget : IDataWindowWidget
                     foreach (var listener in listeners)
                     {
                         ImGui.TableNextColumn();
-                        ImGui.Text(listener.AddonName is "" ? "GLOBAL" : listener.AddonName);
+                        ImGui.TextUnformatted(listener.AddonName is "" ? "GLOBAL" : listener.AddonName);
 
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
+                        ImGui.TextUnformatted($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
                     }
-                    
+
                     ImGui.EndTable();
                 }
-                
+
                 ImGui.Unindent();
             }
         }
@@ -109,33 +109,33 @@ public class AddonLifecycleWidget : IDataWindowWidget
 
         if (listeners.Count == 0)
         {
-            ImGui.Text("No ReceiveEvent Hooks are Registered");
+            ImGui.TextUnformatted("No ReceiveEvent Hooks are Registered");
         }
-        
+
         foreach (var receiveEventListener in this.AddonLifecycle.ReceiveEventListeners)
         {
             if (ImGui.CollapsingHeader(string.Join(", ", receiveEventListener.AddonNames)))
             {
                 ImGui.Columns(2);
 
-                ImGui.Text("Hook Address");
+                ImGui.TextUnformatted("Hook Address");
                 ImGui.NextColumn();
-                ImGui.Text(receiveEventListener.FunctionAddress.ToString("X"));
+                ImGui.TextUnformatted(receiveEventListener.FunctionAddress.ToString("X"));
 
                 ImGui.NextColumn();
-                ImGui.Text("Hook Status");
+                ImGui.TextUnformatted("Hook Status");
                 ImGui.NextColumn();
                 if (receiveEventListener.Hook is null)
                 {
-                    ImGui.Text("Hook is null");
+                    ImGui.TextUnformatted("Hook is null");
                 }
                 else
                 {
                     var color = receiveEventListener.Hook.IsEnabled ? ImGuiColors.HealerGreen : ImGuiColors.DalamudRed;
                     var text = receiveEventListener.Hook.IsEnabled ? "Enabled" : "Disabled";
-                    ImGui.TextColored(color, text);
+                    ImGuiHelpers.SafeTextColored(color, text);
                 }
-                
+
                 ImGui.Columns(1);
             }
         }

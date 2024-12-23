@@ -8,6 +8,7 @@ using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -132,20 +133,20 @@ internal class PluginStatWindow : Window
                         ImGui.TableNextRow();
 
                         ImGui.TableNextColumn();
-                        ImGui.Text(plugin.Manifest.Name);
+                        ImGui.TextUnformatted(plugin.Manifest.Name);
 
                         if (plugin.DalamudInterface != null)
                         {
                             ImGui.TableNextColumn();
-                            ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.LastDrawTime / 10000f:F4}ms");
+                            ImGui.TextUnformatted($"{plugin.DalamudInterface.LocalUiBuilder.LastDrawTime / 10000f:F4}ms");
 
                             ImGui.TableNextColumn();
-                            ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime / 10000f:F4}ms");
+                            ImGui.TextUnformatted($"{plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime / 10000f:F4}ms");
 
                             ImGui.TableNextColumn();
-                            ImGui.Text(plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Count > 0
-                                           ? $"{plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms"
-                                           : "-");
+                            ImGui.TextUnformatted(plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Count > 0
+                                                      ? $"{plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms"
+                                                      : "-");
                         }
                     }
 
@@ -239,16 +240,16 @@ internal class PluginStatWindow : Window
                         ImGui.TableNextRow();
 
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{handlerHistory.Key}");
+                        ImGui.TextUnformatted($"{handlerHistory.Key}");
 
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{handlerHistory.Value.Last():F4}ms");
+                        ImGui.TextUnformatted($"{handlerHistory.Value.Last():F4}ms");
 
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{handlerHistory.Value.Max():F4}ms");
+                        ImGui.TextUnformatted($"{handlerHistory.Value.Max():F4}ms");
 
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{handlerHistory.Value.Average():F4}ms");
+                        ImGui.TextUnformatted($"{handlerHistory.Value.Average():F4}ms");
                     }
 
                     ImGui.EndTable();
@@ -308,8 +309,8 @@ internal class PluginStatWindow : Window
 
                         ImGui.TableNextColumn();
 
-                        ImGui.Text($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
-                        ImGui.TextDisabled(trackedHook.Assembly.FullName);
+                        ImGui.TextUnformatted($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
+                        ImGuiHelpers.SafeTextDisabled(trackedHook.Assembly.FullName);
                         ImGui.TableNextColumn();
                         if (!trackedHook.Hook.IsDisposed)
                         {
@@ -334,16 +335,16 @@ internal class PluginStatWindow : Window
 
                         if (trackedHook.Hook.IsDisposed)
                         {
-                            ImGui.Text("Disposed");
+                            ImGui.TextUnformatted("Disposed");
                         }
                         else
                         {
-                            ImGui.Text(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
+                            ImGui.TextUnformatted(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
                         }
 
                         ImGui.TableNextColumn();
 
-                        ImGui.Text(trackedHook.Hook.BackendName);
+                        ImGui.TextUnformatted(trackedHook.Hook.BackendName);
                     }
                     catch (Exception ex)
                     {

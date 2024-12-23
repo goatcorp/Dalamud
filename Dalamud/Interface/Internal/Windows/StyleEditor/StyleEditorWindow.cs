@@ -84,7 +84,7 @@ public class StyleEditorWindow : Window
         var appliedThisFrame = false;
 
         var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
-        ImGui.Text(Loc.Localize("StyleEditorChooseStyle", "Choose Style:"));
+        ImGui.TextUnformatted(Loc.Localize("StyleEditorChooseStyle", "Choose Style:"));
         if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry, styleAry.Length))
         {
             var newStyle = config.SavedStyles[this.currentSel];
@@ -112,7 +112,7 @@ public class StyleEditorWindow : Window
 
         if (isBuiltinStyle)
             ImGui.BeginDisabled();
-        
+
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash) && this.currentSel != 0)
         {
             this.currentSel--;
@@ -157,7 +157,7 @@ public class StyleEditorWindow : Window
 
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
-        
+
         if (isBuiltinStyle)
             ImGui.EndDisabled();
 
@@ -203,11 +203,11 @@ public class StyleEditorWindow : Window
 
         if (isBuiltinStyle)
         {
-            ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
         }
         else if (appliedThisFrame)
         {
-            ImGui.Text(Loc.Localize("StyleEditorApplying", "Applying style..."));
+            ImGui.TextUnformatted(Loc.Localize("StyleEditorApplying", "Applying style..."));
         }
         else if (ImGui.BeginTabBar("StyleEditorTabs"))
         {
@@ -228,13 +228,13 @@ public class StyleEditorWindow : Window
                     ImGui.SliderFloat("IndentSpacing", ref style.IndentSpacing, 0.0f, 30.0f, "%.0f");
                     ImGui.SliderFloat("ScrollbarSize", ref style.ScrollbarSize, 1.0f, 20.0f, "%.0f");
                     ImGui.SliderFloat("GrabMinSize", ref style.GrabMinSize, 1.0f, 20.0f, "%.0f");
-                    ImGui.Text("Borders");
+                    ImGui.TextUnformatted("Borders");
                     ImGui.SliderFloat("WindowBorderSize", ref style.WindowBorderSize, 0.0f, 1.0f, "%.0f");
                     ImGui.SliderFloat("ChildBorderSize", ref style.ChildBorderSize, 0.0f, 1.0f, "%.0f");
                     ImGui.SliderFloat("PopupBorderSize", ref style.PopupBorderSize, 0.0f, 1.0f, "%.0f");
                     ImGui.SliderFloat("FrameBorderSize", ref style.FrameBorderSize, 0.0f, 1.0f, "%.0f");
                     ImGui.SliderFloat("TabBorderSize", ref style.TabBorderSize, 0.0f, 1.0f, "%.0f");
-                    ImGui.Text("Rounding");
+                    ImGui.TextUnformatted("Rounding");
                     ImGui.SliderFloat("WindowRounding", ref style.WindowRounding, 0.0f, 12.0f, "%.0f");
                     ImGui.SliderFloat("ChildRounding", ref style.ChildRounding, 0.0f, 12.0f, "%.0f");
                     ImGui.SliderFloat("FrameRounding", ref style.FrameRounding, 0.0f, 12.0f, "%.0f");
@@ -243,7 +243,7 @@ public class StyleEditorWindow : Window
                     ImGui.SliderFloat("GrabRounding", ref style.GrabRounding, 0.0f, 12.0f, "%.0f");
                     ImGui.SliderFloat("LogSliderDeadzone", ref style.LogSliderDeadzone, 0.0f, 12.0f, "%.0f");
                     ImGui.SliderFloat("TabRounding", ref style.TabRounding, 0.0f, 12.0f, "%.0f");
-                    ImGui.Text("Alignment");
+                    ImGui.TextUnformatted("Alignment");
                     ImGui.SliderFloat2("WindowTitleAlign", ref style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
                     var windowMenuButtonPosition = (int)style.WindowMenuButtonPosition + 1;
                     if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, "None\0Left\0Right\0"))
@@ -362,7 +362,7 @@ public class StyleEditorWindow : Window
 
         if (ImGui.BeginPopupModal(renameModalTitle, ref this.renameModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.Text(Loc.Localize("StyleEditorEnterName", "Please enter the new name for this style."));
+            ImGui.TextUnformatted(Loc.Localize("StyleEditorEnterName", "Please enter the new name for this style."));
             ImGui.Spacing();
 
             ImGui.InputText("###renameModalInput", ref this.renameText, 255);
