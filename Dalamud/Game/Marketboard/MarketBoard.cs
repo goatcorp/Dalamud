@@ -1,8 +1,14 @@
-﻿using Dalamud.Game.Network.Internal;
+﻿using System.Linq;
+
+using Dalamud.Game.Network.Internal;
 using Dalamud.Game.Network.Structures;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+
+using static Dalamud.Plugin.Services.IMarketBoard;
 
 namespace Dalamud.Game.MarketBoard;
 
@@ -29,19 +35,19 @@ internal class MarketBoard : IInternalDisposableService, IMarketBoard
     }
 
     /// <inheritdoc/>
-    public event IMarketBoard.HistoryReceivedDelegate? HistoryReceived;
+    public event HistoryReceivedDelegate? HistoryReceived;
 
     /// <inheritdoc/>
-    public event IMarketBoard.ItemPurchasedDelegate? ItemPurchased;
+    public event ItemPurchasedDelegate? ItemPurchased;
 
     /// <inheritdoc/>
-    public event IMarketBoard.OfferingsReceivedDelegate? OfferingsReceived;
+    public event OfferingsReceivedDelegate? OfferingsReceived;
 
     /// <inheritdoc/>
-    public event IMarketBoard.PurchaseRequestedDelegate? PurchaseRequested;
+    public event PurchaseRequestedDelegate? PurchaseRequested;
 
     /// <inheritdoc/>
-    public event IMarketBoard.TaxRatesReceivedDelegate? TaxRatesReceived;
+    public event TaxRatesReceivedDelegate? TaxRatesReceived;
 
     /// <inheritdoc/>
     public void DisposeService()
@@ -89,35 +95,42 @@ internal class MarketBoard : IInternalDisposableService, IMarketBoard
 #pragma warning restore SA1015
 internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoard
 {
+    private static readonly ModuleLog Log = new(nameof(MarketBoardPluginScoped));
+
     [ServiceManager.ServiceDependency]
     private readonly MarketBoard marketBoardService = Service<MarketBoard>.Get();
+
+    private readonly string owningPluginName;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MarketBoardPluginScoped"/> class.
     /// </summary>
-    internal MarketBoardPluginScoped()
+    /// <param name="plugin">The plugin owning this service.</param>
+    internal MarketBoardPluginScoped(LocalPlugin? plugin)
     {
         this.marketBoardService.HistoryReceived += this.OnHistoryReceived;
         this.marketBoardService.ItemPurchased += this.OnItemPurchased;
         this.marketBoardService.OfferingsReceived += this.OnOfferingsReceived;
         this.marketBoardService.PurchaseRequested += this.OnPurchaseRequested;
         this.marketBoardService.TaxRatesReceived += this.OnTaxRatesReceived;
+
+        this.owningPluginName = plugin?.InternalName ?? "DalamudInternal";
     }
 
     /// <inheritdoc/>
-    public event IMarketBoard.HistoryReceivedDelegate? HistoryReceived;
+    public event HistoryReceivedDelegate? HistoryReceived;
 
     /// <inheritdoc/>
-    public event IMarketBoard.ItemPurchasedDelegate? ItemPurchased;
+    public event ItemPurchasedDelegate? ItemPurchased;
 
     /// <inheritdoc/>
-    public event IMarketBoard.OfferingsReceivedDelegate? OfferingsReceived;
+    public event OfferingsReceivedDelegate? OfferingsReceived;
 
     /// <inheritdoc/>
-    public event IMarketBoard.PurchaseRequestedDelegate? PurchaseRequested;
+    public event PurchaseRequestedDelegate? PurchaseRequested;
 
     /// <inheritdoc/>
-    public event IMarketBoard.TaxRatesReceivedDelegate? TaxRatesReceived;
+    public event TaxRatesReceivedDelegate? TaxRatesReceived;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -137,26 +150,96 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnHistoryReceived(IMarketBoardHistory history)
     {
-        this.HistoryReceived?.Invoke(history);
+        if (this.HistoryReceived == null) return;
+
+        foreach (var action in this.HistoryReceived.GetInvocationList().Cast<HistoryReceivedDelegate>())
+        {
+            try
+            {
+                action.Invoke(history);
+            }
+            catch (Exception ex)
+            {
+                this.LogInvocationError(ex, nameof(this.HistoryReceived));
+            }
+        }
     }
 
     private void OnItemPurchased(IMarketBoardPurchase purchase)
     {
-        this.ItemPurchased?.Invoke(purchase);
+        if (this.ItemPurchased == null) return;
+
+        foreach (var action in this.ItemPurchased.GetInvocationList().Cast<ItemPurchasedDelegate>())
+        {
+            try
+            {
+                action.Invoke(purchase);
+            }
+            catch (Exception ex)
+            {
+                this.LogInvocationError(ex, nameof(this.ItemPurchased));
+            }
+        }
     }
 
     private void OnOfferingsReceived(IMarketBoardCurrentOfferings currentOfferings)
     {
-        this.OfferingsReceived?.Invoke(currentOfferings);
+        if (this.OfferingsReceived == null) return;
+
+        foreach (var action in this.OfferingsReceived.GetInvocationList()
+                                   .Cast<OfferingsReceivedDelegate>())
+        {
+            try
+            {
+                action.Invoke(currentOfferings);
+            }
+            catch (Exception ex)
+            {
+                this.LogInvocationError(ex, nameof(this.OfferingsReceived));
+            }
+        }
     }
 
     private void OnPurchaseRequested(IMarketBoardPurchaseHandler purchaseHandler)
     {
-        this.PurchaseRequested?.Invoke(purchaseHandler);
+        if (this.PurchaseRequested == null) return;
+
+        foreach (var action in this.PurchaseRequested.GetInvocationList().Cast<PurchaseRequestedDelegate>())
+        {
+            try
+            {
+                action.Invoke(purchaseHandler);
+            }
+            catch (Exception ex)
+            {
+                this.LogInvocationError(ex, nameof(this.PurchaseRequested));
+            }
+        }
     }
 
     private void OnTaxRatesReceived(IMarketTaxRates taxRates)
     {
-        this.TaxRatesReceived?.Invoke(taxRates);
+        if (this.TaxRatesReceived == null) return;
+
+        foreach (var action in this.TaxRatesReceived.GetInvocationList().Cast<TaxRatesReceivedDelegate>())
+        {
+            try
+            {
+                action.Invoke(taxRates);
+            }
+            catch (Exception ex)
+            {
+                this.LogInvocationError(ex, nameof(this.TaxRatesReceived));
+            }
+        }
+    }
+
+    private void LogInvocationError(Exception ex, string delegateName)
+    {
+        Log.Error(
+            ex,
+            "An error occured while invoking event `{evName}` for {plugin}",
+            delegateName,
+            this.owningPluginName);
     }
 }
