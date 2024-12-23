@@ -281,7 +281,7 @@ internal class LocalPlugin : IAsyncDisposable
                 case PluginState.Unloaded:
                     if (this.instance is not null)
                     {
-                        throw new InvalidPluginOperationException(
+                        throw new InternalPluginStateException(
                             "Plugin should have been unloaded but instance is not cleared");
                     }
 
@@ -413,7 +413,9 @@ internal class LocalPlugin : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            this.State = PluginState.LoadError;
+            // These are "user errors", we don't want to mark the plugin as failed
+            if (ex is not InvalidPluginOperationException)
+                this.State = PluginState.LoadError;
 
             // If a precondition fails, don't record it as an error, as it isn't really. 
             if (ex is PluginPreconditionFailedException)
@@ -476,7 +478,10 @@ internal class LocalPlugin : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            this.State = PluginState.UnloadError;
+            // These are "user errors", we don't want to mark the plugin as failed
+            if (ex is not InvalidPluginOperationException)
+                this.State = PluginState.UnloadError;
+
             Log.Error(ex, "Error while unloading {PluginName}", this.InternalName);
 
             throw;
