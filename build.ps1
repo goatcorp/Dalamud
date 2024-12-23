@@ -5,10 +5,11 @@ Param(
 )
 
 Write-Output "PowerShell $($PSVersionTable.PSEdition) version $($PSVersionTable.PSVersion)"
-Write-Output "::add-matcher::../.github/fixedcsc.json"
 
 Set-StrictMode -Version 2.0; $ErrorActionPreference = "Stop"; $ConfirmPreference = "None"; trap { Write-Error $_ -ErrorAction Continue; exit 1 }
 $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
+
+Write-Output "::add-matcher::$PSScriptRoot\\.github\fixedcsc.json"
 
 ###########################################################################
 # CONFIGURATION
