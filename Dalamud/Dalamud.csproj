@@ -5,8 +5,8 @@
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>11.0.2.0</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
+        <DalamudVersion>11.0.4.0</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -67,14 +67,14 @@
         <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
         <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
-        <PackageReference Include="Lumina" Version="5.6.0" />
-        <PackageReference Include="Lumina.Excel" Version="7.1.3" />
+        <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
+        <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
         <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
         <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="MinSharp" Version="1.0.4" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
         <PackageReference Include="Serilog" Version="4.0.2" />
         <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />

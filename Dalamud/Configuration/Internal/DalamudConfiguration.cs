@@ -249,7 +249,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
     /// </summary>
     public bool IsDocking { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
     /// This setting is effected by the in-game "System Sounds" option and volume.
@@ -484,9 +484,14 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public AutoUpdateBehavior? AutoUpdateBehavior { get; set; } = null;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not users should be notified regularly about pending updates.
+    /// Gets or sets a value indicating whether users should be notified regularly about pending updates.
     /// </summary>
     public bool CheckPeriodicallyForUpdates { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether users should be notified about updates in chat.
+    /// </summary>
+    public bool SendUpdateNotificationToChat { get; set; } = false;
 
     /// <summary>
     /// Load a configuration from the provided path.
@@ -504,7 +509,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
             {
                 deserialized =
                     JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings);
-                
+
                 // If this reads as null, the file was empty, that's no good
                 if (deserialized == null)
                     throw new Exception("Read config was null.");
@@ -530,7 +535,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             Log.Error(e, "Failed to set defaults for DalamudConfiguration");
         }
-        
+
         return deserialized;
     }
 
@@ -549,7 +554,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     {
         this.Save();
     }
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -595,14 +600,14 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
                 this.ReduceMotions = winAnimEnabled == 0;
             }
         }
-        
+
         // Migrate old auto-update setting to new auto-update behavior
         this.AutoUpdateBehavior ??= this.AutoUpdatePlugins
                                         ? Plugin.Internal.AutoUpdate.AutoUpdateBehavior.UpdateAll
                                         : Plugin.Internal.AutoUpdate.AutoUpdateBehavior.OnlyNotify;
 #pragma warning restore CS0618
     }
-    
+
     private void Save()
     {
         ThreadSafety.AssertMainThread();
