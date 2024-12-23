@@ -126,7 +126,7 @@ public class StyleEditorWindow : Window
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Loc.Localize("StyleEditorDeleteStyle", "Delete current style"));
+            ImGuiHelpers.SafeSetTooltip(Loc.Localize("StyleEditorDeleteStyle", "Delete current style"));
 
         ImGui.SameLine();
 
@@ -140,7 +140,7 @@ public class StyleEditorWindow : Window
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Loc.Localize("StyleEditorRenameStyle", "Rename style"));
+            ImGuiHelpers.SafeSetTooltip(Loc.Localize("StyleEditorRenameStyle", "Rename style"));
 
         ImGui.SameLine();
 
@@ -156,7 +156,7 @@ public class StyleEditorWindow : Window
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
+            ImGuiHelpers.SafeSetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
 
         if (isBuiltinStyle)
             ImGui.EndDisabled();
@@ -195,7 +195,7 @@ public class StyleEditorWindow : Window
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Loc.Localize("StyleEditorImport", "Import style from clipboard"));
+            ImGuiHelpers.SafeSetTooltip(Loc.Localize("StyleEditorImport", "Import style from clipboard"));
 
         ImGui.Separator();
 

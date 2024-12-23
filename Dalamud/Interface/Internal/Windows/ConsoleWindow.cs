@@ -525,7 +525,7 @@ internal class ConsoleWindow : Window, IDisposable
             this.QueueClear();
         }
 
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Clear Log");
+        if (ImGui.IsItemHovered()) ImGuiHelpers.SafeSetTooltip("Clear Log");
 
         ImGui.SameLine();
 
@@ -561,7 +561,7 @@ internal class ConsoleWindow : Window, IDisposable
                 this.killGameArmed = true;
         }
 
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Kill game");
+        if (ImGui.IsItemHovered()) ImGuiHelpers.SafeSetTooltip("Kill game");
 
         ImGui.SameLine();
 
@@ -1066,7 +1066,7 @@ internal class ConsoleWindow : Window, IDisposable
             result = true;
         }
 
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
+        if (ImGui.IsItemHovered()) ImGuiHelpers.SafeSetTooltip(tooltip);
 
         if (buttonEnabled) ImGui.PopStyleColor();
 

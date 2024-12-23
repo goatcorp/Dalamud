@@ -175,7 +175,7 @@ internal class DataWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip($"{(this.selectionCollapsed ? "Expand" : "Collapse")} selection pane");
+                ImGuiHelpers.SafeSetTooltip($"{(this.selectionCollapsed ? "Expand" : "Collapse")} selection pane");
             }
 
             ImGui.SameLine();
@@ -187,7 +187,7 @@ internal class DataWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Force Reload");
+                ImGuiHelpers.SafeSetTooltip("Force Reload");
             }
 
             ImGui.SameLine();

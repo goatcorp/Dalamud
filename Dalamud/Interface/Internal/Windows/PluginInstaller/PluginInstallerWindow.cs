@@ -2315,7 +2315,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.SameLine(ImGui.GetWindowWidth() - whenSize.X - (25 * ImGuiHelpers.GlobalScale));
             ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, whenText);
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Published on " + log.Date.LocAbsolute());
+                ImGuiHelpers.SafeSetTooltip("Published on " + log.Date.LocAbsolute());
         }
 
         cursor.Y += ImGui.GetTextLineHeightWithSpacing();
@@ -3035,7 +3035,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGuiComponents.DisabledToggleButton(toggleId, false);
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_LoadUnloadFailed);
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_LoadUnloadFailed);
         }
         else if (this.enableDisableStatus == OperationStatus.InProgress && this.enableDisableWorkingPluginId == plugin.EffectiveWorkingPluginId)
         {
@@ -3046,9 +3046,9 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGuiComponents.DisabledToggleButton(toggleId, isLoadedAndUnloadable);
 
             if (inMultipleProfiles && ImGui.IsItemHovered())
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_NeedsToBeInSingleProfile);
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_NeedsToBeInSingleProfile);
             else if (inSingleNonDefaultProfileWhichIsDisabled && ImGui.IsItemHovered())
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_SingleProfileDisabled(profilesThatWantThisPlugin.First().Name));
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_SingleProfileDisabled(profilesThatWantThisPlugin.First().Name));
         }
         else
         {
@@ -3164,7 +3164,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_PickProfiles);
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_PickProfiles);
         }
         else if (!applicableForProfiles && config.ProfilesEnabled)
         {
@@ -3175,7 +3175,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.EndDisabled();
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_ProfilesNotSupported);
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_ProfilesNotSupported);
         }
     }
 
@@ -3216,7 +3216,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             var updateVersion = update.UseTesting
                                     ? update.UpdateManifest.TestingAssemblyVersion
                                     : update.UpdateManifest.AssemblyVersion;
-            ImGui.SetTooltip(Locs.PluginButtonToolTip_UpdateSingle(updateVersion.ToString()));
+            ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_UpdateSingle(updateVersion.ToString()));
         }
     }
 
@@ -3241,7 +3241,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_OpenUi);
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_OpenUi);
             }
         }
 
@@ -3268,7 +3268,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_OpenConfiguration);
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_OpenConfiguration);
             }
         }
     }
@@ -3288,7 +3288,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip(Locs.FeedbackModal_Title);
+            ImGuiHelpers.SafeSetTooltip(Locs.FeedbackModal_Title);
         }
     }
 
@@ -3340,7 +3340,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                                 if (ImGui.IsItemHovered())
                                 {
-                                    ImGui.SetTooltip("Dismiss this issue");
+                                    ImGuiHelpers.SafeSetTooltip("Dismiss this issue");
                                 }
                             }
 
@@ -3418,7 +3418,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                 if (ImGui.IsItemHovered())
                 {
-                    ImGui.SetTooltip(isInDefaultProfile ? Locs.PluginButtonToolTip_StartOnBoot : Locs.PluginButtonToolTip_NeedsToBeInDefault);
+                    ImGuiHelpers.SafeSetTooltip(isInDefaultProfile ? Locs.PluginButtonToolTip_StartOnBoot : Locs.PluginButtonToolTip_NeedsToBeInDefault);
                 }
             }
 
@@ -3437,7 +3437,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_AutomaticReloading);
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_AutomaticReloading);
             }
         }
     }
@@ -3465,9 +3465,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip(plugin.State == PluginState.Loaded
-                                     ? Locs.PluginButtonToolTip_DeletePluginLoaded
-                                     : Locs.PluginButtonToolTip_DeletePluginRestricted);
+                ImGuiHelpers.SafeSetTooltip(plugin.State == PluginState.Loaded
+                                                ? Locs.PluginButtonToolTip_DeletePluginLoaded
+                                                : Locs.PluginButtonToolTip_DeletePluginRestricted);
             }
         }
         else
@@ -3514,7 +3514,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                     tooltipMessage = Locs.PluginButtonToolTip_DeletePluginScheduled;
                 }
 
-                ImGui.SetTooltip(tooltipMessage);
+                ImGuiHelpers.SafeSetTooltip(tooltipMessage);
             }
         }
     }
@@ -3545,7 +3545,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(Locs.PluginButtonToolTip_VisitPluginUrl);
+                ImGuiHelpers.SafeSetTooltip(Locs.PluginButtonToolTip_VisitPluginUrl);
 
             return true;
         }
@@ -3888,7 +3888,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             var fadePercent = this.tooltipFadeEasing.EasedPoint.X;
             ImGui.PushStyleColor(ImGuiCol.Text, ImGui.GetStyle().Colors[(int)ImGuiCol.Text] with { W = fadePercent });
             ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg] with { W = fadePercent });
-            ImGui.SetTooltip(tooltip);
+            ImGuiHelpers.SafeSetTooltip(tooltip);
             ImGui.PopStyleColor(2);
         }
     }

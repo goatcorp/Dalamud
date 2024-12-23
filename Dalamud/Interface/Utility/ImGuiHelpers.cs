@@ -238,6 +238,20 @@ public static class ImGuiHelpers
         Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags);
 
     /// <summary>
+    /// Display an unformatted tooltip.
+    /// </summary>
+    /// <param name="text">The text to write.</param>
+    public static void SafeSetTooltip(string text)
+    {
+        // SetTooltip(const char* fmt, ...) = is more or less a shortcut for the 'if (BeginTooltip()) { Text(...); EndTooltip(); }' idiom (~~with a subtlety that it discard any previously submitted tooltip~~)
+        // Important Note: ImRaii does not discard previous tooltips!
+        using (ImRaii.Tooltip())
+        {
+            ImGui.TextUnformatted(text);
+        }
+    }
+
+    /// <summary>
     /// Write unformatted disabled text.
     /// </summary>
     /// <param name="text">The text to write.</param>

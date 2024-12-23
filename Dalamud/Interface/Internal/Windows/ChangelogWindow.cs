@@ -532,7 +532,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("I don't care about this");
+                ImGuiHelpers.SafeSetTooltip("I don't care about this");
             }
         }
     }

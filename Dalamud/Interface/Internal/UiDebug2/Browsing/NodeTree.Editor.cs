@@ -3,6 +3,7 @@ using System.Numerics;
 
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -129,7 +130,7 @@ internal unsafe partial class ResNodeTree
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Rotation (deg)");
+            ImGuiHelpers.SafeSetTooltip("Rotation (deg)");
             hov = true;
         }
 

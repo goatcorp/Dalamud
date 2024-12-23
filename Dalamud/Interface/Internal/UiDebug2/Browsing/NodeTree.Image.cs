@@ -154,7 +154,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Click to copy as Vector2\nShift-click to copy as Vector4");
+            ImGuiHelpers.SafeSetTooltip("Click to copy as Vector2\nShift-click to copy as Vector4");
         }
 
         var suffix = asFloat ? "f" : string.Empty;

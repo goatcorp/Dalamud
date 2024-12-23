@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -78,7 +79,7 @@ internal unsafe partial class UiDebug2
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Filter by visibility");
+                ImGuiHelpers.SafeSetTooltip("Filter by visibility");
             }
 
             ImGui.SameLine();

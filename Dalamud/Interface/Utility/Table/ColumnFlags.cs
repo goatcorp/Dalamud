@@ -38,7 +38,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         }
 
         if (!all && ImGui.IsItemHovered())
-            ImGui.SetTooltip("Right-click to clear filters.");
+            ImGuiHelpers.SafeSetTooltip("Right-click to clear filters.");
 
         if (!combo)
             return false;

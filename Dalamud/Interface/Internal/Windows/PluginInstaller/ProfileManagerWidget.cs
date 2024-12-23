@@ -164,7 +164,7 @@ internal class ProfileManagerWidget
             profman.AddNewProfile();
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Locs.AddProfile);
+            ImGuiHelpers.SafeSetTooltip(Locs.AddProfile);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -185,7 +185,7 @@ internal class ProfileManagerWidget
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Locs.ImportProfileHint);
+            ImGuiHelpers.SafeSetTooltip(Locs.ImportProfileHint);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -195,7 +195,7 @@ internal class ProfileManagerWidget
             ImGui.OpenPopup(tutorialId);
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Locs.TutorialHint);
+            ImGuiHelpers.SafeSetTooltip(Locs.TutorialHint);
 
         ImGui.Separator();
         ImGuiHelpers.ScaledDummy(5);
@@ -237,7 +237,7 @@ internal class ProfileManagerWidget
                 }
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(Locs.EditProfileHint);
+                    ImGuiHelpers.SafeSetTooltip(Locs.EditProfileHint);
 
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 2) - 5);
@@ -246,7 +246,7 @@ internal class ProfileManagerWidget
                     toCloneGuid = profile.Guid;
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(Locs.CloneProfileHint);
+                    ImGuiHelpers.SafeSetTooltip(Locs.CloneProfileHint);
 
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30 * 3) - 5);
@@ -258,7 +258,7 @@ internal class ProfileManagerWidget
                 }
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(Locs.CopyToClipboardHint);
+                    ImGuiHelpers.SafeSetTooltip(Locs.CopyToClipboardHint);
 
                 didAny = true;
 
@@ -320,7 +320,7 @@ internal class ProfileManagerWidget
             this.Reset();
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Locs.BackToOverview);
+            ImGuiHelpers.SafeSetTooltip(Locs.BackToOverview);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -333,7 +333,7 @@ internal class ProfileManagerWidget
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Locs.CopyToClipboardHint);
+            ImGuiHelpers.SafeSetTooltip(Locs.CopyToClipboardHint);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -357,7 +357,7 @@ internal class ProfileManagerWidget
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Locs.DeleteProfileHint);
+            ImGuiHelpers.SafeSetTooltip(Locs.DeleteProfileHint);
 
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
@@ -380,7 +380,7 @@ internal class ProfileManagerWidget
         }
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(Locs.TooltipEnableDisable);
+            ImGuiHelpers.SafeSetTooltip(Locs.TooltipEnableDisable);
 
         ImGui.Separator();
 
@@ -486,7 +486,7 @@ internal class ProfileManagerWidget
                         }
 
                         if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip(Locs.InstallPlugin);
+                            ImGuiHelpers.SafeSetTooltip(Locs.InstallPlugin);
                     }
 
                     ImGui.SetCursorPos(before);
@@ -513,7 +513,7 @@ internal class ProfileManagerWidget
                 }
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(Locs.RemovePlugin);
+                    ImGuiHelpers.SafeSetTooltip(Locs.RemovePlugin);
             }
 
             if (wantRemovePluginGuid != null)

@@ -386,7 +386,7 @@ internal unsafe partial class ResNodeTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Visibility");
+            ImGuiHelpers.SafeSetTooltip("Toggle Visibility");
         }
 
         ImGui.SameLine();
@@ -402,7 +402,7 @@ internal unsafe partial class ResNodeTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Popout Window");
+            ImGuiHelpers.SafeSetTooltip("Toggle Popout Window");
         }
     }
 

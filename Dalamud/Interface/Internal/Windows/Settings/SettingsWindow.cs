@@ -241,9 +241,9 @@ internal class SettingsWindow : Window
 
                 if (ImGui.IsItemHovered())
                 {
-                    ImGui.SetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
-                                         ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
-                                         : Loc.Localize("DalamudSettingsSave", "Save changes"));
+                    ImGuiHelpers.SafeSetTooltip(!ImGui.IsKeyDown(ImGuiKey.ModShift)
+                                                    ? Loc.Localize("DalamudSettingsSaveAndExit", "Save changes and close")
+                                                    : Loc.Localize("DalamudSettingsSave", "Save changes"));
                 }
             }
         }

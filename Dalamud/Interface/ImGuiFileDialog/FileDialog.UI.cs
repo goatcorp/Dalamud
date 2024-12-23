@@ -215,7 +215,7 @@ public partial class FileDialog
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Reset to current directory");
+            ImGuiHelpers.SafeSetTooltip("Reset to current directory");
         }
 
         ImGui.SameLine();
@@ -250,7 +250,7 @@ public partial class FileDialog
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Create Directory");
+            ImGuiHelpers.SafeSetTooltip("Create Directory");
         }
 
         if (this.createDirectoryMode)

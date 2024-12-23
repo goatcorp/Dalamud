@@ -176,7 +176,7 @@ public class IconBrowserWidget : IDataWindowWidget
             // else, just draw the iconId.
             else if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip(iconId.ToString());
+                ImGuiHelpers.SafeSetTooltip(iconId.ToString());
             }
 
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
@@ -206,7 +206,7 @@ public class IconBrowserWidget : IDataWindowWidget
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip($"{iconId}\n{exc}".Replace("%", "%%"));
+                ImGuiHelpers.SafeSetTooltip($"{iconId}\n{exc}".Replace("%", "%%"));
 
             ImGui.GetWindowDrawList().AddRect(
                 cursor,
@@ -226,7 +226,7 @@ public class IconBrowserWidget : IDataWindowWidget
                     text);
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(iconId.ToString());
+                ImGuiHelpers.SafeSetTooltip(iconId.ToString());
 
             ImGui.GetWindowDrawList().AddRect(
                 cursor,

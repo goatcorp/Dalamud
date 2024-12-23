@@ -106,7 +106,7 @@ internal unsafe class ElementSelector : IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Element Selector");
+                ImGuiHelpers.SafeSetTooltip("Element Selector");
             }
 
             ImGui.SameLine();

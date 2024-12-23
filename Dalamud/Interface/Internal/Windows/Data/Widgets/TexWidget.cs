@@ -600,7 +600,7 @@ internal class TexWidget : IDataWindowWidget
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Sync))
                         this.textureManager.InvalidatePaths(new[] { texture.SourcePathForDebug });
                     if (ImGui.IsItemHovered())
-                        ImGui.SetTooltip($"Call {nameof(ITextureSubstitutionProvider.InvalidatePaths)}.");
+                        ImGuiHelpers.SafeSetTooltip($"Call {nameof(ITextureSubstitutionProvider.InvalidatePaths)}.");
 
                     ImGui.SameLine();
                     if (remain <= 0)
@@ -608,7 +608,7 @@ internal class TexWidget : IDataWindowWidget
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
                         texture.ReleaseSelfReference(true);
                     if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-                        ImGui.SetTooltip("Release self-reference immediately.");
+                        ImGuiHelpers.SafeSetTooltip("Release self-reference immediately.");
                     if (remain <= 0)
                         ImGui.EndDisabled();
 

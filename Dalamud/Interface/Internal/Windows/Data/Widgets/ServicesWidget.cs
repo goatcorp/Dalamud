@@ -193,7 +193,7 @@ internal class ServicesWidget : IDataWindowWidget
                         ImGui.SetCursorScreenPos(new(rc.X, rc.Y));
                         ImGui.InvisibleButton(node.DisplayedName, new(rc.Z - rc.X, rc.W - rc.Y));
                         if (ImGui.IsItemHovered() && node.BlockingReason is not null)
-                            ImGui.SetTooltip(node.BlockingReason);
+                            ImGuiHelpers.SafeSetTooltip(node.BlockingReason);
 
                         ImGui.SetCursorPos((new Vector2(rc.X, rc.Y) - pos) + ((cellSize - textSize) / 2));
                         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, Vector2.Zero);

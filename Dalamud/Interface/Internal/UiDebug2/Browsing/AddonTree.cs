@@ -134,7 +134,7 @@ public unsafe partial class AddonTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Visibility");
+            ImGuiHelpers.SafeSetTooltip("Toggle Visibility");
         }
 
         ImGui.SameLine();
@@ -145,7 +145,7 @@ public unsafe partial class AddonTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Popout Window");
+            ImGuiHelpers.SafeSetTooltip("Toggle Popout Window");
         }
 
         PaddedSeparator(1);
