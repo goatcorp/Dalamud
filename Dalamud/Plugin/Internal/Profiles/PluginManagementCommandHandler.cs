@@ -16,7 +16,7 @@ namespace Dalamud.Plugin.Internal.Profiles;
 /// Service responsible for profile-related chat commands.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class ProfileCommandHandler : IInternalDisposableService
+internal class PluginManagementCommandHandler : IInternalDisposableService
 {
 #pragma warning disable SA1600
     public const string CommandEnable = "/xlenablecollection";
@@ -36,14 +36,14 @@ internal class ProfileCommandHandler : IInternalDisposableService
     private List<(string, ProfileOp)> queue = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ProfileCommandHandler"/> class.
+    /// Initializes a new instance of the <see cref="PluginManagementCommandHandler"/> class.
     /// </summary>
     /// <param name="cmd">Command handler.</param>
     /// <param name="profileManager">Profile manager.</param>
     /// <param name="chat">Chat handler.</param>
     /// <param name="framework">Framework.</param>
     [ServiceManager.ServiceConstructor]
-    public ProfileCommandHandler(CommandManager cmd, ProfileManager profileManager, ChatGui chat, Framework framework)
+    public PluginManagementCommandHandler(CommandManager cmd, ProfileManager profileManager, ChatGui chat, Framework framework)
     {
         this.cmd = cmd;
         this.profileManager = profileManager;
