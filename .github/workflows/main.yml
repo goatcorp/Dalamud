@@ -1,6 +1,9 @@
 name: Build Dalamud
-on: [push, pull_request, workflow_dispatch]
-
+on:
+  push:
+  pull_request:
+    types: [opened]
+  workflow_dispatch:
 concurrency:
   group: build_dalamud_${{ github.ref_name }}
   cancel-in-progress: true

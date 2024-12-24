@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Nuke.Common;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
@@ -10,9 +9,7 @@ using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
 using Serilog;
-using Serilog.Configuration;
 using Serilog.Events;
-using Serilog.Sinks.Intercepter;
 
 [UnsetVisualStudioEnvironmentVariables]
 public class DalamudBuild : NukeBuild
