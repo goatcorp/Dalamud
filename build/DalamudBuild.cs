@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Nuke.Common;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
@@ -9,7 +10,9 @@ using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
 using Serilog;
+using Serilog.Configuration;
 using Serilog.Events;
+using Serilog.Sinks.Intercepter;
 
 [UnsetVisualStudioEnvironmentVariables]
 public class DalamudBuild : NukeBuild
@@ -165,19 +168,33 @@ public class DalamudBuild : NukeBuild
         });
 
     Target SetCustomLogging => _ => _
-    .Executes(() =>
+        .Executes(() =>
+        {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Conditional(c => AllowMessage(c), wt => wt.Console(outputTemplate: ConsoleTemplate))
+                .CreateLogger();
+        });
+
+    private static readonly HashSet<string> MessageBuffer = [];
+    private static bool AllowMessage(LogEvent e)
     {
-        var config = new LoggerConfiguration().WriteTo.Console(outputTemplate: ConsoleTemplate, restrictedToMinimumLevel: LogEventLevel.Debug).ConfigureFiles(this);
-        Log.Logger = config.CreateLogger();
-    });
+        if (e.Level == LogEventLevel.Warning && MessageBuffer.Contains(e.MessageTemplate.Text))
+        {
+            Log.Debug($"Suppressing duplicate warning: {e.MessageTemplate.Text}");
+            return false;
+        }
+        MessageBuffer.Add(e.MessageTemplate.Text);
+        return true;
+    }
 
     Target Compile => _ => _
-        .DependsOn(SetCustomLogging)
-        .DependsOn(CompileDalamud)
-        .DependsOn(CompileDalamudBoot)
-        .DependsOn(CompileDalamudCrashHandler)
-        .DependsOn(CompileInjector)
-        .DependsOn(CompileInjectorBoot);
+    .DependsOn(SetCustomLogging)
+    .DependsOn(CompileDalamud)
+    .DependsOn(CompileDalamudBoot)
+    .DependsOn(CompileDalamudCrashHandler)
+    .DependsOn(CompileInjector)
+    .DependsOn(CompileInjectorBoot);
 
     Target Test => _ => _
         .TriggeredBy(Compile)
