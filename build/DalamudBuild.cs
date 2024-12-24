@@ -8,6 +8,7 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
 using Serilog;
+using Serilog.Events;
 
 [UnsetVisualStudioEnvironmentVariables]
 public class DalamudBuild : NukeBuild
@@ -60,6 +61,8 @@ public class DalamudBuild : NukeBuild
     private static AbsolutePath LibraryDirectory => RootDirectory / "lib";
 
     private static Dictionary<string, string> EnvironmentVariables => new(EnvironmentInfo.Variables);
+
+    private static string ConsoleTemplate => "{Message:l}{NewLine}{Exception}";
 
     Target Restore => _ => _
         .Executes(() =>
@@ -159,7 +162,15 @@ public class DalamudBuild : NukeBuild
                 .SetConfiguration(Configuration));
         });
 
+    Target SetCustomLogging => _ => _
+    .Executes(() =>
+    {
+        var config = new LoggerConfiguration().WriteTo.Console(outputTemplate: ConsoleTemplate, restrictedToMinimumLevel: LogEventLevel.Debug).ConfigureFiles(this);
+        Log.Logger = config.CreateLogger();
+    });
+
     Target Compile => _ => _
+        .DependsOn(SetCustomLogging)
         .DependsOn(CompileDalamud)
         .DependsOn(CompileDalamudBoot)
         .DependsOn(CompileDalamudCrashHandler)
