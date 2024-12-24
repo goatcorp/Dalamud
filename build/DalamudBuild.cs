@@ -181,7 +181,7 @@ public class DalamudBuild : NukeBuild
     {
         if (e.Level == LogEventLevel.Warning && MessageBuffer.Contains(e.MessageTemplate.Text))
         {
-            Log.Debug($"Suppressing duplicate warning: {e.MessageTemplate.Text}");
+            Log.Debug($"Suppressing duplicate message: {e.MessageTemplate.Text.Replace("warning","dupwarn")}");
             return false;
         }
         MessageBuffer.Add(e.MessageTemplate.Text);
