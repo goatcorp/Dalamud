@@ -12,6 +12,5 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Nuke.Common" Version="6.2.1" />
-        <PackageReference Include="Serilog.Sinks.Intercepter" Version="1.0.2" />
     </ItemGroup>
 </Project>
