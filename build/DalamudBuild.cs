@@ -9,6 +9,7 @@ using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
 using Serilog;
+using Serilog.Events;
 
 [UnsetVisualStudioEnvironmentVariables]
 public class DalamudBuild : NukeBuild
@@ -164,22 +165,19 @@ public class DalamudBuild : NukeBuild
         });
 
     Target SetCustomLogging => _ => _
-        .DependentFor(Compile)
-        .Executes(() =>
-        {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.Console(outputTemplate: ConsoleTemplate)
-                .CreateLogger();
-        });
+    .Executes(() =>
+    {
+        var config = new LoggerConfiguration().WriteTo.Console(outputTemplate: ConsoleTemplate, restrictedToMinimumLevel: LogEventLevel.Debug).ConfigureFiles(this);
+        Log.Logger = config.CreateLogger();
+    });
 
     Target Compile => _ => _
-    .DependsOn(CompileDalamud)
-    .DependsOn(CompileDalamudBoot)
-    .DependsOn(CompileDalamudCrashHandler)
-    .DependsOn(CompileInjector)
-    .DependsOn(CompileInjectorBoot)
-    ;
+        .DependsOn(SetCustomLogging)
+        .DependsOn(CompileDalamud)
+        .DependsOn(CompileDalamudBoot)
+        .DependsOn(CompileDalamudCrashHandler)
+        .DependsOn(CompileInjector)
+        .DependsOn(CompileInjectorBoot);
 
     Target Test => _ => _
         .TriggeredBy(Compile)
