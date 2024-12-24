@@ -88,6 +88,7 @@
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
+              "SetCustomLogging",
               "Test"
             ]
           }
@@ -114,6 +115,7 @@
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
+              "SetCustomLogging",
               "Test"
             ]
           }
