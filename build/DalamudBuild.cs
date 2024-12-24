@@ -194,16 +194,16 @@ public class DalamudBuild : NukeBuild
     .DependsOn(CompileDalamudBoot)
     .DependsOn(CompileDalamudCrashHandler)
     .DependsOn(CompileInjector)
-    .DependsOn(CompileInjectorBoot);
+    .DependsOn(CompileInjectorBoot)
+    .DependsOn(Test);
 
     Target Test => _ => _
-        .TriggeredBy(Compile)
         .Executes(() =>
         {
             DotNetTasks.DotNetTest(s => s
                 .SetProjectFile(TestProjectFile)
                 .SetConfiguration(Configuration)
-                .AddProperty("WarningLevel", "0")
+                .SetNoBuild(true)
                 .EnableNoRestore());
         });
 
