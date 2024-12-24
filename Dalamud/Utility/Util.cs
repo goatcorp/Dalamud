@@ -139,6 +139,8 @@ public static class Util
     public static string GetScmVersion()
     {
         if (scmVersionInternal != null) return scmVersionInternal;
+
+        var foo = "potato"; // bad.
         
         var asm = typeof(Util).Assembly;
         var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
