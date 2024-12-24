@@ -186,13 +186,13 @@ public class DalamudBuild : NukeBuild
     }
 
     Target Compile => _ => _
-    .DependsOn(SetCustomLogging)
+    .DependsOn(Test)
     .DependsOn(CompileDalamud)
     .DependsOn(CompileDalamudBoot)
     .DependsOn(CompileDalamudCrashHandler)
     .DependsOn(CompileInjector)
     .DependsOn(CompileInjectorBoot)
-    .DependsOn(Test);
+    .DependsOn(SetCustomLogging);
 
     Target Test => _ => _
         .Executes(() =>
