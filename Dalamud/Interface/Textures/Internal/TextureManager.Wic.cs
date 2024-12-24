@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal.SharedImmediateTextures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
@@ -173,7 +172,7 @@ internal sealed partial class TextureManager
         ReadOnlyMemory<byte> bytes,
         CancellationToken cancellationToken = default)
     {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
+        ObjectDisposedException.ThrowIf(this.disposeCts.IsCancellationRequested, this);
         cancellationToken.ThrowIfCancellationRequested();
 
         try
@@ -204,7 +203,7 @@ internal sealed partial class TextureManager
         string path,
         CancellationToken cancellationToken = default)
     {
-        ObjectDisposedException.ThrowIf(this.disposing, this);
+        ObjectDisposedException.ThrowIf(this.disposeCts.IsCancellationRequested, this);
         cancellationToken.ThrowIfCancellationRequested();
 
         try
@@ -359,11 +358,18 @@ internal sealed partial class TextureManager
         /// <param name="handle">An instance of <see cref="MemoryHandle"/>.</param>
         /// <param name="length">The number of bytes in the memory.</param>
         /// <returns>The new instance of <see cref="IStream"/>.</returns>
-        public unsafe ComPtr<IStream> CreateIStreamViewOfMemory(MemoryHandle handle, int length)
+        public unsafe ComPtr<IStream> CreateIStreamViewOfMemory(MemoryHandle handle, int length) =>
+            this.CreateIStreamViewOfMemory((byte*)handle.Pointer, length);
+
+        /// <summary>Creates a new instance of <see cref="IStream"/> from a fixed memory allocation.</summary>
+        /// <param name="address">Address of the data.</param>
+        /// <param name="length">The number of bytes in the memory.</param>
+        /// <returns>The new instance of <see cref="IStream"/>.</returns>
+        public unsafe ComPtr<IStream> CreateIStreamViewOfMemory(void* address, int length)
         {
             using var wicStream = default(ComPtr<IWICStream>);
             this.wicFactory.Get()->CreateStream(wicStream.GetAddressOf()).ThrowOnError();
-            wicStream.Get()->InitializeFromMemory((byte*)handle.Pointer, checked((uint)length)).ThrowOnError();
+            wicStream.Get()->InitializeFromMemory((byte*)address, checked((uint)length)).ThrowOnError();
 
             var res = default(ComPtr<IStream>);
             wicStream.As(ref res).ThrowOnError();
