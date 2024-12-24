@@ -67,6 +67,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\lib\cimgui\imgui;..\..\lib\cimguizmo\ImGuizmo;..\..\lib\cimgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
 

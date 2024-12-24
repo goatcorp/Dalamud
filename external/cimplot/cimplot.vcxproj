@@ -65,6 +65,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\lib\cimgui\imgui;..\..\lib\cimplot\implot;..\..\lib\cimgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
 
