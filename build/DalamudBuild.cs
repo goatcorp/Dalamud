@@ -5,6 +5,7 @@ using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
+using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
 using Serilog;
@@ -61,6 +62,8 @@ public class DalamudBuild : NukeBuild
 
     private static Dictionary<string, string> EnvironmentVariables => new(EnvironmentInfo.Variables);
 
+    private static string ConsoleTemplate => "{Message:l}{NewLine}{Exception}";
+
     Target Restore => _ => _
         .Executes(() =>
         {
@@ -110,7 +113,8 @@ public class DalamudBuild : NukeBuild
                 s = s
                        .SetProjectFile(DalamudProjectFile)
                        .SetConfiguration(Configuration)
-                       .EnableNoRestore();
+                       .EnableNoRestore()
+                       .SetProcessArgumentConfigurator(a => a.Add("/clp:NoSummary"));
 
                 // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
                 // TODO: This fails every build after this because of redefinitions...
@@ -159,20 +163,32 @@ public class DalamudBuild : NukeBuild
                 .SetConfiguration(Configuration));
         });
 
+    Target SetCustomLogging => _ => _
+        .DependentFor(Compile)
+        .Executes(() =>
+        {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console(outputTemplate: ConsoleTemplate)
+                .CreateLogger();
+        });
+
     Target Compile => _ => _
-        .DependsOn(CompileDalamud)
-        .DependsOn(CompileDalamudBoot)
-        .DependsOn(CompileDalamudCrashHandler)
-        .DependsOn(CompileInjector)
-        .DependsOn(CompileInjectorBoot);
+    .DependsOn(CompileDalamud)
+    .DependsOn(CompileDalamudBoot)
+    .DependsOn(CompileDalamudCrashHandler)
+    .DependsOn(CompileInjector)
+    .DependsOn(CompileInjectorBoot)
+    ;
 
     Target Test => _ => _
-        .DependsOn(Compile)
+        .TriggeredBy(Compile)
         .Executes(() =>
         {
             DotNetTasks.DotNetTest(s => s
                 .SetProjectFile(TestProjectFile)
                 .SetConfiguration(Configuration)
+                .AddProperty("WarningLevel", "0")
                 .EnableNoRestore());
         });
 
