@@ -5,6 +5,7 @@ using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
+using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.MSBuild;
 using Serilog;
@@ -113,6 +114,7 @@ public class DalamudBuild : NukeBuild
                 s = s
                        .SetProjectFile(DalamudProjectFile)
                        .SetConfiguration(Configuration)
+                       .SetProcessArgumentConfigurator(a => a.Add("/clp:ErrorsOnly"))
                        .EnableNoRestore();
 
                 // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
@@ -167,7 +169,7 @@ public class DalamudBuild : NukeBuild
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .WriteTo.Conditional(c => AllowMessage(c), wt => wt.Console(outputTemplate: ConsoleTemplate))
+                .WriteTo.Console(outputTemplate: ConsoleTemplate) //Conditional(c => AllowMessage(c), wt => wt.
                 .CreateLogger();
         });
 
@@ -184,7 +186,6 @@ public class DalamudBuild : NukeBuild
     }
 
     Target Compile => _ => _
-    .DependsOn(Test)
     .DependsOn(CompileDalamud)
     .DependsOn(CompileDalamudBoot)
     .DependsOn(CompileDalamudCrashHandler)
@@ -193,6 +194,7 @@ public class DalamudBuild : NukeBuild
     .DependsOn(SetCustomLogging);
 
     Target Test => _ => _
+        .DependsOn(Compile)
         .Executes(() =>
         {
             DotNetTasks.DotNetTest(s => s
