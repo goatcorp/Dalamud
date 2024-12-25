@@ -65,6 +65,26 @@ public class SettingsTabExperimental : SettingsTab
         new GapSettingsEntry(5, true),
 
         new DevPluginsSettingsEntry(),
+        
+        new SettingsEntry<bool>(
+            Loc.Localize(
+                "DalamudSettingEnableImGuiAsserts",
+                "Enable ImGui asserts"),
+            Loc.Localize(
+                "DalamudSettingEnableImGuiAssertsHint",
+                "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins."),
+            c => Service<InterfaceManager>.Get().ShowAsserts,
+            (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v),
+        
+        new SettingsEntry<bool>(
+            Loc.Localize(
+                "DalamudSettingEnableImGuiAssertsAtStartup",
+                "Always enable ImGui asserts at startup"),
+            Loc.Localize(
+                "DalamudSettingEnableImGuiAssertsAtStartupHint",
+                "This will enable ImGui asserts every time the game starts."),
+            c => c.ImGuiAssertsEnabledAtStartup ?? false,
+            (v, c) => c.ImGuiAssertsEnabledAtStartup = v),
 
         new GapSettingsEntry(5, true),
 
