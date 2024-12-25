@@ -1572,6 +1572,9 @@ internal class PluginManager : IInternalDisposableService
         {
             Log.Information($"Loading dev plugin {name}");
             plugin = new LocalDevPlugin(dllFile, manifest);
+            
+            // This is a dev plugin - turn ImGui asserts on by default if we haven't chosen yet
+            this.configuration.ImGuiAssertsEnabledAtStartup ??= true;
         }
         else
         {
