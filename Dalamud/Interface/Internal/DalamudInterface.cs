@@ -18,7 +18,6 @@ using Dalamud.Game.Internal;
 using Dalamud.Hooking;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.Data;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -163,7 +162,7 @@ internal class DalamudInterface : IInternalDisposableService
         this.WindowSystem.AddWindow(this.branchSwitcherWindow);
         this.WindowSystem.AddWindow(this.hitchSettingsWindow);
 
-        ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
+        this.interfaceManager.ShowAsserts = configuration.ImGuiAssertsEnabledAtStartup ?? false;
         this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
 
         this.interfaceManager.Draw += this.OnDraw;
@@ -832,6 +831,12 @@ internal class DalamudInterface : IInternalDisposableService
                                 hook.Enable();
                             }
                         }
+
+                        if (ImGui.MenuItem("Cause ImGui assert"))
+                        {
+                            ImGui.PopStyleVar();
+                            ImGui.PopStyleVar();
+                        }
                         
                         ImGui.EndMenu();
                     }
@@ -865,15 +870,16 @@ internal class DalamudInterface : IInternalDisposableService
 
                     ImGui.Separator();
 
-                    var val = ImGuiManagedAsserts.AssertsEnabled;
+                    var val = this.interfaceManager.ShowAsserts;
                     if (ImGui.MenuItem("Enable Asserts", string.Empty, ref val))
                     {
-                        ImGuiManagedAsserts.AssertsEnabled = val;
+                        this.interfaceManager.ShowAsserts = val;
                     }
 
-                    if (ImGui.MenuItem("Enable asserts at startup", null, this.configuration.AssertsEnabledAtStartup))
+                    var assertsEnabled = this.configuration.ImGuiAssertsEnabledAtStartup ?? false;
+                    if (ImGui.MenuItem("Enable asserts at startup", null, assertsEnabled))
                     {
-                        this.configuration.AssertsEnabledAtStartup = !this.configuration.AssertsEnabledAtStartup;
+                        this.configuration.ImGuiAssertsEnabledAtStartup = !assertsEnabled;
                         this.configuration.QueueSave();
                     }
 

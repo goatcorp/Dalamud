@@ -20,7 +20,6 @@ using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.DesignSystem;
-using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -93,6 +92,8 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
+    
+    private readonly AssertHandler assertHandler = new();
 
     private RawDX11Scene? scene;
 
@@ -267,11 +268,20 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </remarks>
     public long CumulativePresentCalls { get; private set; }
 
+    /// <inheritdoc cref="AssertHandler.ShowAsserts"/>
+    public bool ShowAsserts
+    {
+        get => this.assertHandler.ShowAsserts;
+        set => this.assertHandler.ShowAsserts = value;
+    }
+
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
+        this.assertHandler.Dispose();
+
         // Unload hooks from the framework thread if possible.
         // We're currently off the framework thread, as this function can only be called from
         // ServiceManager.UnloadAllServices, which is called from EntryPoint.RunThread.
@@ -565,6 +575,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         {
             try
             {
+                this.assertHandler.Setup();
                 newScene = new RawDX11Scene((nint)swapChain);
             }
             catch (DllNotFoundException ex)
@@ -1128,15 +1139,11 @@ internal partial class InterfaceManager : IInternalDisposableService
         WindowSystem.HasAnyWindowSystemFocus = false;
         WindowSystem.FocusedWindowSystemNamespace = string.Empty;
 
-        var snap = ImGuiManagedAsserts.GetSnapshot();
-
         if (this.IsDispatchingEvents)
         {
             this.Draw?.Invoke();
             Service<NotificationManager>.GetNullable()?.Draw();
         }
-
-        ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
     }
 
     /// <summary>

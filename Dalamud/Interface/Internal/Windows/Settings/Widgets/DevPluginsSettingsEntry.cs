@@ -222,6 +222,10 @@ public class DevPluginsSettingsEntry : SettingsEntry
             this.devPluginLocationsChanged = true;
             this.devPluginTempLocation = string.Empty;
         }
+
+        var config = Service<DalamudConfiguration>.Get();
+        if (!config.ImGuiAssertsEnabledAtStartup.HasValue)
+            config.ImGuiAssertsEnabledAtStartup = true;
     }
 
     public override void PostDraw()
