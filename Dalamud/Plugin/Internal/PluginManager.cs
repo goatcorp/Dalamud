@@ -134,9 +134,6 @@ internal class PluginManager : IInternalDisposableService
         this.configuration.PluginTestingOptIns ??= new();
         this.MainRepo = PluginRepository.CreateMainRepo(this.happyHttpClient);
 
-        // NET8 CHORE
-        // this.ApplyPatches();
-
         registerStartupBlocker(
             Task.Run(this.LoadAndStartLoadSyncPlugins),
             "Waiting for plugins that asked to be loaded before the game.");
@@ -433,10 +430,6 @@ internal class PluginManager : IInternalDisposableService
             await Task.WhenAll(disposablePlugins.Select(plugin => plugin.DisposeAsync().AsTask()))
                       .SuppressException();
         }
-
-        // NET8 CHORE
-        // this.assemblyLocationMonoHook?.Dispose();
-        // this.assemblyCodeBaseMonoHook?.Dispose();
     }
 
     /// <summary>
@@ -875,9 +868,6 @@ internal class PluginManager : IInternalDisposableService
         {
             this.installedPluginsList.Remove(plugin);
         }
-
-        // NET8 CHORE
-        // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
 
         this.NotifyinstalledPluginsListChanged();
         this.NotifyAvailablePluginsChanged();
@@ -1677,8 +1667,6 @@ internal class PluginManager : IInternalDisposableService
             }
             catch (InvalidPluginException)
             {
-                // NET8 CHORE
-                // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                 throw;
             }
             catch (BannedPluginException)
@@ -1724,8 +1712,6 @@ internal class PluginManager : IInternalDisposableService
                 }
                 else
                 {
-                    // NET8 CHORE
-                    // PluginLocations.Remove(plugin.AssemblyName?.FullName ?? string.Empty, out _);
                     throw;
                 }
             }
@@ -1934,114 +1920,3 @@ internal class PluginManager : IInternalDisposableService
         public static string DalamudPluginUpdateFailed(string name, Version version, string why) => Loc.Localize("DalamudPluginUpdateFailed", "    》 {0} update to v{1} failed ({2}).").Format(name, version, why);
     }
 }
-
-// NET8 CHORE
-/*
-/// <summary>
-/// Class responsible for loading and unloading plugins.
-/// This contains the assembly patching functionality to resolve assembly locations.
-/// </summary>
-internal partial class PluginManager
-{
-    /// <summary>
-    /// A mapping of plugin assembly name to patch data. Used to fill in missing data due to loading
-    /// plugins via byte[].
-    /// </summary>
-    internal static readonly ConcurrentDictionary<string, PluginPatchData> PluginLocations = new();
-
-    private MonoMod.RuntimeDetour.Hook? assemblyLocationMonoHook;
-    private MonoMod.RuntimeDetour.Hook? assemblyCodeBaseMonoHook;
-
-    /// <summary>
-    /// Patch method for internal class RuntimeAssembly.Location, also known as Assembly.Location.
-    /// This patch facilitates resolving the assembly location for plugins that are loaded via byte[].
-    /// It should never be called manually.
-    /// </summary>
-    /// <param name="orig">A delegate that acts as the original method.</param>
-    /// <param name="self">The equivalent of `this`.</param>
-    /// <returns>The plugin location, or the result from the original method.</returns>
-    private static string AssemblyLocationPatch(Func<Assembly, string?> orig, Assembly self)
-    {
-        var result = orig(self);
-
-        if (string.IsNullOrEmpty(result))
-        {
-            foreach (var assemblyName in GetStackFrameAssemblyNames())
-            {
-                if (PluginLocations.TryGetValue(assemblyName, out var data))
-                {
-                    result = data.Location;
-                    break;
-                }
-            }
-        }
-
-        result ??= string.Empty;
-
-        Log.Verbose($"Assembly.Location // {self.FullName} // {result}");
-        return result;
-    }
-
-    /// <summary>
-    /// Patch method for internal class RuntimeAssembly.CodeBase, also known as Assembly.CodeBase.
-    /// This patch facilitates resolving the assembly location for plugins that are loaded via byte[].
-    /// It should never be called manually.
-    /// </summary>
-    /// <param name="orig">A delegate that acts as the original method.</param>
-    /// <param name="self">The equivalent of `this`.</param>
-    /// <returns>The plugin code base, or the result from the original method.</returns>
-    private static string AssemblyCodeBasePatch(Func<Assembly, string?> orig, Assembly self)
-    {
-        var result = orig(self);
-
-        if (string.IsNullOrEmpty(result))
-        {
-            foreach (var assemblyName in GetStackFrameAssemblyNames())
-            {
-                if (PluginLocations.TryGetValue(assemblyName, out var data))
-                {
-                    result = data.CodeBase;
-                    break;
-                }
-            }
-        }
-
-        result ??= string.Empty;
-
-        Log.Verbose($"Assembly.CodeBase // {self.FullName} // {result}");
-        return result;
-    }
-
-    private static IEnumerable<string> GetStackFrameAssemblyNames()
-    {
-        var stackTrace = new StackTrace();
-        var stackFrames = stackTrace.GetFrames();
-
-        foreach (var stackFrame in stackFrames)
-        {
-            var methodBase = stackFrame.GetMethod();
-            if (methodBase == null)
-                continue;
-
-            yield return methodBase.Module.Assembly.FullName!;
-        }
-    }
-
-    private void ApplyPatches()
-    {
-        var targetType = typeof(PluginManager).Assembly.GetType();
-
-        var locationTarget = targetType.GetProperty(nameof(Assembly.Location))!.GetGetMethod();
-        var locationPatch = typeof(PluginManager).GetMethod(nameof(AssemblyLocationPatch), BindingFlags.NonPublic | BindingFlags.Static);
-        this.assemblyLocationMonoHook = new MonoMod.RuntimeDetour.Hook(locationTarget, locationPatch);
-
-#pragma warning disable CS0618
-#pragma warning disable SYSLIB0012
-        var codebaseTarget = targetType.GetProperty(nameof(Assembly.CodeBase))?.GetGetMethod();
-#pragma warning restore SYSLIB0012
-#pragma warning restore CS0618
-        var codebasePatch = typeof(PluginManager).GetMethod(nameof(AssemblyCodeBasePatch), BindingFlags.NonPublic | BindingFlags.Static);
-        this.assemblyCodeBaseMonoHook = new MonoMod.RuntimeDetour.Hook(codebaseTarget, codebasePatch);
-    }
-}
-*/

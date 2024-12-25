@@ -382,10 +382,6 @@ internal class LocalPlugin : IAsyncDisposable
                 }
             }
 
-            // Update the location for the Location and CodeBase patches
-            // NET8 CHORE
-            // PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new PluginPatchData(this.DllFile);
-
             this.dalamudInterface = new(this, reason);
 
             this.serviceScope = ioc.GetScope();
