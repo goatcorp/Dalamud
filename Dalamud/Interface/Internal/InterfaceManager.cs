@@ -19,6 +19,7 @@ using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Internal.Asserts;
 using Dalamud.Interface.Internal.DesignSystem;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.ManagedFontAtlas;

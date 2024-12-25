@@ -8,7 +8,7 @@ using Dalamud.Utility;
 
 using Serilog;
 
-namespace Dalamud.Interface.Internal;
+namespace Dalamud.Interface.Internal.Asserts;
 
 /// <summary>
 /// Class responsible for registering and handling ImGui asserts.
@@ -36,7 +36,7 @@ internal class AssertHandler : IDisposable
     /// <summary>
     /// Gets or sets a value indicating whether ImGui asserts should be shown to the user.
     /// </summary>
-    public bool ShowAsserts { get; set; } = false;
+    public bool ShowAsserts { get; set; }
     
     /// <summary>
     /// Register the cimgui assert handler with the native library.
@@ -93,7 +93,7 @@ internal class AssertHandler : IDisposable
         var gitHubUrl = GetRepoUrl();
         var showOnGitHubButton = new TaskDialogButton
         {
-            Text = "Show on GitHub",
+            Text = "Open GitHub",
             AllowCloseDialog = false,
             Enabled = !gitHubUrl.IsNullOrEmpty(),
         };
@@ -108,9 +108,14 @@ internal class AssertHandler : IDisposable
             Text = "Break",
             AllowCloseDialog = true,
         };
+        
+        var disableButton = new TaskDialogButton
+        {
+            Text = "Disable for this session",
+            AllowCloseDialog = true,
+        };
 
         var ignoreButton = TaskDialogButton.Ignore;
-        var abortButton = TaskDialogButton.Abort;
 
         TaskDialogButton? result = null;
         void DialogThreadStart()
@@ -119,7 +124,7 @@ internal class AssertHandler : IDisposable
             // this session since it already loaded visual styles...
             Application.EnableVisualStyles();
 
-            var page = new TaskDialogPage()
+            var page = new TaskDialogPage
             {
                 Heading = "ImGui assertion failed",
                 Caption = "Dalamud",
@@ -135,8 +140,8 @@ internal class AssertHandler : IDisposable
                 [
                     showOnGitHubButton,
                     breakButton,
+                    disableButton,
                     ignoreButton,
-                    abortButton,
                 ],
                 DefaultButton = showOnGitHubButton,
             };
@@ -157,9 +162,9 @@ internal class AssertHandler : IDisposable
         {
             Debugger.Break();
         }
-        else if (result == abortButton)
+        else if (result == disableButton)
         {
-            Environment.Exit(-1);
+            this.ShowAsserts = false;
         }
         else if (result == ignoreButton)
         {
@@ -171,7 +176,7 @@ internal class AssertHandler : IDisposable
     {
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
 #pragma warning disable SA1300
-        public static extern void igCustom_SetAssertCallback(AssertCallbackDelegate callback);
+        public static extern void igCustom_SetAssertCallback(AssertCallbackDelegate? callback);
 #pragma warning restore SA1300
     }
 }
