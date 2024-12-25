@@ -16,7 +16,6 @@ using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 
@@ -185,7 +184,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 return true;
             if (!ImGui.GetIO().ConfigInputTextCursorBlink)
                 return true;
-            var textState = TextState;
+            var textState = CustomNativeFunctions.igCustom_GetInputTextState();
             if (textState->Id == 0 || (textState->Flags & ImGuiInputTextFlags.ReadOnly) != 0)
                 return true;
             if (textState->CursorAnim <= 0)
@@ -193,9 +192,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
             return textState->CursorAnim % 1.2f <= 0.8f;
         }
     }
-
-    private static ImGuiInputTextState* TextState =>
-        (ImGuiInputTextState*)(ImGui.GetCurrentContext() + ImGuiContextOffsets.TextStateOffset);
 
     /// <summary>Gets a value indicating whether to display partial conversion status.</summary>
     private bool ShowPartialConversion => this.partialConversionFrom != 0 ||
@@ -341,7 +337,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         try
         {
-            var invalidTarget = TextState->Id == 0 || (TextState->Flags & ImGuiInputTextFlags.ReadOnly) != 0;
+            var textState = CustomNativeFunctions.igCustom_GetInputTextState();
+            var invalidTarget = textState->Id == 0 || (textState->Flags & ImGuiInputTextFlags.ReadOnly) != 0;
 
 #if IMEDEBUG
             switch (args.Message)
@@ -570,19 +567,20 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         this.ReflectCharacterEncounters(newString);
 
+        var textState = CustomNativeFunctions.igCustom_GetInputTextState();
         if (this.temporaryUndoSelection is not null)
         {
-            TextState->Undo();
-            TextState->SelectionTuple = this.temporaryUndoSelection.Value;
+            textState->Undo();
+            textState->SelectionTuple = this.temporaryUndoSelection.Value;
             this.temporaryUndoSelection = null;
         }
 
-        TextState->SanitizeSelectionRange();
-        if (TextState->ReplaceSelectionAndPushUndo(newString))
-            this.temporaryUndoSelection = TextState->SelectionTuple;
+        textState->SanitizeSelectionRange();
+        if (textState->ReplaceSelectionAndPushUndo(newString))
+            this.temporaryUndoSelection = textState->SelectionTuple;
 
         // Put the cursor at the beginning, so that the candidate window appears aligned with the text.
-        TextState->SetSelectionRange(TextState->SelectionTuple.Start, newString.Length, 0);
+        textState->SetSelectionRange(textState->SelectionTuple.Start, newString.Length, 0);
 
         if (finalCommit)
         {
@@ -627,7 +625,10 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         this.partialConversionFrom = this.partialConversionTo = 0;
         this.compositionCursorOffset = 0;
         this.temporaryUndoSelection = null;
-        TextState->Stb.SelectStart = TextState->Stb.Cursor = TextState->Stb.SelectEnd;
+
+        var textState = CustomNativeFunctions.igCustom_GetInputTextState();
+        textState->Stb.SelectStart = textState->Stb.Cursor = textState->Stb.SelectEnd;
+
         this.candidateStrings.Clear();
         this.immCandNative = default;
         if (invokeCancel)
@@ -1111,6 +1112,14 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
             return true;
         }
+    }
+
+    private static class CustomNativeFunctions
+    {
+        [DllImport("cimgui")]
+#pragma warning disable SA1300
+        public static extern ImGuiInputTextState* igCustom_GetInputTextState();
+#pragma warning restore SA1300
     }
 
 #if IMEDEBUG

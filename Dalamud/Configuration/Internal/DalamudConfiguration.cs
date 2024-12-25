@@ -243,7 +243,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets a value indicating whether or not ImGui asserts should be enabled at startup.
     /// </summary>
-    public bool AssertsEnabledAtStartup { get; set; }
+    public bool? ImGuiAssertsEnabledAtStartup { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
@@ -605,6 +605,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         this.AutoUpdateBehavior ??= this.AutoUpdatePlugins
                                         ? Plugin.Internal.AutoUpdate.AutoUpdateBehavior.UpdateAll
                                         : Plugin.Internal.AutoUpdate.AutoUpdateBehavior.OnlyNotify;
+
+        // Turn ImGui asserts on by default if we have any active dev plugins
+        if (!this.ImGuiAssertsEnabledAtStartup.HasValue && this.DevPluginLoadLocations.Any(x => x.IsEnabled))
+        {
+            this.ImGuiAssertsEnabledAtStartup = true;
+        }
 #pragma warning restore CS0618
     }
 
