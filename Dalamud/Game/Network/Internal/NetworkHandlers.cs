@@ -16,8 +16,11 @@ using Dalamud.Hooking;
 using Dalamud.Networking.Http;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Network;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Lumina.Excel.Sheets;
 using Serilog;
@@ -264,6 +267,33 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.cfPopHook.Dispose();
     }
 
+    private static (ulong UploaderId, uint WorldId) GetUploaderInfo()
+    {
+        var agentLobby = AgentLobby.Instance();
+
+        var uploaderId = agentLobby->LobbyData.ContentId;
+        if (uploaderId == 0)
+        {
+            var playerState = PlayerState.Instance();
+            if (playerState->IsLoaded == 1)
+            {
+                uploaderId = playerState->ContentId;
+            }
+        }
+
+        var worldId = agentLobby->LobbyData.CurrentWorldId;
+        if (worldId == 0)
+        {
+            var localPlayer = Control.GetLocalPlayer();
+            if (localPlayer != null)
+            {
+                worldId = localPlayer->CurrentWorld;
+            }
+        }
+
+        return (uploaderId, worldId);
+    }
+
     private unsafe nint CfPopDetour(PublicContentDirector.EnterContentInfoPacket* packetData)
     {
         var result = this.cfPopHook.OriginalDisposeSafe(packetData);
@@ -424,14 +454,14 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                              startObservable
                                  .And(this.OnMarketBoardSalesBatch(startObservable))
                                  .And(this.OnMarketBoardListingsBatch(startObservable))
-                                 .Then((request, sales, listings) => (request, sales, listings)))
+                                 .Then((request, sales, listings) => (request, sales, listings, GetUploaderInfo())))
                          .Where(this.ShouldUpload)
                          .SubscribeOn(ThreadPoolScheduler.Instance)
                          .Subscribe(
                              data =>
                              {
-                                 var (request, sales, listings) = data;
-                                 this.UploadMarketBoardData(request, sales, listings);
+                                 var (request, sales, listings, uploaderInfo) = data;
+                                 this.UploadMarketBoardData(request, sales, listings, uploaderInfo.UploaderId, uploaderInfo.WorldId);
                              },
                              ex => Log.Error(ex, "Failed to handle Market Board item request event"));
     }
@@ -439,7 +469,9 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private void UploadMarketBoardData(
         MarketBoardItemRequest request,
         (uint CatalogId, ICollection<MarketBoardHistory.MarketBoardHistoryListing> Sales) sales,
-        ICollection<MarketBoardCurrentOfferings.MarketBoardItemListing> listings)
+        ICollection<MarketBoardCurrentOfferings.MarketBoardItemListing> listings,
+        ulong uploaderId,
+        uint worldId)
     {
         var catalogId = sales.CatalogId;
         if (listings.Count != request.AmountToArrive)
@@ -460,7 +492,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         request.Listings.AddRange(listings);
         request.History.AddRange(sales.Sales);
 
-        Task.Run(() => this.uploader.Upload(request))
+        Task.Run(() => this.uploader.Upload(request, uploaderId, worldId))
             .ContinueWith(
                 task => Log.Error(task.Exception, "Market Board offerings data upload failed"),
                 TaskContinuationOptions.OnlyOnFaulted);
@@ -469,11 +501,14 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private IDisposable HandleMarketTaxRates()
     {
         return this.MbTaxesObservable
+                   .Select((taxes) => (taxes, GetUploaderInfo()))
                    .Where(this.ShouldUpload)
                    .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
-                       taxes =>
+                       data =>
                        {
+                           var (taxes, uploaderInfo) = data;
+
                            Log.Verbose(
                                "MarketTaxRates: limsa#{0} grid#{1} uldah#{2} ish#{3} kugane#{4} cr#{5} sh#{6}",
                                taxes.LimsaLominsaTax,
@@ -484,7 +519,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                                taxes.CrystariumTax,
                                taxes.SharlayanTax);
 
-                           Task.Run(() => this.uploader.UploadTax(taxes))
+                           Task.Run(() => this.uploader.UploadTax(taxes, uploaderInfo.UploaderId, uploaderInfo.WorldId))
                                .ContinueWith(
                                    task => Log.Error(task.Exception, "Market Board tax data upload failed"),
                                    TaskContinuationOptions.OnlyOnFaulted);
@@ -495,13 +530,13 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     private IDisposable HandleMarketBoardPurchaseHandler()
     {
         return this.MbPurchaseSentObservable
-                   .Zip(this.MbPurchaseObservable)
+                   .Zip(this.MbPurchaseObservable, (handler, purchase) => (handler, purchase, GetUploaderInfo()))
                    .Where(this.ShouldUpload)
                    .SubscribeOn(ThreadPoolScheduler.Instance)
                    .Subscribe(
                        data =>
                        {
-                           var (handler, purchase) = data;
+                           var (handler, purchase, uploaderInfo) = data;
 
                            var sameQty = purchase.ItemQuantity == handler.ItemQuantity;
                            var itemMatch = purchase.CatalogId == handler.CatalogId;
@@ -516,7 +551,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
                                    handler.CatalogId,
                                    handler.PricePerUnit * purchase.ItemQuantity,
                                    handler.ListingId);
-                               Task.Run(() => this.uploader.UploadPurchase(handler))
+                               Task.Run(() => this.uploader.UploadPurchase(handler, uploaderInfo.UploaderId, uploaderInfo.WorldId))
                                    .ContinueWith(
                                        task => Log.Error(task.Exception, "Market Board purchase data upload failed"),
                                        TaskContinuationOptions.OnlyOnFaulted);
