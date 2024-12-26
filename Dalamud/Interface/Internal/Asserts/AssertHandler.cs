@@ -15,7 +15,11 @@ namespace Dalamud.Interface.Internal.Asserts;
 /// </summary>
 internal class AssertHandler : IDisposable
 {
+    private const int HideThreshold = 20;
+    private const int HidePrintEvery = 500;
+
     private readonly HashSet<string> ignoredAsserts = [];
+    private readonly Dictionary<string, uint> assertCounts = new();
 
     // Store callback to avoid it from being GC'd
     private readonly AssertCallbackDelegate callback;
@@ -37,7 +41,13 @@ internal class AssertHandler : IDisposable
     /// Gets or sets a value indicating whether ImGui asserts should be shown to the user.
     /// </summary>
     public bool ShowAsserts { get; set; }
-    
+
+    /// <summary>
+    /// Gets or sets a value indicating whether we want to hide asserts that occur frequently (= every update)
+    /// and whether we want to log callstacks.
+    /// </summary>
+    public bool EnableVerboseLogging { get; set; }
+
     /// <summary>
     /// Register the cimgui assert handler with the native library.
     /// </summary>
@@ -62,18 +72,43 @@ internal class AssertHandler : IDisposable
 
     private void OnImGuiAssert(string expr, string file, int line)
     {
-        Log.Warning("ImGui assertion failed: {Expr} at {File}:{Line}", expr, file, line);
-
-        if (!this.ShowAsserts)
-            return;
-
         var key = $"{file}:{line}";
         if (this.ignoredAsserts.Contains(key))
             return;
 
-        // TODO: It would be nice to get unmanaged stack frames here, seems hard though without pulling that
-        // entire code in from the crash handler
-        var originalStackTrace = new StackTrace(2).ToString();
+        Lazy<string> stackTrace = new(() => new StackTrace(3).ToString());
+
+        if (!this.EnableVerboseLogging)
+        {
+            if (this.assertCounts.TryGetValue(key, out var count))
+            {
+                this.assertCounts[key] = count + 1;
+
+                if (count <= HideThreshold || count % HidePrintEvery == 0)
+                {
+                    Log.Warning("ImGui assertion failed: {Expr} at {File}:{Line} (repeated {Count} times)",
+                                expr,
+                                file,
+                                line,
+                                count);
+                }
+            }
+            else
+            {
+                this.assertCounts[key] = 1;
+            }
+        }
+        else
+        {
+            Log.Warning("ImGui assertion failed: {Expr} at {File}:{Line}\n{StackTrace:l}",
+                        expr,
+                        file,
+                        line,
+                        stackTrace.Value);
+        }
+
+        if (!this.ShowAsserts)
+            return;
 
         string? GetRepoUrl()
         {
@@ -108,7 +143,7 @@ internal class AssertHandler : IDisposable
             Text = "Break",
             AllowCloseDialog = true,
         };
-        
+
         var disableButton = new TaskDialogButton
         {
             Text = "Disable for this session",
@@ -132,7 +167,7 @@ internal class AssertHandler : IDisposable
                 {
                     CollapsedButtonText = "Show stack trace",
                     ExpandedButtonText = "Hide stack trace",
-                    Text = originalStackTrace,
+                    Text = stackTrace.Value,
                 },
                 Text = $"Some code in a plugin or Dalamud itself has caused an internal assertion in ImGui to fail. The game will most likely crash now.\n\n{expr}\nAt: {file}:{line}",
                 Icon = TaskDialogIcon.Warning,
