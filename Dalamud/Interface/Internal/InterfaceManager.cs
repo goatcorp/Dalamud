@@ -1142,7 +1142,18 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         if (this.IsDispatchingEvents)
         {
-            this.Draw?.Invoke();
+            try
+            {
+                this.Draw?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error when invoking global Draw");
+                
+                // We should always handle this in the callbacks.
+                Util.Fatal("An internal error occurred while drawing the Dalamud UI and the game must close.\nPlease report this error.", "Dalamud");
+            }
+
             Service<NotificationManager>.GetNullable()?.Draw();
         }
     }
