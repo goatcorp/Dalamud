@@ -47,9 +47,9 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     }
 
     private delegate ushort AtkModuleVf22OpenAddonByAgentDelegate(AtkModule* module, byte* addonName, int valueCount, AtkValue* values, AgentInterface* agent, nint a7, bool a8);
-    
+
     private delegate bool AddonContextMenuOnMenuSelectedDelegate(AddonContextMenu* addon, int selectedIdx, byte a3);
-    
+
     private delegate ushort RaptureAtkModuleOpenAddonDelegate(RaptureAtkModule* a1, uint addonNameId, uint valueCount, AtkValue* values, AgentInterface* parentAgent, ulong unk, ushort parentAddonId, int unk2);
 
     /// <inheritdoc/>
@@ -92,16 +92,22 @@ internal sealed unsafe class ContextMenu : IInternalDisposableService, IContextM
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.atkModuleVf22OpenAddonByAgentHook.Dispose();
+        this.addonContextMenuOnMenuSelectedHook.Dispose();
+
         var manager = RaptureAtkUnitManager.Instance();
+        if (manager == null)
+            return;
+
         var menu = manager->GetAddonByName("ContextMenu");
         var submenu = manager->GetAddonByName("AddonContextSub");
+        if (menu == null || submenu == null)
+            return;
+
         if (menu->IsVisible)
             menu->FireCallbackInt(-1);
         if (submenu->IsVisible)
             submenu->FireCallbackInt(-1);
-
-        this.atkModuleVf22OpenAddonByAgentHook.Dispose();
-        this.addonContextMenuOnMenuSelectedHook.Dispose();
     }
 
     /// <inheritdoc/>
