@@ -196,6 +196,14 @@ public class DevPluginsSettingsEntry : SettingsEntry
         }
     }
 
+    public override void PostDraw()
+    {
+        this.fileDialogManager.Draw();
+    }
+
+    private static bool ValidDevPluginPath(string path)
+        => Path.IsPathRooted(path) && Path.GetExtension(path) == ".dll";
+
     private void AddDevPlugin()
     {
         if (this.devPluginLocations.Any(
@@ -223,16 +231,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             this.devPluginTempLocation = string.Empty;
         }
 
-        var config = Service<DalamudConfiguration>.Get();
-        if (!config.ImGuiAssertsEnabledAtStartup.HasValue)
-            config.ImGuiAssertsEnabledAtStartup = true;
+        // Enable ImGui asserts if a dev plugin is added, if no choice was made prior
+        Service<DalamudConfiguration>.Get().ImGuiAssertsEnabledAtStartup ??= true;
     }
-
-    public override void PostDraw()
-    {
-        this.fileDialogManager.Draw();
-    }
-
-    private static bool ValidDevPluginPath(string path)
-        => Path.IsPathRooted(path) && Path.GetExtension(path) == ".dll";
 }

@@ -19,6 +19,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Support;
 using ImGuiNET;
 using Lumina.Excel.Sheets;
@@ -27,8 +28,6 @@ using TerraFX.Interop.Windows;
 using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
-
-using Dalamud.Interface.Utility.Raii;
 
 using static TerraFX.Interop.Windows.Windows;
 
@@ -139,11 +138,11 @@ public static class Util
     public static string GetScmVersion()
     {
         if (scmVersionInternal != null) return scmVersionInternal;
-        
+
         var asm = typeof(Util).Assembly;
         var attrs = asm.GetCustomAttributes<AssemblyMetadataAttribute>();
 
-        return scmVersionInternal = attrs.First(a => a.Key == "SCMVersion").Value 
+        return scmVersionInternal = attrs.First(a => a.Key == "SCMVersion").Value
                                         ?? asm.GetName().Version!.ToString();
     }
 
@@ -853,7 +852,7 @@ public static class Util
             // ignore
         }
     }
-    
+
     /// <summary>
     /// Print formatted IGameObject Information to ImGui.
     /// </summary>
@@ -1051,7 +1050,8 @@ public static class Util
         }
     }
 
-    private static unsafe void ShowSpanEntryPrivate<T>(ulong addr, IList<string> path, int offset, Span<T> spanobj) {
+    private static unsafe void ShowSpanEntryPrivate<T>(ulong addr, IList<string> path, int offset, Span<T> spanobj)
+    {
         const int batchSize = 20;
         if (spanobj.Length > batchSize)
         {
@@ -1221,6 +1221,7 @@ public static class Util
                             ImGui.TextDisabled($"[0x{offset.Value:X}]");
                             ImGui.SameLine();
                         }
+
                         ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
                     }
 

@@ -48,7 +48,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     
     private bool lastConditionNone = true;
 
-
     [ServiceManager.ServiceConstructor]
     private unsafe ClientState(TargetSigScanner sigScanner, Dalamud dalamud, GameLifecycle lifecycle)
     {

@@ -72,6 +72,8 @@ internal class AutoUpdateManager : IServiceType
 
     private readonly IConsoleVariable<bool> isDryRun;
 
+    private readonly Task<DalamudLinkPayload> openInstallerWindowLinkTask;
+
     private DateTime? loginTime;
     private DateTime? nextUpdateCheckTime;
     private DateTime? unblockedSince;
@@ -81,8 +83,6 @@ internal class AutoUpdateManager : IServiceType
     private IActiveNotification? updateNotification;
 
     private Task? autoUpdateTask;
-
-    private readonly Task<DalamudLinkPayload> openInstallerWindowLink;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoUpdateManager"/> class.
@@ -99,7 +99,7 @@ internal class AutoUpdateManager : IServiceType
             });
         Service<Framework>.GetAsync().ContinueWith(t => { t.Result.Update += this.OnUpdate; });
 
-        this.openInstallerWindowLink =
+        this.openInstallerWindowLinkTask =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
                     "Dalamud",
@@ -108,7 +108,6 @@ internal class AutoUpdateManager : IServiceType
                      {
                          Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins);
                      }));
-
 
         this.isDryRun = console.AddVariable("dalamud.autoupdate.dry_run", "Simulate updates instead", false);
         console.AddCommand("dalamud.autoupdate.trigger_login", "Trigger a login event", () =>
@@ -441,7 +440,7 @@ internal class AutoUpdateManager : IServiceType
                 new TextPayload(Locs.NotificationContentUpdatesAvailableMinimized(updatablePlugins.Count)),
                 new TextPayload("  ["),
                 new UIForegroundPayload(500),
-                this.openInstallerWindowLink.Result,
+                this.openInstallerWindowLinkTask.Result,
                 new TextPayload(Loc.Localize("DalamudInstallerHelp", "Open the plugin installer")),
                 RawPayload.LinkTerminator,
                 new UIForegroundPayload(0),

@@ -1,7 +1,7 @@
-﻿using Dalamud.Game.Text;
-using ImGuiNET;
+﻿using System.Linq;
 
-using System.Linq;
+using Dalamud.Game.Text;
+using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
