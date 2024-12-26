@@ -12,34 +12,41 @@ internal static class CultureFixes
     /// </summary>
     public static void Apply()
     {
-        PatchNumberSeparator();
+        PatchFrenchNumberSeparator();
     }
 
-    private static void PatchNumberSeparator()
+    private static void PatchFrenchNumberSeparator()
     {
         // Reset formatting specifier for the "digit grouping symbol" to an empty string
         // for cultures that use a narrow no-break space (U+202F).
         // This glyph is not present in any game fonts and not in the range for our Noto
         // so it will be rendered as a geta (=) instead. That's a hack, but it works and
         // doesn't look as weird.
-        void PatchCulture(CultureInfo info)
+        CultureInfo PatchCulture(CultureInfo info)
         {
+            var newCulture = (CultureInfo)info.Clone();
+
             const string invalidGroupSeparator = "\u202F";
             const string replacedGroupSeparator = " ";
+
             if (info.NumberFormat.NumberGroupSeparator == invalidGroupSeparator)
-                info.NumberFormat.NumberGroupSeparator = replacedGroupSeparator;
-                
+                newCulture.NumberFormat.NumberGroupSeparator = replacedGroupSeparator;
+
             if (info.NumberFormat.NumberDecimalSeparator == invalidGroupSeparator)
-                info.NumberFormat.NumberDecimalSeparator = replacedGroupSeparator;
+                newCulture.NumberFormat.NumberDecimalSeparator = replacedGroupSeparator;
 
             if (info.NumberFormat.CurrencyGroupSeparator == invalidGroupSeparator)
-                info.NumberFormat.CurrencyGroupSeparator = replacedGroupSeparator;
-                
+                newCulture.NumberFormat.CurrencyGroupSeparator = replacedGroupSeparator;
+
             if (info.NumberFormat.CurrencyDecimalSeparator == invalidGroupSeparator)
-                info.NumberFormat.CurrencyDecimalSeparator = replacedGroupSeparator;
+                newCulture.NumberFormat.CurrencyDecimalSeparator = replacedGroupSeparator;
+
+            return newCulture;
         }
-            
-        PatchCulture(CultureInfo.CurrentCulture);
-        PatchCulture(CultureInfo.CurrentUICulture);
+
+        CultureInfo.CurrentCulture = PatchCulture(CultureInfo.CurrentCulture);
+        CultureInfo.CurrentUICulture = PatchCulture(CultureInfo.CurrentUICulture);
+        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.CurrentCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.CurrentUICulture;
     }
 }
