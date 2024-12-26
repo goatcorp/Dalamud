@@ -15,7 +15,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ImGuiNET;
 
-using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Payloads;
@@ -31,7 +30,6 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     private static readonly string[] ThemeNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
     private ImVectorWrapper<byte> testStringBuffer;
     private string testString = string.Empty;
-    private ExcelSheet<Addon> addons = null!;
     private ReadOnlySeString? logkind;
     private SeStringDrawParams style;
     private bool interactable;
@@ -51,7 +49,6 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     public void Load()
     {
         this.style = new() { GetEntity = this.GetEntity };
-        this.addons = Service<DataManager>.Get().GetExcelSheet<Addon>();
         this.logkind = null;
         this.testString = string.Empty;
         this.interactable = this.useEntity = true;
@@ -193,13 +190,16 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                     ImGui.CalcTextSize("AAAAAAAAAAAAAAAAA").X);
                 ImGui.TableHeadersRow();
 
+                var addon = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>() ??
+                            throw new InvalidOperationException("Addon sheet not loaded.");
+
                 var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-                clipper.Begin(this.addons.Count);
+                clipper.Begin(addon.Count);
                 while (clipper.Step())
                 {
                     for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                     {
-                        var row = this.addons.GetRowAt(i);
+                        var row = addon.GetRowAt(i);
 
                         ImGui.TableNextRow();
                         ImGui.PushID(i);

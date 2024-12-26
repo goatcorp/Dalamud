@@ -1,5 +1,4 @@
 using System.Buffers.Binary;
-using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -7,12 +6,9 @@ using Dalamud.Data;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
-using Dalamud.Interface.Utility;
-using Dalamud.Storage.Assets;
 
 using ImGuiNET;
 
-using Lumina.Excel;
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -22,8 +18,6 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class UiColorWidget : IDataWindowWidget
 {
-    private ExcelSheet<UIColor> colors;
-
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = ["uicolor"];
 
@@ -37,12 +31,14 @@ internal class UiColorWidget : IDataWindowWidget
     public void Load()
     {
         this.Ready = true;
-        this.colors = Service<DataManager>.Get().GetExcelSheet<UIColor>();
     }
 
     /// <inheritdoc/>
     public unsafe void Draw()
     {
+        var colors = Service<DataManager>.GetNullable()?.GetExcelSheet<UIColor>()
+            ?? throw new InvalidOperationException("UIColor sheet not loaded.");
+
         Service<SeStringRenderer>.Get().CompileAndDrawWrapped(
             "· Color notation is #" +
             "<edgecolor(0xFFEEEE)><color(0xFF0000)>RR<color(stackcolor)><edgecolor(stackcolor)>" +
@@ -71,16 +67,16 @@ internal class UiColorWidget : IDataWindowWidget
         ImGui.TableHeadersRow();
 
         var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-        clipper.Begin(this.colors.Count, ImGui.GetFrameHeightWithSpacing());
+        clipper.Begin(colors.Count, ImGui.GetFrameHeightWithSpacing());
         while (clipper.Step())
         {
             for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
             {
-                var row = this.colors.GetRowAt(i);
+                var row = colors.GetRowAt(i);
                 UIColor? adjacentRow = null;
-                if (i + 1 < this.colors.Count)
+                if (i + 1 < colors.Count)
                 {
-                    var adjRow = this.colors.GetRowAt(i + 1);
+                    var adjRow = colors.GetRowAt(i + 1);
                     if (adjRow.RowId == row.RowId + 1)
                     {
                         adjacentRow = adjRow;
