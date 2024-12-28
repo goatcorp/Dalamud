@@ -56,7 +56,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>..\$(Platform)\$(Configuration)\</OutDir>
+      <OutDir>bin\$(Configuration)\</OutDir>
+      <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -99,4 +100,8 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="CopyOutputDlls" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(OutDir)$(TargetName).dll" DestinationFolder="..\..\bin\$(Configuration)\" />
+    <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="..\..\bin\$(Configuration)\" />
+  </Target>
 </Project>

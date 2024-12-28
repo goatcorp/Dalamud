@@ -205,18 +205,4 @@
     <Target Name="CopyPluginTargets" AfterTargets="Build">
         <Copy SourceFiles="$(ProjectDir)\..\targets\Dalamud.Plugin.targets;$(ProjectDir)\..\targets\Dalamud.Plugin.Bootstrap.targets" DestinationFolder="$(OutDir)\targets" />
     </Target>
-
-    <!-- Copy imgui binaries into distrib -->
-    <!-- TEMP: We will move these to ImGuiScene once it is in-tree -->
-    <!-- Build order is controlled through the solution or nuke -->
-    <Target Name="CopyImGuiBinaries" AfterTargets="Build">
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimgui.dll" DestinationFolder="$(OutDir)" />
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimgui.pdb" DestinationFolder="$(OutDir)" />
-
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimplot.dll" DestinationFolder="$(OutDir)" />
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimplot.pdb" DestinationFolder="$(OutDir)" />
-
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimguizmo.dll" DestinationFolder="$(OutDir)" />
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimguizmo.pdb" DestinationFolder="$(OutDir)" />
-    </Target>
 </Project>
