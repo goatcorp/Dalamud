@@ -2444,7 +2444,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGuiHelpers.ScaledDummy(3);
             }
 
-            if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback)
+            if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback && !isOutdated)
             {
                 ImGui.SameLine();
                 this.DrawSendFeedbackButton(manifest, false, true);
@@ -2724,8 +2724,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             var canFeedback = !isThirdParty &&
                               !plugin.IsDev &&
                               !plugin.IsOrphaned &&
-                              (plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel
-                               || plugin.Manifest.TestingDalamudApiLevel == PluginManager.DalamudApiLevel) &&
+                              (plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel ||
+                               (plugin.Manifest.TestingDalamudApiLevel == PluginManager.DalamudApiLevel && hasTestingAvailable)) &&
                               acceptsFeedback &&
                               availablePluginUpdate == default;
 
