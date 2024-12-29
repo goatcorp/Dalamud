@@ -19,6 +19,6 @@ public class InCubic : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = p * p * p;
+        this.ValueUnclamped = p * p * p;
     }
 }

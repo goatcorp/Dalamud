@@ -252,7 +252,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
                 this.fadeOutEasing.Update();
 
-                using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)Math.Max(this.fadeOutEasing.Value, 0)))
+                using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)this.fadeOutEasing.Value))
                 {
                     var i = 0;
                     foreach (var entry in entries)
@@ -393,7 +393,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         if (overrideAlpha)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, showText ? (float)Math.Min(logoEasing.Value, 1) : 0f);
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, showText ? (float)logoEasing.Value : 0f);
         }
 
         // Drop shadow
