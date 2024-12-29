@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface;
@@ -44,6 +45,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
 
     [JsonIgnore]
     private bool isSaveQueued;
+
+    private Task? writeTask;
 
     /// <summary>
     /// Delegate for the <see cref="DalamudConfiguration.DalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
@@ -560,6 +563,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     {
         // Make sure that we save, if a save is queued while we are shutting down
         this.Update();
+
+        // Wait for the write task to finish
+        this.writeTask?.Wait();
     }
 
     /// <summary>
@@ -614,8 +620,22 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         if (this.configPath is null)
             throw new InvalidOperationException("configPath is not set.");
 
-        Service<ReliableFileStorage>.Get().WriteAllText(
-            this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
+        // Wait for previous write to finish
+        this.writeTask?.Wait();
+
+        this.writeTask = Task.Run(() =>
+        {
+            Service<ReliableFileStorage>.Get().WriteAllText(
+                this.configPath,
+                JsonConvert.SerializeObject(this, SerializerSettings));
+        }).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save DalamudConfiguration to {Path}", this.configPath);
+            }
+        });
+
         this.DalamudConfigurationSaved?.Invoke(this);
     }
 }
