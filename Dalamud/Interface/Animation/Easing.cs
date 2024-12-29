@@ -1,14 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 
-using Dalamud.Utility;
-
 namespace Dalamud.Interface.Animation;
 
 /// <summary>
 /// Base class facilitating the implementation of easing functions.
 /// </summary>
-[Api12ToDo("Re-apply https://github.com/goatcorp/Dalamud/commit/1aada983931d9e45a250eebbc17c8b782d07701b")]
 public abstract class Easing
 {
     // TODO: Use game delta time here instead
@@ -46,9 +43,15 @@ public abstract class Easing
     public bool IsInverse { get; set; }
 
     /// <summary>
-    /// Gets or sets the current value of the animation, from 0 to 1.
+    /// Gets the current value of the animation, from 0 to 1.
     /// </summary>
-    public double Value
+    public double Value => Math.Clamp(this.ValueUnclamped, 0, 1);
+
+    /// <summary>
+    /// Gets or sets the current value of the animation, not limited to a range of 0 to 1.
+    /// Will return numbers outside of this range if accessed beyond animation time.
+    /// </summary>
+    public double ValueUnclamped
     {
         get
         {

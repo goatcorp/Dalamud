@@ -19,6 +19,6 @@ public class InOutQuint : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = p < 0.5 ? 16 * p * p * p * p * p : 1 - (Math.Pow((-2 * p) + 2, 5) / 2);
+        this.ValueUnclamped = p < 0.5 ? 16 * p * p * p * p * p : 1 - (Math.Pow((-2 * p) + 2, 5) / 2);
     }
 }
