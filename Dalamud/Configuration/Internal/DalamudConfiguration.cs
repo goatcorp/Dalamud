@@ -12,6 +12,7 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
@@ -264,8 +265,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
     /// on plugin title bars when using the Window System.
     /// </summary>
-    [JsonProperty("EnablePluginUiAdditionalOptionsExperimental")]
-    public bool EnablePluginUiAdditionalOptions { get; set; } = false;
+    public bool EnablePluginUiAdditionalOptions { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
@@ -350,6 +350,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether or not the user has seen the profiles tutorial.
     /// </summary>
     public bool ProfilesHasSeenTutorial { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the default UI preset.
+    /// </summary>
+    public PresetModel DefaultUiPreset { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the order of DTR elements, by title.

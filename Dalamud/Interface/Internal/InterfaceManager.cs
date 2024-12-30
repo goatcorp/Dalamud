@@ -27,6 +27,8 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Interface.Windowing.Persistence;
+using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
@@ -60,6 +62,7 @@ namespace Dalamud.Interface.Internal;
 /// This class manages interaction with the ImGui interface.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
+[InherentDependency<WindowSystemPersistence>] // Used by window system windows to restore state from the configuration
 internal partial class InterfaceManager : IInternalDisposableService
 {
     /// <summary>
