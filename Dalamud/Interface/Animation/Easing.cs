@@ -1,11 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 
+using Dalamud.Utility;
+
 namespace Dalamud.Interface.Animation;
 
 /// <summary>
 /// Base class facilitating the implementation of easing functions.
 /// </summary>
+[Api11ToDo("Re-apply https://github.com/goatcorp/Dalamud/commit/1aada983931d9e45a250eebbc17c8b782d07701b")]
 public abstract class Easing
 {
     // TODO: Use game delta time here instead
