@@ -45,7 +45,18 @@ public abstract class Easing
     /// <summary>
     /// Gets the current value of the animation, from 0 to 1.
     /// </summary>
-    public double Value => Math.Clamp(this.ValueUnclamped, 0, 1);
+    public double Value 
+    { 
+        get 
+        { 
+            return Math.Clamp(this.ValueUnclamped, 0, 1); 
+        }
+
+        set 
+        {
+            ValueClampeed = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the current value of the animation, not limited to a range of 0 to 1.
