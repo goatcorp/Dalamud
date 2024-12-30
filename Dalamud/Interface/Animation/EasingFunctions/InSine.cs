@@ -19,6 +19,6 @@ public class InSine : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.ValueUnclamped = 1 - Math.Cos((p * Math.PI) / 2);
+        this.Value = 1 - Math.Cos((p * Math.PI) / 2);
     }
 }

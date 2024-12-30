@@ -19,6 +19,6 @@ public class InQuint : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.ValueUnclamped = p * p * p * p * p;
+        this.Value = p * p * p * p * p;
     }
 }

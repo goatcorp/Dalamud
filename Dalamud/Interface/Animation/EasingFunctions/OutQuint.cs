@@ -19,6 +19,6 @@ public class OutQuint : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.ValueUnclamped = 1 - Math.Pow(1 - p, 5);
+        this.Value = 1 - Math.Pow(1 - p, 5);
     }
 }

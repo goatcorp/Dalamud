@@ -19,6 +19,6 @@ public class InCirc : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.ValueUnclamped = 1 - Math.Sqrt(1 - Math.Pow(p, 2));
+        this.Value = 1 - Math.Sqrt(1 - Math.Pow(p, 2));
     }
 }

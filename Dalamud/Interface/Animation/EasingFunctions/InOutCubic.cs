@@ -19,6 +19,6 @@ public class InOutCubic : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.ValueUnclamped = p < 0.5 ? 4 * p * p * p : 1 - (Math.Pow((-2 * p) + 2, 3) / 2);
+        this.Value = p < 0.5 ? 4 * p * p * p : 1 - (Math.Pow((-2 * p) + 2, 3) / 2);
     }
 }

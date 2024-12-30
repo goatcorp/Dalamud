@@ -43,15 +43,9 @@ public abstract class Easing
     public bool IsInverse { get; set; }
 
     /// <summary>
-    /// Gets the current value of the animation, from 0 to 1.
+    /// Gets or sets the current value of the animation, from 0 to 1.
     /// </summary>
-    public double Value => Math.Clamp(this.ValueUnclamped, 0, 1);
-
-    /// <summary>
-    /// Gets or sets the current value of the animation, not limited to a range of 0 to 1.
-    /// Will return numbers outside of this range if accessed beyond animation time.
-    /// </summary>
-    public double ValueUnclamped
+    public double Value
     {
         get
         {

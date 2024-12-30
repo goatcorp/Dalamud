@@ -21,10 +21,10 @@ public class OutElastic : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.ValueUnclamped = p == 0
-                                  ? 0
-                                  : p == 1
-                                      ? 1
-                                      : (Math.Pow(2, -10 * p) * Math.Sin(((p * 10) - 0.75) * Constant)) + 1;
+        this.Value = p == 0
+                         ? 0
+                         : p == 1
+                             ? 1
+                             : (Math.Pow(2, -10 * p) * Math.Sin(((p * 10) - 0.75) * Constant)) + 1;
     }
 }
