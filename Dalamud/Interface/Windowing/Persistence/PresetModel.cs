@@ -49,5 +49,13 @@ internal class PresetModel
         /// </summary>
         [JsonProperty("a")]
         public float? Alpha { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this preset is in the default state.
+        /// </summary>
+        public bool IsDefault =>
+            !this.IsPinned &&
+            !this.IsClickThrough &&
+            !this.Alpha.HasValue;
     }
 }

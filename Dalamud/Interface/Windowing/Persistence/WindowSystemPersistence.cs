@@ -41,7 +41,17 @@ internal class WindowSystemPersistence : IServiceType
     /// <param name="window">The preset window instance.</param>
     public void SaveWindow(uint id, PresetModel.PresetWindow window)
     {
-        this.ActivePreset.Windows[id] = window;
+        // If the window is in the default state, don't save it to avoid saving every possible window
+        // if the user has not customized anything.
+        if (window.IsDefault)
+        {
+            this.ActivePreset.Windows.Remove(id);
+        }
+        else
+        {
+            this.ActivePreset.Windows[id] = window;
+        }
+
         this.config.QueueSave();
     }
 }
