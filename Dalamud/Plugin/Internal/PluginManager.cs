@@ -53,7 +53,7 @@ internal class PluginManager : IInternalDisposableService
     private readonly object pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
     private readonly BannedPlugin[]? bannedPlugins;
-    
+
     private readonly List<LocalPlugin> installedPluginsList = new();
     private readonly List<RemotePluginManifest> availablePluginsList = new();
     private readonly List<AvailablePluginUpdate> updatablePluginsList = new();
@@ -207,7 +207,7 @@ internal class PluginManager : IInternalDisposableService
             }
         }
     }
-    
+
     /// <summary>
     /// Gets a copy of the list of all plugins with an available update.
     /// </summary>
@@ -261,7 +261,7 @@ internal class PluginManager : IInternalDisposableService
     /// Gets or sets a value indicating whether banned plugins will be loaded.
     /// </summary>
     public bool LoadBannedPlugins { get; set; }
-    
+
     /// <summary>
     /// Gets a tracker for plugins that are loading at startup, used to display information to the user.
     /// </summary>
@@ -479,7 +479,7 @@ internal class PluginManager : IInternalDisposableService
                         Log.Error("No DLL found for plugin at {Path}", versionDir.FullName);
                         continue;
                     }
-                    
+
                     var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
                     if (!manifestFile.Exists)
                     {
@@ -506,7 +506,7 @@ internal class PluginManager : IInternalDisposableService
             }
 
             this.configuration.QueueSave();
-            
+
             if (versionsDefs.Count == 0)
             {
                 Log.Verbose("No versions found for plugin: {Name}", pluginDir.Name);
@@ -552,7 +552,7 @@ internal class PluginManager : IInternalDisposableService
                     Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
                     continue;
                 }
-            
+
                 var manifest = LocalPluginManifest.Load(manifestFile);
                 if (manifest == null)
                 {
@@ -761,7 +761,7 @@ internal class PluginManager : IInternalDisposableService
                                                    .SelectMany(repo => repo.PluginMaster)
                                                    .Where(this.IsManifestEligible)
                                                    .Where(IsManifestVisible));
-            
+
             if (notify)
             {
                 this.NotifyAvailablePluginsChanged();
@@ -783,7 +783,7 @@ internal class PluginManager : IInternalDisposableService
         {
             if (!setting.IsEnabled)
                 continue;
-            
+
             Log.Verbose("Scanning dev plugins at {Path}", setting.Path);
 
             if (File.Exists(setting.Path))
@@ -810,7 +810,7 @@ internal class PluginManager : IInternalDisposableService
                 Log.Error("DLL at {DllPath} has no manifest, this is no longer valid", dllFile.FullName);
                 continue;
             }
-            
+
             var manifest = LocalPluginManifest.Load(manifestFile);
             if (manifest == null)
             {
@@ -854,7 +854,7 @@ internal class PluginManager : IInternalDisposableService
         var stream = await this.DownloadPluginAsync(repoManifest, useTesting);
         return await this.InstallPluginInternalAsync(repoManifest, useTesting, reason, stream, inheritedWorkingPluginId);
     }
-    
+
     /// <summary>
     /// Remove a plugin.
     /// </summary>
@@ -1048,7 +1048,7 @@ internal class PluginManager : IInternalDisposableService
             Status = PluginUpdateStatus.StatusKind.Success,
             HasChangelog = !metadata.UpdateManifest.Changelog.IsNullOrWhitespace(),
         };
-        
+
         // Check if this plugin is already up to date (=> AvailablePluginUpdate was stale)
         lock (this.installedPluginsList)
         {
@@ -1075,7 +1075,7 @@ internal class PluginManager : IInternalDisposableService
                 updateStatus.Status = PluginUpdateStatus.StatusKind.FailedDownload;
                 return updateStatus;
             }
-            
+
             // Unload if loaded
             if (plugin.State is PluginState.Loaded or PluginState.LoadError or PluginState.DependencyResolutionFailed)
             {
@@ -1305,7 +1305,7 @@ internal class PluginManager : IInternalDisposableService
         {
             if (serviceType == typeof(PluginManager))
                 continue;
-                
+
             // Scoped plugin services lifetime is tied to their scopes. They go away when LocalPlugin goes away.
             // Nonetheless, their direct dependencies must be considered.
             if (serviceType.GetServiceKind() == ServiceManager.ServiceKind.ScopedService)
@@ -1313,19 +1313,19 @@ internal class PluginManager : IInternalDisposableService
                 var typeAsServiceT = ServiceHelpers.GetAsService(serviceType);
                 var dependencies = ServiceHelpers.GetDependencies(typeAsServiceT, false);
                 ServiceManager.Log.Verbose("Found dependencies of scoped plugin service {Type} ({Cnt})", serviceType.FullName!, dependencies!.Count);
-                    
+
                 foreach (var scopedDep in dependencies)
                 {
                     if (scopedDep == typeof(PluginManager))
                         throw new Exception("Scoped plugin services cannot depend on PluginManager.");
-                        
+
                     ServiceManager.Log.Verbose("PluginManager MUST depend on {Type} via {BaseType}", scopedDep.FullName!, serviceType.FullName!);
                     yield return scopedDep;
                 }
 
                 continue;
             }
-                
+
             var pluginInterfaceAttribute = serviceType.GetCustomAttribute<PluginInterfaceAttribute>(true);
             if (pluginInterfaceAttribute == null)
                 continue;
@@ -1336,12 +1336,12 @@ internal class PluginManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Check if there are any inconsistencies with our plugins, their IDs, and our profiles. 
+    /// Check if there are any inconsistencies with our plugins, their IDs, and our profiles.
     /// </summary>
     private void ParanoiaValidatePluginsAndProfiles()
     {
         var seenIds = new List<Guid>();
-        
+
         foreach (var installedPlugin in this.InstalledPlugins)
         {
             if (installedPlugin.EffectiveWorkingPluginId == Guid.Empty)
@@ -1352,13 +1352,13 @@ internal class PluginManager : IInternalDisposableService
                 throw new Exception(
                     $"{(installedPlugin is LocalDevPlugin ? "DevPlugin" : "Plugin")} '{installedPlugin.Manifest.InternalName}' has a duplicate WorkingPluginId '{installedPlugin.EffectiveWorkingPluginId}'");
             }
-            
+
             seenIds.Add(installedPlugin.EffectiveWorkingPluginId);
         }
-        
+
         this.profileManager.ParanoiaValidateProfiles();
     }
-    
+
     private async Task<Stream> DownloadPluginAsync(RemotePluginManifest repoManifest, bool useTesting)
     {
         var downloadUrl = useTesting ? repoManifest.DownloadLinkTesting : repoManifest.DownloadLinkInstall;
@@ -1391,7 +1391,7 @@ internal class PluginManager : IInternalDisposableService
     {
         var version = useTesting ? repoManifest.TestingAssemblyVersion : repoManifest.AssemblyVersion;
         Log.Debug($"Installing plugin {repoManifest.Name} (testing={useTesting}, version={version}, reason={reason})");
-        
+
         // If this plugin is in the default profile for whatever reason, delete the state
         // If it was in multiple profiles and is still, the user uninstalled it and chose to keep it in there,
         // or the user removed the plugin manually in which case we don't care
@@ -1425,7 +1425,7 @@ internal class PluginManager : IInternalDisposableService
             // If we are doing anything other than a fresh install, not having a workingPluginId is an error that must be fixed
             Debug.Assert(inheritedWorkingPluginId != null, "inheritedWorkingPluginId != null");
         }
-        
+
         // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
         if (useTesting && this.configuration.PluginTestingOptIns!.All(x => x.InternalName != repoManifest.InternalName))
         {
@@ -1534,7 +1534,7 @@ internal class PluginManager : IInternalDisposableService
         this.NotifyinstalledPluginsListChanged();
         return plugin;
     }
-    
+
     /// <summary>
     /// Load a plugin.
     /// </summary>
@@ -1562,16 +1562,17 @@ internal class PluginManager : IInternalDisposableService
         {
             Log.Information($"Loading dev plugin {name}");
             plugin = new LocalDevPlugin(dllFile, manifest);
-            
+
             // This is a dev plugin - turn ImGui asserts on by default if we haven't chosen yet
-            this.configuration.ImGuiAssertsEnabledAtStartup ??= true;
+            // TODO(goat): Re-enable this when we have better tracing for what was rendering when
+            // this.configuration.ImGuiAssertsEnabledAtStartup ??= true;
         }
         else
         {
             Log.Information($"Loading plugin {name}");
             plugin = new LocalPlugin(dllFile, manifest);
         }
-        
+
         // Perform a migration from InternalName to GUIDs. The plugin should definitely have a GUID here.
         // This will also happen if you are installing a plugin with the installer, and that's intended!
         // It means that, if you have a profile which has unsatisfied plugins, installing a matching plugin will
@@ -1579,7 +1580,7 @@ internal class PluginManager : IInternalDisposableService
         if (plugin.EffectiveWorkingPluginId == Guid.Empty)
             throw new Exception("Plugin should have a WorkingPluginId at this point");
         this.profileManager.MigrateProfilesToGuidsForPlugin(plugin.Manifest.InternalName, plugin.EffectiveWorkingPluginId);
-        
+
         var wantedByAnyProfile = false;
 
         // Now, if this is a devPlugin, figure out if we want to load it
@@ -1595,11 +1596,11 @@ internal class PluginManager : IInternalDisposableService
                 // We don't know about this plugin, so we don't want to do anything here.
                 // The code below will take care of it and add it with the default value.
                 Log.Verbose("DevPlugin {Name} not wanted in default plugin", plugin.Manifest.InternalName);
-                
+
                 // Check if any profile wants this plugin. We need to do this here, since we want to allow loading a dev plugin if a non-default profile wants it active.
                 // Note that this will not add the plugin to the default profile. That's done below in any other case.
                 wantedByAnyProfile = await this.profileManager.GetWantStateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, false, false);
-                
+
                 // If it is wanted by any other profile, we do want to load it.
                 if (wantedByAnyProfile)
                     loadPlugin = true;
@@ -1646,12 +1647,12 @@ internal class PluginManager : IInternalDisposableService
 #pragma warning disable CS0618
         var defaultState = manifest?.Disabled != true && loadPlugin;
 #pragma warning restore CS0618
-        
+
         // Plugins that aren't in any profile will be added to the default profile with this call.
         // We are skipping a double-lookup for dev plugins that are wanted by non-default profiles, as noted above.
         wantedByAnyProfile = wantedByAnyProfile || await this.profileManager.GetWantStateAsync(plugin.EffectiveWorkingPluginId, plugin.Manifest.InternalName, defaultState);
         Log.Information("{Name} defaultState: {State} wantedByAnyProfile: {WantedByAny} loadPlugin: {LoadPlugin}", plugin.Manifest.InternalName, defaultState, wantedByAnyProfile, loadPlugin);
-        
+
         if (loadPlugin)
         {
             try
@@ -1735,11 +1736,11 @@ internal class PluginManager : IInternalDisposableService
     private void DetectAvailablePluginUpdates()
     {
         Log.Debug("Starting plugin update check...");
-        
+
         lock (this.pluginListLock)
         {
             this.updatablePluginsList.Clear();
-            
+
             foreach (var plugin in this.installedPluginsList)
             {
                 var installedVersion = plugin.IsTesting
@@ -1778,12 +1779,12 @@ internal class PluginManager : IInternalDisposableService
                 }
             }
         }
-        
+
         Log.Debug("Update check found {updateCount} available updates.", this.updatablePluginsList.Count);
     }
 
     private void NotifyAvailablePluginsChanged()
-    { 
+    {
         this.DetectAvailablePluginUpdates();
 
         this.OnAvailablePluginsChanged?.InvokeSafely();
@@ -1831,7 +1832,7 @@ internal class PluginManager : IInternalDisposableService
             using (Timings.Start("PM Load Sync Plugins"))
             {
                 var loadAllPlugins = Task.Run(this.LoadAllPlugins);
-                
+
                 // We wait for all blocking services and tasks to finish before kicking off the main thread in any mode.
                 // This means that we don't want to block here if this stupid thing isn't enabled.
                 if (this.configuration.IsResumeGameAfterPluginLoad)
@@ -1850,12 +1851,12 @@ internal class PluginManager : IInternalDisposableService
             Log.Error(ex, "Plugin load failed");
         }
     }
-    
+
     /// <summary>
     /// Class representing progress of an update operation.
     /// </summary>
     public record PluginUpdateProgress(int PluginsProcessed, int TotalPlugins, IPluginManifest CurrentPluginManifest);
-    
+
     /// <summary>
     /// Simple class that tracks the internal names and public names of plugins that we are planning to load at startup,
     /// and are still actively loading.
@@ -1865,12 +1866,12 @@ internal class PluginManager : IInternalDisposableService
         private readonly Dictionary<string, string> internalToPublic = new();
         private readonly ConcurrentBag<string> allInternalNames = new();
         private readonly ConcurrentBag<string> finishedInternalNames = new();
-        
+
         /// <summary>
         /// Gets a value indicating the total load progress.
         /// </summary>
         public float Progress => (float)this.finishedInternalNames.Count / this.allInternalNames.Count;
-        
+
         /// <summary>
         /// Calculate a set of internal names that are still pending.
         /// </summary>
@@ -1881,7 +1882,7 @@ internal class PluginManager : IInternalDisposableService
             pending.ExceptWith(this.finishedInternalNames);
             return pending;
         }
-        
+
         /// <summary>
         /// Track a new plugin.
         /// </summary>
@@ -1892,7 +1893,7 @@ internal class PluginManager : IInternalDisposableService
             this.internalToPublic[internalName] = publicName;
             this.allInternalNames.Add(internalName);
         }
-    
+
         /// <summary>
         /// Mark a plugin as finished loading.
         /// </summary>
@@ -1901,7 +1902,7 @@ internal class PluginManager : IInternalDisposableService
         {
             this.finishedInternalNames.Add(internalName);
         }
-        
+
         /// <summary>
         /// Get the public name for a given internal name.
         /// </summary>
