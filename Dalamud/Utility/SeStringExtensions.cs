@@ -43,7 +43,7 @@ public static class SeStringExtensions
     /// <param name="macroString">Macro string in UTF-8 to compile and append to <paramref name="ssb"/>.</param>
     /// <returns><c>this</c> for method chaining.</returns>
     [Obsolete($"Use {nameof(LSeStringBuilder)}.{nameof(LSeStringBuilder.AppendMacroString)} directly instead.", true)]
-    [Api11ToDo("Remove")]
+    [Api12ToDo("Remove")]
     public static LSeStringBuilder AppendMacroString(this LSeStringBuilder ssb, ReadOnlySpan<byte> macroString) =>
         ssb.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
 
@@ -52,7 +52,7 @@ public static class SeStringExtensions
     /// <param name="macroString">Macro string in UTF-16 to compile and append to <paramref name="ssb"/>.</param>
     /// <returns><c>this</c> for method chaining.</returns>
     [Obsolete($"Use {nameof(LSeStringBuilder)}.{nameof(LSeStringBuilder.AppendMacroString)} directly instead.", true)]
-    [Api11ToDo("Remove")]
+    [Api12ToDo("Remove")]
     public static LSeStringBuilder AppendMacroString(this LSeStringBuilder ssb, ReadOnlySpan<char> macroString) =>
         ssb.AppendMacroString(macroString, new() { ExceptionMode = MacroStringParseExceptionMode.EmbedError });
 

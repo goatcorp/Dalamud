@@ -27,6 +27,8 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Interface.Windowing.Persistence;
+using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
@@ -60,6 +62,7 @@ namespace Dalamud.Interface.Internal;
 /// This class manages interaction with the ImGui interface.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
+[InherentDependency<WindowSystemPersistence>] // Used by window system windows to restore state from the configuration
 internal partial class InterfaceManager : IInternalDisposableService
 {
     /// <summary>
@@ -73,7 +76,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
     private static readonly ModuleLog Log = new("INTERFACE");
-    
+
     private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
     private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
 
@@ -93,7 +96,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
-    
+
     private readonly AssertHandler assertHandler = new();
 
     private RawDX11Scene? scene;
@@ -274,6 +277,13 @@ internal partial class InterfaceManager : IInternalDisposableService
     {
         get => this.assertHandler.ShowAsserts;
         set => this.assertHandler.ShowAsserts = value;
+    }
+
+    /// <inheritdoc cref="AssertHandler.EnableVerboseLogging"/>
+    public bool EnableVerboseAssertLogging
+    {
+        get => this.assertHandler.EnableVerboseLogging;
+        set => this.assertHandler.EnableVerboseLogging = value;
     }
 
     /// <summary>
@@ -809,14 +819,14 @@ internal partial class InterfaceManager : IInternalDisposableService
                     });
             };
         }
-        
+
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync();
 
         SwapChainHelper.BusyWaitForGameDeviceSwapChain();
         var swapChainDesc = default(DXGI_SWAP_CHAIN_DESC);
         if (SwapChainHelper.GameDeviceSwapChain->GetDesc(&swapChainDesc).SUCCEEDED)
-            this.gameWindowHandle = swapChainDesc.OutputWindow; 
+            this.gameWindowHandle = swapChainDesc.OutputWindow;
 
         try
         {
@@ -959,7 +969,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         switch (this.dalamudConfiguration.SwapChainHookMode)
         {
-            case SwapChainHelper.HookMode.ByteCode: 
+            case SwapChainHelper.HookMode.ByteCode:
             default:
             {
                 Log.Information("Hooking using bytecode...");
@@ -1149,7 +1159,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             catch (Exception ex)
             {
                 Log.Error(ex, "Error when invoking global Draw");
-                
+
                 // We should always handle this in the callbacks.
                 Util.Fatal("An internal error occurred while drawing the Dalamud UI and the game must close.\nPlease report this error.", "Dalamud");
             }

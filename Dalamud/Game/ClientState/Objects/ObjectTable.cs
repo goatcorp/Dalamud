@@ -155,7 +155,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
         };
     }
 
-    [Api11ToDo("Use ThreadSafety.AssertMainThread() instead of this.")]
+    [Api12ToDo("Use ThreadSafety.AssertMainThread() instead of this.")]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool WarnMultithreadedUsage()
     {

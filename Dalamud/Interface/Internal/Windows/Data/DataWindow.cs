@@ -60,6 +60,7 @@ internal class DataWindow : Window, IDisposable
         new ToastWidget(),
         new UiColorWidget(),
         new UldWidget(),
+        new VfsWidget(),
     };
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;

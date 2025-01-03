@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface;
@@ -11,6 +12,7 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
@@ -44,6 +46,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
 
     [JsonIgnore]
     private bool isSaveQueued;
+
+    private Task? writeTask;
 
     /// <summary>
     /// Delegate for the <see cref="DalamudConfiguration.DalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
@@ -261,8 +265,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
     /// on plugin title bars when using the Window System.
     /// </summary>
-    [JsonProperty("EnablePluginUiAdditionalOptionsExperimental")]
-    public bool EnablePluginUiAdditionalOptions { get; set; } = false;
+    public bool EnablePluginUiAdditionalOptions { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
@@ -347,6 +350,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether or not the user has seen the profiles tutorial.
     /// </summary>
     public bool ProfilesHasSeenTutorial { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the default UI preset.
+    /// </summary>
+    public PresetModel DefaultUiPreset { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the order of DTR elements, by title.
@@ -560,6 +568,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     {
         // Make sure that we save, if a save is queued while we are shutting down
         this.Update();
+
+        // Wait for the write task to finish
+        this.writeTask?.Wait();
     }
 
     /// <summary>
@@ -614,8 +625,22 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         if (this.configPath is null)
             throw new InvalidOperationException("configPath is not set.");
 
-        Service<ReliableFileStorage>.Get().WriteAllText(
-            this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
+        // Wait for previous write to finish
+        this.writeTask?.Wait();
+
+        this.writeTask = Task.Run(() =>
+        {
+            Service<ReliableFileStorage>.Get().WriteAllText(
+                this.configPath,
+                JsonConvert.SerializeObject(this, SerializerSettings));
+        }).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save DalamudConfiguration to {Path}", this.configPath);
+            }
+        });
+
         this.DalamudConfigurationSaved?.Invoke(this);
     }
 }

@@ -45,10 +45,6 @@
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
         <DefineConstants>DEBUG;TRACE</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
-        <PathMap>$(AppOutputBase)=C:\goatsoft\companysecrets\injector\</PathMap>
-    </PropertyGroup>
 
     <PropertyGroup Label="Warnings">
         <NoWarn>IDE0003;IDE0044;IDE1006;CS1591;CS1701;CS1702</NoWarn>

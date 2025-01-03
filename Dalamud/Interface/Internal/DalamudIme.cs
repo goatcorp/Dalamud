@@ -37,9 +37,6 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class DalamudIme : IInternalDisposableService
 {
-    private const int CImGuiStbTextCreateUndoOffset = 0xB57A0;
-    private const int CImGuiStbTextUndoOffset = 0xB59C0;
-
     private const int ImePageSize = 9;
 
     private static readonly Dictionary<int, string> WmNames =
@@ -68,11 +65,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         UnicodeRanges.HangulJamoExtendedA,
         UnicodeRanges.HangulJamoExtendedB,
     };
-
-    private static readonly delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, int, int, int, void>
-        StbTextMakeUndoReplace;
-
-    private static readonly delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, void> StbTextUndo;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
@@ -134,13 +126,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         {
             return;
         }
-
-        StbTextMakeUndoReplace =
-            (delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, int, int, int, void>)
-            (cimgui + CImGuiStbTextCreateUndoOffset);
-        StbTextUndo =
-            (delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, void>)
-            (cimgui + CImGuiStbTextUndoOffset);
     }
 
     [ServiceManager.ServiceConstructor]
@@ -1031,14 +1016,14 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 (s, e) = (e, s);
         }
 
-        public void Undo() => StbTextUndo(this.ThisPtr, &this.ThisPtr->Stb);
+        public void Undo() => CustomNativeFunctions.igCustom_StbTextUndo(this.ThisPtr);
 
         public bool MakeUndoReplace(int offset, int oldLength, int newLength)
         {
             if (oldLength == 0 && newLength == 0)
                 return false;
 
-            StbTextMakeUndoReplace(this.ThisPtr, &this.ThisPtr->Stb, offset, oldLength, newLength);
+            CustomNativeFunctions.igCustom_StbTextMakeUndoReplace(this.ThisPtr, offset, oldLength, newLength);
             return true;
         }
 
@@ -1116,9 +1101,15 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
     private static class CustomNativeFunctions
     {
-        [DllImport("cimgui")]
 #pragma warning disable SA1300
+        [DllImport("cimgui")]
         public static extern ImGuiInputTextState* igCustom_GetInputTextState();
+
+        [DllImport("cimgui")]
+        public static extern void igCustom_StbTextMakeUndoReplace(ImGuiInputTextState* str, int where, int old_length, int new_length);
+
+        [DllImport("cimgui")]
+        public static extern void igCustom_StbTextUndo(ImGuiInputTextState* str);
 #pragma warning restore SA1300
     }
 

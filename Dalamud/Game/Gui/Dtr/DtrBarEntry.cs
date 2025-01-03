@@ -145,7 +145,7 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     }
 
     /// <inheritdoc/>
-    [Api11ToDo("Maybe make this config scoped to internalname?")]
+    [Api12ToDo("Maybe make this config scoped to internalname?")]
     public bool UserHidden => this.configuration.DtrIgnore?.Contains(this.Title) ?? false;
 
     /// <summary>

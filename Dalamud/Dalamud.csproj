@@ -10,7 +10,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>11.0.4.0</DalamudVersion>
+        <DalamudVersion>11.0.5.1</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -46,10 +46,6 @@
     </PropertyGroup>
     <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='Debug'">
         <DefineConstants>DEBUG;TRACE</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='Release'">
-        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
-        <PathMap>$(AppOutputBase)=C:\goatsoft\companysecrets\dalamud\</PathMap>
     </PropertyGroup>
 
     <PropertyGroup Label="Warnings">
@@ -204,19 +200,5 @@
     <!-- Copy plugin .targets folder into distrib -->
     <Target Name="CopyPluginTargets" AfterTargets="Build">
         <Copy SourceFiles="$(ProjectDir)\..\targets\Dalamud.Plugin.targets;$(ProjectDir)\..\targets\Dalamud.Plugin.Bootstrap.targets" DestinationFolder="$(OutDir)\targets" />
-    </Target>
-
-    <!-- Copy imgui binaries into distrib -->
-    <!-- TEMP: We will move these to ImGuiScene once it is in-tree -->
-    <!-- Build order is controlled through the solution or nuke -->
-    <Target Name="CopyImGuiBinaries" AfterTargets="Build">
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimgui.dll" DestinationFolder="$(OutDir)" />
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimgui.pdb" DestinationFolder="$(OutDir)" />
-
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimplot.dll" DestinationFolder="$(OutDir)" />
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimplot.pdb" DestinationFolder="$(OutDir)" />
-
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimguizmo.dll" DestinationFolder="$(OutDir)" />
-        <Copy SourceFiles="..\external\x64\$(Configuration)\cimguizmo.pdb" DestinationFolder="$(OutDir)" />
     </Target>
 </Project>

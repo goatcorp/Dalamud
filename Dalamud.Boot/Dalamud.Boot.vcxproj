@@ -28,7 +28,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <LinkIncremental>false</LinkIncremental>
     <CharacterSet>Unicode</CharacterSet>
-    <OutDir>..\bin\$(Configuration)\</OutDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -200,8 +200,10 @@
   <ItemGroup>
     <Manifest Include="themes.manifest" />
   </ItemGroup>
-  <Target Name="RemoveExtraFiles" AfterTargets="PostBuildEvent">
-    <Delete Files="$(OutDir)$(TargetName).lib" />
-    <Delete Files="$(OutDir)$(TargetName).exp" />
+  <Target Name="CopyOutputDlls" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(OutDir)$(TargetName).dll" DestinationFolder="..\bin\$(Configuration)\" />
+    <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="..\bin\$(Configuration)\" />
+
+    <Copy SourceFiles="$(OutDir)nethost.dll" DestinationFolder="..\bin\$(Configuration)\" />
   </Target>
 </Project>
