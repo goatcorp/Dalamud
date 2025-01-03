@@ -2763,7 +2763,8 @@ internal class PluginInstallerWindow : Window, IDisposable
                                              .Where(cInfo =>
                                                         cInfo.Value is { ShowInHelp: true } &&
                                                         commandManager.GetHandlerAssemblyName(cInfo.Key, cInfo.Value) == plugin.Manifest.InternalName)
-                                             .ToArray();
+                                             .OrderBy(cInfo => cInfo.Value.DisplayOrder)
+                                             .ThenBy(cInfo => cInfo.Key);
 
                 if (commands.Any())
                 {
