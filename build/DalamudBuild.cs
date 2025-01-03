@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Nuke.Common;
@@ -26,6 +27,9 @@ public class DalamudBuild : NukeBuild
 
     [Parameter("Whether we are building for documentation - emits generated files")]
     readonly bool IsDocsBuild = false;
+
+    [Parameter("Whether we should skip tests - useful for local builds")]
+    readonly bool SkipTests = false;
 
     [Solution] Solution Solution;
     [GitRepository] GitRepository GitRepository;
@@ -63,6 +67,7 @@ public class DalamudBuild : NukeBuild
     private static Dictionary<string, string> EnvironmentVariables => new(EnvironmentInfo.Variables);
 
     private static string ConsoleTemplate => "{Message:l}{NewLine}{Exception}";
+    private static bool IsCIBuild => Environment.GetEnvironmentVariable("CI") == "true";
 
     Target Restore => _ => _
         .Executes(() =>
@@ -113,8 +118,7 @@ public class DalamudBuild : NukeBuild
                 s = s
                        .SetProjectFile(DalamudProjectFile)
                        .SetConfiguration(Configuration)
-                       .EnableNoRestore()
-                       .SetProcessArgumentConfigurator(a => a.Add("/clp:NoSummary"));
+                       .EnableNoRestore();
 
                 // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
                 // TODO: This fails every build after this because of redefinitions...
@@ -123,6 +127,11 @@ public class DalamudBuild : NukeBuild
                     Log.Warning("Building for documentation, emitting compiler generated files. This can cause issues on Windows due to path-length limitations");
                     s = s
                         .SetProperty("IsDocsBuild", "true");
+                }
+                if (IsCIBuild)
+                {
+                    s = s
+                        .SetProcessArgumentConfigurator(a => a.Add("/clp:NoSummary")); // Disable MSBuild summary on CI builds
                 }
 
                 return s;
@@ -163,8 +172,9 @@ public class DalamudBuild : NukeBuild
                 .SetConfiguration(Configuration));
         });
 
-    Target SetCustomLogging => _ => _
+    Target SetCILogging => _ => _
         .DependentFor(Compile)
+        .OnlyWhenStatic(() => IsCIBuild)
         .Executes(() =>
         {
             Log.Logger = new LoggerConfiguration()
@@ -183,6 +193,7 @@ public class DalamudBuild : NukeBuild
 
     Target Test => _ => _
         .TriggeredBy(Compile)
+        .OnlyWhenStatic(() => !SkipTests)
         .Executes(() =>
         {
             DotNetTasks.DotNetTest(s => s

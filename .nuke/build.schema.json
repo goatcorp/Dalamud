@@ -88,10 +88,14 @@
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
-              "SetCustomLogging",
+              "SetCILogging",
               "Test"
             ]
           }
+        },
+        "SkipTests": {
+          "type": "boolean",
+          "description": "Whether we should skip tests - useful for local builds"
         },
         "Solution": {
           "type": "string",
@@ -115,7 +119,7 @@
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
-              "SetCustomLogging",
+              "SetCILogging",
               "Test"
             ]
           }
