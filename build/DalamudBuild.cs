@@ -28,9 +28,6 @@ public class DalamudBuild : NukeBuild
     [Parameter("Whether we are building for documentation - emits generated files")]
     readonly bool IsDocsBuild = false;
 
-    [Parameter("Whether we should skip tests - useful for local builds")]
-    readonly bool SkipTests = false;
-
     [Solution] Solution Solution;
     [GitRepository] GitRepository GitRepository;
 
@@ -191,9 +188,12 @@ public class DalamudBuild : NukeBuild
     .DependsOn(CompileInjectorBoot)
     ;
 
+    Target CI => _ => _
+        .DependsOn(Compile)
+        .Triggers(Test);
+
     Target Test => _ => _
-        .TriggeredBy(Compile)
-        .OnlyWhenStatic(() => !SkipTests)
+        .DependsOn(Compile)
         .Executes(() =>
         {
             DotNetTasks.DotNetTest(s => s

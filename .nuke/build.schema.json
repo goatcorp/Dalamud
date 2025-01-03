@@ -76,6 +76,7 @@
           "items": {
             "type": "string",
             "enum": [
+              "CI",
               "Clean",
               "Compile",
               "CompileCImGui",
@@ -93,10 +94,6 @@
             ]
           }
         },
-        "SkipTests": {
-          "type": "boolean",
-          "description": "Whether we should skip tests - useful for local builds"
-        },
         "Solution": {
           "type": "string",
           "description": "Path to a solution file that is automatically loaded"
@@ -107,6 +104,7 @@
           "items": {
             "type": "string",
             "enum": [
+              "CI",
               "Clean",
               "Compile",
               "CompileCImGui",
