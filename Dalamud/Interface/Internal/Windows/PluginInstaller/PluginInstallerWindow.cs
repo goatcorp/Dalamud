@@ -2762,14 +2762,14 @@ internal class PluginInstallerWindow : Window, IDisposable
                 var commands = commandManager.Commands
                                              .Where(cInfo =>
                                                         cInfo.Value is { ShowInHelp: true } &&
-                                                        commandManager.GetHandlerAssemblyName(cInfo.Key, cInfo.Value) == plugin.Manifest.InternalName)
-                                             .OrderBy(cInfo => cInfo.Value.DisplayOrder)
-                                             .ThenBy(cInfo => cInfo.Key);
+                                                        commandManager.GetHandlerAssemblyName(cInfo.Key, cInfo.Value) == plugin.Manifest.InternalName);
 
                 if (commands.Any())
                 {
                     ImGui.Dummy(ImGuiHelpers.ScaledVector2(10f, 10f));
-                    foreach (var command in commands)
+                    foreach (var command in commands
+                        .OrderBy(cInfo => cInfo.Value.DisplayOrder)
+                        .ThenBy(cInfo => cInfo.Key))
                     {
                         ImGuiHelpers.SafeTextWrapped($"{command.Key} → {command.Value.HelpMessage}");
                     }
