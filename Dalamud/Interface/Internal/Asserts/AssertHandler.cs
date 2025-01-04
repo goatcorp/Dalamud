@@ -76,7 +76,7 @@ internal class AssertHandler : IDisposable
         if (this.ignoredAsserts.Contains(key))
             return;
 
-        Lazy<string> stackTrace = new(() => new StackTrace(3).ToString());
+        Lazy<string> stackTrace = new(() => DiagnosticUtil.GetUsefulTrace(new StackTrace()).ToString());
 
         if (!this.EnableVerboseLogging)
         {
@@ -124,6 +124,9 @@ internal class AssertHandler : IDisposable
             var fileName = file[(lastSlash + 1)..];
             return $"https://github.com/{userName}/{repoName}/blob/{branch}/{fileName}#L{line}";
         }
+
+        // grab the stack trace now that we've decided to show UI.
+        _ = stackTrace.Value;
 
         var gitHubUrl = GetRepoUrl();
         var showOnGitHubButton = new TaskDialogButton
