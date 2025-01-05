@@ -48,7 +48,7 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     public const int PluginWaitBeforeFreeDefault = 1000; // upped from 500ms, seems more stable
 
-    private static readonly ModuleLog Log = new("PLUGINM");
+    private static readonly ModuleLog Log = ModuleLog.Create<PluginManager>();
 
     private readonly object pluginListLock = new();
     private readonly DirectoryInfo pluginDirectory;
@@ -243,9 +243,9 @@ internal class PluginManager : IInternalDisposableService
     public bool ReposReady { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether the plugin manager started in safe mode.
+    /// Gets or sets a value indicating whether the plugin manager started in safe mode.
     /// </summary>
-    public bool SafeMode { get; init; }
+    public bool SafeMode { get; set; }
 
     /// <summary>
     /// Gets the <see cref="PluginConfigurations"/> object used when initializing plugins.
