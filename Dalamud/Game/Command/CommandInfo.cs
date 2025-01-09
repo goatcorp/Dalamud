@@ -28,7 +28,7 @@ public interface IReadOnlyCommandInfo
     bool ShowInHelp { get; }
 
     /// <summary>
-    /// Gets the display order of this command.
+    /// Gets the display order of this command. Defaults to alphabetical ordering.
     /// </summary>
     int DisplayOrder { get; }
 }
