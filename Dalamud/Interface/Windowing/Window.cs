@@ -378,6 +378,16 @@ public abstract class Window
         {
             ImGuiNativeAdditions.igCustom_WindowSetInheritNoInputs(this.internalIsClickthrough);
 
+            // Not supported yet on non-main viewports
+            if ((this.internalIsPinned || this.internalIsClickthrough || this.internalAlpha.HasValue) &&
+                ImGui.GetWindowViewport().ID != ImGui.GetMainViewport().ID)
+            {
+                this.internalAlpha = null;
+                this.internalIsPinned = false;
+                this.internalIsClickthrough = false;
+                this.presetDirty = true;
+            }
+
             // Draw the actual window contents
             try
             {
