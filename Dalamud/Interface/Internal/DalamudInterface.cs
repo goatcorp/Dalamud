@@ -1012,6 +1012,11 @@ internal class DalamudInterface : IInternalDisposableService
                         pluginManager.LoadBannedPlugins = !pluginManager.LoadBannedPlugins;
                     }
 
+                    if (pluginManager.SafeMode && ImGui.MenuItem("Disable Safe Mode"))
+                    {
+                        pluginManager.SafeMode = false;
+                    }
+
                     ImGui.Separator();
                     ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
                     ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count(), false);
