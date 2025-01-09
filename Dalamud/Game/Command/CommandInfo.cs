@@ -11,7 +11,7 @@ public interface IReadOnlyCommandInfo
     /// <param name="command">The command itself.</param>
     /// <param name="arguments">The arguments supplied to the command, ready for parsing.</param>
     public delegate void HandlerDelegate(string command, string arguments);
-    
+
     /// <summary>
     /// Gets a <see cref="HandlerDelegate"/> which will be called when the command is dispatched.
     /// </summary>
@@ -26,6 +26,11 @@ public interface IReadOnlyCommandInfo
     /// Gets a value indicating whether if this command should be shown in the help output.
     /// </summary>
     bool ShowInHelp { get; }
+
+    /// <summary>
+    /// Gets the display order of this command. Defaults to alphabetical ordering.
+    /// </summary>
+    int DisplayOrder { get; }
 }
 
 /// <summary>
@@ -51,4 +56,7 @@ public sealed class CommandInfo : IReadOnlyCommandInfo
 
     /// <inheritdoc/>
     public bool ShowInHelp { get; set; } = true;
+
+    /// <inheritdoc/>
+    public int DisplayOrder { get; set; } = -1;
 }
