@@ -24,6 +24,8 @@ internal class AssertHandler : IDisposable
     // Store callback to avoid it from being GC'd
     private readonly AssertCallbackDelegate callback;
 
+    private bool everShownAssertThisSession = false;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertHandler"/> class.
     /// </summary>
@@ -76,6 +78,10 @@ internal class AssertHandler : IDisposable
         if (this.ignoredAsserts.Contains(key))
             return;
 
+        // Don't log unless we've ever shown an assert this session
+        if (!this.ShowAsserts && !this.everShownAssertThisSession)
+            return;
+
         Lazy<string> stackTrace = new(() => DiagnosticUtil.GetUsefulTrace(new StackTrace()).ToString());
 
         if (!this.EnableVerboseLogging)
@@ -109,6 +115,8 @@ internal class AssertHandler : IDisposable
 
         if (!this.ShowAsserts)
             return;
+
+        this.everShownAssertThisSession = true;
 
         string? GetRepoUrl()
         {
