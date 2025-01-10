@@ -71,6 +71,10 @@ public class DalamudBuild : NukeBuild
     Target CompileCImGui => _ => _
         .Executes(() =>
         {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
             MSBuildTasks.MSBuild(s => s
                 .SetTargetPath(CImGuiProjectFile)
                 .SetConfiguration(Configuration)
@@ -80,6 +84,10 @@ public class DalamudBuild : NukeBuild
     Target CompileCImPlot => _ => _
         .Executes(() =>
         {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
             MSBuildTasks.MSBuild(s => s
                 .SetTargetPath(CImPlotProjectFile)
                 .SetConfiguration(Configuration)
@@ -89,6 +97,10 @@ public class DalamudBuild : NukeBuild
     Target CompileCImGuizmo => _ => _
         .Executes(() =>
         {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
             MSBuildTasks.MSBuild(s => s
                 .SetTargetPath(CImGuizmoProjectFile)
                 .SetConfiguration(Configuration)
