@@ -126,12 +126,12 @@ public class DalamudBuild : NukeBuild
 
                 // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
                 // TODO: This fails every build after this because of redefinitions...
-                if (IsDocsBuild)
-                { 
-                    Log.Warning("Building for documentation, emitting compiler generated files. This can cause issues on Windows due to path-length limitations");
-                    s = s
-                        .SetProperty("IsDocsBuild", "true");
-                }
+                // if (IsDocsBuild)
+                // { 
+                //     Log.Warning("Building for documentation, emitting compiler generated files. This can cause issues on Windows due to path-length limitations");
+                //     s = s
+                //         .SetProperty("IsDocsBuild", "true");
+                // }
 
                 return s;
             });
