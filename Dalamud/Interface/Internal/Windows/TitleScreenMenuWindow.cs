@@ -11,7 +11,6 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Interface.Animation.EasingFunctions;
-using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -398,9 +397,14 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         // Drop shadow
         ImGui.SetCursorPos(cursor);
-        var renderStyle = default(SeStringDrawParams);
-        renderStyle.FontSize = TargetFontSizePx;
-        ImGuiHelpers.CompileSeStringWrapped($"<edge(1)><shadow(1)>{entry.Name}<shadow(0)><edge(0)>", renderStyle);
+        ImGuiHelpers.SeStringWrapped(
+            ReadOnlySeString.FromText(entry.Name),
+            new()
+            {
+                FontSize = TargetFontSizePx * ImGui.GetIO().FontGlobalScale,
+                Edge = true,
+                Shadow = true,
+            });
 
         if (overrideAlpha)
         {
