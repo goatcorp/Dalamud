@@ -498,6 +498,7 @@ public abstract class Window
                 Click = _ =>
                 {
                     this.internalIsClickthrough = false;
+                    this.presetDirty = false;
                     ImGui.OpenPopup(additionsPopupName);
                 },
                 Priority = int.MinValue,
