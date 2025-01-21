@@ -76,6 +76,10 @@ public class DalamudBuild : NukeBuild
     Target CompileCImGui => _ => _
         .Executes(() =>
         {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
             MSBuildTasks.MSBuild(s => s
                 .SetTargetPath(CImGuiProjectFile)
                 .SetConfiguration(Configuration)
@@ -85,6 +89,10 @@ public class DalamudBuild : NukeBuild
     Target CompileCImPlot => _ => _
         .Executes(() =>
         {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
             MSBuildTasks.MSBuild(s => s
                 .SetTargetPath(CImPlotProjectFile)
                 .SetConfiguration(Configuration)
@@ -94,6 +102,10 @@ public class DalamudBuild : NukeBuild
     Target CompileCImGuizmo => _ => _
         .Executes(() =>
         {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
             MSBuildTasks.MSBuild(s => s
                 .SetTargetPath(CImGuizmoProjectFile)
                 .SetConfiguration(Configuration)
@@ -116,21 +128,20 @@ public class DalamudBuild : NukeBuild
                        .SetProjectFile(DalamudProjectFile)
                        .SetConfiguration(Configuration)
                        .EnableNoRestore();
-
-                // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
-                // TODO: This fails every build after this because of redefinitions...
-                if (IsDocsBuild)
-                { 
-                    Log.Warning("Building for documentation, emitting compiler generated files. This can cause issues on Windows due to path-length limitations");
-                    s = s
-                        .SetProperty("IsDocsBuild", "true");
-                }
                 if (IsCIBuild)
                 {
                     s = s
                         .SetProcessArgumentConfigurator(a => a.Add("/clp:NoSummary")); // Disable MSBuild summary on CI builds
                 }
+                // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
+                // TODO: This fails every build after this because of redefinitions...
 
+                // if (IsDocsBuild)
+                // { 
+                //     Log.Warning("Building for documentation, emitting compiler generated files. This can cause issues on Windows due to path-length limitations");
+                //     s = s
+                //         .SetProperty("IsDocsBuild", "true");
+                // }
                 return s;
             });
         });

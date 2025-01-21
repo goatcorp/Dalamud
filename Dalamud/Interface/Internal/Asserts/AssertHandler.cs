@@ -24,6 +24,8 @@ internal class AssertHandler : IDisposable
     // Store callback to avoid it from being GC'd
     private readonly AssertCallbackDelegate callback;
 
+    private bool everShownAssertThisSession = false;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertHandler"/> class.
     /// </summary>
@@ -76,7 +78,11 @@ internal class AssertHandler : IDisposable
         if (this.ignoredAsserts.Contains(key))
             return;
 
-        Lazy<string> stackTrace = new(() => new StackTrace(3).ToString());
+        // Don't log unless we've ever shown an assert this session
+        if (!this.ShowAsserts && !this.everShownAssertThisSession)
+            return;
+
+        Lazy<string> stackTrace = new(() => DiagnosticUtil.GetUsefulTrace(new StackTrace()).ToString());
 
         if (!this.EnableVerboseLogging)
         {
@@ -110,6 +116,8 @@ internal class AssertHandler : IDisposable
         if (!this.ShowAsserts)
             return;
 
+        this.everShownAssertThisSession = true;
+
         string? GetRepoUrl()
         {
             // TODO: implot, imguizmo?
@@ -124,6 +132,9 @@ internal class AssertHandler : IDisposable
             var fileName = file[(lastSlash + 1)..];
             return $"https://github.com/{userName}/{repoName}/blob/{branch}/{fileName}#L{line}";
         }
+
+        // grab the stack trace now that we've decided to show UI.
+        _ = stackTrace.Value;
 
         var gitHubUrl = GetRepoUrl();
         var showOnGitHubButton = new TaskDialogButton
