@@ -16,7 +16,7 @@ internal record RemotePluginManifest : PluginManifest
     /// </summary>
     [JsonIgnore]
     public PluginRepository SourceRepo { get; set; } = null!;
-    
+
     /// <summary>
     /// Gets or sets the changelog to be shown when obtaining the testing version of the plugin.
     /// </summary>

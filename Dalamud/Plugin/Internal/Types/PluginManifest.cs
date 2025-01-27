@@ -145,13 +145,14 @@ internal record PluginManifest : IPluginManifest
     /// <inheritdoc/>
     public string? IconUrl { get; init; }
 
-    /// <summary>
-    /// Gets a value indicating whether this plugin accepts feedback.
-    /// </summary>
+    /// <inheritdoc/>
     public bool AcceptsFeedback { get; init; } = true;
 
     /// <inheritdoc/>
     public string? FeedbackMessage { get; init; }
+
+    /// <inheritdoc/>
+    public string? FeedbackWebhook { get; init; }
 
     /// <inheritdoc/>
     [JsonProperty("_Dip17Channel")]
