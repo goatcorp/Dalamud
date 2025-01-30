@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Injector
@@ -910,5 +911,46 @@ namespace Dalamud.Injector
             uint dwDesiredAccess,
             [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle,
             DuplicateOptions dwOptions);
+
+        /// <summary>
+        /// Retrieves the address of an exported function or variable from the specified dynamic-link library (DLL).
+        /// </summary>
+        /// <param name="hModule">
+        /// A handle to the DLL module that contains the function or variable. The LoadLibrary, LoadLibraryEx, LoadPackagedLibrary,
+        /// or GetModuleHandle function returns this handle. The GetProcAddress function does not retrieve addresses from modules
+        /// that were loaded using the LOAD_LIBRARY_AS_DATAFILE flag.For more information, see LoadLibraryEx.
+        /// </param>
+        /// <param name="procName">
+        /// The function or variable name, or the function's ordinal value. If this parameter is an ordinal value, it must be
+        /// in the low-order word; the high-order word must be zero.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is the address of the exported function or variable. If the function
+        /// fails, the return value is NULL.To get extended error information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+        [SuppressMessage("Globalization", "CA2101:Specify marshaling for P/Invoke string arguments", Justification = "Ansi only")]
+        public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
+        /// <summary>
+        /// See https://docs.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-getmodulehandlew.
+        /// Retrieves a module handle for the specified module. The module must have been loaded by the calling process. To
+        /// avoid the race conditions described in the Remarks section, use the GetModuleHandleEx function.
+        /// </summary>
+        /// <param name="lpModuleName">
+        /// The name of the loaded module (either a .dll or .exe file). If the file name extension is omitted, the default
+        /// library extension .dll is appended. The file name string can include a trailing point character (.) to indicate
+        /// that the module name has no extension. The string does not have to specify a path. When specifying a path, be sure
+        /// to use backslashes (\), not forward slashes (/). The name is compared (case independently) to the names of modules
+        /// currently mapped into the address space of the calling process. If this parameter is NULL, GetModuleHandle returns
+        /// a handle to the file used to create the calling process (.exe file). The GetModuleHandle function does not retrieve
+        /// handles for modules that were loaded using the LOAD_LIBRARY_AS_DATAFILE flag.For more information, see LoadLibraryEx.
+        /// </param>
+        /// <returns>
+        /// If the function succeeds, the return value is a handle to the specified module. If the function fails, the return
+        /// value is NULL.To get extended error information, call GetLastError.
+        /// </returns>
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+        public static extern IntPtr GetModuleHandleW(string lpModuleName);
     }
 }
