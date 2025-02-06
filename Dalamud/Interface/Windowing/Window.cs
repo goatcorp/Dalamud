@@ -432,7 +432,7 @@ public abstract class Window
                     }
 
                     ImGuiComponents.HelpMarker(
-                        Loc.Localize("WindowSystemContextActionPinHint", "Pinned windows will not move or resize when you click and drag them."));
+                        Loc.Localize("WindowSystemContextActionPinHint", "Pinned windows will not move or resize when you click and drag them, nor will they close when escape is pressed."));
                 }
 
                 if (this.internalIsClickthrough)
