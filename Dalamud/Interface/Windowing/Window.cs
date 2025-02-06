@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using CheapLoc;
+
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -15,7 +16,9 @@ using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.Logging.Internal;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+
 using ImGuiNET;
+
 using PInvoke;
 
 namespace Dalamud.Interface.Windowing;
@@ -429,7 +432,7 @@ public abstract class Window
                     }
 
                     ImGuiComponents.HelpMarker(
-                        Loc.Localize("WindowSystemContextActionPinHint", "Pinned windows will not move or resize when you click and drag them."));
+                        Loc.Localize("WindowSystemContextActionPinHint", "Pinned windows will not move or resize when you click and drag them, nor will they close when escape is pressed."));
                 }
 
                 if (this.internalIsClickthrough)
@@ -521,7 +524,7 @@ public abstract class Window
 
         this.IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
 
-        if (internalDrawFlags.HasFlag(WindowDrawFlags.UseFocusManagement))
+        if (internalDrawFlags.HasFlag(WindowDrawFlags.UseFocusManagement) && !this.internalIsPinned)
         {
             var escapeDown = Service<KeyState>.Get()[VirtualKey.ESCAPE];
             if (escapeDown && this.IsFocused && !wasEscPressedLastFrame && this.RespectCloseHotkey)
@@ -701,7 +704,7 @@ public abstract class Window
                 drawList.AddCircleFilled(GetCenter(bb) + new Vector2(0.0f, -0.5f), (fontSize * 0.5f) + 1.0f, bgCol);
 
             var offset = button.IconOffset * ImGuiHelpers.GlobalScale;
-            drawList.AddText(InterfaceManager.IconFont, (float)(fontSize * 0.8),  new Vector2(bb.X + offset.X, bb.Y + offset.Y), textCol, button.Icon.ToIconString());
+            drawList.AddText(InterfaceManager.IconFont, (float)(fontSize * 0.8), new Vector2(bb.X + offset.X, bb.Y + offset.Y), textCol, button.Icon.ToIconString());
 
             if (hovered)
                 button.ShowTooltip?.Invoke();
