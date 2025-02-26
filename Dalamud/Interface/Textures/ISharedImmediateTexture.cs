@@ -11,7 +11,6 @@ namespace Dalamud.Interface.Textures;
 /// <summary>A texture with a backing instance of <see cref="IDalamudTextureWrap"/> that is shared across multiple
 /// requesters.</summary>
 /// <remarks>
-/// <para>Calling <see cref="IDisposable.Dispose"/> on this interface is a no-op.</para>
 /// <para><see cref="GetWrapOrEmpty"/> and <see cref="TryGetWrap"/> may stop returning the intended texture at any point.
 /// Use <see cref="RentAsync"/> to lock the texture for use in any thread for any duration.</para>
 /// </remarks>
