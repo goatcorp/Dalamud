@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Timers;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
@@ -22,9 +23,17 @@ internal class HookManager : IInternalDisposableService
     /// </summary>
     internal static readonly ModuleLog Log = new("HM");
 
+    /// <summary>
+    /// A timer to check for disposed hooks, removing them from the tracked hooks if disposed, this must be done to allow for plugins to garbage collect properly.
+    /// </summary>
+    private readonly Timer hookCheckTimer;
+
     [ServiceManager.ServiceConstructor]
     private HookManager()
     {
+        this.hookCheckTimer = new Timer(5000) { AutoReset = true };
+        this.hookCheckTimer.Elapsed += this.HookCheckTimerOnElapsed;
+        this.hookCheckTimer.Start();
     }
 
     /// <summary>
@@ -77,6 +86,8 @@ internal class HookManager : IInternalDisposableService
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
+        this.hookCheckTimer.Stop();
+        this.hookCheckTimer.Dispose();
         RevertHooks();
         TrackedHooks.Clear();
         Unhookers.Clear();
@@ -160,6 +171,24 @@ internal class HookManager : IInternalDisposableService
         foreach (var unhooker in Unhookers.Values)
         {
             unhooker.Unhook();
+        }
+    }
+
+    private void HookCheckTimerOnElapsed(object? sender, ElapsedEventArgs e)
+    {
+        var toRemove = new List<Guid>();
+
+        foreach (var hook in TrackedHooks)
+        {
+            if (hook.Value.Hook.IsDisposed)
+            {
+                toRemove.Add(hook.Key);
+            }
+        }
+
+        foreach (var guid in toRemove)
+        {
+            TrackedHooks.TryRemove(guid, out _);
         }
     }
 }
