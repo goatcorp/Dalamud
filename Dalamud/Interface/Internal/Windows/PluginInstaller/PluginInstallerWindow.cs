@@ -755,8 +755,9 @@ internal class PluginInstallerWindow : Window, IDisposable
             Service<DalamudInterface>.Get().OpenSettings();
         }
 
-        // If any dev plugins are installed, allow a shortcut for the /xldev menu item
-        if (this.hasDevPlugins)
+        // If any dev plugin locations exist, allow a shortcut for the /xldev menu item
+        var hasDevPluginLocations = configuration.DevPluginLoadLocations.Count > 0;
+        if (hasDevPluginLocations)
         {
             ImGui.SameLine();
             if (ImGui.Button(Locs.FooterButton_ScanDevPlugins))
