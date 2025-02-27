@@ -44,13 +44,6 @@ public class ModuleLog
     }
 
     /// <summary>
-    /// Helper method to create a new <see cref="ModuleLog"/> instance based on a type.
-    /// </summary>
-    /// <typeparam name="T">The class to create this ModuleLog for.</typeparam>
-    /// <returns>Returns a ModuleLog with name set.</returns>
-    internal static ModuleLog Create<T>() => new(typeof(T));
-
-    /// <summary>
     /// Log a templated verbose message to the in-game debug log.
     /// </summary>
     /// <param name="messageTemplate">The message template.</param>
@@ -183,4 +176,11 @@ public class ModuleLog
             messageTemplate: $"[{this.moduleName}] {messageTemplate}",
             values);
     }
+
+    /// <summary>
+    /// Helper method to create a new <see cref="ModuleLog"/> instance based on a type.
+    /// </summary>
+    /// <typeparam name="T">The class to create this ModuleLog for.</typeparam>
+    /// <returns>Returns a ModuleLog with name set.</returns>
+    internal static ModuleLog Create<T>() => new(typeof(T));
 }
