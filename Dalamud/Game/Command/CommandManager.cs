@@ -10,6 +10,7 @@ using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -149,6 +150,11 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
+        if (this.commandAssemblyNameMap.FindFirst(c => c.Key.Item1 == command, out var assemblyKeyValuePair))
+        {
+            this.commandAssemblyNameMap.TryRemove(assemblyKeyValuePair.Key, out _);
+        }
+
         return this.commandMap.Remove(command, out _);
     }
 
