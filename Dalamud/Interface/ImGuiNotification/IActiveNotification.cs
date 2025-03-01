@@ -7,6 +7,8 @@ using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface.ImGuiNotification;
 
+using Textures;
+
 /// <summary>Represents an active notification.</summary>
 /// <remarks>Not to be implemented by plugins.</remarks>
 public interface IActiveNotification : INotification
@@ -52,6 +54,14 @@ public interface IActiveNotification : INotification
     /// <remarks>This does not override <see cref="INotification.HardExpiry"/>.</remarks>
     void ExtendBy(TimeSpan extension);
 
+    /// <summary>Sets the icon from <see cref="ISharedImmediateTexture"/>, overriding the icon.</summary>
+    /// <param name="sharedImmediateTexture">The new shared immediate texture to use, or null to clear and revert back to the icon specified
+    /// from <see cref="INotification.Icon"/>.</param>
+    /// <remarks>
+    /// <para>If you need to provide a IDalamudTextureWrap that you will be responsible for disposing of, wrap it with <see cref="ForwardingSharedImmediateTexture"/>.</para>
+    /// </remarks>
+    void SetIconTexture(ISharedImmediateTexture? sharedImmediateTexture);
+
     /// <summary>Sets the icon from <see cref="IDalamudTextureWrap"/>, overriding the icon.</summary>
     /// <param name="textureWrap">The new texture wrap to use, or null to clear and revert back to the icon specified
     /// from <see cref="INotification.Icon"/>.</param>
@@ -61,6 +71,7 @@ public interface IActiveNotification : INotification
     /// <para>If <see cref="DismissReason"/> is not <c>null</c>, then calling this function will simply dispose the
     /// passed <paramref name="textureWrap"/> without actually updating the icon.</para>
     /// </remarks>
+    [Obsolete("Will be removed in API11")]
     void SetIconTexture(IDalamudTextureWrap? textureWrap);
 
     /// <summary>Sets the icon from <see cref="IDalamudTextureWrap"/>, overriding the icon, once the given task
@@ -76,6 +87,7 @@ public interface IActiveNotification : INotification
     /// <para>If <see cref="DismissReason"/> is not <c>null</c>, then calling this function will simply dispose the
     /// result of the passed <paramref name="textureWrapTask"/> without actually updating the icon.</para>
     /// </remarks>
+    [Obsolete("Will be removed in API11")]
     void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask);
 
     /// <summary>Sets the icon from <see cref="IDalamudTextureWrap"/>, overriding the icon.</summary>
@@ -90,6 +102,7 @@ public interface IActiveNotification : INotification
     /// calling this function will simply dispose the passed <paramref name="textureWrap"/> without actually updating
     /// the icon.</para>
     /// </remarks>
+    [Obsolete("Will be removed in API11")]
     void SetIconTexture(IDalamudTextureWrap? textureWrap, bool leaveOpen);
 
     /// <summary>Sets the icon from <see cref="IDalamudTextureWrap"/>, overriding the icon, once the given task
@@ -108,6 +121,7 @@ public interface IActiveNotification : INotification
     /// <para>If <see cref="DismissReason"/> is not <c>null</c>, then calling this function will simply dispose the
     /// result of the passed <paramref name="textureWrapTask"/> without actually updating the icon.</para>
     /// </remarks>
+    [Obsolete("Will be removed in API11")]
     void SetIconTexture(Task<IDalamudTextureWrap?>? textureWrapTask, bool leaveOpen);
 
     /// <summary>Generates a new value to use for <see cref="Id"/>.</summary>
