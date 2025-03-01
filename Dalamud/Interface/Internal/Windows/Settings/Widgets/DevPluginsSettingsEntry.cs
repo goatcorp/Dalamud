@@ -206,6 +206,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
     private void AddDevPlugin()
     {
+        this.devPluginTempLocation = this.devPluginTempLocation.Trim('"');
         if (this.devPluginLocations.Any(
                 r => string.Equals(r.Path, this.devPluginTempLocation, StringComparison.InvariantCultureIgnoreCase)))
         {
@@ -224,7 +225,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             this.devPluginLocations.Add(
                 new DevPluginLocationSettings
                 {
-                    Path = this.devPluginTempLocation.Replace("\"", string.Empty),
+                    Path = this.devPluginTempLocation,
                     IsEnabled = true,
                 });
             this.devPluginLocationsChanged = true;
