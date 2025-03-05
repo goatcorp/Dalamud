@@ -47,6 +47,7 @@ internal class DataWindow : Window, IDisposable
         new KeyStateWidget(),
         new MarketBoardWidget(),
         new NetworkMonitorWidget(),
+        new NounProcessorWidget(),
         new ObjectTableWidget(),
         new PartyListWidget(),
         new PluginIpcWidget(),

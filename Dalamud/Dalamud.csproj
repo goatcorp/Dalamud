@@ -4,7 +4,7 @@
         <TargetFramework>net8.0-windows</TargetFramework>
         <PlatformTarget>x64</PlatformTarget>
         <Platforms>x64</Platforms>
-        <LangVersion>12.0</LangVersion>
+        <LangVersion>13.0</LangVersion>
         <EnableWindowsTargeting>True</EnableWindowsTargeting>
     </PropertyGroup>
 
