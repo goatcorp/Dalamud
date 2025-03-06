@@ -53,6 +53,7 @@ internal class DataWindow : Window, IDisposable
         new PluginIpcWidget(),
         new SeFontTestWidget(),
         new ServicesWidget(),
+        new SeStringCreator(),
         new SeStringRendererTestWidget(),
         new StartInfoWidget(),
         new TargetWidget(),
