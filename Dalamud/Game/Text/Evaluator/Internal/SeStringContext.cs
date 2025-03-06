@@ -10,22 +10,22 @@ namespace Dalamud.Game.Text.Evaluator.Internal;
 /// <summary>
 /// A context wrapper used in <see cref="SeStringEvaluator"/>.
 /// </summary>
-internal ref struct SeStringContext
+internal readonly ref struct SeStringContext
 {
     /// <summary>
     /// The <see cref="SeStringBuilder"/> to append text and macros to.
     /// </summary>
-    internal ref SeStringBuilder Builder;
+    internal readonly SeStringBuilder Builder;
 
     /// <summary>
     /// A list of local parameters.
     /// </summary>
-    internal Span<SeStringParameter> LocalParameters;
+    internal readonly Span<SeStringParameter> LocalParameters;
 
     /// <summary>
     /// The target language, used for sheet lookups.
     /// </summary>
-    internal ClientLanguage Language;
+    internal readonly ClientLanguage Language;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SeStringContext"/> struct.
@@ -33,9 +33,9 @@ internal ref struct SeStringContext
     /// <param name="builder">The <see cref="SeStringBuilder"/> to append text and macros to.</param>
     /// <param name="localParameters">A list of local parameters.</param>
     /// <param name="language">The target language, used for sheet lookups.</param>
-    internal SeStringContext(ref SeStringBuilder builder, Span<SeStringParameter> localParameters, ClientLanguage language)
+    internal SeStringContext(SeStringBuilder builder, Span<SeStringParameter> localParameters, ClientLanguage language)
     {
-        this.Builder = ref builder;
+        this.Builder = builder;
         this.LocalParameters = localParameters;
         this.Language = language;
     }
@@ -53,9 +53,9 @@ internal ref struct SeStringContext
     /// <returns><c>true</c> if the local parameters list contained a parameter at given index, <c>false</c> otherwise.</returns>
     internal bool TryGetLNum(int index, out uint value)
     {
-        if (index >= 0 && this.LocalParameters.Length > index && this.LocalParameters[index] is SeStringParameter { } val)
+        if (index >= 0 && this.LocalParameters.Length > index)
         {
-            value = val.UIntValue;
+            value = this.LocalParameters[index].UIntValue;
             return true;
         }
 
@@ -71,9 +71,9 @@ internal ref struct SeStringContext
     /// <returns><c>true</c> if the local parameters list contained a parameter at given index, <c>false</c> otherwise.</returns>
     internal bool TryGetLStr(int index, out ReadOnlySeString value)
     {
-        if (index >= 0 && this.LocalParameters.Length > index && this.LocalParameters[index] is SeStringParameter { } val)
+        if (index >= 0 && this.LocalParameters.Length > index)
         {
-            value = val.StringValue;
+            value = this.LocalParameters[index].StringValue;
             return true;
         }
 

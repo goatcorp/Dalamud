@@ -227,7 +227,10 @@ internal class SeStringCreator : IDataWindowWidget
 
         this.localParameters ??= this.GetLocalParameters(this.input.AsSpan(), []);
 
-        var evaluated = Service<SeStringEvaluator>.Get().Evaluate(this.input.AsSpan(), this.localParameters, this.language);
+        var evaluated = Service<SeStringEvaluator>.Get().Evaluate(
+            this.input.AsSpan(),
+            this.localParameters,
+            this.language);
 
         ImGui.SameLine();
         using var child = ImRaii.Child("Preview", new Vector2(ImGui.GetContentRegionAvail().X, -1));

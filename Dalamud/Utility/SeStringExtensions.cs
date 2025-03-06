@@ -170,7 +170,10 @@ public static class SeStringExtensions
     /// <param name="toFind">The text to find.</param>
     /// <param name="replacement">The replacement text.</param>
     /// <returns>A new <see cref="ReadOnlySeString"/> with the replacements made.</returns>
-    public static ReadOnlySeString ReplaceText(this ReadOnlySeString ross, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
+    public static ReadOnlySeString ReplaceText(
+        this ReadOnlySeString ross,
+        ReadOnlySpan<byte> toFind,
+        ReadOnlySpan<byte> replacement)
     {
         if (ross.IsEmpty)
             return ross;
@@ -226,7 +229,10 @@ public static class SeStringExtensions
     /// <param name="builder">The builder to modify.</param>
     /// <param name="toFind">The text to find.</param>
     /// <param name="replacement">The replacement text.</param>
-    public static void ReplaceText(this LSeStringBuilder builder, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
+    public static void ReplaceText(
+        this LSeStringBuilder builder,
+        ReadOnlySpan<byte> toFind,
+        ReadOnlySpan<byte> replacement)
     {
         if (toFind.IsEmpty)
             return;
@@ -235,7 +241,7 @@ public static class SeStringExtensions
         if (str.IsEmpty)
             return;
 
-        builder.Clear();
-        builder.Append(ReplaceText(str, toFind, replacement));
+        var replaced = ReplaceText(new ReadOnlySeString(builder.GetViewAsMemory()), toFind, replacement);
+        builder.Clear().Append(replaced);
     }
 }
