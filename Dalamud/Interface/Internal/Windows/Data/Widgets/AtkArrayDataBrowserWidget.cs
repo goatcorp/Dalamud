@@ -57,24 +57,6 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
         this.DrawExtendArrayTab();
     }
 
-    private static void DrawCopyableText(string text, string tooltipText)
-    {
-        ImGuiHelpers.SafeTextWrapped(text);
-
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            ImGui.BeginTooltip();
-            ImGui.TextUnformatted(tooltipText);
-            ImGui.EndTooltip();
-        }
-
-        if (ImGui.IsItemClicked())
-        {
-            ImGui.SetClipboardText(text);
-        }
-    }
-
     private void DrawArrayList(Type? arrayType, int arrayCount, short* arrayKeys, AtkArrayData** arrays, ref int selectedIndex)
     {
         using var table = ImRaii.Table("ArkArrayTable", 3, ImGuiTableFlags.ScrollY | ImGuiTableFlags.Borders, new Vector2(300, -1));
@@ -162,7 +144,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
         ImGui.SameLine();
         ImGui.TextUnformatted("Address: ");
         ImGui.SameLine(0, 0);
-        DrawCopyableText($"0x{(nint)array:X}", "Copy address");
+        WidgetUtil.DrawCopyableText($"0x{(nint)array:X}", "Copy address");
 
         if (array->SubscribedAddonsCount > 0)
         {
@@ -238,22 +220,22 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             var ptr = &array->IntArray[i];
 
             ImGui.TableNextColumn(); // Address
-            DrawCopyableText($"0x{(nint)ptr:X}", "Copy entry address");
+            WidgetUtil.DrawCopyableText($"0x{(nint)ptr:X}", "Copy entry address");
 
             ImGui.TableNextColumn(); // Integer
-            DrawCopyableText((*ptr).ToString(), "Copy value");
+            WidgetUtil.DrawCopyableText((*ptr).ToString(), "Copy value");
 
             ImGui.TableNextColumn(); // Short
-            DrawCopyableText((*(short*)ptr).ToString(), "Copy as short");
+            WidgetUtil.DrawCopyableText((*(short*)ptr).ToString(), "Copy as short");
 
             ImGui.TableNextColumn(); // Byte
-            DrawCopyableText((*(byte*)ptr).ToString(), "Copy as byte");
+            WidgetUtil.DrawCopyableText((*(byte*)ptr).ToString(), "Copy as byte");
 
             ImGui.TableNextColumn(); // Float
-            DrawCopyableText((*(float*)ptr).ToString(), "Copy as float");
+            WidgetUtil.DrawCopyableText((*(float*)ptr).ToString(), "Copy as float");
 
             ImGui.TableNextColumn(); // Hex
-            DrawCopyableText($"0x{array->IntArray[i]:X2}", "Copy Hex");
+            WidgetUtil.DrawCopyableText($"0x{array->IntArray[i]:X2}", "Copy Hex");
         }
     }
 
@@ -333,11 +315,11 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             if (this.showTextAddress)
             {
                 if (!isNull)
-                    DrawCopyableText($"0x{(nint)array->StringArray[i]:X}", "Copy text address");
+                    WidgetUtil.DrawCopyableText($"0x{(nint)array->StringArray[i]:X}", "Copy text address");
             }
             else
             {
-                DrawCopyableText($"0x{(nint)(&array->StringArray[i]):X}", "Copy entry address");
+                WidgetUtil.DrawCopyableText($"0x{(nint)(&array->StringArray[i]):X}", "Copy entry address");
             }
 
             ImGui.TableNextColumn(); // Managed
@@ -351,7 +333,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             {
                 if (this.showMacroString)
                 {
-                    DrawCopyableText(new ReadOnlySeStringSpan(array->StringArray[i]).ToString(), "Copy text");
+                    WidgetUtil.DrawCopyableText(new ReadOnlySeStringSpan(array->StringArray[i]).ToString(), "Copy text");
                 }
                 else
                 {
@@ -408,11 +390,11 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
             ImGui.TextUnformatted($"#{i}");
 
             ImGui.TableNextColumn(); // Address
-            DrawCopyableText($"0x{(nint)(&array->DataArray[i]):X}", "Copy entry address");
+            WidgetUtil.DrawCopyableText($"0x{(nint)(&array->DataArray[i]):X}", "Copy entry address");
 
             ImGui.TableNextColumn(); // Pointer
             if (!isNull)
-                DrawCopyableText($"0x{(nint)array->DataArray[i]:X}", "Copy address");
+                WidgetUtil.DrawCopyableText($"0x{(nint)array->DataArray[i]:X}", "Copy address");
         }
     }
 }
