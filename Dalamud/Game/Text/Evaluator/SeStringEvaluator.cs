@@ -726,62 +726,61 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         switch (column.Type)
         {
             case ExcelColumnDataType.String:
-                context.Builder.Append(
-                    $"{this.Evaluate(row.ReadString(column.Offset), [eColParamValue], context.Language)}");
+                context.Builder.Append(this.Evaluate(row.ReadString(column.Offset), [eColParamValue], context.Language));
                 return true;
             case ExcelColumnDataType.Bool:
-                context.Builder.Append($"{(row.ReadBool(column.Offset) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadBool(column.Offset) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.Int8:
-                context.Builder.Append($"{row.ReadInt8(column.Offset):D}");
+                context.Builder.Append(row.ReadInt8(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.UInt8:
-                context.Builder.Append($"{row.ReadUInt8(column.Offset):D}");
+                context.Builder.Append(row.ReadUInt8(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.Int16:
-                context.Builder.Append($"{row.ReadInt16(column.Offset):D}");
+                context.Builder.Append(row.ReadInt16(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.UInt16:
-                context.Builder.Append($"{row.ReadUInt16(column.Offset):D}");
+                context.Builder.Append(row.ReadUInt16(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.Int32:
-                context.Builder.Append($"{row.ReadInt32(column.Offset):D}");
+                context.Builder.Append(row.ReadInt32(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.UInt32:
-                context.Builder.Append($"{row.ReadUInt32(column.Offset):D}");
+                context.Builder.Append(row.ReadUInt32(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.Float32:
-                context.Builder.Append($"{row.ReadFloat32(column.Offset):D}");
+                context.Builder.Append(row.ReadFloat32(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.Int64:
-                context.Builder.Append($"{row.ReadInt64(column.Offset):D}");
+                context.Builder.Append(row.ReadInt64(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.UInt64:
-                context.Builder.Append($"{row.ReadUInt64(column.Offset):D}");
+                context.Builder.Append(row.ReadUInt64(column.Offset).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.PackedBool0:
-                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 0) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadPackedBool(column.Offset, 0) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.PackedBool1:
-                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 1) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadPackedBool(column.Offset, 1) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.PackedBool2:
-                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 2) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadPackedBool(column.Offset, 2) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.PackedBool3:
-                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 3) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadPackedBool(column.Offset, 3) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.PackedBool4:
-                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 4) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadPackedBool(column.Offset, 4) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.PackedBool5:
-                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 5) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadPackedBool(column.Offset, 5) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.PackedBool6:
-                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 6) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadPackedBool(column.Offset, 6) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             case ExcelColumnDataType.PackedBool7:
-                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 7) ? 1u : 0):D}");
+                context.Builder.Append((row.ReadPackedBool(column.Offset, 7) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                 return true;
             default:
                 return false;
