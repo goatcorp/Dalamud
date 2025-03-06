@@ -53,7 +53,7 @@ internal ref struct SeStringContext
     /// <returns><c>true</c> if the local parameters list contained a parameter at given index, <c>false</c> otherwise.</returns>
     internal bool TryGetLNum(int index, out uint value)
     {
-        if (index > 0 && this.LocalParameters.Length > index && this.LocalParameters[index] is SeStringParameter { } val)
+        if (index >= 0 && this.LocalParameters.Length > index && this.LocalParameters[index] is SeStringParameter { } val)
         {
             value = val.UIntValue;
             return true;
@@ -71,7 +71,7 @@ internal ref struct SeStringContext
     /// <returns><c>true</c> if the local parameters list contained a parameter at given index, <c>false</c> otherwise.</returns>
     internal bool TryGetLStr(int index, out ReadOnlySeString value)
     {
-        if (index > 0 && this.LocalParameters.Length > index && this.LocalParameters[index] is SeStringParameter { } val)
+        if (index >= 0 && this.LocalParameters.Length > index && this.LocalParameters[index] is SeStringParameter { } val)
         {
             value = val.StringValue;
             return true;

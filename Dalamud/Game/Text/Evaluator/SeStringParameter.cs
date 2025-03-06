@@ -50,7 +50,7 @@ public readonly struct SeStringParameter
     /// <summary>
     /// Gets a numeric value.
     /// </summary>
-    public uint UIntValue => this.IsString ? uint.TryParse(this.str.ExtractText(), out var value) ? value : 0 : this.num;
+    public uint UIntValue => this.IsString ? (uint.TryParse(this.str.ExtractText(), out var value) ? value : 0) : this.num;
 
     /// <summary>
     /// Gets a string value.
