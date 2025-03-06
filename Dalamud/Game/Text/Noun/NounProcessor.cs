@@ -4,13 +4,13 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Logging.Internal;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
 
 using LSeStringBuilder = Lumina.Text.SeStringBuilder;
+using LSheets = Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Text.Noun;
 
@@ -133,28 +133,24 @@ internal class NounProcessor : IServiceType
             return value;
 
         var sheet = this.dataManager.Excel.GetSheet<RawRow>(lang.ToLumina(), sheetName);
-        if (sheet == null)
-        {
-            Log.Warning("Sheet {SheetName} not found", sheetName);
-            return default;
-        }
 
-        if (!sheet.HasRow(rowId))
+        if (!sheet.TryGetRow(rowId, out var row))
         {
             Log.Warning("Sheet {SheetName} does not contain row #{RowId}", sheetName, rowId);
             return default;
         }
 
-        var row = sheet.GetRow(rowId);
-
         // see "E8 ?? ?? ?? ?? 44 8B 6B 08"
         var columnOffset = sheetName switch
         {
-            "BeastTribe" => 10,
-            "DeepDungeonItem" or "DeepDungeonEquipment" or "DeepDungeonMagicStone" or "DeepDungeonDemiclone" => 1,
-            "Glasses" => 4,
-            "GlassesStyle" => 15,
-            "Ornament" => 8, // not part of that function, but still shifted
+            nameof(LSheets.BeastTribe) => 10,
+            nameof(LSheets.DeepDungeonItem) => 1,
+            nameof(LSheets.DeepDungeonEquipment) => 1,
+            nameof(LSheets.DeepDungeonMagicStone) => 1,
+            nameof(LSheets.DeepDungeonDemiclone) => 1,
+            nameof(LSheets.Glasses) => 4,
+            nameof(LSheets.GlassesStyle) => 15,
+            nameof(LSheets.Ornament) => 8, // not part of that function, but still shifted
             _ => 0,
         };
 
@@ -193,19 +189,39 @@ internal class NounProcessor : IServiceType
         if (this.cache.TryGetValue(key, out var value))
             return value;
 
-        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(lang.ToLumina(), "Attributive");
-        if (attributiveSheet == null)
-        {
-            Log.Warning("Sheet Attributive not found");
-            return default;
-        }
+        var attributiveSheet = this.dataManager.Excel.GetSheet<RawRow>(lang.ToLumina(), nameof(LSheets.Attributive));
 
         var output = lang switch
         {
-            ClientLanguage.Japanese => ResolveNounJa(row, quantity, (JapaneseArticleType)articleType, attributiveSheet, linkMarker, columnOffset),
-            ClientLanguage.English => ResolveNounEn(row, quantity, (EnglishArticleType)articleType, attributiveSheet, linkMarker, columnOffset),
-            ClientLanguage.German => ResolveNounDe(row, quantity, (GermanArticleType)articleType, attributiveSheet, linkMarker, columnOffset, (ushort)grammaticalCase),
-            ClientLanguage.French => ResolveNounFr(row, quantity, (FrenchArticleType)articleType, attributiveSheet, linkMarker, columnOffset),
+            ClientLanguage.Japanese => ResolveNounJa(
+                row,
+                quantity,
+                (JapaneseArticleType)articleType,
+                attributiveSheet,
+                linkMarker,
+                columnOffset),
+            ClientLanguage.English => ResolveNounEn(
+                row,
+                quantity,
+                (EnglishArticleType)articleType,
+                attributiveSheet,
+                linkMarker,
+                columnOffset),
+            ClientLanguage.German => ResolveNounDe(
+                row,
+                quantity,
+                (GermanArticleType)articleType,
+                attributiveSheet,
+                linkMarker,
+                columnOffset,
+                (ushort)grammaticalCase),
+            ClientLanguage.French => ResolveNounFr(
+                row,
+                quantity,
+                (FrenchArticleType)articleType,
+                attributiveSheet,
+                linkMarker,
+                columnOffset),
             _ => default,
         };
 
@@ -227,7 +243,13 @@ internal class NounProcessor : IServiceType
     /// <remarks>
     /// This is a C# implementation of Component::Text::Localize::NounJa.Resolve.
     /// </remarks>
-    private static ReadOnlySeString ResolveNounJa(RawRow row, int quantity, JapaneseArticleType articleType, ExcelSheet<RawRow> attributiveSheet, ReadOnlySeString linkMarker, int columnOffset)
+    private static ReadOnlySeString ResolveNounJa(
+        RawRow row,
+        int quantity,
+        JapaneseArticleType articleType,
+        ExcelSheet<RawRow> attributiveSheet,
+        ReadOnlySeString linkMarker,
+        int columnOffset)
     {
         var builder = LSeStringBuilder.SharedPool.Get();
 
@@ -268,7 +290,13 @@ internal class NounProcessor : IServiceType
     /// <remarks>
     /// This is a C# implementation of Component::Text::Localize::NounEn.Resolve.
     /// </remarks>
-    private static ReadOnlySeString ResolveNounEn(RawRow row, int quantity, EnglishArticleType articleType, ExcelSheet<RawRow> attributiveSheet, ReadOnlySeString linkMarker, int columnOffset)
+    private static ReadOnlySeString ResolveNounEn(
+        RawRow row,
+        int quantity,
+        EnglishArticleType articleType,
+        ExcelSheet<RawRow> attributiveSheet,
+        ReadOnlySeString linkMarker,
+        int columnOffset)
     {
         /*
           a1->Offsets[0] = SingularColumnIdx
@@ -285,11 +313,14 @@ internal class NounProcessor : IServiceType
         if (isProperNoun == 0)
         {
             var startsWithVowelColumn = columnOffset + StartsWithVowelColumnIdx;
-            var startsWithVowel = startsWithVowelColumn >= 0 ? row.ReadInt8Column(startsWithVowelColumn) : ~startsWithVowelColumn;
+            var startsWithVowel = startsWithVowelColumn >= 0
+                                      ? row.ReadInt8Column(startsWithVowelColumn)
+                                      : ~startsWithVowelColumn;
 
-            var articleColumn = startsWithVowel + 2 * (startsWithVowel + 1);
+            var articleColumn = startsWithVowel + (2 * (startsWithVowel + 1));
             var grammaticalNumberColumnOffset = quantity == 1 ? SingularColumnIdx : PluralColumnIdx;
-            var article = attributiveSheet.GetRow((uint)articleType).ReadStringColumn(articleColumn + grammaticalNumberColumnOffset);
+            var article = attributiveSheet.GetRow((uint)articleType)
+                                          .ReadStringColumn(articleColumn + grammaticalNumberColumnOffset);
             if (!article.IsEmpty)
                 builder.Append(article);
 
@@ -322,7 +353,14 @@ internal class NounProcessor : IServiceType
     /// <remarks>
     /// This is a C# implementation of Component::Text::Localize::NounDe.Resolve.
     /// </remarks>
-    private static ReadOnlySeString ResolveNounDe(RawRow row, int quantity, GermanArticleType articleType, ExcelSheet<RawRow> attributiveSheet, ReadOnlySeString linkMarker, int columnOffset, ushort grammaticalCase)
+    private static ReadOnlySeString ResolveNounDe(
+        RawRow row,
+        int quantity,
+        GermanArticleType articleType,
+        ExcelSheet<RawRow> attributiveSheet,
+        ReadOnlySeString linkMarker,
+        int columnOffset,
+        ushort grammaticalCase)
     {
         /*
              a1->Offsets[0] = SingularColumnIdx
@@ -337,7 +375,7 @@ internal class NounProcessor : IServiceType
         var builder = LSeStringBuilder.SharedPool.Get();
         ReadOnlySeString ross;
 
-        var readColumnDirectly = (byte)(grammaticalCase >> 8 & 0xFF) & 1; // BYTE2(Case) & 1
+        var readColumnDirectly = (byte)((grammaticalCase >> 8) & 0xFF) & 1; // BYTE2(Case) & 1
 
         if ((grammaticalCase & 0x10000) != 0)
             grammaticalCase = 0;
@@ -358,23 +396,26 @@ internal class NounProcessor : IServiceType
         var articleIndexColumn = columnOffset + ArticleColumnIdx;
         var articleIndex = articleIndexColumn >= 0 ? row.ReadInt8Column(articleIndexColumn) : ~articleIndexColumn;
 
-        var caseColumnOffset = 4 * grammaticalCase + 8;
+        var caseColumnOffset = (4 * grammaticalCase) + 8;
 
         var caseRowOffsetColumn = columnOffset + (quantity == 1 ? AdjectiveColumnIdx : PossessivePronounColumnIdx);
-        var caseRowOffset = caseRowOffsetColumn >= 0 ? row.ReadInt8Column(caseRowOffsetColumn) : (sbyte)~caseRowOffsetColumn;
+        var caseRowOffset = caseRowOffsetColumn >= 0
+                                ? row.ReadInt8Column(caseRowOffsetColumn)
+                                : (sbyte)~caseRowOffsetColumn;
 
         if (quantity != 1)
             genderIndex = 3;
 
-        var has_t = false;
+        var hasT = false;
         var text = row.ReadStringColumn(columnOffset + (quantity == 1 ? SingularColumnIdx : PluralColumnIdx));
         if (!text.IsEmpty)
         {
-            has_t = text.ContainsText("[t]"u8);
+            hasT = text.ContainsText("[t]"u8);
 
-            if (articleIndex == 0 && !has_t)
+            if (articleIndex == 0 && !hasT)
             {
-                var grammaticalGender = attributiveSheet.GetRow((uint)articleType).ReadStringColumn(caseColumnOffset + genderIndex); // Genus
+                var grammaticalGender = attributiveSheet.GetRow((uint)articleType)
+                                                        .ReadStringColumn(caseColumnOffset + genderIndex); // Genus
                 if (!grammaticalGender.IsEmpty)
                     builder.Append(grammaticalGender);
             }
@@ -384,15 +425,17 @@ internal class NounProcessor : IServiceType
 
             builder.Append(text);
 
-            var plural = attributiveSheet.GetRow((uint)(caseRowOffset + 26)).ReadStringColumn(caseColumnOffset + genderIndex);
+            var plural = attributiveSheet.GetRow((uint)(caseRowOffset + 26))
+                                         .ReadStringColumn(caseColumnOffset + genderIndex);
             if (builder.ContainsText("[p]"u8))
                 builder.ReplaceText("[p]"u8, plural);
             else
                 builder.Append(plural);
 
-            if (has_t)
+            if (hasT)
             {
-                var article = attributiveSheet.GetRow(39).ReadStringColumn(caseColumnOffset + genderIndex); // Definiter Artikel
+                var article =
+                    attributiveSheet.GetRow(39).ReadStringColumn(caseColumnOffset + genderIndex); // Definiter Artikel
                 builder.ReplaceText("[t]"u8, article);
             }
         }
@@ -402,14 +445,22 @@ internal class NounProcessor : IServiceType
 
         RawRow declensionRow;
 
-        if (articleType is GermanArticleType.Possessive or GermanArticleType.Demonstrative || has_t)
-            declensionRow = attributiveSheet.GetRow(25); // Schwache Flexion eines Adjektivs?!
-        else if (articleType == GermanArticleType.ZeroArticle)
-            declensionRow = attributiveSheet.GetRow(38); // Starke Deklination
-        else if (articleType == GermanArticleType.Definite)
-            declensionRow = attributiveSheet.GetRow(37); // Gemischte Deklination
-        else
-            declensionRow = attributiveSheet.GetRow(26); // Starke Flexion eines Artikels?!
+        declensionRow = articleType switch
+        {
+            // Schwache Flexion eines Adjektivs?!
+            GermanArticleType.Possessive or GermanArticleType.Demonstrative => attributiveSheet.GetRow(25),
+            _ when hasT => attributiveSheet.GetRow(25),
+
+            // Starke Deklination
+            GermanArticleType.ZeroArticle => attributiveSheet.GetRow(38),
+
+            // Gemischte Deklination
+            GermanArticleType.Definite => attributiveSheet.GetRow(37),
+
+            // Starke Flexion eines Artikels?!
+            GermanArticleType.Indefinite or GermanArticleType.Negative => attributiveSheet.GetRow(26),
+            _ => attributiveSheet.GetRow(26),
+        };
 
         var declension = declensionRow.ReadStringColumn(caseColumnOffset + genderIndex);
         builder.ReplaceText("[a]"u8, declension);
@@ -434,7 +485,13 @@ internal class NounProcessor : IServiceType
     /// <remarks>
     /// This is a C# implementation of Component::Text::Localize::NounFr.Resolve.
     /// </remarks>
-    private static ReadOnlySeString ResolveNounFr(RawRow row, int quantity, FrenchArticleType articleType, ExcelSheet<RawRow> attributiveSheet, ReadOnlySeString linkMarker, int columnOffset)
+    private static ReadOnlySeString ResolveNounFr(
+        RawRow row,
+        int quantity,
+        FrenchArticleType articleType,
+        ExcelSheet<RawRow> attributiveSheet,
+        ReadOnlySeString linkMarker,
+        int columnOffset)
     {
         /*
             a1->Offsets[0] = SingularColumnIdx
@@ -449,7 +506,9 @@ internal class NounProcessor : IServiceType
         ReadOnlySeString ross;
 
         var startsWithVowelColumn = columnOffset + StartsWithVowelColumnIdx;
-        var startsWithVowel = startsWithVowelColumn >= 0 ? row.ReadInt8Column(startsWithVowelColumn) : ~startsWithVowelColumn;
+        var startsWithVowel = startsWithVowelColumn >= 0
+                                  ? row.ReadInt8Column(startsWithVowelColumn)
+                                  : ~startsWithVowelColumn;
 
         var pronounColumn = columnOffset + PronounColumnIdx;
         var pronoun = pronounColumn >= 0 ? row.ReadInt8Column(pronounColumn) : ~pronounColumn;
@@ -457,7 +516,7 @@ internal class NounProcessor : IServiceType
         var articleColumn = columnOffset + ArticleColumnIdx;
         var article = articleColumn >= 0 ? row.ReadInt8Column(articleColumn) : ~articleColumn;
 
-        var v20 = 4 * (startsWithVowel + 6 + 2 * pronoun);
+        var v20 = 4 * (startsWithVowel + 6 + (2 * pronoun));
 
         if (article != 0)
         {

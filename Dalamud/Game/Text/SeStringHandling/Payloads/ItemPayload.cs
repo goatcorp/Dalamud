@@ -172,6 +172,20 @@ public class ItemPayload : Payload
         return $"{this.Type} - ItemId: {this.ItemId}, Kind: {this.Kind}, Name: {name}";
     }
 
+    /// <summary>Converts raw item ID to item ID with its classification.</summary>
+    /// <param name="rawItemId">Raw item ID.</param>
+    /// <returns>Item ID and its classification.</returns>
+    internal static (uint ItemId, ItemKind Kind) GetAdjustedId(uint rawItemId)
+    {
+        return rawItemId switch
+        {
+            > 500_000 and < 1_000_000 => (rawItemId - 500_000, ItemKind.Collectible),
+            > 1_000_000 and < 2_000_000 => (rawItemId - 1_000_000, ItemKind.Hq),
+            > 2_000_000 => (rawItemId, ItemKind.EventItem), // EventItem IDs are NOT adjusted
+            _ => (rawItemId, ItemKind.Normal),
+        };
+    }
+
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
@@ -254,16 +268,5 @@ public class ItemPayload : Payload
 
             this.displayName = Encoding.UTF8.GetString(itemNameBytes);
         }
-    }
-
-    private static (uint ItemId, ItemKind Kind) GetAdjustedId(uint rawItemId)
-    {
-        return rawItemId switch
-        {
-            > 500_000 and < 1_000_000 => (rawItemId - 500_000, ItemKind.Collectible),
-            > 1_000_000 and < 2_000_000 => (rawItemId - 1_000_000, ItemKind.Hq),
-            > 2_000_000 => (rawItemId, ItemKind.EventItem), // EventItem IDs are NOT adjusted
-            _ => (rawItemId, ItemKind.Normal),
-        };
     }
 }

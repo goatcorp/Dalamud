@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Lumina.Text.ReadOnly;
 
 using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
@@ -50,12 +52,16 @@ public readonly struct SeStringParameter
     /// <summary>
     /// Gets a numeric value.
     /// </summary>
-    public uint UIntValue => this.IsString ? (uint.TryParse(this.str.ExtractText(), out var value) ? value : 0) : this.num;
+    public uint UIntValue =>
+        !this.IsString
+            ? this.num
+            : uint.TryParse(this.str.ExtractText(), out var value) ? value : 0;
 
     /// <summary>
     /// Gets a string value.
     /// </summary>
-    public ReadOnlySeString StringValue => this.IsString ? this.str : new ReadOnlySeString(this.num.ToString());
+    public ReadOnlySeString StringValue =>
+        this.IsString ? this.str : new(this.num.ToString("D", CultureInfo.InvariantCulture));
 
     public static implicit operator SeStringParameter(int value) => new((uint)value);
 

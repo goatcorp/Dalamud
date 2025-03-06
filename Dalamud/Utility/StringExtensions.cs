@@ -49,31 +49,30 @@ public static class StringExtensions
     /// Converts the first character of the string to uppercase while leaving the rest of the string unchanged.
     /// </summary>
     /// <param name="input">The input string.</param>
+    /// <param name="culture"><inheritdoc cref="string.ToLower(CultureInfo)" path="/param[@name='cultureInfo']"/></param>
     /// <returns>A new string with the first character converted to uppercase.</returns>
-    public static string FirstCharToUpper(this string input)
-    {
-        if (string.IsNullOrEmpty(input)) return string.Empty;
-        return string.Concat(input[0].ToString().ToUpper(CultureInfo.CurrentCulture), input.AsSpan(1));
-    }
+    [return: NotNullIfNotNull("input")]
+    public static string? FirstCharToUpper(this string? input, CultureInfo? culture = null) =>
+        string.IsNullOrWhiteSpace(input)
+            ? input
+            : $"{char.ToUpper(input[0], culture ?? CultureInfo.CurrentCulture)}{input.AsSpan(1)}";
 
     /// <summary>
     /// Converts the first character of the string to lowercase while leaving the rest of the string unchanged.
     /// </summary>
     /// <param name="input">The input string.</param>
+    /// <param name="culture"><inheritdoc cref="string.ToLower(CultureInfo)" path="/param[@name='cultureInfo']"/></param>
     /// <returns>A new string with the first character converted to lowercase.</returns>
-    public static string FirstCharToLower(this string input)
-    {
-        if (string.IsNullOrEmpty(input)) return string.Empty;
-        return string.Concat(input[0].ToString().ToLower(CultureInfo.CurrentCulture), input.AsSpan(1));
-    }
+    [return: NotNullIfNotNull("input")]
+    public static string? FirstCharToLower(this string? input, CultureInfo? culture = null) =>
+        string.IsNullOrWhiteSpace(input)
+            ? input
+            : $"{char.ToLower(input[0], culture ?? CultureInfo.CurrentCulture)}{input.AsSpan(1)}";
 
     /// <summary>
     /// Removes soft hyphen characters (U+00AD) from the input string.
     /// </summary>
     /// <param name="input">The input string to remove soft hyphen characters from.</param>
     /// <returns>A string with all soft hyphens removed.</returns>
-    public static string StripSoftHypen(this string input)
-    {
-        return input.Replace("\u00AD", string.Empty);
-    }
+    public static string StripSoftHyphen(this string input) => input.Replace("\u00AD", string.Empty);
 }

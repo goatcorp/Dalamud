@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -22,6 +22,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
 
+using Lumina.Data.Structs.Excel;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Extensions;
@@ -45,9 +46,6 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     private static readonly ModuleLog Log = new("SeStringEvaluator");
 
     [ServiceManager.ServiceDependency]
-    private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
-
-    [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
 
     [ServiceManager.ServiceDependency]
@@ -62,8 +60,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     [ServiceManager.ServiceDependency]
     private readonly SheetRedirectResolver sheetRedirectResolver = Service<SheetRedirectResolver>.Get();
 
-    private Dictionary<(ActionKind ActionKind, uint Id, ClientLanguage Language), string> actStrCache = [];
-    private Dictionary<(ObjectKind ObjectKind, uint Id, ClientLanguage Language), string> objStrCache = [];
+    private readonly ConcurrentDictionary<StringCacheKey<ActionKind>, string> actStrCache = [];
+    private readonly ConcurrentDictionary<StringCacheKey<ObjectKind>, string> objStrCache = [];
 
     [ServiceManager.ServiceConstructor]
     private SeStringEvaluator()
@@ -71,42 +69,46 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     }
 
     /// <inheritdoc/>
-    public ReadOnlySeString Evaluate(ReadOnlySeString str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
+    public ReadOnlySeString Evaluate(
+        ReadOnlySeString str,
+        Span<SeStringParameter> localParameters = default,
+        ClientLanguage? language = null)
     {
         return this.Evaluate(str.AsSpan(), localParameters, language);
     }
 
     /// <inheritdoc/>
-    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
+    public ReadOnlySeString Evaluate(
+        ReadOnlySeStringSpan str,
+        Span<SeStringParameter> localParameters = default,
+        ClientLanguage? language = null)
     {
         if (str.IsTextOnly())
             return new(str);
 
-        var builder = SeStringBuilder.SharedPool.Get();
         var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
 
+        // TODO: remove culture info toggling after supporting CultureInfo for SeStringBuilder.Append,
+        //       and then remove try...finally block (discard builder from the pool on exception)
+        var previousCulture = CultureInfo.CurrentCulture;
+        var builder = SeStringBuilder.SharedPool.Get();
         try
         {
-            var context = new SeStringContext(ref builder, localParameters, lang);
-
-            foreach (var payload in str)
-            {
-                if (!this.ResolvePayload(ref context, payload))
-                {
-                    context.Builder.Append(payload);
-                }
-            }
-
-            return builder.ToReadOnlySeString();
+            CultureInfo.CurrentCulture = Localization.GetCultureInfoFromLangCode(lang.ToCode());
+            return this.EvaluateAndAppendTo(builder, str, localParameters, lang).ToReadOnlySeString();
         }
         finally
         {
+            CultureInfo.CurrentCulture = previousCulture;
             SeStringBuilder.SharedPool.Return(builder);
         }
     }
 
     /// <inheritdoc/>
-    public ReadOnlySeString EvaluateFromAddon(uint addonId, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
+    public ReadOnlySeString EvaluateFromAddon(
+        uint addonId,
+        Span<SeStringParameter> localParameters = default,
+        ClientLanguage? language = null)
     {
         var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
 
@@ -117,7 +119,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     }
 
     /// <inheritdoc/>
-    public ReadOnlySeString EvaluateFromLobby(uint lobbyId, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
+    public ReadOnlySeString EvaluateFromLobby(
+        uint lobbyId,
+        Span<SeStringParameter> localParameters = default,
+        ClientLanguage? language = null)
     {
         var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
 
@@ -128,7 +133,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     }
 
     /// <inheritdoc/>
-    public ReadOnlySeString EvaluateFromLogMessage(uint logMessageId, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
+    public ReadOnlySeString EvaluateFromLogMessage(
+        uint logMessageId,
+        Span<SeStringParameter> localParameters = default,
+        ClientLanguage? language = null)
     {
         var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
 
@@ -139,38 +147,28 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     }
 
     /// <inheritdoc/>
-    public string EvaluateActStr(ActionKind actionKind, uint id, ClientLanguage? language = null)
-    {
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
-        var key = (actionKind, id, lang);
-
-        if (this.actStrCache.TryGetValue(key, out var text))
-            return text;
-
-        text = string.Intern(this.EvaluateFromAddon(2026, [actionKind.GetActStrId(id)], lang).ExtractText().StripSoftHypen());
-        this.actStrCache.Add(key, text);
-        return text;
-    }
+    public string EvaluateActStr(ActionKind actionKind, uint id, ClientLanguage? language = null) =>
+        this.actStrCache.GetOrAdd(
+            new(actionKind, id, language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage()),
+            static (key, t) => t.EvaluateFromAddon(2026, [key.Kind.GetActStrId(key.Id)], key.Language)
+                                .ExtractText()
+                                .StripSoftHyphen(),
+            this);
 
     /// <inheritdoc/>
-    public string EvaluateObjStr(ObjectKind objectKind, uint id, ClientLanguage? language = null)
-    {
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
-        var key = (objectKind, id, lang);
-
-        if (this.objStrCache.TryGetValue(key, out var text))
-            return text;
-
-        text = string.Intern(this.EvaluateFromAddon(2025, [objectKind.GetObjStrId(id)], lang).ExtractText().StripSoftHypen());
-        this.objStrCache.Add(key, text);
-        return text;
-    }
+    public string EvaluateObjStr(ObjectKind objectKind, uint id, ClientLanguage? language = null) =>
+        this.objStrCache.GetOrAdd(
+            new(objectKind, id, language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage()),
+            static (key, t) => t.EvaluateFromAddon(2025, [key.Kind.GetObjStrId(key.Id)], key.Language)
+                                .ExtractText()
+                                .StripSoftHyphen(),
+            this);
 
     // TODO: move this to MapUtil?
     private static uint ConvertRawToMapPos(Lumina.Excel.Sheets.Map map, short offset, float value)
     {
         var scale = map.SizeFactor / 100.0f;
-        return (uint)(10 - (int)(((value + offset) * scale + 1024f) * -0.2f / scale));
+        return (uint)(10 - (int)(((((value + offset) * scale) + 1024f) * -0.2f) / scale));
     }
 
     private static uint ConvertRawToMapPosX(Lumina.Excel.Sheets.Map map, float x)
@@ -179,65 +177,84 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     private static uint ConvertRawToMapPosY(Lumina.Excel.Sheets.Map map, float y)
         => ConvertRawToMapPos(map, map.OffsetY, y);
 
-    private bool ResolvePayload(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    private SeStringBuilder EvaluateAndAppendTo(
+        SeStringBuilder builder,
+        ReadOnlySeStringSpan str,
+        Span<SeStringParameter> localParameters,
+        ClientLanguage language)
+    {
+        var context = new SeStringContext(builder, localParameters, language);
+
+        foreach (var payload in str)
+        {
+            if (!this.ResolvePayload(in context, payload))
+            {
+                context.Builder.Append(payload);
+            }
+        }
+
+        return builder;
+    }
+
+    private bool ResolvePayload(in SeStringContext context, ReadOnlySePayloadSpan payload)
     {
         if (payload.Type != ReadOnlySePayloadType.Macro)
             return false;
 
-        // if (context.HandlePayload(payload, ref context))
+        // if (context.HandlePayload(payload, in context))
         //    return true;
 
         switch (payload.MacroCode)
         {
             case MacroCode.SetResetTime:
-                return this.TryResolveSetResetTime(ref context, payload);
+                return this.TryResolveSetResetTime(in context, payload);
 
             case MacroCode.SetTime:
-                return this.TryResolveSetTime(ref context, payload);
+                return this.TryResolveSetTime(in context, payload);
 
             case MacroCode.If:
-                return this.TryResolveIf(ref context, payload);
+                return this.TryResolveIf(in context, payload);
 
             case MacroCode.Switch:
-                return this.TryResolveSwitch(ref context, payload);
+                return this.TryResolveSwitch(in context, payload);
 
             case MacroCode.PcName:
-                return this.TryResolvePcName(ref context, payload);
+                return this.TryResolvePcName(in context, payload);
 
             case MacroCode.IfPcGender:
-                return this.TryResolveIfPcGender(ref context, payload);
+                return this.TryResolveIfPcGender(in context, payload);
 
             case MacroCode.IfPcName:
-                return this.TryResolveIfPcName(ref context, payload);
+                return this.TryResolveIfPcName(in context, payload);
 
             // case MacroCode.Josa:
             // case MacroCode.Josaro:
 
             case MacroCode.IfSelf:
-                return this.TryResolveIfSelf(ref context, payload);
+                return this.TryResolveIfSelf(in context, payload);
 
             // case MacroCode.NewLine: // pass through
             // case MacroCode.Wait: // pass through
             // case MacroCode.Icon: // pass through
 
             case MacroCode.Color:
-                return this.TryResolveColor(ref context, payload);
+                return this.TryResolveColor(in context, payload);
 
             case MacroCode.EdgeColor:
-                return this.TryResolveEdgeColor(ref context, payload);
+                return this.TryResolveEdgeColor(in context, payload);
 
             case MacroCode.ShadowColor:
-                return this.TryResolveShadowColor(ref context, payload);
+                return this.TryResolveShadowColor(in context, payload);
 
             // case MacroCode.SoftHyphen: // pass through
             // case MacroCode.Key:
             // case MacroCode.Scale:
 
             case MacroCode.Bold:
-                return this.TryResolveBold(ref context, payload);
+                return this.TryResolveBold(in context, payload);
 
             case MacroCode.Italic:
-                return this.TryResolveItalic(ref context, payload);
+                return this.TryResolveItalic(in context, payload);
 
             // case MacroCode.Edge:
             // case MacroCode.Shadow:
@@ -246,104 +263,104 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             // case MacroCode.Hyphen: // pass through
 
             case MacroCode.Num:
-                return this.TryResolveNum(ref context, payload);
+                return this.TryResolveNum(in context, payload);
 
             case MacroCode.Hex:
-                return this.TryResolveHex(ref context, payload);
+                return this.TryResolveHex(in context, payload);
 
             case MacroCode.Kilo:
-                return this.TryResolveKilo(ref context, payload);
+                return this.TryResolveKilo(in context, payload);
 
             // case MacroCode.Byte:
 
             case MacroCode.Sec:
-                return this.TryResolveSec(ref context, payload);
+                return this.TryResolveSec(in context, payload);
 
             // case MacroCode.Time:
 
             case MacroCode.Float:
-                return this.TryResolveFloat(ref context, payload);
+                return this.TryResolveFloat(in context, payload);
 
             // case MacroCode.Link: // pass through
 
             case MacroCode.Sheet:
-                return this.TryResolveSheet(ref context, payload);
+                return this.TryResolveSheet(in context, payload);
 
             case MacroCode.String:
-                return this.TryResolveString(ref context, payload);
+                return this.TryResolveString(in context, payload);
 
             case MacroCode.Caps:
-                return this.TryResolveCaps(ref context, payload);
+                return this.TryResolveCaps(in context, payload);
 
             case MacroCode.Head:
-                return this.TryResolveHead(ref context, payload);
+                return this.TryResolveHead(in context, payload);
 
             case MacroCode.Split:
-                return this.TryResolveSplit(ref context, payload);
+                return this.TryResolveSplit(in context, payload);
 
             case MacroCode.HeadAll:
-                return this.TryResolveHeadAll(ref context, payload);
+                return this.TryResolveHeadAll(in context, payload);
 
             case MacroCode.Fixed:
-                return this.TryResolveFixed(ref context, payload);
+                return this.TryResolveFixed(in context, payload);
 
             case MacroCode.Lower:
-                return this.TryResolveLower(ref context, payload);
+                return this.TryResolveLower(in context, payload);
 
             case MacroCode.JaNoun:
-                return this.TryResolveNoun(ClientLanguage.Japanese, ref context, payload);
+                return this.TryResolveNoun(ClientLanguage.Japanese, in context, payload);
 
             case MacroCode.EnNoun:
-                return this.TryResolveNoun(ClientLanguage.English, ref context, payload);
+                return this.TryResolveNoun(ClientLanguage.English, in context, payload);
 
             case MacroCode.DeNoun:
-                return this.TryResolveNoun(ClientLanguage.German, ref context, payload);
+                return this.TryResolveNoun(ClientLanguage.German, in context, payload);
 
             case MacroCode.FrNoun:
-                return this.TryResolveNoun(ClientLanguage.French, ref context, payload);
+                return this.TryResolveNoun(ClientLanguage.French, in context, payload);
 
             // case MacroCode.ChNoun:
 
             case MacroCode.LowerHead:
-                return this.TryResolveLowerHead(ref context, payload);
+                return this.TryResolveLowerHead(in context, payload);
 
             case MacroCode.ColorType:
-                return this.TryResolveColorType(ref context, payload);
+                return this.TryResolveColorType(in context, payload);
 
             case MacroCode.EdgeColorType:
-                return this.TryResolveEdgeColorType(ref context, payload);
+                return this.TryResolveEdgeColorType(in context, payload);
 
             // case MacroCode.Ruby:
 
             case MacroCode.Digit:
-                return this.TryResolveDigit(ref context, payload);
+                return this.TryResolveDigit(in context, payload);
 
             case MacroCode.Ordinal:
-                return this.TryResolveOrdinal(ref context, payload);
+                return this.TryResolveOrdinal(in context, payload);
 
             // case MacroCode.Sound: // pass through
 
             case MacroCode.LevelPos:
-                return this.TryResolveLevelPos(ref context, payload);
+                return this.TryResolveLevelPos(in context, payload);
 
             default:
                 return false;
         }
     }
 
-    private unsafe bool TryResolveSetResetTime(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private unsafe bool TryResolveSetResetTime(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         DateTime date;
 
         if (payload.TryGetExpression(out var eHour, out var eWeekday)
-            && this.TryResolveInt(ref context, eHour, out var eHourVal)
-            && this.TryResolveInt(ref context, eWeekday, out var eWeekdayVal))
+            && this.TryResolveInt(in context, eHour, out var eHourVal)
+            && this.TryResolveInt(in context, eWeekday, out var eWeekdayVal))
         {
-            var t = DateTime.UtcNow.AddDays((eWeekdayVal - (int)DateTime.UtcNow.DayOfWeek + 7) % 7);
+            var t = DateTime.UtcNow.AddDays(((eWeekdayVal - (int)DateTime.UtcNow.DayOfWeek) + 7) % 7);
             date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
         }
         else if (payload.TryGetExpression(out eHour)
-                 && this.TryResolveInt(ref context, eHour, out eHourVal))
+                 && this.TryResolveInt(in context, eHour, out eHourVal))
         {
             var t = DateTime.UtcNow;
             date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
@@ -358,9 +375,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private unsafe bool TryResolveSetTime(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private unsafe bool TryResolveSetTime(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eTime) || !this.TryResolveUInt(ref context, eTime, out var eTimeVal))
+        if (!payload.TryGetExpression(out var eTime) || !this.TryResolveUInt(in context, eTime, out var eTimeVal))
             return false;
 
         var date = DateTimeOffset.FromUnixTimeSeconds(eTimeVal).LocalDateTime;
@@ -369,18 +386,18 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveIf(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveIf(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         return
             payload.TryGetExpression(out var eCond, out var eTrue, out var eFalse)
             && this.ResolveStringExpression(
-                ref context,
-                this.TryResolveBool(ref context, eCond, out var eCondVal) && eCondVal
+                context,
+                this.TryResolveBool(in context, eCond, out var eCondVal) && eCondVal
                     ? eTrue
                     : eFalse);
     }
 
-    private bool TryResolveSwitch(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveSwitch(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         var cond = -1;
         foreach (var e in payload)
@@ -388,25 +405,25 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             switch (cond)
             {
                 case -1:
-                    cond = this.TryResolveUInt(ref context, e, out var eVal) ? (int)eVal : 0;
+                    cond = this.TryResolveUInt(in context, e, out var eVal) ? (int)eVal : 0;
                     break;
                 case > 1:
                     cond--;
                     break;
                 default:
-                    return this.ResolveStringExpression(ref context, e);
+                    return this.ResolveStringExpression(in context, e);
             }
         }
 
         return false;
     }
 
-    private unsafe bool TryResolvePcName(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private unsafe bool TryResolvePcName(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eEntityId))
             return false;
 
-        if (!this.TryResolveUInt(ref context, eEntityId, out var entityId))
+        if (!this.TryResolveUInt(in context, eEntityId, out var entityId))
             return false;
 
         // TODO: handle LogNameType
@@ -421,7 +438,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             {
                 context.Builder.AppendIcon(88);
 
-                if (this.gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) && logCrossWorldName == 1)
+                if (this.gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) &&
+                    logCrossWorldName == 1)
                     context.Builder.Append((ReadOnlySeStringSpan)world.Name);
             }
 
@@ -434,94 +452,97 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return false;
     }
 
-    private unsafe bool TryResolveIfPcGender(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private unsafe bool TryResolveIfPcGender(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eEntityId, out var eMale, out var eFemale))
             return false;
 
-        if (!this.TryResolveUInt(ref context, eEntityId, out var entityId))
+        if (!this.TryResolveUInt(in context, eEntityId, out var entityId))
             return false;
 
         NameCache.CharacterInfo characterInfo = default;
         if (NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo))
-            return this.ResolveStringExpression(ref context, characterInfo.Sex == 0 ? eMale : eFemale);
+            return this.ResolveStringExpression(in context, characterInfo.Sex == 0 ? eMale : eFemale);
 
         // TODO: lookup via InstanceContentCrystallineConflictDirector
 
         return false;
     }
 
-    private unsafe bool TryResolveIfPcName(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private unsafe bool TryResolveIfPcName(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eEntityId, out var eName, out var eTrue, out var eFalse))
             return false;
 
-        if (!this.TryResolveUInt(ref context, eEntityId, out var entityId) || !eName.TryGetString(out var name))
+        if (!this.TryResolveUInt(in context, eEntityId, out var entityId) || !eName.TryGetString(out var name))
             return false;
 
         name = this.Evaluate(name, context.LocalParameters, context.Language).AsSpan();
 
         NameCache.CharacterInfo characterInfo = default;
         return NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo) &&
-            this.ResolveStringExpression(ref context, name.Equals((ReadOnlySeStringSpan)characterInfo.Name.AsSpan())
-                ? eTrue
-                : eFalse);
+               this.ResolveStringExpression(
+                   context,
+                   name.Equals(characterInfo.Name.AsSpan())
+                       ? eTrue
+                       : eFalse);
     }
 
-    private unsafe bool TryResolveIfSelf(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private unsafe bool TryResolveIfSelf(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eEntityId, out var eTrue, out var eFalse))
             return false;
 
-        if (!this.TryResolveUInt(ref context, eEntityId, out var entityId))
+        if (!this.TryResolveUInt(in context, eEntityId, out var entityId))
             return false;
 
-        // the game uses LocalPlayer here, but using PlayerState seems more safe..
-        return this.ResolveStringExpression(ref context, PlayerState.Instance()->EntityId == entityId ? eTrue : eFalse);
+        // the game uses LocalPlayer here, but using PlayerState seems more safe.
+        return this.ResolveStringExpression(in context, PlayerState.Instance()->EntityId == entityId ? eTrue : eFalse);
     }
 
-    private bool TryResolveColor(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveColor(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eColor))
             return false;
 
         if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
             context.Builder.PopColor();
-        else if (this.TryResolveUInt(ref context, eColor, out var eColorVal))
+        else if (this.TryResolveUInt(in context, eColor, out var eColorVal))
             context.Builder.PushColorBgra(eColorVal);
 
         return true;
     }
 
-    private bool TryResolveEdgeColor(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveEdgeColor(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eColor))
             return false;
 
         if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
             context.Builder.PopEdgeColor();
-        else if (this.TryResolveUInt(ref context, eColor, out var eColorVal))
+        else if (this.TryResolveUInt(in context, eColor, out var eColorVal))
             context.Builder.PushEdgeColorBgra(eColorVal);
 
         return true;
     }
 
-    private bool TryResolveShadowColor(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveShadowColor(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eColor))
             return false;
 
         if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
             context.Builder.PopShadowColor();
-        else if (this.TryResolveUInt(ref context, eColor, out var eColorVal))
+        else if (this.TryResolveUInt(in context, eColor, out var eColorVal))
             context.Builder.PushShadowColorBgra(eColorVal);
 
         return true;
     }
 
-    private bool TryResolveBold(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveBold(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eEnable) || !this.TryResolveBool(ref context, eEnable, out var eEnableVal))
+        if (!payload.TryGetExpression(out var eEnable) ||
+            !this.TryResolveBool(in context, eEnable, out var eEnableVal))
             return false;
 
         context.Builder.AppendSetBold(eEnableVal);
@@ -529,9 +550,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveItalic(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveItalic(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eEnable) || !this.TryResolveBool(ref context, eEnable, out var eEnableVal))
+        if (!payload.TryGetExpression(out var eEnable) ||
+            !this.TryResolveBool(in context, eEnable, out var eEnableVal))
             return false;
 
         context.Builder.AppendSetItalic(eEnableVal);
@@ -539,9 +561,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveNum(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveNum(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eInt) || !this.TryResolveInt(ref context, eInt, out var eIntVal))
+        if (!payload.TryGetExpression(out var eInt) || !this.TryResolveInt(in context, eInt, out var eIntVal))
         {
             context.Builder.Append('0');
             return true;
@@ -552,9 +574,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveHex(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveHex(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eUInt) || !this.TryResolveUInt(ref context, eUInt, out var eUIntVal))
+        if (!payload.TryGetExpression(out var eUInt) || !this.TryResolveUInt(in context, eUInt, out var eUIntVal))
         {
             // TODO: throw?
             // ERROR: mismatch parameter type ('' is not numeric)
@@ -566,9 +588,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveKilo(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveKilo(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eInt, out var eSep) || !this.TryResolveInt(ref context, eInt, out var eIntVal))
+        if (!payload.TryGetExpression(out var eInt, out var eSep) ||
+            !this.TryResolveInt(in context, eInt, out var eIntVal))
         {
             context.Builder.Append('0');
             return true;
@@ -578,11 +601,11 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         {
             // -2147483648
             context.Builder.Append("-2"u8);
-            this.ResolveStringExpression(ref context, eSep);
+            this.ResolveStringExpression(in context, eSep);
             context.Builder.Append("147"u8);
-            this.ResolveStringExpression(ref context, eSep);
+            this.ResolveStringExpression(in context, eSep);
             context.Builder.Append("483"u8);
-            this.ResolveStringExpression(ref context, eSep);
+            this.ResolveStringExpression(in context, eSep);
             context.Builder.Append("648"u8);
             return true;
         }
@@ -602,13 +625,13 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         var anyDigitPrinted = false;
         for (var i = 1_000_000_000; i > 0; i /= 10)
         {
-            var digit = eIntVal / i % 10;
+            var digit = (eIntVal / i) % 10;
             switch (anyDigitPrinted)
             {
                 case false when digit == 0:
                     continue;
                 case true when i % 3 == 0:
-                    this.ResolveStringExpression(ref context, eSep);
+                    this.ResolveStringExpression(in context, eSep);
                     break;
             }
 
@@ -619,9 +642,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveSec(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveSec(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eInt) || !this.TryResolveUInt(ref context, eInt, out var eIntVal))
+        if (!payload.TryGetExpression(out var eInt) || !this.TryResolveUInt(in context, eInt, out var eIntVal))
         {
             // TODO: throw?
             // ERROR: mismatch parameter type ('' is not numeric)
@@ -632,11 +655,11 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFloat(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveFloat(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eValue, out var eRadix, out var eSeparator)
-            || !this.TryResolveInt(ref context, eValue, out var eValueVal)
-            || !this.TryResolveInt(ref context, eRadix, out var eRadixVal))
+            || !this.TryResolveInt(in context, eValue, out var eValueVal)
+            || !this.TryResolveInt(in context, eRadix, out var eRadixVal))
         {
             return false;
         }
@@ -649,14 +672,14 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
 
         context.Builder.Append(integerPart.ToString());
-        this.ResolveStringExpression(ref context, eSeparator);
+        this.ResolveStringExpression(in context, eSeparator);
 
         // brain fried code
         Span<byte> fractionalDigits = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         var pos = fractionalDigits.Length - 1;
         for (var r = eRadixVal; r > 1; r /= 10)
         {
-            fractionalDigits[pos--] = (byte)('0' + fractionalPart % 10);
+            fractionalDigits[pos--] = (byte)('0' + (fractionalPart % 10));
             fractionalPart /= 10;
         }
 
@@ -665,22 +688,22 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveSheet(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveSheet(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         var enu = payload.GetEnumerator();
 
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var eSheetNameStr))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var eRowIdValue))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var eRowIdValue))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var eColIndexValue))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var eColIndexValue))
             return false;
 
         var eColParamValue = 0u;
         if (enu.MoveNext())
-            this.TryResolveUInt(ref context, enu.Current, out eColParamValue);
+            this.TryResolveUInt(in context, enu.Current, out eColParamValue);
 
         var resolvedSheetName = this.Evaluate(eSheetNameStr, context.LocalParameters, context.Language).ExtractText();
 
@@ -692,61 +715,85 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!this.dataManager.Excel.SheetNames.Contains(resolvedSheetName))
             return false;
 
-        if (!this.dataManager.GetExcelSheet<RawRow>(context.Language, resolvedSheetName).TryGetRow(eRowIdValue, out var row))
+        if (!this.dataManager.GetExcelSheet<RawRow>(context.Language, resolvedSheetName)
+                 .TryGetRow(eRowIdValue, out var row))
             return false;
 
-        var column = row.ReadColumn((int)eColIndexValue);
-        if (column == null)
+        if (eColIndexValue >= row.Columns.Count)
             return false;
 
-        switch (column)
+        var column = row.Columns[(int)eColIndexValue];
+        switch (column.Type)
         {
-            case ReadOnlySeString val:
-                context.Builder.Append(this.Evaluate(val, [eColParamValue], context.Language));
+            case ExcelColumnDataType.String:
+                context.Builder.Append(
+                    $"{this.Evaluate(row.ReadString(column.Offset), [eColParamValue], context.Language)}");
                 return true;
-
-            case bool val:
-                context.Builder.Append((val ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
+            case ExcelColumnDataType.Bool:
+                context.Builder.Append($"{(row.ReadBool(column.Offset) ? 1u : 0):D}");
                 return true;
-
-            case sbyte val:
-                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+            case ExcelColumnDataType.Int8:
+                context.Builder.Append($"{row.ReadInt8(column.Offset):D}");
                 return true;
-
-            case byte val:
-                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+            case ExcelColumnDataType.UInt8:
+                context.Builder.Append($"{row.ReadUInt8(column.Offset):D}");
                 return true;
-
-            case short val:
-                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+            case ExcelColumnDataType.Int16:
+                context.Builder.Append($"{row.ReadInt16(column.Offset):D}");
                 return true;
-
-            case ushort val:
-                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+            case ExcelColumnDataType.UInt16:
+                context.Builder.Append($"{row.ReadUInt16(column.Offset):D}");
                 return true;
-
-            case int val:
-                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+            case ExcelColumnDataType.Int32:
+                context.Builder.Append($"{row.ReadInt32(column.Offset):D}");
                 return true;
-
-            case uint val:
-                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+            case ExcelColumnDataType.UInt32:
+                context.Builder.Append($"{row.ReadUInt32(column.Offset):D}");
                 return true;
-
-            case { } val:
-                context.Builder.Append(val.ToString());
+            case ExcelColumnDataType.Float32:
+                context.Builder.Append($"{row.ReadFloat32(column.Offset):D}");
                 return true;
+            case ExcelColumnDataType.Int64:
+                context.Builder.Append($"{row.ReadInt64(column.Offset):D}");
+                return true;
+            case ExcelColumnDataType.UInt64:
+                context.Builder.Append($"{row.ReadUInt64(column.Offset):D}");
+                return true;
+            case ExcelColumnDataType.PackedBool0:
+                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 0) ? 1u : 0):D}");
+                return true;
+            case ExcelColumnDataType.PackedBool1:
+                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 1) ? 1u : 0):D}");
+                return true;
+            case ExcelColumnDataType.PackedBool2:
+                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 2) ? 1u : 0):D}");
+                return true;
+            case ExcelColumnDataType.PackedBool3:
+                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 3) ? 1u : 0):D}");
+                return true;
+            case ExcelColumnDataType.PackedBool4:
+                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 4) ? 1u : 0):D}");
+                return true;
+            case ExcelColumnDataType.PackedBool5:
+                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 5) ? 1u : 0):D}");
+                return true;
+            case ExcelColumnDataType.PackedBool6:
+                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 6) ? 1u : 0):D}");
+                return true;
+            case ExcelColumnDataType.PackedBool7:
+                context.Builder.Append($"{(row.ReadPackedBool(column.Offset, 7) ? 1u : 0):D}");
+                return true;
+            default:
+                return false;
         }
-
-        return false;
     }
 
-    private bool TryResolveString(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveString(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        return payload.TryGetExpression(out var eStr) && this.ResolveStringExpression(ref context, eStr);
+        return payload.TryGetExpression(out var eStr) && this.ResolveStringExpression(in context, eStr);
     }
 
-    private bool TryResolveCaps(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveCaps(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eStr))
             return false;
@@ -755,9 +802,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         try
         {
-            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
 
-            if (!this.ResolveStringExpression(ref headContext, eStr))
+            if (!this.ResolveStringExpression(headContext, eStr))
                 return false;
 
             var str = builder.ToReadOnlySeString();
@@ -787,7 +834,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
     }
 
-    private bool TryResolveHead(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveHead(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eStr))
             return false;
@@ -796,9 +843,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         try
         {
-            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
 
-            if (!this.ResolveStringExpression(ref headContext, eStr))
+            if (!this.ResolveStringExpression(headContext, eStr))
                 return false;
 
             var str = builder.ToReadOnlySeString();
@@ -813,7 +860,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
                 {
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToUpper());
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).FirstCharToUpper(context.CultureInfo));
                     continue;
                 }
 
@@ -828,7 +875,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
     }
 
-    private bool TryResolveSplit(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveSplit(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eText, out var eSeparator, out var eIndex))
             return false;
@@ -840,9 +887,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         try
         {
-            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
 
-            if (!this.ResolveStringExpression(ref headContext, eText))
+            if (!this.ResolveStringExpression(headContext, eText))
                 return false;
 
             var separator = eSeparatorVal.ExtractText();
@@ -864,7 +911,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
     }
 
-    private bool TryResolveHeadAll(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveHeadAll(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eStr))
             return false;
@@ -873,9 +920,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         try
         {
-            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
 
-            if (!this.ResolveStringExpression(ref headContext, eStr))
+            if (!this.ResolveStringExpression(headContext, eStr))
                 return false;
 
             var str = builder.ToReadOnlySeString();
@@ -887,7 +934,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (p.Type == ReadOnlySePayloadType.Text)
                 {
-                    context.Builder.Append(context.CultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
+                    context.Builder.Append(
+                        context.CultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.Span)));
 
                     continue;
                 }
@@ -903,46 +951,46 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
     }
 
-    private bool TryResolveFixed(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveFixed(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         // This is handled by the second function in Client::UI::Misc::PronounModule_ProcessString
 
         var enu = payload.GetEnumerator();
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var e0Val))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var e0Val))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var e1Val))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var e1Val))
             return false;
 
         return e0Val switch
         {
             100 or 200 => e1Val switch
             {
-                1 => this.TryResolveFixedPlayerLink(ref context, ref enu),
-                2 => this.TryResolveFixedClassJobLevel(ref context, ref enu),
-                3 => this.TryResolveFixedMapLink(ref context, ref enu),
-                4 => this.TryResolveFixedItemLink(ref context, ref enu),
-                5 => this.TryResolveFixedChatSoundEffect(ref context, ref enu),
-                6 => this.TryResolveFixedObjStr(ref context, ref enu),
-                7 => this.TryResolveFixedString(ref context, ref enu),
-                8 => this.TryResolveFixedTimeRemaining(ref context, ref enu),
+                1 => this.TryResolveFixedPlayerLink(in context, ref enu),
+                2 => this.TryResolveFixedClassJobLevel(in context, ref enu),
+                3 => this.TryResolveFixedMapLink(in context, ref enu),
+                4 => this.TryResolveFixedItemLink(in context, ref enu),
+                5 => this.TryResolveFixedChatSoundEffect(in context, ref enu),
+                6 => this.TryResolveFixedObjStr(in context, ref enu),
+                7 => this.TryResolveFixedString(in context, ref enu),
+                8 => this.TryResolveFixedTimeRemaining(in context, ref enu),
                 // Reads a uint and saves it to PronounModule+0x3AC
                 // TODO: handle this? looks like it's for the mentor/beginner icon of the player link in novice network
                 // see "FF 50 50 8B B0"
                 9 => true,
-                10 => this.TryResolveFixedStatusLink(ref context, ref enu),
-                11 => this.TryResolveFixedPartyFinderLink(ref context, ref enu),
-                12 => this.TryResolveFixedQuestLink(ref context, ref enu),
+                10 => this.TryResolveFixedStatusLink(in context, ref enu),
+                11 => this.TryResolveFixedPartyFinderLink(in context, ref enu),
+                12 => this.TryResolveFixedQuestLink(in context, ref enu),
                 _ => false,
             },
-            _ => this.TryResolveFixedAutoTranslation(ref context, payload, e0Val, e1Val),
+            _ => this.TryResolveFixedAutoTranslation(in context, payload, e0Val, e1Val),
         };
     }
 
-    private unsafe bool TryResolveFixedPlayerLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private unsafe bool TryResolveFixedPlayerLink(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var worldId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var worldId))
             return false;
 
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var playerName))
@@ -975,55 +1023,56 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFixedClassJobLevel(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedClassJobLevel(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var classJobId) || classJobId <= 0)
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var classJobId) || classJobId <= 0)
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var level))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var level))
             return false;
 
-        if (!this.dataManager.GetExcelSheet<ClassJob>(context.Language).TryGetRow((uint)classJobId, out var classJobRow))
+        if (!this.dataManager.GetExcelSheet<ClassJob>(context.Language)
+                 .TryGetRow((uint)classJobId, out var classJobRow))
             return false;
 
         context.Builder.Append(classJobRow.Name);
 
         if (level != 0)
-        {
-            context.Builder.Append('(');
-            context.Builder.Append(level.ToString("D", CultureInfo.InvariantCulture));
-            context.Builder.Append(')');
-        }
+            context.Builder.Append(context.CultureInfo, $"({level:D})");
 
         return true;
     }
 
-    private bool TryResolveFixedMapLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedMapLink(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var territoryTypeId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var territoryTypeId))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var packedIds))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var packedIds))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var rawX))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var rawX))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var rawY))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var rawY))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var rawZ))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var rawZ))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var placeNameIdInt))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var placeNameIdInt))
             return false;
 
         var instance = packedIds >> 0x10;
         var mapId = packedIds & 0xFF;
 
-        if (this.dataManager.GetExcelSheet<TerritoryType>(context.Language).TryGetRow(territoryTypeId, out var territoryTypeRow))
+        if (this.dataManager.GetExcelSheet<TerritoryType>(context.Language)
+                .TryGetRow(territoryTypeId, out var territoryTypeRow))
         {
-            if (!this.dataManager.GetExcelSheet<PlaceName>(context.Language).TryGetRow(placeNameIdInt == 0 ? territoryTypeRow.PlaceName.RowId : placeNameIdInt, out var placeNameRow))
+            if (!this.dataManager.GetExcelSheet<PlaceName>(context.Language)
+                     .TryGetRow(
+                         placeNameIdInt == 0 ? territoryTypeRow.PlaceName.RowId : placeNameIdInt,
+                         out var placeNameRow))
                 return false;
 
             if (!this.dataManager.GetExcelSheet<Lumina.Excel.Sheets.Map>().TryGetRow(mapId, out var mapRow))
@@ -1032,7 +1081,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             var sb = SeStringBuilder.SharedPool.Get();
 
             sb.Append(placeNameRow.Name);
-            if (instance > 0 && instance <= 9)
+            if (instance is > 0 and <= 9)
                 sb.Append((char)((char)0xE0B0 + (char)instance));
 
             var placeNameWithInstance = sb.ToReadOnlySeString();
@@ -1042,8 +1091,14 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             var mapPosY = ConvertRawToMapPosY(mapRow, rawY / 1000f);
 
             var linkText = rawZ == -30000
-                ? this.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], context.Language)
-                : this.EvaluateFromAddon(1636, [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ], context.Language);
+                               ? this.EvaluateFromAddon(
+                                   1635,
+                                   [placeNameWithInstance, mapPosX, mapPosY],
+                                   context.Language)
+                               : this.EvaluateFromAddon(
+                                   1636,
+                                   [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ],
+                                   context.Language);
 
             context.Builder.PushLinkMapPosition(territoryTypeId, mapId, rawX, rawY);
             context.Builder.Append(this.EvaluateFromAddon(371, [linkText], context.Language));
@@ -1051,43 +1106,33 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
             return true;
         }
-        else if (mapId == 0)
+
+        var rowId = mapId switch
         {
-            if (this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(875, out var addonRow)) // "(No location set for map link)"
-                context.Builder.Append(addonRow.Text);
-
-            return true;
-        }
-        else if (mapId == 1)
-        {
-            if (this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(874, out var addonRow)) // "(Map link unavailable in this area)"
-                context.Builder.Append(addonRow.Text);
-
-            return true;
-        }
-        else if (mapId == 2)
-        {
-            if (this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(13743, out var addonRow)) // "(Unable to set map link)"
-                context.Builder.Append(addonRow.Text);
-
-            return true;
-        }
-
-        return false;
+            0 => 875u, // "(No location set for map link)"
+            1 => 874u, // "(Map link unavailable in this area)"
+            2 => 13743u, // "(Unable to set map link)"
+            _ => 0u,
+        };
+        if (rowId == 0u)
+            return false;
+        if (this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(rowId, out var addonRow))
+            context.Builder.Append(addonRow.Text);
+        return true;
     }
 
-    private bool TryResolveFixedItemLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedItemLink(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var itemId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var itemId))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var rarity))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var rarity))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var unk2))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var unk2))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var unk3))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var unk3))
             return false;
 
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var itemName)) // TODO: unescape??
@@ -1109,9 +1154,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFixedChatSoundEffect(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedChatSoundEffect(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var soundEffectId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var soundEffectId))
             return false;
 
         context.Builder.Append($"<se.{soundEffectId + 1}>");
@@ -1121,9 +1166,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFixedObjStr(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedObjStr(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var objStrId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var objStrId))
             return false;
 
         context.Builder.Append(this.EvaluateFromAddon(2025, [objStrId], context.Language));
@@ -1131,7 +1176,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFixedString(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedString(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var text))
             return false;
@@ -1142,9 +1187,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFixedTimeRemaining(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedTimeRemaining(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var seconds))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var seconds))
             return false;
 
         if (seconds != 0)
@@ -1160,15 +1205,16 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFixedStatusLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedStatusLink(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var statusId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var statusId))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveBool(ref context, enu.Current, out var hasOverride))
+        if (!enu.MoveNext() || !this.TryResolveBool(in context, enu.Current, out var hasOverride))
             return false;
 
-        if (!this.dataManager.GetExcelSheet<Lumina.Excel.Sheets.Status>(context.Language).TryGetRow(statusId, out var statusRow))
+        if (!this.dataManager.GetExcelSheet<Lumina.Excel.Sheets.Status>(context.Language)
+                 .TryGetRow(statusId, out var statusRow))
             return false;
 
         ReadOnlySeStringSpan statusName;
@@ -1207,14 +1253,14 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         SeStringBuilder.SharedPool.Return(sb);
 
         context.Builder
-           .BeginMacro(MacroCode.Link)
-            .AppendUIntExpression((uint)LinkMacroPayloadType.Status)
-            .AppendUIntExpression(statusId)
-            .AppendUIntExpression(0)
-            .AppendUIntExpression(0)
-            .AppendStringExpression(statusName)
-            .AppendStringExpression(statusDescription)
-            .EndMacro();
+               .BeginMacro(MacroCode.Link)
+               .AppendUIntExpression((uint)LinkMacroPayloadType.Status)
+               .AppendUIntExpression(statusId)
+               .AppendUIntExpression(0)
+               .AppendUIntExpression(0)
+               .AppendStringExpression(statusName)
+               .AppendStringExpression(statusDescription)
+               .EndMacro();
 
         context.Builder.Append(this.EvaluateFromAddon(371, [linkText], context.Language));
 
@@ -1223,41 +1269,48 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFixedPartyFinderLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedPartyFinderLink(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var listingId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var listingId))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var unk1))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var unk1))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var worldId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var worldId))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var crossWorldFlag)) // 0 = cross world, 1 = not cross world
+        if (!enu.MoveNext() || !this.TryResolveInt(
+                context,
+                enu.Current,
+                out var crossWorldFlag)) // 0 = cross world, 1 = not cross world
             return false;
 
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var playerName))
             return false;
 
         context.Builder
-           .BeginMacro(MacroCode.Link)
-            .AppendUIntExpression((uint)LinkMacroPayloadType.PartyFinder)
-            .AppendUIntExpression(listingId)
-            .AppendUIntExpression(unk1)
-            .AppendUIntExpression((uint)(crossWorldFlag << 0x10) + worldId)
-            .EndMacro();
+               .BeginMacro(MacroCode.Link)
+               .AppendUIntExpression((uint)LinkMacroPayloadType.PartyFinder)
+               .AppendUIntExpression(listingId)
+               .AppendUIntExpression(unk1)
+               .AppendUIntExpression((uint)(crossWorldFlag << 0x10) + worldId)
+               .EndMacro();
 
-        context.Builder.Append(this.EvaluateFromAddon(371, [this.EvaluateFromAddon(2265, [playerName, crossWorldFlag], context.Language)], context.Language));
+        context.Builder.Append(
+            this.EvaluateFromAddon(
+                371,
+                [this.EvaluateFromAddon(2265, [playerName, crossWorldFlag], context.Language)],
+                context.Language));
 
         context.Builder.PopLink();
 
         return true;
     }
 
-    private bool TryResolveFixedQuestLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedQuestLink(in SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var questId))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var questId))
             return false;
 
         if (!enu.MoveNext() || !enu.MoveNext() || !enu.MoveNext()) // unused
@@ -1278,12 +1331,12 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         */
 
         context.Builder
-           .BeginMacro(MacroCode.Link)
-            .AppendUIntExpression((uint)LinkMacroPayloadType.Quest)
-            .AppendUIntExpression(questId)
-            .AppendUIntExpression(0)
-            .AppendUIntExpression(0)
-            .EndMacro();
+               .BeginMacro(MacroCode.Link)
+               .AppendUIntExpression((uint)LinkMacroPayloadType.Quest)
+               .AppendUIntExpression(questId)
+               .AppendUIntExpression(0)
+               .AppendUIntExpression(0)
+               .EndMacro();
 
         context.Builder.Append(this.EvaluateFromAddon(371, [questName], context.Language));
 
@@ -1292,21 +1345,27 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveFixedAutoTranslation(ref SeStringContext context, in ReadOnlySePayloadSpan payload, int e0Val, int e1Val)
+    private bool TryResolveFixedAutoTranslation(
+        in SeStringContext context, in ReadOnlySePayloadSpan payload, int e0Val, int e1Val)
     {
         // Auto-Translation / Completion
         var group = (uint)(e0Val + 1);
         var rowId = (uint)e1Val;
 
-        using var icons = new IconWrap(ref context.Builder, 54, 55);
+        using var icons = new SeStringBuilderIconWrap(context.Builder, 54, 55);
 
-        if (!this.dataManager.GetExcelSheet<Completion>(context.Language).TryGetFirst(row => row.Group == group && !row.LookupTable.IsEmpty, out var groupRow))
+        if (!this.dataManager.GetExcelSheet<Completion>(context.Language).TryGetFirst(
+                row => row.Group == group && !row.LookupTable.IsEmpty,
+                out var groupRow))
             return false;
 
         var lookupTable = (
-            groupRow.LookupTable.IsTextOnly()
-                ? groupRow.LookupTable
-                : this.Evaluate(groupRow.LookupTable.AsSpan(), context.LocalParameters, context.Language)).ExtractText();
+                              groupRow.LookupTable.IsTextOnly()
+                                  ? groupRow.LookupTable
+                                  : this.Evaluate(
+                                      groupRow.LookupTable.AsSpan(),
+                                      context.LocalParameters,
+                                      context.Language)).ExtractText();
 
         // Completion sheet
         if (lookupTable.Equals("@"))
@@ -1320,7 +1379,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
 
         // CategoryDataCache
-        else if (lookupTable.Equals("#"))
+        if (lookupTable.Equals("#"))
         {
             // couldn't find any, so we don't handle them :p
             context.Builder.Append(payload);
@@ -1329,10 +1388,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         // All other sheets
         var rangesStart = lookupTable.IndexOf('[');
-        RawRow row = default;
-        if (rangesStart == -1) // Sheet without ranges
+        // Sheet without ranges
+        if (rangesStart == -1)
         {
-            if (this.dataManager.GetExcelSheet<RawRow>(context.Language, lookupTable).TryGetRow(rowId, out row))
+            if (this.dataManager.GetExcelSheet<RawRow>(context.Language, lookupTable).TryGetRow(rowId, out var row))
             {
                 context.Builder.Append(row.ReadStringColumn(0));
                 return true;
@@ -1340,7 +1399,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
 
         var sheetName = lookupTable[..rangesStart];
-        var ranges = lookupTable[(rangesStart + 1)..(lookupTable.Length - 1)];
+        var ranges = lookupTable[(rangesStart + 1)..^1];
         if (ranges.Length == 0)
             return true;
 
@@ -1370,7 +1429,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         {
             context.Builder.Append(this.nounProcessor.ProcessNoun(sheetName, rowId, ClientLanguage.German, 1, 5));
         }
-        else if (this.dataManager.GetExcelSheet<RawRow>(context.Language, sheetName).TryGetRow(rowId, out row))
+        else if (this.dataManager.GetExcelSheet<RawRow>(context.Language, sheetName).TryGetRow(rowId, out var row))
         {
             context.Builder.Append(row.ReadStringColumn(col));
         }
@@ -1378,7 +1437,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveLower(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveLower(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eStr))
             return false;
@@ -1387,9 +1446,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         try
         {
-            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
 
-            if (!this.ResolveStringExpression(ref headContext, eStr))
+            if (!this.ResolveStringExpression(headContext, eStr))
                 return false;
 
             var str = builder.ToReadOnlySeString();
@@ -1417,7 +1476,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
     }
 
-    private bool TryResolveNoun(ClientLanguage language, ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveNoun(ClientLanguage language, in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         var eAmountVal = 1;
         var eCaseVal = 1;
@@ -1429,10 +1488,10 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         var sheetName = this.Evaluate(eSheetNameStr, context.LocalParameters, context.Language).ExtractText();
 
-        if (!enu.MoveNext() || !this.TryResolveInt(ref context, enu.Current, out var eArticleTypeVal))
+        if (!enu.MoveNext() || !this.TryResolveInt(in context, enu.Current, out var eArticleTypeVal))
             return false;
 
-        if (!enu.MoveNext() || !this.TryResolveUInt(ref context, enu.Current, out var eRowIdVal))
+        if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var eRowIdVal))
             return false;
 
         this.sheetRedirectResolver.Resolve(ref sheetName, ref eRowIdVal);
@@ -1443,12 +1502,12 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         // optional arguments
         if (enu.MoveNext())
         {
-            if (!this.TryResolveInt(ref context, enu.Current, out eAmountVal))
+            if (!this.TryResolveInt(in context, enu.Current, out eAmountVal))
                 return false;
 
             if (enu.MoveNext())
             {
-                if (!this.TryResolveInt(ref context, enu.Current, out eCaseVal))
+                if (!this.TryResolveInt(in context, enu.Current, out eCaseVal))
                     return false;
 
                 // For Chinese texts?
@@ -1456,19 +1515,20 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 if (enu.MoveNext())
                 {
                     var eUnkInt5 = enu.Current;
-                    if (!TryResolveInt(ref context, eUnkInt5, out eUnkInt5Val))
+                    if (!TryResolveInt(context,eUnkInt5, out eUnkInt5Val))
                         return false;
                 }
                 */
             }
         }
 
-        context.Builder.Append(this.nounProcessor.ProcessNoun(sheetName, eRowIdVal, language, eAmountVal, eArticleTypeVal, eCaseVal - 1));
+        context.Builder.Append(
+            this.nounProcessor.ProcessNoun(sheetName, eRowIdVal, language, eAmountVal, eArticleTypeVal, eCaseVal - 1));
 
         return true;
     }
 
-    private bool TryResolveLowerHead(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveLowerHead(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eStr))
             return false;
@@ -1477,9 +1537,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         try
         {
-            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+            var headContext = new SeStringContext(builder, context.LocalParameters, context.Language);
 
-            if (!this.ResolveStringExpression(ref headContext, eStr))
+            if (!this.ResolveStringExpression(headContext, eStr))
                 return false;
 
             var str = builder.ToReadOnlySeString();
@@ -1494,7 +1554,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
                 {
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToLower());
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).FirstCharToLower(context.CultureInfo));
                     continue;
                 }
 
@@ -1509,41 +1569,43 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
     }
 
-    private bool TryResolveColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveColorType(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eColorType) || !this.TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
+        if (!payload.TryGetExpression(out var eColorType) ||
+            !this.TryResolveUInt(in context, eColorType, out var eColorTypeVal))
             return false;
 
         if (eColorTypeVal == 0)
             context.Builder.PopColor();
         else if (this.dataManager.GetExcelSheet<UIColor>().TryGetRow(eColorTypeVal, out var row))
-            context.Builder.PushColorBgra(row.UIForeground >> 8 | row.UIForeground << 24);
+            context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
 
         return true;
     }
 
-    private bool TryResolveEdgeColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveEdgeColorType(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eColorType) || !this.TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
+        if (!payload.TryGetExpression(out var eColorType) ||
+            !this.TryResolveUInt(in context, eColorType, out var eColorTypeVal))
             return false;
 
         if (eColorTypeVal == 0)
             context.Builder.PopEdgeColor();
         else if (this.dataManager.GetExcelSheet<UIColor>().TryGetRow(eColorTypeVal, out var row))
-            context.Builder.PushEdgeColorBgra(row.UIForeground >> 8 | row.UIForeground << 24);
+            context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
 
         return true;
     }
 
-    private bool TryResolveDigit(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveDigit(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eValue, out var eTargetLength))
             return false;
 
-        if (!this.TryResolveInt(ref context, eValue, out var eValueVal))
+        if (!this.TryResolveInt(in context, eValue, out var eValueVal))
             return false;
 
-        if (!this.TryResolveInt(ref context, eTargetLength, out var eTargetLengthVal))
+        if (!this.TryResolveInt(in context, eTargetLength, out var eTargetLengthVal))
             return false;
 
         context.Builder.Append(eValueVal.ToString(new string('0', eTargetLengthVal)));
@@ -1551,36 +1613,36 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return true;
     }
 
-    private bool TryResolveOrdinal(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveOrdinal(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eValue) || !this.TryResolveUInt(ref context, eValue, out var eValueVal))
+        if (!payload.TryGetExpression(out var eValue) || !this.TryResolveUInt(in context, eValue, out var eValueVal))
             return false;
 
-        if (MathF.Floor(eValueVal / 10f) % 10 == 1)
-        {
-            context.Builder.Append($"{eValueVal}th");
-            return true;
-        }
-
-        context.Builder.Append($"{eValueVal}{(eValueVal % 10) switch
-        {
-            1 => "st",
-            2 => "nd",
-            3 => "rd",
-            _ => "th",
-        }}");
+        // TODO: Culture support?
+        context.Builder.Append(
+            $"{eValueVal}{(eValueVal % 10) switch
+            {
+                _ when eValueVal is >= 10 and <= 19 => "th",
+                1 => "st",
+                2 => "nd",
+                3 => "rd",
+                _ => "th",
+            }}");
         return true;
     }
 
-    private bool TryResolveLevelPos(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private bool TryResolveLevelPos(in SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eLevel) || !this.TryResolveUInt(ref context, eLevel, out var eLevelVal))
+        if (!payload.TryGetExpression(out var eLevel) || !this.TryResolveUInt(in context, eLevel, out var eLevelVal))
             return false;
 
-        if (!this.dataManager.GetExcelSheet<Level>(context.Language).TryGetRow(eLevelVal, out var level) || !level.Map.IsValid)
+        if (!this.dataManager.GetExcelSheet<Level>(context.Language).TryGetRow(eLevelVal, out var level) ||
+            !level.Map.IsValid)
             return false;
 
-        if (!this.dataManager.GetExcelSheet<PlaceName>(context.Language).TryGetRow(level.Map.Value.PlaceName.RowId, out var placeName))
+        if (!this.dataManager.GetExcelSheet<PlaceName>(context.Language).TryGetRow(
+                level.Map.Value.PlaceName.RowId,
+                out var placeName))
             return false;
 
         var mapPosX = ConvertRawToMapPosX(level.Map.Value, level.X);
@@ -1637,7 +1699,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
     }
 
-    private unsafe bool TryProduceGStrDefault(ref SeStringBuilder builder, ClientLanguage language, uint parameterIndex)
+    private unsafe bool TryProduceGStrDefault(SeStringBuilder builder, ClientLanguage language, uint parameterIndex)
     {
         var rtm = RaptureTextModule.Instance();
         if (rtm is null)
@@ -1657,15 +1719,19 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         switch (p.Type)
         {
             case TextParameterType.Integer:
-                builder.Append(p.IntValue.ToString());
+                builder.Append($"{p.IntValue:D}");
                 return true;
 
             case TextParameterType.ReferencedUtf8String:
-                builder.Append(this.Evaluate(new ReadOnlySeStringSpan(p.ReferencedUtf8StringValue->Utf8String.AsSpan()), null, language));
+                this.EvaluateAndAppendTo(
+                    builder,
+                    p.ReferencedUtf8StringValue->Utf8String.AsSpan(),
+                    null,
+                    language);
                 return false;
 
             case TextParameterType.String:
-                builder.Append(this.Evaluate(new ReadOnlySeStringSpan(p.StringValue), null, language));
+                this.EvaluateAndAppendTo(builder, new(p.StringValue), null, language);
                 return false;
 
             case TextParameterType.Uninitialized:
@@ -1674,7 +1740,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
     }
 
-    private unsafe bool TryResolveUInt(ref SeStringContext context, in ReadOnlySeExpressionSpan expression, out uint value)
+    private unsafe bool TryResolveUInt(
+        in SeStringContext context, in ReadOnlySeExpressionSpan expression, out uint value)
     {
         if (expression.TryGetUInt(out value))
             return true;
@@ -1717,7 +1784,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         if (expression.TryGetParameterExpression(out exprType, out var operand1))
         {
-            if (!this.TryResolveUInt(ref context, operand1, out var paramIndex))
+            if (!this.TryResolveUInt(in context, operand1, out var paramIndex))
                 return false;
             if (paramIndex == 0)
                 return false;
@@ -1738,8 +1805,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 case ExpressionType.GreaterThan:
                 case ExpressionType.LessThanOrEqualTo:
                 case ExpressionType.LessThan:
-                    if (!this.TryResolveInt(ref context, operand1, out var value1)
-                        || !this.TryResolveInt(ref context, operand2, out var value2))
+                    if (!this.TryResolveInt(in context, operand1, out var value1)
+                        || !this.TryResolveInt(in context, operand2, out var value2))
                     {
                         return false;
                     }
@@ -1756,7 +1823,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 case ExpressionType.Equal:
                 case ExpressionType.NotEqual:
-                    if (this.TryResolveInt(ref context, operand1, out value1) && this.TryResolveInt(ref context, operand2, out value2))
+                    if (this.TryResolveInt(in context, operand1, out value1) &&
+                        this.TryResolveInt(in context, operand2, out value2))
                     {
                         if ((ExpressionType)exprType == ExpressionType.Equal)
                             value = value1 == value2 ? 1u : 0u;
@@ -1767,9 +1835,19 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                     if (operand1.TryGetString(out var strval1) && operand2.TryGetString(out var strval2))
                     {
-                        var resolvedStr1 = this.Evaluate(strval1, context.LocalParameters, context.Language);
-                        var resolvedStr2 = this.Evaluate(strval2, context.LocalParameters, context.Language);
-                        var equals = resolvedStr1.Equals(resolvedStr2);
+                        var resolvedStr1 = this.EvaluateAndAppendTo(
+                            SeStringBuilder.SharedPool.Get(),
+                            strval1,
+                            context.LocalParameters,
+                            context.Language);
+                        var resolvedStr2 = this.EvaluateAndAppendTo(
+                            SeStringBuilder.SharedPool.Get(),
+                            strval2,
+                            context.LocalParameters,
+                            context.Language);
+                        var equals = resolvedStr1.GetViewAsSpan().SequenceEqual(resolvedStr2.GetViewAsSpan());
+                        SeStringBuilder.SharedPool.Return(resolvedStr1);
+                        SeStringBuilder.SharedPool.Return(resolvedStr2);
 
                         if ((ExpressionType)exprType == ExpressionType.Equal)
                             value = equals ? 1u : 0u;
@@ -1796,7 +1874,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 if (!payload.TryGetExpression(out var expr))
                     return false;
 
-                return this.TryResolveUInt(ref context, expr, out value);
+                return this.TryResolveUInt(in context, expr, out value);
             }
 
             return false;
@@ -1806,9 +1884,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryResolveInt(ref SeStringContext context, in ReadOnlySeExpressionSpan expression, out int value)
+    private bool TryResolveInt(in SeStringContext context, in ReadOnlySeExpressionSpan expression, out int value)
     {
-        if (this.TryResolveUInt(ref context, expression, out var u32))
+        if (this.TryResolveUInt(in context, expression, out var u32))
         {
             value = (int)u32;
             return true;
@@ -1819,9 +1897,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryResolveBool(ref SeStringContext context, in ReadOnlySeExpressionSpan expression, out bool value)
+    private bool TryResolveBool(in SeStringContext context, in ReadOnlySeExpressionSpan expression, out bool value)
     {
-        if (this.TryResolveUInt(ref context, expression, out var u32))
+        if (this.TryResolveUInt(in context, expression, out var u32))
         {
             value = u32 != 0;
             return true;
@@ -1831,7 +1909,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         return false;
     }
 
-    private bool ResolveStringExpression(ref SeStringContext context, in ReadOnlySeExpressionSpan expression)
+    private bool ResolveStringExpression(in SeStringContext context, in ReadOnlySeExpressionSpan expression)
     {
         uint u32;
 
@@ -1844,14 +1922,14 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         /*
         if (expression.TryGetPlaceholderExpression(out var exprType))
         {
-            if (context.TryProducePlaceholder(ref context, exprType))
+            if (context.TryProducePlaceholder(context,exprType))
                 return true;
         }
         */
 
         if (expression.TryGetParameterExpression(out var exprType, out var operand1))
         {
-            if (!this.TryResolveUInt(ref context, operand1, out var paramIndex))
+            if (!this.TryResolveUInt(in context, operand1, out var paramIndex))
                 return false;
             if (paramIndex == 0)
                 return false;
@@ -1880,7 +1958,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                     return true;
 
                 case ExpressionType.GlobalString: // gstr
-                    return this.TryProduceGStrDefault(ref context.Builder, context.Language, paramIndex);
+                    return this.TryProduceGStrDefault(context.Builder, context.Language, paramIndex);
 
                 default:
                     return false;
@@ -1888,10 +1966,13 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
 
         // Handles UInt and Binary expressions
-        if (!this.TryResolveUInt(ref context, expression, out u32))
+        if (!this.TryResolveUInt(in context, expression, out u32))
             return false;
 
         context.Builder.Append(((int)u32).ToString());
         return true;
     }
+
+    private readonly record struct StringCacheKey<TK>(TK Kind, uint Id, ClientLanguage Language)
+        where TK : struct, Enum;
 }
