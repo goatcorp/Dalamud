@@ -50,6 +50,7 @@ internal class SelfTestWindow : Window
             new DutyStateAgingStep(),
             new GameConfigAgingStep(),
             new MarketBoardAgingStep(),
+            new SeStringEvaluatorAgingStep(),
             new LogoutEventAgingStep(),
         };
 
