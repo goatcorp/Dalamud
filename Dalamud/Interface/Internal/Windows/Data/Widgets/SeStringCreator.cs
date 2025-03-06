@@ -62,7 +62,7 @@ internal class SeStringCreator : IDataWindowWidget
         // { MacroCode.NonBreakingSpace, [] },
         { MacroCode.Icon2, ["IconId"] },
         // { MacroCode.Hyphen, [] },
-        // { MacroCode.Num, [] },
+        { MacroCode.Num, ["Value"] },
         { MacroCode.Hex, ["Value"] },
         { MacroCode.Kilo, ["Value", "Separator"] },
         { MacroCode.Byte, ["Value"] },
@@ -71,10 +71,10 @@ internal class SeStringCreator : IDataWindowWidget
         { MacroCode.Float, ["Value", "Radix", "Separator"] },
         { MacroCode.Link, ["Type"] },
         { MacroCode.Sheet, ["SheetName", "RowId", "ColumnIndex", "ColumnParam"] },
-        // { MacroCode.String, [] },
-        // { MacroCode.Caps, [] },
+        { MacroCode.String, ["String"] },
+        { MacroCode.Caps, ["String"] },
         { MacroCode.Head, ["String"] },
-        // { MacroCode.Split, [] },
+        { MacroCode.Split, ["String", "Separator"] },
         { MacroCode.HeadAll, ["String"] },
         // { MacroCode.Fixed, [] },
         { MacroCode.Lower, ["String"] },
@@ -89,7 +89,7 @@ internal class SeStringCreator : IDataWindowWidget
         { MacroCode.Digit, ["Value", "TargetLength"] },
         { MacroCode.Ordinal, ["Value"] },
         { MacroCode.Sound, ["IsJingle", "SoundId"] },
-        // { MacroCode.LevelPos, [] },
+        { MacroCode.LevelPos, ["LevelId"] },
     };
 
     private readonly Dictionary<LinkMacroPayloadType, string[]> linkExpressionNames = new()
@@ -254,7 +254,7 @@ internal class SeStringCreator : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("PrintString"))
+        if (ImGui.Button("Print"))
         {
             var output = Utf8String.CreateEmpty();
             var temp = Utf8String.CreateEmpty();
