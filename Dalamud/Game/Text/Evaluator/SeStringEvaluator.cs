@@ -1034,15 +1034,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             var mapPosX = ConvertRawToMapPosX(mapRow, rawX / 1000f);
             var mapPosY = ConvertRawToMapPosY(mapRow, rawY / 1000f);
 
-            ReadOnlySeString linkText;
-            if (rawZ == -30000)
-            {
-                linkText = this.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], context.Language);
-            }
-            else
-            {
-                linkText = this.EvaluateFromAddon(1636, [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ], context.Language);
-            }
+            var linkText = rawZ == -30000
+                ? this.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], context.Language)
+                : this.EvaluateFromAddon(1636, [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ], context.Language);
 
             context.Builder.PushLinkMapPosition(territoryTypeId, mapId, rawX, rawY);
             context.Builder.Append(this.EvaluateFromAddon(371, [linkText], context.Language));
@@ -1189,13 +1183,15 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         var sb = SeStringBuilder.SharedPool.Get();
 
-        if (statusRow.StatusCategory == 1)
+        switch (statusRow.StatusCategory)
         {
-            sb.Append(this.EvaluateFromAddon(376, null, context.Language));
-        }
-        else if (statusRow.StatusCategory == 2)
-        {
-            sb.Append(this.EvaluateFromAddon(377, null, context.Language));
+            case 1:
+                sb.Append(this.EvaluateFromAddon(376, default, context.Language));
+                break;
+
+            case 2:
+                sb.Append(this.EvaluateFromAddon(377, default, context.Language));
+                break;
         }
 
         sb.Append(statusName);
