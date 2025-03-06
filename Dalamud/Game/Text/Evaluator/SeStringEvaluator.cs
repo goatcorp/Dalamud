@@ -83,10 +83,11 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             return new(str);
 
         var builder = SeStringBuilder.SharedPool.Get();
+        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
 
         try
         {
-            var context = new SeStringContext(ref builder, localParameters, language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage());
+            var context = new SeStringContext(ref builder, localParameters, lang);
 
             foreach (var payload in str)
             {
@@ -107,28 +108,34 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     /// <inheritdoc/>
     public ReadOnlySeString EvaluateFromAddon(uint addonId, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
     {
-        if (!this.dataManager.GetExcelSheet<AddonSheet>(language).TryGetRow(addonId, out var addonRow))
+        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+
+        if (!this.dataManager.GetExcelSheet<AddonSheet>(lang).TryGetRow(addonId, out var addonRow))
             return default;
 
-        return this.Evaluate(addonRow.Text.AsSpan(), localParameters, language);
+        return this.Evaluate(addonRow.Text.AsSpan(), localParameters, lang);
     }
 
     /// <inheritdoc/>
     public ReadOnlySeString EvaluateFromLobby(uint lobbyId, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
     {
-        if (!this.dataManager.GetExcelSheet<Lobby>(language).TryGetRow(lobbyId, out var lobbyRow))
+        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+
+        if (!this.dataManager.GetExcelSheet<Lobby>(lang).TryGetRow(lobbyId, out var lobbyRow))
             return default;
 
-        return this.Evaluate(lobbyRow.Text.AsSpan(), localParameters, language);
+        return this.Evaluate(lobbyRow.Text.AsSpan(), localParameters, lang);
     }
 
     /// <inheritdoc/>
     public ReadOnlySeString EvaluateFromLogMessage(uint logMessageId, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
     {
-        if (!this.dataManager.GetExcelSheet<LogMessage>(language).TryGetRow(logMessageId, out var logMessageRow))
+        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+
+        if (!this.dataManager.GetExcelSheet<LogMessage>(lang).TryGetRow(logMessageId, out var logMessageRow))
             return default;
 
-        return this.Evaluate(logMessageRow.Text.AsSpan(), localParameters, language);
+        return this.Evaluate(logMessageRow.Text.AsSpan(), localParameters, lang);
     }
 
     /// <inheritdoc/>
