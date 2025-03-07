@@ -237,27 +237,7 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                 break;
             case PluginCommandOperation.Toggle:
                 var isDisabling = plugin.State == PluginState.Loaded;
-                string togglingKey, togglingFallBack, toggledKey, toggledFallback;
-                if (isDisabling)
-                {
-                    togglingKey = "PluginCommandsDisabling";
-                    togglingFallBack = "Disabling plugin \"{0}\"...";
-                    toggledKey = "PluginCommandsDisableSuccess";
-                    toggledFallback = "Plugin \"{0}\" toggled to disabled.";
-                }
-                else
-                {
-                    togglingKey = "PluginCommandsEnabling";
-                    togglingFallBack = "Enabling plugin \"{0}\"...";
-                    toggledKey = "PluginCommandsEnableSuccess";
-                    toggledFallback = "Plugin \"{0}\" toggled to enabled.";
-                }
-                this.chat.Print(Loc.Localize(togglingKey, togglingFallBack).Format(plugin.Name));
-                Task.Run(() => isDisabling ? plugin.UnloadAsync() : plugin.LoadAsync(PluginLoadReason.Installer))
-                    .ContinueWith(t => Continuation(t,
-                                      Loc.Localize(toggledKey, toggledFallback).Format(plugin.Name),
-                                      Loc.Localize("PluginCommandsToggleFailed", "Failed to toggle plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
-                    .ConfigureAwait(false);
+                HandlePluginOperation(workingPluginId, isDisabling ? PluginCommandOperation.Disable : PluginCommandOperation.Enable);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(operation), operation, null);
