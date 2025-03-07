@@ -1,4 +1,6 @@
 using Dalamud.Data;
+using Dalamud.Utility;
+
 using Lumina.Extensions;
 
 using ItemKind = Dalamud.Game.Text.SeStringHandling.Payloads.ItemPayload.ItemKind;
@@ -74,7 +76,7 @@ internal class SheetRedirectResolver : IServiceType
             // MP means Masterpiece
             case "Item" or "ItemHQ" or "ItemMP":
             {
-                var (itemId, kind) = ItemPayload.GetAdjustedId(rowId);
+                var (itemId, kind) = ItemUtil.GetBaseId(rowId);
                 if (kind == ItemKind.EventItem &&
                     rowId - 2_000_000 <= this.dataManager.GetExcelSheet<LSheets.EventItem>().Count)
                 {
