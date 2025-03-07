@@ -145,6 +145,8 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     private int importSelectedSheetName;
     private int importRowId;
     private string[]? validImportSheetNames;
+    private float inputsWidth;
+    private float lastContentWidth;
 
     private enum TextEntryType
     {
@@ -173,14 +175,30 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
+        var contentWidth = ImGui.GetContentRegionAvail().X;
+
+        // split panels in the middle by default
+        if (this.inputsWidth == 0)
+        {
+            this.inputsWidth = contentWidth / 2f;
+        }
+
+        // resize panels relative to the window size
+        if (contentWidth != this.lastContentWidth)
+        {
+            var originalWidth = this.lastContentWidth != 0 ? this.lastContentWidth : contentWidth; 
+            this.inputsWidth = this.inputsWidth / originalWidth * contentWidth;
+            this.lastContentWidth = contentWidth;
+        }
+
         using var tabBar = ImRaii.TabBar("SeStringCreatorWidgetTabBar");
         if (!tabBar) return;
 
-        this.DrawCreatorTab();
+        this.DrawCreatorTab(contentWidth);
         this.DrawGlobalParametersTab();
     }
 
-    private void DrawCreatorTab()
+    private void DrawCreatorTab(float contentWidth)
     {
         using var tab = ImRaii.TabItem("Creator");
         if (!tab) return;
@@ -196,7 +214,26 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             this.localParameters,
             this.language);
 
+        ImGui.SameLine(0, 0);
+
+        ImGui.Button("###InputPanelResizer", new Vector2(4, -1));
+        if (ImGui.IsItemActive())
+        {
+            this.inputsWidth += ImGui.GetIO().MouseDelta.X;
+        }
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEW);
+
+            if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+            {
+                this.inputsWidth = contentWidth / 2f;
+            }
+        }
+
         ImGui.SameLine();
+
         using var child = ImRaii.Child("Preview", new Vector2(ImGui.GetContentRegionAvail().X, -1));
         if (!child) return;
 
@@ -609,7 +646,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
     private unsafe void DrawInputs()
     {
-        using var child = ImRaii.Child("Inputs", new Vector2(ImGui.GetContentRegionAvail().X / 2, -1));
+        using var child = ImRaii.Child("Inputs", new Vector2(this.inputsWidth, -1));
         if (!child) return;
 
         using var table = ImRaii.Table("StringMakerTable", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
