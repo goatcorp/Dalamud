@@ -8,7 +8,7 @@ using Lumina.Text.ReadOnly;
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
 
 /// <summary>
-/// Test setup for targets.
+/// Test setup for SeStringEvaluator.
 /// </summary>
 internal class SeStringEvaluatorAgingStep : IAgingStep
 {
@@ -27,7 +27,8 @@ internal class SeStringEvaluatorAgingStep : IAgingStep
             case 0:
                 ImGui.TextUnformatted("Is this the current time, and is it ticking?");
 
-                // This checks that MacroDecoder.GetMacroTime()->SetTime() has been called
+                // This checks that EvaluateFromAddon fetches the correct Addon row,
+                // that MacroDecoder.GetMacroTime()->SetTime() has been called
                 // and that local and global parameters have been read correctly.
 
                 ImGui.TextUnformatted(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ExtractText());
@@ -60,21 +61,18 @@ internal class SeStringEvaluatorAgingStep : IAgingStep
                 var evaluatedPlayerName = seStringEvaluator.Evaluate(ReadOnlySeString.FromMacroString("<pcname(lnum1)>"), [localPlayer.EntityId]).ExtractText();
                 var localPlayerName = localPlayer.Name.TextValue;
 
-                if (evaluatedPlayerName == localPlayerName)
-                {
-                    this.step++;
-                }
-                else
+                if (evaluatedPlayerName != localPlayerName)
                 {
                     ImGui.TextUnformatted("The player name doesn't match:");
                     ImGui.TextUnformatted($"Evaluated Player Name (got): {evaluatedPlayerName}");
                     ImGui.TextUnformatted($"Local Player Name (expected): {localPlayerName}");
-                    return SelfTestStepResult.Fail;
+
+                    if (ImGui.Button("Continue"))
+                        return SelfTestStepResult.Fail;
+
+                    return SelfTestStepResult.Waiting;
                 }
 
-                break;
-
-            case 2:
                 return SelfTestStepResult.Pass;
         }
 
