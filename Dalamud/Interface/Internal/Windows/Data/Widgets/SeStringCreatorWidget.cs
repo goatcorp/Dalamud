@@ -30,7 +30,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// <summary>
 /// Widget to create SeStrings.
 /// </summary>
-internal class SeStringCreator : IDataWindowWidget
+internal class SeStringCreatorWidget : IDataWindowWidget
 {
     private const LinkMacroPayloadType DalamudLinkType = (LinkMacroPayloadType)Payload.EmbeddedInfoType.DalamudLink - 1;
 
