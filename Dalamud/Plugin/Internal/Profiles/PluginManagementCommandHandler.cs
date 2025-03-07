@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -236,13 +236,24 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                     .ConfigureAwait(false);
                 break;
             case PluginCommandOperation.Toggle:
-                var isEnabling = plugin.State == PluginState.Unloaded;
-                var togglingKey = isEnabling ? "PluginCommandsEnabling" : "PluginCommandsDisabling";
-                var togglingFallBack = isEnabling ? "Enabling plugin \"{0}\"..." : "Disabling plugin \"{0}\"...";
-                var toggledKey = isEnabling ? "PluginCommandsEnableSuccess" : "PluginCommandsDisableSuccess";
-                var toggledFallback = isEnabling ? "Plugin \"{0}\" toggled to enabled." : "Plugin \"{0}\" toggled to disabled.";
+                var isDisabling = plugin.State == PluginState.Loaded;
+                string togglingKey, togglingFallBack, toggledKey, toggledFallback;
+                if (isDisabling)
+                {
+                    togglingKey = "PluginCommandsDisabling";
+                    togglingFallBack = "Disabling plugin \"{0}\"...";
+                    toggledKey = "PluginCommandsDisableSuccess";
+                    toggledFallback = "Plugin \"{0}\" toggled to disabled.";
+                }
+                else
+                {
+                    togglingKey = "PluginCommandsEnabling";
+                    togglingFallBack = "Enabling plugin \"{0}\"...";
+                    toggledKey = "PluginCommandsEnableSuccess";
+                    toggledFallback = "Plugin \"{0}\" toggled to enabled.";
+                }
                 this.chat.Print(Loc.Localize(togglingKey, togglingFallBack).Format(plugin.Name));
-                Task.Run(() => plugin.State == PluginState.Loaded ? plugin.UnloadAsync() : plugin.LoadAsync(PluginLoadReason.Installer))
+                Task.Run(() => isDisabling ? plugin.UnloadAsync() : plugin.LoadAsync(PluginLoadReason.Installer))
                     .ContinueWith(t => Continuation(t,
                                       Loc.Localize(toggledKey, toggledFallback).Format(plugin.Name),
                                       Loc.Localize("PluginCommandsToggleFailed", "Failed to toggle plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
