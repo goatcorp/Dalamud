@@ -20,7 +20,8 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 internal class NounProcessorWidget : IDataWindowWidget
 {
-    private static readonly string[] GermanCases = ["Nominative", "Genitive", "Dative", "Accusative"];
+    /// <summary>A list of German grammatical cases.</summary>
+    internal static readonly string[] GermanCases = ["Nominative", "Genitive", "Dative", "Accusative"];
 
     private static readonly Type[] NounSheets = [
         typeof(Aetheryte),

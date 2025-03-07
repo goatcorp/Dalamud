@@ -75,4 +75,17 @@ public static class StringExtensions
     /// <param name="input">The input string to remove soft hyphen characters from.</param>
     /// <returns>A string with all soft hyphens removed.</returns>
     public static string StripSoftHyphen(this string input) => input.Replace("\u00AD", string.Empty);
+
+    /// <summary>
+    /// Truncates the given string to the specified maximum number of characters,  
+    /// appending an ellipsis if truncation occurs.
+    /// </summary>
+    /// <param name="input">The string to truncate.</param>
+    /// <param name="maxChars">The maximum allowed length of the string.</param>
+    /// <param name="ellipses">The string to append if truncation occurs (defaults to "...").</param>
+    /// <returns>The truncated string, or the original string if no truncation is needed.</returns>
+    public static string? Truncate(this string input, int maxChars, string ellipses = "...")
+    {
+        return string.IsNullOrEmpty(input) || input.Length <= maxChars ? input : input[..maxChars] + ellipses;
+    }
 }

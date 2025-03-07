@@ -4,11 +4,11 @@ using System.Numerics;
 using System.Text;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
@@ -21,6 +21,10 @@ using FFXIVClientStructs.FFXIV.Component.Text;
 
 using ImGuiNET;
 
+using Lumina.Data;
+using Lumina.Data.Files.Excel;
+using Lumina.Data.Structs.Excel;
+using Lumina.Excel;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -126,70 +130,21 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     };
 
     private readonly List<TextEntry> entries = [
-        new TextEntry(TextEntryType.String, "Test1 "),
-        new TextEntry(TextEntryType.Macro, "<color(0xFF9000)>"),
-        new TextEntry(TextEntryType.String, "Test2 "),
-        new TextEntry(TextEntryType.Macro, "<color(0)>"),
-        new TextEntry(TextEntryType.String, "Test3 "),
-        new TextEntry(TextEntryType.Macro, "<color(stackcolor)>"),
-        new TextEntry(TextEntryType.String, "Test 4 "),
-        new TextEntry(TextEntryType.Macro, "<color(stackcolor)>"),
-        new TextEntry(TextEntryType.String, "Test 5"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,1,1,Some Player)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,2,28,100,0,0,ClassJob)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,3,156,65561,65035,-696153,63,0)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,3,156,65561,65035,-696153,-63,0)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,4,39246,1,0,0,Phoenix Riser Suit)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,5,4)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,6,1031195)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,6,1031197)>"),
-        // 7 formats a string??
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,8,190)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,8,0)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        // 9 writes a uint to PronounModule
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,10,3,0)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,10,3,1,Title,Description)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,11,12345,0,65536,0,Player Name)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Fixed, "<fixed(200,12,70058,0,0,0,The Ultimate Weapon)>"),
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<fixed(48,209)>"), // Mount
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<fixed(49,28)>"), // ClassJob
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<fixed(50,2957)>"), // PlaceName
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<fixed(51,4)>"), // Race
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<fixed(52,7)>"), // Tribe
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<fixed(64,13)>"), // Companion
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<fixed(60,21)>"), // MainCommand
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<ordinal(501)>"), // 501st
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<split(Hello World, ,1)>"), // Hello
-        new TextEntry(TextEntryType.Macro, "<br>"),
-        new TextEntry(TextEntryType.Macro, "<split(Hello World, ,2)>"), // World
+        new TextEntry(TextEntryType.String, "Welcome to "),
+        new TextEntry(TextEntryType.Macro, "<colortype(17)>"),
+        new TextEntry(TextEntryType.Macro, "<edgecolortype(19)>"),
+        new TextEntry(TextEntryType.String, "Dalamud"),
+        new TextEntry(TextEntryType.Macro, "<edgecolor(0)>"),
+        new TextEntry(TextEntryType.Macro, "<colortype(0)>"),
+        new TextEntry(TextEntryType.Macro, " <string(lstr1)>"),
     ];
 
-    private SeStringParameter[]? localParameters = null;
+    private SeStringParameter[]? localParameters = [Util.GetScmVersion()];
     private ReadOnlySeString input;
     private ClientLanguage? language;
+    private int importSelectedSheetName;
+    private int importRowId;
+    private string[]? validImportSheetNames;
 
     private enum TextEntryType
     {
@@ -210,19 +165,14 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
+        this.language = Service<DalamudConfiguration>.Get().EffectiveLanguage.ToClientLanguage();
+        this.UpdateInputString(false);
         this.Ready = true;
     }
 
     /// <inheritdoc/>
     public void Draw()
     {
-        // Init
-        if (this.language == null)
-        {
-            this.language = Service<DalamudConfiguration>.Get().EffectiveLanguage.ToClientLanguage();
-            this.UpdateInputString();
-        }
-
         using var tabBar = ImRaii.TabBar("SeStringCreatorWidgetTabBar");
         if (!tabBar) return;
 
@@ -250,13 +200,13 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         using var child = ImRaii.Child("Preview", new Vector2(ImGui.GetContentRegionAvail().X, -1));
         if (!child) return;
 
-        this.DrawPreview(evaluated);
-
         if (this.localParameters!.Length != 0)
         {
             ImGui.Spacing();
             this.DrawParameters();
         }
+
+        this.DrawPreview(evaluated);
 
         ImGui.Spacing();
         this.DrawPayloads(evaluated);
@@ -419,6 +369,15 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
+        if (ImGui.Button("Add from Sheet"))
+        {
+            ImGui.OpenPopup("AddFromSheetPopup");
+        }
+
+        this.DrawAddFromSheetPopup();
+
+        ImGui.SameLine();
+
         if (ImGui.Button("Print"))
         {
             var output = Utf8String.CreateEmpty();
@@ -540,6 +499,111 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                     }
                 }
             }
+        }
+    }
+
+    private void DrawAddFromSheetPopup()
+    {
+        using var popup = ImRaii.Popup("AddFromSheetPopup");
+        if (!popup) return;
+
+        var dataManager = Service<DataManager>.Get();
+
+        this.validImportSheetNames ??= dataManager.Excel.SheetNames.Where(sheetName =>
+        {
+            try
+            {
+                var headerFile = dataManager.GameData.GetFile<ExcelHeaderFile>($"exd/{sheetName}.exh");
+                if (headerFile.Header.Variant != ExcelVariant.Default)
+                    return false;
+
+                var sheet = dataManager.Excel.GetSheet<RawRow>(Language.English, sheetName);
+                return sheet.Columns.Any(col => col.Type == ExcelColumnDataType.String);
+            }
+            catch
+            {
+                return false;
+            }
+        }).OrderBy(sheetName => sheetName, StringComparer.InvariantCulture).ToArray();
+
+        var sheetChanged = ImGui.Combo("Sheet Name", ref this.importSelectedSheetName, this.validImportSheetNames, this.validImportSheetNames.Length);
+
+        try
+        {
+            var sheet = dataManager.Excel.GetSheet<RawRow>(this.language?.ToLumina() ?? Language.English, this.validImportSheetNames[this.importSelectedSheetName]);
+            var minRowId = (int)sheet.FirstOrDefault().RowId;
+            var maxRowId = (int)sheet.LastOrDefault().RowId;
+
+            var rowIdChanged = ImGui.InputInt("RowId", ref this.importRowId, 1, 10);
+
+            ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
+            ImGui.TextUnformatted($"(Range: {minRowId} - {maxRowId})");
+
+            if (sheetChanged || rowIdChanged)
+            {
+                if (sheetChanged || this.importRowId < minRowId)
+                    this.importRowId = minRowId;
+
+                if (this.importRowId > maxRowId)
+                    this.importRowId = maxRowId;
+            }
+
+            if (!sheet.TryGetRow((uint)this.importRowId, out var row))
+            {
+                ImGui.TextColored(new Vector4(1, 0, 0, 1), "Row not found");
+                return;
+            }
+
+            ImGui.TextUnformatted("Select string to add:");
+
+            using var table = ImRaii.Table("StringSelectionTable", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
+            if (!table) return;
+
+            ImGui.TableSetupColumn("Column", ImGuiTableColumnFlags.WidthFixed, 50);
+            ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupScrollFreeze(0, 1);
+            ImGui.TableHeadersRow();
+
+            for (var i = 0; i < sheet.Columns.Count; i++)
+            {
+                var column = sheet.Columns[i];
+                if (column.Type != ExcelColumnDataType.String)
+                    continue;
+
+                var value = row.ReadStringColumn(i);
+                if (value.IsEmpty)
+                    continue;
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TextUnformatted(i.ToString());
+
+                ImGui.TableNextColumn();
+                if (ImGui.Selectable($"{value.ToString().Truncate(100)}###Column{i}"))
+                {
+                    foreach (var payload in value)
+                    {
+                        switch (payload.Type)
+                        {
+                            case ReadOnlySePayloadType.Text:
+                                this.entries.Add(new(TextEntryType.String, Encoding.UTF8.GetString(payload.Body.Span)));
+                                break;
+
+                            case ReadOnlySePayloadType.Macro:
+                                this.entries.Add(new(TextEntryType.Macro, payload.ToString()));
+                                break;
+                        }
+                    }
+
+                    this.UpdateInputString();
+                    ImGui.CloseCurrentPopup();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            ImGui.TextUnformatted(e.Message);
+            return;
         }
     }
 
@@ -669,7 +733,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         }
     }
 
-    private unsafe void UpdateInputString()
+    private unsafe void UpdateInputString(bool resetLocalParameters = true)
     {
         var sb = new LSeStringBuilder();
 
@@ -689,10 +753,12 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         }
 
         this.input = sb.ToReadOnlySeString();
-        this.localParameters = null;
+
+        if (resetLocalParameters)
+            this.localParameters = null;
     }
 
-    private void DrawPreview(ReadOnlySeString evaluated)
+    private void DrawPreview(ReadOnlySeString str)
     {
         using var nodeColor = ImRaii.PushColor(ImGuiCol.Text, 0xFF00FF00);
         using var node = ImRaii.TreeNode("Preview", ImGuiTreeNodeFlags.DefaultOpen);
@@ -701,10 +767,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         ImGui.Dummy(new Vector2(0, ImGui.GetTextLineHeight()));
         ImGui.SameLine(0, 0);
-        ImGuiHelpers.SeStringWrapped(evaluated, new SeStringDrawParams()
-        {
-            ForceEdgeColor = true,
-        });
+        ImGuiHelpers.SeStringWrapped(str);
     }
 
     private void DrawParameters()
@@ -911,6 +974,12 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 };
                 ImGui.SameLine();
                 ImGui.TextUnformatted(Enum.GetName(articleTypeEnumType, u32));
+            }
+
+            if (macroCode is MacroCode.DeNoun && exprIdx == 4 && u32 is >= 0 and <= 3)
+            {
+                ImGui.SameLine();
+                ImGui.TextUnformatted(NounProcessorWidget.GermanCases[u32]);
             }
 
             if (macroCode is MacroCode.Fixed && subType != null && fixedType != null && fixedType is 100 or 200 && subType == 5 && exprIdx == 2)
