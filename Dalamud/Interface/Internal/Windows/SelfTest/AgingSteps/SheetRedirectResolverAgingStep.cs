@@ -15,7 +15,6 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
 /// </summary>
 internal class SheetRedirectResolverAgingStep : IAgingStep
 {
-    private int step = 0;
     private RedirectEntry[] redirects =
     [
         new("Item", 10),
@@ -74,21 +73,20 @@ internal class SheetRedirectResolverAgingStep : IAgingStep
     /// <inheritdoc/>
     public unsafe SelfTestStepResult RunStep()
     {
-        var sigScanner = Service<TargetSigScanner>.Get();
-        var sheetRedirectResolver = Service<SheetRedirectResolver>.Get();
-
-        if (!sigScanner.TryScanText("E8 ?? ?? ?? ?? 44 8B E8 A8 10", out var addr))
+        // Client::UI::Misc::RaptureTextModule_ResolveSheetRedirect
+        if (!Service<TargetSigScanner>.Get().TryScanText("E8 ?? ?? ?? ?? 44 8B E8 A8 10", out var addr))
             return SelfTestStepResult.Fail;
 
+        var sheetRedirectResolver = Service<SheetRedirectResolver>.Get();
         var resolveSheetRedirect = Marshal.GetDelegateForFunctionPointer<ResolveSheetRedirect>(addr);
-
         var utf8SheetName = Utf8String.CreateEmpty();
 
-        var i = 0;
         try
         {
-            foreach (var redirect in this.redirects)
+            for (var i = 0; i < this.redirects.Length; i++)
             {
+                var redirect = this.redirects[i];
+
                 utf8SheetName->SetString(redirect.SheetName);
 
                 var rowId1 = redirect.RowId;
@@ -111,8 +109,6 @@ internal class SheetRedirectResolverAgingStep : IAgingStep
 
                     return SelfTestStepResult.Waiting;
                 }
-
-                i++;
             }
 
             return SelfTestStepResult.Pass;

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Text;
 
 using Dalamud.Data;
 using Dalamud.Game;
@@ -8,7 +9,6 @@ using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Interface.Utility.Raii;
 
 using ImGuiNET;
-
 using Lumina.Data;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -126,7 +126,35 @@ internal class NounProcessorWidget : IDataWindowWidget
                 this.amount = 1;
         }
 
+        var articleTypeEnumType = language switch
+        {
+            ClientLanguage.Japanese => typeof(JapaneseArticleType),
+            ClientLanguage.German => typeof(GermanArticleType),
+            ClientLanguage.French => typeof(FrenchArticleType),
+            _ => typeof(EnglishArticleType),
+        };
+
         var numCases = language == ClientLanguage.German ? 4 : 1;
+
+#if DEBUG
+        if (ImGui.Button("Copy as self-test entry"))
+        {
+            var sb = new StringBuilder();
+
+            foreach (var articleType in Enum.GetValues(articleTypeEnumType))
+            {
+                for (var grammaticalCase = 0; grammaticalCase < numCases; grammaticalCase++)
+                {
+                    var output = nounProcessor.ProcessNoun(sheetType.Name, (uint)this.rowId, language, this.amount, (int)articleType, grammaticalCase).ExtractText().Replace("\"", "\\\"");
+                    var caseParam = language == ClientLanguage.German ? $"(int)GermanCases.{GermanCases[grammaticalCase]}" : "1";
+                    sb.AppendLine($"new(nameof(LSheets.{sheetType.Name}), {this.rowId}, ClientLanguage.{language}, {this.amount}, (int){articleTypeEnumType.Name}.{Enum.GetName(articleTypeEnumType, articleType)}, {caseParam}, \"{output}\"),");
+                }
+            }
+
+            ImGui.SetClipboardText(sb.ToString());
+        }
+#endif
+
         using var table = ImRaii.Table("TextDecoderTable", 1 + numCases, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
         if (!table) return;
 
@@ -135,14 +163,6 @@ internal class NounProcessorWidget : IDataWindowWidget
             ImGui.TableSetupColumn(language == ClientLanguage.German ? GermanCases[i] : "Text");
         ImGui.TableSetupScrollFreeze(6, 1);
         ImGui.TableHeadersRow();
-
-        var articleTypeEnumType = language switch
-        {
-            ClientLanguage.Japanese => typeof(JapaneseArticleType),
-            ClientLanguage.German => typeof(GermanArticleType),
-            ClientLanguage.French => typeof(FrenchArticleType),
-            _ => typeof(EnglishArticleType),
-        };
 
         foreach (var articleType in Enum.GetValues(articleTypeEnumType))
         {

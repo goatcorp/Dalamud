@@ -61,6 +61,13 @@ Attributive sheet:
     Unknown38 = Plural Masculine/Feminine Article, before a noun beginning in a vowel or an h
     Unknown39 = ?
     Unknown40 = ?
+
+Placeholders:
+    [t] = article or grammatical gender (EN: the, DE: der, die, das)
+    [n] = amount (number)
+    [a] = declension
+    [p] = plural
+    [pa] = ?
 */
 
 /// <summary>
@@ -99,13 +106,6 @@ internal class NounProcessor : IServiceType
     private NounProcessor()
     {
     }
-
-    // Placeholders:
-    // [t] = article or grammatical gender (EN: the, DE: der, die, das)
-    // [n] = amount (number)
-    // [a] = declension
-    // [p] = plural
-    // [pa] = ?
 
     /// <summary>
     /// Processes a specific row from a sheet and generates a formatted string based on grammatical and language-specific rules.

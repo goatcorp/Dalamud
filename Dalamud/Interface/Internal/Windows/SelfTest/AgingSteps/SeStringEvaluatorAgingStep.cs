@@ -55,6 +55,10 @@ internal class SeStringEvaluatorAgingStep : IAgingStep
                 if (localPlayer is null)
                 {
                     ImGui.TextUnformatted("You need to be logged in for this step.");
+
+                    if (ImGui.Button("Skip"))
+                        return SelfTestStepResult.NotRan;
+
                     return SelfTestStepResult.Waiting;
                 }
 
