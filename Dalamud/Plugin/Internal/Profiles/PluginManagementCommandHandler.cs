@@ -237,10 +237,14 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                 break;
             case PluginCommandOperation.Toggle:
                 var isEnabling = plugin.State == PluginState.Unloaded;
-                this.chat.Print(Loc.Localize(isEnabling ? "PluginCommandsEnabling" : "PluginCommandsDisabling", "Toggling plugin \"{0}\"...").Format(plugin.Name));
+                var togglingKey = isEnabling ? "PluginCommandsEnabling" : "PluginCommandsDisabling";
+                var togglingFallBack = isEnabling ? "Enabling plugin \"{0}\"..." : "Disabling plugin \"{0}\"...";
+                var toggledKey = isEnabling ? "PluginCommandsEnableSuccess" : "PluginCommandsDisableSuccess";
+                var toggledFallback = isEnabling ? "Plugin \"{0}\" toggled to enabled." : "Plugin \"{0}\" toggled to disabled.";
+                this.chat.Print(Loc.Localize(togglingKey, togglingFallBack).Format(plugin.Name));
                 Task.Run(() => plugin.State == PluginState.Loaded ? plugin.UnloadAsync() : plugin.LoadAsync(PluginLoadReason.Installer))
                     .ContinueWith(t => Continuation(t,
-                                      Loc.Localize(isEnabling ? "PluginCommandsEnableSuccess" : "PluginCommandsDisableSuccess", "Plugin \"{0}\" toggled.").Format(plugin.Name),
+                                      Loc.Localize(toggledKey, toggledFallback).Format(plugin.Name),
                                       Loc.Localize("PluginCommandsToggleFailed", "Failed to toggle plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
                     .ConfigureAwait(false);
                 break;
