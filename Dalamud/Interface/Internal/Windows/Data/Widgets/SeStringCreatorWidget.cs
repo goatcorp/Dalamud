@@ -11,11 +11,13 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Memory;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Component.Text;
 
 using ImGuiNET;
 
@@ -221,6 +223,18 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             this.UpdateInputString();
         }
 
+        using var tabBar = ImRaii.TabBar("SeStringCreatorWidgetTabBar");
+        if (!tabBar) return;
+
+        this.DrawCreatorTab();
+        this.DrawGlobalParametersTab();
+    }
+
+    private void DrawCreatorTab()
+    {
+        using var tab = ImRaii.TabItem("Creator");
+        if (!tab) return;
+
         this.DrawControls();
         ImGui.Spacing();
         this.DrawInputs();
@@ -246,6 +260,154 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         ImGui.Spacing();
         this.DrawPayloads(evaluated);
+    }
+
+    private unsafe void DrawGlobalParametersTab()
+    {
+        using var tab = ImRaii.TabItem("Global Parameters");
+        if (!tab) return;
+
+        using var table = ImRaii.Table("GlobalParametersTable", 5, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
+        if (!table) return;
+
+        ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("ValuePtr", ImGuiTableColumnFlags.WidthFixed, 120);
+        ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Description", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupScrollFreeze(5, 1);
+        ImGui.TableHeadersRow();
+
+        var deque = RaptureTextModule.Instance()->GlobalParameters;
+        for (var i = 0u; i < deque.MySize; i++)
+        {
+            var item = deque[i];
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn(); // Id
+            ImGui.TextUnformatted(i.ToString());
+
+            ImGui.TableNextColumn(); // Type
+            ImGui.TextUnformatted(item.Type.ToString());
+
+            ImGui.TableNextColumn(); // ValuePtr
+            WidgetUtil.DrawCopyableText($"0x{(nint)item.ValuePtr:X}");
+
+            ImGui.TableNextColumn(); // Value
+            switch (item.Type)
+            {
+                case TextParameterType.Integer:
+                    WidgetUtil.DrawCopyableText($"0x{item.IntValue:X}");
+                    ImGui.SameLine();
+                    WidgetUtil.DrawCopyableText(item.IntValue.ToString());
+                    break;
+
+                case TextParameterType.ReferencedUtf8String:
+                    if (item.ReferencedUtf8StringValue != null)
+                        WidgetUtil.DrawCopyableText(new ReadOnlySeStringSpan(item.ReferencedUtf8StringValue->Utf8String).ToString());
+                    else
+                        ImGui.TextUnformatted("null");
+
+                    break;
+
+                case TextParameterType.String:
+                    if (item.StringValue != null)
+                        WidgetUtil.DrawCopyableText(MemoryHelper.ReadStringNullTerminated((nint)item.StringValue));
+                    else
+                        ImGui.TextUnformatted("null");
+                    break;
+            }
+
+            ImGui.TableNextColumn();
+            ImGui.TextUnformatted(i switch
+            {
+                0 => "Player Name",
+                1 => "Temp Player 1 Name",
+                2 => "Temp Player 2 Name",
+                3 => "Player Sex",
+                4 => "Temp Player 1 Sex",
+                5 => "Temp Player 2 Sex",
+                6 => "Temp Player 1 Unk 1",
+                7 => "Temp Player 2 Unk 1",
+                10 => "Eorzea Time Hours",
+                11 => "Eorzea Time Minutes",
+                12 => "ColorSay",
+                13 => "ColorShout",
+                14 => "ColorTell",
+                15 => "ColorParty",
+                16 => "ColorAlliance",
+                17 => "ColorLS1",
+                18 => "ColorLS2",
+                19 => "ColorLS3",
+                20 => "ColorLS4",
+                21 => "ColorLS5",
+                22 => "ColorLS6",
+                23 => "ColorLS7",
+                24 => "ColorLS8",
+                25 => "ColorFCompany",
+                26 => "ColorPvPGroup",
+                27 => "ColorPvPGroupAnnounce",
+                28 => "ColorBeginner",
+                29 => "ColorEmoteUser",
+                30 => "ColorEmote",
+                31 => "ColorYell",
+                32 => "ColorFCAnnounce",
+                33 => "ColorBeginnerAnnounce",
+                34 => "ColorCWLS",
+                35 => "ColorAttackSuccess",
+                36 => "ColorAttackFailure",
+                37 => "ColorAction",
+                38 => "ColorItem",
+                39 => "ColorCureGive",
+                40 => "ColorBuffGive",
+                41 => "ColorDebuffGive",
+                42 => "ColorEcho",
+                43 => "ColorSysMsg",
+                51 => "Player Grand Company Rank (Maelstrom)",
+                52 => "Player Grand Company Rank (Twin Adders)",
+                53 => "Player Grand Company Rank (Immortal Flames)",
+                54 => "Companion Name",
+                55 => "Content Name",
+                56 => "ColorSysBattle",
+                57 => "ColorSysGathering",
+                58 => "ColorSysErr",
+                59 => "ColorNpcSay",
+                60 => "ColorItemNotice",
+                61 => "ColorGrowup",
+                62 => "ColorLoot",
+                63 => "ColorCraft",
+                64 => "ColorGathering",
+                65 => "Temp Player 1 Unk 2",
+                66 => "Temp Player 2 Unk 2",
+                67 => "Player ClassJobId",
+                68 => "Player Level",
+                70 => "Player Race",
+                71 => "Player Synced Level",
+                77 => "Client/Plattform?",
+                78 => "Player BirthMonth",
+                82 => "Datacenter Region",
+                83 => "ColorCWLS2",
+                84 => "ColorCWLS3",
+                85 => "ColorCWLS4",
+                86 => "ColorCWLS5",
+                87 => "ColorCWLS6",
+                88 => "ColorCWLS7",
+                89 => "ColorCWLS8",
+                91 => "Player Grand Company",
+                92 => "TerritoryType Id",
+                93 => "Is Soft Keyboard Enabled",
+                94 => "LogSetRoleColor 1: LogColorRoleTank",
+                95 => "LogSetRoleColor 2: LogColorRoleTank",
+                96 => "LogSetRoleColor 1: LogColorRoleHealer",
+                97 => "LogSetRoleColor 2: LogColorRoleHealer",
+                98 => "LogSetRoleColor 1: LogColorRoleDPS",
+                99 => "LogSetRoleColor 2: LogColorRoleDPS",
+                100 => "LogSetRoleColor 1: LogColorOtherClass",
+                101 => "LogSetRoleColor 2: LogColorOtherClass",
+                102 => "Has Login Security Token",
+                _ => string.Empty,
+            });
+        }
     }
 
     private unsafe void DrawControls()
@@ -322,6 +484,30 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         if (this.entries.Count != 0)
         {
+            ImGui.SameLine();
+
+            if (ImGui.Button("Copy MacroString"))
+            {
+                var sb = new LSeStringBuilder();
+
+                foreach (var entry in this.entries)
+                {
+                    switch (entry.Type)
+                    {
+                        case TextEntryType.String:
+                            sb.Append(entry.Message);
+                            break;
+
+                        case TextEntryType.Macro:
+                        case TextEntryType.Fixed:
+                            sb.AppendMacroString(entry.Message);
+                            break;
+                    }
+                }
+
+                ImGui.SetClipboardText(sb.ToReadOnlySeString().ToString());
+            }
+
             ImGui.SameLine();
 
             if (ImGui.Button("Clear entries"))
