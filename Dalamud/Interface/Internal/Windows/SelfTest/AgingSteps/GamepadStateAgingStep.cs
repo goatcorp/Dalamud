@@ -1,6 +1,11 @@
-using Dalamud.Game.ClientState.GamePad;
+using System.Linq;
 
-using ImGuiNET;
+using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Interface.Utility;
+
+using Lumina.Text.Payloads;
+
+using LSeStringBuilder = Lumina.Text.SeStringBuilder;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
 
@@ -17,11 +22,34 @@ internal class GamepadStateAgingStep : IAgingStep
     {
         var gamepadState = Service<GamepadState>.Get();
 
-        ImGui.Text("Hold down North, East, L1");
+        var buttons = new (GamepadButtons Button, uint IconId)[]
+        {
+            (GamepadButtons.North, 11),
+            (GamepadButtons.East, 8),
+            (GamepadButtons.L1, 12),
+        };
 
-        if (gamepadState.Raw(GamepadButtons.North) == 1
-            && gamepadState.Raw(GamepadButtons.East) == 1
-            && gamepadState.Raw(GamepadButtons.L1) == 1)
+        var builder = LSeStringBuilder.SharedPool.Get();
+
+        builder.Append("Hold down ");
+
+        for (var i = 0; i < buttons.Length; i++)
+        {
+            var (button, iconId) = buttons[i];
+
+            builder.BeginMacro(MacroCode.Icon).AppendUIntExpression(iconId).EndMacro();
+            builder.PushColorRgba(gamepadState.Raw(button) == 1 ? 0x0000FF00u : 0x000000FF);
+            builder.Append(button.ToString());
+            builder.PopColor();
+
+            builder.Append(i < buttons.Length - 1 ? ", " : ".");
+        }
+
+        ImGuiHelpers.SeStringWrapped(builder.ToReadOnlySeString());
+
+        LSeStringBuilder.SharedPool.Return(builder);
+
+        if (buttons.All(tuple => gamepadState.Raw(tuple.Button) == 1))
         {
             return SelfTestStepResult.Pass;
         }
