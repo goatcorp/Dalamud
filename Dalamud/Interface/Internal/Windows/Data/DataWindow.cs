@@ -70,6 +70,7 @@ internal class DataWindow : Window, IDisposable
     private bool isExcept;
     private bool selectionCollapsed;
     private IDataWindowWidget currentWidget;
+    private bool isLoaded;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataWindow"/> class.
@@ -83,8 +84,6 @@ internal class DataWindow : Window, IDisposable
         this.RespectCloseHotkey = false;
         this.orderedModules = this.modules.OrderBy(module => module.DisplayName);
         this.currentWidget = this.orderedModules.First();
-
-        this.Load();
     }
 
     /// <inheritdoc/>
@@ -93,6 +92,7 @@ internal class DataWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void OnOpen()
     {
+        this.Load();
     }
 
     /// <inheritdoc/>
@@ -185,6 +185,7 @@ internal class DataWindow : Window, IDisposable
 
             if (ImGuiComponents.IconButton("forceReload", FontAwesomeIcon.Sync))
             {
+                this.isLoaded = false;
                 this.Load();
             }
 
@@ -238,6 +239,11 @@ internal class DataWindow : Window, IDisposable
 
     private void Load()
     {
+        if (this.isLoaded)
+            return;
+
+        this.isLoaded = true;
+
         foreach (var widget in this.modules)
         {
             widget.Load();
