@@ -76,7 +76,7 @@ internal class SheetRedirectResolver : IServiceType
             {
                 var (itemId, kind) = ItemPayload.GetAdjustedId(rowId);
                 if (kind == ItemKind.EventItem &&
-                    rowId - 2_000_000 < this.dataManager.GetExcelSheet<LSheets.EventItem>().Count)
+                    rowId - 2_000_000 <= this.dataManager.GetExcelSheet<LSheets.EventItem>().Count)
                 {
                     sheetName = nameof(LSheets.EventItem);
                 }

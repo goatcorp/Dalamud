@@ -179,9 +179,9 @@ public class ItemPayload : Payload
     {
         return rawItemId switch
         {
-            > 500_000 and < 1_000_000 => (rawItemId - 500_000, ItemKind.Collectible),
-            > 1_000_000 and < 2_000_000 => (rawItemId - 1_000_000, ItemKind.Hq),
-            > 2_000_000 => (rawItemId, ItemKind.EventItem), // EventItem IDs are NOT adjusted
+            >= 500_000 and < 1_000_000 => (rawItemId - 500_000, ItemKind.Collectible),
+            >= 1_000_000 and < 2_000_000 => (rawItemId - 1_000_000, ItemKind.Hq),
+            >= 2_000_000 => (rawItemId, ItemKind.EventItem), // EventItem IDs are NOT adjusted
             _ => (rawItemId, ItemKind.Normal),
         };
     }
