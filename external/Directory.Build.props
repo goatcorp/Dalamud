@@ -1,0 +1,3 @@
+<!-- This is left empty on purpose to avoid having Directory.Build.props in the root of the repository leak into dependencies. -->
+<Project>
+</Project>

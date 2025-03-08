@@ -196,8 +196,17 @@ public class DevPluginsSettingsEntry : SettingsEntry
         }
     }
 
+    public override void PostDraw()
+    {
+        this.fileDialogManager.Draw();
+    }
+
+    private static bool ValidDevPluginPath(string path)
+        => Path.IsPathRooted(path) && Path.GetExtension(path) == ".dll";
+
     private void AddDevPlugin()
     {
+        this.devPluginTempLocation = this.devPluginTempLocation.Trim('"');
         if (this.devPluginLocations.Any(
                 r => string.Equals(r.Path, this.devPluginTempLocation, StringComparison.InvariantCultureIgnoreCase)))
         {
@@ -210,25 +219,21 @@ public class DevPluginsSettingsEntry : SettingsEntry
                 "DalamudDevPluginInvalid",
                 "The entered value is not a valid path to a potential Dev Plugin.\nDid you mean to enter it as a custom plugin repository in the fields below instead?");
             Task.Delay(5000).ContinueWith(t => this.devPluginLocationAddError = string.Empty);
+            return;
         }
         else
         {
             this.devPluginLocations.Add(
                 new DevPluginLocationSettings
                 {
-                    Path = this.devPluginTempLocation.Replace("\"", string.Empty),
+                    Path = this.devPluginTempLocation,
                     IsEnabled = true,
                 });
             this.devPluginLocationsChanged = true;
             this.devPluginTempLocation = string.Empty;
         }
-    }
 
-    public override void PostDraw()
-    {
-        this.fileDialogManager.Draw();
+        // Enable ImGui asserts if a dev plugin is added, if no choice was made prior
+        Service<DalamudConfiguration>.Get().ImGuiAssertsEnabledAtStartup ??= true;
     }
-
-    private static bool ValidDevPluginPath(string path)
-        => Path.IsPathRooted(path) && Path.GetExtension(path) == ".dll";
 }

@@ -18,7 +18,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 public class IconBrowserWidget : IDataWindowWidget
 {
     private const int MaxIconId = 250_000;
-    
+
     private Vector2 iconSize = new(64.0f, 64.0f);
     private Vector2 editIconSize = new(64.0f, 64.0f);
 
@@ -126,7 +126,6 @@ public class IconBrowserWidget : IDataWindowWidget
             this.valueRange = null;
         }
 
-
         ImGui.NextColumn();
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
         if (ImGui.InputInt("##StopRange", ref this.stopRange, 0, 0))
@@ -204,7 +203,7 @@ public class IconBrowserWidget : IDataWindowWidget
                     ImGui.GetColorU32(ImGuiColors.DalamudRed),
                     iconText);
             }
-            
+
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip($"{iconId}\n{exc}".Replace("%", "%%"));
 
@@ -224,7 +223,7 @@ public class IconBrowserWidget : IDataWindowWidget
                     cursor + ((this.iconSize - textSize) / 2),
                     color,
                     text);
-            
+
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(iconId.ToString());
 

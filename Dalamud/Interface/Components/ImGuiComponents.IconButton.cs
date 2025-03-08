@@ -182,7 +182,10 @@ public static partial class ImGuiComponents
     /// </summary>
     /// <param name="icon">Icon to show.</param>
     /// <param name="text">Text to show.</param>
-    /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon & text.</param>
+    /// <param name="size">
+    /// Sets the size of the button. If either dimension is set to 0,
+    /// that dimension will conform to the size of the icon and text.
+    /// </param>
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButtonWithText(FontAwesomeIcon icon, string text, Vector2 size) => IconButtonWithText(icon, text, null, null, null, size);
 
@@ -194,7 +197,10 @@ public static partial class ImGuiComponents
     /// <param name="defaultColor">The default color of the button.</param>
     /// <param name="activeColor">The color of the button when active.</param>
     /// <param name="hoveredColor">The color of the button when hovered.</param>
-    /// <param name="size">Sets the size of the button. If either dimension is set to 0, that dimension will conform to the size of the icon & text.</param>
+    /// <param name="size">
+    /// Sets the size of the button. If either dimension is set to 0,
+    /// that dimension will conform to the size of the icon and text.
+    /// </param>
     /// <returns>Indicator if button is clicked.</returns>
     public static bool IconButtonWithText(FontAwesomeIcon icon, string text, Vector4? defaultColor = null, Vector4? activeColor = null, Vector4? hoveredColor = null, Vector2? size = null)
     {
@@ -272,15 +278,14 @@ public static partial class ImGuiComponents
     /// <returns>Width.</returns>
     public static float GetIconButtonWithTextWidth(FontAwesomeIcon icon, string text)
     {
+        Vector2 iconSize;
         using (ImRaii.PushFont(UiBuilder.IconFont))
         {
-            var iconSize = ImGui.CalcTextSize(icon.ToIconString());
-
-            var textSize = ImGui.CalcTextSize(text);
-
-            var iconPadding = 3 * ImGuiHelpers.GlobalScale;
-
-            return iconSize.X + textSize.X + (ImGui.GetStyle().FramePadding.X * 2) + iconPadding;
+            iconSize = ImGui.CalcTextSize(icon.ToIconString());
         }
+
+        var textSize = ImGui.CalcTextSize(text);
+        var iconPadding = 3 * ImGuiHelpers.GlobalScale;
+        return iconSize.X + textSize.X + (ImGui.GetStyle().FramePadding.X * 2) + iconPadding;
     }
 }

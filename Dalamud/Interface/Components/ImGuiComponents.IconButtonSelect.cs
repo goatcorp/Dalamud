@@ -8,6 +8,9 @@ using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
 
+/// <summary>
+/// ImGui component used to create a radio-like input that uses icon buttons.
+/// </summary>
 public static partial class ImGuiComponents
 {
    /// <summary>

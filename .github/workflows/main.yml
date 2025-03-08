@@ -55,6 +55,7 @@ jobs:
             bin/Release/Dalamud.*.dll
             bin/Release/Dalamud.*.exe
             bin/Release/FFXIVClientStructs.dll
+            bin/Release/cim*.dll
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

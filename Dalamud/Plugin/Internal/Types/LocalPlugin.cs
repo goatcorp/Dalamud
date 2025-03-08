@@ -30,7 +30,7 @@ internal class LocalPlugin : IAsyncDisposable
 #pragma warning disable SA1401
     protected LocalPluginManifest manifest;
 #pragma warning restore SA1401
-    
+
     private static readonly ModuleLog Log = new("LOCALPLUGIN");
 
     private readonly FileInfo manifestFile;
@@ -281,7 +281,7 @@ internal class LocalPlugin : IAsyncDisposable
                 case PluginState.Unloaded:
                     if (this.instance is not null)
                     {
-                        throw new InvalidPluginOperationException(
+                        throw new InternalPluginStateException(
                             "Plugin should have been unloaded but instance is not cleared");
                     }
 
@@ -314,7 +314,7 @@ internal class LocalPlugin : IAsyncDisposable
 
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");
-            
+
             this.EnsureLoader();
 
             if (this.DllFile.DirectoryName != null &&
@@ -382,10 +382,6 @@ internal class LocalPlugin : IAsyncDisposable
                 }
             }
 
-            // Update the location for the Location and CodeBase patches
-            // NET8 CHORE
-            // PluginManager.PluginLocations[this.pluginType.Assembly.FullName] = new PluginPatchData(this.DllFile);
-
             this.dalamudInterface = new(this, reason);
 
             this.serviceScope = ioc.GetScope();
@@ -413,9 +409,11 @@ internal class LocalPlugin : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            this.State = PluginState.LoadError;
+            // These are "user errors", we don't want to mark the plugin as failed
+            if (ex is not InvalidPluginOperationException)
+                this.State = PluginState.LoadError;
 
-            // If a precondition fails, don't record it as an error, as it isn't really. 
+            // If a precondition fails, don't record it as an error, as it isn't really.
             if (ex is PluginPreconditionFailedException)
                 Log.Warning(ex.Message);
             else
@@ -476,7 +474,10 @@ internal class LocalPlugin : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            this.State = PluginState.UnloadError;
+            // These are "user errors", we don't want to mark the plugin as failed
+            if (ex is not InvalidPluginOperationException)
+                this.State = PluginState.UnloadError;
+
             Log.Error(ex, "Error while unloading {PluginName}", this.InternalName);
 
             throw;
@@ -508,9 +509,6 @@ internal class LocalPlugin : IAsyncDisposable
     {
         var startInfo = Service<Dalamud>.Get().StartInfo;
         var manager = Service<PluginManager>.Get();
-
-        if (startInfo.NoLoadPlugins)
-            return false;
 
         if (startInfo.NoLoadThirdPartyPlugins && this.manifest.IsThirdParty)
             return false;
@@ -555,7 +553,7 @@ internal class LocalPlugin : IAsyncDisposable
     /// </summary>
     /// <param name="reason">Why it should be saved.</param>
     protected void SaveManifest(string reason) => this.manifest.Save(this.manifestFile, reason);
-    
+
     /// <summary>
     /// Called before a plugin is reloaded.
     /// </summary>
@@ -594,7 +592,7 @@ internal class LocalPlugin : IAsyncDisposable
         // but plugins may load other versions of assemblies that Dalamud depends on.
         config.SharedAssemblies.Add((typeof(EntryPoint).Assembly.GetName(), false));
         config.SharedAssemblies.Add((typeof(Common.DalamudStartInfo).Assembly.GetName(), false));
-        
+
         // Pin Lumina since we expose it as an API surface. Before anyone removes this again, please see #1598.
         // Changes to Lumina should be upstreamed if feasible, and if there is a desire to re-add unpinned Lumina we
         // will need to put this behind some kind of feature flag somewhere.
@@ -606,7 +604,7 @@ internal class LocalPlugin : IAsyncDisposable
     {
         if (this.loader != null)
             return;
-        
+
         try
         {
             this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);

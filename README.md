@@ -4,12 +4,17 @@
   <img src="https://raw.githubusercontent.com/goatcorp/DalamudAssets/master/UIRes/logo.png" alt="Dalamud" width="200"/>
 </p>
 
-Dalamud is a plugin development framework for FINAL FANTASY XIV that provides access to game data and native interoperability with the game itself to add functionality and quality-of-life.
+Dalamud is a plugin development framework for FFXIV that provides access to game data and native interoperability with the game itself to add functionality and quality-of-life.
 
-It is meant to be used in conjunction with [FFXIVQuickLauncher](https://github.com/goatcorp/FFXIVQuickLauncher), which manages and launches Dalamud for you. __It is generally not recommended for users to try to run Dalamud manually as there are multiple dependencies and assumed folder paths.__
+It is meant to be used in conjunction with [XIVLauncher](https://github.com/goatcorp/FFXIVQuickLauncher), which manages and launches Dalamud for you. __It is generally not recommended for end users to try to run Dalamud manually as XIVLauncher manages multiple required dependencies.__
 
 ## Hold Up!
+
 If you are just trying to **use** Dalamud, you don't need to do anything on this page - please [download XIVLauncher](https://goatcorp.github.io/) from its official page and follow the setup instructions.
+
+## Building and testing locally
+
+Please check the [docs page on building Dalamud](https://dalamud.dev/building) for more information and required dependencies.
 
 ## Plugin development
 Dalamud features a growing API for in-game plugin development with game data and chat access and overlays.
@@ -33,15 +38,6 @@ Dalamud can be loaded via DLL injection, or by rewriting a process' entrypoint.
 | *Dalamud.Boot* (C++)          | Loads the .NET Core runtime into the active process and kicks off Dalamud, or rewrites a target process' entrypoint to do so |
 | *Dalamud* (C#)                | Core API, game bindings, plugin framework                                                                                    |
 | *Dalamud.CorePlugin* (C#)     | Testbed plugin that can access Dalamud internals, to prototype new Dalamud features                                          |
-
-## Branches
-
-We are currently working from the following branches.
-
-| Name     | API Level | Purpose                                                    | .NET Version               | Track             |
-|----------|-----------|------------------------------------------------------------|----------------------------|-------------------|
-| *master* | **9**     | Current release branch                                     | .NET 8.0.0 (November 2023) | Release & Staging |
-| *api10*  | **10**    | Next major version, slated for release alongside Patch 7.0 | .NET 8.0.0 (November 2023) | api10             |
 
 <br>
 

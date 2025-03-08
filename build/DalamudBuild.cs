@@ -47,6 +47,14 @@ public class DalamudBuild : NukeBuild
     AbsolutePath TestProjectDir => RootDirectory / "Dalamud.Test";
     AbsolutePath TestProjectFile => TestProjectDir / "Dalamud.Test.csproj";
 
+    AbsolutePath ExternalsDir => RootDirectory / "external";
+    AbsolutePath CImGuiDir => ExternalsDir / "cimgui";
+    AbsolutePath CImGuiProjectFile => CImGuiDir / "cimgui.vcxproj";
+    AbsolutePath CImPlotDir => ExternalsDir / "cimplot";
+    AbsolutePath CImPlotProjectFile => CImPlotDir / "cimplot.vcxproj";
+    AbsolutePath CImGuizmoDir => ExternalsDir / "cimguizmo";
+    AbsolutePath CImGuizmoProjectFile => CImGuizmoDir / "cimguizmo.vcxproj";
+
     AbsolutePath ArtifactsDirectory => RootDirectory / "bin" / Configuration;
 
     private static AbsolutePath LibraryDirectory => RootDirectory / "lib";
@@ -59,9 +67,54 @@ public class DalamudBuild : NukeBuild
             DotNetTasks.DotNetRestore(s => s
                 .SetProjectFile(Solution));
         });
-    
+
+    Target CompileCImGui => _ => _
+        .Executes(() =>
+        {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
+            MSBuildTasks.MSBuild(s => s
+                .SetTargetPath(CImGuiProjectFile)
+                .SetConfiguration(Configuration)
+                .SetTargetPlatform(MSBuildTargetPlatform.x64));
+        });
+
+    Target CompileCImPlot => _ => _
+        .Executes(() =>
+        {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
+            MSBuildTasks.MSBuild(s => s
+                .SetTargetPath(CImPlotProjectFile)
+                .SetConfiguration(Configuration)
+                .SetTargetPlatform(MSBuildTargetPlatform.x64));
+        });
+
+    Target CompileCImGuizmo => _ => _
+        .Executes(() =>
+        {
+            // Not necessary, and does not build on Linux
+            if (IsDocsBuild)
+                return;
+            
+            MSBuildTasks.MSBuild(s => s
+                .SetTargetPath(CImGuizmoProjectFile)
+                .SetConfiguration(Configuration)
+                .SetTargetPlatform(MSBuildTargetPlatform.x64));
+        });
+
+    Target CompileImGuiNatives => _ => _
+        .DependsOn(CompileCImGui)
+        .DependsOn(CompileCImPlot)
+        .DependsOn(CompileCImGuizmo);
+
     Target CompileDalamud => _ => _
         .DependsOn(Restore)
+        .DependsOn(CompileImGuiNatives)
         .Executes(() =>
         {
             DotNetTasks.DotNetBuild(s =>
@@ -73,12 +126,12 @@ public class DalamudBuild : NukeBuild
 
                 // We need to emit compiler generated files for the docs build, since docfx can't run generators directly
                 // TODO: This fails every build after this because of redefinitions...
-                if (IsDocsBuild)
-                { 
-                    Log.Warning("Building for documentation, emitting compiler generated files. This can cause issues on Windows due to path-length limitations");
-                    s = s
-                        .SetProperty("IsDocsBuild", "true");
-                }
+                // if (IsDocsBuild)
+                // { 
+                //     Log.Warning("Building for documentation, emitting compiler generated files. This can cause issues on Windows due to path-length limitations");
+                //     s = s
+                //         .SetProperty("IsDocsBuild", "true");
+                // }
 
                 return s;
             });
@@ -138,6 +191,21 @@ public class DalamudBuild : NukeBuild
     Target Clean => _ => _
         .Executes(() =>
         {
+            MSBuildTasks.MSBuild(s => s
+                .SetProjectFile(CImGuiProjectFile)
+                .SetConfiguration(Configuration)
+                .SetTargets("Clean"));
+
+            MSBuildTasks.MSBuild(s => s
+                .SetProjectFile(CImPlotProjectFile)
+                .SetConfiguration(Configuration)
+                .SetTargets("Clean"));
+
+            MSBuildTasks.MSBuild(s => s
+                .SetProjectFile(CImGuizmoProjectFile)
+                .SetConfiguration(Configuration)
+                .SetTargets("Clean"));
+
             DotNetTasks.DotNetClean(s => s
                 .SetProject(DalamudProjectFile)
                 .SetConfiguration(Configuration));

@@ -10,3 +10,12 @@
 [submodule "lib/TsudaKageyu-minhook"]
 	path = lib/TsudaKageyu-minhook
 	url = https://github.com/TsudaKageyu/minhook.git
+[submodule "lib/cimgui"]
+	path = lib/cimgui
+	url = https://github.com/goatcorp/gc-cimgui
+[submodule "lib/cimplot"]
+	path = lib/cimplot
+	url = https://github.com/goatcorp/gc-cimplot
+[submodule "lib/cimguizmo"]
+	path = lib/cimguizmo
+	url = https://github.com/goatcorp/gc-cimguizmo

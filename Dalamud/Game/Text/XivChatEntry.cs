@@ -36,12 +36,12 @@ public sealed class XivChatEntry
     }
 
     /// <summary>
-    /// Gets or Sets the name payloads
+    /// Gets or sets the name payloads.
     /// </summary>
     public byte[] NameBytes { get; set; } = [];
 
     /// <summary>
-    /// Gets or Sets the message payloads.
+    /// Gets or sets the message payloads.
     /// </summary>
     public byte[] MessageBytes { get; set; } = [];
 

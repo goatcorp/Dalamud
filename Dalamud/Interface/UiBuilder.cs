@@ -9,7 +9,6 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
-using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Plugin.Internal.Types;
@@ -713,8 +712,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             ImGui.End();
         }
 
-        var snapshot = this.Draw is null ? null : ImGuiManagedAsserts.GetSnapshot();
-
         try
         {
             this.Draw?.InvokeSafely();
@@ -727,10 +724,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
             this.hasErrorWindow = true;
         }
-
-        // Only if Draw was successful
-        if (this.Draw is not null && snapshot is not null)
-            ImGuiManagedAsserts.ReportProblems(this.namespaceName, snapshot);
 
         this.FrameCount++;
 

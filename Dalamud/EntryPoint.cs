@@ -178,6 +178,9 @@ public sealed class EntryPoint
                 throw new Exception("Working directory was invalid");
 
             Reloaded.Hooks.Tools.Utilities.FasmBasePath = new DirectoryInfo(info.WorkingDirectory);
+            
+            // Apply common fixes for culture issues
+            CultureFixes.Apply();
 
             // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;

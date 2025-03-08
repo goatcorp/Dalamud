@@ -16,7 +16,6 @@ using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 
@@ -38,9 +37,6 @@ namespace Dalamud.Interface.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class DalamudIme : IInternalDisposableService
 {
-    private const int CImGuiStbTextCreateUndoOffset = 0xB57A0;
-    private const int CImGuiStbTextUndoOffset = 0xB59C0;
-
     private const int ImePageSize = 9;
 
     private static readonly Dictionary<int, string> WmNames =
@@ -69,11 +65,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         UnicodeRanges.HangulJamoExtendedA,
         UnicodeRanges.HangulJamoExtendedB,
     };
-
-    private static readonly delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, int, int, int, void>
-        StbTextMakeUndoReplace;
-
-    private static readonly delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, void> StbTextUndo;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
@@ -135,13 +126,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         {
             return;
         }
-
-        StbTextMakeUndoReplace =
-            (delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, int, int, int, void>)
-            (cimgui + CImGuiStbTextCreateUndoOffset);
-        StbTextUndo =
-            (delegate* unmanaged<ImGuiInputTextState*, StbTextEditState*, void>)
-            (cimgui + CImGuiStbTextUndoOffset);
     }
 
     [ServiceManager.ServiceConstructor]
@@ -185,7 +169,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 return true;
             if (!ImGui.GetIO().ConfigInputTextCursorBlink)
                 return true;
-            var textState = TextState;
+            var textState = CustomNativeFunctions.igCustom_GetInputTextState();
             if (textState->Id == 0 || (textState->Flags & ImGuiInputTextFlags.ReadOnly) != 0)
                 return true;
             if (textState->CursorAnim <= 0)
@@ -193,9 +177,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
             return textState->CursorAnim % 1.2f <= 0.8f;
         }
     }
-
-    private static ImGuiInputTextState* TextState =>
-        (ImGuiInputTextState*)(ImGui.GetCurrentContext() + ImGuiContextOffsets.TextStateOffset);
 
     /// <summary>Gets a value indicating whether to display partial conversion status.</summary>
     private bool ShowPartialConversion => this.partialConversionFrom != 0 ||
@@ -341,7 +322,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         try
         {
-            var invalidTarget = TextState->Id == 0 || (TextState->Flags & ImGuiInputTextFlags.ReadOnly) != 0;
+            var textState = CustomNativeFunctions.igCustom_GetInputTextState();
+            var invalidTarget = textState->Id == 0 || (textState->Flags & ImGuiInputTextFlags.ReadOnly) != 0;
 
 #if IMEDEBUG
             switch (args.Message)
@@ -570,19 +552,20 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         this.ReflectCharacterEncounters(newString);
 
+        var textState = CustomNativeFunctions.igCustom_GetInputTextState();
         if (this.temporaryUndoSelection is not null)
         {
-            TextState->Undo();
-            TextState->SelectionTuple = this.temporaryUndoSelection.Value;
+            textState->Undo();
+            textState->SelectionTuple = this.temporaryUndoSelection.Value;
             this.temporaryUndoSelection = null;
         }
 
-        TextState->SanitizeSelectionRange();
-        if (TextState->ReplaceSelectionAndPushUndo(newString))
-            this.temporaryUndoSelection = TextState->SelectionTuple;
+        textState->SanitizeSelectionRange();
+        if (textState->ReplaceSelectionAndPushUndo(newString))
+            this.temporaryUndoSelection = textState->SelectionTuple;
 
         // Put the cursor at the beginning, so that the candidate window appears aligned with the text.
-        TextState->SetSelectionRange(TextState->SelectionTuple.Start, newString.Length, 0);
+        textState->SetSelectionRange(textState->SelectionTuple.Start, newString.Length, 0);
 
         if (finalCommit)
         {
@@ -627,7 +610,10 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         this.partialConversionFrom = this.partialConversionTo = 0;
         this.compositionCursorOffset = 0;
         this.temporaryUndoSelection = null;
-        TextState->Stb.SelectStart = TextState->Stb.Cursor = TextState->Stb.SelectEnd;
+
+        var textState = CustomNativeFunctions.igCustom_GetInputTextState();
+        textState->Stb.SelectStart = textState->Stb.Cursor = textState->Stb.SelectEnd;
+
         this.candidateStrings.Clear();
         this.immCandNative = default;
         if (invokeCancel)
@@ -1030,14 +1016,14 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 (s, e) = (e, s);
         }
 
-        public void Undo() => StbTextUndo(this.ThisPtr, &this.ThisPtr->Stb);
+        public void Undo() => CustomNativeFunctions.igCustom_StbTextUndo(this.ThisPtr);
 
         public bool MakeUndoReplace(int offset, int oldLength, int newLength)
         {
             if (oldLength == 0 && newLength == 0)
                 return false;
 
-            StbTextMakeUndoReplace(this.ThisPtr, &this.ThisPtr->Stb, offset, oldLength, newLength);
+            CustomNativeFunctions.igCustom_StbTextMakeUndoReplace(this.ThisPtr, offset, oldLength, newLength);
             return true;
         }
 
@@ -1111,6 +1097,20 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
             return true;
         }
+    }
+
+    private static class CustomNativeFunctions
+    {
+#pragma warning disable SA1300
+        [DllImport("cimgui")]
+        public static extern ImGuiInputTextState* igCustom_GetInputTextState();
+
+        [DllImport("cimgui")]
+        public static extern void igCustom_StbTextMakeUndoReplace(ImGuiInputTextState* str, int where, int old_length, int new_length);
+
+        [DllImport("cimgui")]
+        public static extern void igCustom_StbTextUndo(ImGuiInputTextState* str);
+#pragma warning restore SA1300
     }
 
 #if IMEDEBUG
