@@ -146,7 +146,16 @@ internal class NounProcessorWidget : IDataWindowWidget
             {
                 for (var grammaticalCase = 0; grammaticalCase < numCases; grammaticalCase++)
                 {
-                    var output = nounProcessor.ProcessNoun(sheetType.Name, (uint)this.rowId, language, this.amount, (int)articleType, grammaticalCase).ExtractText().Replace("\"", "\\\"");
+                    var nounParams = new NounParams()
+                    {
+                        SheetName = sheetType.Name,
+                        RowId = (uint)this.rowId,
+                        Language = language,
+                        Quantity = this.amount,
+                        ArticleType = (int)articleType,
+                        GrammaticalCase = grammaticalCase,
+                    };
+                    var output = nounProcessor.ProcessNoun(nounParams).ExtractText().Replace("\"", "\\\"");
                     var caseParam = language == ClientLanguage.German ? $"(int)GermanCases.{GermanCases[grammaticalCase]}" : "1";
                     sb.AppendLine($"new(nameof(LSheets.{sheetType.Name}), {this.rowId}, ClientLanguage.{language}, {this.amount}, (int){articleTypeEnumType.Name}.{Enum.GetName(articleTypeEnumType, articleType)}, {caseParam}, \"{output}\"),");
                 }
@@ -177,7 +186,16 @@ internal class NounProcessorWidget : IDataWindowWidget
 
                 try
                 {
-                    ImGui.TextUnformatted(nounProcessor.ProcessNoun(sheetType.Name, (uint)this.rowId, language, this.amount, (int)articleType, currentCase).ExtractText());
+                    var nounParams = new NounParams()
+                    {
+                        SheetName = sheetType.Name,
+                        RowId = (uint)this.rowId,
+                        Language = language,
+                        Quantity = this.amount,
+                        ArticleType = (int)articleType,
+                        GrammaticalCase = currentCase,
+                    };
+                    ImGui.TextUnformatted(nounProcessor.ProcessNoun(nounParams).ExtractText());
                 }
                 catch (Exception ex)
                 {

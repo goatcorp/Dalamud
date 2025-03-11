@@ -17,33 +17,33 @@ internal class SheetRedirectResolverAgingStep : IAgingStep
 {
     private RedirectEntry[] redirects =
     [
-        new("Item", 10),
-        new("ItemHQ", 10),
-        new("ItemMP", 10),
-        new("Item", 35588),
-        new("Item", 1035588),
-        new("Item", 2000217),
-        new("ActStr", 10),       // Trait
-        new("ActStr", 1000010),  // Action
-        new("ActStr", 2000010),  // Item
-        new("ActStr", 3000010),  // EventItem
-        new("ActStr", 4000010),  // EventAction
-        new("ActStr", 5000010),  // GeneralAction
-        new("ActStr", 6000010),  // BuddyAction
-        new("ActStr", 7000010),  // MainCommand
-        new("ActStr", 8000010),  // Companion
-        new("ActStr", 9000010),  // CraftAction
-        new("ActStr", 10000010), // Action
-        new("ActStr", 11000010), // PetAction
-        new("ActStr", 12000010), // CompanyAction
-        new("ActStr", 13000010), // Mount
-        // new("ActStr", 14000010),
-        // new("ActStr", 15000010),
-        // new("ActStr", 16000010),
-        // new("ActStr", 17000010),
-        // new("ActStr", 18000010),
-        new("ActStr", 19000010), // BgcArmyAction
-        new("ActStr", 20000010), // Ornament
+        new("Item", 10, SheetRedirectFlags.Item),
+        new("ItemHQ", 10, SheetRedirectFlags.Item | SheetRedirectFlags.HighQuality),
+        new("ItemMP", 10, SheetRedirectFlags.Item | SheetRedirectFlags.Collectible),
+        new("Item", 35588, SheetRedirectFlags.Item),
+        new("Item", 1035588, SheetRedirectFlags.Item | SheetRedirectFlags.HighQuality),
+        new("Item", 2000217, SheetRedirectFlags.Item | SheetRedirectFlags.EventItem),
+        new("ActStr", 10, SheetRedirectFlags.Action),       // Trait
+        new("ActStr", 1000010, SheetRedirectFlags.Action | SheetRedirectFlags.ActionSheet),  // Action
+        new("ActStr", 2000010, SheetRedirectFlags.Action),  // Item
+        new("ActStr", 3000010, SheetRedirectFlags.Action),  // EventItem
+        new("ActStr", 4000010, SheetRedirectFlags.Action),  // EventAction
+        new("ActStr", 5000010, SheetRedirectFlags.Action),  // GeneralAction
+        new("ActStr", 6000010, SheetRedirectFlags.Action),  // BuddyAction
+        new("ActStr", 7000010, SheetRedirectFlags.Action),  // MainCommand
+        new("ActStr", 8000010, SheetRedirectFlags.Action),  // Companion
+        new("ActStr", 9000010, SheetRedirectFlags.Action),  // CraftAction
+        new("ActStr", 10000010, SheetRedirectFlags.Action | SheetRedirectFlags.ActionSheet), // Action
+        new("ActStr", 11000010, SheetRedirectFlags.Action), // PetAction
+        new("ActStr", 12000010, SheetRedirectFlags.Action), // CompanyAction
+        new("ActStr", 13000010, SheetRedirectFlags.Action), // Mount
+        // new("ActStr", 14000010, RedirectFlags.Action),
+        // new("ActStr", 15000010, RedirectFlags.Action),
+        // new("ActStr", 16000010, RedirectFlags.Action),
+        // new("ActStr", 17000010, RedirectFlags.Action),
+        // new("ActStr", 18000010, RedirectFlags.Action),
+        new("ActStr", 19000010, SheetRedirectFlags.Action), // BgcArmyAction
+        new("ActStr", 20000010, SheetRedirectFlags.Action), // Ornament
         new("ObjStr", 10),       // BNpcName
         new("ObjStr", 1000010),  // ENpcResident
         new("ObjStr", 2000010),  // Treasure
@@ -65,7 +65,7 @@ internal class SheetRedirectResolverAgingStep : IAgingStep
         new("WeatherPlaceName", 2300),
     ];
 
-    private unsafe delegate uint ResolveSheetRedirect(RaptureTextModule* thisPtr, Utf8String* sheetName, uint* rowId, ushort* flags);
+    private unsafe delegate SheetRedirectFlags ResolveSheetRedirect(RaptureTextModule* thisPtr, Utf8String* sheetName, uint* rowId, uint* flags);
 
     /// <inheritdoc/>
     public string Name => "Test SheetRedirectResolver";
@@ -90,19 +90,20 @@ internal class SheetRedirectResolverAgingStep : IAgingStep
                 utf8SheetName->SetString(redirect.SheetName);
 
                 var rowId1 = redirect.RowId;
-                ushort flags = 0xFFFF;
-                resolveSheetRedirect(RaptureTextModule.Instance(), utf8SheetName, &rowId1, &flags);
+                uint colIndex1 = ushort.MaxValue;
+                var flags1 = resolveSheetRedirect(RaptureTextModule.Instance(), utf8SheetName, &rowId1, &colIndex1);
 
                 var sheetName2 = redirect.SheetName;
                 var rowId2 = redirect.RowId;
-                sheetRedirectResolver.Resolve(ref sheetName2, ref rowId2);
+                uint colIndex2 = ushort.MaxValue;
+                var flags2 = sheetRedirectResolver.Resolve(ref sheetName2, ref rowId2, ref colIndex2);
 
-                if (utf8SheetName->ToString() != sheetName2 || rowId1 != rowId2)
+                if (utf8SheetName->ToString() != sheetName2 || rowId1 != rowId2 || colIndex1 != colIndex2 || flags1 != flags2)
                 {
                     ImGui.TextUnformatted($"Mismatch detected (Test #{i}):");
                     ImGui.TextUnformatted($"Input: {redirect.SheetName}#{redirect.RowId}");
-                    ImGui.TextUnformatted($"Game: {utf8SheetName->ToString()}#{rowId1}");
-                    ImGui.TextUnformatted($"Evaluated: {sheetName2}#{rowId2}");
+                    ImGui.TextUnformatted($"Game: {utf8SheetName->ToString()}#{rowId1}-{colIndex1} ({flags1})");
+                    ImGui.TextUnformatted($"Evaluated: {sheetName2}#{rowId2}-{colIndex2} ({flags2})");
 
                     if (ImGui.Button("Continue"))
                         return SelfTestStepResult.Fail;
@@ -125,5 +126,5 @@ internal class SheetRedirectResolverAgingStep : IAgingStep
         // ignored
     }
 
-    private record struct RedirectEntry(string SheetName, uint RowId);
+    private record struct RedirectEntry(string SheetName, uint RowId, SheetRedirectFlags Flags = SheetRedirectFlags.None);
 }

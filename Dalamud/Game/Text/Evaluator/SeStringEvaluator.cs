@@ -10,6 +10,7 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Config;
 using Dalamud.Game.Text.Evaluator.Internal;
 using Dalamud.Game.Text.Noun;
+using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -707,7 +708,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         var resolvedSheetName = this.Evaluate(eSheetNameStr, context.LocalParameters, context.Language).ExtractText();
 
-        this.sheetRedirectResolver.Resolve(ref resolvedSheetName, ref eRowIdValue);
+        this.sheetRedirectResolver.Resolve(ref resolvedSheetName, ref eRowIdValue, ref eColIndexValue);
 
         if (string.IsNullOrEmpty(resolvedSheetName))
             return false;
@@ -1426,7 +1427,14 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
         if (isNoun && context.Language == ClientLanguage.German && sheetName == "Companion")
         {
-            context.Builder.Append(this.nounProcessor.ProcessNoun(sheetName, rowId, ClientLanguage.German, 1, 5));
+            context.Builder.Append(this.nounProcessor.ProcessNoun(new NounParams()
+            {
+                Language = ClientLanguage.German,
+                SheetName = sheetName,
+                RowId = rowId,
+                Quantity = 1,
+                ArticleType = (int)GermanArticleType.ZeroArticle,
+            }));
         }
         else if (this.dataManager.GetExcelSheet<RawRow>(context.Language, sheetName).TryGetRow(rowId, out var row))
         {
@@ -1493,7 +1501,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var eRowIdVal))
             return false;
 
-        this.sheetRedirectResolver.Resolve(ref sheetName, ref eRowIdVal);
+        uint colIndex = ushort.MaxValue;
+        var flags = this.sheetRedirectResolver.Resolve(ref sheetName, ref eRowIdVal, ref colIndex);
 
         if (string.IsNullOrEmpty(sheetName))
             return false;
@@ -1522,7 +1531,16 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         }
 
         context.Builder.Append(
-            this.nounProcessor.ProcessNoun(sheetName, eRowIdVal, language, eAmountVal, eArticleTypeVal, eCaseVal - 1));
+            this.nounProcessor.ProcessNoun(new NounParams()
+            {
+                Language = language,
+                SheetName = sheetName,
+                RowId = eRowIdVal,
+                Quantity = eAmountVal,
+                ArticleType = eArticleTypeVal,
+                GrammaticalCase = eCaseVal - 1,
+                IsItemSheet = flags.HasFlag(SheetRedirectFlags.Item),
+            }));
 
         return true;
     }

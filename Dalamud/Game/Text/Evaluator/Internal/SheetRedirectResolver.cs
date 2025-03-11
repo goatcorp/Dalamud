@@ -4,7 +4,6 @@ using Dalamud.Utility;
 using Lumina.Extensions;
 
 using ItemKind = Dalamud.Game.Text.SeStringHandling.Payloads.ItemPayload.ItemKind;
-using ItemPayload = Dalamud.Game.Text.SeStringHandling.Payloads.ItemPayload;
 using LSheets = Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Text.Evaluator.Internal;
@@ -15,29 +14,29 @@ namespace Dalamud.Game.Text.Evaluator.Internal;
 [ServiceManager.EarlyLoadedService]
 internal class SheetRedirectResolver : IServiceType
 {
-    private static readonly string[] ActStrSheetNames =
+    private static readonly (string SheetName, uint ColumnIndex, bool ReturnActionSheetFlag)[] ActStrSheets =
     [
-        nameof(LSheets.Trait),
-        nameof(LSheets.Action),
-        nameof(LSheets.Item),
-        nameof(LSheets.EventItem),
-        nameof(LSheets.EventAction),
-        nameof(LSheets.GeneralAction),
-        nameof(LSheets.BuddyAction),
-        nameof(LSheets.MainCommand),
-        nameof(LSheets.Companion),
-        nameof(LSheets.CraftAction),
-        nameof(LSheets.Action),
-        nameof(LSheets.PetAction),
-        nameof(LSheets.CompanyAction),
-        nameof(LSheets.Mount),
-        string.Empty,
-        string.Empty,
-        string.Empty,
-        string.Empty,
-        string.Empty,
-        nameof(LSheets.BgcArmyAction),
-        nameof(LSheets.Ornament),
+        (nameof(LSheets.Trait), 0, false),
+        (nameof(LSheets.Action), 0, true),
+        (nameof(LSheets.Item), 0, false),
+        (nameof(LSheets.EventItem), 0, false),
+        (nameof(LSheets.EventAction), 0, false),
+        (nameof(LSheets.GeneralAction), 0, false),
+        (nameof(LSheets.BuddyAction), 0, false),
+        (nameof(LSheets.MainCommand), 5, false),
+        (nameof(LSheets.Companion), 0, false),
+        (nameof(LSheets.CraftAction), 0, false),
+        (nameof(LSheets.Action), 0, true),
+        (nameof(LSheets.PetAction), 0, false),
+        (nameof(LSheets.CompanyAction), 0, false),
+        (nameof(LSheets.Mount), 0, false),
+        (string.Empty, 0, false),
+        (string.Empty, 0, false),
+        (string.Empty, 0, false),
+        (string.Empty, 0, false),
+        (string.Empty, 0, false),
+        (nameof(LSheets.BgcArmyAction), 1, false),
+        (nameof(LSheets.Ornament), 8, false),
     ];
 
     private static readonly string[] ObjStrSheetNames =
@@ -68,18 +67,33 @@ internal class SheetRedirectResolver : IServiceType
     /// </summary>
     /// <param name="sheetName">The sheet name.</param>
     /// <param name="rowId">The row id.</param>
-    /// <param name="flags">Optional flags (currently unknown).</param>
-    internal void Resolve(ref string sheetName, ref uint rowId, ushort flags = 0xFFFF)
+    /// <param name="colIndex">The column index. Use <c>ushort.MaxValue</c> as default.</param>
+    /// <returns>Flags giving additional information about the redirect.</returns>
+    internal SheetRedirectFlags Resolve(ref string sheetName, ref uint rowId, ref uint colIndex)
     {
+        var flags = SheetRedirectFlags.None;
+
         switch (sheetName)
         {
-            // MP means Masterpiece
-            case "Item" or "ItemHQ" or "ItemMP":
+            case nameof(LSheets.Item) or "ItemHQ" or "ItemMP":
             {
+                flags |= SheetRedirectFlags.Item;
+
                 var (itemId, kind) = ItemUtil.GetBaseId(rowId);
+
+                if (kind == ItemKind.Hq || sheetName == "ItemHQ")
+                {
+                    flags |= SheetRedirectFlags.HighQuality;
+                }
+                else if (kind == ItemKind.Collectible || sheetName == "ItemMP") // MP for Masterpiece?!
+                {
+                    flags |= SheetRedirectFlags.Collectible;
+                }
+
                 if (kind == ItemKind.EventItem &&
                     rowId - 2_000_000 <= this.dataManager.GetExcelSheet<LSheets.EventItem>().Count)
                 {
+                    flags |= SheetRedirectFlags.EventItem;
                     sheetName = nameof(LSheets.EventItem);
                 }
                 else
@@ -88,14 +102,24 @@ internal class SheetRedirectResolver : IServiceType
                     rowId = itemId;
                 }
 
+                if (colIndex == 4 || colIndex == 5 || (colIndex - 6) <= 1)
+                    return SheetRedirectFlags.None;
+
                 break;
             }
 
             case "ActStr":
             {
+                var returnActionSheetFlag = false;
                 (var index, rowId) = uint.DivRem(rowId, 1000000);
-                if (index < ActStrSheetNames.Length)
-                    sheetName = ActStrSheetNames[index];
+                if (index < ActStrSheets.Length)
+                    (sheetName, colIndex, returnActionSheetFlag) = ActStrSheets[index];
+
+                if (sheetName != nameof(LSheets.Companion) && colIndex != 13)
+                    flags |= SheetRedirectFlags.Action;
+
+                if (returnActionSheetFlag)
+                    flags |= SheetRedirectFlags.ActionSheet;
 
                 break;
             }
@@ -105,6 +129,8 @@ internal class SheetRedirectResolver : IServiceType
                 (var index, rowId) = uint.DivRem(rowId, 1000000);
                 if (index < ObjStrSheetNames.Length)
                     sheetName = ObjStrSheetNames[index];
+
+                colIndex = 0;
 
                 switch (index)
                 {
@@ -138,11 +164,11 @@ internal class SheetRedirectResolver : IServiceType
                 break;
             }
 
-            case "EObj" when flags is <= 7 or 0xFFFF:
+            case nameof(LSheets.EObj) when colIndex is <= 7 or ushort.MaxValue:
                 sheetName = nameof(LSheets.EObjName);
                 break;
 
-            case "Treasure"
+            case nameof(LSheets.Treasure)
                 when this.dataManager.GetExcelSheet<LSheets.Treasure>().TryGetRow(rowId, out var treasureRow) &&
                      treasureRow.Unknown0.IsEmpty:
                 rowId = 0; // defaulting to "Treasure Coffer"
@@ -160,41 +186,47 @@ internal class SheetRedirectResolver : IServiceType
                 break;
             }
 
-            case "InstanceContent" when flags == 3:
+            case nameof(LSheets.InstanceContent) when colIndex == 3:
             {
                 sheetName = nameof(LSheets.ContentFinderCondition);
+                colIndex = 43;
 
                 if (this.dataManager.GetExcelSheet<LSheets.InstanceContent>().TryGetRow(rowId, out var row))
                     rowId = row.Order;
                 break;
             }
 
-            case "PartyContent" when flags == 2:
+            case nameof(LSheets.PartyContent) when colIndex == 2:
             {
                 sheetName = nameof(LSheets.ContentFinderCondition);
+                colIndex = 43;
 
                 if (this.dataManager.GetExcelSheet<LSheets.PartyContent>().TryGetRow(rowId, out var row))
                     rowId = row.ContentFinderCondition.RowId;
                 break;
             }
 
-            case "PublicContent" when flags == 3:
+            case nameof(LSheets.PublicContent) when colIndex == 3:
             {
                 sheetName = nameof(LSheets.ContentFinderCondition);
+                colIndex = 43;
 
                 if (this.dataManager.GetExcelSheet<LSheets.PublicContent>().TryGetRow(rowId, out var row))
                     rowId = row.ContentFinderCondition.RowId;
                 break;
             }
 
-            case "AkatsukiNote":
+            case nameof(LSheets.AkatsukiNote):
             {
                 sheetName = nameof(LSheets.AkatsukiNoteString);
+                colIndex = 0;
 
                 if (this.dataManager.Excel.GetSubrowSheet<LSheets.AkatsukiNote>().TryGetRow(rowId, out var row))
                     rowId = (uint)row[0].Unknown2;
                 break;
             }
         }
+
+        return flags;
     }
 }

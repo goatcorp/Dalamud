@@ -212,8 +212,17 @@ internal class NounProcessorAgingStep : IAgingStep
         for (var i = 0; i < this.tests.Length; i++)
         {
             var e = this.tests[i];
-
-            var output = nounProcessor.ProcessNoun(e.SheetName, e.RowId, e.Language, e.Quantity, e.ArticleType, e.GrammaticalCase);
+            
+            var nounParams = new NounParams()
+            {
+                SheetName = e.SheetName,
+                RowId = e.RowId,
+                Language = e.Language,
+                Quantity = e.Quantity,
+                ArticleType = e.ArticleType,
+                GrammaticalCase = e.GrammaticalCase,
+            };
+            var output = nounProcessor.ProcessNoun(nounParams);
 
             if (e.ExpectedResult != output)
             {
