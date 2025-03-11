@@ -12,11 +12,12 @@ namespace Dalamud.Game.Text.Noun;
 internal record struct NounParams()
 {
     /// <summary>
-    /// The language of the sheet to be processed. If null, the effective Dalamud UI language is used.
+    /// The language of the sheet to be processed.
     /// </summary>
     public required ClientLanguage Language;
 
-    /// <summary>The name of the sheet containing the row to process.
+    /// <summary>
+    /// The name of the sheet containing the row to process.
     /// </summary>
     public required string SheetName = string.Empty;
 
@@ -31,8 +32,12 @@ internal record struct NounParams()
     public int Quantity = 1;
 
     /// <summary>
-    /// The article type. Depending on the <see cref="Language"/>, this has different meanings. See <see cref="JapaneseArticleType"/>, <see cref="GermanArticleType"/>, <see cref="FrenchArticleType"/>, <see cref="EnglishArticleType"/>.
+    /// The article type.
     /// </summary>
+    /// <remarks>
+    /// Depending on the <see cref="Language"/>, this has different meanings.<br/>
+    /// See <see cref="JapaneseArticleType"/>, <see cref="GermanArticleType"/>, <see cref="FrenchArticleType"/>, <see cref="EnglishArticleType"/>.
+    /// </remarks>
     public int ArticleType = 1;
 
     /// <summary>
@@ -46,9 +51,9 @@ internal record struct NounParams()
     public ReadOnlySeString LinkMarker = default;
 
     /// <summary>
-    /// An indicator that this noun will be processed from an Item sheet.
+    /// An indicator that this noun will be processed from an Action sheet. Only used for German texts.
     /// </summary>
-    public bool IsItemSheet;
+    public bool IsActionSheet;
 
     /// <summary>
     /// Gets the column offset.

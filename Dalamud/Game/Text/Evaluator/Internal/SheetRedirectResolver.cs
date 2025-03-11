@@ -102,7 +102,7 @@ internal class SheetRedirectResolver : IServiceType
                     rowId = itemId;
                 }
 
-                if (colIndex == 4 || colIndex == 5 || (colIndex - 6) <= 1)
+                if (colIndex is >= 4 and <= 7)
                     return SheetRedirectFlags.None;
 
                 break;

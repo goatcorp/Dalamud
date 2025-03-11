@@ -265,7 +265,7 @@ internal class NounProcessor : IServiceType
         var builder = LSeStringBuilder.SharedPool.Get();
         ReadOnlySeString ross;
 
-        if (nounParams.IsItemSheet)
+        if (nounParams.IsActionSheet)
         {
             builder.Append(row.ReadStringColumn(nounParams.GrammaticalCase));
             builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(nounParams.Quantity.ToString()));

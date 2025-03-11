@@ -1539,7 +1539,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 Quantity = eAmountVal,
                 ArticleType = eArticleTypeVal,
                 GrammaticalCase = eCaseVal - 1,
-                IsItemSheet = flags.HasFlag(SheetRedirectFlags.Item),
+                IsActionSheet = flags.HasFlag(SheetRedirectFlags.Action),
             }));
 
         return true;
