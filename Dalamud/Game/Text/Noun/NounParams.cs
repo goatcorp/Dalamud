@@ -68,7 +68,6 @@ internal record struct NounParams()
         nameof(LSheets.DeepDungeonDemiclone) => 1,
         nameof(LSheets.Glasses) => 4,
         nameof(LSheets.GlassesStyle) => 15,
-        nameof(LSheets.Ornament) => 8, // not part of that function, but still shifted
         _ => 0,
     };
 }
