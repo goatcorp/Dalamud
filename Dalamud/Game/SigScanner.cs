@@ -7,11 +7,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-
 using Iced.Intel;
-
 using Newtonsoft.Json;
-
 using Serilog;
 
 namespace Dalamud.Game;
@@ -506,17 +503,14 @@ public class SigScanner : IDisposable, ISigScanner
                                  0,
                                  this.moduleCopyPtr + (nint)this.TextSectionOffset,
                                  this.TextSectionSize);
-
                     break;
                 case 0x617461642E: // .data
                     this.DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                     this.DataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
-
                     break;
                 case 0x61746164722E: // .rdata
                     this.RDataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                     this.RDataSectionSize = Marshal.ReadInt32(sectionCursor, 8);
-
                     break;
             }
 
