@@ -496,13 +496,17 @@ public class SigScanner : IDisposable, ISigScanner
                     this.TextSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                     this.TextSectionSize = Marshal.ReadInt32(sectionCursor, 8);
 
-                    var pointerToRawData = Marshal.ReadInt32(sectionCursor, 20);
+                    if (this.IsCopy)
+                    {
+                        var pointerToRawData = Marshal.ReadInt32(sectionCursor, 20);
 
-                    Marshal.Copy(
-                                 fileBytes.AsSpan(pointerToRawData, this.TextSectionSize).ToArray(),
-                                 0,
-                                 this.moduleCopyPtr + (nint)this.TextSectionOffset,
-                                 this.TextSectionSize);
+                        Marshal.Copy(
+                                     fileBytes.AsSpan(pointerToRawData, this.TextSectionSize).ToArray(),
+                                     0,
+                                     this.moduleCopyPtr + (nint)this.TextSectionOffset,
+                                     this.TextSectionSize);
+                    }
+
                     break;
                 case 0x617461642E: // .data
                     this.DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
