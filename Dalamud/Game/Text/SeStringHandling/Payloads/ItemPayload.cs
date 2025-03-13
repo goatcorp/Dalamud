@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 
 using Dalamud.Data;
+using Dalamud.Utility;
+
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
@@ -73,6 +75,7 @@ public class ItemPayload : Payload
     /// <summary>
     /// Kinds of items that can be fetched from this payload.
     /// </summary>
+    [Api12ToDo("Move this out of ItemPayload. It's used in other classes too.")]
     public enum ItemKind : uint
     {
         /// <summary>
@@ -121,7 +124,7 @@ public class ItemPayload : Payload
     /// Gets the actual item ID of this payload.
     /// </summary>
     [JsonIgnore]
-    public uint ItemId => GetAdjustedId(this.rawItemId).ItemId;
+    public uint ItemId => ItemUtil.GetBaseId(this.rawItemId).ItemId;
 
     /// <summary>
     /// Gets the raw, unadjusted item ID of this payload.
@@ -161,7 +164,7 @@ public class ItemPayload : Payload
     /// <returns>The created item payload.</returns>
     public static ItemPayload FromRaw(uint rawItemId, string? displayNameOverride = null)
     {
-        var (id, kind) = GetAdjustedId(rawItemId);
+        var (id, kind) = ItemUtil.GetBaseId(rawItemId);
         return new ItemPayload(id, kind, displayNameOverride);
     }
 
@@ -230,7 +233,7 @@ public class ItemPayload : Payload
     protected override void DecodeImpl(BinaryReader reader, long endOfStream)
     {
         this.rawItemId = GetInteger(reader);
-        this.Kind = GetAdjustedId(this.rawItemId).Kind;
+        this.Kind = ItemUtil.GetBaseId(this.rawItemId).Kind;
 
         if (reader.BaseStream.Position + 3 < endOfStream)
         {
@@ -254,16 +257,5 @@ public class ItemPayload : Payload
 
             this.displayName = Encoding.UTF8.GetString(itemNameBytes);
         }
-    }
-
-    private static (uint ItemId, ItemKind Kind) GetAdjustedId(uint rawItemId)
-    {
-        return rawItemId switch
-        {
-            > 500_000 and < 1_000_000 => (rawItemId - 500_000, ItemKind.Collectible),
-            > 1_000_000 and < 2_000_000 => (rawItemId - 1_000_000, ItemKind.Hq),
-            > 2_000_000 => (rawItemId, ItemKind.EventItem), // EventItem IDs are NOT adjusted
-            _ => (rawItemId, ItemKind.Normal),
-        };
     }
 }

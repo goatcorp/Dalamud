@@ -210,8 +210,6 @@ public static class ImGuiHelpers
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
-    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
-    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static SeStringDrawResult SeStringWrapped(
         ReadOnlySpan<byte> sss,
         scoped in SeStringDrawParams style = default,
@@ -226,8 +224,6 @@ public static class ImGuiHelpers
     /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
     /// <param name="buttonFlags">Button flags to use on link interaction.</param>
     /// <returns>Interaction result of the rendered text.</returns>
-    /// <remarks>This function is experimental. Report any issues to GitHub issues or to Discord #dalamud-dev channel.
-    /// The function definition is stable; only in the next API version a function may be removed.</remarks>
     public static SeStringDrawResult CompileSeStringWrapped(
         string text,
         scoped in SeStringDrawParams style = default,

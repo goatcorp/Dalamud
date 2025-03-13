@@ -7,7 +7,6 @@ using BitFaster.Caching.Lru;
 
 using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.Config;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal.TextProcessing;
 using Dalamud.Interface.Utility;
@@ -43,9 +42,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     /// <summary>Object replacement character, which signifies that there should be something else displayed in place
     /// of this placeholder. On its own, usually displayed like <c>[OBJ]</c>.</summary>
     private const int ObjectReplacementCharacter = '\uFFFC';
-
-    [ServiceManager.ServiceDependency]
-    private readonly GameConfig gameConfig = Service<GameConfig>.Get();
 
     /// <summary>Cache of compiled SeStrings from <see cref="CompileAndCache"/>.</summary>
     private readonly ConcurrentLru<string, ReadOnlySeString> cache = new(1024);
@@ -570,70 +566,16 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             // Apply gamepad key mapping to icons.
             case MacroCode.Icon2
                 when payload.TryGetExpression(out var icon) && icon.TryGetInt(out var iconId):
-                var configName = (BitmapFontIcon)iconId switch
+                ref var iconMapping = ref RaptureAtkModule.Instance()->AtkFontManager.Icon2RemapTable;
+                for (var i = 0; i < 30; i++)
                 {
-                    ControllerShoulderLeft => SystemConfigOption.PadButton_L1,
-                    ControllerShoulderRight => SystemConfigOption.PadButton_R1,
-                    ControllerTriggerLeft => SystemConfigOption.PadButton_L2,
-                    ControllerTriggerRight => SystemConfigOption.PadButton_R2,
-                    ControllerButton3 => SystemConfigOption.PadButton_Triangle,
-                    ControllerButton1 => SystemConfigOption.PadButton_Cross,
-                    ControllerButton0 => SystemConfigOption.PadButton_Circle,
-                    ControllerButton2 => SystemConfigOption.PadButton_Square,
-                    ControllerStart => SystemConfigOption.PadButton_Start,
-                    ControllerBack => SystemConfigOption.PadButton_Select,
-                    ControllerAnalogLeftStick => SystemConfigOption.PadButton_LS,
-                    ControllerAnalogLeftStickIn => SystemConfigOption.PadButton_LS,
-                    ControllerAnalogLeftStickUpDown => SystemConfigOption.PadButton_LS,
-                    ControllerAnalogLeftStickLeftRight => SystemConfigOption.PadButton_LS,
-                    ControllerAnalogRightStick => SystemConfigOption.PadButton_RS,
-                    ControllerAnalogRightStickIn => SystemConfigOption.PadButton_RS,
-                    ControllerAnalogRightStickUpDown => SystemConfigOption.PadButton_RS,
-                    ControllerAnalogRightStickLeftRight => SystemConfigOption.PadButton_RS,
-                    _ => (SystemConfigOption?)null,
-                };
-
-                if (configName is null || !this.gameConfig.TryGet(configName.Value, out PadButtonValue pb))
-                    return (BitmapFontIcon)iconId;
-
-                return pb switch
-                {
-                    PadButtonValue.Autorun_Support => ControllerShoulderLeft,
-                    PadButtonValue.Hotbar_Set_Change => ControllerShoulderRight,
-                    PadButtonValue.XHB_Left_Start => ControllerTriggerLeft,
-                    PadButtonValue.XHB_Right_Start => ControllerTriggerRight,
-                    PadButtonValue.Jump => ControllerButton3,
-                    PadButtonValue.Accept => ControllerButton0,
-                    PadButtonValue.Cancel => ControllerButton1,
-                    PadButtonValue.Map_Sub => ControllerButton2,
-                    PadButtonValue.MainCommand => ControllerStart,
-                    PadButtonValue.HUD_Select => ControllerBack,
-                    PadButtonValue.Move_Operation => (BitmapFontIcon)iconId switch
+                    if (iconMapping[i].IconId == iconId)
                     {
-                        ControllerAnalogLeftStick => ControllerAnalogLeftStick,
-                        ControllerAnalogLeftStickIn => ControllerAnalogLeftStickIn,
-                        ControllerAnalogLeftStickUpDown => ControllerAnalogLeftStickUpDown,
-                        ControllerAnalogLeftStickLeftRight => ControllerAnalogLeftStickLeftRight,
-                        ControllerAnalogRightStick => ControllerAnalogLeftStick,
-                        ControllerAnalogRightStickIn => ControllerAnalogLeftStickIn,
-                        ControllerAnalogRightStickUpDown => ControllerAnalogLeftStickUpDown,
-                        ControllerAnalogRightStickLeftRight => ControllerAnalogLeftStickLeftRight,
-                        _ => (BitmapFontIcon)iconId,
-                    },
-                    PadButtonValue.Camera_Operation => (BitmapFontIcon)iconId switch
-                    {
-                        ControllerAnalogLeftStick => ControllerAnalogRightStick,
-                        ControllerAnalogLeftStickIn => ControllerAnalogRightStickIn,
-                        ControllerAnalogLeftStickUpDown => ControllerAnalogRightStickUpDown,
-                        ControllerAnalogLeftStickLeftRight => ControllerAnalogRightStickLeftRight,
-                        ControllerAnalogRightStick => ControllerAnalogRightStick,
-                        ControllerAnalogRightStickIn => ControllerAnalogRightStickIn,
-                        ControllerAnalogRightStickUpDown => ControllerAnalogRightStickUpDown,
-                        ControllerAnalogRightStickLeftRight => ControllerAnalogRightStickLeftRight,
-                        _ => (BitmapFontIcon)iconId,
-                    },
-                    _ => (BitmapFontIcon)iconId,
-                };
+                        return (BitmapFontIcon)iconMapping[i].RemappedIconId;
+                    }
+                }
+
+                return (BitmapFontIcon)iconId;
         }
 
         return None;
