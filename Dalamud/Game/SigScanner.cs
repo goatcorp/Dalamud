@@ -7,7 +7,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-
 using Iced.Intel;
 using Newtonsoft.Json;
 using Serilog;
@@ -51,11 +50,11 @@ public class SigScanner : IDisposable, ISigScanner
         this.Is32BitProcess = !Environment.Is64BitProcess;
         this.IsCopy = doCopy;
 
-        // Limit the search space to .text section.
-        this.SetupSearchSpace(module);
-
         if (this.IsCopy)
             this.SetupCopiedSegments();
+
+        // Limit the search space to .text section.
+        this.SetupSearchSpace(module);
 
         Log.Verbose($"Module base: 0x{this.TextSectionBase.ToInt64():X}");
         Log.Verbose($"Module size: 0x{this.TextSectionSize:X}");
@@ -463,6 +462,8 @@ public class SigScanner : IDisposable, ISigScanner
 
     private void SetupSearchSpace(ProcessModule module)
     {
+        var fileBytes = File.ReadAllBytes(module.FileName);
+
         var baseAddress = module.BaseAddress;
 
         // We don't want to read all of IMAGE_DOS_HEADER or IMAGE_NT_HEADER stuff so we cheat here.
@@ -494,6 +495,18 @@ public class SigScanner : IDisposable, ISigScanner
                 case 0x747865742E: // .text
                     this.TextSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
                     this.TextSectionSize = Marshal.ReadInt32(sectionCursor, 8);
+
+                    if (this.IsCopy)
+                    {
+                        var pointerToRawData = Marshal.ReadInt32(sectionCursor, 20);
+
+                        Marshal.Copy(
+                                     fileBytes.AsSpan(pointerToRawData, this.TextSectionSize).ToArray(),
+                                     0,
+                                     this.moduleCopyPtr + (nint)this.TextSectionOffset,
+                                     this.TextSectionSize);
+                    }
+
                     break;
                 case 0x617461642E: // .data
                     this.DataSectionOffset = Marshal.ReadInt32(sectionCursor, 12);
