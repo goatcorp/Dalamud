@@ -1,13 +1,23 @@
-using System;
-
 using Dalamud.Plugin.Ipc.Internal;
 
 #pragma warning disable SA1402 // File may only contain a single type
 
 namespace Dalamud.Plugin.Ipc;
 
+/// <summary>
+/// An interface for all IPC subscribers.
+/// </summary>
+public interface ICallGateSubscriber
+{
+    /// <inheritdoc cref="CallGatePubSubBase.HasAction"/>
+    public bool HasAction { get; }
+    
+    /// <inheritdoc cref="CallGatePubSubBase.HasFunction"/>
+    public bool HasFunction { get; }
+}
+
 /// <inheritdoc cref="CallGatePubSubBase"/>
-public interface ICallGateSubscriber<TRet>
+public interface ICallGateSubscriber<TRet> : ICallGateSubscriber
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
     public void Subscribe(Action action);
@@ -23,7 +33,7 @@ public interface ICallGateSubscriber<TRet>
 }
 
 /// <inheritdoc cref="CallGatePubSubBase"/>
-public interface ICallGateSubscriber<T1, TRet>
+public interface ICallGateSubscriber<T1, TRet> : ICallGateSubscriber
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
     public void Subscribe(Action<T1> action);
@@ -39,7 +49,7 @@ public interface ICallGateSubscriber<T1, TRet>
 }
 
 /// <inheritdoc cref="CallGatePubSubBase"/>
-public interface ICallGateSubscriber<T1, T2, TRet>
+public interface ICallGateSubscriber<T1, T2, TRet> : ICallGateSubscriber
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
     public void Subscribe(Action<T1, T2> action);
@@ -55,7 +65,7 @@ public interface ICallGateSubscriber<T1, T2, TRet>
 }
 
 /// <inheritdoc cref="CallGatePubSubBase"/>
-public interface ICallGateSubscriber<T1, T2, T3, TRet>
+public interface ICallGateSubscriber<T1, T2, T3, TRet> : ICallGateSubscriber
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
     public void Subscribe(Action<T1, T2, T3> action);
@@ -71,7 +81,7 @@ public interface ICallGateSubscriber<T1, T2, T3, TRet>
 }
 
 /// <inheritdoc cref="CallGatePubSubBase"/>
-public interface ICallGateSubscriber<T1, T2, T3, T4, TRet>
+public interface ICallGateSubscriber<T1, T2, T3, T4, TRet> : ICallGateSubscriber
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
     public void Subscribe(Action<T1, T2, T3, T4> action);
@@ -86,7 +96,7 @@ public interface ICallGateSubscriber<T1, T2, T3, T4, TRet>
     public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
 }
 
-/// <inheritdoc cref="CallGatePubSubBase"/>
+/// <inheritdoc cref="CallGatePubSubBase"/> : ICallGateSubscriber
 public interface ICallGateSubscriber<T1, T2, T3, T4, T5, TRet>
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
@@ -102,7 +112,7 @@ public interface ICallGateSubscriber<T1, T2, T3, T4, T5, TRet>
     public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5);
 }
 
-/// <inheritdoc cref="CallGatePubSubBase"/>
+/// <inheritdoc cref="CallGatePubSubBase"/> : ICallGateSubscriber
 public interface ICallGateSubscriber<T1, T2, T3, T4, T5, T6, TRet>
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
@@ -118,7 +128,7 @@ public interface ICallGateSubscriber<T1, T2, T3, T4, T5, T6, TRet>
     public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6);
 }
 
-/// <inheritdoc cref="CallGatePubSubBase"/>
+/// <inheritdoc cref="CallGatePubSubBase"/> : ICallGateSubscriber
 public interface ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet>
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>
@@ -134,7 +144,7 @@ public interface ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, TRet>
     public TRet InvokeFunc(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7);
 }
 
-/// <inheritdoc cref="CallGatePubSubBase"/>
+/// <inheritdoc cref="CallGatePubSubBase"/> : ICallGateSubscriber
 public interface ICallGateSubscriber<T1, T2, T3, T4, T5, T6, T7, T8, TRet>
 {
     /// <inheritdoc cref="CallGatePubSubBase.Subscribe"/>

@@ -8,49 +8,44 @@ namespace Dalamud.Game.ClientState.Objects;
 public interface ITargetManager
 {
     /// <summary>
-    /// Gets the address of the target manager.
-    /// </summary>
-    public nint Address { get; }
-
-    /// <summary>
     /// Gets or sets the current target.
     /// Set to null to clear the target.
     /// </summary>
-    public GameObject? Target { get; set; }
+    public IGameObject? Target { get; set; }
 
     /// <summary>
     /// Gets or sets the mouseover target.
     /// Set to null to clear the target.
     /// </summary>
-    public GameObject? MouseOverTarget { get; set; }
+    public IGameObject? MouseOverTarget { get; set; }
 
     /// <summary>
     /// Gets or sets the focus target.
     /// Set to null to clear the target.
     /// </summary>
-    public GameObject? FocusTarget { get; set; }
+    public IGameObject? FocusTarget { get; set; }
 
     /// <summary>
     /// Gets or sets the previous target.
     /// Set to null to clear the target.
     /// </summary>
-    public GameObject? PreviousTarget { get; set; }
+    public IGameObject? PreviousTarget { get; set; }
 
     /// <summary>
     /// Gets or sets the soft target.
     /// Set to null to clear the target.
     /// </summary>
-    public GameObject? SoftTarget { get; set; }
+    public IGameObject? SoftTarget { get; set; }
     
     /// <summary>
     /// Gets or sets the gpose target.
     /// Set to null to clear the target.
     /// </summary>
-    public GameObject? GPoseTarget { get; set; }
+    public IGameObject? GPoseTarget { get; set; }
     
     /// <summary>
     /// Gets or sets the mouseover nameplate target.
     /// Set to null to clear the target.
     /// </summary>
-    public GameObject? MouseOverNameplateTarget { get; set; }
+    public IGameObject? MouseOverNameplateTarget { get; set; }
 }

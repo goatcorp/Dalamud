@@ -13,7 +13,7 @@ namespace Dalamud.Logging.Internal;
 /// Class responsible for tracking asynchronous tasks.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class TaskTracker : IDisposable, IServiceType
+internal class TaskTracker : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("TT");
     private static readonly List<TaskInfo> TrackedTasksInternal = new();
@@ -23,7 +23,8 @@ internal class TaskTracker : IDisposable, IServiceType
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
-    private MonoMod.RuntimeDetour.Hook? scheduleAndStartHook;
+    // NET8 CHORE
+    // private MonoMod.RuntimeDetour.Hook? scheduleAndStartHook;
     private bool enabled = false;
 
     [ServiceManager.ServiceConstructor]
@@ -36,8 +37,9 @@ internal class TaskTracker : IDisposable, IServiceType
 
     /// <summary>
     /// Gets a read-only list of tracked tasks.
+    /// Intended for use only from UI thread.
     /// </summary>
-    public static IReadOnlyList<TaskInfo> Tasks => TrackedTasksInternal.ToArray();
+    public static IReadOnlyList<TaskInfo> Tasks => TrackedTasksInternal;
 
     /// <summary>
     /// Clear the list of tracked tasks.
@@ -119,9 +121,10 @@ internal class TaskTracker : IDisposable, IServiceType
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
-        this.scheduleAndStartHook?.Dispose();
+        // NET8 CHORE
+        // this.scheduleAndStartHook?.Dispose();
 
         this.framework.Update -= this.FrameworkOnUpdate;
     }
@@ -170,7 +173,8 @@ internal class TaskTracker : IDisposable, IServiceType
             return;
         }
 
-        this.scheduleAndStartHook = new MonoMod.RuntimeDetour.Hook(targetMethod, patchMethod);
+        // NET8 CHORE
+        // this.scheduleAndStartHook = new MonoMod.RuntimeDetour.Hook(targetMethod, patchMethod);
 
         Log.Information("AddToActiveTasks Hooked!");
     }

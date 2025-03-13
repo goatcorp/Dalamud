@@ -1,5 +1,5 @@
-using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.SeStringHandling;
@@ -8,15 +8,123 @@ using Dalamud.Memory;
 namespace Dalamud.Game.ClientState.Objects.Types;
 
 /// <summary>
-/// This class represents a GameObject in FFXIV.
+/// Interface representing a game object.
 /// </summary>
-public unsafe partial class GameObject : IEquatable<GameObject>
+public interface IGameObject : IEquatable<IGameObject>
 {
     /// <summary>
-    /// IDs of non-networked GameObjects.
+    /// Gets the name of this <see cref="GameObject" />.
     /// </summary>
-    public const uint InvalidGameObjectId = 0xE0000000;
+    public SeString Name { get; }
 
+    /// <summary>
+    /// Gets the GameObjectID for this GameObject. The Game Object ID is a globally unique identifier that points to
+    /// this specific object. This ID is used to reference specific objects on the local client (e.g. for targeting).
+    ///
+    /// Not to be confused with <see cref="EntityId"/>.
+    /// </summary>
+    public ulong GameObjectId { get; }
+
+    /// <summary>
+    /// Gets the Entity ID for this GameObject. Entity IDs are assigned to networked GameObjects.
+    ///
+    /// A value of <c>0xE000_0000</c> indicates that this entity is not networked and has specific interactivity rules.
+    /// </summary>
+    public uint EntityId { get; }
+
+    /// <summary>
+    /// Gets the data ID for linking to other respective game data.
+    /// </summary>
+    public uint DataId { get; }
+
+    /// <summary>
+    /// Gets the ID of this GameObject's owner.
+    /// </summary>
+    public uint OwnerId { get; }
+
+    /// <summary>
+    /// Gets the index of this object in the object table.
+    /// </summary>
+    public ushort ObjectIndex { get; }
+
+    /// <summary>
+    /// Gets the entity kind of this <see cref="GameObject" />.
+    /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
+    /// </summary>
+    public ObjectKind ObjectKind { get; }
+
+    /// <summary>
+    /// Gets the sub kind of this Actor.
+    /// </summary>
+    public byte SubKind { get; }
+
+    /// <summary>
+    /// Gets the X distance from the local player in yalms.
+    /// </summary>
+    public byte YalmDistanceX { get; }
+
+    /// <summary>
+    /// Gets the Y distance from the local player in yalms.
+    /// </summary>
+    public byte YalmDistanceZ { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the object is dead or alive.
+    /// </summary>
+    public bool IsDead { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the object is targetable.
+    /// </summary>
+    public bool IsTargetable { get; }
+
+    /// <summary>
+    /// Gets the position of this <see cref="GameObject" />.
+    /// </summary>
+    public Vector3 Position { get; }
+
+    /// <summary>
+    /// Gets the rotation of this <see cref="GameObject" />.
+    /// This ranges from -pi to pi radians.
+    /// </summary>
+    public float Rotation { get; }
+
+    /// <summary>
+    /// Gets the hitbox radius of this <see cref="GameObject" />.
+    /// </summary>
+    public float HitboxRadius { get; }
+
+    /// <summary>
+    /// Gets the current target of the game object.
+    /// </summary>
+    public ulong TargetObjectId { get; }
+
+    /// <summary>
+    /// Gets the target object of the game object.
+    /// </summary>
+    /// <remarks>
+    /// This iterates the actor table, it should be used with care.
+    /// </remarks>
+    // TODO: Fix for non-networked GameObjects
+    public IGameObject? TargetObject { get; }
+
+    /// <summary>
+    /// Gets the address of the game object in memory.
+    /// </summary>
+    public IntPtr Address { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this actor is still valid in memory.
+    /// </summary>
+    /// <returns>True or false.</returns>
+    public bool IsValid();
+}
+
+/// <summary>
+/// This class represents a GameObject in FFXIV.
+/// </summary>
+internal partial class GameObject
+{
     /// <summary>
     /// Initializes a new instance of the <see cref="GameObject"/> class.
     /// </summary>
@@ -27,14 +135,9 @@ public unsafe partial class GameObject : IEquatable<GameObject>
     }
 
     /// <summary>
-    /// Gets the address of the game object in memory.
+    /// Gets or sets the address of the game object in memory.
     /// </summary>
-    public IntPtr Address { get; }
-
-    /// <summary>
-    /// Gets the Dalamud instance.
-    /// </summary>
-    private protected Dalamud Dalamud { get; }
+    public IntPtr Address { get; internal set; }
 
     /// <summary>
     /// This allows you to <c>if (obj) {...}</c> to check for validity.
@@ -59,7 +162,7 @@ public unsafe partial class GameObject : IEquatable<GameObject>
     /// </summary>
     /// <param name="actor">The actor to check.</param>
     /// <returns>True or false.</returns>
-    public static bool IsValid(GameObject? actor)
+    public static bool IsValid(IGameObject? actor)
     {
         var clientState = Service<ClientState>.GetNullable();
 
@@ -79,105 +182,71 @@ public unsafe partial class GameObject : IEquatable<GameObject>
     public bool IsValid() => IsValid(this);
 
     /// <inheritdoc/>
-    bool IEquatable<GameObject>.Equals(GameObject other) => this.ObjectId == other?.ObjectId;
+    bool IEquatable<IGameObject>.Equals(IGameObject other) => this.GameObjectId == other?.GameObjectId;
 
     /// <inheritdoc/>
-    public override bool Equals(object obj) => ((IEquatable<GameObject>)this).Equals(obj as GameObject);
+    public override bool Equals(object obj) => ((IEquatable<IGameObject>)this).Equals(obj as IGameObject);
 
     /// <inheritdoc/>
-    public override int GetHashCode() => this.ObjectId.GetHashCode();
+    public override int GetHashCode() => this.GameObjectId.GetHashCode();
 }
 
 /// <summary>
 /// This class represents a basic actor (GameObject) in FFXIV.
 /// </summary>
-public unsafe partial class GameObject
+internal unsafe partial class GameObject : IGameObject
 {
-    /// <summary>
-    /// Gets the name of this <see cref="GameObject" />.
-    /// </summary>
-    public SeString Name => MemoryHelper.ReadSeString((IntPtr)this.Struct->Name, 64);
+    /// <inheritdoc/>
+    public SeString Name => SeString.Parse(this.Struct->Name);
 
-    /// <summary>
-    /// Gets the object ID of this <see cref="GameObject" />.
-    /// </summary>
-    public uint ObjectId => this.Struct->ObjectID;
+    /// <inheritdoc/>
+    public ulong GameObjectId => this.Struct->GetGameObjectId();
 
-    /// <summary>
-    /// Gets the data ID for linking to other respective game data.
-    /// </summary>
-    public uint DataId => this.Struct->DataID;
+    /// <inheritdoc/>
+    public uint EntityId => this.Struct->EntityId;
 
-    /// <summary>
-    /// Gets the ID of this GameObject's owner.
-    /// </summary>
-    public uint OwnerId => this.Struct->OwnerID;
+    /// <inheritdoc/>
+    public uint DataId => this.Struct->BaseId;
 
-    /// <summary>
-    /// Gets the index of this object in the object table.
-    /// </summary>
+    /// <inheritdoc/>
+    public uint OwnerId => this.Struct->OwnerId;
+
+    /// <inheritdoc/>
     public ushort ObjectIndex => this.Struct->ObjectIndex;
 
-    /// <summary>
-    /// Gets the entity kind of this <see cref="GameObject" />.
-    /// See <see cref="ObjectKind">the ObjectKind enum</see> for possible values.
-    /// </summary>
+    /// <inheritdoc/>
     public ObjectKind ObjectKind => (ObjectKind)this.Struct->ObjectKind;
 
-    /// <summary>
-    /// Gets the sub kind of this Actor.
-    /// </summary>
+    /// <inheritdoc/>
     public byte SubKind => this.Struct->SubKind;
 
-    /// <summary>
-    /// Gets the X distance from the local player in yalms.
-    /// </summary>
+    /// <inheritdoc/>
     public byte YalmDistanceX => this.Struct->YalmDistanceFromPlayerX;
 
-    /// <summary>
-    /// Gets the Y distance from the local player in yalms.
-    /// </summary>
+    /// <inheritdoc/>
     public byte YalmDistanceZ => this.Struct->YalmDistanceFromPlayerZ;
 
-    /// <summary>
-    /// Gets a value indicating whether the object is dead or alive.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsDead => this.Struct->IsDead();
 
-    /// <summary>
-    /// Gets a value indicating whether the object is targetable.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsTargetable => this.Struct->GetIsTargetable();
 
-    /// <summary>
-    /// Gets the position of this <see cref="GameObject" />.
-    /// </summary>
+    /// <inheritdoc/>
     public Vector3 Position => new(this.Struct->Position.X, this.Struct->Position.Y, this.Struct->Position.Z);
 
-    /// <summary>
-    /// Gets the rotation of this <see cref="GameObject" />.
-    /// This ranges from -pi to pi radians.
-    /// </summary>
+    /// <inheritdoc/>
     public float Rotation => this.Struct->Rotation;
 
-    /// <summary>
-    /// Gets the hitbox radius of this <see cref="GameObject" />.
-    /// </summary>
+    /// <inheritdoc/>
     public float HitboxRadius => this.Struct->HitboxRadius;
 
-    /// <summary>
-    /// Gets the current target of the game object.
-    /// </summary>
+    /// <inheritdoc/>
     public virtual ulong TargetObjectId => 0;
 
-    /// <summary>
-    /// Gets the target object of the game object.
-    /// </summary>
-    /// <remarks>
-    /// This iterates the actor table, it should be used with care.
-    /// </remarks>
+    /// <inheritdoc/>
     // TODO: Fix for non-networked GameObjects
-    public virtual GameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
+    public virtual IGameObject? TargetObject => Service<ObjectTable>.Get().SearchById(this.TargetObjectId);
 
     /// <summary>
     /// Gets the underlying structure.
@@ -185,5 +254,5 @@ public unsafe partial class GameObject
     protected internal FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)this.Address;
 
     /// <inheritdoc/>
-    public override string ToString() => $"{this.ObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
+    public override string ToString() => $"{this.GameObjectId:X}({this.Name.TextValue} - {this.ObjectKind}) at {this.Address:X}";
 }

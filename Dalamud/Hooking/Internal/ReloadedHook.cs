@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 
 using Reloaded.Hooks;
@@ -31,7 +30,7 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
 
             unhooker.TrimAfterHook();
 
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
+            HookManager.TrackedHooks.TryAdd(this.HookId, new HookInfo(this, detour, callingAssembly));
         }
     }
 
@@ -63,6 +62,8 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     {
         if (this.IsDisposed)
             return;
+
+        HookManager.TrackedHooks.TryRemove(this.HookId, out _);
 
         this.Disable();
 

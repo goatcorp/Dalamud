@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Interface.GameFonts;
 
 /// <summary>
@@ -66,7 +64,7 @@ public struct GameFontStyle
     /// </summary>
     public float SizePt
     {
-        get => this.SizePx * 3 / 4;
+        readonly get => this.SizePx * 3 / 4;
         set => this.SizePx = value * 4 / 3;
     }
 
@@ -75,14 +73,14 @@ public struct GameFontStyle
     /// </summary>
     public float BaseSkewStrength
     {
-        get => this.SkewStrength * this.BaseSizePx / this.SizePx;
+        readonly get => this.SkewStrength * this.BaseSizePx / this.SizePx;
         set => this.SkewStrength = value * this.SizePx / this.BaseSizePx;
     }
 
     /// <summary>
     /// Gets the font family.
     /// </summary>
-    public GameFontFamily Family => this.FamilyAndSize switch
+    public readonly GameFontFamily Family => this.FamilyAndSize switch
     {
         GameFontFamilyAndSize.Undefined => GameFontFamily.Undefined,
         GameFontFamilyAndSize.Axis96 => GameFontFamily.Axis,
@@ -114,7 +112,7 @@ public struct GameFontStyle
     /// <summary>
     /// Gets the corresponding GameFontFamilyAndSize but with minimum possible font sizes.
     /// </summary>
-    public GameFontFamilyAndSize FamilyWithMinimumSize => this.Family switch
+    public readonly GameFontFamilyAndSize FamilyWithMinimumSize => this.Family switch
     {
         GameFontFamily.Axis => GameFontFamilyAndSize.Axis96,
         GameFontFamily.Jupiter => GameFontFamilyAndSize.Jupiter16,
@@ -128,7 +126,7 @@ public struct GameFontStyle
     /// <summary>
     /// Gets the base font size in point unit.
     /// </summary>
-    public float BaseSizePt => this.FamilyAndSize switch
+    public readonly float BaseSizePt => this.FamilyAndSize switch
     {
         GameFontFamilyAndSize.Undefined => 0,
         GameFontFamilyAndSize.Axis96 => 9.6f,
@@ -153,21 +151,21 @@ public struct GameFontStyle
         GameFontFamilyAndSize.TrumpGothic184 => 18.4f,
         GameFontFamilyAndSize.TrumpGothic23 => 23,
         GameFontFamilyAndSize.TrumpGothic34 => 34,
-        GameFontFamilyAndSize.TrumpGothic68 => 8,
+        GameFontFamilyAndSize.TrumpGothic68 => 68,
         _ => throw new InvalidOperationException(),
     };
 
     /// <summary>
     /// Gets the base font size in pixel unit.
     /// </summary>
-    public float BaseSizePx => this.BaseSizePt * 4 / 3;
+    public readonly float BaseSizePx => this.BaseSizePt * 4 / 3;
 
     /// <summary>
     /// Gets or sets a value indicating whether this font is bold.
     /// </summary>
     public bool Bold
     {
-        get => this.Weight > 0f;
+        readonly get => this.Weight > 0f;
         set => this.Weight = value ? 1f : 0f;
     }
 
@@ -176,8 +174,8 @@ public struct GameFontStyle
     /// </summary>
     public bool Italic
     {
-        get => this.SkewStrength != 0;
-        set => this.SkewStrength = value ? this.SizePx / 7 : 0;
+        readonly get => this.SkewStrength != 0;
+        set => this.SkewStrength = value ? this.SizePx / 6 : 0;
     }
 
     /// <summary>
@@ -186,77 +184,90 @@ public struct GameFontStyle
     /// <param name="family">Font family.</param>
     /// <param name="size">Font size in points.</param>
     /// <returns>Recommended GameFontFamilyAndSize.</returns>
-    public static GameFontFamilyAndSize GetRecommendedFamilyAndSize(GameFontFamily family, float size)
-    {
-        if (size <= 0)
-            return GameFontFamilyAndSize.Undefined;
-
-        switch (family)
+    public static GameFontFamilyAndSize GetRecommendedFamilyAndSize(GameFontFamily family, float size) =>
+        family switch
         {
-            case GameFontFamily.Undefined:
-                return GameFontFamilyAndSize.Undefined;
+            _ when size <= 0 => GameFontFamilyAndSize.Undefined,
+            GameFontFamily.Undefined => GameFontFamilyAndSize.Undefined,
+            GameFontFamily.Axis => size switch
+            {
+                <= ((int)((9.6f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Axis96,
+                <= ((int)((12f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Axis12,
+                <= ((int)((14f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Axis14,
+                <= ((int)((18f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Axis18,
+                _ => GameFontFamilyAndSize.Axis36,
+            },
+            GameFontFamily.Jupiter => size switch
+            {
+                <= ((int)((16f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Jupiter16,
+                <= ((int)((20f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Jupiter20,
+                <= ((int)((23f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Jupiter23,
+                _ => GameFontFamilyAndSize.Jupiter46,
+            },
+            GameFontFamily.JupiterNumeric => size switch
+            {
+                <= ((int)((45f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Jupiter45,
+                _ => GameFontFamilyAndSize.Jupiter90,
+            },
+            GameFontFamily.Meidinger => size switch
+            {
+                <= ((int)((16f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Meidinger16,
+                <= ((int)((20f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.Meidinger20,
+                _ => GameFontFamilyAndSize.Meidinger40,
+            },
+            GameFontFamily.MiedingerMid => size switch
+            {
+                <= ((int)((10f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.MiedingerMid10,
+                <= ((int)((12f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.MiedingerMid12,
+                <= ((int)((14f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.MiedingerMid14,
+                <= ((int)((18f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.MiedingerMid18,
+                _ => GameFontFamilyAndSize.MiedingerMid36,
+            },
+            GameFontFamily.TrumpGothic => size switch
+            {
+                <= ((int)((18.4f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.TrumpGothic184,
+                <= ((int)((23f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.TrumpGothic23,
+                <= ((int)((34f * 4f / 3f) + 0.5f) * 3f / 4f) + 0.001f => GameFontFamilyAndSize.TrumpGothic34,
+                _ => GameFontFamilyAndSize.TrumpGothic68,
+            },
+            _ => GameFontFamilyAndSize.Undefined,
+        };
 
-            case GameFontFamily.Axis:
-                if (size <= 9.601)
-                    return GameFontFamilyAndSize.Axis96;
-                else if (size <= 12.001)
-                    return GameFontFamilyAndSize.Axis12;
-                else if (size <= 14.001)
-                    return GameFontFamilyAndSize.Axis14;
-                else if (size <= 18.001)
-                    return GameFontFamilyAndSize.Axis18;
-                else
-                    return GameFontFamilyAndSize.Axis36;
+    /// <summary>
+    /// Creates a new scaled instance of <see cref="GameFontStyle"/> struct.
+    /// </summary>
+    /// <param name="scale">The scale.</param>
+    /// <returns>The scaled instance.</returns>
+    public readonly GameFontStyle Scale(float scale) => new()
+    {
+        FamilyAndSize = GetRecommendedFamilyAndSize(this.Family, this.SizePt * scale),
+        SizePx = this.SizePx * scale,
+        Weight = this.Weight,
+        SkewStrength = this.SkewStrength * scale,
+    };
 
-            case GameFontFamily.Jupiter:
-                if (size <= 16.001)
-                    return GameFontFamilyAndSize.Jupiter16;
-                else if (size <= 20.001)
-                    return GameFontFamilyAndSize.Jupiter20;
-                else if (size <= 23.001)
-                    return GameFontFamilyAndSize.Jupiter23;
-                else
-                    return GameFontFamilyAndSize.Jupiter46;
-
-            case GameFontFamily.JupiterNumeric:
-                if (size <= 45.001)
-                    return GameFontFamilyAndSize.Jupiter45;
-                else
-                    return GameFontFamilyAndSize.Jupiter90;
-
-            case GameFontFamily.Meidinger:
-                if (size <= 16.001)
-                    return GameFontFamilyAndSize.Meidinger16;
-                else if (size <= 20.001)
-                    return GameFontFamilyAndSize.Meidinger20;
-                else
-                    return GameFontFamilyAndSize.Meidinger40;
-
-            case GameFontFamily.MiedingerMid:
-                if (size <= 10.001)
-                    return GameFontFamilyAndSize.MiedingerMid10;
-                else if (size <= 12.001)
-                    return GameFontFamilyAndSize.MiedingerMid12;
-                else if (size <= 14.001)
-                    return GameFontFamilyAndSize.MiedingerMid14;
-                else if (size <= 18.001)
-                    return GameFontFamilyAndSize.MiedingerMid18;
-                else
-                    return GameFontFamilyAndSize.MiedingerMid36;
-
-            case GameFontFamily.TrumpGothic:
-                if (size <= 18.401)
-                    return GameFontFamilyAndSize.TrumpGothic184;
-                else if (size <= 23.001)
-                    return GameFontFamilyAndSize.TrumpGothic23;
-                else if (size <= 34.001)
-                    return GameFontFamilyAndSize.TrumpGothic34;
-                else
-                    return GameFontFamilyAndSize.TrumpGothic68;
-
-            default:
-                return GameFontFamilyAndSize.Undefined;
+    /// <summary>
+    /// Calculates the adjustment to width resulting fron Weight and SkewStrength.
+    /// </summary>
+    /// <param name="header">Font header.</param>
+    /// <param name="glyph">Glyph.</param>
+    /// <returns>Width adjustment in pixel unit.</returns>
+    public readonly int CalculateBaseWidthAdjustment(in FdtReader.FontTableHeader header, in FdtReader.FontTableEntry glyph)
+    {
+        var widthDelta = this.Weight;
+        switch (this.BaseSkewStrength)
+        {
+            case > 0:
+                widthDelta += (1f * this.BaseSkewStrength * (header.LineHeight - glyph.CurrentOffsetY))
+                              / header.LineHeight;
+                break;
+            case < 0:
+                widthDelta -= (1f * this.BaseSkewStrength * (glyph.CurrentOffsetY + glyph.BoundingHeight))
+                              / header.LineHeight;
+                break;
         }
+
+        return (int)MathF.Ceiling(widthDelta);
     }
 
     /// <summary>
@@ -265,19 +276,11 @@ public struct GameFontStyle
     /// <param name="reader">Font information.</param>
     /// <param name="glyph">Glyph.</param>
     /// <returns>Width adjustment in pixel unit.</returns>
-    public int CalculateBaseWidthAdjustment(FdtReader reader, FdtReader.FontTableEntry glyph)
-    {
-        var widthDelta = this.Weight;
-        if (this.BaseSkewStrength > 0)
-            widthDelta += 1f * this.BaseSkewStrength * (reader.FontHeader.LineHeight - glyph.CurrentOffsetY) / reader.FontHeader.LineHeight;
-        else if (this.BaseSkewStrength < 0)
-            widthDelta -= 1f * this.BaseSkewStrength * (glyph.CurrentOffsetY + glyph.BoundingHeight) / reader.FontHeader.LineHeight;
-
-        return (int)Math.Ceiling(widthDelta);
-    }
+    public readonly int CalculateBaseWidthAdjustment(FdtReader reader, FdtReader.FontTableEntry glyph) =>
+        this.CalculateBaseWidthAdjustment(reader.FontHeader, glyph);
 
     /// <inheritdoc/>
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"GameFontStyle({this.FamilyAndSize}, {this.SizePt}pt, skew={this.SkewStrength}, weight={this.Weight})";
     }

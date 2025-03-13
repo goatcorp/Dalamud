@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +5,8 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Utility;
+
 using Iced.Intel;
 
 namespace Dalamud.Hooking.Internal;
@@ -14,7 +15,7 @@ namespace Dalamud.Hooking.Internal;
 /// This class manages the final disposition of hooks, cleaning up any that have not reverted their changes.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class HookManager : IDisposable, IServiceType
+internal class HookManager : IInternalDisposableService
 {
     /// <summary>
     /// Logger shared with <see cref="Unhooker"/>.
@@ -69,12 +70,12 @@ internal class HookManager : IDisposable, IServiceType
     /// <returns>A new Unhooker instance.</returns>
     public static Unhooker RegisterUnhooker(IntPtr address, int minBytes, int maxBytes)
     {
-        Log.Verbose($"Registering hook at 0x{address.ToInt64():X} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
+        Log.Verbose($"Registering hook at {Util.DescribeAddress(address)} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
         return Unhookers.GetOrAdd(address, _ => new Unhooker(address, minBytes, maxBytes));
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         RevertHooks();
         TrackedHooks.Clear();

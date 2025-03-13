@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
+using Dalamud.Interface.Internal.Windows;
 using Dalamud.Logging.Internal;
 using Dalamud.Logging.Retention;
 using Dalamud.Plugin.Internal;
@@ -107,15 +108,16 @@ public sealed class EntryPoint
                      .WriteTo.Sink(SerilogEventSink.Instance)
                      .MinimumLevel.ControlledBy(LogLevelSwitch);
 
+        const long maxLogSize = 100 * 1024 * 1024; // 100MB
         if (logSynchronously)
         {
-            config = config.WriteTo.File(logPath.FullName, fileSizeLimitBytes: null);
+            config = config.WriteTo.File(logPath.FullName, fileSizeLimitBytes: maxLogSize);
         }
         else
         {
             config = config.WriteTo.Async(a => a.File(
                                               logPath.FullName,
-                                              fileSizeLimitBytes: null,
+                                              fileSizeLimitBytes: maxLogSize,
                                               buffered: false,
                                               flushToDiskInterval: TimeSpan.FromSeconds(1)));
         }
@@ -147,7 +149,16 @@ public sealed class EntryPoint
         LogLevelSwitch.MinimumLevel = configuration.LogLevel;
 
         // Log any unhandled exception.
-        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        switch (info.UnhandledException)
+        {
+            case UnhandledExceptionHandlingMode.Default:
+                AppDomain.CurrentDomain.UnhandledException += OnUnhandledExceptionDefault;
+                break;
+            case UnhandledExceptionHandlingMode.StallDebug:
+                AppDomain.CurrentDomain.UnhandledException += OnUnhandledExceptionStallDebug;
+                break;
+        }
+
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         var unloadFailed = false;
@@ -167,6 +178,9 @@ public sealed class EntryPoint
                 throw new Exception("Working directory was invalid");
 
             Reloaded.Hooks.Tools.Utilities.FasmBasePath = new DirectoryInfo(info.WorkingDirectory);
+            
+            // Apply common fixes for culture issues
+            CultureFixes.Apply();
 
             // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
@@ -175,7 +189,10 @@ public sealed class EntryPoint
                 InitSymbolHandler(info);
 
             var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
-            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", Util.GetGitHash(), Util.GetGitHashClientStructs(), FFXIVClientStructs.Interop.Resolver.Version);
+            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", 
+                            Util.GetScmVersion(), 
+                            Util.GetGitHashClientStructs(), 
+                            FFXIVClientStructs.ThisAssembly.Git.Commits);
 
             dalamud.WaitForUnload();
 
@@ -196,7 +213,15 @@ public sealed class EntryPoint
         finally
         {
             TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
-            AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+            switch (info.UnhandledException)
+            {
+                case UnhandledExceptionHandlingMode.Default:
+                    AppDomain.CurrentDomain.UnhandledException -= OnUnhandledExceptionDefault;
+                    break;
+                case UnhandledExceptionHandlingMode.StallDebug:
+                    AppDomain.CurrentDomain.UnhandledException -= OnUnhandledExceptionStallDebug;
+                    break;
+            }
 
             Log.Information("Session has ended.");
             Log.CloseAndFlush();
@@ -211,6 +236,10 @@ public sealed class EntryPoint
 
     private static void SerilogOnLogLine(object? sender, (string Line, LogEvent LogEvent) ev)
     {
+        if (!LoadingDialog.IsGloballyHidden)
+            LoadingDialog.NewLogEntries.Enqueue(ev);
+        ConsoleWindow.NewLogEntries.Enqueue(ev);
+
         if (ev.LogEvent.Exception == null)
             return;
 
@@ -244,7 +273,7 @@ public sealed class EntryPoint
         }
     }
 
-    private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
+    private static void OnUnhandledExceptionDefault(object sender, UnhandledExceptionEventArgs args)
     {
         switch (args.ExceptionObject)
         {
@@ -302,6 +331,12 @@ public sealed class EntryPoint
                 Environment.Exit(-1);
                 break;
         }
+    }
+
+    private static void OnUnhandledExceptionStallDebug(object sender, UnhandledExceptionEventArgs args)
+    {
+        while (!Debugger.IsAttached)
+            Thread.Sleep(100);
     }
 
     private static void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs args)

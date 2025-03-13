@@ -31,88 +31,99 @@ namespace Dalamud.Injector
         /// </summary>
         /// <param name="argc">Count of arguments.</param>
         /// <param name="argvPtr">char** string arguments.</param>
-        public delegate void MainDelegate(int argc, IntPtr argvPtr);
+        /// <returns>Return value (HRESULT).</returns>
+        public delegate int MainDelegate(int argc, IntPtr argvPtr);
 
         /// <summary>
         /// Start the Dalamud injector.
         /// </summary>
         /// <param name="argc">Count of arguments.</param>
         /// <param name="argvPtr">byte** string arguments.</param>
-        public static void Main(int argc, IntPtr argvPtr)
+        /// <returns>Return value (HRESULT).</returns>
+        public static int Main(int argc, IntPtr argvPtr)
         {
-            List<string> args = new(argc);
-
-            unsafe
+            try
             {
-                var argv = (IntPtr*)argvPtr;
-                for (var i = 0; i < argc; i++)
-                    args.Add(Marshal.PtrToStringUni(argv[i]));
-            }
+                List<string> args = new(argc);
 
-            Init(args);
-            args.Remove("-v"); // Remove "verbose" flag
-
-            if (args.Count >= 2 && args[1].ToLowerInvariant() == "launch-test")
-            {
-                Environment.Exit(ProcessLaunchTestCommand(args));
-                return;
-            }
-
-            DalamudStartInfo startInfo = null;
-            if (args.Count == 1)
-            {
-                // No command defaults to inject
-                args.Add("inject");
-                args.Add("--all");
-
-#if !DEBUG
-                args.Add("--warn");
-#endif
-
-            }
-            else if (int.TryParse(args[1], out var _))
-            {
-                // Assume that PID has been passed.
-                args.Insert(1, "inject");
-
-                // If originally second parameter exists, then assume that it's a base64 encoded start info.
-                // Dalamud.Injector.exe inject [pid] [base64]
-                if (args.Count == 4)
+                unsafe
                 {
-                    startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[3])));
-                    args.RemoveAt(3);
+                    var argv = (IntPtr*)argvPtr;
+                    for (var i = 0; i < argc; i++)
+                        args.Add(Marshal.PtrToStringUni(argv[i]));
+                }
+
+                Init(args);
+                args.Remove("-v"); // Remove "verbose" flag
+
+                if (args.Count >= 2 && args[1].ToLowerInvariant() == "launch-test")
+                {
+                    return ProcessLaunchTestCommand(args);
+                }
+
+                DalamudStartInfo startInfo = null;
+                if (args.Count == 1)
+                {
+                    // No command defaults to inject
+                    args.Add("inject");
+                    args.Add("--all");
+
+    #if !DEBUG
+                    args.Add("--warn");
+    #endif
+
+                }
+                else if (int.TryParse(args[1], out var _))
+                {
+                    // Assume that PID has been passed.
+                    args.Insert(1, "inject");
+
+                    // If originally second parameter exists, then assume that it's a base64 encoded start info.
+                    // Dalamud.Injector.exe inject [pid] [base64]
+                    if (args.Count == 4)
+                    {
+                        startInfo = JsonConvert.DeserializeObject<DalamudStartInfo>(Encoding.UTF8.GetString(Convert.FromBase64String(args[3])));
+                        args.RemoveAt(3);
+                    }
+                }
+
+                startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
+                // Remove already handled arguments
+                args.Remove("--console");
+                args.Remove("--msgbox1");
+                args.Remove("--msgbox2");
+                args.Remove("--msgbox3");
+                args.Remove("--etw");
+                args.Remove("--veh");
+                args.Remove("--veh-full");
+                args.Remove("--no-plugin");
+                args.Remove("--no-3rd-plugin");
+                args.Remove("--crash-handler-console");
+
+                var mainCommand = args[1].ToLowerInvariant();
+                if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
+                {
+                    return ProcessInjectCommand(args, startInfo);
+                }
+                else if (mainCommand.Length > 0 && mainCommand.Length <= 6 &&
+                         "launch"[..mainCommand.Length] == mainCommand)
+                {
+                    return ProcessLaunchCommand(args, startInfo);
+                }
+                else if (mainCommand.Length > 0 && mainCommand.Length <= 4 &&
+                         "help"[..mainCommand.Length] == mainCommand)
+                {
+                    return ProcessHelpCommand(args, args.Count >= 3 ? args[2] : null);
+                }
+                else
+                {
+                    throw new CommandLineException($"\"{mainCommand}\" is not a valid command.");
                 }
             }
-
-            startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
-            // Remove already handled arguments
-            args.Remove("--console");
-            args.Remove("--msgbox1");
-            args.Remove("--msgbox2");
-            args.Remove("--msgbox3");
-            args.Remove("--etw");
-            args.Remove("--veh");
-            args.Remove("--veh-full");
-            args.Remove("--no-plugin");
-            args.Remove("--no-3rd-plugin");
-            args.Remove("--crash-handler-console");
-
-            var mainCommand = args[1].ToLowerInvariant();
-            if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "inject"[..mainCommand.Length] == mainCommand)
+            catch (Exception e)
             {
-                Environment.Exit(ProcessInjectCommand(args, startInfo));
-            }
-            else if (mainCommand.Length > 0 && mainCommand.Length <= 6 && "launch"[..mainCommand.Length] == mainCommand)
-            {
-                Environment.Exit(ProcessLaunchCommand(args, startInfo));
-            }
-            else if (mainCommand.Length > 0 && mainCommand.Length <= 4 && "help"[..mainCommand.Length] == mainCommand)
-            {
-                Environment.Exit(ProcessHelpCommand(args, args.Count >= 3 ? args[2] : null));
-            }
-            else
-            {
-                throw new CommandLineException($"\"{mainCommand}\" is not a valid command.");
+                Log.Error(e, "Operation failed.");
+                return e.HResult;
             }
         }
 
@@ -187,8 +198,10 @@ namespace Dalamud.Injector
 
             CullLogFile(logPath, 1 * 1024 * 1024);
 
+            const long maxLogSize = 100 * 1024 * 1024; // 100MB
             Log.Logger = new LoggerConfiguration()
-                         .WriteTo.File(logPath, fileSizeLimitBytes: null)
+                         .WriteTo.Console(standardErrorFromLevel: LogEventLevel.Debug)
+                         .WriteTo.File(logPath, fileSizeLimitBytes: maxLogSize)
                          .MinimumLevel.ControlledBy(levelSwitch)
                          .CreateLogger();
 
@@ -294,6 +307,7 @@ namespace Dalamud.Injector
             var logPath = startInfo.LogPath;
             var languageStr = startInfo.Language.ToString().ToLowerInvariant();
             var platformStr = startInfo.Platform.ToString().ToLowerInvariant();
+            var unhandledExceptionStr = startInfo.UnhandledException.ToString().ToLowerInvariant();
             var troubleshootingData = "{\"empty\": true, \"description\": \"No troubleshooting data supplied.\"}";
 
             for (var i = 2; i < args.Count; i++)
@@ -337,6 +351,10 @@ namespace Dalamud.Injector
                 else if (args[i].StartsWith(key = "--logpath="))
                 {
                     logPath = args[i][key.Length..];
+                }
+                else if (args[i].StartsWith(key = "--unhandled-exception="))
+                {
+                    unhandledExceptionStr = args[i][key.Length..];
                 }
                 else
                 {
@@ -434,12 +452,22 @@ namespace Dalamud.Injector
 #else
             startInfo.LogPath ??= xivlauncherDir;
 #endif
+            startInfo.LogName ??= string.Empty;
 
             // Set boot defaults
             startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootEnableEtw = args.Contains("--etw");
             startInfo.BootLogPath = GetLogPath(startInfo.LogPath, "dalamud.boot", startInfo.LogName);
-            startInfo.BootEnabledGameFixes = new List<string> { "prevent_devicechange_crashes", "disable_game_openprocess_access_check", "redirect_openprocess", "backup_userdata_save", "prevent_icmphandle_crashes" };
+            startInfo.BootEnabledGameFixes = new()
+            {
+                // See: xivfixes.h, xivfixes.cpp
+                "prevent_devicechange_crashes",
+                "disable_game_openprocess_access_check",
+                "redirect_openprocess",
+                "backup_userdata_save",
+                "prevent_icmphandle_crashes",
+                "symbol_load_patches",
+            };
             startInfo.BootDotnetOpenProcessHookMode = 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox1") ? 1 : 0;
             startInfo.BootWaitMessageBox |= args.Contains("--msgbox2") ? 2 : 0;
@@ -451,6 +479,14 @@ namespace Dalamud.Injector
             startInfo.NoLoadThirdPartyPlugins = args.Contains("--no-3rd-plugin");
             // startInfo.BootUnhookDlls = new List<string>() { "kernel32.dll", "ntdll.dll", "user32.dll" };
             startInfo.CrashHandlerShow = args.Contains("--crash-handler-console");
+            startInfo.UnhandledException =
+                Enum.TryParse<UnhandledExceptionHandlingMode>(
+                    unhandledExceptionStr,
+                    true,
+                    out var parsedUnhandledException)
+                    ? parsedUnhandledException
+                    : throw new CommandLineException(
+                          $"\"{unhandledExceptionStr}\" is not a valid unhandled exception handling mode.");
 
             return startInfo;
         }
@@ -492,7 +528,7 @@ namespace Dalamud.Injector
             Console.WriteLine("Verbose logging:\t[-v]");
             Console.WriteLine("Show Console:\t[--console] [--crash-handler-console]");
             Console.WriteLine("Enable ETW:\t[--etw]");
-            Console.WriteLine("Enable VEH:\t[--veh], [--veh-full]");
+            Console.WriteLine("Enable VEH:\t[--veh], [--veh-full], [--unhandled-exception=default|stalldebug|none]");
             Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
             Console.WriteLine("No plugins:\t[--no-plugin] [--no-3rd-plugin]");
             Console.WriteLine("Logging:\t[--logname=<logfile suffix>] [--logpath=<log base directory>]");
@@ -736,11 +772,11 @@ namespace Dalamud.Injector
             mode = mode == null ? "entrypoint" : mode.ToLowerInvariant();
             if (mode.Length > 0 && mode.Length <= 10 && "entrypoint"[0..mode.Length] == mode)
             {
-                mode = "entrypoint";
+                dalamudStartInfo.LoadMethod = LoadMethod.Entrypoint;
             }
             else if (mode.Length > 0 && mode.Length <= 6 && "inject"[0..mode.Length] == mode)
             {
-                mode = "inject";
+                dalamudStartInfo.LoadMethod = LoadMethod.DllInject;
             }
             else
             {
@@ -865,16 +901,12 @@ namespace Dalamud.Injector
                 noFixAcl,
                 p =>
                 {
-                    if (!withoutDalamud && mode == "entrypoint")
+                    if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)
                     {
                         var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                         Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
-                        if (RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)) != 0)
-                        {
-                            Log.Error("[HOOKS] RewriteRemoteEntryPointW failed");
-                            throw new Exception("RewriteRemoteEntryPointW failed");
-                        }
-
+                        Marshal.ThrowExceptionForHR(
+                            RewriteRemoteEntryPointW(p.Handle, gamePath, JsonConvert.SerializeObject(startInfo)));
                         Log.Verbose("RewriteRemoteEntryPointW called!");
                     }
                 },
@@ -882,7 +914,7 @@ namespace Dalamud.Injector
 
             Log.Verbose("Game process started with PID {0}", process.Id);
 
-            if (!withoutDalamud && mode == "inject")
+            if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.DllInject)
             {
                 var startInfo = AdjustStartInfo(dalamudStartInfo, gamePath);
                 Log.Information("Using start info: {0}", JsonConvert.SerializeObject(startInfo));
@@ -960,7 +992,7 @@ namespace Dalamud.Injector
             var gameVerStr = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver"));
             var gameVer = GameVersion.Parse(gameVerStr);
 
-            return new DalamudStartInfo(startInfo)
+            return startInfo with
             {
                 GameVersion = gameVer,
             };

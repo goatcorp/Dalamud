@@ -1,8 +1,8 @@
-using System;
-
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Resolvers;
+
+using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Statuses;
 
@@ -28,12 +28,12 @@ public unsafe class Status
     /// <summary>
     /// Gets the status ID of this status.
     /// </summary>
-    public uint StatusId => this.Struct->StatusID;
+    public uint StatusId => this.Struct->StatusId;
 
     /// <summary>
     /// Gets the GameData associated with this status.
     /// </summary>
-    public Lumina.Excel.GeneratedSheets.Status GameData => new ExcelResolver<Lumina.Excel.GeneratedSheets.Status>(this.Struct->StatusID).GameData;
+    public RowRef<Lumina.Excel.Sheets.Status> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Status>(this.Struct->StatusId);
 
     /// <summary>
     /// Gets the parameter value of the status.
@@ -53,7 +53,7 @@ public unsafe class Status
     /// <summary>
     /// Gets the source ID of this status.
     /// </summary>
-    public uint SourceId => this.Struct->SourceID;
+    public uint SourceId => this.Struct->SourceId;
 
     /// <summary>
     /// Gets the source actor associated with this status.
@@ -61,7 +61,7 @@ public unsafe class Status
     /// <remarks>
     /// This iterates the actor table, it should be used with care.
     /// </remarks>
-    public GameObject? SourceObject => Service<ObjectTable>.Get().SearchById(this.SourceId);
+    public IGameObject? SourceObject => Service<ObjectTable>.Get().SearchById(this.SourceId);
 
     private FFXIVClientStructs.FFXIV.Client.Game.Status* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Status*)this.Address;
 }

@@ -2,6 +2,7 @@
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -12,12 +13,11 @@ namespace Dalamud.Logging;
 /// Implementation of <see cref="IPluginLog"/>.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IPluginLog>]
 #pragma warning restore SA1015
-internal class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
+internal class ScopedPluginLogService : IServiceType, IPluginLog
 {
     private readonly LocalPlugin localPlugin;
 
@@ -40,6 +40,9 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
 
         this.Logger = loggerConfiguration.CreateLogger();
     }
+    
+    /// <inheritdoc />
+    public ILogger Logger { get; }
 
     /// <inheritdoc />
     public LogEventLevel MinimumLogLevel
@@ -47,18 +50,7 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog, IDisposable
         get => this.levelSwitch.MinimumLevel;
         set => this.levelSwitch.MinimumLevel = value;
     }
-
-    /// <summary>
-    /// Gets a logger that may be exposed to plugins some day.
-    /// </summary>
-    public ILogger Logger { get; }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-    }
-
+    
     /// <inheritdoc />
     public void Fatal(string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Fatal, null, messageTemplate, values);

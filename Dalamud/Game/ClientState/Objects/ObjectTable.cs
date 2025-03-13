@@ -1,14 +1,23 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
-using Serilog;
+using Dalamud.Utility;
+
+using FFXIVClientStructs.Interop;
+
+using Microsoft.Extensions.ObjectPool;
+
+using CSGameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
+using CSGameObjectManager = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager;
 
 namespace Dalamud.Game.ClientState.Objects;
 
@@ -16,80 +25,121 @@ namespace Dalamud.Game.ClientState.Objects;
 /// This collection represents the currently spawned FFXIV game objects.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IObjectTable>]
 #pragma warning restore SA1015
 internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
-    private const int ObjectTableLength = 599;
+    private static readonly ModuleLog Log = new("ObjectTable");
 
-    private readonly ClientStateAddressResolver address;
+    private static int objectTableLength;
+
+    private readonly ClientState clientState;
+    private readonly CachedEntry[] cachedObjectTable;
+
+    private readonly ObjectPool<Enumerator> multiThreadedEnumerators =
+        new DefaultObjectPoolProvider().Create<Enumerator>();
+
+    private readonly Enumerator?[] frameworkThreadEnumerators = new Enumerator?[4];
+
+    private long nextMultithreadedUsageWarnTime;
 
     [ServiceManager.ServiceConstructor]
-    private ObjectTable(ClientState clientState)
+    private unsafe ObjectTable(ClientState clientState)
     {
-        this.address = clientState.AddressResolver;
+        this.clientState = clientState;
 
-        Log.Verbose($"Object table address 0x{this.address.ObjectTable.ToInt64():X}");
+        var nativeObjectTable = CSGameObjectManager.Instance()->Objects.IndexSorted;
+        objectTableLength = nativeObjectTable.Length;
+
+        this.cachedObjectTable = new CachedEntry[objectTableLength];
+        for (var i = 0; i < this.cachedObjectTable.Length; i++)
+            this.cachedObjectTable[i] = new(nativeObjectTable.GetPointer(i));
+
+        for (var i = 0; i < this.frameworkThreadEnumerators.Length; i++)
+            this.frameworkThreadEnumerators[i] = new(this, i);
     }
 
     /// <inheritdoc/>
-    public IntPtr Address => this.address.ObjectTable;
-
-    /// <inheritdoc/>
-    public int Length => ObjectTableLength;
-
-    /// <inheritdoc/>
-    public GameObject? this[int index]
+    public unsafe nint Address
     {
         get
         {
-            var address = this.GetObjectAddress(index);
-            return this.CreateObjectReference(address);
+            _ = this.WarnMultithreadedUsage();
+
+            return (nint)(&CSGameObjectManager.Instance()->Objects);
         }
     }
 
     /// <inheritdoc/>
-    public GameObject? SearchById(ulong objectId)
+    public int Length => objectTableLength;
+
+    /// <inheritdoc/>
+    public IGameObject? this[int index]
     {
-        if (objectId is GameObject.InvalidGameObjectId or 0)
+        get
+        {
+            _ = this.WarnMultithreadedUsage();
+
+            return (index >= objectTableLength || index < 0) ? null : this.cachedObjectTable[index].Update();
+        }
+    }
+
+    /// <inheritdoc/>
+    public IGameObject? SearchById(ulong gameObjectId)
+    {
+        _ = this.WarnMultithreadedUsage();
+
+        if (gameObjectId is 0)
             return null;
 
-        foreach (var obj in this)
+        foreach (var e in this.cachedObjectTable)
         {
-            if (obj == null)
-                continue;
-
-            if (obj.ObjectId == objectId)
-                return obj;
+            if (e.Update() is { } o && o.GameObjectId == gameObjectId)
+                return o;
         }
 
         return null;
     }
 
     /// <inheritdoc/>
-    public unsafe IntPtr GetObjectAddress(int index)
+    public IGameObject? SearchByEntityId(uint entityId)
     {
-        if (index < 0 || index >= ObjectTableLength)
-            return IntPtr.Zero;
+        _ = this.WarnMultithreadedUsage();
 
-        return *(IntPtr*)(this.address.ObjectTable + (8 * index));
+        if (entityId is 0 or 0xE0000000)
+            return null;
+
+        foreach (var e in this.cachedObjectTable)
+        {
+            if (e.Update() is { } o && o.EntityId == entityId)
+                return o;
+        }
+
+        return null;
     }
 
     /// <inheritdoc/>
-    public unsafe GameObject? CreateObjectReference(IntPtr address)
+    public unsafe nint GetObjectAddress(int index)
     {
-        var clientState = Service<ClientState>.GetNullable();
+        _ = this.WarnMultithreadedUsage();
 
-        if (clientState == null || clientState.LocalContentId == 0)
+        return (index >= objectTableLength || index < 0) ? nint.Zero : (nint)this.cachedObjectTable[index].Address;
+    }
+
+    /// <inheritdoc/>
+    public unsafe IGameObject? CreateObjectReference(nint address)
+    {
+        _ = this.WarnMultithreadedUsage();
+
+        if (this.clientState.LocalContentId == 0)
             return null;
 
-        if (address == IntPtr.Zero)
+        if (address == nint.Zero)
             return null;
 
-        var obj = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)address;
+        var obj = (CSGameObject*)address;
         var objKind = (ObjectKind)obj->ObjectKind;
         return objKind switch
         {
@@ -104,6 +154,70 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
             _ => new GameObject(address),
         };
     }
+
+    [Api12ToDo("Use ThreadSafety.AssertMainThread() instead of this.")]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool WarnMultithreadedUsage()
+    {
+        if (ThreadSafety.IsMainThread)
+            return false;
+
+        var n = Environment.TickCount64;
+        if (this.nextMultithreadedUsageWarnTime < n)
+        {
+            this.nextMultithreadedUsageWarnTime = n + 30000;
+
+            Log.Warning(
+                "{plugin} is accessing {objectTable} outside the main thread. This is deprecated.",
+                Service<PluginManager>.Get().FindCallingPlugin()?.Name ?? "<unknown plugin>",
+                nameof(ObjectTable));
+        }
+
+        return true;
+    }
+
+    /// <summary>Stores an object table entry, with preallocated concrete types.</summary>
+    /// <remarks>Initializes a new instance of the <see cref="CachedEntry"/> struct.</remarks>
+    /// <param name="gameObjectPtr">A pointer to the object table entry this entry should be pointing to.</param>
+    internal readonly unsafe struct CachedEntry(Pointer<CSGameObject>* gameObjectPtr)
+    {
+        private readonly PlayerCharacter playerCharacter = new(nint.Zero);
+        private readonly BattleNpc battleNpc = new(nint.Zero);
+        private readonly Npc npc = new(nint.Zero);
+        private readonly EventObj eventObj = new(nint.Zero);
+        private readonly GameObject gameObject = new(nint.Zero);
+
+        /// <summary>Gets the address of the underlying native object. May be null.</summary>
+        public CSGameObject* Address
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => gameObjectPtr->Value;
+        }
+
+        /// <summary>Updates and gets the wrapped game object pointed by this struct.</summary>
+        /// <returns>The pointed object, or <c>null</c> if no object exists at that slot.</returns>
+        public GameObject? Update()
+        {
+            var address = this.Address;
+            if (address is null)
+                return null;
+
+            var activeObject = (ObjectKind)address->ObjectKind switch
+            {
+                ObjectKind.Player => this.playerCharacter,
+                ObjectKind.BattleNpc => this.battleNpc,
+                ObjectKind.EventNpc => this.npc,
+                ObjectKind.Retainer => this.npc,
+                ObjectKind.EventObj => this.eventObj,
+                ObjectKind.Companion => this.npc,
+                ObjectKind.MountType => this.npc,
+                ObjectKind.Ornament => this.npc,
+                _ => this.gameObject,
+            };
+            activeObject.Address = (nint)address;
+            return activeObject;
+        }
+    }
 }
 
 /// <summary>
@@ -112,22 +226,92 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
 internal sealed partial class ObjectTable
 {
     /// <inheritdoc/>
-    int IReadOnlyCollection<GameObject>.Count => this.Length;
-
-    /// <inheritdoc/>
-    public IEnumerator<GameObject> GetEnumerator()
+    public IEnumerator<IGameObject> GetEnumerator()
     {
-        for (var i = 0; i < ObjectTableLength; i++)
+        // If something's trying to enumerate outside the framework thread, we use the ObjectPool.
+        if (this.WarnMultithreadedUsage())
         {
-            var obj = this[i];
-
-            if (obj == null)
-                continue;
-
-            yield return obj;
+            // let's not
+            var e = this.multiThreadedEnumerators.Get();
+            e.InitializeForPooledObjects(this);
+            return e;
         }
+
+        // If we're on the framework thread, see if there's an already allocated enumerator available for use.
+        foreach (ref var x in this.frameworkThreadEnumerators.AsSpan())
+        {
+            if (x is not null)
+            {
+                var t = x;
+                x = null;
+                t.Reset();
+                return t;
+            }
+        }
+
+        // No reusable enumerator is available; allocate a new temporary one.
+        return new Enumerator(this, -1);
     }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+    private sealed class Enumerator : IEnumerator<IGameObject>, IResettable
+    {
+        private readonly int slotId;
+        private ObjectTable? owner;
+
+        private int index = -1;
+
+        public Enumerator() => this.slotId = -1;
+
+        public Enumerator(ObjectTable owner, int slotId)
+        {
+            this.owner = owner;
+            this.slotId = slotId;
+        }
+
+        public IGameObject Current { get; private set; } = null!;
+
+        object IEnumerator.Current => this.Current;
+
+        public bool MoveNext()
+        {
+            if (this.index == objectTableLength)
+                return false;
+
+            var cache = this.owner!.cachedObjectTable.AsSpan();
+            for (this.index++; this.index < objectTableLength; this.index++)
+            {
+                if (cache[this.index].Update() is { } ao)
+                {
+                    this.Current = ao;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void InitializeForPooledObjects(ObjectTable ot) => this.owner = ot;
+
+        public void Reset() => this.index = -1;
+
+        public void Dispose()
+        {
+            if (this.owner is not { } o)
+                return;
+
+            if (this.slotId == -1)
+                o.multiThreadedEnumerators.Return(this);
+            else
+                o.frameworkThreadEnumerators[this.slotId] = this;
+        }
+
+        public bool TryReset()
+        {
+            this.Reset();
+            return true;
+        }
+    }
 }

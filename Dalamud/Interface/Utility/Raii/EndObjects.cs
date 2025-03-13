@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Text;
 
 using ImGuiNET;
 
@@ -36,7 +37,7 @@ public static partial class ImRaii
 
     public static IEndObject Popup(string id, ImGuiWindowFlags flags)
         => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopup(id, flags));
-    
+
     public static IEndObject PopupModal(string id)
         => new EndConditionally(ImGui.EndPopup, ImGui.BeginPopupModal(id));
 
@@ -76,6 +77,30 @@ public static partial class ImRaii
         return new EndUnconditionally(ImGui.EndTooltip, true);
     }
 
+    /// <summary>
+    ///     Pushes the item width for the next widget and returns an <c>IDisposable</c> that pops
+    ///     the width when done.
+    /// </summary>
+    /// <param name="width">The width to set the next widget to.</param>
+    /// <returns>An <see cref="IDisposable"/> for use in a <c>using</c> statement.</returns>
+    public static IEndObject ItemWidth(float width)
+    {
+        ImGui.PushItemWidth(width);
+        return new EndUnconditionally(ImGui.PopItemWidth, true);
+    }
+
+    /// <summary>
+    ///     Pushes the item wrapping width for the next string written and returns an <c>IDisposable</c>
+    ///     that pops the wrap width when done.
+    /// </summary>
+    /// <param name="pos">The wrap width to set the next text written to.</param>
+    /// <returns>An <see cref="IDisposable"/> for use in a <c>using</c> statement.</returns>
+    public static IEndObject TextWrapPos(float pos)
+    {
+        ImGui.PushTextWrapPos(pos);
+        return new EndUnconditionally(ImGui.PopTextWrapPos, true);
+    }
+
     public static IEndObject ListBox(string label)
         => new EndConditionally(ImGui.EndListBox, ImGui.BeginListBox(label));
 
@@ -105,6 +130,35 @@ public static partial class ImRaii
 
     public static unsafe IEndObject TabItem(byte* label, ImGuiTabItemFlags flags)
         => new EndConditionally(ImGuiNative.igEndTabItem, ImGuiNative.igBeginTabItem(label, null, flags) != 0);
+
+    public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
+    {
+        ArgumentNullException.ThrowIfNull(label);
+
+        // One-off for now, we should make this into a generic solution if we need it more often
+        const int labelMaxAlloc = 2048;
+
+        var labelByteCount = Encoding.UTF8.GetByteCount(label);
+
+        if (labelByteCount > labelMaxAlloc)
+        {
+            throw new ArgumentOutOfRangeException(nameof(label), $"Label is too long. (Longer than {labelMaxAlloc} bytes)");
+        }
+
+        var nativeLabelStackBytes = stackalloc byte[labelByteCount + 1];
+
+        int nativeLabelOffset;
+        fixed (char* utf16Ptr = label)
+        {
+            nativeLabelOffset = Encoding.UTF8.GetBytes(utf16Ptr, label.Length, nativeLabelStackBytes, labelByteCount);
+        }
+
+        nativeLabelStackBytes[nativeLabelOffset] = 0;
+
+        var ret = ImGuiNative.igBeginTabItem(nativeLabelStackBytes, null, flags);
+
+        return new EndConditionally(ImGuiNative.igEndTabItem, ret != 0);
+    }
 
     public static IEndObject TabItem(string label, ref bool open)
         => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, ref open));
@@ -174,7 +228,7 @@ public static partial class ImRaii
         return new EndUnconditionally(Widget.EndFramedGroup, true);
     }
     */
-    
+
     // Used to avoid tree pops when flag for no push is set.
     private static void Nop()
     {
@@ -210,15 +264,15 @@ public static partial class ImRaii
     {
         private Action EndAction { get; }
 
-        public  bool   Success   { get; }
+        public bool Success { get; }
 
-        public  bool   Disposed  { get; private set; }
+        public bool Disposed { get; private set; }
 
         public EndUnconditionally(Action endAction, bool success)
         {
             this.EndAction = endAction;
-            this.Success   = success;
-            this.Disposed  = false;
+            this.Success = success;
+            this.Disposed = false;
         }
 
         public void Dispose()
@@ -240,11 +294,11 @@ public static partial class ImRaii
             this.Success = success;
             this.Disposed = false;
         }
-        
+
         public bool Success { get; }
 
         public bool Disposed { get; private set; }
-        
+
         private Action EndAction { get; }
 
         public void Dispose()

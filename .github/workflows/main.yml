@@ -1,5 +1,6 @@
 name: Build Dalamud
 on: [push, pull_request, workflow_dispatch]
+
 concurrency:
   group: build_dalamud_${{ github.ref_name }}
   cancel-in-progress: true
@@ -7,6 +8,10 @@ concurrency:
 jobs:
   build:
     name: Build on Windows
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
     runs-on: windows-2022
     steps:
       - name: Checkout Dalamud
@@ -16,6 +21,9 @@ jobs:
           fetch-depth: 0
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.0.2
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.100'
       - name: Define VERSION
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)
@@ -25,10 +33,8 @@ jobs:
           ($env:REPO_NAME) >> VERSION
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
-      - name: Build Dalamud
-        run: .\build.ps1 compile
-      - name: Test Dalamud
-        run: .\build.ps1 test
+      - name: Build and Test Dalamud
+        run: .\build.ps1 ci
       - name: Sign Dalamud
         if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
         env:
@@ -37,12 +43,65 @@ jobs:
         run: .\sign.ps1 .\bin\Release
       - name: Create hashlist
         run: .\CreateHashList.ps1 .\bin\Release
+      - name: Attest Build
+        if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            bin/Release/hashes.json
+            bin/Release/Dalamud.dll
+            bin/Release/DalamudCrashHandler.exe
+            bin/Release/Dalamud.*.dll
+            bin/Release/Dalamud.*.exe
+            bin/Release/FFXIVClientStructs.dll
+            bin/Release/cim*.dll
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: dalamud-artifact
           path: bin\Release
-  
+
+  check_api_compat:
+    name: "Check API Compatibility"
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: build
+    runs-on: windows-latest
+    steps:
+    - name: "Install .NET SDK"
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7
+    - name: "Install ApiCompat"
+      run: |
+        dotnet tool install -g Microsoft.DotNet.ApiCompat.Tool
+    - name: "Download Proposed Artifacts"
+      uses: actions/download-artifact@v4.1.7
+      with:
+        name: dalamud-artifact
+        path: .\right
+    - name: "Download Live (Stg) Artifacts"
+      run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/stg/latest.zip -OutFile latest.zip
+          Expand-Archive -Force latest.zip "left"
+    - name: "Verify Compatibility"
+      run: |
+        $FILES_TO_VALIDATE = "Dalamud.dll","FFXIVClientStructs.dll","Lumina.dll","Lumina.Excel.dll"
+
+        $retcode = 0
+
+        foreach ($file in $FILES_TO_VALIDATE) {
+            $testout = ""
+            Write-Output "::group::=== API COMPATIBILITY CHECK: ${file} ==="
+            apicompat -l "left\${file}" -r "right\${file}" --noWarn "CP0006" | Tee-Object -Variable testout
+            Write-Output "::endgroup::"
+            if ($testout -ne "APICompat ran successfully without finding any breaking changes.") {
+                Write-Output "::error::${file} did not pass. Please review it for problems."
+                $retcode = 1
+            }
+        }
+
+        exit $retcode
+
   deploy_stg:
     name: Deploy dalamud-distrib staging
     if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
@@ -53,7 +112,7 @@ jobs:
       with:
         repository: goatcorp/dalamud-distrib
         token: ${{ secrets.UPDATE_PAT }}
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: dalamud-artifact
         path: .\scratch
@@ -69,17 +128,18 @@ jobs:
         GH_BRANCH: ${{ steps.extract_branch.outputs.branch }}
       run: |
         Compress-Archive .\scratch\* .\canary.zip  # Recreate the release zip
-        
+
         $branchName = $env:GH_BRANCH
-        
+
         if ($branchName -eq "master") {
           $branchName = "stg"
         }
-        
+
         $newVersion = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\TEMP_gitver.txt")
         $revision = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\revision.txt")
+        $commitHash = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\commit_hash.txt")
         Remove-Item -Force -Recurse .\scratch
-        
+
         if (Test-Path -Path $branchName) {
             $versionData = Get-Content ".\${branchName}\version" | ConvertFrom-Json
             $oldVersion = $versionData.AssemblyVersion
@@ -88,7 +148,7 @@ jobs:
             } else {
               Move-Item -Force ".\canary.zip" ".\${branchName}\latest.zip"
               $versionData.AssemblyVersion = $newVersion
-              $versionData | add-member -Force -Name "GitSha" $newVersion -MemberType NoteProperty
+              $versionData | add-member -Force -Name "GitSha" $commitHash -MemberType NoteProperty
               $versionData | add-member -Force -Name "Revision" $revision -MemberType NoteProperty
               $versionData | ConvertTo-Json -Compress | Out-File ".\${branchName}\version"
             }
@@ -98,7 +158,7 @@ jobs:
             Write-Host "Deployment folder doesn't exist. Not doing anything."
             Remove-Item .\canary.zip
         }
-        
+
     - name: Commit changes
       shell: bash
       env:
@@ -106,8 +166,8 @@ jobs:
       run: |
         git config --global user.name "Actions User"
         git config --global user.email "actions@github.com"
-        
+
         git add .
         git commit -m "[CI] Update staging for ${DVER} on ${GH_BRANCH}" || true
-        
+
         git push origin main || true

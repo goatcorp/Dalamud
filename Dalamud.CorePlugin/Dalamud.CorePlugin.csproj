@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <AssemblyName>Dalamud.CorePlugin</AssemblyName>
-        <TargetFramework>net7.0-windows</TargetFramework>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <Platforms>x64</Platforms>
         <LangVersion>10.0</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -27,9 +27,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Lumina" Version="3.11.0" />
-        <PackageReference Include="Lumina.Excel" Version="6.5.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+        <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
+        <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
+        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -49,5 +49,11 @@
         <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj">
             <Private>false</Private>
         </ProjectReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="Dalamud.CorePlugin.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 </Project>

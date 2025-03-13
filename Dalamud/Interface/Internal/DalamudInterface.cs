@@ -1,7 +1,5 @@
-using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -9,30 +7,37 @@ using System.Runtime.InteropServices;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
+using Dalamud.Console;
+using Dalamud.Data;
+using Dalamud.Game.Addon.Lifecycle;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Internal;
+using Dalamud.Hooking;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.Internal.Windows.Data;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.SelfTest;
 using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Interface.Internal.Windows.StyleEditor;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Dalamud.Logging;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
-using ImGuiScene;
+
 using ImPlotNET;
 using PInvoke;
 using Serilog.Events;
@@ -43,18 +48,21 @@ namespace Dalamud.Interface.Internal;
 /// This plugin implements all of the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class DalamudInterface : IDisposable, IServiceType
+internal class DalamudInterface : IInternalDisposableService
 {
     private const float CreditsDarkeningMaxAlpha = 0.8f;
 
     private static readonly ModuleLog Log = new("DUI");
+
+    private readonly Dalamud dalamud;
+    private readonly DalamudConfiguration configuration;
+    private readonly InterfaceManager interfaceManager;
 
     private readonly ChangelogWindow changelogWindow;
     private readonly ColorDemoWindow colorDemoWindow;
     private readonly ComponentDemoWindow componentDemoWindow;
     private readonly DataWindow dataWindow;
     private readonly GamepadModeNotifierWindow gamepadModeNotifierWindow;
-    private readonly ImeWindow imeWindow;
     private readonly ConsoleWindow consoleWindow;
     private readonly PluginStatWindow pluginStatWindow;
     private readonly PluginInstallerWindow pluginWindow;
@@ -88,26 +96,49 @@ internal class DalamudInterface : IDisposable, IServiceType
     private DalamudInterface(
         Dalamud dalamud,
         DalamudConfiguration configuration,
-        InterfaceManager.InterfaceManagerWithScene interfaceManagerWithScene,
+        FontAtlasFactory fontAtlasFactory,
+        InterfaceManager interfaceManager,
         PluginImageCache pluginImageCache,
-        Branding branding)
+        DalamudAssetManager dalamudAssetManager,
+        Game.Framework framework,
+        ClientState clientState,
+        TitleScreenMenu titleScreenMenu,
+        GameGui gameGui,
+        ConsoleManager consoleManager,
+        AddonLifecycle addonLifecycle)
     {
-        var interfaceManager = interfaceManagerWithScene.Manager;
+        this.dalamud = dalamud;
+        this.configuration = configuration;
+        this.interfaceManager = interfaceManager;
+
         this.WindowSystem = new WindowSystem("DalamudCore");
-        
+
         this.colorDemoWindow = new ColorDemoWindow() { IsOpen = false };
         this.componentDemoWindow = new ComponentDemoWindow() { IsOpen = false };
         this.dataWindow = new DataWindow() { IsOpen = false };
         this.gamepadModeNotifierWindow = new GamepadModeNotifierWindow() { IsOpen = false };
-        this.imeWindow = new ImeWindow() { IsOpen = false };
-        this.consoleWindow = new ConsoleWindow() { IsOpen = configuration.LogOpenAtStartup };
+        this.consoleWindow = new ConsoleWindow(configuration) { IsOpen = configuration.LogOpenAtStartup };
         this.pluginStatWindow = new PluginStatWindow() { IsOpen = false };
-        this.pluginWindow = new PluginInstallerWindow(pluginImageCache) { IsOpen = false };
+        this.pluginWindow = new PluginInstallerWindow(pluginImageCache, configuration) { IsOpen = false };
         this.settingsWindow = new SettingsWindow() { IsOpen = false };
         this.selfTestWindow = new SelfTestWindow() { IsOpen = false };
         this.styleEditorWindow = new StyleEditorWindow() { IsOpen = false };
-        this.titleScreenMenuWindow = new TitleScreenMenuWindow() { IsOpen = false };
-        this.changelogWindow = new ChangelogWindow(this.titleScreenMenuWindow) { IsOpen = false };
+        this.titleScreenMenuWindow = new TitleScreenMenuWindow(
+            clientState,
+            configuration,
+            dalamudAssetManager,
+            fontAtlasFactory,
+            framework,
+            gameGui,
+            titleScreenMenu,
+            consoleManager,
+            addonLifecycle) { IsOpen = false };
+        this.changelogWindow = new ChangelogWindow(
+            this.titleScreenMenuWindow,
+            fontAtlasFactory,
+            dalamudAssetManager,
+            gameGui,
+            framework) { IsOpen = false };
         this.profilerWindow = new ProfilerWindow() { IsOpen = false };
         this.branchSwitcherWindow = new BranchSwitcherWindow() { IsOpen = false };
         this.hitchSettingsWindow = new HitchSettingsWindow() { IsOpen = false };
@@ -117,7 +148,6 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.AddWindow(this.componentDemoWindow);
         this.WindowSystem.AddWindow(this.dataWindow);
         this.WindowSystem.AddWindow(this.gamepadModeNotifierWindow);
-        this.WindowSystem.AddWindow(this.imeWindow);
         this.WindowSystem.AddWindow(this.consoleWindow);
         this.WindowSystem.AddWindow(this.pluginStatWindow);
         this.WindowSystem.AddWindow(this.pluginWindow);
@@ -129,23 +159,66 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.WindowSystem.AddWindow(this.branchSwitcherWindow);
         this.WindowSystem.AddWindow(this.hitchSettingsWindow);
 
-        ImGuiManagedAsserts.AssertsEnabled = configuration.AssertsEnabledAtStartup;
+        this.interfaceManager.ShowAsserts = configuration.ImGuiAssertsEnabledAtStartup ?? false;
         this.isImGuiDrawDevMenu = this.isImGuiDrawDevMenu || configuration.DevBarOpenAtStartup;
 
-        interfaceManager.Draw += this.OnDraw;
+        this.interfaceManager.Draw += this.OnDraw;
 
-        var tsm = Service<TitleScreenMenu>.Get();
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudPlugins", "Plugin Installer"), branding.LogoSmall, this.OpenPluginInstaller);
-        tsm.AddEntryCore(Loc.Localize("TSMDalamudSettings", "Dalamud Settings"), branding.LogoSmall, this.OpenSettings);
+        Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ContinueWith(
+            _ =>
+            {
+                titleScreenMenu.AddEntryCore(
+                    Loc.Localize("TSMDalamudPlugins", "Plugin Installer"),
+                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    this.OpenPluginInstaller);
+                titleScreenMenu.AddEntryCore(
+                    Loc.Localize("TSMDalamudSettings", "Dalamud Settings"),
+                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    this.OpenSettings);
 
-        if (!configuration.DalamudBetaKind.IsNullOrEmpty())
-        {
-            tsm.AddEntryCore(Loc.Localize("TSMDalamudDevMenu", "Developer Menu"), branding.LogoSmall, () => this.isImGuiDrawDevMenu = true);
-        }
+                titleScreenMenu.AddEntryCore(
+                    "Toggle Dev Menu",
+                    dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                    () => Service<DalamudInterface>.GetNullable()?.ToggleDevMenu(),
+                    VirtualKey.SHIFT);
+
+                if (!configuration.DalamudBetaKind.IsNullOrEmpty())
+                {
+                    titleScreenMenu.AddEntryCore(
+                        Loc.Localize("TSMDalamudDevMenu", "Developer Menu"),
+                        dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.LogoSmall),
+                        () => this.isImGuiDrawDevMenu = true);
+                }
+            });
 
         this.creditsDarkeningAnimation.Point1 = Vector2.Zero;
         this.creditsDarkeningAnimation.Point2 = new Vector2(CreditsDarkeningMaxAlpha);
+
+        // This is temporary, until we know the repercussions of vtable hooking mode
+        consoleManager.AddCommand(
+            "dalamud.interface.swapchain_mode",
+            "Set swapchain hooking mode",
+            (string mode) =>
+            {
+                switch (mode)
+                {
+                    case "vtable":
+                        this.configuration.SwapChainHookMode = SwapChainHelper.HookMode.VTable;
+                        break;
+                    case "bytecode":
+                        this.configuration.SwapChainHookMode = SwapChainHelper.HookMode.ByteCode;
+                        break;
+                    default:
+                        Log.Error("Unknown swapchain mode: {Mode}", mode);
+                        return false;
+                }
+
+                this.configuration.QueueSave();
+                return true;
+            });
     }
+
+    private delegate nint CrashDebugDelegate(nint self);
 
     /// <summary>
     /// Gets the number of frames since Dalamud has loaded.
@@ -166,11 +239,21 @@ internal class DalamudInterface : IDisposable, IServiceType
         set => this.isImGuiDrawDevMenu = value;
     }
 
-    /// <inheritdoc/>
-    public void Dispose()
+    /// <summary>
+    /// Gets or sets a value indicating whether the plugin installer is open.
+    /// </summary>
+    public bool IsPluginInstallerOpen
     {
-        Service<InterfaceManager>.Get().Draw -= this.OnDraw;
+        get => this.pluginWindow.IsOpen;
+        set => this.pluginWindow.IsOpen = value;
+    }
 
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        this.interfaceManager.Draw -= this.OnDraw;
+
+        this.WindowSystem.Windows.OfType<IDisposable>().AggregateToDisposable().Dispose();
         this.WindowSystem.RemoveAllWindows();
 
         this.changelogWindow.Dispose();
@@ -220,11 +303,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     public void OpenGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.IsOpen = true;
 
     /// <summary>
-    /// Opens the <see cref="ImeWindow"/>.
-    /// </summary>
-    public void OpenImeWindow() => this.imeWindow.IsOpen = true;
-
-    /// <summary>
     /// Opens the <see cref="ConsoleWindow"/>.
     /// </summary>
     public void OpenLogWindow()
@@ -243,29 +321,21 @@ internal class DalamudInterface : IDisposable, IServiceType
     }
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/>.
+    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
     /// </summary>
     public void OpenPluginInstaller()
     {
-        this.pluginWindow.IsOpen = true;
+        this.pluginWindow.OpenTo(this.configuration.PluginInstallerOpen);
         this.pluginWindow.BringToFront();
     }
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin installed.
+    /// Opens the <see cref="PluginInstallerWindow"/> on the specified page.
     /// </summary>
-    public void OpenPluginInstallerPluginInstalled()
+    /// <param name="kind">The page of the installer to open.</param>
+    public void OpenPluginInstallerTo(PluginInstallerOpenKind kind)
     {
-        this.pluginWindow.OpenInstalledPlugins();
-        this.pluginWindow.BringToFront();
-    }
-
-    /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> on the plugin changelogs.
-    /// </summary>
-    public void OpenPluginInstallerPluginChangelogs()
-    {
-        this.pluginWindow.OpenPluginChangelogs();
+        this.pluginWindow.OpenTo(kind);
         this.pluginWindow.BringToFront();
     }
 
@@ -275,6 +345,16 @@ internal class DalamudInterface : IDisposable, IServiceType
     public void OpenSettings()
     {
         this.settingsWindow.IsOpen = true;
+        this.settingsWindow.BringToFront();
+    }
+
+    /// <summary>
+    /// Opens the <see cref="SettingsWindow"/> on the specified tab.
+    /// </summary>
+    /// <param name="kind">The tab of the settings to open.</param>
+    public void OpenSettingsTo(SettingsOpenKind kind)
+    {
+        this.settingsWindow.OpenTo(kind);
         this.settingsWindow.BringToFront();
     }
 
@@ -304,7 +384,7 @@ internal class DalamudInterface : IDisposable, IServiceType
         this.profilerWindow.IsOpen = true;
         this.profilerWindow.BringToFront();
     }
-    
+
     /// <summary>
     /// Opens the <see cref="HitchSettingsWindow"/>.
     /// </summary>
@@ -326,11 +406,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     #endregion
 
     #region Close
-
-    /// <summary>
-    /// Closes the <see cref="ImeWindow"/>.
-    /// </summary>
-    public void CloseImeWindow() => this.imeWindow.IsOpen = false;
 
     /// <summary>
     /// Closes the <see cref="GamepadModeNotifierWindow"/>.
@@ -360,7 +435,7 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// Toggles the <see cref="DataWindow"/>.
     /// </summary>
     /// <param name="dataKind">The data kind to switch to after opening.</param>
-    public void ToggleDataWindow(string dataKind = null)
+    public void ToggleDataWindow(string? dataKind = null)
     {
         this.dataWindow.Toggle();
         if (dataKind != null && this.dataWindow.IsOpen)
@@ -380,11 +455,6 @@ internal class DalamudInterface : IDisposable, IServiceType
     public void ToggleGamepadModeNotifierWindow() => this.gamepadModeNotifierWindow.Toggle();
 
     /// <summary>
-    /// Toggles the <see cref="ImeWindow"/>.
-    /// </summary>
-    public void ToggleIMEWindow() => this.imeWindow.Toggle();
-
-    /// <summary>
     /// Toggles the <see cref="ConsoleWindow"/>.
     /// </summary>
     public void ToggleLogWindow() => this.consoleWindow.Toggle();
@@ -397,7 +467,8 @@ internal class DalamudInterface : IDisposable, IServiceType
     /// <summary>
     /// Toggles the <see cref="PluginInstallerWindow"/>.
     /// </summary>
-    public void TogglePluginInstallerWindow() => this.pluginWindow.Toggle();
+    /// <param name="kind">The page of the installer to open.</param>
+    public void TogglePluginInstallerWindowTo(PluginInstallerOpenKind kind) => this.pluginWindow.ToggleTo(kind);
 
     /// <summary>
     /// Toggles the <see cref="SettingsWindow"/>.
@@ -433,6 +504,15 @@ internal class DalamudInterface : IDisposable, IServiceType
     public void SetPluginInstallerSearchText(string text)
     {
         this.pluginWindow.SetSearchText(text);
+    }
+
+    /// <summary>
+    /// Sets the current search text for the settings window.
+    /// </summary>
+    /// <param name="text">The search term.</param>
+    public void SetSettingsSearchText(string text)
+    {
+        this.settingsWindow.SetSearchText(text);
     }
 
     /// <summary>
@@ -507,10 +587,11 @@ internal class DalamudInterface : IDisposable, IServiceType
 
     private void DrawCreditsDarkeningAnimation()
     {
-        using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowRounding | ImGuiStyleVar.WindowBorderSize, 0f);
+        using var style1 = ImRaii.PushStyle(ImGuiStyleVar.WindowRounding, 0f);
+        using var style2 = ImRaii.PushStyle(ImGuiStyleVar.WindowBorderSize, 0f);
         using var color = ImRaii.PushColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0));
 
-        ImGui.SetNextWindowPos(new Vector2(0, 0));
+        ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos);
         ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
         ImGuiHelpers.ForceNextWindowMainViewport();
 
@@ -582,18 +663,16 @@ internal class DalamudInterface : IDisposable, IServiceType
         {
             if (ImGui.BeginMainMenuBar())
             {
-                var dalamud = Service<Dalamud>.Get();
-                var configuration = Service<DalamudConfiguration>.Get();
                 var pluginManager = Service<PluginManager>.Get();
 
                 if (ImGui.BeginMenu("Dalamud"))
                 {
                     ImGui.MenuItem("Draw dev menu", string.Empty, ref this.isImGuiDrawDevMenu);
-                    var devBarAtStartup = configuration.DevBarOpenAtStartup;
+                    var devBarAtStartup = this.configuration.DevBarOpenAtStartup;
                     if (ImGui.MenuItem("Draw dev menu at startup", string.Empty, ref devBarAtStartup))
                     {
-                        configuration.DevBarOpenAtStartup ^= true;
-                        configuration.QueueSave();
+                        this.configuration.DevBarOpenAtStartup ^= true;
+                        this.configuration.QueueSave();
                     }
 
                     ImGui.Separator();
@@ -610,29 +689,29 @@ internal class DalamudInterface : IDisposable, IServiceType
                             if (ImGui.MenuItem(logLevel + "##logLevelSwitch", string.Empty, EntryPoint.LogLevelSwitch.MinimumLevel == logLevel))
                             {
                                 EntryPoint.LogLevelSwitch.MinimumLevel = logLevel;
-                                configuration.LogLevel = logLevel;
-                                configuration.QueueSave();
+                                this.configuration.LogLevel = logLevel;
+                                this.configuration.QueueSave();
                             }
                         }
 
                         ImGui.EndMenu();
                     }
-                    
-                    var logSynchronously = configuration.LogSynchronously;
+
+                    var logSynchronously = this.configuration.LogSynchronously;
                     if (ImGui.MenuItem("Log Synchronously", null, ref logSynchronously))
                     {
-                        configuration.LogSynchronously = logSynchronously;
-                        configuration.QueueSave();
+                        this.configuration.LogSynchronously = logSynchronously;
+                        this.configuration.QueueSave();
 
                         EntryPoint.InitLogging(
-                            dalamud.StartInfo.LogPath!,
-                            dalamud.StartInfo.BootShowConsole,
-                            configuration.LogSynchronously,
-                            dalamud.StartInfo.LogName);
+                            this.dalamud.StartInfo.LogPath!,
+                            this.dalamud.StartInfo.BootShowConsole,
+                            this.configuration.LogSynchronously,
+                            this.dalamud.StartInfo.LogName);
                     }
 
                     var antiDebug = Service<AntiDebug>.Get();
-                    if (ImGui.MenuItem("Enable AntiDebug", null, antiDebug.IsEnabled))
+                    if (ImGui.MenuItem("Disable Debugging Protections", null, antiDebug.IsEnabled))
                     {
                         var newEnabled = !antiDebug.IsEnabled;
                         if (newEnabled)
@@ -640,8 +719,8 @@ internal class DalamudInterface : IDisposable, IServiceType
                         else
                             antiDebug.Disable();
 
-                        configuration.IsAntiAntiDebugEnabled = newEnabled;
-                        configuration.QueueSave();
+                        this.configuration.IsAntiAntiDebugEnabled = newEnabled;
+                        this.configuration.QueueSave();
                     }
 
                     ImGui.Separator();
@@ -710,33 +789,59 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     ImGui.Separator();
 
-                    if (ImGui.MenuItem("Access Violation"))
+                    if (ImGui.BeginMenu("Crash game"))
                     {
-                        Marshal.ReadByte(IntPtr.Zero);
-                    }
-
-                    if (ImGui.MenuItem("Crash game (nullptr)"))
-                    {
-                        unsafe
+                        if (ImGui.MenuItem("Access Violation"))
                         {
-                            var framework = Framework.Instance();
-                            framework->UIModule = (UIModule*)0;
+                            Marshal.ReadByte(IntPtr.Zero);
                         }
-                    }
 
-                    if (ImGui.MenuItem("Crash game (non-nullptr)"))
-                    {
-                        unsafe
+                        if (ImGui.MenuItem("Set UiModule to NULL"))
                         {
-                            var framework = Framework.Instance();
-                            framework->UIModule = (UIModule*)0x12345678;
+                            unsafe
+                            {
+                                var framework = Framework.Instance();
+                                framework->UIModule = (UIModule*)0;
+                            }
                         }
+
+                        if (ImGui.MenuItem("Set UiModule to invalid ptr"))
+                        {
+                            unsafe
+                            {
+                                var framework = Framework.Instance();
+                                framework->UIModule = (UIModule*)0x12345678;
+                            }
+                        }
+
+                        if (ImGui.MenuItem("Deref nullptr in Hook"))
+                        {
+                            unsafe
+                            {
+                                var hook = Hook<CrashDebugDelegate>.FromAddress(
+                                    (nint)UIModule.StaticVirtualTablePointer->GetUIInputData,
+                                    self =>
+                                    {
+                                        _ = *(byte*)0;
+                                        return (nint)UIModule.Instance()->GetUIInputData();
+                                    });
+                                hook.Enable();
+                            }
+                        }
+
+                        if (ImGui.MenuItem("Cause ImGui assert"))
+                        {
+                            ImGui.PopStyleVar();
+                            ImGui.PopStyleVar();
+                        }
+
+                        ImGui.EndMenu();
                     }
 
-                    if (ImGui.MenuItem("Report crashes at shutdown", null, configuration.ReportShutdownCrashes))
+                    if (ImGui.MenuItem("Report crashes at shutdown", null, this.configuration.ReportShutdownCrashes))
                     {
-                        configuration.ReportShutdownCrashes = !configuration.ReportShutdownCrashes;
-                        configuration.QueueSave();
+                        this.configuration.ReportShutdownCrashes = !this.configuration.ReportShutdownCrashes;
+                        this.configuration.QueueSave();
                     }
 
                     ImGui.Separator();
@@ -746,9 +851,8 @@ internal class DalamudInterface : IDisposable, IServiceType
                         this.OpenBranchSwitcher();
                     }
 
-                    ImGui.MenuItem(Util.AssemblyVersion, false);
-                    ImGui.MenuItem(dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
-                    ImGui.MenuItem($"D: {Util.GetGitHash()}[{Util.GetGitCommitCount()}] CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.Interop.Resolver.Version}]", false);
+                    ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
+                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
                     ImGui.MenuItem($"CLR: {Environment.Version}", false);
 
                     ImGui.EndMenu();
@@ -763,17 +867,26 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     ImGui.Separator();
 
-                    var val = ImGuiManagedAsserts.AssertsEnabled;
-                    if (ImGui.MenuItem("Enable Asserts", string.Empty, ref val))
+                    var showAsserts = this.interfaceManager.ShowAsserts;
+                    if (ImGui.MenuItem("Enable assert popups", string.Empty, ref showAsserts))
                     {
-                        ImGuiManagedAsserts.AssertsEnabled = val;
+                        this.interfaceManager.ShowAsserts = showAsserts;
                     }
 
-                    if (ImGui.MenuItem("Enable asserts at startup", null, configuration.AssertsEnabledAtStartup))
+                    var enableVerboseAsserts = this.interfaceManager.EnableVerboseAssertLogging;
+                    if (ImGui.MenuItem("Enable verbose assert logging", string.Empty, ref enableVerboseAsserts))
                     {
-                        configuration.AssertsEnabledAtStartup = !configuration.AssertsEnabledAtStartup;
-                        configuration.QueueSave();
+                        this.interfaceManager.EnableVerboseAssertLogging = enableVerboseAsserts;
                     }
+
+                    var assertsEnabled = this.configuration.ImGuiAssertsEnabledAtStartup ?? false;
+                    if (ImGui.MenuItem("Enable asserts at startup", null, assertsEnabled))
+                    {
+                        this.configuration.ImGuiAssertsEnabledAtStartup = !assertsEnabled;
+                        this.configuration.QueueSave();
+                    }
+
+                    ImGui.Separator();
 
                     if (ImGui.MenuItem("Clear focus"))
                     {
@@ -782,7 +895,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     if (ImGui.MenuItem("Clear stacks"))
                     {
-                        Service<InterfaceManager>.Get().ClearStacks();
+                        this.interfaceManager.ClearStacks();
                     }
 
                     if (ImGui.MenuItem("Dump style"))
@@ -795,7 +908,7 @@ internal class DalamudInterface : IDisposable, IServiceType
                         {
                             if (propertyInfo.PropertyType == typeof(Vector2))
                             {
-                                var vec2 = (Vector2)propertyInfo.GetValue(style);
+                                var vec2 = (Vector2)propertyInfo.GetValue(style)!;
                                 info += $"{propertyInfo.Name} = new Vector2({vec2.X.ToString(enCulture)}f, {vec2.Y.ToString(enCulture)}f),\n";
                             }
                             else
@@ -818,9 +931,17 @@ internal class DalamudInterface : IDisposable, IServiceType
                         Log.Information(info);
                     }
 
-                    if (ImGui.MenuItem("Show dev bar info", null, configuration.ShowDevBarInfo))
+                    if (ImGui.MenuItem("Show dev bar info", null, this.configuration.ShowDevBarInfo))
                     {
-                        configuration.ShowDevBarInfo = !configuration.ShowDevBarInfo;
+                        this.configuration.ShowDevBarInfo = !this.configuration.ShowDevBarInfo;
+                    }
+
+                    ImGui.Separator();
+
+                    if (ImGui.MenuItem("Show loading window"))
+                    {
+                        var dialog = new LoadingDialog();
+                        dialog.Show();
                     }
 
                     ImGui.EndMenu();
@@ -828,9 +949,19 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                 if (ImGui.BeginMenu("Game"))
                 {
-                    if (ImGui.MenuItem("Replace ExceptionHandler"))
+                    if (ImGui.MenuItem("Use in-game default ExceptionHandler"))
                     {
-                        dalamud.ReplaceExceptionHandler();
+                        this.dalamud.UseDefaultExceptionHandler();
+                    }
+
+                    if (ImGui.MenuItem("Use in-game debug ExceptionHandler"))
+                    {
+                        this.dalamud.UseDebugExceptionHandler();
+                    }
+
+                    if (ImGui.MenuItem("Disable in-game ExceptionHandler"))
+                    {
+                        this.dalamud.UseNoExceptionHandler();
                     }
 
                     ImGui.EndMenu();
@@ -881,6 +1012,11 @@ internal class DalamudInterface : IDisposable, IServiceType
                         pluginManager.LoadBannedPlugins = !pluginManager.LoadBannedPlugins;
                     }
 
+                    if (pluginManager.SafeMode && ImGui.MenuItem("Disable Safe Mode"))
+                    {
+                        pluginManager.SafeMode = false;
+                    }
+
                     ImGui.Separator();
                     ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
                     ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count(), false);
@@ -893,7 +1029,7 @@ internal class DalamudInterface : IDisposable, IServiceType
 
                     if (ImGui.MenuItem("Export localizable"))
                     {
-                        localization.ExportLocalizable();
+                        localization.ExportLocalizable(true);
                     }
 
                     if (ImGui.BeginMenu("Load language..."))
@@ -925,18 +1061,18 @@ internal class DalamudInterface : IDisposable, IServiceType
                 if (Service<GameGui>.Get().GameUiHidden)
                     ImGui.BeginMenu("UI is hidden...", false);
 
-                if (configuration.ShowDevBarInfo)
+                if (this.configuration.ShowDevBarInfo)
                 {
                     ImGui.PushFont(InterfaceManager.MonoFont);
 
-                    ImGui.BeginMenu($"{Util.GetGitHash()}({Util.GetGitCommitCount()})", false);
+                    ImGui.BeginMenu(Util.GetScmVersion(), false);
                     ImGui.BeginMenu(this.FrameCount.ToString("000000"), false);
                     ImGui.BeginMenu(ImGui.GetIO().Framerate.ToString("000"), false);
                     ImGui.BeginMenu($"W:{Util.FormatBytes(GC.GetTotalMemory(false))}", false);
 
-                    var videoMem = Service<InterfaceManager>.Get().GetD3dMemoryInfo();
+                    var videoMem = this.interfaceManager.GetD3dMemoryInfo();
                     ImGui.BeginMenu(
-                        !videoMem.HasValue ? $"V:???" : $"V:{Util.FormatBytes(videoMem.Value.Used)}",
+                        !videoMem.HasValue ? "V:???" : $"V:{Util.FormatBytes(videoMem.Value.Used)}",
                         false);
 
                     ImGui.PopFont();

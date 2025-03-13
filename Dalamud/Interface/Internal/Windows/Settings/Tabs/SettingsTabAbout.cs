@@ -1,20 +1,21 @@
-﻿using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
+using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using ImGuiNET;
-using ImGuiScene;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -35,27 +36,37 @@ Created by:
 goat
 daemitus
 Soreepeong
-ff-meli
-attickdoor
-Caraxi
-ascclemens
-kalilistic
-0ceal0t
-lmcintyre
-pohky
+MidoriKami
 Aireil
+ff-meli
+Caraxi
+KazWolfe
+kalilistic
+lmcintyre
+Ottermandias
+karashiiro
+attickdoor
+Haselnussbomber
+anna-is-cute
+pohky
+avafloww
+rreminy
+Infiziert90
+marzent
 fitzchivalrik
 MgAl2O4
+nebel
+SheepGoMeh
+wolfcomp
+0ceal0t
 NotAdam
+Bluefissure
+redstrate
 marimelon
-karashiiro
 pmgr
-Ottermandias
 aers
 Poliwrath
-Minizbot2021
 MalRD
-SheepGoMeh
 philpax
 
 
@@ -123,6 +134,14 @@ Haplo
 Franz
 aers
 philpax
+Aida
+Khayle
+Dale
+Arcane Disgea
+Risu
+Tom
+Blooym
+Valk
 
 
 We use these awesome libraries:
@@ -171,20 +190,23 @@ Dalamud is licensed under AGPL v3 or later.
 Contribute at: https://github.com/goatcorp/Dalamud
 ";
 
-    private readonly IDalamudTextureWrap logoTexture;
     private readonly Stopwatch creditsThrottler;
+    private readonly IFontAtlas privateAtlas;
 
     private string creditsText;
+    private bool isBgmSet;
 
     private bool resetNow = false;
-    private GameFontHandle? thankYouFont;
+    private IDalamudTextureWrap? logoTexture;
+    private IFontHandle? thankYouFont;
 
     public SettingsTabAbout()
     {
-        var branding = Service<Branding>.Get();
-
-        this.logoTexture = branding.Logo;
         this.creditsThrottler = new();
+
+        this.privateAtlas = Service<FontAtlasFactory>
+                            .Get()
+                            .CreateFontAtlas(nameof(SettingsTabAbout), FontAtlasAutoRebuildMode.Async);
     }
 
     public override SettingsEntry[] Entries { get; } = { };
@@ -201,19 +223,18 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
         this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
 
-        var gg = Service<GameGui>.Get();
-        if (!gg.IsOnTitleScreen() && UIState.Instance() != null)
+        var gameGui = Service<GameGui>.Get();
+        var playerState = PlayerState.Instance();
+
+        if (!gameGui.IsInLobby() && playerState != null)
         {
-            gg.SetBgm((ushort)(UIState.Instance()->PlayerState.MaxExpansion > 3 ? 833 : 132));
+            gameGui.SetBgm((ushort)(playerState->MaxExpansion > 3 ? 833 : 132));
+            this.isBgmSet = true;
         }
 
         this.creditsThrottler.Restart();
 
-        if (this.thankYouFont == null)
-        {
-            var gfm = Service<GameFontManager>.Get();
-            this.thankYouFont = gfm.NewFontRef(new GameFontStyle(GameFontFamilyAndSize.TrumpGothic34));
-        }
+        this.thankYouFont ??= this.privateAtlas.NewGameFontHandle(new(GameFontFamilyAndSize.TrumpGothic34));
 
         this.resetNow = true;
 
@@ -225,9 +246,15 @@ Contribute at: https://github.com/goatcorp/Dalamud
     {
         this.creditsThrottler.Reset();
 
-        var gg = Service<GameGui>.Get();
-        if (!gg.IsOnTitleScreen())
-            gg.SetBgm(9999);
+        if (this.isBgmSet)
+        {
+            var gameGui = Service<GameGui>.Get();
+
+            if (!gameGui.IsInLobby())
+                gameGui.ResetBgm();
+
+            this.isBgmSet = false;
+        }
 
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(false);
     }
@@ -236,7 +263,9 @@ Contribute at: https://github.com/goatcorp/Dalamud
     {
         var windowSize = ImGui.GetWindowSize();
 
-        ImGui.BeginChild("scrolling", Vector2.Zero, false, ImGuiWindowFlags.NoScrollbar);
+        using var child = ImRaii.Child("scrolling", new Vector2(-1, -10 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.NoScrollbar);
+        if (!child)
+            return;
 
         if (this.resetNow)
         {
@@ -251,6 +280,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
             const float imageSize = 190f;
             ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
+            this.logoTexture ??= Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.Logo);
             ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
 
             ImGuiHelpers.ScaledDummy(0, 20f);
@@ -270,14 +300,12 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
             if (this.thankYouFont != null)
             {
-                ImGui.PushFont(this.thankYouFont.ImFont);
+                using var fontPush = this.thankYouFont.Push();
                 var thankYouLenX = ImGui.CalcTextSize(ThankYouText).X;
 
                 ImGui.Dummy(new Vector2((windowX / 2) - (thankYouLenX / 2), 0f));
                 ImGui.SameLine();
                 ImGui.TextUnformatted(ThankYouText);
-
-                ImGui.PopFont();
             }
 
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 50f);
@@ -298,17 +326,11 @@ Contribute at: https://github.com/goatcorp/Dalamud
             }
         }
 
-        ImGui.EndChild();
-
         base.Draw();
     }
 
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    public override void Dispose()
-    {
-        this.logoTexture?.Dispose();
-        this.thankYouFont?.Dispose();
-    }
+    public override void Dispose() => this.privateAtlas.Dispose();
 }

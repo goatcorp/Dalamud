@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 
 using Dalamud.Game.ClientState.JobGauge.Enums;
@@ -36,6 +35,21 @@ public unsafe class MNKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the types of Nadi available.
     /// </summary>
     public Nadi Nadi => (Nadi)this.Struct->Nadi;
+
+    /// <summary>
+    /// Gets the amount of available Opo-opo Fury stacks.
+    /// </summary>
+    public int OpoOpoFury => this.Struct->OpoOpoStacks;
+    
+    /// <summary>
+    /// Gets the amount of available Raptor Fury stacks.
+    /// </summary>
+    public int RaptorFury => this.Struct->RaptorStacks;
+
+    /// <summary>
+    /// Gets the amount of available Coeurl Fury stacks.
+    /// </summary>
+    public int CoeurlFury => this.Struct->CoeurlStacks;
 
     /// <summary>
     /// Gets the time remaining that Blitz is active.

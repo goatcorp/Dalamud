@@ -1,5 +1,3 @@
-using System;
-
 using Dalamud.Game.ClientState.JobGauge.Enums;
 using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
 
@@ -31,13 +29,13 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
 
     /// <summary>
     /// Gets the summon that will return after the current summon expires.
-    /// This maps to the <see cref="Lumina.Excel.GeneratedSheets.Pet"/> sheet.
+    /// This maps to the <see cref="Lumina.Excel.Sheets.Pet"/> sheet.
     /// </summary>
     public SummonPet ReturnSummon => (SummonPet)this.Struct->ReturnSummon;
 
     /// <summary>
     /// Gets the summon glam for the <see cref="ReturnSummon"/>.
-    /// This maps to the <see cref="Lumina.Excel.GeneratedSheets.PetMirage"/> sheet.
+    /// This maps to the <see cref="Lumina.Excel.Sheets.PetMirage"/> sheet.
     /// </summary>
     public PetGlam ReturnSummonGlam => (PetGlam)this.Struct->ReturnSummonGlam;
 

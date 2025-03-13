@@ -6,6 +6,9 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Network;
+
 using Serilog;
 
 namespace Dalamud.Game.Network;
@@ -13,12 +16,11 @@ namespace Dalamud.Game.Network;
 /// <summary>
 /// This class handles interacting with game network events.
 /// </summary>
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetwork
 {
     private readonly GameNetworkAddressResolver address;
-    private readonly Hook<ProcessZonePacketDownDelegate> processZonePacketDownHook;
+    private readonly Hook<PacketDispatcher.Delegates.OnReceivePacket> processZonePacketDownHook;
     private readonly Hook<ProcessZonePacketUpDelegate> processZonePacketUpHook;
 
     private readonly HitchDetector hitchDetectorUp;
@@ -26,11 +28,9 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-
-    private IntPtr baseAddress;
-
+    
     [ServiceManager.ServiceConstructor]
-    private GameNetwork(TargetSigScanner sigScanner)
+    private unsafe GameNetwork(TargetSigScanner sigScanner)
     {
         this.hitchDetectorUp = new HitchDetector("GameNetworkUp", this.configuration.GameNetworkUpHitch);
         this.hitchDetectorDown = new HitchDetector("GameNetworkDown", this.configuration.GameNetworkDownHitch);
@@ -38,16 +38,18 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
         this.address = new GameNetworkAddressResolver();
         this.address.Setup(sigScanner);
 
+        var onReceivePacketAddress = (nint)PacketDispatcher.StaticVirtualTablePointer->OnReceivePacket;
+
         Log.Verbose("===== G A M E N E T W O R K =====");
-        Log.Verbose($"ProcessZonePacketDown address 0x{this.address.ProcessZonePacketDown.ToInt64():X}");
-        Log.Verbose($"ProcessZonePacketUp address 0x{this.address.ProcessZonePacketUp.ToInt64():X}");
+        Log.Verbose($"OnReceivePacket address {Util.DescribeAddress(onReceivePacketAddress)}");
+        Log.Verbose($"ProcessZonePacketUp address {Util.DescribeAddress(this.address.ProcessZonePacketUp)}");
 
-        this.processZonePacketDownHook = Hook<ProcessZonePacketDownDelegate>.FromAddress(this.address.ProcessZonePacketDown, this.ProcessZonePacketDownDetour);
+        this.processZonePacketDownHook = Hook<PacketDispatcher.Delegates.OnReceivePacket>.FromAddress(onReceivePacketAddress, this.ProcessZonePacketDownDetour);
         this.processZonePacketUpHook = Hook<ProcessZonePacketUpDelegate>.FromAddress(this.address.ProcessZonePacketUp, this.ProcessZonePacketUpDetour);
-    }
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ProcessZonePacketDownDelegate(IntPtr a, uint targetId, IntPtr dataPtr);
+        this.processZonePacketDownHook.Enable();
+        this.processZonePacketUpHook.Enable();
+    }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
@@ -56,23 +58,14 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
     public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.processZonePacketDownHook.Dispose();
         this.processZonePacketUpHook.Dispose();
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
+    private void ProcessZonePacketDownDetour(PacketDispatcher* dispatcher, uint targetId, IntPtr dataPtr)
     {
-        this.processZonePacketDownHook.Enable();
-        this.processZonePacketUpHook.Enable();
-    }
-
-    private void ProcessZonePacketDownDetour(IntPtr a, uint targetId, IntPtr dataPtr)
-    {
-        this.baseAddress = a;
-
         this.hitchDetectorDown.Start();
 
         // Go back 0x10 to get back to the start of the packet header
@@ -83,7 +76,7 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
             // Call events
             this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
 
-            this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
+            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
         }
         catch (Exception ex)
         {
@@ -101,7 +94,7 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
 
             Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
 
-            this.processZonePacketDownHook.Original(a, targetId, dataPtr + 0x10);
+            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
         }
 
         this.hitchDetectorDown.Stop();
@@ -144,12 +137,11 @@ internal sealed class GameNetwork : IDisposable, IServiceType, IGameNetwork
 /// Plugin-scoped version of a AddonLifecycle service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameNetwork>]
 #pragma warning restore SA1015
-internal class GameNetworkPluginScoped : IDisposable, IServiceType, IGameNetwork
+internal class GameNetworkPluginScoped : IInternalDisposableService, IGameNetwork
 {
     [ServiceManager.ServiceDependency]
     private readonly GameNetwork gameNetworkService = Service<GameNetwork>.Get();
@@ -166,7 +158,7 @@ internal class GameNetworkPluginScoped : IDisposable, IServiceType, IGameNetwork
     public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
 

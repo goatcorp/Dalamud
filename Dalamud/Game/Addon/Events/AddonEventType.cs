@@ -81,6 +81,18 @@ public enum AddonEventType : byte
     ListItemToggle = 35,
     
     /// <summary>
+    /// Drag Drop Begin.
+    /// Sent on MouseDown over a draggable icon (will NOT send for a locked icon).
+    /// </summary>
+    DragDropBegin = 47,
+    
+    /// <summary>
+    /// Drag Drop Insert.
+    /// Sent when dropping an icon into a hotbar/inventory slot or similar.
+    /// </summary>
+    DragDropInsert = 50,
+    
+    /// <summary>
     /// Drag Drop Roll Over.
     /// </summary>
     DragDropRollOver = 52,
@@ -91,13 +103,27 @@ public enum AddonEventType : byte
     DragDropRollOut = 53,
     
     /// <summary>
-    /// Drag Drop Unknown.
+    /// Drag Drop Discard.
+    /// Sent when dropping an icon into empty screenspace, eg to remove an action from a hotBar.
     /// </summary>
-    DragDropUnk54 = 54,
+    DragDropDiscard = 54,
     
     /// <summary>
     /// Drag Drop Unknown.
     /// </summary>
+    [Obsolete("Use DragDropDiscard")]
+    DragDropUnk54 = 54,
+    
+    /// <summary>
+    /// Drag Drop Cancel.
+    /// Sent on MouseUp if the cursor has not moved since DragDropBegin, OR on MouseDown over a locked icon.
+    /// </summary>
+    DragDropCancel = 55,
+    
+    /// <summary>
+    /// Drag Drop Unknown.
+    /// </summary>
+    [Obsolete("Use DragDropCancel")]
     DragDropUnk55 = 55,
     
     /// <summary>

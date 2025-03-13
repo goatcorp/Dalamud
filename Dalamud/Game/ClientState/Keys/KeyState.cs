@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -6,6 +5,8 @@ using System.Runtime.InteropServices;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Keys;
@@ -23,8 +24,7 @@ namespace Dalamud.Game.ClientState.Keys;
 /// index &amp; 3 = short key press (ephemeral).
 /// </remarks>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IKeyState>]
 #pragma warning restore SA1015
@@ -46,7 +46,7 @@ internal class KeyState : IServiceType, IKeyState
         this.bufferBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardState);
         this.indexBase = moduleBaseAddress + Marshal.ReadInt32(addressResolver.KeyboardStateIndexArray);
 
-        Log.Verbose($"Keyboard state buffer address 0x{this.bufferBase.ToInt64():X}");
+        Log.Verbose($"Keyboard state buffer address {Util.DescribeAddress(this.bufferBase)}");
     }
 
     /// <inheritdoc/>

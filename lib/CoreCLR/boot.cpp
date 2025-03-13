@@ -86,7 +86,7 @@ static wchar_t* GetRuntimePath()
     return NULL;
 }
 
-int InitializeClrAndGetEntryPoint(
+HRESULT InitializeClrAndGetEntryPoint(
     void* calling_module,
     bool enable_etw,
     std::wstring runtimeconfig_path,
@@ -171,12 +171,12 @@ int InitializeClrAndGetEntryPoint(
         entrypoint_delegate_type_name.c_str(),
         nullptr, entrypoint_fn)) != 0)
     {
-        logging::E("Failed to load module (err={})", result);
+        logging::E("Failed to load module (err=0x{:X})", static_cast<uint32_t>(result));
         return result;
     }
     logging::I("Done!");
 
     // =========================================================================== //
 
-    return 0;
+    return S_OK;
 }

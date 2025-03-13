@@ -26,16 +26,33 @@ struct DalamudStartInfo {
     };
     friend void from_json(const nlohmann::json&, ClientLanguage&);
 
+    enum class LoadMethod : int {
+        Entrypoint,
+        DllInject,
+    };
+    friend void from_json(const nlohmann::json&, LoadMethod&);
+
+    enum class UnhandledExceptionHandlingMode : int {
+        Default,
+        StallDebug,
+        None,
+    };
+    friend void from_json(const nlohmann::json&, UnhandledExceptionHandlingMode&);
+
+    LoadMethod DalamudLoadMethod = LoadMethod::Entrypoint;
     std::string WorkingDirectory;
     std::string ConfigurationPath;
+    std::string LogPath;
+    std::string LogName;
     std::string PluginDirectory;
-    std::string DefaultPluginDirectory;
     std::string AssetDirectory;
     ClientLanguage Language = ClientLanguage::English;
     std::string Platform;
     std::string GameVersion;
-    int DelayInitializeMs = 0;
     std::string TroubleshootingPackData;
+    int DelayInitializeMs = 0;
+    bool NoLoadPlugins;
+    bool NoLoadThirdPartyPlugins;
 
     std::string BootLogPath;
     bool BootShowConsole = false;
@@ -50,6 +67,7 @@ struct DalamudStartInfo {
     std::set<std::string> BootUnhookDlls{};
 
     bool CrashHandlerShow = false;
+    UnhandledExceptionHandlingMode UnhandledException = UnhandledExceptionHandlingMode::Default;
 
     friend void from_json(const nlohmann::json&, DalamudStartInfo&);
     void from_envvars();

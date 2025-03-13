@@ -15,17 +15,16 @@ public sealed class GameVersionConverter : JsonConverter
     /// <param name="serializer">The calling serializer.</param>
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
-        if (value == null)
+        switch (value)
         {
-            writer.WriteNull();
-        }
-        else if (value is GameVersion)
-        {
-            writer.WriteValue(value.ToString());
-        }
-        else
-        {
-            throw new JsonSerializationException("Expected GameVersion object value");
+            case null:
+                writer.WriteNull();
+                break;
+            case GameVersion:
+                writer.WriteValue(value.ToString());
+                break;
+            default:
+                throw new JsonSerializationException("Expected GameVersion object value");
         }
     }
 
@@ -43,24 +42,20 @@ public sealed class GameVersionConverter : JsonConverter
         {
             return null;
         }
-        else
+
+        if (reader.TokenType == JsonToken.String)
         {
-            if (reader.TokenType == JsonToken.String)
+            try
             {
-                try
-                {
-                    return new GameVersion((string)reader.Value!);
-                }
-                catch (Exception ex)
-                {
-                    throw new JsonSerializationException($"Error parsing GameVersion string: {reader.Value}", ex);
-                }
+                return new GameVersion((string)reader.Value!);
             }
-            else
+            catch (Exception ex)
             {
-                throw new JsonSerializationException($"Unexpected token or value when parsing GameVersion. Token: {reader.TokenType}, Value: {reader.Value}");
+                throw new JsonSerializationException($"Error parsing GameVersion string: {reader.Value}", ex);
             }
         }
+
+        throw new JsonSerializationException($"Unexpected token or value when parsing GameVersion. Token: {reader.TokenType}, Value: {reader.Value}");
     }
 
     /// <summary>

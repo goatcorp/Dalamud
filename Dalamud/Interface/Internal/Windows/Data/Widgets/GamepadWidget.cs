@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -28,14 +30,14 @@ internal class GamepadWidget : IDataWindowWidget
     {
         var gamepadState = Service<GamepadState>.Get();
 
-        ImGui.Text($"GamepadInput 0x{gamepadState.GamepadInputAddress.ToInt64():X}");
+        ImGui.Text($"GamepadInput {Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
 
 #if DEBUG
         if (ImGui.IsItemHovered())
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         if (ImGui.IsItemClicked())
-            ImGui.SetClipboardText($"0x{gamepadState.GamepadInputAddress.ToInt64():X}");
+            ImGui.SetClipboardText($"{Util.DescribeAddress(gamepadState.GamepadInputAddress)}");
 #endif
 
         this.DrawHelper(

@@ -1,9 +1,8 @@
-using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
 using Dalamud.Hooking.Internal;
-using Dalamud.Memory;
+
 using Reloaded.Hooks;
 
 namespace Dalamud.Hooking;
@@ -21,6 +20,8 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     private bool isEnabled = false;
 
     private DynamicMethod statsMethod;
+    
+    private Guid hookId = Guid.NewGuid();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AsmHook"/> class.
@@ -45,7 +46,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
         this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
         var dele = this.statsMethod.CreateDelegate(typeof(Action));
 
-        HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly()));
+        HookManager.TrackedHooks.TryAdd(this.hookId, new HookInfo(this, dele, Assembly.GetCallingAssembly()));
     }
 
     /// <summary>
@@ -71,7 +72,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
         this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
         var dele = this.statsMethod.CreateDelegate(typeof(Action));
 
-        HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly()));
+        HookManager.TrackedHooks.TryAdd(this.hookId, new HookInfo(this, dele, Assembly.GetCallingAssembly()));
     }
 
     /// <summary>
@@ -116,6 +117,8 @@ public sealed class AsmHook : IDisposable, IDalamudHook
             return;
 
         this.IsDisposed = true;
+
+        HookManager.TrackedHooks.TryRemove(this.hookId, out _);
 
         if (this.isEnabled)
         {

@@ -1,36 +1,48 @@
-using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+
+using CheapLoc;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Game.Gui.Internal;
-using Dalamud.Game.Internal.DXGI;
 using Dalamud.Hooking;
-using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Internal.ManagedAsserts;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Hooking.Internal;
+using Dalamud.Hooking.WndProcHook;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Internal.Asserts;
+using Dalamud.Interface.Internal.DesignSystem;
+using Dalamud.Interface.Internal.ReShadeHandling;
+using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Interface.Windowing.Persistence;
+using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
+
 using ImGuiNET;
+
 using ImGuiScene;
+
+using JetBrains.Annotations;
+
 using PInvoke;
-using Serilog;
-using SharpDX;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
+
+using TerraFX.Interop.DirectX;
+using TerraFX.Interop.Windows;
 
 // general dev notes, here because it's easiest
 
@@ -49,104 +61,141 @@ namespace Dalamud.Interface.Internal;
 /// <summary>
 /// This class manages interaction with the ImGui interface.
 /// </summary>
-[ServiceManager.BlockingEarlyLoadedService]
-internal class InterfaceManager : IDisposable, IServiceType
+[ServiceManager.EarlyLoadedService]
+[InherentDependency<WindowSystemPersistence>] // Used by window system windows to restore state from the configuration
+internal partial class InterfaceManager : IInternalDisposableService
 {
-    private const float DefaultFontSizePt = 12.0f;
-    private const float DefaultFontSizePx = DefaultFontSizePt * 4.0f / 3.0f;
-    private const ushort Fallback1Codepoint = 0x3013; // Geta mark; FFXIV uses this to indicate that a glyph is missing.
-    private const ushort Fallback2Codepoint = '-';    // FFXIV uses dash if Geta mark is unavailable.
+    /// <summary>
+    /// The default font size, in points.
+    /// </summary>
+    public const float DefaultFontSizePt = 12.0f;
 
-    private readonly HashSet<SpecialGlyphRequest> glyphRequests = new();
-    private readonly Dictionary<ImFontPtr, TargetFontModification> loadedFontInfo = new();
+    /// <summary>
+    /// The default font size, in pixels.
+    /// </summary>
+    public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
-    private readonly List<DalamudTextureWrap> deferredDisposeTextures = new();
+    private static readonly ModuleLog Log = new("INTERFACE");
+
+    private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
+    private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
+
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration dalamudConfiguration = Service<DalamudConfiguration>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
-    private readonly ManualResetEvent fontBuildSignal;
-    private readonly SwapChainVtableResolver address;
-    private readonly Hook<DispatchMessageWDelegate> dispatchMessageWHook;
-    private readonly Hook<SetCursorDelegate> setCursorHook;
-    private Hook<ProcessMessageDelegate> processMessageHook;
+    // ReShadeAddonInterface requires hooks to be alive to unregister itself.
+    [ServiceManager.ServiceDependency]
+    [UsedImplicitly]
+    private readonly HookManager hookManager = Service<HookManager>.Get();
+
+    [ServiceManager.ServiceDependency]
+    private readonly WndProcHookManager wndProcHookManager = Service<WndProcHookManager>.Get();
+
+    private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
+    private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
+
+    private readonly AssertHandler assertHandler = new();
+
     private RawDX11Scene? scene;
 
-    private Hook<PresentDelegate>? presentHook;
-    private Hook<ResizeBuffersDelegate>? resizeBuffersHook;
+    private Hook<SetCursorDelegate>? setCursorHook;
+    private Hook<ReShadeDxgiSwapChainPresentDelegate>? reShadeDxgiSwapChainPresentHook;
+    private Hook<DxgiSwapChainPresentDelegate>? dxgiSwapChainPresentHook;
+    private Hook<ResizeBuffersDelegate>? dxgiSwapChainResizeBuffersHook;
+    private ObjectVTableHook<IDXGISwapChain4.Vtbl<IDXGISwapChain4>>? dxgiSwapChainHook;
+    private ReShadeAddonInterface? reShadeAddonInterface;
+
+    private IFontAtlas? dalamudAtlas;
+    private ILockedImFont? defaultFontResourceLock;
 
     // can't access imgui IO before first present call
     private bool lastWantCapture = false;
-    private bool isRebuildingFonts = false;
     private bool isOverrideGameCursor = true;
+    private IntPtr gameWindowHandle;
 
     [ServiceManager.ServiceConstructor]
     private InterfaceManager()
     {
-        this.dispatchMessageWHook = Hook<DispatchMessageWDelegate>.FromImport(
-            null, "user32.dll", "DispatchMessageW", 0, this.DispatchMessageWDetour);
-        this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
-            null, "user32.dll", "SetCursor", 0, this.SetCursorDetour);
-
-        this.fontBuildSignal = new ManualResetEvent(false);
-
-        this.address = new SwapChainVtableResolver();
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr PresentDelegate(IntPtr swapChain, uint syncInterval, uint presentFlags);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr ResizeBuffersDelegate(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate IntPtr SetCursorDelegate(IntPtr hCursor);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate IntPtr DispatchMessageWDelegate(ref User32.MSG msg);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr ProcessMessageDelegate(IntPtr hWnd, uint msg, ulong wParam, ulong lParam, IntPtr handeled);
-
     /// <summary>
     /// This event gets called each frame to facilitate ImGui drawing.
     /// </summary>
-    public event RawDX11Scene.BuildUIDelegate Draw;
+    public event RawDX11Scene.BuildUIDelegate? Draw;
 
     /// <summary>
     /// This event gets called when ResizeBuffers is called.
     /// </summary>
-    public event Action ResizeBuffers;
-
-    /// <summary>
-    /// Gets or sets an action that is executed right before fonts are rebuilt.
-    /// </summary>
-    public event Action BuildFonts;
+    public event Action? ResizeBuffers;
 
     /// <summary>
     /// Gets or sets an action that is executed right after fonts are rebuilt.
     /// </summary>
-    public event Action AfterBuildFonts;
+    public event Action? AfterBuildFonts;
 
     /// <summary>
-    /// Gets the default ImGui font.
+    /// Gets the default ImGui font.<br />
+    /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr DefaultFont { get; private set; }
+    public static ImFontPtr DefaultFont =>
+        WhenFontsReady().DefaultFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
 
     /// <summary>
-    /// Gets an included FontAwesome icon font.
+    /// Gets an included FontAwesome icon font.<br />
+    /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr IconFont { get; private set; }
+    public static ImFontPtr IconFont =>
+        WhenFontsReady().IconFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
 
     /// <summary>
-    /// Gets an included monospaced font.
+    /// Gets an included FontAwesome icon font with fixed width.
+    /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr MonoFont { get; private set; }
+    public static ImFontPtr IconFontFixedWidth =>
+        WhenFontsReady().IconFontFixedWidthHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+
+    /// <summary>
+    /// Gets an included monospaced font.<br />
+    /// <strong>Accessing this static property outside of the main thread is dangerous and not supported.</strong>
+    /// </summary>
+    public static ImFontPtr MonoFont =>
+        WhenFontsReady().MonoFontHandle!.LockUntilPostFrame().OrElse(ImGui.GetIO().FontDefault);
+
+    /// <summary>
+    /// Gets the default font handle.
+    /// </summary>
+    public FontHandle? DefaultFontHandle { get; private set; }
+
+    /// <summary>
+    /// Gets the icon font handle.
+    /// </summary>
+    public FontHandle? IconFontHandle { get; private set; }
+
+    /// <summary>
+    /// Gets the icon font handle with fixed width.
+    /// </summary>
+    public FontHandle? IconFontFixedWidthHandle { get; private set; }
+
+    /// <summary>
+    /// Gets the mono font handle.
+    /// </summary>
+    public FontHandle? MonoFontHandle { get; private set; }
 
     /// <summary>
     /// Gets or sets the pointer to ImGui.IO(), when it was last used.
     /// </summary>
     public ImGuiIOPtr LastImGuiIoPtr { get; set; }
+
+    /// <summary>
+    /// Gets the DX11 scene.
+    /// </summary>
+    public RawDX11Scene? Scene => this.scene;
 
     /// <summary>
     /// Gets the D3D11 device instance.
@@ -173,11 +222,6 @@ internal class InterfaceManager : IDisposable, IServiceType
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the fonts are built and ready to use.
-    /// </summary>
-    public bool FontsReady { get; set; } = false;
-
-    /// <summary>
     /// Gets a value indicating whether the Dalamud interface ready to use.
     /// </summary>
     public bool IsReady => this.scene != null;
@@ -187,286 +231,224 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether to override configuration for UseAxis.
-    /// </summary>
-    public bool? UseAxisOverride { get; set; } = null;
-
-    /// <summary>
-    /// Gets a value indicating whether to use AXIS fonts.
-    /// </summary>
-    public bool UseAxis => this.UseAxisOverride ?? Service<DalamudConfiguration>.Get().UseAxisFontsFromGame;
-
-    /// <summary>
-    /// Gets or sets the overrided font gamma value, instead of using the value from configuration.
-    /// </summary>
-    public float? FontGammaOverride { get; set; } = null;
-
-    /// <summary>
-    /// Gets the font gamma value to use.
-    /// </summary>
-    public float FontGamma => Math.Max(0.1f, this.FontGammaOverride.GetValueOrDefault(Service<DalamudConfiguration>.Get().FontGammaLevel));
-
-    /// <summary>
-    /// Gets a value indicating whether we're building fonts but haven't generated atlas yet.
-    /// </summary>
-    public bool IsBuildingFontsBeforeAtlasBuild => this.isRebuildingFonts && !this.fontBuildSignal.WaitOne(0);
+    /// <summary>Gets a value indicating whether the main thread is executing <see cref="DxgiSwapChainPresentDetour"/>.</summary>
+    /// <remarks>This still will be <c>true</c> even when queried off the main thread.</remarks>
+    public bool IsMainThreadInPresent { get; private set; }
 
     /// <summary>
     /// Gets a value indicating the native handle of the game main window.
     /// </summary>
-    public IntPtr GameWindowHandle { get; private set; }
+    public IntPtr GameWindowHandle
+    {
+        get
+        {
+            if (this.gameWindowHandle == 0)
+            {
+                nint gwh = 0;
+                while ((gwh = NativeFunctions.FindWindowEx(0, gwh, "FFXIVGAME", 0)) != 0)
+                {
+                    _ = User32.GetWindowThreadProcessId(gwh, out var pid);
+                    if (pid == Environment.ProcessId && User32.IsWindowVisible(gwh))
+                    {
+                        this.gameWindowHandle = gwh;
+                        break;
+                    }
+                }
+            }
+
+            return this.gameWindowHandle;
+        }
+    }
+
+    /// <summary>
+    /// Gets the font build task.
+    /// </summary>
+    public Task FontBuildTask => WhenFontsReady().dalamudAtlas!.BuildTask;
+
+    /// <summary>Gets the number of calls to <see cref="DxgiSwapChainPresentDetour"/> so far.</summary>
+    /// <remarks>
+    /// The value increases even when Dalamud is hidden via &quot;/xlui hide&quot;.
+    /// <see cref="DalamudInterface.FrameCount"/> does not.
+    /// </remarks>
+    public long CumulativePresentCalls { get; private set; }
+
+    /// <inheritdoc cref="AssertHandler.ShowAsserts"/>
+    public bool ShowAsserts
+    {
+        get => this.assertHandler.ShowAsserts;
+        set => this.assertHandler.ShowAsserts = value;
+    }
+
+    /// <inheritdoc cref="AssertHandler.EnableVerboseLogging"/>
+    public bool EnableVerboseAssertLogging
+    {
+        get => this.assertHandler.EnableVerboseLogging;
+        set => this.assertHandler.EnableVerboseLogging = value;
+    }
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
-        this.framework.RunOnFrameworkThread(() =>
-        {
-            this.setCursorHook.Dispose();
-            this.presentHook?.Dispose();
-            this.resizeBuffersHook?.Dispose();
-            this.dispatchMessageWHook.Dispose();
-            this.processMessageHook?.Dispose();
-        }).Wait();
+        this.assertHandler.Dispose();
 
-        this.scene?.Dispose();
+        // Unload hooks from the framework thread if possible.
+        // We're currently off the framework thread, as this function can only be called from
+        // ServiceManager.UnloadAllServices, which is called from EntryPoint.RunThread.
+        // The functions being unhooked are mostly called from the main thread, so unhooking from the main thread when
+        // possible would avoid any chance of unhooking a function that currently is being called.
+        // If unloading is initiated from "Unload Dalamud" /xldev menu, then the framework would still be running, as
+        // Framework.Destroy has never been called and thus Framework.IsFrameworkUnloading cannot be true, and this
+        // function will actually run the destroy from the framework thread.
+        // Otherwise, as Framework.IsFrameworkUnloading should have been set, this code should run immediately.
+        this.framework.RunOnFrameworkThread(ClearHooks).Wait();
+
+        // Below this point, hooks are guaranteed to be no longer called.
+
+        // A font resource lock outlives the parent handle and the owner atlas. It should be disposed.
+        Interlocked.Exchange(ref this.defaultFontResourceLock, null)?.Dispose();
+
+        // Font handles become invalid after disposing the atlas, but just to be safe.
+        this.DefaultFontHandle?.Dispose();
+        this.DefaultFontHandle = null;
+
+        this.MonoFontHandle?.Dispose();
+        this.MonoFontHandle = null;
+
+        this.IconFontHandle?.Dispose();
+        this.IconFontHandle = null;
+
+        Interlocked.Exchange(ref this.dalamudAtlas, null)?.Dispose();
+        Interlocked.Exchange(ref this.scene, null)?.Dispose();
+
+        return;
+
+        void ClearHooks()
+        {
+            this.wndProcHookManager.PreWndProc -= this.WndProcHookManagerOnPreWndProc;
+            Interlocked.Exchange(ref this.setCursorHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.dxgiSwapChainPresentHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.reShadeDxgiSwapChainPresentHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.dxgiSwapChainResizeBuffersHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.dxgiSwapChainHook, null)?.Dispose();
+            Interlocked.Exchange(ref this.reShadeAddonInterface, null)?.Dispose();
+        }
     }
-
-#nullable enable
-
-    /// <summary>
-    /// Load an image from disk.
-    /// </summary>
-    /// <param name="filePath">The filepath to load.</param>
-    /// <returns>A texture, ready to use in ImGui.</returns>
-    public IDalamudTextureWrap? LoadImage(string filePath)
-    {
-        if (this.scene == null)
-            throw new InvalidOperationException("Scene isn't ready.");
-
-        try
-        {
-            var wrap = this.scene?.LoadImage(filePath);
-            return wrap != null ? new DalamudTextureWrap(wrap) : null;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, $"Failed to load image from {filePath}");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Load an image from an array of bytes.
-    /// </summary>
-    /// <param name="imageData">The data to load.</param>
-    /// <returns>A texture, ready to use in ImGui.</returns>
-    public IDalamudTextureWrap? LoadImage(byte[] imageData)
-    {
-        if (this.scene == null)
-            throw new InvalidOperationException("Scene isn't ready.");
-
-        try
-        {
-            var wrap = this.scene?.LoadImage(imageData);
-            return wrap != null ? new DalamudTextureWrap(wrap) : null;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to load image from memory");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Load an image from an array of bytes.
-    /// </summary>
-    /// <param name="imageData">The data to load.</param>
-    /// <param name="width">The width in pixels.</param>
-    /// <param name="height">The height in pixels.</param>
-    /// <param name="numChannels">The number of channels.</param>
-    /// <returns>A texture, ready to use in ImGui.</returns>
-    public IDalamudTextureWrap? LoadImageRaw(byte[] imageData, int width, int height, int numChannels)
-    {
-        if (this.scene == null)
-            throw new InvalidOperationException("Scene isn't ready.");
-
-        try
-        {
-            var wrap = this.scene?.LoadImageRaw(imageData, width, height, numChannels);
-            return wrap != null ? new DalamudTextureWrap(wrap) : null;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to load image from raw data");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Check whether the current D3D11 Device supports the given DXGI format.
-    /// </summary>
-    /// <param name="dxgiFormat">DXGI format to check.</param>
-    /// <returns>Whether it is supported.</returns>
-    public bool SupportsDxgiFormat(Format dxgiFormat) => this.scene is null
-        ? throw new InvalidOperationException("Scene isn't ready.")
-        : this.scene.Device.CheckFormatSupport(dxgiFormat).HasFlag(FormatSupport.Texture2D);
-
-    /// <summary>
-    /// Load an image from a span of bytes of specified format.
-    /// </summary>
-    /// <param name="data">The data to load.</param>
-    /// <param name="pitch">The pitch(stride) in bytes.</param>
-    /// <param name="width">The width in pixels.</param>
-    /// <param name="height">The height in pixels.</param>
-    /// <param name="dxgiFormat">Format of the texture.</param>
-    /// <returns>A texture, ready to use in ImGui.</returns>
-    public DalamudTextureWrap LoadImageFromDxgiFormat(Span<byte> data, int pitch, int width, int height, Format dxgiFormat)
-    {
-        if (this.scene == null)
-            throw new InvalidOperationException("Scene isn't ready.");
-
-        ShaderResourceView resView;
-        unsafe
-        {
-            fixed (void* pData = data)
-            {
-                var texDesc = new Texture2DDescription
-                {
-                    Width = width,
-                    Height = height,
-                    MipLevels = 1,
-                    ArraySize = 1,
-                    Format = dxgiFormat,
-                    SampleDescription = new(1, 0),
-                    Usage = ResourceUsage.Immutable,
-                    BindFlags = BindFlags.ShaderResource,
-                    CpuAccessFlags = CpuAccessFlags.None,
-                    OptionFlags = ResourceOptionFlags.None,
-                };
-
-                using var texture = new Texture2D(this.Device, texDesc, new DataRectangle(new(pData), pitch));
-                resView = new(this.Device, texture, new()
-                {
-                    Format = texDesc.Format,
-                    Dimension = ShaderResourceViewDimension.Texture2D,
-                    Texture2D = { MipLevels = texDesc.MipLevels },
-                });
-            }
-        }
-        
-        // no sampler for now because the ImGui implementation we copied doesn't allow for changing it
-        return new DalamudTextureWrap(new D3DTextureWrap(resView, width, height));
-    }
-
-#nullable restore
 
     /// <summary>
     /// Sets up a deferred invocation of font rebuilding, before the next render frame.
     /// </summary>
     public void RebuildFonts()
     {
-        if (this.scene == null)
-        {
-            Log.Verbose("[FONT] RebuildFonts(): scene not ready, doing nothing");
-            return;
-        }
-
         Log.Verbose("[FONT] RebuildFonts() called");
-
-        // don't invoke this multiple times per frame, in case multiple plugins call it
-        if (!this.isRebuildingFonts)
-        {
-            Log.Verbose("[FONT] RebuildFonts() trigger");
-            this.isRebuildingFonts = true;
-            this.scene.OnNewRenderFrame += this.RebuildFontsInternal;
-        }
-    }
-
-    /// <summary>
-    /// Wait for the rebuilding fonts to complete.
-    /// </summary>
-    public void WaitForFontRebuild()
-    {
-        this.fontBuildSignal.WaitOne();
-    }
-
-    /// <summary>
-    /// Requests a default font of specified size to exist.
-    /// </summary>
-    /// <param name="size">Font size in pixels.</param>
-    /// <param name="ranges">Ranges of glyphs.</param>
-    /// <returns>Requets handle.</returns>
-    public SpecialGlyphRequest NewFontSizeRef(float size, List<Tuple<ushort, ushort>> ranges)
-    {
-        var allContained = false;
-        var fonts = ImGui.GetIO().Fonts.Fonts;
-        ImFontPtr foundFont = null;
-        unsafe
-        {
-            for (int i = 0, i_ = fonts.Size; i < i_; i++)
-            {
-                if (!this.glyphRequests.Any(x => x.FontInternal.NativePtr == fonts[i].NativePtr))
-                    continue;
-
-                allContained = true;
-                foreach (var range in ranges)
-                {
-                    if (!allContained)
-                        break;
-
-                    for (var j = range.Item1; j <= range.Item2 && allContained; j++)
-                        allContained &= fonts[i].FindGlyphNoFallback(j).NativePtr != null;
-                }
-
-                if (allContained)
-                    foundFont = fonts[i];
-
-                break;
-            }
-        }
-
-        var req = new SpecialGlyphRequest(this, size, ranges);
-        req.FontInternal = foundFont;
-
-        if (!allContained)
-            this.RebuildFonts();
-
-        return req;
-    }
-
-    /// <summary>
-    /// Requests a default font of specified size to exist.
-    /// </summary>
-    /// <param name="size">Font size in pixels.</param>
-    /// <param name="text">Text to calculate glyph ranges from.</param>
-    /// <returns>Requets handle.</returns>
-    public SpecialGlyphRequest NewFontSizeRef(float size, string text)
-    {
-        List<Tuple<ushort, ushort>> ranges = new();
-        foreach (var c in new SortedSet<char>(text.ToHashSet()))
-        {
-            if (ranges.Any() && ranges[^1].Item2 + 1 == c)
-                ranges[^1] = Tuple.Create<ushort, ushort>(ranges[^1].Item1, c);
-            else
-                ranges.Add(Tuple.Create<ushort, ushort>(c, c));
-        }
-
-        return this.NewFontSizeRef(size, ranges);
+        this.dalamudAtlas?.BuildFontsAsync();
     }
 
     /// <summary>
     /// Enqueue a texture to be disposed at the end of the frame.
     /// </summary>
     /// <param name="wrap">The texture.</param>
-    public void EnqueueDeferredDispose(DalamudTextureWrap wrap)
+    public void EnqueueDeferredDispose(IDeferredDisposable wrap)
     {
         this.deferredDisposeTextures.Add(wrap);
+    }
+
+    /// <summary>
+    /// Enqueue an <see cref="ILockedImFont"/> to be disposed at the end of the frame.
+    /// </summary>
+    /// <param name="locked">The disposable.</param>
+    public void EnqueueDeferredDispose(IDisposable locked)
+    {
+        this.deferredDisposeDisposables.Add(locked);
+    }
+
+    /// <summary>Queues an action to be run before <see cref="ImGui.Render"/> call.</summary>
+    /// <param name="action">The action.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
+    public Task RunBeforeImGuiRender(Action action)
+    {
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        this.runBeforeImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    action();
+                    tcs.SetResult();
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues a function to be run before <see cref="ImGui.Render"/> call.</summary>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="func">The function.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
+    public Task<T> RunBeforeImGuiRender<T>(Func<T> func)
+    {
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        this.runBeforeImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    tcs.SetResult(func());
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues an action to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <param name="action">The action.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="action"/> is run.</returns>
+    public Task RunAfterImGuiRender(Action action)
+    {
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        this.runAfterImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    action();
+                    tcs.SetResult();
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
+    }
+
+    /// <summary>Queues a function to be run after <see cref="ImGui.Render"/> call.</summary>
+    /// <typeparam name="T">The type of the return value.</typeparam>
+    /// <param name="func">The function.</param>
+    /// <returns>A <see cref="Task"/> that resolves once <paramref name="func"/> is run.</returns>
+    public Task<T> RunAfterImGuiRender<T>(Func<T> func)
+    {
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        this.runAfterImGuiRender.Enqueue(
+            () =>
+            {
+                try
+                {
+                    tcs.SetResult(func());
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+        return tcs.Task;
     }
 
     /// <summary>
@@ -511,37 +493,108 @@ internal class InterfaceManager : IDisposable, IServiceType
     /// <param name="enabled">Value.</param>
     internal void SetImmersiveMode(bool enabled)
     {
-        if (this.GameWindowHandle == nint.Zero)
-            return;
-
-        int value = enabled ? 1 : 0;
-        var hr = NativeFunctions.DwmSetWindowAttribute(
-            this.GameWindowHandle,
-            NativeFunctions.DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
-            ref value,
-            sizeof(int));
+        if (this.GameWindowHandle == 0)
+            throw new InvalidOperationException("Game window is not yet ready.");
+        var value = enabled ? 1 : 0;
+        ((HRESULT)NativeFunctions.DwmSetWindowAttribute(
+                    this.GameWindowHandle,
+                    NativeFunctions.DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
+                    ref value,
+                    sizeof(int))).ThrowOnError();
     }
 
-    private static void ShowFontError(string path)
+    private static InterfaceManager WhenFontsReady()
     {
-        Util.Fatal($"One or more files required by XIVLauncher were not found.\nPlease restart and report this error if it occurs again.\n\n{path}", "Error");
+        var im = Service<InterfaceManager>.GetNullable();
+        if (im?.dalamudAtlas is not { } atlas)
+            throw new InvalidOperationException($"Tried to access fonts before {nameof(ContinueConstruction)} call.");
+
+        if (!atlas.HasBuiltAtlas)
+            atlas.BuildTask.GetAwaiter().GetResult();
+        return im;
     }
 
-    private void InitScene(IntPtr swapChain)
+    /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
+    /// and initializes ImGui for drawing.</summary>
+    /// <param name="swapChain">The swap chain to test and initialize ImGui with if conditions are met.</param>
+    /// <param name="flags">Flags passed to <see cref="IDXGISwapChain.Present"/>.</param>
+    /// <returns>An initialized instance of <see cref="RawDX11Scene"/>, or <c>null</c> if <paramref name="swapChain"/>
+    /// is not the main swap chain.</returns>
+    private unsafe RawDX11Scene? RenderDalamudCheckAndInitialize(IDXGISwapChain* swapChain, uint flags)
+    {
+        // Quoting ReShade dxgi_swapchain.cpp DXGISwapChain::on_present:
+        // > Some D3D11 games test presentation for timing and composition purposes
+        // > These calls are not rendering related, but rather a status request for the D3D runtime and as such should be ignored
+        if ((flags & DXGI.DXGI_PRESENT_TEST) != 0)
+            return null;
+
+        if (!SwapChainHelper.IsGameDeviceSwapChain(swapChain))
+            return null;
+
+        Debug.Assert(this.dalamudAtlas is not null, "dalamudAtlas should have been set already");
+
+        var activeScene = this.scene ?? this.InitScene(swapChain);
+
+        if (!this.dalamudAtlas!.HasBuiltAtlas)
+        {
+            if (this.dalamudAtlas.BuildTask.Exception != null)
+            {
+                // TODO: Can we do something more user-friendly here? Unload instead?
+                Log.Error(this.dalamudAtlas.BuildTask.Exception, "Failed to initialize Dalamud base fonts");
+                Util.Fatal("Failed to initialize Dalamud base fonts.\nPlease report this error.", "Dalamud");
+            }
+
+            return null;
+        }
+
+        return activeScene;
+    }
+
+    /// <summary>Draws Dalamud to the given scene representing the ImGui context.</summary>
+    /// <param name="activeScene">The scene to draw to.</param>
+    private void RenderDalamudDraw(RawDX11Scene activeScene)
+    {
+        this.CumulativePresentCalls++;
+        this.IsMainThreadInPresent = true;
+
+        while (this.runBeforeImGuiRender.TryDequeue(out var action))
+            action.InvokeSafely();
+
+        // Process information needed by ImGuiHelpers each frame.
+        ImGuiHelpers.NewFrame();
+
+        // Enable viewports if there are no issues.
+        var viewportsEnable = this.dalamudConfiguration.IsDisableViewport ||
+                              activeScene.SwapChain.IsFullScreen ||
+                              ImGui.GetPlatformIO().Monitors.Size == 1;
+        if (viewportsEnable)
+            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
+        else
+            ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+
+        // Call drawing functions, which in turn will call Draw event.
+        activeScene.Render();
+
+        this.PostImGuiRender();
+        this.IsMainThreadInPresent = false;
+    }
+
+    private unsafe RawDX11Scene InitScene(IDXGISwapChain* swapChain)
     {
         RawDX11Scene newScene;
         using (Timings.Start("IM Scene Init"))
         {
             try
             {
-                newScene = new RawDX11Scene(swapChain);
+                this.assertHandler.Setup();
+                newScene = new RawDX11Scene((nint)swapChain);
             }
             catch (DllNotFoundException ex)
             {
                 Service<InterfaceManagerWithScene>.ProvideException(ex);
                 Log.Error(ex, "Could not load ImGui dependencies.");
 
-                var res = PInvoke.User32.MessageBox(
+                var res = User32.MessageBox(
                     IntPtr.Zero,
                     "Dalamud plugins require the Microsoft Visual C++ Redistributable to be installed.\nPlease install the runtime from the official Microsoft website or disable Dalamud.\n\nDo you want to download the redistributable now?",
                     "Dalamud Error",
@@ -560,7 +613,7 @@ internal class InterfaceManager : IDisposable, IServiceType
                 Environment.Exit(-1);
 
                 // Doesn't reach here, but to make the compiler not complain
-                return;
+                throw new InvalidOperationException();
             }
 
             var startInfo = Service<Dalamud>.Get().StartInfo;
@@ -573,9 +626,16 @@ internal class InterfaceManager : IDisposable, IServiceType
                 if (iniFileInfo.Length > 1200000)
                 {
                     Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                    iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                    iniFileInfo.CopyTo(
+                        Path.Combine(
+                            iniFileInfo.DirectoryName!,
+                            $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
                     iniFileInfo.Delete();
                 }
+            }
+            catch (FileNotFoundException)
+            {
+                Log.Warning("dalamudUI.ini did not exist, ImGUI will create a new one.");
             }
             catch (Exception ex)
             {
@@ -618,8 +678,6 @@ internal class InterfaceManager : IDisposable, IServiceType
 
             ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
 
-            this.SetupFonts();
-
             if (!configuration.IsDocking)
             {
                 ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.DockingEnable;
@@ -651,524 +709,350 @@ internal class InterfaceManager : IDisposable, IServiceType
 
         this.scene = newScene;
         Service<InterfaceManagerWithScene>.Provide(new(this));
+
+        this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
+        return newScene;
     }
 
-    /*
-     * NOTE(goat): When hooking ReShade DXGISwapChain::runtime_present, this is missing the syncInterval arg.
-     *             Seems to work fine regardless, I guess, so whatever.
-     */
-    private IntPtr PresentDetour(IntPtr swapChain, uint syncInterval, uint presentFlags)
+    private unsafe void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
     {
-        if (this.scene != null && swapChain != this.scene.SwapChain.NativePointer)
-            return this.presentHook!.Original(swapChain, syncInterval, presentFlags);
-
-        if (this.scene == null)
-            this.InitScene(swapChain);
-
-        if (this.address.IsReshade)
-        {
-            var pRes = this.presentHook.Original(swapChain, syncInterval, presentFlags);
-
-            this.RenderImGui();
-            this.DisposeTextures();
-
-            return pRes;
-        }
-
-        this.RenderImGui();
-        this.DisposeTextures();
-
-        return this.presentHook.Original(swapChain, syncInterval, presentFlags);
+        var r = this.scene?.ProcessWndProcW(args.Hwnd, (User32.WindowMessage)args.Message, args.WParam, args.LParam);
+        if (r is not null)
+            args.SuppressWithValue(r.Value);
     }
 
-    private void DisposeTextures()
+    private void PostImGuiRender()
     {
-        if (this.deferredDisposeTextures.Count > 0)
+        while (this.runAfterImGuiRender.TryDequeue(out var action))
+            action.InvokeSafely();
+
+        if (!this.deferredDisposeTextures.IsEmpty)
         {
-            Log.Verbose("[IM] Disposing {Count} textures", this.deferredDisposeTextures.Count);
-            foreach (var texture in this.deferredDisposeTextures)
+            var count = 0;
+            while (this.deferredDisposeTextures.TryTake(out var d))
             {
-                texture.RealDispose();
+                count++;
+                d.RealDispose();
             }
 
-            this.deferredDisposeTextures.Clear();
+            Log.Verbose("[IM] Disposing {Count} textures", count);
         }
-    }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void RenderImGui()
-    {
-        // Process information needed by ImGuiHelpers each frame.
-        ImGuiHelpers.NewFrame();
-
-        // Check if we can still enable viewports without any issues.
-        this.CheckViewportState();
-
-        this.scene.Render();
-    }
-
-    private void CheckViewportState()
-    {
-        var configuration = Service<DalamudConfiguration>.Get();
-
-        if (configuration.IsDisableViewport || this.scene.SwapChain.IsFullScreen || ImGui.GetPlatformIO().Monitors.Size == 1)
+        if (!this.deferredDisposeDisposables.IsEmpty)
         {
-            ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.ViewportsEnable;
-            return;
+            // Not logging; the main purpose of this is to keep resources used for rendering the frame to be kept
+            // referenced until the resources are actually done being used, and it is expected that this will be
+            // frequent.
+            while (this.deferredDisposeDisposables.TryTake(out var d))
+                d.Dispose();
         }
-
-        ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
     }
 
-    /// <summary>
-    /// Loads font for use in ImGui text functions.
-    /// </summary>
-    private unsafe void SetupFonts()
+    [ServiceManager.CallWhenServicesReady(
+        "InterfaceManager accepts event registration and stuff even when the game window is not ready.")]
+    private unsafe void ContinueConstruction(
+        TargetSigScanner sigScanner,
+        FontAtlasFactory fontAtlasFactory)
     {
-        using var setupFontsTimings = Timings.Start("IM SetupFonts");
+        this.dalamudAtlas = fontAtlasFactory
+            .CreateFontAtlas(nameof(InterfaceManager), FontAtlasAutoRebuildMode.Disable);
+        using (this.dalamudAtlas.SuppressAutoRebuild())
+        {
+            this.DefaultFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(tk => tk.AddDalamudDefaultFont(-1)));
+            this.IconFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(
+                    tk => tk.AddFontAwesomeIconFont(
+                        new()
+                        {
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                            GlyphMinAdvanceX = DefaultFontSizePx,
+                            GlyphMaxAdvanceX = DefaultFontSizePx,
+                        })));
+            this.IconFontFixedWidthHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(tk => tk.AddDalamudAssetFont(
+                    DalamudAsset.FontAwesomeFreeSolid,
+                    new()
+                    {
+                        SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                        GlyphRanges = new ushort[] { 0x20, 0x20, 0x00 },
+                    })));
+            this.MonoFontHandle = (FontHandle)this.dalamudAtlas.NewDelegateFontHandle(
+                e => e.OnPreBuild(
+                    tk => tk.AddDalamudAssetFont(
+                        DalamudAsset.InconsolataRegular,
+                        new()
+                        {
+                            SizePx = Service<FontAtlasFactory>.Get().DefaultFontSpec.SizePx,
+                        })));
+            this.dalamudAtlas.BuildStepChange += e => e.OnPostBuild(
+                tk =>
+                {
+                    // Fill missing glyphs in MonoFont from DefaultFont.
+                    tk.CopyGlyphsAcrossFonts(
+                        tk.GetFont(this.DefaultFontHandle),
+                        tk.GetFont(this.MonoFontHandle),
+                        missingOnly: true);
 
-        var gameFontManager = Service<GameFontManager>.Get();
-        var dalamud = Service<Dalamud>.Get();
-        var io = ImGui.GetIO();
-        var ioFonts = io.Fonts;
+                    // Fill missing glyphs in IconFontFixedWidth with IconFont and fit ratio
+                    tk.CopyGlyphsAcrossFonts(
+                        tk.GetFont(this.IconFontHandle),
+                        tk.GetFont(this.IconFontFixedWidthHandle),
+                        missingOnly: true);
+                    tk.FitRatio(tk.GetFont(this.IconFontFixedWidthHandle));
+                });
+            this.DefaultFontHandle.ImFontChanged += (_, font) =>
+            {
+                var fontLocked = font.NewRef();
+                this.framework.RunOnFrameworkThread(
+                    () =>
+                    {
+                        // Update the ImGui default font.
+                        ImGui.GetIO().NativePtr->FontDefault = fontLocked.ImFont;
 
-        var fontGamma = this.FontGamma;
+                        // Update the reference to the resources of the default font.
+                        this.defaultFontResourceLock?.Dispose();
+                        this.defaultFontResourceLock = fontLocked;
 
-        this.fontBuildSignal.Reset();
-        ioFonts.Clear();
-        ioFonts.TexDesiredWidth = 4096;
+                        // Broadcast to auto-rebuilding instances.
+                        this.AfterBuildFonts?.Invoke();
+                    });
+            };
+        }
 
-        Log.Verbose("[FONT] SetupFonts - 1");
+        // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
+        _ = this.dalamudAtlas.BuildFontsAsync();
 
-        foreach (var v in this.loadedFontInfo)
-            v.Value.Dispose();
-
-        this.loadedFontInfo.Clear();
-
-        Log.Verbose("[FONT] SetupFonts - 2");
-
-        ImFontConfigPtr fontConfig = null;
-        List<GCHandle> garbageList = new();
+        SwapChainHelper.BusyWaitForGameDeviceSwapChain();
+        var swapChainDesc = default(DXGI_SWAP_CHAIN_DESC);
+        if (SwapChainHelper.GameDeviceSwapChain->GetDesc(&swapChainDesc).SUCCEEDED)
+            this.gameWindowHandle = swapChainDesc.OutputWindow;
 
         try
         {
-            var dummyRangeHandle = GCHandle.Alloc(new ushort[] { '0', '0', 0 }, GCHandleType.Pinned);
-            garbageList.Add(dummyRangeHandle);
+            // Requires that game window to be there, which will be the case once game swap chain is initialized.
+            if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
+                this.SetImmersiveMode(true);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not enable immersive mode");
+        }
 
-            fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
-            fontConfig.OversampleH = 1;
-            fontConfig.OversampleV = 1;
+        this.setCursorHook = Hook<SetCursorDelegate>.FromImport(
+            null,
+            "user32.dll",
+            "SetCursor",
+            0,
+            this.SetCursorDetour);
 
-            var fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Regular.otf");
-            if (!File.Exists(fontPathJp))
-                fontPathJp = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf");
-            if (!File.Exists(fontPathJp))
-                ShowFontError(fontPathJp);
-            Log.Verbose("[FONT] fontPathJp = {0}", fontPathJp);
-
-            var fontPathKr = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansCJKkr-Regular.otf");
-            if (!File.Exists(fontPathKr))
-                fontPathKr = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "NotoSansKR-Regular.otf");
-            if (!File.Exists(fontPathKr))
-                fontPathKr = null;
-            Log.Verbose("[FONT] fontPathKr = {0}", fontPathKr);
-
-            // Default font
-            Log.Verbose("[FONT] SetupFonts - Default font");
-            var fontInfo = new TargetFontModification(
-                "Default",
-                this.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
-                this.UseAxis ? DefaultFontSizePx : DefaultFontSizePx + 1,
-                io.FontGlobalScale);
-            Log.Verbose("[FONT] SetupFonts - Default corresponding AXIS size: {0}pt ({1}px)", fontInfo.SourceAxis.Style.BaseSizePt, fontInfo.SourceAxis.Style.BaseSizePx);
-            fontConfig.SizePixels = fontInfo.TargetSizePx * io.FontGlobalScale;
-            if (this.UseAxis)
-            {
-                fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                fontConfig.PixelSnapH = false;
-                DefaultFont = ioFonts.AddFontDefault(fontConfig);
-                this.loadedFontInfo[DefaultFont] = fontInfo;
-            }
-            else
-            {
-                var rangeHandle = gameFontManager.ToGlyphRanges(GameFontFamilyAndSize.Axis12);
-                garbageList.Add(rangeHandle);
-
-                fontConfig.GlyphRanges = rangeHandle.AddrOfPinnedObject();
-                fontConfig.PixelSnapH = true;
-                DefaultFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontConfig.SizePixels, fontConfig);
-                this.loadedFontInfo[DefaultFont] = fontInfo;
-            }
-
-            if (fontPathKr != null && Service<DalamudConfiguration>.Get().EffectiveLanguage == "ko")
-            {
-                fontConfig.MergeMode = true;
-                fontConfig.GlyphRanges = ioFonts.GetGlyphRangesKorean();
-                fontConfig.PixelSnapH = true;
-                ioFonts.AddFontFromFileTTF(fontPathKr, fontConfig.SizePixels, fontConfig);
-                fontConfig.MergeMode = false;
-            }
-
-            // FontAwesome icon font
-            Log.Verbose("[FONT] SetupFonts - FontAwesome icon font");
-            {
-                var fontPathIcon = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "FontAwesomeFreeSolid.otf");
-                if (!File.Exists(fontPathIcon))
-                    ShowFontError(fontPathIcon);
-
-                var iconRangeHandle = GCHandle.Alloc(new ushort[] { 0xE000, 0xF8FF, 0, }, GCHandleType.Pinned);
-                garbageList.Add(iconRangeHandle);
-
-                fontConfig.GlyphRanges = iconRangeHandle.AddrOfPinnedObject();
-                fontConfig.PixelSnapH = true;
-                IconFont = ioFonts.AddFontFromFileTTF(fontPathIcon, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
-                this.loadedFontInfo[IconFont] = new("Icon", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale);
-            }
-
-            // Monospace font
-            Log.Verbose("[FONT] SetupFonts - Monospace font");
-            {
-                var fontPathMono = Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "Inconsolata-Regular.ttf");
-                if (!File.Exists(fontPathMono))
-                    ShowFontError(fontPathMono);
-
-                fontConfig.GlyphRanges = IntPtr.Zero;
-                fontConfig.PixelSnapH = true;
-                MonoFont = ioFonts.AddFontFromFileTTF(fontPathMono, DefaultFontSizePx * io.FontGlobalScale, fontConfig);
-                this.loadedFontInfo[MonoFont] = new("Mono", TargetFontModification.AxisMode.GameGlyphsOnly, DefaultFontSizePx, io.FontGlobalScale);
-            }
-
-            // Default font but in requested size for requested glyphs
-            Log.Verbose("[FONT] SetupFonts - Default font but in requested size for requested glyphs");
-            {
-                Dictionary<float, List<SpecialGlyphRequest>> extraFontRequests = new();
-                foreach (var extraFontRequest in this.glyphRequests)
-                {
-                    if (!extraFontRequests.ContainsKey(extraFontRequest.Size))
-                        extraFontRequests[extraFontRequest.Size] = new();
-                    extraFontRequests[extraFontRequest.Size].Add(extraFontRequest);
-                }
-
-                foreach (var (fontSize, requests) in extraFontRequests)
-                {
-                    List<(ushort, ushort)> codepointRanges = new(4 + requests.Sum(x => x.CodepointRanges.Count))
-                    {
-                        new(Fallback1Codepoint, Fallback1Codepoint),
-                        new(Fallback2Codepoint, Fallback2Codepoint),
-                        // ImGui default ellipsis characters
-                        new(0x2026, 0x2026),
-                        new(0x0085, 0x0085),
-                    };
-
-                    foreach (var request in requests)
-                        codepointRanges.AddRange(request.CodepointRanges.Select(x => (From: x.Item1, To: x.Item2)));
-
-                    codepointRanges.Sort();
-                    List<ushort> flattenedRanges = new();
-                    foreach (var range in codepointRanges)
-                    {
-                        if (flattenedRanges.Any() && flattenedRanges[^1] >= range.Item1 - 1)
+        if (ReShadeAddonInterface.ReShadeIsSignedByReShade &&
+            this.dalamudConfiguration.ReShadeHandlingMode is ReShadeHandlingMode.ReShadeAddonPresent or ReShadeHandlingMode.ReShadeAddonReShadeOverlay)
+        {
+            Log.Warning("Signed ReShade binary detected");
+            Service<NotificationManager>
+                .GetAsync()
+                .ContinueWith(
+                    nmt => nmt.Result.AddNotification(
+                        new()
                         {
-                            flattenedRanges[^1] = Math.Max(flattenedRanges[^1], range.Item2);
-                        }
-                        else
+                            MinimizedText = Loc.Localize(
+                                "ReShadeNoAddonSupportNotificationMinimizedText",
+                                "Wrong ReShade installation"),
+                            Content = Loc.Localize(
+                                "ReShadeNoAddonSupportNotificationContent",
+                                "Your installation of ReShade does not have full addon support, and may not work with Dalamud and/or the game.\n" +
+                                "Download and install ReShade with full addon-support."),
+                            Type = NotificationType.Warning,
+                            InitialDuration = TimeSpan.MaxValue,
+                            ShowIndeterminateIfNoExpiry = false,
+                        })).ContinueWith(
+                    t =>
+                    {
+                        t.Result.DrawActions += _ =>
                         {
-                            flattenedRanges.Add(range.Item1);
-                            flattenedRanges.Add(range.Item2);
-                        }
-                    }
+                            ImGuiHelpers.ScaledDummy(2);
+                            if (DalamudComponents.PrimaryButton(Loc.Localize("LearnMore", "Learn more...")))
+                            {
+                                Util.OpenLink("https://dalamud.dev/news/2024/07/23/reshade/");
+                            }
+                        };
+                    });
+        }
 
-                    flattenedRanges.Add(0);
+        Log.Information("===== S W A P C H A I N =====");
+        var sb = new StringBuilder();
+        foreach (var m in ReShadeAddonInterface.AllReShadeModules)
+        {
+            sb.Clear();
+            sb.Append("ReShade detected: ");
+            sb.Append(m.FileName).Append('(');
+            sb.Append(m.FileVersionInfo.OriginalFilename);
+            sb.Append("; ").Append(m.FileVersionInfo.ProductName);
+            sb.Append("; ").Append(m.FileVersionInfo.ProductVersion);
+            sb.Append("; ").Append(m.FileVersionInfo.FileDescription);
+            sb.Append("; ").Append(m.FileVersionInfo.FileVersion);
+            sb.Append($"@ 0x{m.BaseAddress:X}");
+            if (!ReferenceEquals(m, ReShadeAddonInterface.ReShadeModule))
+                sb.Append(" [ignored by Dalamud]");
+            Log.Information(sb.ToString());
+        }
 
-                    fontInfo = new(
-                        $"Requested({fontSize}px)",
-                        this.UseAxis ? TargetFontModification.AxisMode.Overwrite : TargetFontModification.AxisMode.GameGlyphsOnly,
-                        fontSize,
-                        io.FontGlobalScale);
-                    if (this.UseAxis)
-                    {
-                        fontConfig.GlyphRanges = dummyRangeHandle.AddrOfPinnedObject();
-                        fontConfig.SizePixels = fontInfo.SourceAxis.Style.BaseSizePx;
-                        fontConfig.PixelSnapH = false;
+        if (ReShadeAddonInterface.AllReShadeModules.Length > 1)
+            Log.Warning("Multiple ReShade dlls are detected.");
 
-                        var sizedFont = ioFonts.AddFontDefault(fontConfig);
-                        this.loadedFontInfo[sizedFont] = fontInfo;
-                        foreach (var request in requests)
-                            request.FontInternal = sizedFont;
-                    }
-                    else
-                    {
-                        var rangeHandle = GCHandle.Alloc(flattenedRanges.ToArray(), GCHandleType.Pinned);
-                        garbageList.Add(rangeHandle);
-                        fontConfig.PixelSnapH = true;
+        ResizeBuffersDelegate dxgiSwapChainResizeBuffersDelegate;
+        ReShadeDxgiSwapChainPresentDelegate? reShadeDxgiSwapChainPresentDelegate = null;
+        DxgiSwapChainPresentDelegate? dxgiSwapChainPresentDelegate = null;
+        nint pfnReShadeDxgiSwapChainPresent = 0;
+        switch (this.dalamudConfiguration.ReShadeHandlingMode)
+        {
+            // If ReShade is not found, do no special handling.
+            case var _ when ReShadeAddonInterface.ReShadeModule is null:
+                goto default;
 
-                        var sizedFont = ioFonts.AddFontFromFileTTF(fontPathJp, fontSize * io.FontGlobalScale, fontConfig, rangeHandle.AddrOfPinnedObject());
-                        this.loadedFontInfo[sizedFont] = fontInfo;
-                        foreach (var request in requests)
-                            request.FontInternal = sizedFont;
-                    }
-                }
-            }
-
-            gameFontManager.BuildFonts();
-
-            var customFontFirstConfigIndex = ioFonts.ConfigData.Size;
-
-            Log.Verbose("[FONT] Invoke OnBuildFonts");
-            this.BuildFonts?.InvokeSafely();
-            Log.Verbose("[FONT] OnBuildFonts OK!");
-
-            for (int i = customFontFirstConfigIndex, i_ = ioFonts.ConfigData.Size; i < i_; i++)
-            {
-                var config = ioFonts.ConfigData[i];
-                if (gameFontManager.OwnsFont(config.DstFont))
-                    continue;
-
-                config.OversampleH = 1;
-                config.OversampleV = 1;
-
-                var name = Encoding.UTF8.GetString((byte*)config.Name.Data, config.Name.Count).TrimEnd('\0');
-                if (name.IsNullOrEmpty())
-                    name = $"{config.SizePixels}px";
-
-                // ImFont information is reflected only if corresponding ImFontConfig has MergeMode not set.
-                if (config.MergeMode)
-                {
-                    if (!this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
-                    {
-                        Log.Warning("MergeMode specified for {0} but not found in loadedFontInfo. Skipping.", name);
-                        continue;
-                    }
-                }
+            // This is the only mode honored when SwapChainHookMode is set to VTable.
+            case ReShadeHandlingMode.Default:
+            case ReShadeHandlingMode.UnwrapReShade:
+                if (SwapChainHelper.UnwrapReShade())
+                    Log.Information("Unwrapped ReShade");
                 else
-                {
-                    if (this.loadedFontInfo.ContainsKey(config.DstFont.NativePtr))
-                    {
-                        Log.Warning("MergeMode not specified for {0} but found in loadedFontInfo. Skipping.", name);
-                        continue;
-                    }
+                    Log.Warning("Could not unwrap ReShade");
+                goto default;
 
-                    // While the font will be loaded in the scaled size after FontScale is applied, the font will be treated as having the requested size when used from plugins.
-                    this.loadedFontInfo[config.DstFont.NativePtr] = new($"PlReq({name})", config.SizePixels);
+            // Do no special ReShade handling.
+            // If SwapChainHookMode is set to VTable, do no special handling.
+            case ReShadeHandlingMode.None:
+            case var _ when this.dalamudConfiguration.SwapChainHookMode == SwapChainHelper.HookMode.VTable:
+            default:
+                dxgiSwapChainResizeBuffersDelegate = this.AsHookDxgiSwapChainResizeBuffersDetour;
+                dxgiSwapChainPresentDelegate = this.DxgiSwapChainPresentDetour;
+                break;
+
+            // Register Dalamud as a ReShade addon.
+            case ReShadeHandlingMode.ReShadeAddonPresent:
+            case ReShadeHandlingMode.ReShadeAddonReShadeOverlay:
+                if (!ReShadeAddonInterface.TryRegisterAddon(out this.reShadeAddonInterface))
+                {
+                    Log.Warning("Could not register as ReShade addon");
+                    goto default;
                 }
 
-                config.SizePixels = config.SizePixels * io.FontGlobalScale;
-            }
+                Log.Information("Registered as a ReShade addon");
+                this.reShadeAddonInterface.InitSwapChain += this.ReShadeAddonInterfaceOnInitSwapChain;
+                this.reShadeAddonInterface.DestroySwapChain += this.ReShadeAddonInterfaceOnDestroySwapChain;
+                if (this.dalamudConfiguration.ReShadeHandlingMode == ReShadeHandlingMode.ReShadeAddonPresent)
+                    this.reShadeAddonInterface.Present += this.ReShadeAddonInterfaceOnPresent;
+                else
+                    this.reShadeAddonInterface.ReShadeOverlay += this.ReShadeAddonInterfaceOnReShadeOverlay;
 
-            for (int i = 0, i_ = ioFonts.ConfigData.Size; i < i_; i++)
-            {
-                var config = ioFonts.ConfigData[i];
-                config.RasterizerGamma *= fontGamma;
-            }
+                dxgiSwapChainResizeBuffersDelegate = this.AsReShadeAddonDxgiSwapChainResizeBuffersDetour;
+                break;
 
-            Log.Verbose("[FONT] ImGui.IO.Build will be called.");
-            ioFonts.Build();
-            gameFontManager.AfterIoFontsBuild();
-            this.ClearStacks();
-            Log.Verbose("[FONT] ImGui.IO.Build OK!");
+            // Hook ReShade's DXGISwapChain::on_present. This is the legacy and the default option.
+            case ReShadeHandlingMode.HookReShadeDxgiSwapChainOnPresent:
+                pfnReShadeDxgiSwapChainPresent = ReShadeAddonInterface.FindReShadeDxgiSwapChainOnPresent();
 
-            gameFontManager.AfterBuildFonts();
-
-            foreach (var (font, mod) in this.loadedFontInfo)
-            {
-                // I have no idea what's causing NPE, so just to be safe
-                try
+                if (pfnReShadeDxgiSwapChainPresent == 0)
                 {
-                    if (font.NativePtr != null && font.NativePtr->ConfigData != null)
-                    {
-                        var nameBytes = Encoding.UTF8.GetBytes($"{mod.Name}\0");
-                        Marshal.Copy(nameBytes, 0, (IntPtr)font.ConfigData.Name.Data, Math.Min(nameBytes.Length, font.ConfigData.Name.Count));
-                    }
-                }
-                catch (NullReferenceException)
-                {
-                    // do nothing
+                    Log.Warning("ReShade::DXGISwapChain::on_present could not be found");
+                    goto default;
                 }
 
-                Log.Verbose("[FONT] {0}: Unscale with scale value of {1}", mod.Name, mod.Scale);
-                GameFontManager.UnscaleFont(font, mod.Scale, false);
-
-                if (mod.Axis == TargetFontModification.AxisMode.Overwrite)
-                {
-                    Log.Verbose("[FONT] {0}: Overwrite from AXIS of size {1}px (was {2}px)", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
-                    GameFontManager.UnscaleFont(font, font.FontSize / mod.SourceAxis.ImFont.FontSize, false);
-                    var ascentDiff = mod.SourceAxis.ImFont.Ascent - font.Ascent;
-                    font.Ascent += ascentDiff;
-                    font.Descent = ascentDiff;
-                    font.FallbackChar = mod.SourceAxis.ImFont.FallbackChar;
-                    font.EllipsisChar = mod.SourceAxis.ImFont.EllipsisChar;
-                    ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, false, false);
-                }
-                else if (mod.Axis == TargetFontModification.AxisMode.GameGlyphsOnly)
-                {
-                    Log.Verbose("[FONT] {0}: Overwrite game specific glyphs from AXIS of size {1}px", mod.Name, mod.SourceAxis.ImFont.FontSize, font.FontSize);
-                    if (!this.UseAxis && font.NativePtr == DefaultFont.NativePtr)
-                        mod.SourceAxis.ImFont.FontSize -= 1;
-                    ImGuiHelpers.CopyGlyphsAcrossFonts(mod.SourceAxis.ImFont, font, true, false, 0xE020, 0xE0DB);
-                    if (!this.UseAxis && font.NativePtr == DefaultFont.NativePtr)
-                        mod.SourceAxis.ImFont.FontSize += 1;
-                }
-
-                Log.Verbose("[FONT] {0}: Resize from {1}px to {2}px", mod.Name, font.FontSize, mod.TargetSizePx);
-                GameFontManager.UnscaleFont(font, font.FontSize / mod.TargetSizePx, false);
-            }
-
-            // Fill missing glyphs in MonoFont from DefaultFont
-            ImGuiHelpers.CopyGlyphsAcrossFonts(DefaultFont, MonoFont, true, false);
-
-            for (int i = 0, i_ = ioFonts.Fonts.Size; i < i_; i++)
-            {
-                var font = ioFonts.Fonts[i];
-                if (font.Glyphs.Size == 0)
-                {
-                    Log.Warning("[FONT] Font has no glyph: {0}", font.GetDebugName());
-                    continue;
-                }
-
-                if (font.FindGlyphNoFallback(Fallback1Codepoint).NativePtr != null)
-                    font.FallbackChar = Fallback1Codepoint;
-
-                font.BuildLookupTable();
-            }
-
-            Log.Verbose("[FONT] Invoke OnAfterBuildFonts");
-            this.AfterBuildFonts?.InvokeSafely();
-            Log.Verbose("[FONT] OnAfterBuildFonts OK!");
-
-            if (ioFonts.Fonts[0].NativePtr != DefaultFont.NativePtr)
-                Log.Warning("[FONT] First font is not DefaultFont");
-
-            Log.Verbose("[FONT] Fonts built!");
-
-            this.fontBuildSignal.Set();
-
-            this.FontsReady = true;
-        }
-        finally
-        {
-            if (fontConfig.NativePtr != null)
-                fontConfig.Destroy();
-
-            foreach (var garbage in garbageList)
-                garbage.Free();
-        }
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(TargetSigScanner sigScanner, Framework framework)
-    {
-        this.address.Setup(sigScanner);
-        framework.RunOnFrameworkThread(() =>
-        {
-            while ((this.GameWindowHandle = NativeFunctions.FindWindowEx(IntPtr.Zero, this.GameWindowHandle, "FFXIVGAME", IntPtr.Zero)) != IntPtr.Zero)
-            {
-                _ = User32.GetWindowThreadProcessId(this.GameWindowHandle, out var pid);
-
-                if (pid == Environment.ProcessId && User32.IsWindowVisible(this.GameWindowHandle))
-                    break;
-            }
-
-            try
-            {
-                if (Service<DalamudConfiguration>.Get().WindowIsImmersive)
-                    this.SetImmersiveMode(true);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Could not enable immersive mode");
-            }
-
-            this.presentHook = Hook<PresentDelegate>.FromAddress(this.address.Present, this.PresentDetour);
-            this.resizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(this.address.ResizeBuffers, this.ResizeBuffersDetour);
-
-            Log.Verbose("===== S W A P C H A I N =====");
-            Log.Verbose($"Present address 0x{this.presentHook!.Address.ToInt64():X}");
-            Log.Verbose($"ResizeBuffers address 0x{this.resizeBuffersHook!.Address.ToInt64():X}");
-
-            var wndProcAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? 80 7C 24 ?? ?? 74 ?? B8");
-            Log.Verbose($"WndProc address 0x{wndProcAddress.ToInt64():X}");
-            this.processMessageHook = Hook<ProcessMessageDelegate>.FromAddress(wndProcAddress, this.ProcessMessageDetour);
-
-            this.setCursorHook.Enable();
-            this.presentHook.Enable();
-            this.resizeBuffersHook.Enable();
-            this.dispatchMessageWHook.Enable();
-            this.processMessageHook.Enable();
-        });
-    }
-
-    // This is intended to only be called as a handler attached to scene.OnNewRenderFrame
-    private void RebuildFontsInternal()
-    {
-        Log.Verbose("[FONT] RebuildFontsInternal() called");
-        this.SetupFonts();
-
-        Log.Verbose("[FONT] RebuildFontsInternal() detaching");
-        this.scene!.OnNewRenderFrame -= this.RebuildFontsInternal;
-
-        Log.Verbose("[FONT] Calling InvalidateFonts");
-        this.scene.InvalidateFonts();
-
-        Log.Verbose("[FONT] Font Rebuild OK!");
-
-        this.isRebuildingFonts = false;
-    }
-
-    private unsafe IntPtr ProcessMessageDetour(IntPtr hWnd, uint msg, ulong wParam, ulong lParam, IntPtr handeled)
-    {
-        var ime = Service<DalamudIME>.GetNullable();
-        var res = ime?.ProcessWndProcW(hWnd, (User32.WindowMessage)msg, (void*)wParam, (void*)lParam);
-        return this.processMessageHook.Original(hWnd, msg, wParam, lParam, handeled);
-    }
-
-    private unsafe IntPtr DispatchMessageWDetour(ref User32.MSG msg)
-    {
-        if (msg.hwnd == this.GameWindowHandle && this.scene != null)
-        {
-            var res = this.scene.ProcessWndProcW(msg.hwnd, msg.message, (void*)msg.wParam, (void*)msg.lParam);
-            if (res != null)
-                return res.Value;
+                Log.Information(
+                    "Found ReShade::DXGISwapChain::on_present at {addr}",
+                    Util.DescribeAddress(pfnReShadeDxgiSwapChainPresent));
+                reShadeDxgiSwapChainPresentDelegate = this.ReShadeDxgiSwapChainOnPresentDetour;
+                dxgiSwapChainResizeBuffersDelegate = this.AsHookDxgiSwapChainResizeBuffersDetour;
+                break;
         }
 
-        return this.dispatchMessageWHook.IsDisposed ? User32.DispatchMessage(ref msg) : this.dispatchMessageWHook.Original(ref msg);
-    }
-
-    private IntPtr ResizeBuffersDetour(IntPtr swapChain, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags)
-    {
-#if DEBUG
-        Log.Verbose($"Calling resizebuffers swap@{swapChain.ToInt64():X}{bufferCount} {width} {height} {newFormat} {swapChainFlags}");
-#endif
-
-        this.ResizeBuffers?.InvokeSafely();
-
-        // We have to ensure we're working with the main swapchain,
-        // as viewports might be resizing as well
-        if (this.scene == null || swapChain != this.scene.SwapChain.NativePointer)
-            return this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-
-        this.scene?.OnPreResize();
-
-        var ret = this.resizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
-        if (ret.ToInt64() == 0x887A0001)
+        switch (this.dalamudConfiguration.SwapChainHookMode)
         {
-            Log.Error("invalid call to resizeBuffers");
+            case SwapChainHelper.HookMode.ByteCode:
+            default:
+            {
+                Log.Information("Hooking using bytecode...");
+                this.dxgiSwapChainResizeBuffersHook = Hook<ResizeBuffersDelegate>.FromAddress(
+                    (nint)SwapChainHelper.GameDeviceSwapChainVtbl->ResizeBuffers,
+                    dxgiSwapChainResizeBuffersDelegate);
+                Log.Information(
+                    "Hooked IDXGISwapChain::ResizeBuffers using bytecode: {addr}",
+                    Util.DescribeAddress(this.dxgiSwapChainResizeBuffersHook.Address));
+
+                if (dxgiSwapChainPresentDelegate is not null)
+                {
+                    this.dxgiSwapChainPresentHook = Hook<DxgiSwapChainPresentDelegate>.FromAddress(
+                        (nint)SwapChainHelper.GameDeviceSwapChainVtbl->Present,
+                        dxgiSwapChainPresentDelegate);
+                    Log.Information(
+                        "Hooked IDXGISwapChain::Present using bytecode: {addr}",
+                        Util.DescribeAddress(this.dxgiSwapChainPresentHook.Address));
+                }
+
+                if (reShadeDxgiSwapChainPresentDelegate is not null && pfnReShadeDxgiSwapChainPresent != 0)
+                {
+                    this.reShadeDxgiSwapChainPresentHook = Hook<ReShadeDxgiSwapChainPresentDelegate>.FromAddress(
+                        pfnReShadeDxgiSwapChainPresent,
+                        reShadeDxgiSwapChainPresentDelegate);
+                    Log.Information(
+                        "Hooked ReShade::DXGISwapChain::on_present using bytecode: {addr}",
+                        Util.DescribeAddress(this.reShadeDxgiSwapChainPresentHook.Address));
+                }
+
+                break;
+            }
+
+            case SwapChainHelper.HookMode.VTable:
+            {
+                Log.Information("Hooking using VTable...");
+                this.dxgiSwapChainHook = new(SwapChainHelper.GameDeviceSwapChain);
+                this.dxgiSwapChainResizeBuffersHook = this.dxgiSwapChainHook.CreateHook(
+                    nameof(IDXGISwapChain.ResizeBuffers),
+                    dxgiSwapChainResizeBuffersDelegate);
+                Log.Information(
+                    "Hooked IDXGISwapChain::ResizeBuffers using VTable: {addr}",
+                    Util.DescribeAddress(this.dxgiSwapChainResizeBuffersHook.Address));
+
+                if (dxgiSwapChainPresentDelegate is not null)
+                {
+                    this.dxgiSwapChainPresentHook = this.dxgiSwapChainHook.CreateHook(
+                        nameof(IDXGISwapChain.Present),
+                        dxgiSwapChainPresentDelegate);
+                    Log.Information(
+                        "Hooked IDXGISwapChain::Present using VTable: {addr}",
+                        Util.DescribeAddress(this.dxgiSwapChainPresentHook.Address));
+                }
+
+                Log.Information(
+                    "Detouring vtable at {addr}: {prev} to {new}",
+                    Util.DescribeAddress(this.dxgiSwapChainHook.Address),
+                    Util.DescribeAddress(this.dxgiSwapChainHook.OriginalVTableAddress),
+                    Util.DescribeAddress(this.dxgiSwapChainHook.OverridenVTableAddress));
+                break;
+            }
         }
 
-        this.scene?.OnPostResize((int)width, (int)height);
-
-        return ret;
+        this.setCursorHook.Enable();
+        this.reShadeDxgiSwapChainPresentHook?.Enable();
+        this.dxgiSwapChainResizeBuffersHook.Enable();
+        this.dxgiSwapChainPresentHook?.Enable();
+        this.dxgiSwapChainHook?.Enable();
     }
 
     private IntPtr SetCursorDetour(IntPtr hCursor)
     {
-        if (this.lastWantCapture == true && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
+        if (this.lastWantCapture && (!this.scene?.IsImGuiCursor(hCursor) ?? false) && this.OverrideGameCursor)
             return IntPtr.Zero;
 
-        return this.setCursorHook.IsDisposed ? User32.SetCursor(new User32.SafeCursorHandle(hCursor, false)).DangerousGetHandle() : this.setCursorHook.Original(hCursor);
+        return this.setCursorHook?.IsDisposed is not false
+                   ? User32.SetCursor(new(hCursor, false)).DangerousGetHandle()
+                   : this.setCursorHook.Original(hCursor);
     }
 
     private void OnNewInputFrame()
     {
+        var io = ImGui.GetIO();
         var dalamudInterface = Service<DalamudInterface>.GetNullable();
         var gamepadState = Service<GamepadState>.GetNullable();
         var keyState = Service<KeyState>.GetNullable();
@@ -1176,18 +1060,21 @@ internal class InterfaceManager : IDisposable, IServiceType
         if (dalamudInterface == null || gamepadState == null || keyState == null)
             return;
 
+        // Prevent setting the footgun from ImGui Demo; the Space key isn't removing the flag at the moment.
+        io.ConfigFlags &= ~ImGuiConfigFlags.NoMouse;
+
         // fix for keys in game getting stuck, if you were holding a game key (like run)
         // and then clicked on an imgui textbox - imgui would swallow the keyup event,
         // so the game would think the key remained pressed continuously until you left
         // imgui and pressed and released the key again
-        if (ImGui.GetIO().WantTextInput)
+        if (io.WantTextInput)
         {
             keyState.ClearAll();
         }
 
         // TODO: mouse state?
 
-        var gamepadEnabled = (ImGui.GetIO().BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
+        var gamepadEnabled = (io.BackendFlags & ImGuiBackendFlags.HasGamepad) > 0;
 
         // NOTE (Chiv) Activate ImGui navigation  via L1+L3 press
         // (mimicking how mouse navigation is activated via L1+R3 press in game).
@@ -1195,12 +1082,12 @@ internal class InterfaceManager : IDisposable, IServiceType
             && gamepadState.Raw(GamepadButtons.L1) > 0
             && gamepadState.Pressed(GamepadButtons.L3) > 0)
         {
-            ImGui.GetIO().ConfigFlags ^= ImGuiConfigFlags.NavEnableGamepad;
+            io.ConfigFlags ^= ImGuiConfigFlags.NavEnableGamepad;
             gamepadState.NavEnableGamepad ^= true;
             dalamudInterface.ToggleGamepadModeNotifierWindow();
         }
 
-        if (gamepadEnabled && (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
+        if (gamepadEnabled && (io.ConfigFlags & ImGuiConfigFlags.NavEnableGamepad) > 0)
         {
             var northButton = gamepadState.Raw(GamepadButtons.North) != 0;
             var eastButton = gamepadState.Raw(GamepadButtons.East) != 0;
@@ -1219,7 +1106,6 @@ internal class InterfaceManager : IDisposable, IServiceType
             var r1Button = gamepadState.Raw(GamepadButtons.R1) != 0;
             var r2Button = gamepadState.Raw(GamepadButtons.R2) != 0;
 
-            var io = ImGui.GetIO();
             io.AddKeyEvent(ImGuiKey.GamepadFaceUp, northButton);
             io.AddKeyEvent(ImGuiKey.GamepadFaceRight, eastButton);
             io.AddKeyEvent(ImGuiKey.GamepadFaceDown, southButton);
@@ -1242,7 +1128,8 @@ internal class InterfaceManager : IDisposable, IServiceType
 
             if (gamepadState.Pressed(GamepadButtons.R3) > 0)
             {
-                dalamudInterface.TogglePluginInstallerWindow();
+                var configuration = Service<DalamudConfiguration>.Get();
+                dalamudInterface.TogglePluginInstallerWindowTo(configuration.PluginInstallerOpen);
             }
         }
     }
@@ -1263,20 +1150,28 @@ internal class InterfaceManager : IDisposable, IServiceType
         WindowSystem.HasAnyWindowSystemFocus = false;
         WindowSystem.FocusedWindowSystemNamespace = string.Empty;
 
-        var snap = ImGuiManagedAsserts.GetSnapshot();
-
         if (this.IsDispatchingEvents)
-            this.Draw?.Invoke();
+        {
+            try
+            {
+                this.Draw?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error when invoking global Draw");
 
-        ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
+                // We should always handle this in the callbacks.
+                Util.Fatal("An internal error occurred while drawing the Dalamud UI and the game must close.\nPlease report this error.", "Dalamud");
+            }
 
-        Service<NotificationManager>.Get().Draw();
+            Service<NotificationManager>.GetNullable()?.Draw();
+        }
     }
 
     /// <summary>
     /// Represents an instance of InstanceManager with scene ready for use.
     /// </summary>
-    [ServiceManager.Service]
+    [ServiceManager.ProvidedService]
     public class InterfaceManagerWithScene : IServiceType
     {
         /// <summary>
@@ -1292,124 +1187,5 @@ internal class InterfaceManager : IDisposable, IServiceType
         /// Gets the associated InterfaceManager.
         /// </summary>
         public InterfaceManager Manager { get; init; }
-    }
-
-    /// <summary>
-    /// Represents a glyph request.
-    /// </summary>
-    public class SpecialGlyphRequest : IDisposable
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SpecialGlyphRequest"/> class.
-        /// </summary>
-        /// <param name="manager">InterfaceManager to associate.</param>
-        /// <param name="size">Font size in pixels.</param>
-        /// <param name="ranges">Codepoint ranges.</param>
-        internal SpecialGlyphRequest(InterfaceManager manager, float size, List<Tuple<ushort, ushort>> ranges)
-        {
-            this.Manager = manager;
-            this.Size = size;
-            this.CodepointRanges = ranges;
-            this.Manager.glyphRequests.Add(this);
-        }
-
-        /// <summary>
-        /// Gets the font of specified size, or DefaultFont if it's not ready yet.
-        /// </summary>
-        public ImFontPtr Font
-        {
-            get
-            {
-                unsafe
-                {
-                    return this.FontInternal.NativePtr == null ? DefaultFont : this.FontInternal;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the associated ImFont.
-        /// </summary>
-        internal ImFontPtr FontInternal { get; set; }
-
-        /// <summary>
-        /// Gets associated InterfaceManager.
-        /// </summary>
-        internal InterfaceManager Manager { get; init; }
-
-        /// <summary>
-        /// Gets font size.
-        /// </summary>
-        internal float Size { get; init; }
-
-        /// <summary>
-        /// Gets codepoint ranges.
-        /// </summary>
-        internal List<Tuple<ushort, ushort>> CodepointRanges { get; init; }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            this.Manager.glyphRequests.Remove(this);
-        }
-    }
-
-    private unsafe class TargetFontModification : IDisposable
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
-        /// Constructs new target font modification information, assuming that AXIS fonts will not be applied.
-        /// </summary>
-        /// <param name="name">Name of the font to write to ImGui font information.</param>
-        /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
-        internal TargetFontModification(string name, float sizePx)
-        {
-            this.Name = name;
-            this.Axis = AxisMode.Suppress;
-            this.TargetSizePx = sizePx;
-            this.Scale = 1;
-            this.SourceAxis = null;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TargetFontModification"/> class.
-        /// Constructs new target font modification information.
-        /// </summary>
-        /// <param name="name">Name of the font to write to ImGui font information.</param>
-        /// <param name="axis">Whether and how to use AXIS fonts.</param>
-        /// <param name="sizePx">Target font size in pixels, which will not be considered for further scaling.</param>
-        /// <param name="globalFontScale">Font scale to be referred for loading AXIS font of appropriate size.</param>
-        internal TargetFontModification(string name, AxisMode axis, float sizePx, float globalFontScale)
-        {
-            this.Name = name;
-            this.Axis = axis;
-            this.TargetSizePx = sizePx;
-            this.Scale = globalFontScale;
-            this.SourceAxis = Service<GameFontManager>.Get().NewFontRef(new(GameFontFamily.Axis, this.TargetSizePx * this.Scale));
-        }
-
-        internal enum AxisMode
-        {
-            Suppress,
-            GameGlyphsOnly,
-            Overwrite,
-        }
-
-        internal string Name { get; private init; }
-
-        internal AxisMode Axis { get; private init; }
-
-        internal float TargetSizePx { get; private init; }
-
-        internal float Scale { get; private init; }
-
-        internal GameFontHandle? SourceAxis { get; private init; }
-
-        internal bool SourceAxisAvailable => this.SourceAxis != null && this.SourceAxis.ImFont.NativePtr != null;
-
-        public void Dispose()
-        {
-            this.SourceAxis?.Dispose();
-        }
     }
 }

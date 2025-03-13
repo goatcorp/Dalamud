@@ -11,9 +11,8 @@ namespace Dalamud.Game.DutyState;
 /// <summary>
 /// This class represents the state of the currently occupied duty.
 /// </summary>
-[InterfaceVersion("1.0")]
 [ServiceManager.EarlyLoadedService]
-internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
+internal unsafe class DutyState : IInternalDisposableService, IDutyState
 {
     private readonly DutyStateAddressResolver address;
     private readonly Hook<SetupContentDirectNetworkMessageDelegate> contentDirectorNetworkMessageHook;
@@ -37,6 +36,8 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
 
         this.framework.Update += this.FrameworkOnUpdateEvent;
         this.clientState.TerritoryChanged += this.TerritoryOnChangedEvent;
+
+        this.contentDirectorNetworkMessageHook.Enable();
     }
 
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
@@ -60,17 +61,11 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
     private bool CompletedThisTerritory { get; set; }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.contentDirectorNetworkMessageHook.Dispose();
         this.framework.Update -= this.FrameworkOnUpdateEvent;
         this.clientState.TerritoryChanged -= this.TerritoryOnChangedEvent;
-    }
-
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
-    {
-        this.contentDirectorNetworkMessageHook.Enable();
     }
 
     private byte ContentDirectorNetworkMessageDetour(IntPtr a1, IntPtr a2, ushort* a3)
@@ -167,12 +162,11 @@ internal unsafe class DutyState : IDisposable, IServiceType, IDutyState
 /// Plugin scoped version of DutyState.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IDutyState>]
 #pragma warning restore SA1015
-internal class DutyStatePluginScoped : IDisposable, IServiceType, IDutyState
+internal class DutyStatePluginScoped : IInternalDisposableService, IDutyState
 {
     [ServiceManager.ServiceDependency]
     private readonly DutyState dutyStateService = Service<DutyState>.Get();
@@ -204,7 +198,7 @@ internal class DutyStatePluginScoped : IDisposable, IServiceType, IDutyState
     public bool IsDutyStarted => this.dutyStateService.IsDutyStarted;
     
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.dutyStateService.DutyStarted -= this.DutyStartedForward;
         this.dutyStateService.DutyWiped -= this.DutyWipedForward;

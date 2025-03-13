@@ -1,18 +1,17 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
+using Dalamud.Game;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-using JetBrains.Annotations;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -22,64 +21,44 @@ namespace Dalamud.Data;
 /// This class provides data for Dalamud-internal features, but can also be used by plugins if needed.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IDataManager>]
 #pragma warning restore SA1015
-internal sealed class DataManager : IDisposable, IServiceType, IDataManager
+internal sealed class DataManager : IInternalDisposableService, IDataManager
 {
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;
+    private readonly RsvResolver rsvResolver;
 
     [ServiceManager.ServiceConstructor]
     private DataManager(Dalamud dalamud)
     {
         this.Language = (ClientLanguage)dalamud.StartInfo.Language;
 
-        // Set up default values so plugins do not null-reference when data is being loaded.
-        this.ClientOpCodes = this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(new Dictionary<string, ushort>());
+        this.rsvResolver = new();
 
-        var baseDir = dalamud.AssetDirectory.FullName;
         try
         {
             Log.Verbose("Starting data load...");
-
-            var zoneOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                File.ReadAllText(Path.Combine(baseDir, "UIRes", "serveropcode.json")))!;
-            this.ServerOpCodes = new ReadOnlyDictionary<string, ushort>(zoneOpCodeDict);
-
-            Log.Verbose("Loaded {0} ServerOpCodes.", zoneOpCodeDict.Count);
-
-            var clientOpCodeDict = JsonConvert.DeserializeObject<Dictionary<string, ushort>>(
-                File.ReadAllText(Path.Combine(baseDir, "UIRes", "clientopcode.json")))!;
-            this.ClientOpCodes = new ReadOnlyDictionary<string, ushort>(clientOpCodeDict);
-
-            Log.Verbose("Loaded {0} ClientOpCodes.", clientOpCodeDict.Count);
-
+            
             using (Timings.Start("Lumina Init"))
             {
                 var luminaOptions = new LuminaOptions
                 {
                     LoadMultithreaded = true,
                     CacheFileResources = true,
-#if NEVER // Lumina bug
                     PanicOnSheetChecksumMismatch = true,
-#else
-                    PanicOnSheetChecksumMismatch = false,
-#endif
+                    RsvResolver = this.rsvResolver.TryResolve,
                     DefaultExcelLanguage = this.Language.ToLumina(),
                 };
 
-                var processModule = Process.GetCurrentProcess().MainModule;
-                if (processModule != null)
+                this.GameData = new(
+                    Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!, "sqpack"),
+                    luminaOptions)
                 {
-                    this.GameData = new GameData(Path.Combine(Path.GetDirectoryName(processModule.FileName)!, "sqpack"), luminaOptions);
-                }
-                else
-                {
-                    throw new Exception("Could not main module.");
-                }
+                    StreamPool = new(),
+                };
 
                 Log.Information("Lumina is ready: {0}", this.GameData.DataPath);
 
@@ -92,6 +71,9 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
                                 dalamud.StartInfo.TroubleshootingPackData);
                         this.HasModifiedGameDataFiles =
                             tsInfo?.IndexIntegrity is LauncherTroubleshootingInfo.IndexIntegrityResult.Failed or LauncherTroubleshootingInfo.IndexIntegrityResult.Exception;
+                        
+                        if (this.HasModifiedGameDataFiles)
+                            Log.Verbose("Game data integrity check failed!\n{TsData}", dalamud.StartInfo.TroubleshootingPackData);
                     }
                     catch
                     {
@@ -123,23 +105,13 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Could not download data.");
+            Log.Error(ex, "Could not initialize Lumina");
+            throw;
         }
     }
 
     /// <inheritdoc/>
     public ClientLanguage Language { get; private set; }
-
-    /// <summary>
-    /// Gets a list of server opcodes.
-    /// </summary>
-    public ReadOnlyDictionary<string, ushort> ServerOpCodes { get; private set; }
-    
-    /// <summary>
-    /// Gets a list of client opcodes.
-    /// </summary>
-    [UsedImplicitly]
-    public ReadOnlyDictionary<string, ushort> ClientOpCodes { get; private set; }
 
     /// <inheritdoc/>
     public GameData GameData { get; private set; }
@@ -158,12 +130,12 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     #region Lumina Wrappers
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow 
-        => this.Excel.GetSheet<T>();
+    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelRow<T> 
+        => this.Excel.GetSheet<T>(language?.ToLumina(), name);
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow 
-        => this.Excel.GetSheet<T>(language.ToLumina());
+    public SubrowExcelSheet<T> GetSubrowExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelSubrow<T>
+        => this.Excel.GetSubrowSheet<T>(language?.ToLumina(), name);
 
     /// <inheritdoc/>
     public FileResource? GetFile(string path) 
@@ -179,15 +151,27 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
     }
 
     /// <inheritdoc/>
+    public Task<T> GetFileAsync<T>(string path, CancellationToken cancellationToken) where T : FileResource =>
+        GameData.ParseFilePath(path) is { } filePath &&
+        this.GameData.Repositories.TryGetValue(filePath.Repository, out var repository)
+            ? Task.Run(
+                () => repository.GetFile<T>(filePath.Category, filePath) ?? throw new FileNotFoundException(
+                          "Failed to load file, most likely because the file could not be found."),
+                cancellationToken)
+            : Task.FromException<T>(new FileNotFoundException("The file could not be found."));
+
+    /// <inheritdoc/>
     public bool FileExists(string path) 
         => this.GameData.FileExists(path);
 
     #endregion
 
     /// <inheritdoc/>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.luminaCancellationTokenSource.Cancel();
+        this.GameData.Dispose();
+        this.rsvResolver.Dispose();
     }
 
     private class LauncherTroubleshootingInfo
@@ -202,6 +186,6 @@ internal sealed class DataManager : IDisposable, IServiceType, IDataManager
             Success,
         }
 
-        public IndexIntegrityResult IndexIntegrity { get; set; }
+        public IndexIntegrityResult? IndexIntegrity { get; set; }
     }
 }

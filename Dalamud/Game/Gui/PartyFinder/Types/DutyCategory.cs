@@ -3,45 +3,85 @@ namespace Dalamud.Game.Gui.PartyFinder.Types;
 /// <summary>
 /// Category flags for the <see cref="PartyFinderGui"/> class.
 /// </summary>
-public enum DutyCategory
+public enum DutyCategory : ushort
 {
     /// <summary>
-    /// The duty category.
+    /// The none category.
     /// </summary>
-    Duty = 0,
+    None = 0,
 
     /// <summary>
-    /// The quest battle category.
+    /// The duty roulette category.
     /// </summary>
-    QuestBattles = 1 << 0,
+    DutyRoulette = 1 << 1,
 
     /// <summary>
-    /// The fate category.
+    /// The dungeons category.
     /// </summary>
-    Fates = 1 << 1,
+    Dungeon = 1 << 2,
 
     /// <summary>
-    /// The treasure hunt category.
+    /// The guildhests category.
     /// </summary>
-    TreasureHunt = 1 << 2,
+    Guildhest = 1 << 3,
 
     /// <summary>
-    /// The hunt category.
+    /// The trials category.
     /// </summary>
-    TheHunt = 1 << 3,
+    Trial = 1 << 4,
+
+    /// <summary>
+    /// The raids category.
+    /// </summary>
+    Raid = 1 << 5,
+
+    /// <summary>
+    /// The high-end duty category.
+    /// </summary>
+    HighEndDuty = 1 << 6,
+
+    /// <summary>
+    /// The pvp category.
+    /// </summary>
+    PvP = 1 << 7,
+
+    /// <summary>
+    /// The gold saucer category.
+    /// </summary>
+    GoldSaucer = 1 << 8,
+
+    /// <summary>
+    /// The FATEs category.
+    /// </summary>
+    Fate = 1 << 9,
+
+    /// <summary>
+    /// The treasure hunts category.
+    /// </summary>
+    TreasureHunt = 1 << 10,
+
+    /// <summary>
+    /// The hunts category.
+    /// </summary>
+    TheHunt = 1 << 11,
 
     /// <summary>
     /// The gathering forays category.
     /// </summary>
-    GatheringForays = 1 << 4,
+    GatheringForay = 1 << 12,
 
     /// <summary>
     /// The deep dungeons category.
     /// </summary>
-    DeepDungeons = 1 << 5,
+    DeepDungeon = 1 << 13,
 
     /// <summary>
-    /// The adventuring forays category.
+    /// The field operations category.
     /// </summary>
-    AdventuringForays = 1 << 6,
+    FieldOperation = 1 << 14,
+
+    /// <summary>
+    /// The variant and criterion dungeons category.
+    /// </summary>
+    VariantAndCriterionDungeon = 1 << 15,
 }

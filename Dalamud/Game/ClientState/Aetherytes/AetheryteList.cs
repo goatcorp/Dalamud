@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Serilog;
 
@@ -13,8 +15,7 @@ namespace Dalamud.Game.ClientState.Aetherytes;
 /// This collection represents the list of available Aetherytes in the Teleport window.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IAetheryteList>]
 #pragma warning restore SA1015
@@ -28,7 +29,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
     [ServiceManager.ServiceConstructor]
     private AetheryteList()
     {
-        Log.Verbose($"Teleport address 0x{((nint)this.telepoInstance).ToInt64():X}");
+        Log.Verbose($"Teleport address {Util.DescribeAddress(this.telepoInstance)}");
     }
 
     /// <inheritdoc/>
@@ -44,12 +45,12 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
             if (this.telepoInstance->TeleportList.First == this.telepoInstance->TeleportList.Last)
                 return 0;
 
-            return (int)this.telepoInstance->TeleportList.Size();
+            return this.telepoInstance->TeleportList.Count;
         }
     }
 
     /// <inheritdoc/>
-    public AetheryteEntry? this[int index]
+    public IAetheryteEntry? this[int index]
     {
         get
         {
@@ -61,7 +62,7 @@ internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteLis
             if (this.clientState.LocalPlayer == null)
                 return null;
 
-            return new AetheryteEntry(this.telepoInstance->TeleportList.Get((ulong)index));
+            return new AetheryteEntry(this.telepoInstance->TeleportList[index]);
         }
     }
 
@@ -84,7 +85,7 @@ internal sealed partial class AetheryteList
     public int Count => this.Length;
 
     /// <inheritdoc/>
-    public IEnumerator<AetheryteEntry> GetEnumerator()
+    public IEnumerator<IAetheryteEntry> GetEnumerator()
     {
         for (var i = 0; i < this.Length; i++)
         {

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Game.ClientState.Buddy;
 
@@ -9,7 +8,7 @@ namespace Dalamud.Plugin.Services;
 /// This collection represents the buddies present in your squadron or trust party.
 /// It does not include the local player.
 /// </summary>
-public interface IBuddyList : IReadOnlyCollection<BuddyMember>
+public interface IBuddyList : IReadOnlyCollection<IBuddyMember>
 {
     /// <summary>
     /// Gets the amount of battle buddies the local player has.
@@ -19,19 +18,19 @@ public interface IBuddyList : IReadOnlyCollection<BuddyMember>
     /// <summary>
     /// Gets the active companion buddy.
     /// </summary>
-    public BuddyMember? CompanionBuddy { get; }
+    public IBuddyMember? CompanionBuddy { get; }
     
     /// <summary>
     /// Gets the active pet buddy.
     /// </summary>
-    public BuddyMember? PetBuddy { get; }
+    public IBuddyMember? PetBuddy { get; }
     
     /// <summary>
     /// Gets a battle buddy at the specified spawn index.
     /// </summary>
     /// <param name="index">Spawn index.</param>
     /// <returns>A <see cref="BuddyMember"/> at the specified spawn index.</returns>
-    public BuddyMember? this[int index] { get; }
+    public IBuddyMember? this[int index] { get; }
 
     /// <summary>
     /// Gets the address of the companion buddy.
@@ -57,5 +56,5 @@ public interface IBuddyList : IReadOnlyCollection<BuddyMember>
     /// </summary>
     /// <param name="address">The address of the buddy in memory.</param>
     /// <returns><see cref="BuddyMember"/> object containing the requested data.</returns>
-    public BuddyMember? CreateBuddyMemberReference(nint address);
+    public IBuddyMember? CreateBuddyMemberReference(nint address);
 }

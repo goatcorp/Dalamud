@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 using Dalamud.Utility;
@@ -37,7 +36,7 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
 
     /// <summary>
     /// Gets a value indicating whether this manifest is associated with a plugin that was installed from a third party
-    /// repo. Unless the manifest has been manually modified, this is determined by the InstalledFromUrl being null.
+    /// repo.
     /// </summary>
     public bool IsThirdParty => !this.InstalledFromUrl.IsNullOrEmpty() && this.InstalledFromUrl != SpecialPluginSource.MainRepo;
 
@@ -45,6 +44,11 @@ internal record LocalPluginManifest : PluginManifest, ILocalPluginManifest
     /// Gets the effective version of this plugin.
     /// </summary>
     public Version EffectiveVersion => this.Testing && this.TestingAssemblyVersion != null ? this.TestingAssemblyVersion : this.AssemblyVersion;
+
+    /// <summary>
+    /// Gets the effective API level of this plugin.
+    /// </summary>
+    public int EffectiveApiLevel => this.Testing && this.TestingDalamudApiLevel != null ? this.TestingDalamudApiLevel.Value : this.DalamudApiLevel;
 
     /// <summary>
     /// Save a plugin manifest to file.

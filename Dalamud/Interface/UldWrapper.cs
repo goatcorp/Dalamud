@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Dalamud.Data;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Utility;
-using ImGuiScene;
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Uld;
 
@@ -14,16 +16,17 @@ namespace Dalamud.Interface;
 public class UldWrapper : IDisposable
 {
     private readonly DataManager data;
-    private readonly UiBuilder uiBuilder;
+    private readonly TextureManager textureManager;
     private readonly Dictionary<string, (uint Id, int Width, int Height, bool HD, byte[] RgbaData)> textures = new();
 
     /// <summary> Initializes a new instance of the <see cref="UldWrapper"/> class, wrapping an ULD file. </summary>
     /// <param name="uiBuilder">The UiBuilder used to load textures.</param>
     /// <param name="uldPath">The requested ULD file.</param>
-    internal UldWrapper(UiBuilder uiBuilder, string uldPath)
+    internal UldWrapper(UiBuilder? uiBuilder, string uldPath)
     {
-        this.uiBuilder = uiBuilder;
+        _ = uiBuilder;
         this.data = Service<DataManager>.Get();
+        this.textureManager = Service<TextureManager>.Get();
         this.Uld = this.data.GetFile<UldFile>(uldPath);
     }
 
@@ -107,7 +110,7 @@ public class UldWrapper : IDisposable
 
     private IDalamudTextureWrap? CopyRect(int width, int height, byte[] rgbaData, UldRoot.PartData part)
     {
-        if (part.V + part.W > width || part.U + part.H > height)
+        if (part.U + part.W > width || part.V + part.H > height)
         {
             return null;
         }
@@ -123,7 +126,10 @@ public class UldWrapper : IDisposable
             inputSlice.CopyTo(outputSlice);
         }
 
-        return this.uiBuilder.LoadImageRaw(imageData, part.W, part.H, 4);
+        return this.textureManager.CreateFromRaw(
+            RawImageSpecification.Rgba32(part.W, part.H),
+            imageData,
+            $"{nameof(UldWrapper)}({this.Uld?.FilePath.Path}: {part.TextureId})");
     }
 
     private (uint Id, int Width, int Height, bool HD, byte[] RgbaData)? GetTexture(string texturePath)
@@ -155,20 +161,27 @@ public class UldWrapper : IDisposable
 
         // Try to load HD textures first. 
         var hrPath = texturePath.Replace(".tex", "_hr1.tex");
+        var substitution = Service<TextureManager>.Get();
+        hrPath = substitution.GetSubstitutedPath(hrPath);
         var hd = true;
-        var file = this.data.GetFile<TexFile>(hrPath);
-        if (file == null)
+        var tex = Path.IsPathRooted(hrPath) 
+                      ? this.data.GameData.GetFileFromDisk<TexFile>(hrPath) 
+                      : this.data.GetFile<TexFile>(hrPath);
+        if (tex == null)
         {
             hd = false;
-            file = this.data.GetFile<TexFile>(texturePath);
+            texturePath = substitution.GetSubstitutedPath(texturePath);
+            tex = Path.IsPathRooted(texturePath)
+                      ? this.data.GameData.GetFileFromDisk<TexFile>(texturePath)
+                      : this.data.GetFile<TexFile>(texturePath);
 
             // Neither texture could be loaded.
-            if (file == null)
+            if (tex == null)
             {
                 return null;
             }
         }
 
-        return (id, file.Header.Width, file.Header.Height, hd, file.GetRgbaImageData());
+        return (id, tex.Header.Width, tex.Header.Height, hd, tex.GetRgbaImageData());
     }
 }

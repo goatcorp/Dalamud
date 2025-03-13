@@ -1,155 +1,163 @@
-using System;
-
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
 /// <summary>
 /// Job flags for the <see cref="PartyFinder"/> class.
 /// </summary>
 [Flags]
-public enum JobFlags
+public enum JobFlags : ulong
 {
     /// <summary>
     /// Gladiator (GLD).
     /// </summary>
-    Gladiator = 1 << 1,
+    Gladiator = 1ul << 1,
 
     /// <summary>
     /// Pugilist (PGL).
     /// </summary>
-    Pugilist = 1 << 2,
+    Pugilist = 1ul << 2,
 
     /// <summary>
     /// Marauder (MRD).
     /// </summary>
-    Marauder = 1 << 3,
+    Marauder = 1ul << 3,
 
     /// <summary>
     /// Lancer (LNC).
     /// </summary>
-    Lancer = 1 << 4,
+    Lancer = 1ul << 4,
 
     /// <summary>
     /// Archer (ARC).
     /// </summary>
-    Archer = 1 << 5,
+    Archer = 1ul << 5,
 
     /// <summary>
     /// Conjurer (CNJ).
     /// </summary>
-    Conjurer = 1 << 6,
+    Conjurer = 1ul << 6,
 
     /// <summary>
     /// Thaumaturge (THM).
     /// </summary>
-    Thaumaturge = 1 << 7,
+    Thaumaturge = 1ul << 7,
 
     /// <summary>
     /// Paladin (PLD).
     /// </summary>
-    Paladin = 1 << 8,
+    Paladin = 1ul << 8,
 
     /// <summary>
     /// Monk (MNK).
     /// </summary>
-    Monk = 1 << 9,
+    Monk = 1ul << 9,
 
     /// <summary>
     /// Warrior (WAR).
     /// </summary>
-    Warrior = 1 << 10,
+    Warrior = 1ul << 10,
 
     /// <summary>
     /// Dragoon (DRG).
     /// </summary>
-    Dragoon = 1 << 11,
+    Dragoon = 1ul << 11,
 
     /// <summary>
     /// Bard (BRD).
     /// </summary>
-    Bard = 1 << 12,
+    Bard = 1ul << 12,
 
     /// <summary>
     /// White mage (WHM).
     /// </summary>
-    WhiteMage = 1 << 13,
+    WhiteMage = 1ul << 13,
 
     /// <summary>
     /// Black mage (BLM).
     /// </summary>
-    BlackMage = 1 << 14,
+    BlackMage = 1ul << 14,
 
     /// <summary>
     /// Arcanist (ACN).
     /// </summary>
-    Arcanist = 1 << 15,
+    Arcanist = 1ul << 15,
 
     /// <summary>
     /// Summoner (SMN).
     /// </summary>
-    Summoner = 1 << 16,
+    Summoner = 1ul << 16,
 
     /// <summary>
     /// Scholar (SCH).
     /// </summary>
-    Scholar = 1 << 17,
+    Scholar = 1ul << 17,
 
     /// <summary>
     /// Rogue (ROG).
     /// </summary>
-    Rogue = 1 << 18,
+    Rogue = 1ul << 18,
 
     /// <summary>
     /// Ninja (NIN).
     /// </summary>
-    Ninja = 1 << 19,
+    Ninja = 1ul << 19,
 
     /// <summary>
     /// Machinist (MCH).
     /// </summary>
-    Machinist = 1 << 20,
+    Machinist = 1ul << 20,
 
     /// <summary>
     /// Dark Knight (DRK).
     /// </summary>
-    DarkKnight = 1 << 21,
+    DarkKnight = 1ul << 21,
 
     /// <summary>
     /// Astrologian (AST).
     /// </summary>
-    Astrologian = 1 << 22,
+    Astrologian = 1ul << 22,
 
     /// <summary>
     /// Samurai (SAM).
     /// </summary>
-    Samurai = 1 << 23,
+    Samurai = 1ul << 23,
 
     /// <summary>
     /// Red mage (RDM).
     /// </summary>
-    RedMage = 1 << 24,
+    RedMage = 1ul << 24,
 
     /// <summary>
     /// Blue mage (BLM).
     /// </summary>
-    BlueMage = 1 << 25,
+    BlueMage = 1ul << 25,
 
     /// <summary>
     /// Gunbreaker (GNB).
     /// </summary>
-    Gunbreaker = 1 << 26,
+    Gunbreaker = 1ul << 26,
 
     /// <summary>
     /// Dancer (DNC).
     /// </summary>
-    Dancer = 1 << 27,
+    Dancer = 1ul << 27,
 
     /// <summary>
     /// Reaper (RPR).
     /// </summary>
-    Reaper = 1 << 28,
+    Reaper = 1ul << 28,
 
     /// <summary>
     /// Sage (SGE).
     /// </summary>
-    Sage = 1 << 29,
+    Sage = 1ul << 29,
+
+    /// <summary>
+    /// Viper (VPR).
+    /// </summary>
+    Viper = 1ul << 30,
+
+    /// <summary>
+    /// Pictomancer (PCT).
+    /// </summary>
+    Pictomancer = 1ul << 31,
 }

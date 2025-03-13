@@ -6,22 +6,22 @@ namespace Dalamud.Game.ClientState.JobGauge.Enums;
 public enum BeastChakra : byte
 {
     /// <summary>
-    /// No card.
+    /// No chakra.
     /// </summary>
     NONE = 0,
 
     /// <summary>
-    /// The Coeurl chakra.
-    /// </summary>
-    COEURL = 1,
-
-    /// <summary>
     /// The Opo-Opo chakra.
     /// </summary>
-    OPOOPO = 2,
+    OPOOPO = 1,
 
     /// <summary>
     /// The Raptor chakra.
     /// </summary>
-    RAPTOR = 3,
+    RAPTOR = 2,
+
+    /// <summary>
+    /// The Coeurl chakra.
+    /// </summary>
+    COEURL = 3,
 }

@@ -1,5 +1,6 @@
 using Dalamud.Game.Gui.PartyFinder;
 using Dalamud.Game.Gui.PartyFinder.Types;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
@@ -50,7 +51,7 @@ internal class PartyFinderAgingStep : IAgingStep
         }
     }
 
-    private void PartyFinderOnReceiveListing(PartyFinderListing listing, PartyFinderListingEventArgs args)
+    private void PartyFinderOnReceiveListing(IPartyFinderListing listing, IPartyFinderListingEventArgs args)
     {
         this.hasPassed = true;
     }

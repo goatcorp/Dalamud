@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -6,11 +5,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
-using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
@@ -19,23 +18,27 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
+using Dalamud.Interface.Internal.Windows.Settings;
 using Dalamud.Plugin.Internal;
+using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Exceptions;
 using Dalamud.Plugin.Ipc.Internal;
-using Dalamud.Utility;
+
+using Serilog;
 
 namespace Dalamud.Plugin;
 
 /// <summary>
 /// This class acts as an interface to various objects needed to interact with Dalamud and the game.
 /// </summary>
-public sealed class DalamudPluginInterface : IDisposable
+internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposable
 {
     private readonly LocalPlugin plugin;
     private readonly PluginConfigurations configs;
+    private readonly UiBuilder uiBuilder;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DalamudPluginInterface"/> class.
@@ -52,7 +55,7 @@ public sealed class DalamudPluginInterface : IDisposable
         var dataManager = Service<DataManager>.Get();
         var localization = Service<Localization>.Get();
 
-        this.UiBuilder = new UiBuilder(plugin.Name);
+        this.UiBuilder = this.uiBuilder = new(plugin, plugin.Name);
 
         this.configs = Service<PluginManager>.Get().PluginConfigs;
         this.Reason = reason;
@@ -82,27 +85,14 @@ public sealed class DalamudPluginInterface : IDisposable
     }
 
     /// <summary>
-    /// Delegate for localization change with two-letter iso lang code.
-    /// </summary>
-    /// <param name="langCode">The new language code.</param>
-    public delegate void LanguageChangedDelegate(string langCode);
-
-    /// <summary>
-    /// Delegate for events that listen to changes to the list of active plugins.
-    /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
-
-    /// <summary>
     /// Event that gets fired when loc is changed
     /// </summary>
-    public event LanguageChangedDelegate LanguageChanged;
+    public event IDalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
 
     /// <summary>
     /// Event that is fired when the active list of plugins is changed.
     /// </summary>
-    public event ActivePluginsChangedDelegate ActivePluginsChanged;
+    public event IDalamudPluginInterface.ActivePluginsChangedDelegate? ActivePluginsChanged;
 
     /// <summary>
     /// Gets the reason this plugin was loaded.
@@ -112,7 +102,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a value indicating whether or not auto-updates have already completed this session.
     /// </summary>
-    public bool IsAutoUpdateComplete => Service<ChatHandlers>.Get().IsAutoUpdateComplete;
+    public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.Get().IsAutoUpdateComplete;
 
     /// <summary>
     /// Gets the repository from which this plugin was installed.
@@ -127,6 +117,11 @@ public sealed class DalamudPluginInterface : IDisposable
     /// Gets the current internal plugin name.
     /// </summary>
     public string InternalName => this.plugin.InternalName;
+
+    /// <summary>
+    /// Gets the plugin's manifest.
+    /// </summary>
+    public IPluginManifest Manifest => this.plugin.Manifest;
 
     /// <summary>
     /// Gets a value indicating whether this is a dev plugin.
@@ -179,7 +174,7 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets the <see cref="UiBuilder"/> instance which allows you to draw UI into the game via ImGui draw calls.
     /// </summary>
-    public UiBuilder UiBuilder { get; private set; }
+    public IUiBuilder UiBuilder { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether Dalamud is running in Debug mode or the /xldev menu is open. This can occur on release builds.
@@ -209,13 +204,21 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <summary>
     /// Gets a list of installed plugins along with their current state.
     /// </summary>
-    public IEnumerable<InstalledPluginState> InstalledPlugins => Service<PluginManager>.Get().InstalledPlugins.Select(p => new InstalledPluginState(p.Name, p.Manifest.InternalName, p.IsLoaded, p.EffectiveVersion));
+    public IEnumerable<IExposedPlugin> InstalledPlugins =>
+        Service<PluginManager>.Get().InstalledPlugins.Select(p => new ExposedPlugin(p));
 
     /// <summary>
-    /// Opens the <see cref="PluginInstallerWindow"/> with the plugin name set as search target.
+    /// Gets the <see cref="UiBuilder"/> internal implementation.
     /// </summary>
+    internal UiBuilder LocalUiBuilder => this.uiBuilder;
+
+    /// <summary>
+    /// Opens the <see cref="PluginInstallerWindow"/>, with an optional search term.
+    /// </summary>
+    /// <param name="openTo">The page to open the installer to. Defaults to the "All Plugins" page.</param>
+    /// <param name="searchText">An optional search text to input in the search box.</param>
     /// <returns>Returns false if the DalamudInterface was null.</returns>
-    public bool OpenPluginInstaller()
+    public bool OpenPluginInstallerTo(PluginInstallerOpenKind openTo = PluginInstallerOpenKind.AllPlugins, string? searchText = null)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
         if (dalamudInterface == null)
@@ -223,9 +226,45 @@ public sealed class DalamudPluginInterface : IDisposable
             return false;
         }
 
-        dalamudInterface.OpenPluginInstallerPluginInstalled();
-        dalamudInterface.SetPluginInstallerSearchText(this.plugin.InternalName);
+        dalamudInterface.OpenPluginInstallerTo(openTo);
+        dalamudInterface.SetPluginInstallerSearchText(searchText ?? string.Empty);
 
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the <see cref="SettingsWindow"/>, with an optional search term.
+    /// </summary>
+    /// <param name="openTo">The tab to open the settings to. Defaults to the "General" tab.</param>
+    /// <param name="searchText">An optional search text to input in the search box.</param>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenDalamudSettingsTo(SettingsOpenKind openTo = SettingsOpenKind.General, string? searchText = null)
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenSettingsTo(openTo);
+        dalamudInterface.SetSettingsSearchText(searchText ?? string.Empty);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the dev menu bar.
+    /// </summary>
+    /// <returns>Returns false if the DalamudInterface was null.</returns>
+    public bool OpenDeveloperMenu()
+    {
+        var dalamudInterface = Service<DalamudInterface>.GetNullable(); // Can be null during boot
+        if (dalamudInterface == null)
+        {
+            return false;
+        }
+
+        dalamudInterface.OpenDevMenu();
         return true;
     }
 
@@ -343,7 +382,7 @@ public sealed class DalamudPluginInterface : IDisposable
         if (currentConfig == null)
             return;
 
-        this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
+        this.configs.Save(currentConfig, this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
     }
 
     /// <summary>
@@ -370,7 +409,7 @@ public sealed class DalamudPluginInterface : IDisposable
         }
 
         // this shouldn't be a thing, I think, but just in case
-        return this.configs.Load(this.plugin.InternalName, this.plugin.Manifest.WorkingPluginId);
+        return this.configs.Load(this.plugin.InternalName, this.plugin.EffectiveWorkingPluginId);
     }
 
     /// <summary>
@@ -422,54 +461,62 @@ public sealed class DalamudPluginInterface : IDisposable
 
     #region Dependency Injection
 
-    /// <summary>
-    /// Create a new object of the provided type using its default constructor, then inject objects and properties.
-    /// </summary>
-    /// <param name="scopedObjects">Objects to inject additionally.</param>
-    /// <typeparam name="T">The type to create.</typeparam>
-    /// <returns>The created and initialized type.</returns>
+    /// <inheritdoc/>
     public T? Create<T>(params object[] scopedObjects) where T : class
     {
-        var svcContainer = Service<IoC.Internal.ServiceContainer>.Get();
+        var t = this.CreateAsync<T>(scopedObjects);
+        t.Wait();
 
-        return (T)this.plugin.ServiceScope!.CreateAsync(
-            typeof(T),
-            this.GetPublicIocScopes(scopedObjects)).GetAwaiter().GetResult();
+        if (t.Exception is { } e)
+        {
+            Log.Error(
+                e,
+                "{who}: Exception during {where}: {what}",
+                this.plugin.Name,
+                nameof(this.Create),
+                typeof(T).FullName ?? typeof(T).Name);
+        }
+
+        return t.IsCompletedSuccessfully ? t.Result : null;
     }
 
-    /// <summary>
-    /// Inject services into properties on the provided object instance.
-    /// </summary>
-    /// <param name="instance">The instance to inject services into.</param>
-    /// <param name="scopedObjects">Objects to inject additionally.</param>
-    /// <returns>Whether or not the injection succeeded.</returns>
+    /// <inheritdoc/>
+    public async Task<T> CreateAsync<T>(params object[] scopedObjects) where T : class =>
+        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), this.GetPublicIocScopes(scopedObjects));
+
+    /// <inheritdoc/>
     public bool Inject(object instance, params object[] scopedObjects)
     {
-        return this.plugin.ServiceScope!.InjectPropertiesAsync(
-            instance,
-            this.GetPublicIocScopes(scopedObjects)).GetAwaiter().GetResult();
+        var t = this.InjectAsync(instance, scopedObjects);
+        t.Wait();
+
+        if (t.Exception is { } e)
+        {
+            Log.Error(
+                e,
+                "{who}: Exception during {where}: {what}",
+                this.plugin.Name,
+                nameof(this.Inject),
+                instance.GetType().FullName ?? instance.GetType().Name);
+        }
+
+        return t.IsCompletedSuccessfully;
     }
+
+    /// <inheritdoc/>
+    public Task InjectAsync(object instance, params object[] scopedObjects) =>
+        this.plugin.ServiceScope!.InjectPropertiesAsync(instance, this.GetPublicIocScopes(scopedObjects));
 
     #endregion
 
-    /// <summary>
-    /// Unregister your plugin and dispose all references.
-    /// </summary>
-    void IDisposable.Dispose()
+    /// <summary>Unregister the plugin and dispose all references.</summary>
+    /// <remarks>Dalamud internal use only.</remarks>
+    public void Dispose()
     {
-        this.UiBuilder.ExplicitDispose();
         Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
         Service<Localization>.Get().LocalizationChanged -= this.OnLocalizationChanged;
         Service<DalamudConfiguration>.Get().DalamudConfigurationSaved -= this.OnDalamudConfigurationSaved;
-    }
-
-    /// <summary>
-    /// Obsolete implicit dispose implementation. Should not be used.
-    /// </summary>
-    [Obsolete("Do not dispose \"DalamudPluginInterface\".", true)]
-    public void Dispose()
-    {
-        // ignored
+        this.uiBuilder.DisposeInternal();
     }
 
     /// <summary>
@@ -479,13 +526,40 @@ public sealed class DalamudPluginInterface : IDisposable
     /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
     internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
     {
-        this.ActivePluginsChanged?.Invoke(kind, affectedThisPlugin);
+        if (this.ActivePluginsChanged is { } callback)
+        {
+            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.ActivePluginsChangedDelegate>())
+            {
+                try
+                {
+                    action(kind, affectedThisPlugin);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                }
+            }
+        }
     }
 
     private void OnLocalizationChanged(string langCode)
     {
         this.UiLanguage = langCode;
-        this.LanguageChanged?.Invoke(langCode);
+
+        if (this.LanguageChanged is { } callback)
+        {
+            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.LanguageChangedDelegate>())
+            {
+                try
+                {
+                    action(langCode);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                }
+            }
+        }
     }
 
     private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)

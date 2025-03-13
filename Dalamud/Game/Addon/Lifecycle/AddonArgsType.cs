@@ -34,4 +34,9 @@ public enum AddonArgsType
     /// Contains argument data for Refresh.
     /// </summary>   
     Refresh,
+    
+    /// <summary>
+    /// Contains argument data for ReceiveEvent.
+    /// </summary>
+    ReceiveEvent,
 }

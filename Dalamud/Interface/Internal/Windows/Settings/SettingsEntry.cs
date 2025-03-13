@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Internal.Windows.Settings;
+﻿namespace Dalamud.Interface.Internal.Windows.Settings;
 
 /// <summary>
 /// Basic, drawable settings entry.
@@ -41,6 +39,13 @@ public abstract class SettingsEntry
     /// Draw this setting control.
     /// </summary>
     public abstract void Draw();
+
+    /// <summary>
+    /// Called after the draw function and when the style overrides are removed.
+    /// </summary>
+    public virtual void PostDraw()
+    {
+    }
 
     /// <summary>
     /// Function to be called when the tab is opened.

@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 
 using Dalamud.Game;
@@ -7,6 +6,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using Dalamud.Utility.Signatures;
 using Serilog;
 
@@ -16,17 +16,16 @@ namespace Dalamud.Hooking.Internal;
 /// Plugin-scoped version of service used to create hooks.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IGameInteropProvider>]
 #pragma warning restore SA1015
-internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceType, IDisposable
+internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternalDisposableService
 {
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
 
-    private readonly ConcurrentBag<IDalamudHook> trackedHooks = new();
+    private readonly WeakConcurrentCollection<IDalamudHook> trackedHooks = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInteropProviderPluginScoped"/> class.
@@ -47,7 +46,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromFunctionPointerVariable<T>(IntPtr address, T detour) where T : Delegate
+    public Hook<T> HookFromFunctionPointerVariable<T>(nint address, T detour) where T : Delegate
     {
         var hook = Hook<T>.FromFunctionPointerVariable(address, detour);
         this.trackedHooks.Add(hook);
@@ -71,7 +70,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
     }
 
     /// <inheritdoc/>
-    public Hook<T> HookFromAddress<T>(IntPtr procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+    public Hook<T> HookFromAddress<T>(nint procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
     {
         var hook = Hook<T>.FromAddress(procAddress, detour, backend == IGameInteropProvider.HookBackend.MinHook);
         this.trackedHooks.Add(hook);
@@ -79,11 +78,19 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
     }
 
     /// <inheritdoc/>
+    public Hook<T> HookFromAddress<T>(UIntPtr procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+        => this.HookFromAddress((nint)procAddress, detour, backend);
+
+    /// <inheritdoc/>
+    public unsafe Hook<T> HookFromAddress<T>(void* procAddress, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
+        => this.HookFromAddress((nint)procAddress, detour, backend);
+
+    /// <inheritdoc/>
     public Hook<T> HookFromSignature<T>(string signature, T detour, IGameInteropProvider.HookBackend backend = IGameInteropProvider.HookBackend.Automatic) where T : Delegate
         => this.HookFromAddress(this.scanner.ScanText(signature), detour, backend);
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         var notDisposed = this.trackedHooks.Where(x => !x.IsDisposed).ToArray();
         if (notDisposed.Length != 0)
@@ -91,6 +98,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IServiceT
 
         foreach (var hook in notDisposed)
         {
+            Log.Warning("\t\t\tLeaked hook at +0x{Address:X}", hook.Address.ToInt64() - this.scanner.Module.BaseAddress.ToInt64());
             hook.Dispose();
         }
         

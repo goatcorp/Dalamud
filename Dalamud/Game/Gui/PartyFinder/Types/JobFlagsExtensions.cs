@@ -1,5 +1,5 @@
 using Dalamud.Plugin.Services;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
@@ -49,6 +49,8 @@ public static class JobFlagsExtensions
             JobFlags.Dancer => 38,
             JobFlags.Reaper => 39,
             JobFlags.Sage => 40,
+            JobFlags.Viper => 41,
+            JobFlags.Pictomancer => 42,
             _ => null,
         };
 

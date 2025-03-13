@@ -7,7 +7,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This collection represents the actors present in your party or alliance.
 /// </summary>
-public interface IPartyList : IReadOnlyCollection<PartyMember>
+public interface IPartyList : IReadOnlyCollection<IPartyMember>
 {
     /// <summary>
     /// Gets the amount of party members the local player has.
@@ -49,7 +49,7 @@ public interface IPartyList : IReadOnlyCollection<PartyMember>
     /// </summary>
     /// <param name="index">Spawn index.</param>
     /// <returns>A <see cref="PartyMember"/> at the specified spawn index.</returns>
-    public PartyMember? this[int index] { get; }
+    public IPartyMember? this[int index] { get; }
 
     /// <summary>
     /// Gets the address of the party member at the specified index of the party list.
@@ -63,7 +63,7 @@ public interface IPartyList : IReadOnlyCollection<PartyMember>
     /// </summary>
     /// <param name="address">The address of the party member in memory.</param>
     /// <returns>The party member object containing the requested data.</returns>
-    public PartyMember? CreatePartyMemberReference(nint address);
+    public IPartyMember? CreatePartyMemberReference(nint address);
     
     /// <summary>
     /// Gets the address of the alliance member at the specified index of the alliance list.
@@ -77,5 +77,5 @@ public interface IPartyList : IReadOnlyCollection<PartyMember>
     /// </summary>
     /// <param name="address">The address of the alliance member in memory.</param>
     /// <returns>The party member object containing the requested data.</returns>
-    public PartyMember? CreateAllianceMemberReference(nint address);
+    public IPartyMember? CreateAllianceMemberReference(nint address);
 }

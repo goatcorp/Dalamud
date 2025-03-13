@@ -39,7 +39,6 @@ public static partial class ImRaii
 
         private int count;
 
-        [System.Diagnostics.Conditional("DEBUG")]
         private static void CheckStyleIdx(ImGuiStyleVar idx, Type type)
         {
             var shouldThrow = idx switch

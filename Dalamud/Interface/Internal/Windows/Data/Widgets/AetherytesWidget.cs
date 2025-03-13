@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Aetherytes;
+using Dalamud.Game.ClientState.Aetherytes;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -55,7 +56,7 @@ internal class AetherytesWidget : IDataWindowWidget
             ImGui.TextUnformatted($"{i}");
 
             ImGui.TableNextColumn(); // Name
-            ImGui.TextUnformatted($"{info.AetheryteData.GameData?.PlaceName.Value?.Name}");
+            ImGui.TextUnformatted($"{info.AetheryteData.ValueNullable?.PlaceName.ValueNullable?.Name}");
 
             ImGui.TableNextColumn(); // ID
             ImGui.TextUnformatted($"{info.AetheryteId}");
@@ -82,7 +83,7 @@ internal class AetherytesWidget : IDataWindowWidget
             ImGui.TextUnformatted($"{info.IsSharedHouse}");
 
             ImGui.TableNextColumn(); // Apartment
-            ImGui.TextUnformatted($"{info.IsAppartment}");
+            ImGui.TextUnformatted($"{info.IsApartment}");
         }
 
         ImGui.EndTable();

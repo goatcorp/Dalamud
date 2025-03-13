@@ -1,13 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling;
@@ -133,9 +133,7 @@ public class SeString
         {
             while (stream.Position < len)
             {
-                var payload = Payload.Decode(reader);
-                if (payload != null)
-                    payloads.Add(payload);
+                payloads.Add(Payload.Decode(reader));
             }
         }
 
@@ -151,7 +149,8 @@ public class SeString
     {
         fixed (byte* ptr = data)
         {
-            return Parse(ptr, data.Length);
+            var len = data.IndexOf((byte)0);
+            return Parse(ptr, len == -1 ? data.Length : len);
         }
     }
 
@@ -161,6 +160,13 @@ public class SeString
     /// <param name="bytes">Binary message payload data in SE's internal format.</param>
     /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
     public static SeString Parse(byte[] bytes) => Parse(new ReadOnlySpan<byte>(bytes));
+
+    /// <summary>
+    /// Parse a binary game message into an SeString.
+    /// </summary>
+    /// <param name="ptr">Pointer to the string's data in memory. Needs to be null-terminated.</param>
+    /// <returns>An SeString containing parsed Payload objects for each payload in the data.</returns>
+    public static unsafe SeString Parse(byte* ptr) => Parse(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(ptr));
 
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
@@ -192,12 +198,12 @@ public class SeString
                 case ItemPayload.ItemKind.Normal:
                 case ItemPayload.ItemKind.Collectible:
                 case ItemPayload.ItemKind.Hq:
-                    var item = data.GetExcelSheet<Item>()?.GetRow(itemId);
-                    displayName = item?.Name;
+                    var item = data.GetExcelSheet<Item>()?.GetRowOrDefault(itemId);
+                    displayName = item?.Name.ExtractText();
                     rarity = item?.Rarity ?? 1;
                     break;
                 case ItemPayload.ItemKind.EventItem:
-                    displayName = data.GetExcelSheet<EventItem>()?.GetRow(itemId)?.Name;
+                    displayName = data.GetExcelSheet<EventItem>()?.GetRowOrDefault(itemId)?.Name.ExtractText();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
@@ -243,7 +249,7 @@ public class SeString
     /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
     public static SeString CreateItemLink(Item item, bool isHq, string? displayNameOverride = null)
     {
-        return CreateItemLink(item.RowId, isHq, displayNameOverride ?? item.Name);
+        return CreateItemLink(item.RowId, isHq, displayNameOverride ?? item.Name.ExtractText());
     }
 
     /// <summary>
@@ -254,10 +260,22 @@ public class SeString
     /// <param name="rawX">The raw x-coordinate for this link.</param>
     /// <param name="rawY">The raw y-coordinate for this link..</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY)
+    public static SeString CreateMapLink(uint territoryId, uint mapId, int rawX, int rawY) =>
+        CreateMapLinkWithInstance(territoryId, mapId, null, rawX, rawY);
+
+    /// <summary>
+    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
+    /// </summary>
+    /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
+    /// <param name="mapId">The id of the Map for this map link.</param>
+    /// <param name="instance">An optional area instance number to be included in this link.</param>
+    /// <param name="rawX">The raw x-coordinate for this link.</param>
+    /// <param name="rawY">The raw y-coordinate for this link..</param>
+    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
+    public static SeString CreateMapLinkWithInstance(uint territoryId, uint mapId, int? instance, int rawX, int rawY)
     {
         var mapPayload = new MapLinkPayload(territoryId, mapId, rawX, rawY);
-        var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
+        var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
 
         var payloads = new List<Payload>(new Payload[]
         {
@@ -280,10 +298,24 @@ public class SeString
     /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString CreateMapLink(uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+    public static SeString CreateMapLink(
+        uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f) =>
+        CreateMapLinkWithInstance(territoryId, mapId, null, xCoord, yCoord, fudgeFactor);
+    
+    /// <summary>
+    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
+    /// </summary>
+    /// <param name="territoryId">The id of the TerritoryType for this map link.</param>
+    /// <param name="mapId">The id of the Map for this map link.</param>
+    /// <param name="instance">An optional area instance number to be included in this link.</param>
+    /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
+    /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
+    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
+    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
+    public static SeString CreateMapLinkWithInstance(uint territoryId, uint mapId, int? instance, float xCoord, float yCoord, float fudgeFactor = 0.05f)
     {
         var mapPayload = new MapLinkPayload(territoryId, mapId, xCoord, yCoord, fudgeFactor);
-        var nameString = $"{mapPayload.PlaceName} {mapPayload.CoordinateString}";
+        var nameString = GetMapLinkNameString(mapPayload.PlaceName, instance, mapPayload.CoordinateString);
 
         var payloads = new List<Payload>(new Payload[]
         {
@@ -306,22 +338,34 @@ public class SeString
     /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
     /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
-    public static SeString? CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f)
+    public static SeString? CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f) =>
+        CreateMapLinkWithInstance(placeName, null, xCoord, yCoord, fudgeFactor);
+    
+    /// <summary>
+    /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log, matching a specified zone name.
+    /// Returns null if no corresponding PlaceName was found.
+    /// </summary>
+    /// <param name="placeName">The name of the location for this link.  This should be exactly the name as seen in a displayed map link in-game for the same zone.</param>
+    /// <param name="instance">An optional area instance number to be included in this link.</param>
+    /// <param name="xCoord">The human-readable x-coordinate for this link.</param>
+    /// <param name="yCoord">The human-readable y-coordinate for this link.</param>
+    /// <param name="fudgeFactor">An optional offset to account for rounding and truncation errors; it is best to leave this untouched in most cases.</param>
+    /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
+    public static SeString? CreateMapLinkWithInstance(string placeName, int? instance, float xCoord, float yCoord, float fudgeFactor = 0.05f)
     {
         var data = Service<DataManager>.Get();
 
         var mapSheet = data.GetExcelSheet<Map>();
 
         var matches = data.GetExcelSheet<PlaceName>()
-                          .Where(row => row.Name.ToString().ToLowerInvariant() == placeName.ToLowerInvariant())
-                          .ToArray();
+                          .Where(row => row.Name.ExtractText().Equals(placeName, StringComparison.InvariantCultureIgnoreCase));
 
         foreach (var place in matches)
         {
-            var map = mapSheet.FirstOrDefault(row => row.PlaceName.Row == place.RowId);
-            if (map != null && map.TerritoryType.Row != 0)
+            var map = mapSheet.Cast<Map?>().FirstOrDefault(row => row!.Value.PlaceName.RowId == place.RowId);
+            if (map.HasValue && map.Value.TerritoryType.RowId != 0)
             {
-                return CreateMapLink(map.TerritoryType.Row, map.RowId, xCoord, yCoord, fudgeFactor);
+                return CreateMapLinkWithInstance(map.Value.TerritoryType.RowId, map.Value.RowId, instance, xCoord, yCoord, fudgeFactor);
             }
         }
 
@@ -342,7 +386,7 @@ public class SeString
         {
             new PartyFinderPayload(listingId, isCrossWorld ? PartyFinderPayload.PartyFinderLinkType.NotSpecified : PartyFinderPayload.PartyFinderLinkType.LimitedToHomeWorld),
             // ->
-            new TextPayload($"Looking for Party ({recruiterName})"),
+            new TextPayload($"Looking for Party ({recruiterName})" + (isCrossWorld ? " " : string.Empty)),
         };
 
         payloads.InsertRange(1, TextArrowPayloads);
@@ -455,11 +499,42 @@ public class SeString
     }
 
     /// <summary>
+    /// Encodes the Payloads in this SeString into a binary representation
+    /// suitable for use by in-game handlers, such as the chat log.
+    /// Includes a null terminator at the end of the string.
+    /// </summary>
+    /// <returns>The binary encoded payload data.</returns>
+    public byte[] EncodeWithNullTerminator()
+    {
+        var messageBytes = new List<byte>();
+        foreach (var p in this.Payloads)
+        {
+            messageBytes.AddRange(p.Encode());
+        }
+        
+        // Add Null Terminator
+        messageBytes.Add(0);
+
+        return messageBytes.ToArray();
+    }
+
+    /// <summary>
     /// Get the text value of this SeString.
     /// </summary>
     /// <returns>The TextValue property.</returns>
     public override string ToString()
     {
         return this.TextValue;
+    }
+    
+    private static string GetMapLinkNameString(string placeName, int? instance, string coordinateString)
+    {
+        var instanceString = string.Empty;
+        if (instance is > 0 and < 10)
+        {
+            instanceString = (SeIconChar.Instance1 + instance.Value - 1).ToIconString();
+        }
+        
+        return $"{placeName}{instanceString} {coordinateString}";
     }
 }

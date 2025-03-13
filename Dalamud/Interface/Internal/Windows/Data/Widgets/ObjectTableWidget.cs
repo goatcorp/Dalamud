@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
@@ -56,8 +56,8 @@ internal class ObjectTableWidget : IDataWindowWidget
         {
             stateString += $"ObjectTableLen: {objectTable.Length}\n";
             stateString += $"LocalPlayerName: {clientState.LocalPlayer.Name}\n";
-            stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.GameData?.Name : clientState.LocalPlayer.CurrentWorld.Id.ToString())}\n";
-            stateString += $"HomeWorldName: {(this.resolveGameData ? clientState.LocalPlayer.HomeWorld.GameData?.Name : clientState.LocalPlayer.HomeWorld.Id.ToString())}\n";
+            stateString += $"CurrentWorldName: {(this.resolveGameData ? clientState.LocalPlayer.CurrentWorld.ValueNullable?.Name : clientState.LocalPlayer.CurrentWorld.RowId.ToString())}\n";
+            stateString += $"HomeWorldName: {(this.resolveGameData ? clientState.LocalPlayer.HomeWorld.ValueNullable?.Name : clientState.LocalPlayer.HomeWorld.RowId.ToString())}\n";
             stateString += $"LocalCID: {clientState.LocalContentId:X}\n";
             stateString += $"LastLinkedItem: {chatGui.LastLinkedItemId}\n";
             stateString += $"TerritoryType: {clientState.TerritoryType}\n\n";
@@ -81,7 +81,7 @@ internal class ObjectTableWidget : IDataWindowWidget
                     // So, while WorldToScreen will return false if the point is off of game client screen, to
                     // to avoid performance issues, we have to manually determine if creating a window would
                     // produce a new viewport, and skip rendering it if so
-                    var objectText = $"{obj.Address.ToInt64():X}:{obj.ObjectId:X}[{i}] - {obj.ObjectKind} - {obj.Name}";
+                    var objectText = $"{obj.Address.ToInt64():X}:{obj.GameObjectId:X}[{i}] - {obj.ObjectKind} - {obj.Name}";
 
                     var screenPos = ImGui.GetMainViewport().Pos;
                     var screenSize = ImGui.GetMainViewport().Size;

@@ -5,6 +5,7 @@ using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Events;
@@ -19,19 +20,11 @@ internal unsafe class PluginEventController : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginEventController"/> class.
     /// </summary>
-    /// <param name="pluginId">The Unique ID for this plugin.</param>
-    public PluginEventController(string pluginId)
+    public PluginEventController()
     {
-        this.PluginId = pluginId;
-
         this.EventListener = new AddonEventListener(this.PluginEventListHandler);
     }
 
-    /// <summary>
-    /// Gets the unique ID for this PluginEventList.
-    /// </summary>
-    public string PluginId { get; init; }
-    
     private AddonEventListener EventListener { get; init; }
     
     private List<AddonEventEntry> Events { get; } = new();
@@ -54,7 +47,7 @@ internal unsafe class PluginEventController : IDisposable
         
         var eventHandle = new AddonEventHandle
         {
-            AddonName = MemoryHelper.ReadStringNullTerminated((nint)addon->Name),
+            AddonName = addon->NameString,
             ParamKey = eventId,
             EventType = atkEventType,
             EventGuid = eventGuid,
@@ -125,7 +118,7 @@ internal unsafe class PluginEventController : IDisposable
             if (this.Events.All(registeredEvent => registeredEvent.ParamKey != i)) return i;
         }
 
-        throw new OverflowException($"uint.MaxValue number of ParamKeys used for {this.PluginId}");
+        throw new OverflowException($"uint.MaxValue number of ParamKeys used for this event controller.");
     }
     
     /// <summary>
@@ -172,7 +165,7 @@ internal unsafe class PluginEventController : IDisposable
         {
             var paramKeyMatches = currentEvent->Param == eventEntry.ParamKey;
             var eventListenerAddressMatches = (nint)currentEvent->Listener == this.EventListener.Address;
-            var eventTypeMatches = currentEvent->Type == eventType;
+            var eventTypeMatches = currentEvent->State.EventType == eventType;
             
             if (paramKeyMatches && eventListenerAddressMatches && eventTypeMatches)
             {
@@ -191,15 +184,15 @@ internal unsafe class PluginEventController : IDisposable
         this.EventListener.UnregisterEvent(atkResNode, eventType, eventEntry.ParamKey);
     }
     
-    private void PluginEventListHandler(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventData, IntPtr unknown)
+    private void PluginEventListHandler(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventPtr, AtkEventData* eventDataPtr)
     {
         try
         {
-            if (eventData is null) return;
+            if (eventPtr is null) return;
             if (this.Events.FirstOrDefault(handler => handler.ParamKey == eventParam) is not { } eventInfo) return;
             
             // We stored the AtkUnitBase* in EventData->Node, and EventData->Target contains the node that triggered the event.
-            eventInfo.Handler.Invoke((AddonEventType)eventType, (nint)eventData->Node, (nint)eventData->Target);
+            eventInfo.Handler.Invoke((AddonEventType)eventType, (nint)eventPtr->Node, (nint)eventPtr->Target);
         }
         catch (Exception exception)
         {

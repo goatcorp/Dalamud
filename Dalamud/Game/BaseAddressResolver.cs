@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-
-using JetBrains.Annotations;
 
 namespace Dalamud.Game;
 
@@ -18,7 +15,7 @@ public abstract class BaseAddressResolver
     public static Dictionary<string, List<(string ClassName, IntPtr Address)>> DebugScannedValues { get; } = new();
 
     /// <summary>
-    /// Gets or sets a value indicating whether the resolver has successfully run <see cref="Setup32Bit(SigScanner)"/> or <see cref="Setup64Bit(SigScanner)"/>.
+    /// Gets or sets a value indicating whether the resolver has successfully run <see cref="Setup32Bit(ISigScanner)"/> or <see cref="Setup64Bit(ISigScanner)"/>.
     /// </summary>
     protected bool IsResolved { get; set; }
 
@@ -26,7 +23,7 @@ public abstract class BaseAddressResolver
     /// Setup the resolver, calling the appropriate method based on the process architecture.
     /// </summary>
     /// <param name="scanner">The SigScanner instance.</param>
-    public void Setup(SigScanner scanner)
+    public void Setup(ISigScanner scanner)
     {
         // Because C# don't allow to call virtual function while in ctor
         // we have to do this shit :\
@@ -83,7 +80,7 @@ public abstract class BaseAddressResolver
     /// Setup the resolver by finding any necessary memory addresses.
     /// </summary>
     /// <param name="scanner">The SigScanner instance.</param>
-    protected virtual void Setup32Bit(SigScanner scanner)
+    protected virtual void Setup32Bit(ISigScanner scanner)
     {
         throw new NotSupportedException("32 bit version is not supported.");
     }
@@ -92,7 +89,7 @@ public abstract class BaseAddressResolver
     /// Setup the resolver by finding any necessary memory addresses.
     /// </summary>
     /// <param name="scanner">The SigScanner instance.</param>
-    protected virtual void Setup64Bit(SigScanner scanner)
+    protected virtual void Setup64Bit(ISigScanner scanner)
     {
         throw new NotSupportedException("64 bit version is not supported.");
     }
@@ -101,7 +98,7 @@ public abstract class BaseAddressResolver
     /// Setup the resolver by finding any necessary memory addresses.
     /// </summary>
     /// <param name="scanner">The SigScanner instance.</param>
-    protected virtual void SetupInternal(SigScanner scanner)
+    protected virtual void SetupInternal(ISigScanner scanner)
     {
         // Do nothing
     }

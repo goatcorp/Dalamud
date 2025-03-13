@@ -1,10 +1,8 @@
 ﻿using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
-using PInvoke;
 using SQLite;
 
 namespace Dalamud.Storage;
@@ -23,10 +21,12 @@ namespace Dalamud.Storage;
 /// <remarks>
 /// This is not an early-loaded service, as it is needed before they are initialized.
 /// </remarks>
-[ServiceManager.Service]
-public class ReliableFileStorage : IServiceType, IDisposable
+[ServiceManager.ProvidedService]
+internal class ReliableFileStorage : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new("VFS");
+
+    private readonly object syncRoot = new();
 
     private SQLiteConnection? db;
     
@@ -61,7 +61,7 @@ public class ReliableFileStorage : IServiceType, IDisposable
             }
         }
     }
-    
+
     /// <summary>
     /// Check if a file exists.
     /// This will return true if the file does not exist on the filesystem, but in the transparent backup.
@@ -118,34 +118,37 @@ public class ReliableFileStorage : IServiceType, IDisposable
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
 
-        if (this.db == null)
+        lock (this.syncRoot)
         {
-            Util.WriteAllBytesSafe(path, bytes);
-            return;
-        }
-        
-        this.db.RunInTransaction(() =>
-        {
-            var normalizedPath = NormalizePath(path);
-            var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
-            if (file == null)
+            if (this.db == null)
             {
-                file = new DbFile
+                Util.WriteAllBytesSafe(path, bytes);
+                return;
+            }
+        
+            this.db.RunInTransaction(() =>
+            {
+                var normalizedPath = NormalizePath(path);
+                var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
+                if (file == null)
                 {
-                    ContainerId = containerId,
-                    Path = normalizedPath,
-                    Data = bytes,
-                };
-                this.db.Insert(file);
-            }
-            else
-            {
-                file.Data = bytes;
-                this.db.Update(file);
-            }
+                    file = new DbFile
+                    {
+                        ContainerId = containerId,
+                        Path = normalizedPath,
+                        Data = bytes,
+                    };
+                    this.db.Insert(file);
+                }
+                else
+                {
+                    file.Data = bytes;
+                    this.db.Update(file);
+                }
         
-            Util.WriteAllBytesSafe(path, bytes);
-        });
+                Util.WriteAllBytesSafe(path, bytes);
+            });
+        }
     }
 
     /// <summary>
@@ -284,9 +287,9 @@ public class ReliableFileStorage : IServiceType, IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
-        this.db?.Dispose();
+        this.DisposeCore();
     }
 
     /// <summary>
@@ -309,6 +312,8 @@ public class ReliableFileStorage : IServiceType, IDisposable
                                        SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex);
         this.db.CreateTable<DbFile>();
     }
+
+    private void DisposeCore() => this.db?.Dispose();
 
     private class DbFile
     {

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -6,7 +5,8 @@ using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Serilog;
+
+using CSJobGaugeManager = FFXIVClientStructs.FFXIV.Client.Game.JobGaugeManager;
 
 namespace Dalamud.Game.ClientState.JobGauge;
 
@@ -14,25 +14,21 @@ namespace Dalamud.Game.ClientState.JobGauge;
 /// This class converts in-memory Job gauge data to structs.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
+[ServiceManager.EarlyLoadedService]
 #pragma warning disable SA1015
 [ResolveVia<IJobGauges>]
 #pragma warning restore SA1015
 internal class JobGauges : IServiceType, IJobGauges
 {
-    private Dictionary<Type, JobGaugeBase> cache = new();
+    private Dictionary<Type, JobGaugeBase> cache = [];
 
     [ServiceManager.ServiceConstructor]
-    private JobGauges(ClientState clientState)
+    private JobGauges()
     {
-        this.Address = clientState.AddressResolver.JobGaugeData;
-
-        Log.Verbose($"JobGaugeData address 0x{this.Address.ToInt64():X}");
     }
 
     /// <inheritdoc/>
-    public IntPtr Address { get; }
+    public unsafe IntPtr Address => (nint)(&CSJobGaugeManager.Instance()->EmptyGauge);
 
     /// <inheritdoc/>
     public T Get<T>() where T : JobGaugeBase

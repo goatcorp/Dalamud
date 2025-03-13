@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,6 +36,20 @@ public partial class FileDialog
 
     private static string ComposeNewPath(List<string> decomp)
     {
+        // Handle UNC paths (network paths)
+        if (decomp.Count >= 2 && string.IsNullOrEmpty(decomp[0]) && string.IsNullOrEmpty(decomp[1]))
+        {
+            var pathParts = new List<string>(decomp);
+            pathParts.RemoveRange(0, 2);
+            // Can not access server level or UNC root
+            if (pathParts.Count <= 1)
+            {
+                return string.Empty;
+            }
+
+            return $"\\\\{string.Join('\\', pathParts)}";
+        }
+        
         if (decomp.Count == 1)
         {
             var drivePath = decomp[0];

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -7,7 +6,8 @@ using System.Reflection;
 using Dalamud.Game;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
@@ -44,7 +44,8 @@ internal class PluginStatWindow : Window
     {
         var pluginManager = Service<PluginManager>.Get();
 
-        ImGui.BeginTabBar("Stat Tabs");
+        if (!ImGui.BeginTabBar("Stat Tabs"))
+            return;
 
         if (ImGui.BeginTabItem("Draw times"))
         {
@@ -64,16 +65,16 @@ internal class PluginStatWindow : Window
                     {
                         if (plugin.DalamudInterface != null)
                         {
-                            plugin.DalamudInterface.UiBuilder.LastDrawTime = -1;
-                            plugin.DalamudInterface.UiBuilder.MaxDrawTime = -1;
-                            plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Clear();
+                            plugin.DalamudInterface.LocalUiBuilder.LastDrawTime = -1;
+                            plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime = -1;
+                            plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Clear();
                         }
                     }
                 }
 
                 var loadedPlugins = pluginManager.InstalledPlugins.Where(plugin => plugin.State == PluginState.Loaded);
-                var totalLast = loadedPlugins.Sum(plugin => plugin.DalamudInterface?.UiBuilder.LastDrawTime ?? 0);
-                var totalAverage = loadedPlugins.Sum(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0);
+                var totalLast = loadedPlugins.Sum(plugin => plugin.DalamudInterface?.LocalUiBuilder.LastDrawTime ?? 0);
+                var totalAverage = loadedPlugins.Sum(plugin => plugin.DalamudInterface?.LocalUiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0);
 
                 ImGuiComponents.TextWithLabel("Total Last", $"{totalLast / 10000f:F4}ms", "All last draw times added together");
                 ImGui.SameLine();
@@ -112,11 +113,11 @@ internal class PluginStatWindow : Window
                                  ? loadedPlugins.OrderBy(plugin => plugin.Name)
                                  : loadedPlugins.OrderByDescending(plugin => plugin.Name),
                         2 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime ?? 0)
-                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.MaxDrawTime ?? 0),
+                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.LocalUiBuilder.MaxDrawTime ?? 0)
+                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.LocalUiBuilder.MaxDrawTime ?? 0),
                         3 => sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending
-                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0)
-                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.UiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0),
+                                 ? loadedPlugins.OrderBy(plugin => plugin.DalamudInterface?.LocalUiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0)
+                                 : loadedPlugins.OrderByDescending(plugin => plugin.DalamudInterface?.LocalUiBuilder.DrawTimeHistory.DefaultIfEmpty().Average() ?? 0),
                         _ => loadedPlugins,
                     };
 
@@ -136,14 +137,14 @@ internal class PluginStatWindow : Window
                         if (plugin.DalamudInterface != null)
                         {
                             ImGui.TableNextColumn();
-                            ImGui.Text($"{plugin.DalamudInterface.UiBuilder.LastDrawTime / 10000f:F4}ms");
+                            ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.LastDrawTime / 10000f:F4}ms");
 
                             ImGui.TableNextColumn();
-                            ImGui.Text($"{plugin.DalamudInterface.UiBuilder.MaxDrawTime / 10000f:F4}ms");
+                            ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime / 10000f:F4}ms");
 
                             ImGui.TableNextColumn();
-                            ImGui.Text(plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Count > 0
-                                           ? $"{plugin.DalamudInterface.UiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms"
+                            ImGui.Text(plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Count > 0
+                                           ? $"{plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms"
                                            : "-");
                         }
                     }
@@ -257,8 +258,6 @@ internal class PluginStatWindow : Window
             ImGui.EndTabItem();
         }
 
-        var toRemove = new List<Guid>();
-
         if (ImGui.BeginTabItem("Hooks"))
         {
             ImGui.Checkbox("Show Dalamud Hooks", ref this.showDalamudHooks);
@@ -290,9 +289,6 @@ internal class PluginStatWindow : Window
                 {
                     try
                     {
-                        if (trackedHook.Hook.IsDisposed)
-                            toRemove.Add(guid);
-
                         if (!this.showDalamudHooks && trackedHook.Assembly == Assembly.GetExecutingAssembly())
                             continue;
 
@@ -351,14 +347,6 @@ internal class PluginStatWindow : Window
                 }
 
                 ImGui.EndTable();
-            }
-        }
-
-        if (ImGui.IsWindowAppearing())
-        {
-            foreach (var guid in toRemove)
-            {
-                HookManager.TrackedHooks.TryRemove(guid, out _);
             }
         }
 

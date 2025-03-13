@@ -1,13 +1,18 @@
-using System;
-
 using Dalamud.Game.ClientState.Objects.Types;
 
 namespace Dalamud.Game.ClientState.Objects.SubKinds;
 
 /// <summary>
+/// This interface represents an EventObj.
+/// </summary>
+public interface IEventObj : IGameObject
+{
+}
+
+/// <summary>
 /// This class represents an EventObj.
 /// </summary>
-public unsafe class EventObj : GameObject
+internal class EventObj : GameObject, IEventObj
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EventObj"/> class.

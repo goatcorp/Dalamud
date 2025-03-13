@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Game;
+using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -56,7 +58,7 @@ internal class AddressesWidget : IDataWindowWidget
             foreach (var valueTuple in debugScannedValue.Value)
             {
                 ImGui.TextUnformatted(
-                    $"      {valueTuple.ClassName} - 0x{valueTuple.Address.ToInt64():X}");
+                    $"      {valueTuple.ClassName} - {Util.DescribeAddress(valueTuple.Address)}");
                 ImGui.SameLine();
 
                 if (ImGui.Button($"C##{valueTuple.Address.ToInt64():X}"))

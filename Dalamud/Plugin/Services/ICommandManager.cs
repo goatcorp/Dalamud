@@ -12,7 +12,7 @@ public interface ICommandManager
     /// <summary>
     /// Gets a read-only list of all registered commands.
     /// </summary>
-    public ReadOnlyDictionary<string, CommandInfo> Commands { get; }
+    public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands { get; }
 
     /// <summary>
     /// Process a command in full.
@@ -27,7 +27,7 @@ public interface ICommandManager
     /// <param name="command">The command to dispatch.</param>
     /// <param name="argument">The provided arguments.</param>
     /// <param name="info">A <see cref="CommandInfo"/> object describing this command.</param>
-    public void DispatchCommand(string command, string argument, CommandInfo info);
+    public void DispatchCommand(string command, string argument, IReadOnlyCommandInfo info);
 
     /// <summary>
     /// Add a command handler, which you can use to add your own custom commands to the in-game chat.

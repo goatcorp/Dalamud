@@ -14,6 +14,7 @@ struct exception_info
     CONTEXT ContextRecord;
     uint64_t nLifetime;
     HANDLE hThreadHandle;
+    HANDLE hEventHandle;
     DWORD dwStackTraceLength;
     DWORD dwTroubleshootingPackDataLength;
 };

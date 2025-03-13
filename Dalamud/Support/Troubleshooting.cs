@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -70,8 +69,8 @@ public static class Troubleshooting
                 LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest as LocalPluginManifest)?.OrderByDescending(x => x.InternalName).ToArray(),
                 PluginStates = pluginManager?.InstalledPlugins?.Where(x => !x.IsDev).ToDictionary(x => x.Manifest.InternalName, x => x.IsBanned ? "Banned" : x.State.ToString()),
                 EverStartedLoadingPlugins = pluginManager?.InstalledPlugins.Where(x => x.HasEverStartedLoad).Select(x => x.InternalName).ToList(),
-                DalamudVersion = Util.AssemblyVersion,
-                DalamudGitHash = Util.GetGitHash(),
+                DalamudVersion = Util.GetScmVersion(),
+                DalamudGitHash = Util.GetGitHash() ?? "Unknown",
                 GameVersion = startInfo.GameVersion?.ToString() ?? "Unknown",
                 Language = startInfo.Language.ToString(),
                 BetaKey = configuration.DalamudBetaKey,

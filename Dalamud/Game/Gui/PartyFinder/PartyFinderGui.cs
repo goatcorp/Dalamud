@@ -6,6 +6,9 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
+
 using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder;
@@ -13,14 +16,12 @@ namespace Dalamud.Game.Gui.PartyFinder;
 /// <summary>
 /// This class handles interacting with the native PartyFinder window.
 /// </summary>
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGui
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
-    private readonly PartyFinderAddressResolver address;
-    private readonly IntPtr memory;
+    private readonly nint memory;
 
-    private readonly Hook<ReceiveListingDelegate> receiveListingHook;
+    private readonly Hook<InfoProxyCrossRealm.Delegates.ReceiveListing> receiveListingHook;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
@@ -29,16 +30,11 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
     [ServiceManager.ServiceConstructor]
     private PartyFinderGui(TargetSigScanner sigScanner)
     {
-        this.address = new PartyFinderAddressResolver();
-        this.address.Setup(sigScanner);
-
         this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
-        this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, this.HandleReceiveListingDetour);
+        this.receiveListingHook = Hook<InfoProxyCrossRealm.Delegates.ReceiveListing>.FromAddress(InfoProxyCrossRealm.Addresses.ReceiveListing.Value, this.HandleReceiveListingDetour);
+        this.receiveListingHook.Enable();
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ReceiveListingDelegate(IntPtr managerPtr, IntPtr data);
 
     /// <inheritdoc/>
     public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
@@ -46,7 +42,7 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.receiveListingHook.Dispose();
 
@@ -60,27 +56,21 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
         }
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(GameGui gameGui)
-    {
-        this.receiveListingHook.Enable();
-    }
-
-    private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)
+    private void HandleReceiveListingDetour(InfoProxyCrossRealm* infoProxy, nint packet)
     {
         try
         {
-            this.HandleListingEvents(data);
+            this.HandleListingEvents(packet);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Exception on ReceiveListing hook.");
         }
 
-        this.receiveListingHook.Original(managerPtr, data);
+        this.receiveListingHook.Original(infoProxy, packet);
     }
 
-    private void HandleListingEvents(IntPtr data)
+    private void HandleListingEvents(nint data)
     {
         var dataPtr = data + 0x10;
 
@@ -131,12 +121,11 @@ internal sealed class PartyFinderGui : IDisposable, IServiceType, IPartyFinderGu
 /// A scoped variant of the PartyFinderGui service.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
 [ServiceManager.ScopedService]
 #pragma warning disable SA1015
 [ResolveVia<IPartyFinderGui>]
 #pragma warning restore SA1015
-internal class PartyFinderGuiPluginScoped : IDisposable, IServiceType, IPartyFinderGui
+internal class PartyFinderGuiPluginScoped : IInternalDisposableService, IPartyFinderGui
 {
     [ServiceManager.ServiceDependency]
     private readonly PartyFinderGui partyFinderGuiService = Service<PartyFinderGui>.Get();
@@ -153,12 +142,12 @@ internal class PartyFinderGuiPluginScoped : IDisposable, IServiceType, IPartyFin
     public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
 
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.partyFinderGuiService.ReceiveListing -= this.ReceiveListingForward;
 
         this.ReceiveListing = null;
     }
 
-    private void ReceiveListingForward(PartyFinderListing listing, PartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
+    private void ReceiveListingForward(IPartyFinderListing listing, IPartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
 }

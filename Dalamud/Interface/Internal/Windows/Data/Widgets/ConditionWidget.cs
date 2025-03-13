@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -29,7 +31,7 @@ internal class ConditionWidget : IDataWindowWidget
         var condition = Service<Condition>.Get();
 
 #if DEBUG
-        ImGui.Text($"ptr: 0x{condition.Address.ToInt64():X}");
+        ImGui.Text($"ptr: {Util.DescribeAddress(condition.Address)}");
 #endif
 
         ImGui.Text("Current Conditions:");

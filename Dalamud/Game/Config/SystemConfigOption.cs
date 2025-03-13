@@ -843,6 +843,62 @@ public enum SystemConfigOption
     GlareRepresentation_DX11,
 
     /// <summary>
+    /// System option with the internal name DynamicRezoThreshold.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("DynamicRezoThreshold", ConfigType.UInt)]
+    DynamicRezoThreshold,
+
+    /// <summary>
+    /// System option with the internal name GraphicsRezoScale.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GraphicsRezoScale", ConfigType.UInt)]
+    GraphicsRezoScale,
+
+    /// <summary>
+    /// System option with the internal name GraphicsRezoUpscaleType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GraphicsRezoUpscaleType", ConfigType.UInt)]
+    GraphicsRezoUpscaleType,
+
+    /// <summary>
+    /// System option with the internal name GrassEnableDynamicInterference.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("GrassEnableDynamicInterference", ConfigType.UInt)]
+    GrassEnableDynamicInterference,
+
+    /// <summary>
+    /// System option with the internal name ShadowBgLOD.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("ShadowBgLOD", ConfigType.UInt)]
+    ShadowBgLOD,
+
+    /// <summary>
+    /// System option with the internal name TextureRezoType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("TextureRezoType", ConfigType.UInt)]
+    TextureRezoType,
+
+    /// <summary>
+    /// System option with the internal name ShadowLightValidType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("ShadowLightValidType", ConfigType.UInt)]
+    ShadowLightValidType,
+
+    /// <summary>
+    /// System option with the internal name DynamicRezoEnableCutScene.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("DynamicRezoEnableCutScene", ConfigType.UInt)]
+    DynamicRezoEnableCutScene,
+
+    /// <summary>
     /// System option with the internal name UiSystemEnlarge.
     /// This option is a UInt.
     /// </summary>
@@ -1380,4 +1436,46 @@ public enum SystemConfigOption
     /// </summary>
     [GameConfigOption("PadButton_R3", ConfigType.String)]
     PadButton_R3,
+
+    /// <summary>
+    /// System option with the internal name ActiveInstanceGuid.
+    /// This option is a String.
+    /// </summary>
+    [GameConfigOption("ActiveInstanceGuid", ConfigType.String)]
+    ActiveInstanceGuid,
+
+    /// <summary>
+    /// System option with the internal name ActiveProductGuid.
+    /// This option is a String.
+    /// </summary>
+    [GameConfigOption("ActiveProductGuid", ConfigType.String)]
+    ActiveProductGuid,
+
+    /// <summary>
+    /// System option with the internal name MsqProgress.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("MsqProgress", ConfigType.UInt)]
+    MsqProgress,
+
+    /// <summary>
+    /// System option with the internal name PromptConfigUpdate.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("PromptConfigUpdate", ConfigType.UInt)]
+    PromptConfigUpdate,
+
+    /// <summary>
+    /// System option with the internal name TitleScreenType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("TitleScreenType", ConfigType.UInt)]
+    TitleScreenType,
+
+    /// <summary>
+    /// System option with the internal name FirstConfigBackup.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("FirstConfigBackup", ConfigType.UInt)]
+    FirstConfigBackup,
 }
