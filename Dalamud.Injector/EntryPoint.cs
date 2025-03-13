@@ -458,7 +458,7 @@ namespace Dalamud.Injector
                 Console.WriteLine("{0}        [-m entrypoint|inject] [--mode=entrypoint|inject]", exeSpaces);
                 Console.WriteLine("{0}        [--handle-owner=inherited-handle-value]", exeSpaces);
                 Console.WriteLine("{0}        [--without-dalamud] [--no-fix-acl]", exeSpaces);
-                Console.WriteLine("{0}        [--no-wait]", exeSpaces);
+                Console.WriteLine("{0}        [--no-wait] [--no-unelevate]", exeSpaces);
                 Console.WriteLine("{0}        [-- game_arg1=value1 game_arg2=value2 ...]", exeSpaces);
             }
 
@@ -590,6 +590,7 @@ namespace Dalamud.Injector
             var handleOwner = IntPtr.Zero;
             var withoutDalamud = false;
             var noFixAcl = false;
+            var noUnelevate = false;
             var waitForGameWindow = true;
             var encryptArguments = false;
 
@@ -621,6 +622,10 @@ namespace Dalamud.Injector
                 else if (args[i] == "--no-fix-acl" || args[i] == "--no-acl-fix")
                 {
                     noFixAcl = true;
+                }
+                else if (args[i] == "--no-unelevate")
+                {
+                    noUnelevate = true;
                 }
                 else if (args[i] == "-g")
                 {
@@ -828,6 +833,7 @@ namespace Dalamud.Injector
                 gamePath,
                 gameArgumentString,
                 noFixAcl,
+                noUnelevate,
                 p =>
                 {
                     if (!withoutDalamud && dalamudStartInfo.LoadMethod == LoadMethod.Entrypoint)
