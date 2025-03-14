@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -236,12 +236,8 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                     .ConfigureAwait(false);
                 break;
             case PluginCommandOperation.Toggle:
-                this.chat.Print(Loc.Localize("PluginCommandsToggling", "Toggling plugin \"{0}\"...").Format(plugin.Name));
-                Task.Run(() => plugin.State == PluginState.Loaded ? plugin.UnloadAsync() : plugin.LoadAsync(PluginLoadReason.Installer))
-                    .ContinueWith(t => Continuation(t,
-                                      Loc.Localize("PluginCommandsToggleSuccess", "Plugin \"{0}\" toggled.").Format(plugin.Name),
-                                      Loc.Localize("PluginCommandsToggleFailed", "Failed to toggle plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
-                    .ConfigureAwait(false);
+                var isDisabling = plugin.State == PluginState.Loaded;
+                HandlePluginOperation(workingPluginId, isDisabling ? PluginCommandOperation.Disable : PluginCommandOperation.Enable);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(operation), operation, null);
