@@ -25,6 +25,7 @@ using Lumina.Data;
 using Lumina.Data.Files.Excel;
 using Lumina.Data.Structs.Excel;
 using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -1025,6 +1026,46 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 if (ImGui.SmallButton("Play"))
                 {
                     UIGlobals.PlayChatSoundEffect(u32 + 1);
+                }
+            }
+
+            if (macroCode is MacroCode.Link && subType != null && exprIdx == 1)
+            {
+                var dataManager = Service<DataManager>.Get();
+
+                switch ((LinkMacroPayloadType)subType)
+                {
+                    case LinkMacroPayloadType.Item when dataManager.GetExcelSheet<Item>(this.language).TryGetRow(u32, out var itemRow):
+                        ImGui.SameLine();
+                        ImGui.TextUnformatted(itemRow.Name.ExtractText());
+                        break;
+
+                    case LinkMacroPayloadType.Quest when dataManager.GetExcelSheet<Quest>(this.language).TryGetRow(u32, out var questRow):
+                        ImGui.SameLine();
+                        ImGui.TextUnformatted(questRow.Name.ExtractText());
+                        break;
+
+                    case LinkMacroPayloadType.Achievement when dataManager.GetExcelSheet<Achievement>(this.language).TryGetRow(u32, out var achievementRow):
+                        ImGui.SameLine();
+                        ImGui.TextUnformatted(achievementRow.Name.ExtractText());
+                        break;
+
+                    case LinkMacroPayloadType.HowTo when dataManager.GetExcelSheet<HowTo>(this.language).TryGetRow(u32, out var howToRow):
+                        ImGui.SameLine();
+                        ImGui.TextUnformatted(howToRow.Name.ExtractText());
+                        break;
+
+                    case LinkMacroPayloadType.Status when dataManager.GetExcelSheet<Status>(this.language).TryGetRow(u32, out var statusRow):
+                        ImGui.SameLine();
+                        ImGui.TextUnformatted(statusRow.Name.ExtractText());
+                        break;
+
+                    case LinkMacroPayloadType.AkatsukiNote when
+                        dataManager.GetSubrowExcelSheet<AkatsukiNote>(this.language).TryGetRow(u32, out var akatsukiNoteRow) &&
+                        dataManager.GetExcelSheet<AkatsukiNoteString>(this.language).TryGetRow((uint)akatsukiNoteRow[0].Unknown2, out var akatsukiNoteStringRow):
+                        ImGui.SameLine();
+                        ImGui.TextUnformatted(akatsukiNoteStringRow.Unknown0.ExtractText());
+                        break;
                 }
             }
 
