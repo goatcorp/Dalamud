@@ -54,14 +54,6 @@ public interface IActiveNotification : INotification
     /// <remarks>This does not override <see cref="INotification.HardExpiry"/>.</remarks>
     void ExtendBy(TimeSpan extension);
 
-    /// <summary>Sets the icon from <see cref="texture"/>, overriding the icon.</summary>
-    /// <param name="texture">The new texture to use, or null to clear and revert back to the icon specified
-    /// from <see cref="INotification.Icon"/>.</param>
-    /// <remarks>
-    /// <para>If you need to provide a IDalamudTextureWrap that you will be responsible for disposing of, wrap it with <see cref="ForwardingSharedImmediateTexture"/>.</para>
-    /// </remarks>
-    void SetIconTexture(ISharedImmediateTexture? texture);
-
     /// <summary>Generates a new value to use for <see cref="Id"/>.</summary>
     /// <returns>The new value.</returns>
     internal static long CreateNewId() => Interlocked.Increment(ref idCounter);

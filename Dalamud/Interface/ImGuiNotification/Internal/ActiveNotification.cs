@@ -243,12 +243,6 @@ internal sealed partial class ActiveNotification : IActiveNotification
             this.extendedExpiry = newExpiry;
     }
 
-    /// <inheritdoc/>
-    public void SetIconTexture(ISharedImmediateTexture? texture)
-    {
-        this.underlyingNotification.IconTexture = texture;
-    }
-
     /// <summary>Removes non-Dalamud invocation targets from events.</summary>
     /// <remarks>
     /// This is done to prevent references of plugins being unloaded from outliving the plugin itself.

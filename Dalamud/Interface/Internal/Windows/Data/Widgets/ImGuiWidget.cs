@@ -219,8 +219,7 @@ internal class ImGuiWidget : IDataWindowWidget
 
                     if (textureWrap != null)
                     {
-                        n.SetIconTexture(
-                            new ForwardingSharedImmediateTexture(textureWrap));
+                        n.IconTexture = new ForwardingSharedImmediateTexture(textureWrap);
                     }
 
                     break;
@@ -229,8 +228,7 @@ internal class ImGuiWidget : IDataWindowWidget
                         tm.Shared.GetFromGame(this.notificationTemplate.IconText).GetWrapOrDefault());
                     if (textureWrap2 != null)
                     {
-                        n.SetIconTexture(
-                            new ForwardingSharedImmediateTexture(textureWrap2));
+                        n.IconTexture = new ForwardingSharedImmediateTexture(textureWrap2);
                     }
 
                     break;
@@ -239,8 +237,7 @@ internal class ImGuiWidget : IDataWindowWidget
                         tm.Shared.GetFromFile(this.notificationTemplate.IconText).GetWrapOrDefault());
                     if (textureWrap3 != null)
                     {
-                        n.SetIconTexture(
-                            new ForwardingSharedImmediateTexture(textureWrap3));
+                        n.IconTexture = new ForwardingSharedImmediateTexture(textureWrap3);
                     }
 
                     break;
@@ -430,7 +427,6 @@ internal class ImGuiWidget : IDataWindowWidget
         public bool Minimized;
         public bool UserDismissable;
         public bool ActionBar;
-        public bool LeaveTexturesOpen;
         public int ProgressMode;
 
         public void Reset()
@@ -452,7 +448,6 @@ internal class ImGuiWidget : IDataWindowWidget
             this.Minimized = true;
             this.UserDismissable = true;
             this.ActionBar = true;
-            this.LeaveTexturesOpen = true;
             this.ProgressMode = 0;
             this.RespectUiHidden = true;
         }
