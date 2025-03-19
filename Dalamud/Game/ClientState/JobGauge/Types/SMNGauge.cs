@@ -42,7 +42,22 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// <summary>
     /// Gets the amount of aspected Attunment remaining.
     /// </summary>
+    /// <remarks>
+    /// As of 7.01, this should be treated as a bit field.
+    /// Use <see cref="AttunementCount"/> and <see cref="AttunementType"/> instead.
+    /// </remarks>
     public byte Attunement => this.Struct->Attunement;
+
+    /// <summary>
+    /// The count of attunement cost resource available.
+    /// </summary>
+    public byte AttunementCount => this.Struct->AttunementCount;
+
+    /// <summary>
+    /// The type of attunement available.
+    /// Use the summon attuned accessors instead.
+    /// </summary>
+    public byte AttunementType => this.Struct->AttunementType;
 
     /// <summary>
     /// Gets the current aether flags.
