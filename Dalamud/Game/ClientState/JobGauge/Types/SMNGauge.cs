@@ -22,10 +22,13 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// </summary>
     public ushort SummonTimerRemaining => this.Struct->SummonTimer;
 
+    [Obsolete("Typo fixed. Use AttunementTimerRemaining instead.", true)]
+    public ushort AttunmentTimerRemaining => this.AttunementTimerRemaining;
+
     /// <summary>
     /// Gets the time remaining for the current attunement.
     /// </summary>
-    public ushort AttunmentTimerRemaining => this.Struct->AttunementTimer;
+    public ushort AttunementTimerRemaining => this.Struct->AttunementTimer;
 
     /// <summary>
     /// Gets the summon that will return after the current summon expires.
@@ -40,7 +43,7 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     public PetGlam ReturnSummonGlam => (PetGlam)this.Struct->ReturnSummonGlam;
 
     /// <summary>
-    /// Gets the amount of aspected Attunment remaining.
+    /// Gets the amount of aspected Attunement remaining.
     /// </summary>
     /// <remarks>
     /// As of 7.01, this should be treated as a bit field.
