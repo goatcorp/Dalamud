@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Interface;
-using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures;
 
 namespace Dalamud.Plugin.Services;
-
-using Interface.Textures;
 
 /// <summary>
 /// Interface for class responsible for managing elements in the title screen menu.

@@ -7,6 +7,7 @@ using Dalamud.Game.Text;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows;
 using Dalamud.Interface.ManagedFontAtlas;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
@@ -15,8 +16,6 @@ using Dalamud.Storage.Assets;
 using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiNotification;
-
-using Textures;
 
 /// <summary>Utilities for implementing stuff under <see cref="ImGuiNotification"/>.</summary>
 public static class NotificationUtilities

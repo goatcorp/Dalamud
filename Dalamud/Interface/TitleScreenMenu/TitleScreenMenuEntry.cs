@@ -4,12 +4,9 @@ using System.Linq;
 using System.Reflection;
 
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures;
 
 namespace Dalamud.Interface;
-
-using Textures;
 
 /// <summary>
 /// A interface representing an entry in the title screen menu.

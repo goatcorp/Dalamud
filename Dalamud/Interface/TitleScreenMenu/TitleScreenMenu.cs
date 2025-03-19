@@ -3,16 +3,13 @@ using System.Linq;
 using System.Reflection;
 
 using Dalamud.Game.ClientState.Keys;
-using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 namespace Dalamud.Interface;
-
-using Textures;
 
 /// <summary>
 /// Class responsible for managing elements in the title screen menu.
@@ -69,7 +66,7 @@ internal class TitleScreenMenu : IServiceType, ITitleScreenMenu
             }
         }
     }
-    
+
     /// <summary>
     /// Adds a new entry to the title screen menu.
     /// </summary>
@@ -222,7 +219,7 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
 {
     [ServiceManager.ServiceDependency]
     private readonly TitleScreenMenu titleScreenMenuService = Service<TitleScreenMenu>.Get();
-    
+
     private readonly List<IReadOnlyTitleScreenMenuEntry> pluginEntries = new();
 
     /// <inheritdoc/>
@@ -236,7 +233,7 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
             this.titleScreenMenuService.RemoveEntry(entry);
         }
     }
-    
+
     /// <inheritdoc/>
     public IReadOnlyTitleScreenMenuEntry AddEntry(string text, ISharedImmediateTexture texture, Action onTriggered)
     {
@@ -245,7 +242,7 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
 
         return entry;
     }
-    
+
     /// <inheritdoc/>
     public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, ISharedImmediateTexture texture, Action onTriggered)
     {
@@ -254,7 +251,7 @@ internal class TitleScreenMenuPluginScoped : IInternalDisposableService, ITitleS
 
         return entry;
     }
-    
+
     /// <inheritdoc/>
     public void RemoveEntry(IReadOnlyTitleScreenMenuEntry entry)
     {

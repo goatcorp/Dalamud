@@ -28,11 +28,11 @@ using ImGuiNET;
 
 using Lumina.Text.ReadOnly;
 
+using Serilog;
+
 using LSeStringBuilder = Lumina.Text.SeStringBuilder;
 
 namespace Dalamud.Interface.Internal.Windows;
-
-using Serilog;
 
 /// <summary>
 /// Class responsible for drawing the main plugin window.

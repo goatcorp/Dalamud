@@ -1,19 +1,15 @@
 using System.Runtime.Loader;
-using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
-using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
 using Serilog;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
-
-using Textures;
 
 /// <summary>Represents an active notification.</summary>
 internal sealed partial class ActiveNotification : IActiveNotification

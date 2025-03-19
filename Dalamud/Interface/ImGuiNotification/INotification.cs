@@ -1,12 +1,6 @@
-using System.Threading.Tasks;
-
-using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
-using Dalamud.Plugin.Services;
+using Dalamud.Interface.Textures;
 
 namespace Dalamud.Interface.ImGuiNotification;
-
-using Textures;
 
 /// <summary>Represents a notification.</summary>
 /// <remarks>Not to be implemented by plugins.</remarks>
@@ -24,7 +18,7 @@ public interface INotification
     /// <summary>Gets or sets the type of the notification.</summary>
     NotificationType Type { get; set; }
 
-    /// <summary>Gets or sets the icon source, in case <see cref="IconTextureTask"/> is not set or the task has faulted.
+    /// <summary>Gets or sets the icon source, in case <see cref="IconTexture"/> is not set.
     /// </summary>
     INotificationIcon? Icon { get; set; }
 

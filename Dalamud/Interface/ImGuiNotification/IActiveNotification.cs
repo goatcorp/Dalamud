@@ -1,13 +1,8 @@
 using System.Threading;
-using System.Threading.Tasks;
 
 using Dalamud.Interface.ImGuiNotification.EventArgs;
-using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface.ImGuiNotification;
-
-using Textures;
 
 /// <summary>Represents an active notification.</summary>
 /// <remarks>Not to be implemented by plugins.</remarks>
