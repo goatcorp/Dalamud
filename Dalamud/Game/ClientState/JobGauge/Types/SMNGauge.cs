@@ -52,15 +52,15 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     public byte Attunement => this.Struct->Attunement;
 
     /// <summary>
-    /// The count of attunement cost resource available.
+    /// Gets the count of attunement cost resource available.
     /// </summary>
     public byte AttunementCount => this.Struct->AttunementCount;
 
     /// <summary>
-    /// The type of attunement available.
+    /// Gets the type of attunement available.
     /// Use the summon attuned accessors instead.
     /// </summary>
-    public byte AttunementType => this.Struct->AttunementType;
+    public SummonAttunement AttunementType => (SummonAttunement)this.Struct->AttunementType;
 
     /// <summary>
     /// Gets the current aether flags.
