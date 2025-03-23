@@ -17,7 +17,7 @@ struct DalamudStartInfo {
         DirectHook = 1,
     };
     friend void from_json(const nlohmann::json&, DotNetOpenProcessHookMode&);
-    
+
     enum class ClientLanguage : int {
         Japanese,
         English,
@@ -61,6 +61,7 @@ struct DalamudStartInfo {
     bool BootVehEnabled = false;
     bool BootVehFull = false;
     bool BootEnableEtw = false;
+    bool BootDisableLegacyCorruptedStateExceptions = false;
     DotNetOpenProcessHookMode BootDotnetOpenProcessHookMode = DotNetOpenProcessHookMode::ImportHooks;
     std::set<std::string> BootEnabledGameFixes{};
     std::set<std::string> BootUnhookDlls{};
