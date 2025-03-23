@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <AssemblyName>Dalamud.CorePlugin</AssemblyName>
-        <TargetFramework>net8.0-windows</TargetFramework>
         <Platforms>x64</Platforms>
-        <LangVersion>10.0</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

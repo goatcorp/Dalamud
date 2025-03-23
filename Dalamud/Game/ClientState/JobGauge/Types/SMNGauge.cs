@@ -22,10 +22,13 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// </summary>
     public ushort SummonTimerRemaining => this.Struct->SummonTimer;
 
+    [Obsolete("Typo fixed. Use AttunementTimerRemaining instead.", true)]
+    public ushort AttunmentTimerRemaining => this.AttunementTimerRemaining;
+
     /// <summary>
     /// Gets the time remaining for the current attunement.
     /// </summary>
-    public ushort AttunmentTimerRemaining => this.Struct->AttunementTimer;
+    public ushort AttunementTimerRemaining => this.Struct->AttunementTimer;
 
     /// <summary>
     /// Gets the summon that will return after the current summon expires.
@@ -40,9 +43,24 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     public PetGlam ReturnSummonGlam => (PetGlam)this.Struct->ReturnSummonGlam;
 
     /// <summary>
-    /// Gets the amount of aspected Attunment remaining.
+    /// Gets the amount of aspected Attunement remaining.
     /// </summary>
+    /// <remarks>
+    /// As of 7.01, this should be treated as a bit field.
+    /// Use <see cref="AttunementCount"/> and <see cref="AttunementType"/> instead.
+    /// </remarks>
     public byte Attunement => this.Struct->Attunement;
+
+    /// <summary>
+    /// Gets the count of attunement cost resource available.
+    /// </summary>
+    public byte AttunementCount => this.Struct->AttunementCount;
+
+    /// <summary>
+    /// Gets the type of attunement available.
+    /// Use the summon attuned accessors instead.
+    /// </summary>
+    public SummonAttunement AttunementType => (SummonAttunement)this.Struct->AttunementType;
 
     /// <summary>
     /// Gets the current aether flags.
@@ -84,19 +102,19 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// Gets a value indicating whether if Ifrit is currently attuned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsIfritAttuned => this.AetherFlags.HasFlag(AetherFlags.IfritAttuned) && !this.AetherFlags.HasFlag(AetherFlags.GarudaAttuned);
+    public bool IsIfritAttuned => this.AttunementType == SummonAttunement.IFRIT;
 
     /// <summary>
     /// Gets a value indicating whether if Titan is currently attuned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsTitanAttuned => this.AetherFlags.HasFlag(AetherFlags.TitanAttuned) && !this.AetherFlags.HasFlag(AetherFlags.GarudaAttuned);
+    public bool IsTitanAttuned => this.AttunementType == SummonAttunement.TITAN;
 
     /// <summary>
     /// Gets a value indicating whether if Garuda is currently attuned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsGarudaAttuned => this.AetherFlags.HasFlag(AetherFlags.GarudaAttuned);
+    public bool IsGarudaAttuned => this.AttunementType == SummonAttunement.GARUDA;
 
     /// <summary>
     /// Gets a value indicating whether there are any Aetherflow stacks available.
