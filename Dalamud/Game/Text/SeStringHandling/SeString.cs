@@ -5,10 +5,15 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using Dalamud.Data;
+using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility;
+
 using Lumina.Excel.Sheets;
+
 using Newtonsoft.Json;
+
+using LSeStringBuilder = Lumina.Text.SeStringBuilder;
 
 namespace Dalamud.Game.Text.SeStringHandling;
 
@@ -187,57 +192,32 @@ public class SeString
     /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
     public static SeString CreateItemLink(uint itemId, ItemPayload.ItemKind kind = ItemPayload.ItemKind.Normal, string? displayNameOverride = null)
     {
-        var data = Service<DataManager>.Get();
+        var clientState = Service<ClientState.ClientState>.Get();
+        var seStringEvaluator = Service<SeStringEvaluator>.Get();
 
-        var displayName = displayNameOverride;
-        var rarity = 1; // default: white
-        if (displayName == null)
-        {
-            switch (kind)
-            {
-                case ItemPayload.ItemKind.Normal:
-                case ItemPayload.ItemKind.Collectible:
-                case ItemPayload.ItemKind.Hq:
-                    var item = data.GetExcelSheet<Item>()?.GetRowOrDefault(itemId);
-                    displayName = item?.Name.ExtractText();
-                    rarity = item?.Rarity ?? 1;
-                    break;
-                case ItemPayload.ItemKind.EventItem:
-                    displayName = data.GetExcelSheet<EventItem>()?.GetRowOrDefault(itemId)?.Name.ExtractText();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
-            }
-        }
+        var rawId = ItemUtil.GetRawId(itemId, kind);
 
-        if (displayName == null)
-        {
+        var displayName = displayNameOverride ?? ItemUtil.GetItemName(rawId);
+        if (displayName.IsEmpty)
             throw new Exception("Invalid item ID specified, could not determine item name.");
-        }
 
-        if (kind == ItemPayload.ItemKind.Hq)
-        {
-            displayName += $" {(char)SeIconChar.HighQuality}";
-        }
-        else if (kind == ItemPayload.ItemKind.Collectible)
-        {
-            displayName += $" {(char)SeIconChar.Collectible}";
-        }
+        var copyName = ItemUtil.GetItemName(rawId, false).ExtractText();
+        var textColor = ItemUtil.GetItemRarityColorType(rawId);
+        var textEdgeColor = textColor + 1u;
 
-        var textColor = (ushort)(549 + ((rarity - 1) * 2));
-        var textGlowColor = (ushort)(textColor + 1);
+        var sb = LSeStringBuilder.SharedPool.Get();
+        var itemLink = sb
+            .PushColorType(textColor)
+            .PushEdgeColorType(textEdgeColor)
+            .PushLinkItem(rawId, copyName)
+            .Append(displayName)
+            .PopLink()
+            .PopEdgeColorType()
+            .PopColorType()
+            .ToReadOnlySeString();
+        LSeStringBuilder.SharedPool.Return(sb);
 
-        // Note: `SeStringBuilder.AddItemLink` uses this function, so don't call it here!
-        return new SeStringBuilder()
-            .AddUiForeground(textColor)
-            .AddUiGlow(textGlowColor)
-            .Add(new ItemPayload(itemId, kind))
-            .Append(TextArrowPayloads)
-            .AddText(displayName)
-            .AddUiGlowOff()
-            .AddUiForegroundOff()
-            .Add(RawPayload.LinkTerminator)
-            .Build();
+        return SeString.Parse(seStringEvaluator.EvaluateFromAddon(371, [itemLink], clientState.ClientLanguage));
     }
 
     /// <summary>
@@ -301,7 +281,7 @@ public class SeString
     public static SeString CreateMapLink(
         uint territoryId, uint mapId, float xCoord, float yCoord, float fudgeFactor = 0.05f) =>
         CreateMapLinkWithInstance(territoryId, mapId, null, xCoord, yCoord, fudgeFactor);
-    
+
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log.
     /// </summary>
@@ -340,7 +320,7 @@ public class SeString
     /// <returns>An SeString containing all of the payloads necessary to display a map link in the chat log.</returns>
     public static SeString? CreateMapLink(string placeName, float xCoord, float yCoord, float fudgeFactor = 0.05f) =>
         CreateMapLinkWithInstance(placeName, null, xCoord, yCoord, fudgeFactor);
-    
+
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link a map position in the chat log, matching a specified zone name.
     /// Returns null if no corresponding PlaceName was found.
@@ -511,7 +491,7 @@ public class SeString
         {
             messageBytes.AddRange(p.Encode());
         }
-        
+
         // Add Null Terminator
         messageBytes.Add(0);
 
@@ -526,7 +506,7 @@ public class SeString
     {
         return this.TextValue;
     }
-    
+
     private static string GetMapLinkNameString(string placeName, int? instance, string coordinateString)
     {
         var instanceString = string.Empty;
@@ -534,7 +514,7 @@ public class SeString
         {
             instanceString = (SeIconChar.Instance1 + instance.Value - 1).ToIconString();
         }
-        
+
         return $"{placeName}{instanceString} {coordinateString}";
     }
 }
