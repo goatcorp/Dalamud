@@ -217,11 +217,11 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             this.chat.Print(onSuccess);
         }
 
-        if (operation is PluginCommandOperation.Toggle)
+        if (operation == PluginCommandOperation.Toggle)
         {
-            return HandlePluginOperation(workingPluginId, plugin.State == PluginState.Loaded ? PluginCommandOperation.Disable : PluginCommandOperation.Enable);
+            operation = plugin.State == PluginState.Loaded ? PluginCommandOperation.Disable : PluginCommandOperation.Enable;
         }
-            
+
         switch (operation)
         {
             case PluginCommandOperation.Enable:
