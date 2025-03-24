@@ -9,25 +9,25 @@ public enum PluginLoadReason
     /// <summary>
     /// We don't know why this plugin was loaded.
     /// </summary>
-    Unknown,
+    Unknown = 1 << 0,
 
     /// <summary>
     /// This plugin was loaded because it was installed with the plugin installer.
     /// </summary>
-    Installer,
+    Installer = 1 << 1,
 
     /// <summary>
     /// This plugin was loaded because it was just updated.
     /// </summary>
-    Update,
+    Update = 1 << 2,
 
     /// <summary>
     /// This plugin was loaded because it was told to reload.
     /// </summary>
-    Reload,
+    Reload = 1 << 3,
 
     /// <summary>
     /// This plugin was loaded because the game was started or Dalamud was reinjected.
     /// </summary>
-    Boot,
+    Boot = 1 << 4,
 }
