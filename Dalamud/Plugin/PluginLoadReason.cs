@@ -3,6 +3,7 @@ namespace Dalamud.Plugin;
 /// <summary>
 /// This enum reflects reasons for loading a plugin.
 /// </summary>
+[Flags]
 public enum PluginLoadReason
 {
     /// <summary>
@@ -30,5 +31,3 @@ public enum PluginLoadReason
     /// </summary>
     Boot,
 }
-
-// TODO(api9): This should be a mask, so that we can combine Installer | ProfileLoaded
