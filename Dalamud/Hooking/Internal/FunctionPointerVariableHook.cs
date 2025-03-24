@@ -100,7 +100,7 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
 
             unhooker.TrimAfterHook();
 
-            HookManager.TrackedHooks.TryAdd(this.HookId, new HookInfo(this, detour, callingAssembly));
+            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
         }
     }
 
@@ -136,8 +136,6 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
         }
 
         this.Disable();
-
-        HookManager.TrackedHooks.TryRemove(this.HookId, out _);
 
         var index = HookManager.MultiHookTracker[this.Address].IndexOf(this);
         HookManager.MultiHookTracker[this.Address][index] = null;

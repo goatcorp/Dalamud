@@ -258,6 +258,8 @@ internal class PluginStatWindow : Window
             ImGui.EndTabItem();
         }
 
+        var toRemove = new List<Guid>();
+
         if (ImGui.BeginTabItem("Hooks"))
         {
             ImGui.Checkbox("Show Dalamud Hooks", ref this.showDalamudHooks);
@@ -289,6 +291,9 @@ internal class PluginStatWindow : Window
                 {
                     try
                     {
+                        if (trackedHook.Hook.IsDisposed)
+                            toRemove.Add(guid);
+
                         if (!this.showDalamudHooks && trackedHook.Assembly == Assembly.GetExecutingAssembly())
                             continue;
 
@@ -347,6 +352,14 @@ internal class PluginStatWindow : Window
                 }
 
                 ImGui.EndTable();
+            }
+        }
+
+        if (ImGui.IsWindowAppearing())
+        {
+            foreach (var guid in toRemove)
+            {
+                HookManager.TrackedHooks.TryRemove(guid, out _);
             }
         }
 

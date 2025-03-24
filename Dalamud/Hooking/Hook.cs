@@ -72,11 +72,6 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     public virtual string BackendName => throw new NotImplementedException();
     
     /// <summary>
-    /// Gets the unique GUID for this hook.
-    /// </summary>
-    protected Guid HookId { get; } = Guid.NewGuid();
-    
-    /// <summary>
     /// Remove a hook from the current process.
     /// </summary>
     public virtual void Dispose()
