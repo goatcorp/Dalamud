@@ -8,20 +8,20 @@ public enum BeastChakra : byte
     /// <summary>
     /// No chakra.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// The Opo-Opo chakra.
     /// </summary>
-    OPOOPO = 1,
+    OpoOpo = 1,
 
     /// <summary>
     /// The Raptor chakra.
     /// </summary>
-    RAPTOR = 2,
+    Raptor = 2,
 
     /// <summary>
     /// The Coeurl chakra.
     /// </summary>
-    COEURL = 3,
+    Coeurl = 3,
 }
