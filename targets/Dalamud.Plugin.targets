@@ -29,9 +29,7 @@
         <Message Text="Dalamud.Plugin: root at $(DalamudLibPath)" Importance="high" />
     </Target>
 
-    <!-- Uncomment when we... wrote the docs
     <Target Name="DeprecationNotice" BeforeTargets="BeforeBuild">
-        <Warning Text="Dalamud.Plugin.targets is deprecated. Please upgrade to Dalamud.NET.Sdk - learn more here: https://dalamud.dev/versions/v10/sdk-migration" />
+        <Warning Text="Using the targets file to include the Dalamud SDK is no longer recommended. Please upgrade to Dalamud.NET.Sdk - learn more here: https://dalamud.dev/plugin-development/how-tos/v12-sdk-migration" />
     </Target>
-    -->
 </Project>
