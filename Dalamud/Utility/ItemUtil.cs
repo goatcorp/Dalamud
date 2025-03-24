@@ -2,14 +2,12 @@ using System.Runtime.CompilerServices;
 
 using Dalamud.Data;
 using Dalamud.Game;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Game.Text;
-
 using Lumina.Excel.Sheets;
+using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
 using static Dalamud.Game.Text.SeStringHandling.Payloads.ItemPayload;
-using Lumina.Text;
 
 namespace Dalamud.Utility;
 
@@ -128,10 +126,10 @@ internal static class ItemUtil
 
         switch (kind)
         {
-            case ItemPayload.ItemKind.Hq:
+            case ItemKind.Hq:
                 builder.Append($" {(char)SeIconChar.HighQuality}");
                 break;
-            case ItemPayload.ItemKind.Collectible:
+            case ItemKind.Collectible:
                 builder.Append($" {(char)SeIconChar.Collectible}");
                 break;
         }

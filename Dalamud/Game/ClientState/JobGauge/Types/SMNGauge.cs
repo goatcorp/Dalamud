@@ -22,6 +22,9 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// </summary>
     public ushort SummonTimerRemaining => this.Struct->SummonTimer;
 
+    /// <summary>
+    /// Gets the time remaining for the current attunement.
+    /// </summary>
     [Obsolete("Typo fixed. Use AttunementTimerRemaining instead.", true)]
     public ushort AttunmentTimerRemaining => this.AttunementTimerRemaining;
 
@@ -102,19 +105,19 @@ public unsafe class SMNGauge : JobGaugeBase<SummonerGauge>
     /// Gets a value indicating whether if Ifrit is currently attuned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsIfritAttuned => this.AttunementType == SummonAttunement.IFRIT;
+    public bool IsIfritAttuned => this.AttunementType == SummonAttunement.Ifrit;
 
     /// <summary>
     /// Gets a value indicating whether if Titan is currently attuned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsTitanAttuned => this.AttunementType == SummonAttunement.TITAN;
+    public bool IsTitanAttuned => this.AttunementType == SummonAttunement.Titan;
 
     /// <summary>
     /// Gets a value indicating whether if Garuda is currently attuned.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
-    public bool IsGarudaAttuned => this.AttunementType == SummonAttunement.GARUDA;
+    public bool IsGarudaAttuned => this.AttunementType == SummonAttunement.Garuda;
 
     /// <summary>
     /// Gets a value indicating whether there are any Aetherflow stacks available.

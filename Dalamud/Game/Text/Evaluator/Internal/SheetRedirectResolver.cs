@@ -85,8 +85,9 @@ internal class SheetRedirectResolver : IServiceType
                 {
                     flags |= SheetRedirectFlags.HighQuality;
                 }
-                else if (kind == ItemKind.Collectible || sheetName == "ItemMP") // MP for Masterpiece?!
+                else if (kind == ItemKind.Collectible || sheetName == "ItemMP")
                 {
+                    // MP for Masterpiece?!
                     flags |= SheetRedirectFlags.Collectible;
                 }
 
