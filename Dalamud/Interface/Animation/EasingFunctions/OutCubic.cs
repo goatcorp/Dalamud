@@ -19,6 +19,6 @@ public class OutCubic : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = 1 - Math.Pow(1 - p, 3);
+        this.ValueUnclamped = 1 - Math.Pow(1 - p, 3);
     }
 }

@@ -94,6 +94,7 @@ namespace Dalamud.Injector
                 args.Remove("--msgbox2");
                 args.Remove("--msgbox3");
                 args.Remove("--etw");
+                args.Remove("--no-legacy-corrupted-state-exceptions");
                 args.Remove("--veh");
                 args.Remove("--veh-full");
                 args.Remove("--no-plugin");
@@ -457,6 +458,7 @@ namespace Dalamud.Injector
             // Set boot defaults
             startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootEnableEtw = args.Contains("--etw");
+            startInfo.BootDisableLegacyCorruptedStateExceptions = args.Contains("--no-legacy-corrupted-state-exceptions");
             startInfo.BootLogPath = GetLogPath(startInfo.LogPath, "dalamud.boot", startInfo.LogName);
             startInfo.BootEnabledGameFixes = new()
             {
@@ -528,6 +530,7 @@ namespace Dalamud.Injector
             Console.WriteLine("Verbose logging:\t[-v]");
             Console.WriteLine("Show Console:\t[--console] [--crash-handler-console]");
             Console.WriteLine("Enable ETW:\t[--etw]");
+            Console.WriteLine("Disable legacy corrupted state exceptions:\t[--no-legacy-corrupted-state-exceptions]");
             Console.WriteLine("Enable VEH:\t[--veh], [--veh-full], [--unhandled-exception=default|stalldebug|none]");
             Console.WriteLine("Show messagebox:\t[--msgbox1], [--msgbox2], [--msgbox3]");
             Console.WriteLine("No plugins:\t[--no-plugin] [--no-3rd-plugin]");

@@ -127,9 +127,14 @@ public record DalamudStartInfo
     public bool BootVehFull { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not ETW should be enabled.
+    /// Gets or sets a value indicating whether ETW should be enabled.
     /// </summary>
     public bool BootEnableEtw { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to enable legacy corrupted state exceptions.
+    /// </summary>
+    public bool BootDisableLegacyCorruptedStateExceptions { get; set; }
 
     /// <summary>
     /// Gets or sets a value choosing the OpenProcess hookmode.
