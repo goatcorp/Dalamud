@@ -20,6 +20,8 @@ namespace Dalamud.Game;
 /// </summary>
 public class SigScanner : IDisposable, ISigScanner
 {
+    private static byte[]? fileBytes;
+
     private readonly FileInfo? cacheFile;
 
     private nint moduleCopyPtr;
@@ -51,7 +53,11 @@ public class SigScanner : IDisposable, ISigScanner
         this.IsCopy = doCopy;
 
         if (this.IsCopy)
+        {
             this.SetupCopiedSegments();
+
+            fileBytes ??= File.ReadAllBytes(module.FileName);
+        }
 
         // Limit the search space to .text section.
         this.SetupSearchSpace(module);
@@ -462,8 +468,6 @@ public class SigScanner : IDisposable, ISigScanner
 
     private void SetupSearchSpace(ProcessModule module)
     {
-        var fileBytes = File.ReadAllBytes(module.FileName);
-
         var baseAddress = module.BaseAddress;
 
         // We don't want to read all of IMAGE_DOS_HEADER or IMAGE_NT_HEADER stuff so we cheat here.
