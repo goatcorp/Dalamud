@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 
+using Dalamud.Utility;
+
 namespace Dalamud.Interface.Animation;
 
 /// <summary>
@@ -43,9 +45,16 @@ public abstract class Easing
     public bool IsInverse { get; set; }
 
     /// <summary>
+    /// Gets the current value of the animation, following unclamped logic.
+    /// </summary>
+    [Obsolete($"This field has been deprecated. Use either {nameof(ValueClamped)} or {nameof(ValueUnclamped)} instead.", true)]
+    [Api13ToDo("Map this field to ValueClamped, probably.")]
+    public double Value => this.ValueUnclamped;
+
+    /// <summary>
     /// Gets the current value of the animation, from 0 to 1.
     /// </summary>
-    public double Value => Math.Clamp(this.ValueUnclamped, 0, 1);
+    public double ValueClamped => Math.Clamp(this.ValueUnclamped, 0, 1);
 
     /// <summary>
     /// Gets or sets the current value of the animation, not limited to a range of 0 to 1.
