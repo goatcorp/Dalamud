@@ -11,6 +11,8 @@ using System.Text.RegularExpressions;
 
 using Dalamud.Common;
 using Dalamud.Common.Game;
+using Dalamud.Common.Util;
+
 using Newtonsoft.Json;
 using Reloaded.Memory.Buffers;
 using Serilog;
@@ -310,6 +312,10 @@ namespace Dalamud.Injector
             var platformStr = startInfo.Platform.ToString().ToLowerInvariant();
             var unhandledExceptionStr = startInfo.UnhandledException.ToString().ToLowerInvariant();
             var troubleshootingData = "{\"empty\": true, \"description\": \"No troubleshooting data supplied.\"}";
+
+            // env vars are brought in prior to launch args, since args can override them.
+            if (EnvironmentUtils.TryGetEnvironmentVariable("XL_PLATFORM", out var xlPlatformEnv))
+                platformStr = xlPlatformEnv.ToLowerInvariant();
 
             for (var i = 2; i < args.Count; i++)
             {
