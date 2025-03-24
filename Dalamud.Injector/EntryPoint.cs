@@ -419,7 +419,9 @@ namespace Dalamud.Injector
             }
 
             OSPlatform platform;
-            if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "win").Length))] == key[0..len]) // covers both win32 and Windows
+
+            // covers both win32 and Windows
+            if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "win").Length))] == key[0..len])
             {
                 platform = OSPlatform.Windows;
             }
