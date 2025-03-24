@@ -216,6 +216,11 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             
             this.chat.Print(onSuccess);
         }
+
+        if (operation is PluginCommandOperation.Toggle)
+        {
+            return HandlePluginOperation(workingPluginId, plugin.State == PluginState.Loaded ? PluginCommandOperation.Disable : PluginCommandOperation.Enable);
+        }
             
         switch (operation)
         {
@@ -234,10 +239,6 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                                       Loc.Localize("PluginCommandsDisableSuccess", "Plugin \"{0}\" disabled.").Format(plugin.Name),
                                       Loc.Localize("PluginCommandsDisableFailed", "Failed to disable plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
                     .ConfigureAwait(false);
-                break;
-            case PluginCommandOperation.Toggle:
-                var isDisabling = plugin.State == PluginState.Loaded;
-                HandlePluginOperation(workingPluginId, isDisabling ? PluginCommandOperation.Disable : PluginCommandOperation.Enable);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(operation), operation, null);
