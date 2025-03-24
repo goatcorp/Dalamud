@@ -1,6 +1,5 @@
 name: Build Dalamud
 on: [push, pull_request, workflow_dispatch]
-
 concurrency:
   group: build_dalamud_${{ github.ref_name }}
   cancel-in-progress: true
@@ -33,8 +32,10 @@ jobs:
           ($env:REPO_NAME) >> VERSION
           ($env:BRANCH) >> VERSION
           ($env:COMMIT) >> VERSION
-      - name: Build and Test Dalamud
-        run: .\build.ps1 ci
+      - name: Build Dalamud
+        run: .\build.ps1 compile
+      - name: Test Dalamud
+        run: .\build.ps1 test
       - name: Sign Dalamud
         if: ${{ github.repository_owner == 'goatcorp' && github.event_name == 'push' }}
         env:
@@ -86,9 +87,9 @@ jobs:
     - name: "Verify Compatibility"
       run: |
         $FILES_TO_VALIDATE = "Dalamud.dll","FFXIVClientStructs.dll","Lumina.dll","Lumina.Excel.dll"
-
+        
         $retcode = 0
-
+        
         foreach ($file in $FILES_TO_VALIDATE) {
             $testout = ""
             Write-Output "::group::=== API COMPATIBILITY CHECK: ${file} ==="
@@ -99,7 +100,7 @@ jobs:
                 $retcode = 1
             }
         }
-
+        
         exit $retcode
 
   deploy_stg:
@@ -128,18 +129,18 @@ jobs:
         GH_BRANCH: ${{ steps.extract_branch.outputs.branch }}
       run: |
         Compress-Archive .\scratch\* .\canary.zip  # Recreate the release zip
-
+        
         $branchName = $env:GH_BRANCH
-
+        
         if ($branchName -eq "master") {
           $branchName = "stg"
         }
-
+        
         $newVersion = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\TEMP_gitver.txt")
         $revision = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\revision.txt")
         $commitHash = [System.IO.File]::ReadAllText("$(Get-Location)\scratch\commit_hash.txt")
         Remove-Item -Force -Recurse .\scratch
-
+        
         if (Test-Path -Path $branchName) {
             $versionData = Get-Content ".\${branchName}\version" | ConvertFrom-Json
             $oldVersion = $versionData.AssemblyVersion
@@ -158,7 +159,7 @@ jobs:
             Write-Host "Deployment folder doesn't exist. Not doing anything."
             Remove-Item .\canary.zip
         }
-
+        
     - name: Commit changes
       shell: bash
       env:
@@ -166,8 +167,8 @@ jobs:
       run: |
         git config --global user.name "Actions User"
         git config --global user.email "actions@github.com"
-
+        
         git add .
         git commit -m "[CI] Update staging for ${DVER} on ${GH_BRANCH}" || true
-
+        
         git push origin main || true

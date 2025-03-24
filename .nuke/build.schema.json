@@ -76,7 +76,6 @@
           "items": {
             "type": "string",
             "enum": [
-              "CI",
               "Clean",
               "Compile",
               "CompileCImGui",
@@ -89,7 +88,6 @@
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
-              "SetCILogging",
               "Test"
             ]
           }
@@ -104,7 +102,6 @@
           "items": {
             "type": "string",
             "enum": [
-              "CI",
               "Clean",
               "Compile",
               "CompileCImGui",
@@ -117,7 +114,6 @@
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
-              "SetCILogging",
               "Test"
             ]
           }
