@@ -153,7 +153,7 @@ internal class DalamudCommands : IServiceType
                 "Copy the dalamud.log file to your clipboard."),
         });
         // Add the new command handler for toggling multi-monitor option
-        commandManager.AddHandler("/xlmulti", new CommandInfo(this.OnToggleMultiMonitorCommand)
+        commandManager.AddHandler("/xltogglemultimonitor", new CommandInfo(this.OnToggleMultiMonitorCommand)
         {
             HelpMessage = Loc.Localize("DalamudToggleMultiMonitorHelp", "Toggle multi-monitor windows."),
         });
