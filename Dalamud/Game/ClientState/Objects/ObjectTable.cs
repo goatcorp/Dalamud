@@ -7,8 +7,6 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
-using Dalamud.Logging.Internal;
-using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -31,19 +29,12 @@ namespace Dalamud.Game.ClientState.Objects;
 #pragma warning restore SA1015
 internal sealed partial class ObjectTable : IServiceType, IObjectTable
 {
-    private static readonly ModuleLog Log = new("ObjectTable");
-
     private static int objectTableLength;
 
     private readonly ClientState clientState;
     private readonly CachedEntry[] cachedObjectTable;
 
-    private readonly ObjectPool<Enumerator> multiThreadedEnumerators =
-        new DefaultObjectPoolProvider().Create<Enumerator>();
-
     private readonly Enumerator?[] frameworkThreadEnumerators = new Enumerator?[4];
-
-    private long nextMultithreadedUsageWarnTime;
 
     [ServiceManager.ServiceConstructor]
     private unsafe ObjectTable(ClientState clientState)
@@ -228,20 +219,11 @@ internal sealed partial class ObjectTable
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-    private sealed class Enumerator : IEnumerator<IGameObject>, IResettable
+    private sealed class Enumerator(ObjectTable owner, int slotId) : IEnumerator<IGameObject>, IResettable
     {
-        private readonly int slotId;
-        private ObjectTable? owner;
+        private ObjectTable? owner = owner;
 
         private int index = -1;
-
-        public Enumerator() => this.slotId = -1;
-
-        public Enumerator(ObjectTable owner, int slotId)
-        {
-            this.owner = owner;
-            this.slotId = slotId;
-        }
 
         public IGameObject Current { get; private set; } = null!;
 
@@ -265,8 +247,6 @@ internal sealed partial class ObjectTable
             return false;
         }
 
-        public void InitializeForPooledObjects(ObjectTable ot) => this.owner = ot;
-
         public void Reset() => this.index = -1;
 
         public void Dispose()
@@ -274,10 +254,8 @@ internal sealed partial class ObjectTable
             if (this.owner is not { } o)
                 return;
 
-            if (this.slotId == -1)
-                o.multiThreadedEnumerators.Return(this);
-            else
-                o.frameworkThreadEnumerators[this.slotId] = this;
+            if (slotId != -1)
+                o.frameworkThreadEnumerators[slotId] = this;
         }
 
         public bool TryReset()
