@@ -226,7 +226,7 @@ internal sealed partial class ActiveNotification : IActiveNotification
             if (Math.Abs(underlyingProgress - this.progressBefore) < 0.000001f || this.progressEasing.IsDone || ReducedMotions)
                 return underlyingProgress;
 
-            var state = ReducedMotions ? 1f : Math.Clamp((float)this.progressEasing.Value, 0f, 1f);
+            var state = ReducedMotions ? 1f : Math.Clamp((float)this.progressEasing.ValueClamped, 0f, 1f);
             return this.progressBefore + (state * (underlyingProgress - this.progressBefore));
         }
     }

@@ -19,6 +19,6 @@ public class OutSine : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = Math.Sin((p * Math.PI) / 2);
+        this.ValueUnclamped = Math.Sin((p * Math.PI) / 2);
     }
 }

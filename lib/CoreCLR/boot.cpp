@@ -30,6 +30,7 @@ std::optional<CoreCLR> g_clr;
 HRESULT InitializeClrAndGetEntryPoint(
     void* calling_module,
     bool enable_etw,
+    bool enable_legacy_corrupted_state_exception_policy,
     std::wstring runtimeconfig_path,
     std::wstring module_path,
     std::wstring entrypoint_assembly_name,
@@ -41,8 +42,13 @@ HRESULT InitializeClrAndGetEntryPoint(
 
     int result;
     SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");
-    SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", L"1");
-    SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
+
+    if (enable_legacy_corrupted_state_exception_policy)
+    {
+        SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", L"1");
+        SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
+    }
+
     SetEnvironmentVariable(L"COMPLUS_ForceENC", L"1");
     SetEnvironmentVariable(L"DOTNET_ForceENC", L"1");
 
