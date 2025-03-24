@@ -263,6 +263,35 @@ namespace Dalamud.Injector
             }
         }
 
+        private static OSPlatform DetectPlatformHeuristic()
+        {
+            var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
+            var wineServerCallPtr = NativeFunctions.GetProcAddress(ntdll, "wine_server_call");
+            var wineGetHostVersionPtr = NativeFunctions.GetProcAddress(ntdll, "wine_get_host_version");
+            var winePlatform = GetWinePlatform(wineGetHostVersionPtr);
+            var isWine = wineServerCallPtr != nint.Zero;
+
+            static unsafe string? GetWinePlatform(nint wineGetHostVersionPtr)
+            {
+                if (wineGetHostVersionPtr == nint.Zero) return null;
+
+                var methodDelegate = (delegate* unmanaged[Fastcall]<out char*, out char*, void>)wineGetHostVersionPtr;
+                methodDelegate(out var platformPtr, out var _);
+
+                if (platformPtr == null) return null;
+
+                return Marshal.PtrToStringAnsi((nint)platformPtr);
+            }
+
+            if (!isWine)
+                return OSPlatform.Windows;
+
+            if (winePlatform == "Darwin")
+                return OSPlatform.OSX;
+
+            return OSPlatform.Linux;
+        }
+
         private static DalamudStartInfo ExtractAndInitializeStartInfoFromArguments(DalamudStartInfo? startInfo, List<string> args)
         {
             int len;
@@ -278,6 +307,7 @@ namespace Dalamud.Injector
             var logName = startInfo.LogName;
             var logPath = startInfo.LogPath;
             var languageStr = startInfo.Language.ToString().ToLowerInvariant();
+            var platformStr = startInfo.Platform.ToString().ToLowerInvariant();
             var unhandledExceptionStr = startInfo.UnhandledException.ToString().ToLowerInvariant();
             var troubleshootingData = "{\"empty\": true, \"description\": \"No troubleshooting data supplied.\"}";
 
@@ -306,6 +336,10 @@ namespace Dalamud.Injector
                 else if (args[i].StartsWith(key = "--dalamud-client-language="))
                 {
                     languageStr = args[i][key.Length..].ToLowerInvariant();
+                }
+                else if (args[i].StartsWith(key = "--dalamud-platform="))
+                {
+                    platformStr = args[i][key.Length..].ToLowerInvariant();
                 }
                 else if (args[i].StartsWith(key = "--dalamud-tspack-b64="))
                 {
@@ -378,11 +412,35 @@ namespace Dalamud.Injector
                 throw new CommandLineException($"\"{languageStr}\" is not a valid supported language.");
             }
 
+            OSPlatform platform;
+            if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "win").Length))] == key[0..len]) // covers both win32 and Windows
+            {
+                platform = OSPlatform.Windows;
+            }
+            else if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "linux").Length))] == key[0..len])
+            {
+                platform = OSPlatform.Linux;
+            }
+            else if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "macos").Length))] == key[0..len])
+            {
+                platform = OSPlatform.OSX;
+            }
+            else if (platformStr[0..(len = Math.Min(platformStr.Length, (key = "osx").Length))] == key[0..len])
+            {
+                platform = OSPlatform.OSX;
+            }
+            else
+            {
+                platform = DetectPlatformHeuristic();
+                Log.Warning("Heuristically determined host system platform as {platform}", platform);
+            }
+
             startInfo.WorkingDirectory = workingDirectory;
             startInfo.ConfigurationPath = configurationPath;
             startInfo.PluginDirectory = pluginDirectory;
             startInfo.AssetDirectory = assetDirectory;
             startInfo.Language = clientLanguage;
+            startInfo.Platform = platform;
             startInfo.DelayInitializeMs = delayInitializeMs;
             startInfo.GameVersion = null;
             startInfo.TroubleshootingPackData = troubleshootingData;
@@ -465,7 +523,7 @@ namespace Dalamud.Injector
             }
 
             Console.WriteLine("Specifying dalamud start info: [--dalamud-working-directory=path] [--dalamud-configuration-path=path]");
-            Console.WriteLine("                               [--dalamud-plugin-directory=path]");
+            Console.WriteLine("                               [--dalamud-plugin-directory=path] [--dalamud-platform=win32|linux|macOS]");
             Console.WriteLine("                               [--dalamud-asset-directory=path] [--dalamud-delay-initialize=0(ms)]");
             Console.WriteLine("                               [--dalamud-client-language=0-3|j(apanese)|e(nglish)|d|g(erman)|f(rench)]");
 
@@ -732,15 +790,42 @@ namespace Dalamud.Injector
             {
                 try
                 {
-                    var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                    var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
-                    var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
-                    gamePath = Path.Combine(JsonSerializer.CreateDefault().Deserialize<Dictionary<string, string>>(new JsonTextReader(new StringReader(File.ReadAllText(launcherConfigPath))))["GamePath"], "game", "ffxiv_dx11.exe");
-                    Log.Information("Using game installation path configuration from from XIVLauncher: {0}", gamePath);
+                    if (dalamudStartInfo.Platform == OSPlatform.Windows)
+                    {
+                        var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                        var xivlauncherDir = Path.Combine(appDataDir, "XIVLauncher");
+                        var launcherConfigPath = Path.Combine(xivlauncherDir, "launcherConfigV3.json");
+                        gamePath = Path.Combine(
+                            JsonSerializer.CreateDefault()
+                                .Deserialize<Dictionary<string, string>>(
+                                    new JsonTextReader(new StringReader(File.ReadAllText(launcherConfigPath))))["GamePath"],
+                            "game",
+                            "ffxiv_dx11.exe");
+                        Log.Information("Using game installation path configuration from from XIVLauncher: {0}", gamePath);
+                    }
+                    else if (dalamudStartInfo.Platform == OSPlatform.Linux)
+                    {
+                        var homeDir = $"Z:\\home\\{Environment.UserName}";
+                        var xivlauncherDir = Path.Combine(homeDir, ".xlcore");
+                        var launcherConfigPath = Path.Combine(xivlauncherDir, "launcher.ini");
+                        var config = File.ReadAllLines(launcherConfigPath)
+                            .Where(line => line.Contains('='))
+                            .ToDictionary(line => line.Split('=')[0], line => line.Split('=')[1]);
+                        gamePath = Path.Combine("Z:" + config["GamePath"].Replace('/', '\\'), "game", "ffxiv_dx11.exe");
+                        Log.Information("Using game installation path configuration from from XIVLauncher Core: {0}", gamePath);
+                    }
+                    else
+                    {
+                        var homeDir = $"Z:\\Users\\{Environment.UserName}";
+                        var xomlauncherDir = Path.Combine(homeDir, "Library", "Application Support", "XIV on Mac");
+                        // we could try to parse the binary plist file here if we really wanted to...
+                        gamePath = Path.Combine(xomlauncherDir, "ffxiv", "game", "ffxiv_dx11.exe");
+                        Log.Information("Using default game installation path from XOM: {0}", gamePath);
+                    }
                 }
                 catch (Exception)
                 {
-                    Log.Error("Failed to read launcherConfigV3.json to get the set-up game path, please specify one using -g");
+                    Log.Error("Failed to read launcher config to get the set-up game path, please specify one using -g");
                     return -1;
                 }
 
@@ -795,20 +880,6 @@ namespace Dalamud.Injector
             if (encryptArguments)
             {
                 var rawTickCount = (uint)Environment.TickCount;
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    [System.Runtime.InteropServices.DllImport("c")]
-#pragma warning disable SA1300
-                    static extern ulong clock_gettime_nsec_np(int clockId);
-#pragma warning restore SA1300
-
-                    const int CLOCK_MONOTONIC_RAW = 4;
-                    var rawTickCountFixed = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1000000;
-                    Log.Information("ArgumentBuilder::DeriveKey() fixing up rawTickCount from {0} to {1} on macOS", rawTickCount, rawTickCountFixed);
-                    rawTickCount = (uint)rawTickCountFixed;
-                }
-
                 var ticks = rawTickCount & 0xFFFF_FFFFu;
                 var key = ticks & 0xFFFF_0000u;
                 gameArguments.Insert(0, $"T={ticks}");
