@@ -1,19 +1,22 @@
 namespace Dalamud.Game.ClientState.JobGauge.Enums;
 
+/// <summary>
+/// Enum representing the current step of Delirium.
+/// </summary>
 public enum DeliriumStep
 {
     /// <summary>
     /// Scarlet Delirium can be used.
     /// </summary>
-    SCARLET_DELIRIUM = 0,
+    ScarletDelirium = 0,
 
     /// <summary>
     /// Comeuppance can be used.
     /// </summary>
-    COMEUPPANCE = 1,
+    Comeuppance = 1,
 
     /// <summary>
     /// Torcleaver can be used.
     /// </summary>
-    TORCLEAVER = 2,
+    Torcleaver = 2,
 }

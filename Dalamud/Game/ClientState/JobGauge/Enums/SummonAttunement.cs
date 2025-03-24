@@ -1,27 +1,30 @@
 ﻿namespace Dalamud.Game.ClientState.JobGauge.Enums;
 
+/// <summary>
+/// Enum representing the current attunement of a  summoner.
+/// </summary>
 public enum SummonAttunement
 {
     /// <summary>
     /// No attunement.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// Attuned to the summon Ifrit.
     /// Same as <see cref="JobGauge.Types.SMNGauge.IsIfritAttuned"/>.
     /// </summary>
-    IFRIT = 1,
+    Ifrit = 1,
 
     /// <summary>
     /// Attuned to the summon Titan.
     /// Same as <see cref="JobGauge.Types.SMNGauge.IsTitanAttuned"/>.
     /// </summary>
-    TITAN = 2,
+    Titan = 2,
 
     /// <summary>
     /// Attuned to the summon Garuda.
     /// Same as <see cref="JobGauge.Types.SMNGauge.IsGarudaAttuned"/>.
     /// </summary>
-    GARUDA = 3,
+    Garuda = 3,
 }
