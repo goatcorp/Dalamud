@@ -1744,7 +1744,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 return false;
 
             case TextParameterType.String:
-                this.EvaluateAndAppendTo(builder, new(p.StringValue), null, language);
+                this.EvaluateAndAppendTo(builder, p.StringValue.AsReadOnlySeStringSpan(), null, language);
                 return false;
 
             case TextParameterType.Uninitialized:

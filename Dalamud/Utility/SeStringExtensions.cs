@@ -1,5 +1,7 @@
 using System.Linq;
 
+using InteropGenerator.Runtime;
+
 using Lumina.Text.Parse;
 
 using Lumina.Text.ReadOnly;
@@ -225,5 +227,10 @@ public static class SeStringExtensions
 
         var replaced = ReplaceText(new ReadOnlySeString(builder.GetViewAsMemory()), toFind, replacement);
         builder.Clear().Append(replaced);
+    }
+
+    public static unsafe ReadOnlySeStringSpan AsReadOnlySeStringSpan(this CStringPointer ptr)
+    {
+        return new ReadOnlySeStringSpan(ptr.Value);
     }
 }

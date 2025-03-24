@@ -52,7 +52,7 @@ public class GameConfigSection
     /// <summary>
     /// Event which is fired when a game config option is changed within the section.
     /// </summary>
-    internal event EventHandler<ConfigChangeEvent>? Changed; 
+    internal event EventHandler<ConfigChangeEvent>? Changed;
 
     /// <summary>
     /// Gets the number of config entries contained within the section.
@@ -526,8 +526,8 @@ public class GameConfigSection
     {
         if (!this.enumMap.TryGetValue(entry->Index, out var enumObject))
         {
-            if (entry->Name == null) return null;
-            var name = MemoryHelper.ReadStringNullTerminated(new IntPtr(entry->Name));
+            if (entry->Name.Value == null) return null;
+            var name = entry->Name.ToString();
             if (Enum.TryParse(typeof(TEnum), name, out enumObject))
             {
                 this.enumMap.TryAdd(entry->Index, enumObject);
@@ -544,7 +544,7 @@ public class GameConfigSection
         this.Changed?.InvokeSafely(this, eventArgs);
         return eventArgs;
     }
-    
+
     private unsafe bool TryGetIndex(string name, out uint index)
     {
         if (this.indexMap.TryGetValue(name, out index))
@@ -556,12 +556,12 @@ public class GameConfigSection
         var e = configBase->ConfigEntry;
         for (var i = 0U; i < configBase->ConfigCount; i++, e++)
         {
-            if (e->Name == null)
+            if (e->Name.Value == null)
             {
                 continue;
             }
 
-            var eName = MemoryHelper.ReadStringNullTerminated(new IntPtr(e->Name));
+            var eName = e->Name.ToString();
             if (eName.Equals(name))
             {
                 this.indexMap.TryAdd(name, i);

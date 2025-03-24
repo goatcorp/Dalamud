@@ -30,7 +30,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private const uint BaseNodeId = 1000;
 
     private static readonly ModuleLog Log = new("DtrBar");
-    
+
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
@@ -58,7 +58,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     private ImmutableList<IReadOnlyDtrBarEntry>? entriesReadOnlyCopy;
 
     private Utf8String* emptyString;
-    
+
     private uint runningNodeIds = BaseNodeId;
     private float entryStartPos = float.NaN;
 
@@ -72,7 +72,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.addonLifecycle.RegisterListener(this.dtrPostDrawListener);
         this.addonLifecycle.RegisterListener(this.dtrPostRequestedUpdateListener);
         this.addonLifecycle.RegisterListener(this.dtrPreFinalizeListener);
-        
+
         this.framework.Update += this.Update;
 
         this.configuration.DtrOrder ??= [];
@@ -522,7 +522,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseOut, this.DtrEventHandler),
             this.uiEventManager.AddEvent(AddonEventManager.DalamudInternalKey, (nint)dtr, (nint)node, AddonEventType.MouseClick, this.DtrEventHandler),
         });
-        
+
         var lastChild = dtr->RootNode->ChildNode;
         while (lastChild->PrevSiblingNode != null) lastChild = lastChild->PrevSiblingNode;
         Log.Debug($"Found last sibling: {(ulong)lastChild:X}");
@@ -590,7 +590,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         if (this.emptyString == null)
             this.emptyString = Utf8String.FromString(" ");
-        
+
         newTextNode->SetText(this.emptyString->StringPtr);
 
         newTextNode->TextColor = new ByteColor { R = 255, G = 255, B = 255, A = 255 };
@@ -609,7 +609,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
         return newTextNode;
     }
-    
+
     private void DtrEventHandler(AddonEventType atkEventType, IntPtr atkUnitBase, IntPtr atkResNode)
     {
         var addon = (AtkUnitBase*)atkUnitBase;
@@ -632,7 +632,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                 case AddonEventType.MouseOver:
                     AtkStage.Instance()->TooltipManager.ShowTooltip(addon->Id, node, dtrBarEntry.Tooltip.Encode());
                     break;
-                
+
                 case AddonEventType.MouseOut:
                     AtkStage.Instance()->TooltipManager.HideTooltip(addon->Id);
                     break;
@@ -646,11 +646,11 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                 case AddonEventType.MouseOver:
                     this.uiEventManager.SetCursor(AddonCursorType.Clickable);
                     break;
-                
+
                 case AddonEventType.MouseOut:
                     this.uiEventManager.ResetCursor();
                     break;
-                
+
                 case AddonEventType.MouseClick:
                     dtrBarEntry.OnClick.Invoke();
                     break;

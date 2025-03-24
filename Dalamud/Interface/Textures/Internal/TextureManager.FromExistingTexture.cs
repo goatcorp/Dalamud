@@ -9,7 +9,7 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.TerraFxCom;
 
-using Lumina.Data.Files;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -24,32 +24,30 @@ internal sealed partial class TextureManager
         (nint)this.ConvertToKernelTexture(wrap, leaveWrapOpen);
 
     /// <inheritdoc cref="ITextureProvider.ConvertToKernelTexture"/>
-    public unsafe FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture* ConvertToKernelTexture(
-        IDalamudTextureWrap wrap,
-        bool leaveWrapOpen = false)
+    public unsafe Texture* ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false)
     {
         using var wrapAux = new WrapAux(wrap, leaveWrapOpen);
 
-        var flags = TexFile.Attribute.TextureType2D;
+        var flags = TextureFlags.TextureType2D;
         if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_IMMUTABLE)
-            flags |= TexFile.Attribute.Immutable;
+            flags |= TextureFlags.Immutable;
         if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_DYNAMIC)
-            flags |= TexFile.Attribute.ReadWrite;
+            flags |= TextureFlags.ReadWrite;
         if ((wrapAux.Desc.CPUAccessFlags & (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ) != 0)
-            flags |= TexFile.Attribute.CpuRead;
+            flags |= TextureFlags.CpuRead;
         if ((wrapAux.Desc.BindFlags & (uint)D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET) != 0)
-            flags |= TexFile.Attribute.TextureRenderTarget;
+            flags |= TextureFlags.TextureRenderTarget;
         if ((wrapAux.Desc.BindFlags & (uint)D3D11_BIND_FLAG.D3D11_BIND_DEPTH_STENCIL) != 0)
-            flags |= TexFile.Attribute.TextureDepthStencil;
+            flags |= TextureFlags.TextureDepthStencil;
         if (wrapAux.Desc.ArraySize != 1)
             throw new NotSupportedException("TextureArray2D is currently not supported.");
 
-        var gtex = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Texture.CreateTexture2D(
+        var gtex = Texture.CreateTexture2D(
             (int)wrapAux.Desc.Width,
             (int)wrapAux.Desc.Height,
             (byte)wrapAux.Desc.MipLevels,
-            (uint)TexFile.TextureFormat.Null, // instructs the game to skip preprocessing it seems
-            (uint)flags,
+            0, // instructs the game to skip preprocessing it seems
+            flags,
             0);
 
         // Kernel::Texture owns these resources. We're passing the ownership to them.
@@ -57,28 +55,27 @@ internal sealed partial class TextureManager
         wrapAux.SrvPtr->AddRef();
 
         // Not sure this is needed
-        var ltf = wrapAux.Desc.Format switch
+        gtex->TextureFormat = wrapAux.Desc.Format switch
         {
-            DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => TexFile.TextureFormat.R32G32B32A32F,
-            DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => TexFile.TextureFormat.R16G16B16A16F,
-            DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT => TexFile.TextureFormat.R32G32F,
-            DXGI_FORMAT.DXGI_FORMAT_R16G16_FLOAT => TexFile.TextureFormat.R16G16F,
-            DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT => TexFile.TextureFormat.R32F,
-            DXGI_FORMAT.DXGI_FORMAT_R24G8_TYPELESS => TexFile.TextureFormat.D24S8,
-            DXGI_FORMAT.DXGI_FORMAT_R16_TYPELESS => TexFile.TextureFormat.D16,
-            DXGI_FORMAT.DXGI_FORMAT_A8_UNORM => TexFile.TextureFormat.A8,
-            DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM => TexFile.TextureFormat.BC1,
-            DXGI_FORMAT.DXGI_FORMAT_BC2_UNORM => TexFile.TextureFormat.BC2,
-            DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM => TexFile.TextureFormat.BC3,
-            DXGI_FORMAT.DXGI_FORMAT_BC5_UNORM => TexFile.TextureFormat.BC5,
-            DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM => TexFile.TextureFormat.B4G4R4A4,
-            DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM => TexFile.TextureFormat.B5G5R5A1,
-            DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM => TexFile.TextureFormat.B8G8R8A8,
-            DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM => TexFile.TextureFormat.B8G8R8X8,
-            DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM => TexFile.TextureFormat.BC7,
-            _ => TexFile.TextureFormat.Null,
+            DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => TextureFormat.R32G32B32A32_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => TextureFormat.R16G16B16A16_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT => TextureFormat.R32G32_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R16G16_FLOAT => TextureFormat.R16G16_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT => TextureFormat.R32_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R24G8_TYPELESS => TextureFormat.D24_UNORM_S8_UINT,
+            DXGI_FORMAT.DXGI_FORMAT_R16_TYPELESS => TextureFormat.D16_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_A8_UNORM => TextureFormat.A8_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM => TextureFormat.BC1_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC2_UNORM => TextureFormat.BC2_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM => TextureFormat.BC3_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC5_UNORM => TextureFormat.BC5_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM => TextureFormat.B4G4R4A4_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM => TextureFormat.B5G5R5A1_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM => TextureFormat.B8G8R8A8_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM => TextureFormat.B8G8R8X8_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM => TextureFormat.BC7_UNORM,
+            _ => 0,
         };
-        gtex->TextureFormat = (FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.TextureFormat)ltf;
 
         gtex->D3D11Texture2D = wrapAux.TexPtr;
         gtex->D3D11ShaderResourceView = wrapAux.SrvPtr;

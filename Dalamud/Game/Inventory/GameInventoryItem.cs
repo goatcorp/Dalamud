@@ -17,7 +17,7 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// </summary>
     [FieldOffset(0)]
     internal readonly InventoryItem InternalItem;
-    
+
     /// <summary>
     /// The view of the backing data, in <see cref="ulong"/>.
     /// </summary>
@@ -56,9 +56,15 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     public int Quantity => this.InternalItem.Quantity;
 
     /// <summary>
+    /// Gets the spiritbond or collectability of this item.
+    /// </summary>
+    public uint SpiritbondOrCollectability => this.InternalItem.SpiritbondOrCollectability;
+
+    /// <summary>
     /// Gets the spiritbond of this item.
     /// </summary>
-    public uint Spiritbond => this.InternalItem.Spiritbond;
+    [Obsolete($"Renamed to {nameof(SpiritbondOrCollectability)}", true)]
+    public uint Spiritbond => this.SpiritbondOrCollectability;
 
     /// <summary>
     /// Gets the repair condition of this item.

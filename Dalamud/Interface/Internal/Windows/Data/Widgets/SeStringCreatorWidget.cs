@@ -187,7 +187,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         // resize panels relative to the window size
         if (contentWidth != this.lastContentWidth)
         {
-            var originalWidth = this.lastContentWidth != 0 ? this.lastContentWidth : contentWidth; 
+            var originalWidth = this.lastContentWidth != 0 ? this.lastContentWidth : contentWidth;
             this.inputsWidth = this.inputsWidth / originalWidth * contentWidth;
             this.lastContentWidth = contentWidth;
         }
@@ -299,8 +299,8 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                     break;
 
                 case TextParameterType.String:
-                    if (item.StringValue != null)
-                        WidgetUtil.DrawCopyableText(MemoryHelper.ReadStringNullTerminated((nint)item.StringValue));
+                    if (item.StringValue.Value != null)
+                        WidgetUtil.DrawCopyableText(item.StringValue.ToString());
                     else
                         ImGui.TextUnformatted("null");
                     break;

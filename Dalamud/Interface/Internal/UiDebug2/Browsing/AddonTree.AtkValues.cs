@@ -76,14 +76,13 @@ public unsafe partial class AddonTree
                                 case ValueType.String8:
                                 case ValueType.String:
                                 {
-                                    if (atkValue->String == null)
+                                    if (atkValue->String.Value == null)
                                     {
                                         ImGui.TextDisabled("null");
                                     }
                                     else
                                     {
-                                        var str = MemoryHelper.ReadSeStringNullTerminated(new nint(atkValue->String));
-                                        Util.ShowStruct(str, (ulong)atkValue);
+                                        Util.ShowStruct(atkValue->String.ToString(), (ulong)atkValue);
                                     }
 
                                     break;

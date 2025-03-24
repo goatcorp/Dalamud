@@ -442,7 +442,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         textNode->TextFlags |= (byte)TextFlags.MultiLine;
         textNode->AlignmentType = AlignmentType.TopLeft;
 
-        var containsDalamudVersionString = textNode->OriginalTextPointer == textNode->NodeText.StringPtr;
+        var containsDalamudVersionString = textNode->OriginalTextPointer.Value == textNode->NodeText.StringPtr.Value;
         if (!this.configuration.ShowTsm || !this.showTsm.Value)
         {
             if (containsDalamudVersionString)
@@ -460,7 +460,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.lastLoadedPluginCount = count;
 
         var lssb = LSeStringBuilder.SharedPool.Get();
-        lssb.Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String)).Append("\n\n");
+        lssb.Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String.Value)).Append("\n\n");
         lssb.PushEdgeColorType(701).PushColorType(539)
             .Append(SeIconChar.BoxedLetterD.ToIconChar())
             .PopColorType().PopEdgeColorType();
