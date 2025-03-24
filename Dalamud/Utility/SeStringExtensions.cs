@@ -229,6 +229,11 @@ public static class SeStringExtensions
         builder.Clear().Append(replaced);
     }
 
+    /// <summary>
+    /// Convert a CStringPointer to a ReadOnySeStringSpan.
+    /// </summary>
+    /// <param name="ptr">The pointer to convert.</param>
+    /// <returns>A span.</returns>
     public static unsafe ReadOnlySeStringSpan AsReadOnlySeStringSpan(this CStringPointer ptr)
     {
         return new ReadOnlySeStringSpan(ptr.Value);

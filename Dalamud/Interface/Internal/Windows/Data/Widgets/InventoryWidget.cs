@@ -219,7 +219,7 @@ internal class InventoryWidget : IDataWindowWidget
 
                 if (!this.IsEventItem(item.ItemId))
                 {
-                    AddKeyValueRow(item.IsCollectable ? "Collectability" : "Spiritbond", item.Spiritbond.ToString());
+                    AddKeyValueRow(item.IsCollectable ? "Collectability" : "Spiritbond", item.SpiritbondOrCollectability.ToString());
 
                     if (item.CrafterContentId != 0)
                         AddKeyValueRow("CrafterContentId", item.CrafterContentId.ToString());
