@@ -1682,11 +1682,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (rtm is null)
             return false;
 
-        if (!ThreadSafety.IsMainThread)
-        {
-            Log.Error("Global parameters may only be used from the main thread.");
-            return false;
-        }
+        ThreadSafety.AssertMainThread("Global parameters may only be used from the main thread.");
 
         ref var gp = ref rtm->TextModule.MacroDecoder.GlobalParameters;
         if (parameterIndex >= gp.MySize)
