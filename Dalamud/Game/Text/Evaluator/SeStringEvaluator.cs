@@ -1595,7 +1595,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (eColorTypeVal == 0)
             context.Builder.PopColor();
         else if (this.dataManager.GetExcelSheet<UIColor>().TryGetRow(eColorTypeVal, out var row))
-            context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
+            context.Builder.PushColorBgra((row.Light >> 8) | (row.Light << 24));
 
         return true;
     }
@@ -1609,7 +1609,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (eColorTypeVal == 0)
             context.Builder.PopEdgeColor();
         else if (this.dataManager.GetExcelSheet<UIColor>().TryGetRow(eColorTypeVal, out var row))
-            context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
+            context.Builder.PushEdgeColorBgra((row.Light >> 8) | (row.Light << 24));
 
         return true;
     }

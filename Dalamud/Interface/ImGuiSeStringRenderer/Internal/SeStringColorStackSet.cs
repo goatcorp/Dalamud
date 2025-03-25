@@ -43,10 +43,10 @@ internal sealed class SeStringColorStackSet
         foreach (var row in uiColor)
         {
             // Contains ABGR.
-            this.colorTypes[row.RowId, 0] = row.UIForeground;
-            this.colorTypes[row.RowId, 1] = row.UIGlow;
-            this.colorTypes[row.RowId, 2] = row.Unknown0;
-            this.colorTypes[row.RowId, 3] = row.Unknown1;
+            this.colorTypes[row.RowId, 0] = row.Dark;
+            this.colorTypes[row.RowId, 1] = row.Light;
+            this.colorTypes[row.RowId, 2] = row.ClassicFF;
+            this.colorTypes[row.RowId, 3] = row.ClearBlue;
         }
 
         if (BitConverter.IsLittleEndian)

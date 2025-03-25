@@ -10,7 +10,7 @@ namespace Dalamud.Utility;
 /// A set of helpful utilities for working with <see cref="CStringPointer"/>s from ClientStructs.
 /// </summary>
 /// <remarks>
-/// WARNING: Will break if a custom ClientStructs is used. These are here for CONVENIENCE ONLY!
+/// WARNING: Will break if a custom ClientStructs is used. These are here for CONVENIENCE ONLY!.
 /// </remarks>
 public static class CStringExtensions
 {

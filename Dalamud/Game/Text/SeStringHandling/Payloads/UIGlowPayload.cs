@@ -71,13 +71,13 @@ public class UIGlowPayload : Payload
     /// Gets the Red/Green/Blue/Alpha values for this glow color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGBA => this.UIColor.Value.UIGlow;
+    public uint RGBA => this.UIColor.Value.Light;
 
     /// <summary>
     /// Gets the ABGR value for this glow color, as ImGui requires it in PushColor.
     /// </summary>
     [JsonIgnore]
-    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.UIGlow);
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.Light);
 
     /// <summary>
     /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIGlow.

@@ -380,7 +380,7 @@ internal class InventoryWidget : IDataWindowWidget
 
         var rowId = this.GetItemRarityColorType(item, isEdgeColor);
         return this.dataManager.Excel.GetSheet<UIColor>().TryGetRow(rowId, out var color)
-            ? BinaryPrimitives.ReverseEndianness(color.UIForeground) | 0xFF000000
+            ? BinaryPrimitives.ReverseEndianness(color.Light) | 0xFF000000
             : 0xFFFFFFFF;
     }
 
