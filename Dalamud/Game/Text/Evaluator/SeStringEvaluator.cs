@@ -11,6 +11,8 @@ using Dalamud.Game.Config;
 using Dalamud.Game.Text.Evaluator.Internal;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
+using Dalamud.IoC;
+using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -41,7 +43,9 @@ namespace Dalamud.Game.Text.Evaluator;
 /// <summary>
 /// Evaluator for SeStrings.
 /// </summary>
+[PluginInterface]
 [ServiceManager.EarlyLoadedService]
+[ResolveVia<ISeStringEvaluator>]
 internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 {
     private static readonly ModuleLog Log = new("SeStringEvaluator");
