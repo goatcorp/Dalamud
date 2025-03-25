@@ -35,16 +35,17 @@ public static class CStringExtensions
     }
 
     /// <summary>
-    /// Get a new SeString that's a <em>copy</em> of the text in this CStringPointer.
+    /// Get a new ReadOnlySeString that's a <em>copy</em> of the text in this CStringPointer.
     /// </summary>
+    /// <remarks>
+    /// This should be functionally identical to <see cref="AsReadOnlySeStringSpan"/>, but exists
+    /// for convenience in places that already expect ReadOnlySeString as a type (and where a copy is desired).
+    /// </remarks>
     /// <param name="ptr">The pointer to copy.</param>
-    /// <returns>A new Lumina SeString.</returns>
-    public static Lumina.Text.SeString AsLuminaSeString(this CStringPointer ptr)
+    /// <returns>A new Lumina ReadOnlySeString.</returns>
+    public static ReadOnlySeString AsReadOnlySeString(this CStringPointer ptr)
     {
-        var ssb = new Lumina.Text.SeStringBuilder();
-        ssb.Append(ptr.AsSpan());
-
-        return ssb.ToSeString();
+        return new ReadOnlySeString(ptr.AsSpan().ToArray());
     }
 
     /// <summary>
