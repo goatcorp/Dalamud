@@ -10,7 +10,8 @@ using Newtonsoft.Json;
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
 /// <summary>
-/// An SeString Payload representing a UI glow color applied to following text payloads.
+/// An SeString Payload that allows text to have a specific edge glow. The color selected will be determined by the
+/// <see cref="Lumina.Excel.Sheets.UIColor.Light"/> theme's coloring, regardless of the active theme.
 /// </summary>
 public class UIGlowPayload : Payload
 {

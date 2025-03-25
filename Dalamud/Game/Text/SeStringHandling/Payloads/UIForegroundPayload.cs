@@ -10,7 +10,8 @@ using Newtonsoft.Json;
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
 /// <summary>
-/// An SeString Payload representing a UI foreground color applied to following text payloads.
+/// An SeString Payload that allows text to have a specific color. The color selected will be determined by the
+/// <see cref="Lumina.Excel.Sheets.UIColor.Dark"/> theme's coloring, regardless of the active theme.
 /// </summary>
 public class UIForegroundPayload : Payload
 {
