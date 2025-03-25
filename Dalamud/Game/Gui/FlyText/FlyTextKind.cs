@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Dalamud.Game.Gui.FlyText;
 
 /// <summary>
@@ -98,21 +96,18 @@ public enum FlyTextKind : int
     /// Val1 in serif font next to all caps condensed font Text1 with Text2 in sans-serif as subtitle.
     /// Added in 7.2, usage currently unknown.
     /// </summary>
-    [Experimental("FlyTextKind")]
     Unknown16 = 16,
 
     /// <summary>
     /// Val1 in serif font, Text2 in sans-serif as subtitle.
     /// Added in 7.2, usage currently unknown.
     /// </summary>
-    [Experimental("FlyTextKind")]
     Unknown17 = 17,
 
     /// <summary>
     /// Val1 in serif font, Text2 in sans-serif as subtitle.
     /// Added in 7.2, usage currently unknown.
     /// </summary>
-    [Experimental("FlyTextKind")]
     Unknown18 = 18,
 
     /// <summary>
