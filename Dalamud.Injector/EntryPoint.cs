@@ -277,7 +277,7 @@ namespace Dalamud.Injector
             {
                 if (wineGetHostVersionPtr == nint.Zero) return null;
 
-                var methodDelegate = (delegate* unmanaged[Fastcall]<out char*, out char*, void>)wineGetHostVersionPtr;
+                var methodDelegate = (delegate* unmanaged[Cdecl]<out char*, out char*, void>)wineGetHostVersionPtr;
                 methodDelegate(out var platformPtr, out var _);
 
                 if (platformPtr == null) return null;
