@@ -193,7 +193,7 @@ internal class SheetRedirectResolver : IServiceType
                 colIndex = 43;
 
                 if (this.dataManager.GetExcelSheet<LSheets.InstanceContent>().TryGetRow(rowId, out var row))
-                    rowId = row.SortKey;
+                    rowId = row.ContentFinderCondition.RowId;
                 break;
             }
 
