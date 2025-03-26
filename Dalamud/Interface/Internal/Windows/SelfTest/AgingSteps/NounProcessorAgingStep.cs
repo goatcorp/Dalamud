@@ -191,8 +191,6 @@ internal class NounProcessorAgingStep : IAgingStep
         new(nameof(LSheets.Item), 44348, ClientLanguage.French, 2, (int)FrenchArticleType.PossessiveFirstPerson, 1, "mes mémoquartz inhabituels fantasmagoriques"),
         new(nameof(LSheets.Item), 44348, ClientLanguage.French, 2, (int)FrenchArticleType.PossessiveSecondPerson, 1, "tes mémoquartz inhabituels fantasmagoriques"),
         new(nameof(LSheets.Item), 44348, ClientLanguage.French, 2, (int)FrenchArticleType.PossessiveThirdPerson, 1, "ses mémoquartz inhabituels fantasmagoriques"),
-
-        new(nameof(LSheets.Action), 45, ClientLanguage.German, 1, (int)FrenchArticleType.Indefinite, 1, "Blumenflüsterer IV"),
     ];
 
     private enum GermanCases
