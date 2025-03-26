@@ -126,7 +126,7 @@ HRESULT InitializeClrAndGetEntryPoint(
     if (!dotnet_path || !std::filesystem::exists(dotnet_path))
     {
         logging::E("Error: Unable to find .NET runtime path");
-        return 1;
+        return HRESULT_FROM_WIN32(ERROR_PATH_NOT_FOUND);
     }
 
     // =========================================================================== //
