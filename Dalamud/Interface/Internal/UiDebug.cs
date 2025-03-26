@@ -1,12 +1,18 @@
-using System;
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 using Dalamud.Game;
 using Dalamud.Game.Gui;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Utility;
 using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+
+using Lumina.Text.ReadOnly;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
@@ -19,7 +25,6 @@ internal unsafe class UiDebug
 {
     private const int UnitListCount = 18;
 
-    private readonly GetAtkStageSingleton getAtkStageSingleton;
     private readonly bool[] selectedInList = new bool[UnitListCount];
     private readonly string[] listNames = new string[UnitListCount]
     {
@@ -52,12 +57,7 @@ internal unsafe class UiDebug
     /// </summary>
     public UiDebug()
     {
-        var sigScanner = Service<SigScanner>.Get();
-        var getSingletonAddr = sigScanner.ScanText("E8 ?? ?? ?? ?? 41 B8 01 00 00 00 48 8D 15 ?? ?? ?? ?? 48 8B 48 20 E8 ?? ?? ?? ?? 48 8B CF");
-        this.getAtkStageSingleton = Marshal.GetDelegateForFunctionPointer<GetAtkStageSingleton>(getSingletonAddr);
     }
-
-    private delegate AtkStage* GetAtkStageSingleton();
 
     /// <summary>
     /// Renders this window.
@@ -85,8 +85,8 @@ internal unsafe class UiDebug
 
     private void DrawUnitBase(AtkUnitBase* atkUnitBase)
     {
-        var isVisible = (atkUnitBase->Flags & 0x20) == 0x20;
-        var addonName = Marshal.PtrToStringAnsi(new IntPtr(atkUnitBase->Name));
+        var isVisible = atkUnitBase->IsVisible;
+        var addonName = atkUnitBase->NameString;
         var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
         ImGui.Text($"{addonName}");
@@ -98,7 +98,7 @@ internal unsafe class UiDebug
         ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 25);
         if (ImGui.SmallButton("V"))
         {
-            atkUnitBase->Flags ^= 0x20;
+            atkUnitBase->IsVisible = !atkUnitBase->IsVisible;
         }
 
         ImGui.Separator();
@@ -169,7 +169,7 @@ internal unsafe class UiDebug
     private void PrintSimpleNode(AtkResNode* node, string treePrefix)
     {
         var popped = false;
-        var isVisible = (node->Flags & 0x10) == 0x10;
+        var isVisible = node->NodeFlags.HasFlag(NodeFlags.Visible);
 
         if (isVisible)
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 255, 0, 255));
@@ -195,6 +195,7 @@ internal unsafe class UiDebug
                 case NodeType.Image: Util.ShowStruct(*(AtkImageNode*)node, (ulong)node); break;
                 case NodeType.Collision: Util.ShowStruct(*(AtkCollisionNode*)node, (ulong)node); break;
                 case NodeType.NineGrid: Util.ShowStruct(*(AtkNineGridNode*)node, (ulong)node); break;
+                case NodeType.ClippingMask: Util.ShowStruct(*(AtkClippingMaskNode*)node, (ulong)node); break;
                 case NodeType.Counter: Util.ShowStruct(*(AtkCounterNode*)node, (ulong)node); break;
                 default: Util.ShowStruct(*node, (ulong)node); break;
             }
@@ -208,9 +209,23 @@ internal unsafe class UiDebug
             {
                 case NodeType.Text:
                     var textNode = (AtkTextNode*)node;
-                    ImGui.Text($"text: {Marshal.PtrToStringAnsi(new IntPtr(textNode->NodeText.StringPtr))}");
+                    ImGui.Text("text: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(textNode->NodeText);
 
                     ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new IntPtr(textNode->NodeText.StringPtr), (uint)textNode->NodeText.BufSize);
+
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Encode##{(ulong)textNode:X}"))
+                    {
+                        using var tmp = new Utf8String();
+                        RaptureTextModule.Instance()->MacroEncoder.EncodeString(&tmp, textNode->NodeText.StringPtr);
+                        textNode->NodeText.Copy(&tmp);
+                    }
+
+                    ImGui.SameLine();
+                    if (ImGui.Button($"Decode##{(ulong)textNode:X}"))
+                        textNode->NodeText.SetString(textNode->NodeText.StringPtr.AsReadOnlySeStringSpan().ToString());
 
                     ImGui.Text($"AlignmentType: {(AlignmentType)textNode->AlignmentFontType}  FontSize: {textNode->FontSize}");
                     int b = textNode->AlignmentFontType;
@@ -219,7 +234,7 @@ internal unsafe class UiDebug
                         while (b > byte.MaxValue) b -= byte.MaxValue;
                         while (b < byte.MinValue) b += byte.MaxValue;
                         textNode->AlignmentFontType = (byte)b;
-                        textNode->AtkResNode.Flags_2 |= 0x1;
+                        textNode->AtkResNode.DrawFlags |= 0x1;
                     }
 
                     ImGui.Text($"Color: #{textNode->TextColor.R:X2}{textNode->TextColor.G:X2}{textNode->TextColor.B:X2}{textNode->TextColor.A:X2}");
@@ -235,52 +250,21 @@ internal unsafe class UiDebug
                     break;
                 case NodeType.Counter:
                     var counterNode = (AtkCounterNode*)node;
-                    ImGui.Text($"text: {Marshal.PtrToStringAnsi(new IntPtr(counterNode->NodeText.StringPtr))}");
+                    ImGui.Text("text: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(counterNode->NodeText);
                     break;
                 case NodeType.Image:
                     var imageNode = (AtkImageNode*)node;
-                    if (imageNode->PartsList != null)
-                    {
-                        if (imageNode->PartId > imageNode->PartsList->PartCount)
-                        {
-                            ImGui.Text("part id > part count?");
-                        }
-                        else
-                        {
-                            var textureInfo = imageNode->PartsList->Parts[imageNode->PartId].UldAsset;
-                            var texType = textureInfo->AtkTexture.TextureType;
-                            ImGui.Text($"texture type: {texType} part_id={imageNode->PartId} part_id_count={imageNode->PartsList->PartCount}");
-                            if (texType == TextureType.Resource)
-                            {
-                                var texFileNameStdString = &textureInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName;
-                                var texString = texFileNameStdString->Length < 16
-                                                    ? Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->Buffer)
-                                                    : Marshal.PtrToStringAnsi((IntPtr)texFileNameStdString->BufferPtr);
-
-                                ImGui.Text($"texture path: {texString}");
-                                var kernelTexture = textureInfo->AtkTexture.Resource->KernelTextureObject;
-
-                                if (ImGui.TreeNode($"Texture##{(ulong)kernelTexture->D3D11ShaderResourceView:X}"))
-                                {
-                                    ImGui.Image(new IntPtr(kernelTexture->D3D11ShaderResourceView), new Vector2(kernelTexture->Width, kernelTexture->Height));
-                                    ImGui.TreePop();
-                                }
-                            }
-                            else if (texType == TextureType.KernelTexture)
-                            {
-                                if (ImGui.TreeNode($"Texture##{(ulong)textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView:X}"))
-                                {
-                                    ImGui.Image(new IntPtr(textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView), new Vector2(textureInfo->AtkTexture.KernelTexture->Width, textureInfo->AtkTexture.KernelTexture->Height));
-                                    ImGui.TreePop();
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ImGui.Text("no texture loaded");
-                    }
-
+                    PrintTextureInfo(imageNode->PartsList, imageNode->PartId);
+                    break;
+                case NodeType.NineGrid:
+                    var ngNode = (AtkNineGridNode*)node;
+                    PrintTextureInfo(ngNode->PartsList, ngNode->PartId);
+                    break;
+                case NodeType.ClippingMask:
+                    var cmNode = (AtkClippingMaskNode*)node;
+                    PrintTextureInfo(cmNode->PartsList, cmNode->PartId);
                     break;
             }
 
@@ -293,6 +277,81 @@ internal unsafe class UiDebug
 
         if (isVisible && !popped)
             ImGui.PopStyleColor();
+
+        static void PrintTextureInfo(AtkUldPartsList* partsList, uint partId)
+        {
+            if (partsList != null)
+            {
+                if (partId > partsList->PartCount)
+                {
+                    ImGui.Text("part id > part count?");
+                }
+                else
+                {
+                    var textureInfo = partsList->Parts[partId].UldAsset;
+                    var texType = textureInfo->AtkTexture.TextureType;
+                    ImGui.Text(
+                        $"texture type: {texType} part_id={partId} part_id_count={partsList->PartCount}");
+                    if (texType == TextureType.Resource)
+                    {
+                        ImGui.Text(
+                            $"texture path: {textureInfo->AtkTexture.Resource->TexFileResourceHandle->ResourceHandle.FileName}");
+                        var kernelTexture = textureInfo->AtkTexture.Resource->KernelTextureObject;
+
+                        if (ImGui.TreeNode($"Texture##{(ulong)kernelTexture->D3D11ShaderResourceView:X}"))
+                        {
+                            ImGui.Image(
+                                new IntPtr(kernelTexture->D3D11ShaderResourceView),
+                                new Vector2(kernelTexture->ActualWidth, kernelTexture->ActualHeight));
+                            ImGui.TreePop();
+                        }
+                    }
+                    else if (texType == TextureType.KernelTexture)
+                    {
+                        if (ImGui.TreeNode(
+                                $"Texture##{(ulong)textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView:X}"))
+                        {
+                            ImGui.Image(
+                                new IntPtr(textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView),
+                                new Vector2(
+                                    textureInfo->AtkTexture.KernelTexture->ActualWidth,
+                                    textureInfo->AtkTexture.KernelTexture->ActualHeight));
+                            ImGui.TreePop();
+                        }
+                    }
+
+                    if (ImGui.Button($"Replace with a random image##{(ulong)textureInfo:X}"))
+                    {
+                        var texm = Service<TextureManager>.Get();
+                        texm.Shared
+                            .GetFromGame(
+                                Random.Shared.Next(0, 1) == 0
+                                    ? $"ui/loadingimage/-nowloading_base{Random.Shared.Next(1, 33)}.tex"
+                                    : $"ui/loadingimage/-nowloading_base{Random.Shared.Next(1, 33)}_hr1.tex")
+                            .RentAsync()
+                            .ContinueWith(
+                                r => Service<Framework>.Get().RunOnFrameworkThread(
+                                    () =>
+                                    {
+                                        if (!r.IsCompletedSuccessfully)
+                                            return;
+
+                                        using (r.Result)
+                                        {
+                                            textureInfo->AtkTexture.ReleaseTexture();
+                                            textureInfo->AtkTexture.KernelTexture =
+                                                texm.ConvertToKernelTexture(r.Result);
+                                            textureInfo->AtkTexture.TextureType = TextureType.KernelTexture;
+                                        }
+                                    }));
+                    }
+                }
+            }
+            else
+            {
+                ImGui.Text("no texture loaded");
+            }
+        }
     }
 
     private void PrintComponentNode(AtkResNode* node, string treePrefix)
@@ -300,7 +359,7 @@ internal unsafe class UiDebug
         var compNode = (AtkComponentNode*)node;
 
         var popped = false;
-        var isVisible = (node->Flags & 0x10) == 0x10;
+        var isVisible = node->NodeFlags.HasFlag(NodeFlags.Visible);
 
         var componentInfo = compNode->Component->UldManager;
 
@@ -356,13 +415,33 @@ internal unsafe class UiDebug
             {
                 case ComponentType.TextInput:
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
-                    ImGui.Text($"InputBase Text1: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
-                    ImGui.Text($"InputBase Text2: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->AtkComponentInputBase.UnkText2.StringPtr))}");
-                    ImGui.Text($"Text1: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText1.StringPtr))}");
-                    ImGui.Text($"Text2: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText2.StringPtr))}");
-                    ImGui.Text($"Text3: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText3.StringPtr))}");
-                    ImGui.Text($"Text4: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText4.StringPtr))}");
-                    ImGui.Text($"Text5: {Marshal.PtrToStringAnsi(new IntPtr(textInputComponent->UnkText5.StringPtr))}");
+                    ImGui.Text("InputBase Text1: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText1);
+
+                    ImGui.Text("InputBase Text2: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText2);
+
+                    ImGui.Text("Text1: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText01);
+
+                    ImGui.Text("Text2: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
+
+                    ImGui.Text("Text3: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText03);
+
+                    ImGui.Text("Text4: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText04);
+
+                    ImGui.Text("Text5: ");
+                    ImGui.SameLine();
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText05);
                     break;
             }
 
@@ -396,11 +475,11 @@ internal unsafe class UiDebug
 
     private void PrintResNode(AtkResNode* node)
     {
-        ImGui.Text($"NodeID: {node->NodeID}");
+        ImGui.Text($"NodeID: {node->NodeId}");
         ImGui.SameLine();
         if (ImGui.SmallButton($"T:Visible##{(ulong)node:X}"))
         {
-            node->Flags ^= 0x10;
+            node->NodeFlags ^= NodeFlags.Visible;
         }
 
         ImGui.SameLine();
@@ -421,7 +500,7 @@ internal unsafe class UiDebug
             $"MultiplyRGB: {node->MultiplyRed} {node->MultiplyGreen} {node->MultiplyBlue}");
     }
 
-    private bool DrawUnitListHeader(int index, uint count, ulong ptr, bool highlight)
+    private bool DrawUnitListHeader(int index, ushort count, ulong ptr, bool highlight)
     {
         ImGui.PushStyleColor(ImGuiCol.Text, highlight ? 0xFFAAAA00 : 0xFFFFFFFF);
         if (!string.IsNullOrEmpty(this.searchInput) && !this.doingSearch)
@@ -445,7 +524,7 @@ internal unsafe class UiDebug
     {
         var foundSelected = false;
         var noResults = true;
-        var stage = this.getAtkStageSingleton();
+        var stage = AtkStage.Instance();
 
         var unitManagers = &stage->RaptureAtkUnitManager->AtkUnitManager.DepthLayerOneList;
 
@@ -460,8 +539,6 @@ internal unsafe class UiDebug
             this.selectedInList[i] = false;
             var unitManager = &unitManagers[i];
 
-            var unitBaseArray = &unitManager->AtkUnitEntries;
-
             var headerOpen = true;
 
             if (!searching)
@@ -473,17 +550,17 @@ internal unsafe class UiDebug
 
             for (var j = 0; j < unitManager->Count && headerOpen; j++)
             {
-                var unitBase = unitBaseArray[j];
+                AtkUnitBase* unitBase = unitManager->Entries[j];
                 if (this.selectedUnitBase != null && unitBase == this.selectedUnitBase)
                 {
                     this.selectedInList[i] = true;
                     foundSelected = true;
                 }
 
-                var name = Marshal.PtrToStringAnsi(new IntPtr(unitBase->Name));
+                var name = unitBase->NameString;
                 if (searching)
                 {
-                    if (name == null || !name.ToLower().Contains(searchStr.ToLower())) continue;
+                    if (name == null || !name.ToLowerInvariant().Contains(searchStr.ToLowerInvariant())) continue;
                 }
 
                 noResults = false;
@@ -495,7 +572,7 @@ internal unsafe class UiDebug
 
                 if (headerOpen)
                 {
-                    var visible = (unitBase->Flags & 0x20) == 0x20;
+                    var visible = unitBase->IsVisible;
                     ImGui.PushStyleColor(ImGuiCol.Text, visible ? 0xFF00FF00 : 0xFF999999);
 
                     if (ImGui.Selectable($"{name}##list{i}-{(ulong)unitBase:X}_{j}", this.selectedUnitBase == unitBase))
@@ -518,7 +595,8 @@ internal unsafe class UiDebug
             {
                 for (var j = 0; j < unitManager->Count; j++)
                 {
-                    if (this.selectedUnitBase == null || unitBaseArray[j] != this.selectedUnitBase) continue;
+                    AtkUnitBase* unitBase = unitManager->Entries[j];
+                    if (this.selectedUnitBase == null || unitBase != this.selectedUnitBase) continue;
                     this.selectedInList[i] = true;
                     foundSelected = true;
                 }
@@ -548,11 +626,13 @@ internal unsafe class UiDebug
     private Vector2 GetNodePosition(AtkResNode* node)
     {
         var pos = new Vector2(node->X, node->Y);
+        pos -= new Vector2(node->OriginX * (node->ScaleX - 1), node->OriginY * (node->ScaleY - 1));
         var par = node->ParentNode;
         while (par != null)
         {
             pos *= new Vector2(par->ScaleX, par->ScaleY);
             pos += new Vector2(par->X, par->Y);
+            pos -= new Vector2(par->OriginX * (par->ScaleX - 1), par->OriginY * (par->ScaleY - 1));
             par = par->ParentNode;
         }
 
@@ -577,7 +657,7 @@ internal unsafe class UiDebug
         if (node == null) return false;
         while (node != null)
         {
-            if ((node->Flags & (short)NodeFlags.Visible) != (short)NodeFlags.Visible) return false;
+            if (!node->NodeFlags.HasFlag(NodeFlags.Visible)) return false;
             node = node->ParentNode;
         }
 

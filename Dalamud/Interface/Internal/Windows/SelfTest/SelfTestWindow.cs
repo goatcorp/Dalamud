@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -6,10 +5,11 @@ using System.Numerics;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest;
 
@@ -28,6 +28,7 @@ internal class SelfTestWindow : Window
             new EnterTerritoryAgingStep(148, "Central Shroud"),
             new ItemPayloadAgingStep(),
             new ContextMenuAgingStep(),
+            new NamePlateAgingStep(),
             new ActorTableAgingStep(),
             new FateTableAgingStep(),
             new AetheryteListAgingStep(),
@@ -38,9 +39,20 @@ internal class SelfTestWindow : Window
             new GamepadStateAgingStep(),
             new ChatAgingStep(),
             new HoverAgingStep(),
-            new LuminaAgingStep<TerritoryType>(),
+            new LuminaAgingStep<Item>(true),
+            new LuminaAgingStep<Level>(true),
+            new LuminaAgingStep<Lumina.Excel.Sheets.Action>(true),
+            new LuminaAgingStep<Quest>(true),
+            new LuminaAgingStep<TerritoryType>(false),
+            new AddonLifecycleAgingStep(),
             new PartyFinderAgingStep(),
             new HandledExceptionAgingStep(),
+            new DutyStateAgingStep(),
+            new GameConfigAgingStep(),
+            new MarketBoardAgingStep(),
+            new SheetRedirectResolverAgingStep(),
+            new NounProcessorAgingStep(),
+            new SeStringEvaluatorAgingStep(),
             new LogoutEventAgingStep(),
         };
 
@@ -78,6 +90,7 @@ internal class SelfTestWindow : Window
             if (ImGuiComponents.IconButton(FontAwesomeIcon.StepForward))
             {
                 this.stepResults.Add((SelfTestStepResult.NotRan, null));
+                this.steps[this.currentStep].CleanUp();
                 this.currentStep++;
                 this.lastTestStart = DateTimeOffset.Now;
 

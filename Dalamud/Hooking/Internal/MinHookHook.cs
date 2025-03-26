@@ -1,7 +1,4 @@
-using System;
 using System.Reflection;
-
-using Dalamud.Memory;
 
 namespace Dalamud.Hooking.Internal;
 
@@ -24,12 +21,7 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
     {
         lock (HookManager.HookEnableSyncRoot)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
-            if (!hasOtherHooks)
-            {
-                MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
-                HookManager.Originals[this.Address] = original;
-            }
+            var unhooker = HookManager.RegisterUnhooker(this.Address);
 
             if (!HookManager.MultiHookTracker.TryGetValue(this.Address, out var indexList))
                 indexList = HookManager.MultiHookTracker[this.Address] = new();
@@ -41,7 +33,9 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
             // Add afterwards, so the hookIdent starts at 0.
             indexList.Add(this);
 
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
+            unhooker.TrimAfterHook();
+
+            HookManager.TrackedHooks.TryAdd(this.HookId, new HookInfo(this, detour, callingAssembly));
         }
     }
 
@@ -81,6 +75,8 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
             var index = HookManager.MultiHookTracker[this.Address].IndexOf(this);
             HookManager.MultiHookTracker[this.Address][index] = null;
         }
+
+        HookManager.TrackedHooks.TryRemove(this.HookId, out _);
 
         base.Dispose();
     }

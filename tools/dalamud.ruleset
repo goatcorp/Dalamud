@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Dalamud Rule Set" Description=" " ToolsVersion="16.0">
+    <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers" RuleNamespace="Microsoft.CodeQuality.Analyzers">
+        <Rule Id="CA2007" Action="Warning" /> <!-- Do not directly await a Task -->
+    </Rules>
+</RuleSet>

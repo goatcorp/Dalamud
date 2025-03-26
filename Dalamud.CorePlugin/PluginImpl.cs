@@ -4,9 +4,10 @@ using System.IO;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
-using Dalamud.Logging;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using Serilog;
 
 namespace Dalamud.CorePlugin
 {
@@ -33,12 +34,9 @@ namespace Dalamud.CorePlugin
         /// Initializes a new instance of the <see cref="PluginImpl"/> class.
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface)
+        public PluginImpl(IDalamudPluginInterface pluginInterface)
         {
         }
-
-        /// <inheritdoc/>
-        public string Name => "Dalamud.CorePlugin";
 
         /// <inheritdoc/>
         public void Dispose()
@@ -50,39 +48,45 @@ namespace Dalamud.CorePlugin
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
         private Localization localization;
 
+        private IPluginLog pluginLog;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginImpl"/> class.
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
-        public PluginImpl(DalamudPluginInterface pluginInterface)
+        /// <param name="log">Logging service.</param>
+        public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log)
         {
             try
             {
                 // this.InitLoc();
                 this.Interface = pluginInterface;
+                this.pluginLog = log;
 
                 this.windowSystem.AddWindow(new PluginWindow());
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
+                this.Interface.UiBuilder.OpenMainUi += this.OnOpenMainUi;
+                this.Interface.UiBuilder.DefaultFontHandle.ImFontChanged += (fc, _) =>
+                {
+                    Log.Information($"CorePlugin : DefaultFontHandle.ImFontChanged called {fc}");
+                };
 
-                Service<CommandManager>.Get().AddHandler("/coreplug", new(this.OnCommand) { HelpMessage = $"Access the {this.Name} plugin." });
+                Service<CommandManager>.Get().AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
 
-                PluginLog.Information("CorePlugin ctor!");
+                log.Information("CorePlugin ctor!");
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "kaboom");
+                log.Error(ex, "kaboom");
             }
         }
-
-        /// <inheritdoc/>
-        public string Name => "Dalamud.CorePlugin";
 
         /// <summary>
         /// Gets the plugin interface.
         /// </summary>
-        internal DalamudPluginInterface Interface { get; private set; }
+        internal IDalamudPluginInterface Interface { get; private set; }
 
         /// <inheritdoc/>
         public void Dispose()
@@ -92,8 +96,6 @@ namespace Dalamud.CorePlugin
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
-
-            this.Interface.ExplicitDispose();
         }
 
         /// <summary>
@@ -126,13 +128,13 @@ namespace Dalamud.CorePlugin
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "Boom");
+                this.pluginLog.Error(ex, "Boom");
             }
         }
 
         private void OnCommand(string command, string args)
         {
-            PluginLog.Information("Command called!");
+            this.pluginLog.Information("Command called!");
 
             // this.window.IsOpen = true;
         }
@@ -140,6 +142,11 @@ namespace Dalamud.CorePlugin
         private void OnOpenConfigUi()
         {
             // this.window.IsOpen = true;
+        }
+
+        private void OnOpenMainUi()
+        {
+            Log.Verbose("Opened main UI");
         }
 
 #endif

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,11 +11,13 @@ public partial class FileDialog
 {
     private readonly object filesLock = new();
 
+    private readonly DriveListLoader driveListLoader = new();
+
     private List<FileStruct> files = new();
     private List<FileStruct> filteredFiles = new();
 
     private SortingField currentSortingField = SortingField.FileName;
-    private bool[] sortDescending = new[] { false, false, false, false };
+    private bool[] sortDescending = { false, false, false, false };
 
     private enum FileStructType
     {
@@ -35,6 +36,20 @@ public partial class FileDialog
 
     private static string ComposeNewPath(List<string> decomp)
     {
+        // Handle UNC paths (network paths)
+        if (decomp.Count >= 2 && string.IsNullOrEmpty(decomp[0]) && string.IsNullOrEmpty(decomp[1]))
+        {
+            var pathParts = new List<string>(decomp);
+            pathParts.RemoveRange(0, 2);
+            // Can not access server level or UNC root
+            if (pathParts.Count <= 1)
+            {
+                return string.Empty;
+            }
+
+            return $"\\\\{string.Join('\\', pathParts)}";
+        }
+        
         if (decomp.Count == 1)
         {
             var drivePath = decomp[0];
@@ -296,12 +311,14 @@ public partial class FileDialog
         }
     }
 
+    private IEnumerable<SideBarItem> GetDrives()
+    {
+        return this.driveListLoader.Drives.Select(drive => new SideBarItem(drive.Name, drive.Name, FontAwesomeIcon.Server));
+    }
+
     private void SetupSideBar()
     {
-        foreach (var drive in DriveInfo.GetDrives())
-        {
-            this.drives.Add(new SideBarItem(drive.Name, drive.Name, FontAwesomeIcon.Server));
-        }
+        _ = this.driveListLoader.LoadDrivesAsync();
 
         var personal = Path.GetDirectoryName(Environment.GetFolderPath(Environment.SpecialFolder.Personal));
 

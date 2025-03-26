@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -6,7 +5,8 @@ using System.Threading.Tasks;
 
 using Dalamud.Game.Network.Internal.MarketBoardUploaders.Universalis.Types;
 using Dalamud.Game.Network.Structures;
-using Dalamud.Utility;
+using Dalamud.Networking.Http;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -22,37 +22,37 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
 
     private const string ApiKey = "GGD6RdSfGyRiHM5WDnAo0Nj9Nv7aC5NDhMj3BebT";
 
+    private readonly HttpClient httpClient;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UniversalisMarketBoardUploader"/> class.
     /// </summary>
-    public UniversalisMarketBoardUploader()
-    {
-    }
+    /// <param name="happyHttpClient">An instance of <see cref="HappyHttpClient"/>.</param>
+    public UniversalisMarketBoardUploader(HappyHttpClient happyHttpClient) =>
+        this.httpClient = happyHttpClient.SharedHttpClient;
 
     /// <inheritdoc/>
-    public async Task Upload(MarketBoardItemRequest request)
+    public async Task Upload(MarketBoardItemRequest request, ulong uploaderId, uint worldId)
     {
-        var clientState = Service<ClientState.ClientState>.GetNullable();
-        if (clientState == null)
-            return;
-
-        Log.Verbose("Starting Universalis upload.");
-        var uploader = clientState.LocalContentId;
+        Log.Verbose("Starting Universalis upload");
 
         // ====================================================================================
 
-        var listingsUploadObject = new UniversalisItemListingsUploadRequest
+        var uploadObject = new UniversalisItemUploadRequest
         {
-            WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
-            UploaderId = uploader.ToString(),
+            WorldId = worldId,
+            UploaderId = uploaderId.ToString(),
             ItemId = request.CatalogId,
-            Listings = new List<UniversalisItemListingsEntry>(),
+            Listings = [],
+            Sales = [],
         };
 
         foreach (var marketBoardItemListing in request.Listings)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             var universalisListing = new UniversalisItemListingsEntry
             {
+                ListingId = marketBoardItemListing.ListingId.ToString(),
                 Hq = marketBoardItemListing.IsHq,
                 SellerId = marketBoardItemListing.RetainerOwnerId.ToString(),
                 RetainerName = marketBoardItemListing.RetainerName,
@@ -66,6 +66,7 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 RetainerCity = marketBoardItemListing.RetainerCityId,
                 Materia = new List<UniversalisItemMateria>(),
             };
+#pragma warning restore CS0618 // Type or member is obsolete
 
             foreach (var itemMateria in marketBoardItemListing.Materia)
             {
@@ -76,27 +77,12 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 });
             }
 
-            listingsUploadObject.Listings.Add(universalisListing);
+            uploadObject.Listings.Add(universalisListing);
         }
-
-        var listingPath = "/upload";
-        var listingUpload = JsonConvert.SerializeObject(listingsUploadObject);
-        Log.Verbose($"{listingPath}: {listingUpload}");
-        await Util.HttpClient.PostAsync($"{ApiBase}{listingPath}/{ApiKey}", new StringContent(listingUpload, Encoding.UTF8, "application/json"));
-
-        // ====================================================================================
-
-        var historyUploadObject = new UniversalisHistoryUploadRequest
-        {
-            WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
-            UploaderId = uploader.ToString(),
-            ItemId = request.CatalogId,
-            Entries = new List<UniversalisHistoryEntry>(),
-        };
 
         foreach (var marketBoardHistoryListing in request.History)
         {
-            historyUploadObject.Entries.Add(new UniversalisHistoryEntry
+            uploadObject.Sales.Add(new UniversalisHistoryEntry
             {
                 BuyerName = marketBoardHistoryListing.BuyerName,
                 Hq = marketBoardHistoryListing.IsHq,
@@ -107,29 +93,30 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
             });
         }
 
-        var historyPath = "/upload";
-        var historyUpload = JsonConvert.SerializeObject(historyUploadObject);
-        Log.Verbose($"{historyPath}: {historyUpload}");
-        await Util.HttpClient.PostAsync($"{ApiBase}{historyPath}/{ApiKey}", new StringContent(historyUpload, Encoding.UTF8, "application/json"));
+        var uploadPath = "/upload";
+        var uploadData = JsonConvert.SerializeObject(uploadObject);
+        Log.Verbose("{ListingPath}: {ListingUpload}", uploadPath, uploadData);
+        var response = await this.httpClient.PostAsync($"{ApiBase}{uploadPath}/{ApiKey}", new StringContent(uploadData, Encoding.UTF8, "application/json"));
 
-        // ====================================================================================
-
-        Log.Verbose("Universalis data upload for item#{0} completed.", request.CatalogId);
+        if (response.IsSuccessStatusCode)
+        {
+            Log.Verbose("Universalis data upload for item#{CatalogId} completed", request.CatalogId);
+        }
+        else
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            Log.Warning("Universalis data upload for item#{CatalogId} returned status code {StatusCode}.\n" +
+                        "    Response Body: {Body}", request.CatalogId, response.StatusCode, body);
+        }
     }
 
     /// <inheritdoc/>
-    public async Task UploadTax(MarketTaxRates taxRates)
+    public async Task UploadTax(MarketTaxRates taxRates, ulong uploaderId, uint worldId)
     {
-        var clientState = Service<ClientState.ClientState>.GetNullable();
-        if (clientState == null)
-            return;
-
-        // ====================================================================================
-
         var taxUploadObject = new UniversalisTaxUploadRequest
         {
-            WorldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0,
-            UploaderId = clientState.LocalContentId.ToString(),
+            WorldId = worldId,
+            UploaderId = uploaderId.ToString(),
             TaxData = new UniversalisTaxData
             {
                 LimsaLominsa = taxRates.LimsaLominsaTax,
@@ -139,18 +126,19 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
                 Kugane = taxRates.KuganeTax,
                 Crystarium = taxRates.CrystariumTax,
                 Sharlayan = taxRates.SharlayanTax,
+                Tuliyollal = taxRates.TuliyollalTax,
             },
         };
 
         var taxPath = "/upload";
         var taxUpload = JsonConvert.SerializeObject(taxUploadObject);
-        Log.Verbose($"{taxPath}: {taxUpload}");
+        Log.Verbose("{TaxPath}: {TaxUpload}", taxPath, taxUpload);
 
-        await Util.HttpClient.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json"));
+        await this.httpClient.PostAsync($"{ApiBase}{taxPath}/{ApiKey}", new StringContent(taxUpload, Encoding.UTF8, "application/json"));
 
         // ====================================================================================
 
-        Log.Verbose("Universalis tax upload completed.");
+        Log.Verbose("Universalis tax upload completed");
     }
 
     /// <inheritdoc/>
@@ -159,14 +147,9 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
     /// to track the available listings, that is done via the listings packet. All this does is remove
     /// a listing, or delete it, when a purchase has been made.
     /// </remarks>
-    public async Task UploadPurchase(MarketBoardPurchaseHandler purchaseHandler)
+    public async Task UploadPurchase(MarketBoardPurchaseHandler purchaseHandler, ulong uploaderId, uint worldId)
     {
-        var clientState = Service<ClientState.ClientState>.GetNullable();
-        if (clientState == null)
-            return;
-
         var itemId = purchaseHandler.CatalogId;
-        var worldId = clientState.LocalPlayer?.CurrentWorld.Id ?? 0;
 
         // ====================================================================================
 
@@ -176,22 +159,22 @@ internal class UniversalisMarketBoardUploader : IMarketBoardUploader
             Quantity = purchaseHandler.ItemQuantity,
             ListingId = purchaseHandler.ListingId.ToString(),
             RetainerId = purchaseHandler.RetainerId.ToString(),
-            UploaderId = clientState.LocalContentId.ToString(),
+            UploaderId = uploaderId.ToString(),
         };
 
         var deletePath = $"/api/{worldId}/{itemId}/delete";
         var deleteListing = JsonConvert.SerializeObject(deleteListingObject);
-        Log.Verbose($"{deletePath}: {deleteListing}");
+        Log.Verbose("{DeletePath}: {DeleteListing}", deletePath, deleteListing);
 
         var content = new StringContent(deleteListing, Encoding.UTF8, "application/json");
         var message = new HttpRequestMessage(HttpMethod.Post, $"{ApiBase}{deletePath}");
         message.Headers.Add("Authorization", ApiKey);
         message.Content = content;
 
-        await Util.HttpClient.SendAsync(message);
+        await this.httpClient.SendAsync(message);
 
         // ====================================================================================
 
-        Log.Verbose("Universalis purchase upload completed.");
+        Log.Verbose("Universalis purchase upload completed");
     }
 }

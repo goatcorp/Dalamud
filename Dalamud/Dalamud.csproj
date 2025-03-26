@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup Label="Target">
-        <TargetFramework>net6.0-windows</TargetFramework>
-        <PlatformTarget>x64</PlatformTarget>
-        <Platforms>x64;AnyCPU</Platforms>
-        <LangVersion>10.0</LangVersion>
+        <EnableWindowsTargeting>True</EnableWindowsTargeting>
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
-        <DalamudVersion>7.2.0.0</DalamudVersion>
         <Description>XIV Launcher addon framework</Description>
+        <DalamudVersion>12.0.0.0</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
+        <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     </PropertyGroup>
 
     <PropertyGroup Label="Output">
@@ -45,10 +43,6 @@
     <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='Debug'">
         <DefineConstants>DEBUG;TRACE</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='Release'">
-        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
-        <PathMap>$(AppOutputBase)=C:\goatsoft\companysecrets\dalamud\</PathMap>
-    </PropertyGroup>
 
     <PropertyGroup Label="Warnings">
         <NoWarn>IDE0002;IDE0003;IDE1006;IDE0044;CA1822;CS1591;CS1701;CS1702</NoWarn>
@@ -63,29 +57,40 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CheapLoc" Version="1.1.6" />
-        <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
-        <PackageReference Include="Lumina" Version="3.10.0" />
-        <PackageReference Include="Lumina.Excel" Version="6.2.1" />
+        <PackageReference Include="BitFaster.Caching" Version="2.4.1" />
+        <PackageReference Include="CheapLoc" Version="1.1.8" />
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4" PrivateAssets="all" />
+        <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
+        <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
+        <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
+        <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
+        <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
+        <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         <PackageReference Include="MinSharp" Version="1.0.4" />
-        <PackageReference Include="MonoMod.RuntimeDetour" Version="21.10.10.01" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="Serilog" Version="2.11.0" />
-        <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
-        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-        <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.2" />
-        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
+        <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+        <PackageReference Include="Serilog" Version="4.0.2" />
+        <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+        <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
-        <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-        <PackageReference Include="System.Reflection.MetadataLoadContext" Version="5.0.1" />
-        <PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
+        <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+        <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+        <PackageReference Include="System.Reactive" Version="5.0.0" />
+        <PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
+        <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
+        <PackageReference Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
+        <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj" />
         <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj" />
@@ -102,6 +107,13 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\DerivedGeneralCategory.txt" LogicalName="DerivedGeneralCategory.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
+      <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
+    </ItemGroup>
+
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">
         <ItemGroup>
             <ContentWithTargetPath Include="$(ProjectDepsFilePath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(ProjectDepsFileName)" />
@@ -109,29 +121,48 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="GetGitHash" BeforeTargets="WriteGitHash" Condition="'$(BuildHash)' == ''">
+    <PropertyGroup>
+        <!-- Needed temporarily for CI -->
+        <TempVerFile>$(OutputPath)TEMP_gitver.txt</TempVerFile>
+        <CommitHashFile>$(OutputPath)commit_hash.txt</CommitHashFile>
+        <DalamudRevisionFile>$(OutputPath)revision.txt</DalamudRevisionFile>
+    </PropertyGroup>
+
+    <Target Name="GetVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'=='Release'">
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; rev-list --count HEAD" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitCount" />
+        </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --match=NeVeRmAtCh --always --abbrev=40 --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitCommitHash" />
+        </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --tags --always --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="DalamudGitDescribeOutput" />
+        </Exec>
+        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty" ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="ClientStructsGitDescribeOutput" />
+        </Exec>
+
         <PropertyGroup>
-            <!-- temp file for the git version (lives in "obj" folder)-->
-            <VerFile>$(IntermediateOutputPath)gitver</VerFile>
-            <VerFileClientStructs>$(IntermediateOutputPath)csver</VerFileClientStructs>
+            <CommitCount>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitCount), @"\t|\n|\r", ""))</CommitCount>
+            <CommitHash>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitCommitHash), @"\t|\n|\r", ""))</CommitHash>
+            <SCMVersion>$([System.Text.RegularExpressions.Regex]::Replace($(DalamudGitDescribeOutput), @"\t|\n|\r", ""))</SCMVersion>
+            <CommitHashClientStructs>$([System.Text.RegularExpressions.Regex]::Replace($(ClientStructsGitDescribeOutput), @"\t|\n|\r", ""))</CommitHashClientStructs>
         </PropertyGroup>
-        <!-- write the hash to the temp file.-->
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))&quot; describe --long --always --dirty &gt; $(VerFile)" />
-        <Exec Command="git -C &quot;$(ProjectDir.Replace('\','\\'))\..\lib\FFXIVClientStructs&quot; describe --long --always --dirty &gt; $(VerFileClientStructs)" />
-        <!-- read the version into the GitVersion itemGroup-->
-        <ReadLinesFromFile File="$(VerFile)">
-            <Output TaskParameter="Lines" ItemName="GitVersion" />
-        </ReadLinesFromFile>
-        <ReadLinesFromFile File="$(VerFileClientStructs)">
-            <Output TaskParameter="Lines" ItemName="GitVersionClientStructs" />
-        </ReadLinesFromFile>
-        <!-- Set the BuildHash property to contain the GitVersion, if it wasn't already set.-->
+
+        <Exec Command="echo|set /P =&quot;$(CommitCount)&quot; &gt; $(DalamudRevisionFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(CommitHash)&quot; &gt; $(CommitHashFile)" IgnoreExitCode="true" />
+        <Exec Command="echo|set /P =&quot;$(SCMVersion)&quot; &gt; $(TempVerFile)" IgnoreExitCode="true" />
+    </Target>
+
+    <Target Name="GenerateStubVersionData" BeforeTargets="WriteVersionData" Condition="'$(SCMVersion)'=='' And '$(Configuration)'!='Release'">
+        <!-- stub out version since it takes a while. -->
         <PropertyGroup>
-            <BuildHash>@(GitVersion)</BuildHash>
-            <BuildHashClientStructs>@(GitVersionClientStructs)</BuildHashClientStructs>
+            <SCMVersion>Local build at $([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</SCMVersion>
+            <CommitHashClientStructs>???</CommitHashClientStructs>
         </PropertyGroup>
     </Target>
-    <Target Name="WriteGitHash" BeforeTargets="CoreCompile">
+
+    <Target Name="WriteVersionData" BeforeTargets="CoreCompile">
         <!-- names the obj/.../CustomAssemblyInfo.cs file -->
         <PropertyGroup>
             <CustomAssemblyInfoFile>$(IntermediateOutputPath)CustomAssemblyInfo.cs</CustomAssemblyInfoFile>
@@ -142,16 +173,29 @@
         </ItemGroup>
         <!-- defines the AssemblyMetadata attribute that will be written -->
         <ItemGroup>
-            <AssemblyAttributes Include="AssemblyMetadata">
-                <_Parameter1>GitHash</_Parameter1>
-                <_Parameter2>$(BuildHash)</_Parameter2>
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(SCMVersion)' != ''">
+                <_Parameter1>SCMVersion</_Parameter1>
+                <_Parameter2>$(SCMVersion)</_Parameter2>
             </AssemblyAttributes>
-            <AssemblyAttributes Include="AssemblyMetadata">
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitCount)' != ''">
+                <_Parameter1>GitCommitCount</_Parameter1>
+                <_Parameter2>$(CommitCount)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitHashClientStructs)' != ''">
                 <_Parameter1>GitHashClientStructs</_Parameter1>
-                <_Parameter2>$(BuildHashClientStructs)</_Parameter2>
+                <_Parameter2>$(CommitHashClientStructs)</_Parameter2>
+            </AssemblyAttributes>
+            <AssemblyAttributes Include="AssemblyMetadata" Condition="'$(CommitHash)' != ''">
+                <_Parameter1>GitHash</_Parameter1>
+                <_Parameter2>$(CommitHash)</_Parameter2>
             </AssemblyAttributes>
         </ItemGroup>
         <!-- writes the attribute to the customAssemblyInfo file -->
         <WriteCodeFragment Language="C#" OutputFile="$(CustomAssemblyInfoFile)" AssemblyAttributes="@(AssemblyAttributes)" />
+    </Target>
+
+    <!-- Copy plugin .targets folder into distrib -->
+    <Target Name="CopyPluginTargets" AfterTargets="Build">
+        <Copy SourceFiles="$(ProjectDir)\..\targets\Dalamud.Plugin.targets;$(ProjectDir)\..\targets\Dalamud.Plugin.Bootstrap.targets" DestinationFolder="$(OutDir)\targets" />
     </Target>
 </Project>

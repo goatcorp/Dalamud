@@ -1,11 +1,13 @@
-using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ImGuiNotification;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal.Types.Manifest;
 
 namespace Dalamud.Plugin.Internal.Types;
 
@@ -13,7 +15,7 @@ namespace Dalamud.Plugin.Internal.Types;
 /// This class represents a dev plugin and all facets of its lifecycle.
 /// The DLL on disk, dependencies, loaded assembly, etc.
 /// </summary>
-internal class LocalDevPlugin : LocalPlugin, IDisposable
+internal class LocalDevPlugin : LocalPlugin
 {
     private static readonly ModuleLog Log = new("PLUGIN");
 
@@ -37,6 +39,14 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
         if (!configuration.DevPluginSettings.TryGetValue(dllFile.FullName, out this.devSettings))
         {
             configuration.DevPluginSettings[dllFile.FullName] = this.devSettings = new DevPluginSettings();
+            configuration.QueueSave();
+        }
+        
+        // Legacy dev plugins might not have this!
+        if (this.devSettings.WorkingPluginId == Guid.Empty)
+        {
+            this.devSettings.WorkingPluginId = Guid.NewGuid();
+            Log.Verbose("{InternalName} was assigned new devPlugin GUID {Guid}", this.InternalName, this.devSettings.WorkingPluginId);
             configuration.QueueSave();
         }
 
@@ -75,9 +85,22 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
             }
         }
     }
+    
+    /// <summary>
+    /// Gets an ID uniquely identifying this specific instance of a devPlugin.
+    /// </summary>
+    public Guid DevImposedWorkingPluginId => this.devSettings.WorkingPluginId;
 
     /// <inheritdoc/>
-    public new void Dispose()
+    public override Guid EffectiveWorkingPluginId => this.DevImposedWorkingPluginId;
+
+    /// <summary>
+    /// Gets a list of validation problems that have been dismissed by the user.
+    /// </summary>
+    public List<string> DismissedValidationProblems => this.devSettings.DismissedValidationProblems;
+
+    /// <inheritdoc/>
+    public override ValueTask DisposeAsync()
     {
         if (this.fileWatcher != null)
         {
@@ -86,7 +109,7 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
             this.fileWatcher.Dispose();
         }
 
-        base.Dispose();
+        return base.DisposeAsync();
     }
 
     /// <summary>
@@ -119,6 +142,23 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
         }
     }
 
+    /// <summary>
+    /// Reload the manifest if it exists, to update possible changes.
+    /// </summary>
+    /// <exception cref="Exception">Thrown if the manifest could not be loaded.</exception>
+    public void ReloadManifest()
+    {
+        var manifestPath = LocalPluginManifest.GetManifestFile(this.DllFile);
+        if (manifestPath.Exists)
+            this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
+    }
+    
+    /// <inheritdoc/>
+    protected override void OnPreReload()
+    {
+        this.ReloadManifest();
+    }
+
     private void OnFileChanged(object sender, FileSystemEventArgs args)
     {
         var current = Interlocked.Increment(ref this.reloadCounter);
@@ -138,9 +178,9 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
                     return;
                 }
 
-                if (this.State != PluginState.Loaded && this.State != PluginState.LoadError)
+                if (this.State != PluginState.Loaded && this.State != PluginState.LoadError && this.State != PluginState.UnloadError)
                 {
-                    Log.Debug($"Skipping reload of {this.Name}, state ({this.State}) is not {PluginState.Loaded} nor {PluginState.LoadError}.");
+                    Log.Debug($"Skipping reload of {this.Name}, state ({this.State}) is not {PluginState.Loaded}, {PluginState.LoadError} or {PluginState.UnloadError}.");
                     return;
                 }
 
@@ -148,6 +188,12 @@ internal class LocalDevPlugin : LocalPlugin, IDisposable
 
                 try
                 {
+                    if (this.State == PluginState.UnloadError)
+                    {
+                        Log.Warning($"{this.Manifest.Author}: TAKE CARE!!! You need to fix your unload error, and restart the game - your plugin might be in an inconsistent state.");
+                        Log.Warning("Reloading anyway, as this is a dev plugin, but you might encounter unexpected results.");
+                    }
+
                     await this.ReloadAsync();
                     notificationManager.AddNotification($"The DevPlugin '{this.Name} was reloaded successfully.", "Plugin reloaded!", NotificationType.Success);
                 }

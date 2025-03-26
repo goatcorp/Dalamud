@@ -1,0 +1,9 @@
+﻿{
+    "Author": "Dalamud Maintainers",
+    "Name": "CorePlugin",
+    "Punchline": "Testbed for developing Dalamud features.",
+    "Description": "Develop and debug internal Dalamud features using CorePlugin. You have full access to all types in Dalamud assembly.",
+    "InternalName": "CorePlugin",
+    "ApplicableVersion": "any",
+    "Tags": []
+}

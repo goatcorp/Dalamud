@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -6,6 +5,7 @@ using Dalamud.Interface.Animation;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
@@ -147,7 +147,7 @@ internal sealed class ComponentDemoWindow : Window
             ImGui.Bullet();
 
             ImGui.SetCursorPos(cursor + new Vector2(0, 10));
-            ImGui.Text($"{easing.GetType().Name} ({easing.Value})");
+            ImGui.Text($"{easing.GetType().Name} ({easing.ValueClamped})");
             ImGuiHelpers.ScaledDummy(5);
         }
     }

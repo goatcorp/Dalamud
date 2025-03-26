@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Game.Text.SeStringHandling;
@@ -29,6 +31,17 @@ public class SeStringBuilder
     /// <param name="text">The raw text.</param>
     /// <returns>The current builder.</returns>
     public SeStringBuilder Append(string text) => this.AddText(text);
+
+    /// <summary>
+    /// Append payloads to the builder.
+    /// </summary>
+    /// <param name="payloads">A list of payloads.</param>
+    /// <returns>The current builder.</returns>
+    public SeStringBuilder Append(IEnumerable<Payload> payloads)
+    {
+        this.BuiltString.Payloads.AddRange(payloads);
+        return this;
+    }
 
     /// <summary>
     /// Append raw text to the builder.
@@ -104,7 +117,7 @@ public class SeStringBuilder
     /// <param name="itemNameOverride">Override for the item's name.</param>
     /// <returns>The current builder.</returns>
     public SeStringBuilder AddItemLink(uint itemId, bool isHq, string? itemNameOverride = null) =>
-        this.Add(new ItemPayload(itemId, isHq, itemNameOverride));
+        this.Append(SeString.CreateItemLink(itemId, isHq, itemNameOverride));
 
     /// <summary>
     /// Add an item link to the builder.
@@ -113,14 +126,15 @@ public class SeStringBuilder
     /// <param name="kind">Kind of item to encode.</param>
     /// <param name="itemNameOverride">Override for the item's name.</param>
     /// <returns>The current builder.</returns>
-    public SeStringBuilder AddItemLink(uint itemId, ItemPayload.ItemKind kind, string? itemNameOverride = null) =>
-        this.Add(new ItemPayload(itemId, kind, itemNameOverride));
+    public SeStringBuilder AddItemLink(uint itemId, ItemPayload.ItemKind kind = ItemPayload.ItemKind.Normal, string? itemNameOverride = null) =>
+        this.Append(SeString.CreateItemLink(itemId, kind, itemNameOverride));
 
     /// <summary>
     /// Add an item link to the builder.
     /// </summary>
     /// <param name="rawItemId">The raw item ID.</param>
     /// <returns>The current builder.</returns>
+    /// <remarks>To terminate this item link, add a <see cref="RawPayload.LinkTerminator"/>.</remarks>
     public SeStringBuilder AddItemLinkRaw(uint rawItemId) =>
         this.Add(ItemPayload.FromRaw(rawItemId));
 
@@ -185,6 +199,20 @@ public class SeStringBuilder
     /// <param name="statusId">The status effect ID.</param>
     /// <returns>The current builder.</returns>
     public SeStringBuilder AddStatusLink(uint statusId) => this.Add(new StatusPayload(statusId));
+
+    /// <summary>
+    /// Add a link to the party finder search conditions to the builder.
+    /// </summary>
+    /// <returns>The current builder.</returns>
+    public SeStringBuilder AddPartyFinderSearchConditionsLink() => this.Add(new PartyFinderPayload());
+
+    /// <summary>
+    /// Add a party finder listing link to the builder.
+    /// </summary>
+    /// <param name="id">The listing ID of the party finder listing.</param>
+    /// <param name="isCrossWorld">Whether the listing is limited to the recruiting world.</param>
+    /// <returns>The current builder.</returns>
+    public SeStringBuilder AddPartyFinderLink(uint id, bool isCrossWorld = false) => this.Add(new PartyFinderPayload(id, isCrossWorld ? PartyFinderPayload.PartyFinderLinkType.NotSpecified : PartyFinderPayload.PartyFinderLinkType.LimitedToHomeWorld));
 
     /// <summary>
     /// Add a payload to the builder.

@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <Windows.h>
+#include <Lmcons.h>
 #include <Shlobj.h>
 #include "CoreCLR.h"
 #include "..\..\Dalamud.Boot\logging.h"
@@ -27,9 +28,68 @@ void ConsoleTeardown()
 
 std::optional<CoreCLR> g_clr;
 
-int InitializeClrAndGetEntryPoint(
+static wchar_t* GetRuntimePath()
+{
+    int result;
+    std::wstring buffer;
+    wchar_t* runtime_path;
+    wchar_t* _appdata;
+    DWORD username_len = UNLEN + 1;
+    wchar_t username[UNLEN + 1];
+
+    buffer.resize(0);
+    result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], 0);
+
+    if (result)
+    {
+        buffer.resize(result); // The first pass returns the required length
+        result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], result);
+        return _wcsdup(buffer.c_str());
+    }
+    
+    // Detect Windows first
+    result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &_appdata);
+
+    if (result != 0)
+    {
+        logging::E("Unable to get RoamingAppData path (err={})", result);
+        return NULL;
+    }
+
+    std::filesystem::path fs_app_data(_appdata);
+    runtime_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
+    if (std::filesystem::exists(runtime_path))
+        return runtime_path;
+    free(runtime_path);
+
+    // Next XLCore on Linux
+    result = GetUserNameW(username, &username_len);
+    if (result != 0)
+    {
+        logging::E("Unable to get user name (err={})", result);
+        return NULL;
+    }
+
+    std::filesystem::path homeDir = L"Z:\\home\\" + std::wstring(username);
+    runtime_path = _wcsdup(homeDir.append(".xlcore").append("runtime").c_str());
+    if (std::filesystem::exists(runtime_path))
+        return runtime_path;
+    free(runtime_path);
+
+    // Finally XOM
+    homeDir = L"Z:\\Users\\" + std::wstring(username);
+    runtime_path = _wcsdup(homeDir.append("Library").append("Application Suppor").append("XIV on Mac").append("runtime").c_str());
+    if (std::filesystem::exists(runtime_path))
+        return runtime_path;
+    free(runtime_path);
+
+    return NULL;
+}
+
+HRESULT InitializeClrAndGetEntryPoint(
     void* calling_module,
     bool enable_etw,
+    bool enable_legacy_corrupted_state_exception_policy,
     std::wstring runtimeconfig_path,
     std::wstring module_path,
     std::wstring entrypoint_assembly_name,
@@ -41,8 +101,13 @@ int InitializeClrAndGetEntryPoint(
 
     int result;
     SetEnvironmentVariable(L"DOTNET_MULTILEVEL_LOOKUP", L"0");
-    SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", L"1");
-    SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
+
+    if (enable_legacy_corrupted_state_exception_policy)
+    {
+        SetEnvironmentVariable(L"COMPlus_legacyCorruptedStateExceptionsPolicy", L"1");
+        SetEnvironmentVariable(L"DOTNET_legacyCorruptedStateExceptionsPolicy", L"1");
+    }
+
     SetEnvironmentVariable(L"COMPLUS_ForceENC", L"1");
     SetEnvironmentVariable(L"DOTNET_ForceENC", L"1");
 
@@ -51,33 +116,17 @@ int InitializeClrAndGetEntryPoint(
     SetEnvironmentVariable(L"DOTNET_TC_QuickJitForLoops", L"1");
     SetEnvironmentVariable(L"DOTNET_ReadyToRun", L"1");
 
+    // WINE does not support QUIC and we don't need it
+    SetEnvironmentVariable(L"DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP3SUPPORT", L"0");
+
     SetEnvironmentVariable(L"COMPlus_ETWEnabled", enable_etw ? L"1" : L"0");
 
-    wchar_t* dotnet_path;
-    wchar_t* _appdata;
+    wchar_t* dotnet_path = GetRuntimePath();
 
-    std::wstring buffer;
-    buffer.resize(0);
-    result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], 0);
-
-    if (result)
+    if (!dotnet_path || !std::filesystem::exists(dotnet_path))
     {
-        buffer.resize(result); // The first pass returns the required length
-        result = GetEnvironmentVariableW(L"DALAMUD_RUNTIME", &buffer[0], result);
-        dotnet_path = _wcsdup(buffer.c_str());
-    }
-    else
-    {
-        result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, nullptr, &_appdata);
-
-        if (result != 0)
-        {
-            logging::E("Unable to get RoamingAppData path (err={})", result);
-            return result;
-        }
-
-        std::filesystem::path fs_app_data(_appdata);
-        dotnet_path = _wcsdup(fs_app_data.append("XIVLauncher").append("runtime").c_str());
+        logging::E("Error: Unable to find .NET runtime path");
+        return HRESULT_FROM_WIN32(ERROR_PATH_NOT_FOUND);
     }
 
     // =========================================================================== //
@@ -85,12 +134,6 @@ int InitializeClrAndGetEntryPoint(
     logging::I("with dotnet_path: {}", dotnet_path);
     logging::I("with config_path: {}", runtimeconfig_path);
     logging::I("with module_path: {}", module_path);
-
-    if (!std::filesystem::exists(dotnet_path))
-    {
-        logging::E("Error: Unable to find .NET runtime path");
-        return 1;
-    }
 
     get_hostfxr_parameters init_parameters
     {
@@ -126,7 +169,7 @@ int InitializeClrAndGetEntryPoint(
 
     // =========================================================================== //
 
-    logging::I("Loading module...");
+    logging::I("Loading module from {}...", module_path.c_str());
     if ((result = g_clr->load_assembly_and_get_function_pointer(
         module_path.c_str(),
         entrypoint_assembly_name.c_str(),
@@ -134,12 +177,12 @@ int InitializeClrAndGetEntryPoint(
         entrypoint_delegate_type_name.c_str(),
         nullptr, entrypoint_fn)) != 0)
     {
-        logging::E("Failed to load module (err={})", result);
+        logging::E("Failed to load module (err=0x{:X})", static_cast<uint32_t>(result));
         return result;
     }
     logging::I("Done!");
 
     // =========================================================================== //
 
-    return 0;
+    return S_OK;
 }

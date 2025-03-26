@@ -1,5 +1,8 @@
 using System.Numerics;
 
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
@@ -40,7 +43,9 @@ public static partial class ImGuiComponents
             ImGui.OpenPopup($"###ColorPickerPopup{id}");
         }
 
-        if (ImGui.BeginPopup($"###ColorPickerPopup{id}"))
+        using var popup = ImRaii.Popup($"###ColorPickerPopup{id}");
+
+        if (popup)
         {
             if (ImGui.ColorPicker4($"###ColorPicker{id}", ref existingColor, flags))
             {
@@ -60,8 +65,6 @@ public static partial class ImGuiComponents
                     ImGui.SameLine();
                 }
             }
-
-            ImGui.EndPopup();
         }
 
         return selectedColor;

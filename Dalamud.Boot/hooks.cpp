@@ -2,38 +2,16 @@
 
 #include "hooks.h"
 
+#include "ntdll.h"
 #include "logging.h"
 
-enum {
-    LDR_DLL_NOTIFICATION_REASON_LOADED = 1,
-    LDR_DLL_NOTIFICATION_REASON_UNLOADED = 2,
-};
+namespace {
+    int s_dllChanged = 0;
+}
 
-struct LDR_DLL_UNLOADED_NOTIFICATION_DATA {
-    ULONG Flags;                    //Reserved.
-    const UNICODE_STRING* FullDllName;   //The full path name of the DLL module.
-    const UNICODE_STRING* BaseDllName;   //The base file name of the DLL module.
-    PVOID DllBase;                  //A pointer to the base address for the DLL in memory.
-    ULONG SizeOfImage;              //The size of the DLL image, in bytes.
-};
-
-struct LDR_DLL_LOADED_NOTIFICATION_DATA {
-    ULONG Flags;                    //Reserved.
-    const UNICODE_STRING* FullDllName;   //The full path name of the DLL module.
-    const UNICODE_STRING* BaseDllName;   //The base file name of the DLL module.
-    PVOID DllBase;                  //A pointer to the base address for the DLL in memory.
-    ULONG SizeOfImage;              //The size of the DLL image, in bytes.
-};
-
-union LDR_DLL_NOTIFICATION_DATA {
-    LDR_DLL_LOADED_NOTIFICATION_DATA Loaded;
-    LDR_DLL_UNLOADED_NOTIFICATION_DATA Unloaded;
-};
-
-using PLDR_DLL_NOTIFICATION_FUNCTION = VOID CALLBACK(_In_ ULONG NotificationReason, _In_ const LDR_DLL_NOTIFICATION_DATA* NotificationData, _In_opt_ PVOID Context);
-
-static const auto LdrRegisterDllNotification = utils::loaded_module(GetModuleHandleW(L"ntdll.dll")).get_exported_function<NTSTATUS(NTAPI)(ULONG Flags, PLDR_DLL_NOTIFICATION_FUNCTION NotificationFunction, PVOID Context, PVOID* Cookie)>("LdrRegisterDllNotification");
-static const auto LdrUnregisterDllNotification = utils::loaded_module(GetModuleHandleW(L"ntdll.dll")).get_exported_function<NTSTATUS(NTAPI)(PVOID Cookie)>("LdrUnregisterDllNotification");
+extern "C" __declspec(dllexport) int* GetDllChangedStorage() {
+    return &s_dllChanged;
+}
 
 hooks::getprocaddress_singleton_import_hook::getprocaddress_singleton_import_hook()
     : m_pfnGetProcAddress(GetProcAddress)
@@ -101,6 +79,7 @@ void hooks::getprocaddress_singleton_import_hook::initialize() {
     m_getProcAddressHandler = set_handler(L"kernel32.dll", "GetProcAddress", m_thunk.get_thunk(), [this](void*) {});
 
     LdrRegisterDllNotification(0, [](ULONG notiReason, const LDR_DLL_NOTIFICATION_DATA* pData, void* context) {
+        s_dllChanged = 1;
         if (notiReason == LDR_DLL_NOTIFICATION_REASON_LOADED) {
             const auto dllName = unicode::convert<std::string>(pData->Loaded.FullDllName->Buffer);
 

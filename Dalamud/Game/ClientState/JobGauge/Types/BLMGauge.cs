@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Game.ClientState.JobGauge.Types;
 
 /// <summary>
@@ -45,6 +43,11 @@ public unsafe class BLMGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the amount of Astral Fire stacks.
     /// </summary>
     public byte AstralFireStacks => (byte)(this.InAstralFire ? this.Struct->ElementStance : 0);
+
+    /// <summary>
+    /// Gets the amount of Astral Soul stacks.
+    /// </summary>
+    public int AstralSoulStacks => this.Struct->AstralSoulStacks;
 
     /// <summary>
     /// Gets a value indicating whether or not the player is in Umbral Ice.

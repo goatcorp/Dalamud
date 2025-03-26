@@ -2,7 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Data;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
+using Lumina.Text.Payloads;
+using Lumina.Text.ReadOnly;
+
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -12,8 +18,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class PlayerPayload : Payload
 {
-    private World world;
-
     [JsonProperty]
     private uint serverId;
 
@@ -43,11 +47,8 @@ public class PlayerPayload : Payload
     /// <summary>
     /// Gets the Lumina object representing the player's home server.
     /// </summary>
-    /// <remarks>
-    /// Value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public World World => this.world ??= this.DataResolver.GetExcelSheet<World>().GetRow(this.serverId);
+    public RowRef<World> World => LuminaUtils.CreateRef<World>(this.serverId);
 
     /// <summary>
     /// Gets or sets the player's displayed name.  This does not contain the server name.
@@ -72,7 +73,7 @@ public class PlayerPayload : Payload
     /// The world name will always be present.
     /// </summary>
     [JsonIgnore]
-    public string DisplayedName => $"{this.PlayerName}{(char)SeIconChar.CrossWorld}{this.World.Name}";
+    public string DisplayedName => $"{this.PlayerName}{(char)SeIconChar.CrossWorld}{this.World.ValueNullable?.Name}";
 
     /// <inheritdoc/>
     public override PayloadType Type => PayloadType.Player;
@@ -80,56 +81,38 @@ public class PlayerPayload : Payload
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - PlayerName: {this.PlayerName}, ServerId: {this.serverId}, ServerName: {this.World.Name}";
+        return $"{this.Type} - PlayerName: {this.PlayerName}, ServerId: {this.serverId}, ServerName: {this.World.ValueNullable?.Name}";
     }
 
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
-        var chunkLen = this.playerName.Length + 7;
-        var bytes = new List<byte>()
-        {
-            START_BYTE,
-            (byte)SeStringChunkType.Interactable, (byte)chunkLen, (byte)EmbeddedInfoType.PlayerName,
-            /* unk */ 0x01,
-            (byte)(this.serverId + 1), // I didn't want to deal with single-byte values in MakeInteger, so we have to do the +1 manually
-            /* unk */ 0x01,
-            /* unk */ 0xFF, // these sometimes vary but are frequently this
-            (byte)(this.playerName.Length + 1),
-        };
-
-        bytes.AddRange(Encoding.UTF8.GetBytes(this.playerName));
-        bytes.Add(END_BYTE);
-
-        // TODO: should these really be here? additional payloads should come in separately already...
-
-        // encoded names are followed by the name in plain text again
-        // use the payload parsing for consistency, as this is technically a new chunk
-        bytes.AddRange(new TextPayload(this.playerName).Encode());
-
-        // unsure about this entire packet, but it seems to always follow a name
-        bytes.AddRange(new byte[]
-        {
-            START_BYTE, (byte)SeStringChunkType.Interactable, 0x07, (byte)EmbeddedInfoType.LinkTerminator,
-            0x01, 0x01, 0x01, 0xFF, 0x01,
-            END_BYTE,
-        });
-
-        return bytes.ToArray();
+        var ssb = Lumina.Text.SeStringBuilder.SharedPool.Get();
+        var res = ssb
+                  .PushLinkCharacter(this.playerName, this.serverId)
+                  .Append(this.playerName)
+                  .PopLink()
+                  .ToArray();
+        Lumina.Text.SeStringBuilder.SharedPool.Return(ssb);
+        return res;
     }
 
     /// <inheritdoc/>
     protected override void DecodeImpl(BinaryReader reader, long endOfStream)
     {
-        // unk
-        reader.ReadByte();
+        var body = reader.ReadBytes((int)(endOfStream - reader.BaseStream.Position));
+        var rosps = new ReadOnlySePayloadSpan(ReadOnlySePayloadType.Macro, MacroCode.Link, body.AsSpan());
 
-        this.serverId = GetInteger(reader);
+        if (!rosps.TryGetExpression(out _, out var worldIdExpression, out _, out var characterNameExpression))
+            return;
 
-        // unk
-        reader.ReadBytes(2);
+        if (!worldIdExpression.TryGetUInt(out var worldId))
+            return;
 
-        var nameLen = (int)GetInteger(reader);
-        this.playerName = Encoding.UTF8.GetString(reader.ReadBytes(nameLen));
+        if (!characterNameExpression.TryGetString(out var characterName))
+            return;
+
+        this.serverId = worldId;
+        this.playerName = characterName.ExtractText();
     }
 }

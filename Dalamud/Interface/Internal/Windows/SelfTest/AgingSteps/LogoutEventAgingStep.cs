@@ -1,6 +1,5 @@
-using System;
-
 using Dalamud.Game.ClientState;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
@@ -51,7 +50,7 @@ internal class LogoutEventAgingStep : IAgingStep
         }
     }
 
-    private void ClientStateOnOnLogout(object sender, EventArgs e)
+    private void ClientStateOnOnLogout(int type, int code)
     {
         this.hasPassed = true;
     }

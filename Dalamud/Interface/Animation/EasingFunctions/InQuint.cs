@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Animation.EasingFunctions;
+﻿namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "InQuint" easing animation.
@@ -21,6 +19,6 @@ public class InQuint : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = p * p * p * p * p;
+        this.ValueUnclamped = p * p * p * p * p;
     }
 }

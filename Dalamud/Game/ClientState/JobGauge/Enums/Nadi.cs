@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Game.ClientState.JobGauge.Enums;
+﻿namespace Dalamud.Game.ClientState.JobGauge.Enums;
 
 /// <summary>
 /// MNK Nadi types.
@@ -9,17 +7,17 @@ namespace Dalamud.Game.ClientState.JobGauge.Enums;
 public enum Nadi : byte
 {
     /// <summary>
-    /// No card.
+    /// No nadi.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// The Lunar nadi.
     /// </summary>
-    LUNAR = 2,
+    Lunar = 1,
 
     /// <summary>
     /// The Solar nadi.
     /// </summary>
-    SOLAR = 4,
+    Solar = 2,
 }

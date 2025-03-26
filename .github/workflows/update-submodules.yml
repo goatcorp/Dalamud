@@ -1,0 +1,53 @@
+name: Check for FFXIVCS changes
+on: 
+  schedule:
+    - cron: "0 0,12,18 */1 * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: FFXIVCS Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branches: [master]
+
+    defaults: 
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        ref: ${{ matrix.branches }}
+        token: ${{ secrets.UPDATE_PAT }}
+    - name: Create update branch
+      run: git checkout -b csupdate/${{ matrix.branches }}
+    - name: Initialize mandatory git config
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email noreply@github.com
+        git config --global pull.rebase false
+    - name: Update submodule
+      run: |
+        git checkout -b csupdate-${{ matrix.branches }}
+        git reset --hard origin/${{ matrix.branches }}
+        cd lib/FFXIVClientStructs
+        git fetch
+        git reset --hard origin/main
+        cd ../..
+        git add lib/FFXIVClientStructs
+        git commit --message "Update ClientStructs"
+        git push origin csupdate-${{ matrix.branches }} --force
+    - name: Create PR
+      run: |
+        echo ${{ secrets.UPDATE_PAT }} | gh auth login --with-token
+        prNumber=$(gh pr list --base ${{ matrix.branches }} --head csupdate-${{ matrix.branches }} --state open --json number --template "{{range .}}{{.number}}{{end}}")
+        if [ -z "$prNumber" ]; then
+          echo "No PR found, creating one"
+          gh pr create --head csupdate-${{ matrix.branches }} --title "[${{ matrix.branches }}] Update ClientStructs" --body "" --base ${{ matrix.branches }}
+        else
+          echo "PR already exists, ignoring"
+        fi

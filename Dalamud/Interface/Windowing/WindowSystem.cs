@@ -1,8 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Dalamud.Interface.Internal.ManagedAsserts;
+using Dalamud.Configuration.Internal;
+using Dalamud.Interface.Windowing.Persistence;
+
 using ImGuiNET;
 using Serilog;
 
@@ -62,6 +63,8 @@ public class WindowSystem
 
     /// <summary>
     /// Add a window to this <see cref="WindowSystem"/>.
+    /// The window system doesn't own your window, it just renders it
+    /// You need to store a reference to it to use it later.
     /// </summary>
     /// <param name="window">The window to add.</param>
     public void AddWindow(Window window)
@@ -74,6 +77,7 @@ public class WindowSystem
 
     /// <summary>
     /// Remove a window from this <see cref="WindowSystem"/>.
+    /// Will not dispose your window, if it is disposable.
     /// </summary>
     /// <param name="window">The window to remove.</param>
     public void RemoveWindow(Window window)
@@ -86,15 +90,9 @@ public class WindowSystem
 
     /// <summary>
     /// Remove all windows from this <see cref="WindowSystem"/>.
+    /// Will not dispose your windows, if they are disposable.
     /// </summary>
     public void RemoveAllWindows() => this.windows.Clear();
-
-    /// <summary>
-    /// Get a window by name.
-    /// </summary>
-    /// <param name="windowName">The name of the <see cref="Window"/>.</param>
-    /// <returns>The <see cref="Window"/> object with matching name or null.</returns>
-    public Window? GetWindow(string windowName) => this.windows.FirstOrDefault(w => w.WindowName == windowName);
 
     /// <summary>
     /// Draw all registered windows using ImGui.
@@ -106,18 +104,28 @@ public class WindowSystem
         if (hasNamespace)
             ImGui.PushID(this.Namespace);
 
+        // These must be nullable, people are using stock WindowSystems and Windows without Dalamud for tests
+        var config = Service<DalamudConfiguration>.GetNullable();
+        var persistence = Service<WindowSystemPersistence>.GetNullable();
+
+        var flags = Window.WindowDrawFlags.None;
+
+        if (config?.EnablePluginUISoundEffects ?? false)
+            flags |= Window.WindowDrawFlags.UseSoundEffects;
+
+        if (config?.EnablePluginUiAdditionalOptions ?? false)
+            flags |= Window.WindowDrawFlags.UseAdditionalOptions;
+
+        if (config?.IsFocusManagementEnabled ?? false)
+            flags |= Window.WindowDrawFlags.UseFocusManagement;
+
         // Shallow clone the list of windows so that we can edit it without modifying it while the loop is iterating
         foreach (var window in this.windows.ToArray())
         {
 #if DEBUG
-                // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
+            // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
 #endif
-            var snapshot = ImGuiManagedAsserts.GetSnapshot();
-
-            window.DrawInternal();
-
-            var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
-            ImGuiManagedAsserts.ReportProblems(source, snapshot);
+            window.DrawInternal(flags, persistence);
         }
 
         var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused && window.RespectCloseHotkey);

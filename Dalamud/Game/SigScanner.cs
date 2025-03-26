@@ -1,30 +1,30 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
-using Dalamud.IoC;
-using Dalamud.IoC.Internal;
+using Iced.Intel;
 using Newtonsoft.Json;
 using Serilog;
 
 namespace Dalamud.Game;
 
+// TODO(v9): There are static functions here that we can't keep due to interfaces
+
 /// <summary>
 /// A SigScanner facilitates searching for memory signatures in a given ProcessModule.
 /// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
-public class SigScanner : IDisposable, IServiceType
+public class SigScanner : IDisposable, ISigScanner
 {
     private readonly FileInfo? cacheFile;
 
-    private IntPtr moduleCopyPtr;
-    private long moduleCopyOffset;
+    private nint moduleCopyPtr;
+    private nint moduleCopyOffset;
 
     private ConcurrentDictionary<string, long>? textCache;
 
@@ -64,70 +64,48 @@ public class SigScanner : IDisposable, IServiceType
             this.Load();
     }
 
-    /// <summary>
-    /// Gets a value indicating whether or not the search on this module is performed on a copy.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsCopy { get; }
 
-    /// <summary>
-    /// Gets a value indicating whether or not the ProcessModule is 32-bit.
-    /// </summary>
+    /// <inheritdoc/>
     public bool Is32BitProcess { get; }
 
-    /// <summary>
-    /// Gets the base address of the search area. When copied, this will be the address of the copy.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr SearchBase => this.IsCopy ? this.moduleCopyPtr : this.Module.BaseAddress;
 
-    /// <summary>
-    /// Gets the base address of the .text section search area.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr TextSectionBase => new(this.SearchBase.ToInt64() + this.TextSectionOffset);
 
-    /// <summary>
-    /// Gets the offset of the .text section from the base of the module.
-    /// </summary>
+    /// <inheritdoc/>
     public long TextSectionOffset { get; private set; }
 
-    /// <summary>
-    /// Gets the size of the text section.
-    /// </summary>
+    /// <inheritdoc/>
     public int TextSectionSize { get; private set; }
 
-    /// <summary>
-    /// Gets the base address of the .data section search area.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr DataSectionBase => new(this.SearchBase.ToInt64() + this.DataSectionOffset);
 
-    /// <summary>
-    /// Gets the offset of the .data section from the base of the module.
-    /// </summary>
+    /// <inheritdoc/>
     public long DataSectionOffset { get; private set; }
 
-    /// <summary>
-    /// Gets the size of the .data section.
-    /// </summary>
+    /// <inheritdoc/>
     public int DataSectionSize { get; private set; }
 
-    /// <summary>
-    /// Gets the base address of the .rdata section search area.
-    /// </summary>
+    /// <inheritdoc/>
     public IntPtr RDataSectionBase => new(this.SearchBase.ToInt64() + this.RDataSectionOffset);
 
-    /// <summary>
-    /// Gets the offset of the .rdata section from the base of the module.
-    /// </summary>
+    /// <inheritdoc/>
     public long RDataSectionOffset { get; private set; }
 
-    /// <summary>
-    /// Gets the size of the .rdata section.
-    /// </summary>
+    /// <inheritdoc/>
     public int RDataSectionSize { get; private set; }
 
-    /// <summary>
-    /// Gets the ProcessModule on which the search is performed.
-    /// </summary>
+    /// <inheritdoc/>
     public ProcessModule Module { get; }
+
+    /// <summary>Gets or sets a value indicating whether this instance of <see cref="SigScanner"/> is meant to be a
+    /// Dalamud service.</summary>
+    private protected bool IsService { get; set; }
 
     private IntPtr TextSectionTop => this.TextSectionBase + this.TextSectionSize;
 
@@ -140,8 +118,8 @@ public class SigScanner : IDisposable, IServiceType
     /// <returns>The found offset.</returns>
     public static IntPtr Scan(IntPtr baseAddress, int size, string signature)
     {
-        var (needle, mask) = ParseSignature(signature);
-        var index = IndexOf(baseAddress, size, needle, mask);
+        var (needle, mask, badShift) = ParseSignature(signature);
+        var index = IndexOf(baseAddress, size, needle, mask, badShift);
         if (index < 0)
             throw new KeyNotFoundException($"Can't find a signature of {signature}");
         return baseAddress + index;
@@ -173,26 +151,36 @@ public class SigScanner : IDisposable, IServiceType
     /// Scan for a .data address using a .text function.
     /// This is intended to be used with IDA sigs.
     /// Place your cursor on the line calling a static address, and create and IDA sig.
+    /// The signature and offset should not break through instruction boundaries.
     /// </summary>
     /// <param name="signature">The signature of the function using the data.</param>
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
     /// <returns>An IntPtr to the static memory location.</returns>
-    public IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
+    public unsafe IntPtr GetStaticAddressFromSig(string signature, int offset = 0)
     {
-        var instrAddr = this.ScanText(signature);
-        instrAddr = IntPtr.Add(instrAddr, offset);
-        var bAddr = (long)this.Module.BaseAddress;
-        long num;
+        var instructionAddress = (byte*)this.ScanText(signature);
+        instructionAddress += offset;
 
-        do
+        try
         {
-            instrAddr = IntPtr.Add(instrAddr, 1);
-            num = Marshal.ReadInt32(instrAddr) + (long)instrAddr + 4 - bAddr;
+            var reader = new UnsafeCodeReader(instructionAddress, signature.Length + 8);
+            var decoder = Decoder.Create(64, reader, (ulong)instructionAddress, DecoderOptions.AMD);
+            while (reader.CanReadByte)
+            {
+                var instruction = decoder.Decode();
+                if (instruction.IsInvalid) continue;
+                if (instruction.Op0Kind is OpKind.Memory || instruction.Op1Kind is OpKind.Memory)
+                {
+                    return (IntPtr)instruction.MemoryDisplacement64;
+                }
+            }
         }
-        while (!(num >= this.DataSectionOffset && num <= this.DataSectionOffset + this.DataSectionSize)
-               && !(num >= this.RDataSectionOffset && num <= this.RDataSectionOffset + this.RDataSectionSize));
+        catch
+        {
+            // ignored
+        }
 
-        return IntPtr.Add(instrAddr, Marshal.ReadInt32(instrAddr) + 4);
+        throw new KeyNotFoundException($"Can't find any referenced address in the given signature {signature}.");
     }
 
     /// <summary>
@@ -218,11 +206,7 @@ public class SigScanner : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Scan for a byte signature in the .data section.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <returns>The real offset of the found signature.</returns>
+    /// <inheritdoc/>
     public IntPtr ScanData(string signature)
     {
         var scanRet = Scan(this.DataSectionBase, this.DataSectionSize, signature);
@@ -233,12 +217,7 @@ public class SigScanner : IDisposable, IServiceType
         return scanRet;
     }
 
-    /// <summary>
-    /// Try scanning for a byte signature in the .data section.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <param name="result">The real offset of the signature, if found.</param>
-    /// <returns>true if the signature was found.</returns>
+    /// <inheritdoc/>
     public bool TryScanData(string signature, out IntPtr result)
     {
         try
@@ -253,11 +232,7 @@ public class SigScanner : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Scan for a byte signature in the whole module search area.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <returns>The real offset of the found signature.</returns>
+    /// <inheritdoc/>
     public IntPtr ScanModule(string signature)
     {
         var scanRet = Scan(this.SearchBase, this.Module.ModuleMemorySize, signature);
@@ -268,12 +243,7 @@ public class SigScanner : IDisposable, IServiceType
         return scanRet;
     }
 
-    /// <summary>
-    /// Try scanning for a byte signature in the whole module search area.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <param name="result">The real offset of the signature, if found.</param>
-    /// <returns>true if the signature was found.</returns>
+    /// <inheritdoc/>
     public bool TryScanModule(string signature, out IntPtr result)
     {
         try
@@ -288,23 +258,14 @@ public class SigScanner : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Resolve a RVA address.
-    /// </summary>
-    /// <param name="nextInstAddr">The address of the next instruction.</param>
-    /// <param name="relOffset">The relative offset.</param>
-    /// <returns>The calculated offset.</returns>
+    /// <inheritdoc/>
     public IntPtr ResolveRelativeAddress(IntPtr nextInstAddr, int relOffset)
     {
         if (this.Is32BitProcess) throw new NotSupportedException("32 bit is not supported.");
         return nextInstAddr + relOffset;
     }
 
-    /// <summary>
-    /// Scan for a byte signature in the .text section.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <returns>The real offset of the found signature.</returns>
+    /// <inheritdoc/>
     public IntPtr ScanText(string signature)
     {
         if (this.textCache != null)
@@ -315,8 +276,7 @@ public class SigScanner : IDisposable, IServiceType
             }
         }
 
-        var mBase = this.IsCopy ? this.moduleCopyPtr : this.TextSectionBase;
-        var scanRet = Scan(mBase, this.TextSectionSize, signature);
+        var scanRet = Scan(this.TextSectionBase, this.TextSectionSize, signature);
 
         if (this.IsCopy)
             scanRet = new IntPtr(scanRet.ToInt64() - this.moduleCopyOffset);
@@ -324,7 +284,15 @@ public class SigScanner : IDisposable, IServiceType
         var insnByte = Marshal.ReadByte(scanRet);
 
         if (insnByte == 0xE8 || insnByte == 0xE9)
+        {
             scanRet = ReadJmpCallSig(scanRet);
+            var rel = scanRet - this.Module.BaseAddress;
+            if (rel < 0 || rel >= this.TextSectionSize)
+            {
+                throw new KeyNotFoundException(
+                    $"Signature \"{signature}\" resolved to 0x{rel:X} which is outside .text section. Possible signature conflicts?");
+            }
+        }
 
         // If this is below the module, there's bound to be a problem with the sig/resolution... Let's not save it
         // TODO: THIS IS A HACK! FIX THE ROOT CAUSE!
@@ -336,12 +304,7 @@ public class SigScanner : IDisposable, IServiceType
         return scanRet;
     }
 
-    /// <summary>
-    /// Try scanning for a byte signature in the .text section.
-    /// </summary>
-    /// <param name="signature">The signature.</param>
-    /// <param name="result">The real offset of the signature, if found.</param>
-    /// <returns>true if the signature was found.</returns>
+    /// <inheritdoc/>
     public bool TryScanText(string signature, out IntPtr result)
     {
         try
@@ -356,13 +319,37 @@ public class SigScanner : IDisposable, IServiceType
         }
     }
 
-    /// <summary>
-    /// Free the memory of the copied module search area on object disposal, if applicable.
-    /// </summary>
+    /// <inheritdoc/>
+    public nint[] ScanAllText(string signature) => this.ScanAllText(signature, default).ToArray();
+
+    /// <inheritdoc/>
+    public IEnumerable<nint> ScanAllText(string signature, CancellationToken cancellationToken)
+    {
+        var (needle, mask, badShift) = ParseSignature(signature);
+        var mBase = this.TextSectionBase;
+        var mTo = this.TextSectionBase + this.TextSectionSize;
+        while (mBase < mTo)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var index = IndexOf(mBase, this.TextSectionSize, needle, mask, badShift);
+            if (index < 0)
+                break;
+
+            var scanRet = mBase + index;
+            if (this.IsCopy)
+                scanRet -= this.moduleCopyOffset;
+
+            yield return scanRet;
+            mBase = scanRet + 1;
+        }
+    }
+
+    /// <inheritdoc/>
     public void Dispose()
     {
-        this.Save();
-        Marshal.FreeHGlobal(this.moduleCopyPtr);
+        if (!this.IsService)
+            this.DisposeCore();
     }
 
     /// <summary>
@@ -385,6 +372,15 @@ public class SigScanner : IDisposable, IServiceType
     }
 
     /// <summary>
+    /// Free the memory of the copied module search area on object disposal, if applicable.
+    /// </summary>
+    private protected void DisposeCore()
+    {
+        this.Save();
+        Marshal.FreeHGlobal(this.moduleCopyPtr);
+    }
+
+    /// <summary>
     /// Helper for ScanText to get the correct address for IDA sigs that mark the first JMP or CALL location.
     /// </summary>
     /// <param name="sigLocation">The address the JMP or CALL sig resolved to.</param>
@@ -395,7 +391,7 @@ public class SigScanner : IDisposable, IServiceType
         return IntPtr.Add(sigLocation, 5 + jumpOffset);
     }
 
-    private static (byte[] Needle, bool[] Mask) ParseSignature(string signature)
+    private static (byte[] Needle, bool[] Mask, int[] BadShift) ParseSignature(string signature)
     {
         signature = signature.Replace(" ", string.Empty);
         if (signature.Length % 2 != 0)
@@ -418,14 +414,13 @@ public class SigScanner : IDisposable, IServiceType
             mask[i] = false;
         }
 
-        return (needle, mask);
+        return (needle, mask, BuildBadCharTable(needle, mask));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe int IndexOf(IntPtr bufferPtr, int bufferLength, byte[] needle, bool[] mask)
+    private static unsafe int IndexOf(nint bufferPtr, int bufferLength, byte[] needle, bool[] mask, int[] badShift)
     {
         if (needle.Length > bufferLength) return -1;
-        var badShift = BuildBadCharTable(needle, mask);
         var last = needle.Length - 1;
         var offset = 0;
         var maxoffset = bufferLength - needle.Length;
@@ -524,7 +519,7 @@ public class SigScanner : IDisposable, IServiceType
             this.Module.ModuleMemorySize,
             this.Module.ModuleMemorySize);
 
-        this.moduleCopyOffset = this.moduleCopyPtr.ToInt64() - this.Module.BaseAddress.ToInt64();
+        this.moduleCopyOffset = this.moduleCopyPtr - this.Module.BaseAddress;
     }
 
     private void Load()
@@ -545,6 +540,27 @@ public class SigScanner : IDisposable, IServiceType
         {
             this.textCache = new ConcurrentDictionary<string, long>();
             Log.Error(ex, "Couldn't load cached sigs");
+        }
+    }
+
+    private unsafe class UnsafeCodeReader : CodeReader
+    {
+        private readonly int length;
+        private readonly byte* address;
+        private int pos;
+
+        public UnsafeCodeReader(byte* address, int length)
+        {
+            this.length = length;
+            this.address = address;
+        }
+
+        public bool CanReadByte => this.pos < this.length;
+
+        public override int ReadByte()
+        {
+            if (this.pos >= this.length) return -1;
+            return *(this.address + this.pos++);
         }
     }
 }

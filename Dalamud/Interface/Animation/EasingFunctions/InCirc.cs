@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Animation.EasingFunctions;
+﻿namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "InCirc" easing animation.
@@ -21,6 +19,6 @@ public class InCirc : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = 1 - Math.Sqrt(1 - Math.Pow(p, 2));
+        this.ValueUnclamped = 1 - Math.Sqrt(1 - Math.Pow(p, 2));
     }
 }

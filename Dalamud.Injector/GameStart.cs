@@ -127,7 +127,7 @@ namespace Dalamud.Injector
                     try
                     {
                         var tries = 0;
-                        const int maxTries = 420;
+                        const int maxTries = 1200;
                         const int timeout = 50;
 
                         do
@@ -211,6 +211,9 @@ namespace Dalamud.Injector
             }
         }
 
+        /// <summary>
+        /// Claim a SE Debug Privilege.
+        /// </summary>
         public static void ClaimSeDebug()
         {
             var hToken = PInvoke.INVALID_HANDLE_VALUE;
@@ -345,8 +348,6 @@ namespace Dalamud.Injector
         private static class PInvoke
         {
             #region Constants
-            public static readonly IntPtr INVALID_HANDLE_VALUE = new(-1);
-
             public const string SE_DEBUG_NAME = "SeDebugPrivilege";
 
             public const UInt32 STANDARD_RIGHTS_ALL = 0x001F0000;
@@ -368,6 +369,8 @@ namespace Dalamud.Injector
             public const UInt32 SE_PRIVILEGE_REMOVED = 0x00000004;
 
             public const UInt32 ERROR_NO_TOKEN = 0x000003F0;
+
+            public static readonly IntPtr INVALID_HANDLE_VALUE = new(-1);
 
             public enum MULTIPLE_TRUSTEE_OPERATION
             {
@@ -431,7 +434,7 @@ namespace Dalamud.Injector
                 SecurityAnonymous,
                 SecurityIdentification,
                 SecurityImpersonation,
-                SecurityDelegation
+                SecurityDelegation,
             }
             #endregion
 
@@ -485,8 +488,7 @@ namespace Dalamud.Injector
 
             [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool ImpersonateSelf(
-                SECURITY_IMPERSONATION_LEVEL impersonationLevel
-            );
+                SECURITY_IMPERSONATION_LEVEL impersonationLevel);
 
             [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool OpenProcessToken(
@@ -496,10 +498,10 @@ namespace Dalamud.Injector
 
             [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool OpenThreadToken(
-                IntPtr ThreadHandle,
-                uint DesiredAccess,
-                bool OpenAsSelf,
-                out IntPtr TokenHandle);
+                IntPtr threadHandle,
+                uint desiredAccess,
+                bool openAsSelf,
+                out IntPtr tokenHandle);
 
             [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, ref LUID lpLuid);

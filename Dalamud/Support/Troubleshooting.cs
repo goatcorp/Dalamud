@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +6,7 @@ using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal;
-using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
@@ -58,7 +57,7 @@ public static class Troubleshooting
     /// </summary>
     internal static void LogTroubleshooting()
     {
-        var startInfo = Service<DalamudStartInfo>.Get();
+        var startInfo = Service<Dalamud>.Get().StartInfo;
         var configuration = Service<DalamudConfiguration>.Get();
         var interfaceManager = Service<InterfaceManager>.GetNullable();
         var pluginManager = Service<PluginManager>.GetNullable();
@@ -67,10 +66,12 @@ public static class Troubleshooting
         {
             var payload = new TroubleshootingPayload
             {
-                LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest)?.OrderByDescending(x => x.InternalName).ToArray(),
-                DalamudVersion = Util.AssemblyVersion,
-                DalamudGitHash = Util.GetGitHash(),
-                GameVersion = startInfo.GameVersion.ToString(),
+                LoadedPlugins = pluginManager?.InstalledPlugins?.Select(x => x.Manifest as LocalPluginManifest)?.OrderByDescending(x => x.InternalName).ToArray(),
+                PluginStates = pluginManager?.InstalledPlugins?.Where(x => !x.IsDev).ToDictionary(x => x.Manifest.InternalName, x => x.IsBanned ? "Banned" : x.State.ToString()),
+                EverStartedLoadingPlugins = pluginManager?.InstalledPlugins.Where(x => x.HasEverStartedLoad).Select(x => x.InternalName).ToList(),
+                DalamudVersion = Util.GetScmVersion(),
+                DalamudGitHash = Util.GetGitHash() ?? "Unknown",
+                GameVersion = startInfo.GameVersion?.ToString() ?? "Unknown",
                 Language = startInfo.Language.ToString(),
                 BetaKey = configuration.DalamudBetaKey,
                 DoPluginTest = configuration.DoPluginTest,
@@ -100,7 +101,11 @@ public static class Troubleshooting
 
     private class TroubleshootingPayload
     {
-        public LocalPluginManifest[] LoadedPlugins { get; set; }
+        public LocalPluginManifest[]? LoadedPlugins { get; set; }
+
+        public Dictionary<string, string>? PluginStates { get; set; }
+
+        public List<string>? EverStartedLoadingPlugins { get; set; }
 
         public string DalamudVersion { get; set; }
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace Dalamud.Plugin;
 
 /// <summary>
@@ -7,8 +5,4 @@ namespace Dalamud.Plugin;
 /// </summary>
 public interface IDalamudPlugin : IDisposable
 {
-    /// <summary>
-    /// Gets the name of the plugin.
-    /// </summary>
-    string Name { get; }
 }

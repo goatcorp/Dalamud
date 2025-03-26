@@ -4,16 +4,21 @@
   <img src="https://raw.githubusercontent.com/goatcorp/DalamudAssets/master/UIRes/logo.png" alt="Dalamud" width="200"/>
 </p>
 
-Dalamud is a plugin development framework for FINAL FANTASY XIV that provides access to game data and native interoperability with the game itself to add functionality and quality-of-life.
+Dalamud is a plugin development framework for FFXIV that provides access to game data and native interoperability with the game itself to add functionality and quality-of-life.
 
-It is meant to be used in conjunction with [FFXIVQuickLauncher](https://github.com/goatcorp/FFXIVQuickLauncher), which manages and launches Dalamud for you. __It is generally not recommended for users to try to run Dalamud manually as there are multiple dependencies and assumed folder paths.__
+It is meant to be used in conjunction with [XIVLauncher](https://github.com/goatcorp/FFXIVQuickLauncher), which manages and launches Dalamud for you. __It is generally not recommended for end users to try to run Dalamud manually as XIVLauncher manages multiple required dependencies.__
 
 ## Hold Up!
+
 If you are just trying to **use** Dalamud, you don't need to do anything on this page - please [download XIVLauncher](https://goatcorp.github.io/) from its official page and follow the setup instructions.
+
+## Building and testing locally
+
+Please check the [docs page on building Dalamud](https://dalamud.dev/building) for more information and required dependencies.
 
 ## Plugin development
 Dalamud features a growing API for in-game plugin development with game data and chat access and overlays.
-Please see our [Developer FAQ](https://goatcorp.github.io/faq/development) and the [API documentation](https://goatcorp.github.io/Dalamud/api/index.html) for more details.
+Please see our [Developer FAQ](https://goatcorp.github.io/faq/development) and the [API documentation](https://dalamud.dev) for more details.
 
 If you need any support regarding the API or usage of Dalamud, please [join our discord server](https://discord.gg/3NMcUV5).
 
@@ -26,23 +31,13 @@ Thanks to Mino, whose work has made this possible!
 These components are used in order to load Dalamud into a target process.
 Dalamud can be loaded via DLL injection, or by rewriting a process' entrypoint.
 
-| Name | Purpose |
-|---|---|
-| *Dalamud.Injector.Boot* (C++) | Loads the .NET Core runtime into a process via hostfxr and kicks off Dalamud.Injector |
-| *Dalamud.Injector* (C#) | Performs DLL injection on the target process |
-| *Dalamud.Boot* (C++) | Loads the .NET Core runtime into the active process and kicks off Dalamud, or rewrites a target process' entrypoint to do so |
-| *Dalamud* (C#) | Core API, game bindings, plugin framework |
-| *Dalamud.CorePlugin* (C#) | Testbed plugin that can access Dalamud internals, to prototype new Dalamud features |
-
-## Branches
-
-We are currently working from the following branches.
-
-| Name | Purpose | .NET Version | Track |
-|---|---|---|---|
-| *master* | Upgrade to .NET 6 | .NET 6.0.3 (March 2022) | Staging |
-| *net5* | Current release branch | .NET 5.0.6 (May 2021) | Release |
-| *api3* | Legacy version, no longer in active use | .NET Framework 4.7.2 (April 2017) | - |
+| Name                          | Purpose                                                                                                                      |
+|-------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| *Dalamud.Injector.Boot* (C++) | Loads the .NET Core runtime into a process via hostfxr and kicks off Dalamud.Injector                                        |
+| *Dalamud.Injector* (C#)       | Performs DLL injection on the target process                                                                                 |
+| *Dalamud.Boot* (C++)          | Loads the .NET Core runtime into the active process and kicks off Dalamud, or rewrites a target process' entrypoint to do so |
+| *Dalamud* (C#)                | Core API, game bindings, plugin framework                                                                                    |
+| *Dalamud.CorePlugin* (C#)     | Testbed plugin that can access Dalamud internals, to prototype new Dalamud features                                          |
 
 <br>
 

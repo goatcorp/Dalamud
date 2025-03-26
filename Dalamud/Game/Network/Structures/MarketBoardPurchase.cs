@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 namespace Dalamud.Game.Network.Structures;
@@ -7,7 +6,7 @@ namespace Dalamud.Game.Network.Structures;
 /// Represents market board purchase information. This message is received from the
 /// server when a purchase is made at a market board.
 /// </summary>
-public class MarketBoardPurchase
+public class MarketBoardPurchase : IMarketBoardPurchase
 {
     private MarketBoardPurchase()
     {
@@ -28,7 +27,7 @@ public class MarketBoardPurchase
     /// </summary>
     /// <param name="dataPtr">A pointer to a struct containing market board purchase information from the server.</param>
     /// <returns>An object representing the data read.</returns>
-    public static unsafe MarketBoardPurchase Read(IntPtr dataPtr)
+    public static unsafe MarketBoardPurchase Read(nint dataPtr)
     {
         using var stream = new UnmanagedMemoryStream((byte*)dataPtr.ToPointer(), 1544);
         using var reader = new BinaryReader(stream);
@@ -36,7 +35,7 @@ public class MarketBoardPurchase
         var output = new MarketBoardPurchase();
 
         output.CatalogId = reader.ReadUInt32();
-        stream.Position += 4;
+        reader.ReadBytes(0x4); // Padding
         output.ItemQuantity = reader.ReadUInt32();
 
         return output;

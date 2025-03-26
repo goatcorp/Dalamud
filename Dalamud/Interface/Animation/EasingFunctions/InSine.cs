@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Animation.EasingFunctions;
+﻿namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "InSine" easing animation.
@@ -21,6 +19,6 @@ public class InSine : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = 1 - Math.Cos((p * Math.PI) / 2);
+        this.ValueUnclamped = 1 - Math.Cos((p * Math.PI) / 2);
     }
 }

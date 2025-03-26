@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <PropertyGroup>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <Platforms>x64</Platforms>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <AssemblySearchPaths>$(AssemblySearchPaths);$(DalamudLibPath)</AssemblySearchPaths>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DalamudPackager" Version="11.0.0" />
+        <Reference Include="FFXIVClientStructs" Private="false" />
+        <Reference Include="Newtonsoft.Json" Private="false" />
+        <Reference Include="Dalamud" Private="false" />
+        <Reference Include="ImGui.NET" Private="false" />
+        <Reference Include="ImGuiScene" Private="false" />
+        <Reference Include="Lumina" Private="false" />
+        <Reference Include="Lumina.Excel" Private="false" />
+        <Reference Include="Serilog" Private="false" />
+    </ItemGroup>
+
+    <Target Name="Message" BeforeTargets="BeforeBuild">
+        <Message Text="Dalamud.Plugin: root at $(DalamudLibPath)" Importance="high" />
+    </Target>
+
+    <Target Name="DeprecationNotice" BeforeTargets="BeforeBuild">
+        <Warning Text="Using the targets file to include the Dalamud SDK is no longer recommended. Please upgrade to Dalamud.NET.Sdk - learn more here: https://dalamud.dev/plugin-development/how-tos/v12-sdk-migration" />
+    </Target>
+</Project>

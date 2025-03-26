@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Animation.EasingFunctions;
+﻿namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "InOutCirc" easing animation.
@@ -23,12 +21,12 @@ public class InOutElastic : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = p == 0
-                         ? 0
-                         : p == 1
-                             ? 1
-                             : p < 0.5
-                                 ? -(Math.Pow(2, (20 * p) - 10) * Math.Sin(((20 * p) - 11.125) * Constant)) / 2
-                                 : (Math.Pow(2, (-20 * p) + 10) * Math.Sin(((20 * p) - 11.125) * Constant) / 2) + 1;
+        this.ValueUnclamped = p == 0
+                                  ? 0
+                                  : p == 1
+                                      ? 1
+                                      : p < 0.5
+                                          ? -(Math.Pow(2, (20 * p) - 10) * Math.Sin(((20 * p) - 11.125) * Constant)) / 2
+                                          : (Math.Pow(2, (-20 * p) + 10) * Math.Sin(((20 * p) - 11.125) * Constant) / 2) + 1;
     }
 }

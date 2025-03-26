@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 using CheapLoc;
@@ -26,18 +26,31 @@ internal class DalamudCommands : IServiceType
     {
         commandManager.AddHandler("/xldclose", new CommandInfo(this.OnUnloadCommand)
         {
-            HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon."),
+            HelpMessage = Loc.Localize("DalamudUnloadHelp", "Unloads XIVLauncher in-game addon. For debug use only!"),
+            ShowInHelp = false,
+        });
+
+        commandManager.AddHandler("/xlkill", new CommandInfo(this.OnKillCommand)
+        {
+            HelpMessage = "Kill the game. For debug use only!",
+            ShowInHelp = false,
+        });
+
+        commandManager.AddHandler("/xlrestart", new CommandInfo(this.OnRestartCommand)
+        {
+            HelpMessage = "Restart the game. For debug use only!",
             ShowInHelp = false,
         });
 
         commandManager.AddHandler("/xlhelp", new CommandInfo(this.OnHelpCommand)
         {
-            HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available."),
+            HelpMessage = Loc.Localize("DalamudCmdInfoHelp", "Shows list of commands available. If an argument is provided, shows help for that command."),
         });
 
         commandManager.AddHandler("/xlmute", new CommandInfo(this.OnBadWordsAddCommand)
         {
             HelpMessage = Loc.Localize("DalamudMuteHelp", "Mute a word or sentence from appearing in chat. Usage: /xlmute <word or sentence>"),
+            ShowInHelp = false,
         });
 
         commandManager.AddHandler("/xlmutelist", new CommandInfo(this.OnBadWordsListCommand)
@@ -69,13 +82,11 @@ internal class DalamudCommands : IServiceType
         commandManager.AddHandler("/xlstats", new CommandInfo(this.OnTogglePluginStats)
         {
             HelpMessage = Loc.Localize("DalamudPluginStats", "Draw plugin statistics window"),
-            ShowInHelp = false,
         });
 
         commandManager.AddHandler("/xlbranch", new CommandInfo(this.OnToggleBranchSwitcher)
         {
-            HelpMessage = Loc.Localize("DalamudBranchSwitcher", "Draw branch switcher"),
-            ShowInHelp = false,
+            HelpMessage = Loc.Localize("DalamudBranchSwitcher", "Open the branch switcher"),
         });
 
         commandManager.AddHandler("/xldata", new CommandInfo(this.OnDebugDrawDataMenu)
@@ -84,26 +95,14 @@ internal class DalamudCommands : IServiceType
             ShowInHelp = false,
         });
 
-        commandManager.AddHandler("/xlime", new CommandInfo(this.OnDebugDrawIMEPanel)
-        {
-            HelpMessage = Loc.Localize("DalamudIMEPanelHelp", "Draw IME panel"),
-            ShowInHelp = false,
-        });
-
         commandManager.AddHandler("/xllog", new CommandInfo(this.OnOpenLog)
         {
-            HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open dev log DEBUG"),
-            ShowInHelp = false,
+            HelpMessage = Loc.Localize("DalamudDevLogHelp", "Open the plugin log window/console"),
         });
 
         commandManager.AddHandler("/xlplugins", new CommandInfo(this.OnOpenInstallerCommand)
         {
             HelpMessage = Loc.Localize("DalamudInstallerHelp", "Open the plugin installer"),
-        });
-
-        commandManager.AddHandler("/xlcredits", new CommandInfo(this.OnOpenCreditsCommand)
-        {
-            HelpMessage = Loc.Localize("DalamudCreditsHelp", "Opens the credits for dalamud."),
         });
 
         commandManager.AddHandler("/xllanguage", new CommandInfo(this.OnSetLanguageCommand)
@@ -134,10 +133,24 @@ internal class DalamudCommands : IServiceType
                 "Toggle Dalamud UI display modes. Native UI modifications may also be affected by this, but that depends on the plugin."),
         });
 
+        commandManager.AddHandler("/xlprofiler", new CommandInfo(this.OnOpenProfilerCommand)
+        {
+            HelpMessage = Loc.Localize(
+                "DalamudProfilerHelp",
+                "Open Dalamud's startup timing profiler."),
+        });
+
         commandManager.AddHandler("/imdebug", new CommandInfo(this.OnDebugImInfoCommand)
         {
             HelpMessage = "ImGui DEBUG",
             ShowInHelp = false,
+        });
+
+        commandManager.AddHandler("/xlcopylog", new CommandInfo(this.OnCopyLogCommand)
+        {
+            HelpMessage = Loc.Localize(
+                "DalamudCopyLogHelp",
+                "Copy the dalamud.log file to your clipboard."),
         });
     }
 
@@ -147,41 +160,48 @@ internal class DalamudCommands : IServiceType
         Service<Dalamud>.Get().Unload();
     }
 
+    private void OnKillCommand(string command, string arguments)
+    {
+        Process.GetCurrentProcess().Kill();
+    }
+
+    private void OnRestartCommand(string command, string arguments)
+    {
+        Dalamud.RestartGame();
+    }
+
     private void OnHelpCommand(string command, string arguments)
     {
         var chatGui = Service<ChatGui>.Get();
         var commandManager = Service<CommandManager>.Get();
 
-        var showDebug = arguments.Contains("debug");
-
-        chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
-        foreach (var cmd in commandManager.Commands)
+        if (arguments.IsNullOrWhitespace())
         {
-            if (!cmd.Value.ShowInHelp && !showDebug)
-                continue;
+            chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
+            foreach (var cmd in commandManager.Commands.OrderBy(cInfo => cInfo.Key))
+            {
+                if (!cmd.Value.ShowInHelp)
+                    continue;
 
-            chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+                chatGui.Print($"{cmd.Key}: {cmd.Value.HelpMessage}");
+            }
+        }
+        else
+        {
+            var trimmedArguments = arguments.Trim();
+            var targetCommandText = trimmedArguments[0] == '/' ? trimmedArguments : $"/{trimmedArguments}";
+            chatGui.Print(commandManager.Commands.TryGetValue(targetCommandText, out var targetCommand)
+                              ? $"{targetCommandText}: {targetCommand.HelpMessage}"
+                              : Loc.Localize("DalamudCmdHelpNotFound", "Command not found."));
         }
     }
 
     private void OnBadWordsAddCommand(string command, string arguments)
     {
         var chatGui = Service<ChatGui>.Get();
-        var configuration = Service<DalamudConfiguration>.Get();
 
-        configuration.BadWords ??= new List<string>();
-
-        if (string.IsNullOrEmpty(arguments))
-        {
-            chatGui.Print(Loc.Localize("DalamudMuteNoArgs", "Please provide a word to mute."));
-            return;
-        }
-
-        configuration.BadWords.Add(arguments);
-
-        configuration.QueueSave();
-
-        chatGui.Print(string.Format(Loc.Localize("DalamudMuted", "Muted \"{0}\"."), arguments));
+        chatGui.PrintError(Loc.Localize("DalamudMuteListDeprecation", "The built-in Dalamud bad word list is deprecated and no new words can be added. " +
+                                                                      "Please use a plugin for this functionality."));
     }
 
     private void OnBadWordsListCommand(string command, string arguments)
@@ -246,7 +266,7 @@ internal class DalamudCommands : IServiceType
         else
         {
             // Revert to the original BGM by specifying an invalid one
-            gameGui.SetBgm(9999);
+            gameGui.ResetBgm();
         }
     }
 
@@ -273,11 +293,6 @@ internal class DalamudCommands : IServiceType
             dalamudInterface.ToggleDataWindow();
         else
             dalamudInterface.ToggleDataWindow(arguments);
-    }
-
-    private void OnDebugDrawIMEPanel(string command, string arguments)
-    {
-        Service<DalamudInterface>.Get().OpenImeWindow();
     }
 
     private void OnOpenLog(string command, string arguments)
@@ -314,7 +329,7 @@ internal class DalamudCommands : IServiceType
 
         chatGui.Print(new SeStringBuilder()
                       .AddItalics("Dalamud:")
-                      .AddText($" D{Util.AssemblyVersion}({Util.GetGitHash()}")
+                      .AddText($" {Util.GetScmVersion()}")
                       .Build());
 
         chatGui.Print(new SeStringBuilder()
@@ -325,12 +340,8 @@ internal class DalamudCommands : IServiceType
 
     private void OnOpenInstallerCommand(string command, string arguments)
     {
-        Service<DalamudInterface>.Get().TogglePluginInstallerWindow();
-    }
-
-    private void OnOpenCreditsCommand(string command, string arguments)
-    {
-        Service<DalamudInterface>.Get().ToggleCreditsWindow();
+        var configuration = Service<DalamudConfiguration>.Get();
+        Service<DalamudInterface>.Get().TogglePluginInstallerWindowTo(configuration.PluginInstallerOpen);
     }
 
     private void OnSetLanguageCommand(string command, string arguments)
@@ -339,10 +350,10 @@ internal class DalamudCommands : IServiceType
         var configuration = Service<DalamudConfiguration>.Get();
         var localization = Service<Localization>.Get();
 
-        if (Localization.ApplicableLangCodes.Contains(arguments.ToLower()) || arguments.ToLower() == "en")
+        if (Localization.ApplicableLangCodes.Contains(arguments.ToLowerInvariant()) || arguments.ToLowerInvariant() == "en")
         {
-            localization.SetupWithLangCode(arguments.ToLower());
-            configuration.LanguageOverride = arguments.ToLower();
+            localization.SetupWithLangCode(arguments.ToLowerInvariant());
+            configuration.LanguageOverride = arguments.ToLowerInvariant();
 
             chatGui.Print(string.Format(Loc.Localize("DalamudLanguageSetTo", "Language set to {0}"), arguments));
         }
@@ -379,12 +390,30 @@ internal class DalamudCommands : IServiceType
         {
             if (im.IsDispatchingEvents)
             {
-                plugin.DalamudInterface?.UiBuilder.NotifyShowUi();
+                plugin.DalamudInterface?.LocalUiBuilder.NotifyShowUi();
             }
             else
             {
-                plugin.DalamudInterface?.UiBuilder.NotifyHideUi();
+                plugin.DalamudInterface?.LocalUiBuilder.NotifyHideUi();
             }
         }
+    }
+
+    private void OnOpenProfilerCommand(string command, string arguments)
+    {
+        Service<DalamudInterface>.Get().ToggleProfilerWindow();
+    }
+
+    private void OnCopyLogCommand(string command, string arguments)
+    {
+        var chatGui = Service<ChatGui>.Get();
+        var logPath = Path.Join(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "XIVLauncher",
+            "dalamud.log");
+        var message = Util.CopyFilesToClipboard([logPath])
+                          ? Loc.Localize("DalamudLogCopySuccess", "Log file copied to clipboard.")
+                          : Loc.Localize("DalamudLogCopyFailure", "Could not copy log file to clipboard.");
+        chatGui.Print(message);
     }
 }

@@ -1,5 +1,7 @@
 using System.IO;
+using System.Reflection;
 
+using Dalamud.Storage;
 using Newtonsoft.Json;
 
 namespace Dalamud.Configuration;
@@ -30,24 +32,39 @@ public sealed class PluginConfigurations
     /// </summary>
     /// <param name="config">Plugin configuration.</param>
     /// <param name="pluginName">Plugin name.</param>
-    public void Save(IPluginConfiguration config, string pluginName)
+    /// <param name="workingPluginId">WorkingPluginId of the plugin.</param>
+    public void Save(IPluginConfiguration config, string pluginName, Guid workingPluginId)
     {
-        File.WriteAllText(this.GetConfigFile(pluginName).FullName, SerializeConfig(config));
+        Service<ReliableFileStorage>.Get()
+                                    .WriteAllText(this.GetConfigFile(pluginName).FullName, SerializeConfig(config), workingPluginId);
     }
 
     /// <summary>
     /// Load plugin configuration.
     /// </summary>
     /// <param name="pluginName">Plugin name.</param>
+    /// <param name="workingPluginId">WorkingPluginID of the plugin.</param>
     /// <returns>Plugin configuration.</returns>
-    public IPluginConfiguration? Load(string pluginName)
+    public IPluginConfiguration? Load(string pluginName, Guid workingPluginId)
     {
         var path = this.GetConfigFile(pluginName);
 
-        if (!path.Exists)
-            return null;
+        IPluginConfiguration? config = null;
+        try
+        {
+            Service<ReliableFileStorage>.Get().ReadAllText(path.FullName, text =>
+            {
+                config = DeserializeConfig(text);
+                if (config == null)
+                    throw new Exception("Read config was null.");
+            }, workingPluginId);
+        }
+        catch (FileNotFoundException)
+        {
+            // ignored
+        }
 
-        return DeserializeConfig(File.ReadAllText(path.FullName));
+        return config;
     }
 
     /// <summary>
@@ -100,9 +117,18 @@ public sealed class PluginConfigurations
     /// <returns>Plugin Configuration.</returns>
     public T LoadForType<T>(string pluginName) where T : IPluginConfiguration
     {
-        var path = this.GetConfigFile(pluginName);
+        if (this.GetConfigFile(pluginName) is not { Exists: true } path)
+            return default;
 
-        return !path.Exists ? default : JsonConvert.DeserializeObject<T>(File.ReadAllText(path.FullName));
+        return JsonConvert.DeserializeObject<T>(
+            File.ReadAllText(path.FullName),
+            new JsonSerializerSettings
+            {
+                Converters =
+                [
+                    DalamudAssemblyTypeNameForcingJsonConverter.Instance,
+                ],
+            });
 
         // intentionally no type handling - it will break when updating a plugin at runtime
         // and turns out to be unnecessary when we fully qualify the object type
@@ -146,4 +172,33 @@ public sealed class PluginConfigurations
     }
 
     private DirectoryInfo GetDirectoryPath(string pluginName) => new(Path.Combine(this.configDirectory.FullName, pluginName));
+
+    private class DalamudAssemblyTypeNameForcingJsonConverter : JsonConverter
+    {
+        public static readonly DalamudAssemblyTypeNameForcingJsonConverter Instance = new();
+
+        private static readonly Assembly DalamudAssembly = typeof(DalamudAssemblyTypeNameForcingJsonConverter).Assembly;
+
+        private static readonly JsonSerializer TypeNameForcingJsonConverterDefaultSerializer = new()
+        {
+            TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+            TypeNameHandling = TypeNameHandling.Objects,
+        };
+
+        private DalamudAssemblyTypeNameForcingJsonConverter()
+        {
+        }
+
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer) =>
+            TypeNameForcingJsonConverterDefaultSerializer.Serialize(writer, value);
+
+        public override object? ReadJson(
+            JsonReader reader,
+            Type objectType,
+            object? existingValue,
+            JsonSerializer serializer) =>
+            TypeNameForcingJsonConverterDefaultSerializer.Deserialize(reader, objectType);
+
+        public override bool CanConvert(Type objectType) => objectType.Assembly == DalamudAssembly;
+    }
 }

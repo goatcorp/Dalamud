@@ -111,14 +111,17 @@ namespace utils {
     };
 
     class memory_tenderizer {
+        HANDLE m_process;
         std::span<char> m_data;
         std::vector<MEMORY_BASIC_INFORMATION> m_regions;
 
     public:
+        memory_tenderizer(HANDLE hProcess, const void* pAddress, size_t length, DWORD dwNewProtect);
+
         memory_tenderizer(const void* pAddress, size_t length, DWORD dwNewProtect);
 
         template<typename T, typename = std::enable_if_t<std::is_trivial_v<T>&& std::is_standard_layout_v<T>>>
-        memory_tenderizer(const T& object, DWORD dwNewProtect) : memory_tenderizer(&object, sizeof T, dwNewProtect) {}
+        memory_tenderizer(const T& object, DWORD dwNewProtect) : memory_tenderizer(&object, sizeof(T), dwNewProtect) {}
 
         template<typename T>
         memory_tenderizer(std::span<const T> s, DWORD dwNewProtect) : memory_tenderizer(&s[0], s.size(), dwNewProtect) {}
@@ -264,7 +267,7 @@ namespace utils {
         return get_env_list<T>(unicode::convert<std::wstring>(pcszName).c_str());
     }
 
-    bool is_running_on_linux();
+    bool is_running_on_wine();
 
     std::filesystem::path get_module_path(HMODULE hModule);
 
@@ -275,4 +278,6 @@ namespace utils {
     void wait_for_game_window();
 
 	std::wstring escape_shell_arg(const std::wstring& arg);
+
+    std::wstring format_win32_error(DWORD err);
 }

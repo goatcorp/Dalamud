@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
@@ -59,9 +60,9 @@ internal class EnterTerritoryAgingStep : IAgingStep
         this.subscribed = false;
     }
 
-    private void ClientStateOnTerritoryChanged(object sender, ushort e)
+    private void ClientStateOnTerritoryChanged(ushort territoryId)
     {
-        if (e == this.territory)
+        if (territoryId == this.territory)
         {
             this.hasPassed = true;
         }

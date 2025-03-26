@@ -1,11 +1,9 @@
-using System;
-
 namespace Dalamud.Hooking;
 
 /// <summary>
 /// Interface describing a generic hook.
 /// </summary>
-public interface IDalamudHook
+public interface IDalamudHook : IDisposable
 {
     /// <summary>
     /// Gets the address to hook.

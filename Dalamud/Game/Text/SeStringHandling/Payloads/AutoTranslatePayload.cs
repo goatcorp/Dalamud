@@ -1,9 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Data;
+
+using Lumina.Excel.Sheets;
+using Lumina.Text.ReadOnly;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -14,13 +17,7 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class AutoTranslatePayload : Payload, ITextProvider
 {
-    private string text;
-
-    [JsonProperty]
-    private uint group;
-
-    [JsonProperty]
-    private uint key;
+    private string? text;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoTranslatePayload"/> class.
@@ -35,8 +32,8 @@ public class AutoTranslatePayload : Payload, ITextProvider
     public AutoTranslatePayload(uint group, uint key)
     {
         // TODO: friendlier ctor? not sure how to handle that given how weird the tables are
-        this.group = group;
-        this.key = key;
+        this.Group = group;
+        this.Key = key;
     }
 
     /// <summary>
@@ -45,6 +42,18 @@ public class AutoTranslatePayload : Payload, ITextProvider
     internal AutoTranslatePayload()
     {
     }
+    
+    /// <summary>
+    /// Gets the autotranslate group.
+    /// </summary>
+    [JsonProperty("group")]
+    public uint Group { get; private set; }
+
+    /// <summary>
+    /// Gets the autotranslate key.
+    /// </summary>
+    [JsonProperty("key")]
+    public uint Key { get; private set; }
 
     /// <inheritdoc/>
     public override PayloadType Type => PayloadType.AutoTranslateText;
@@ -70,20 +79,20 @@ public class AutoTranslatePayload : Payload, ITextProvider
     /// <returns>A string that represents the current object.</returns>
     public override string ToString()
     {
-        return $"{this.Type} - Group: {this.group}, Key: {this.key}, Text: {this.Text}";
+        return $"{this.Type} - Group: {this.Group}, Key: {this.Key}, Text: {this.Text}";
     }
 
     /// <inheritdoc/>
     protected override byte[] EncodeImpl()
     {
-        var keyBytes = MakeInteger(this.key);
+        var keyBytes = MakeInteger(this.Key);
 
         var chunkLen = keyBytes.Length + 2;
         var bytes = new List<byte>()
         {
             START_BYTE,
             (byte)SeStringChunkType.AutoTranslateKey, (byte)chunkLen,
-            (byte)this.group,
+            (byte)this.Group,
         };
         bytes.AddRange(keyBytes);
         bytes.Add(END_BYTE);
@@ -96,33 +105,33 @@ public class AutoTranslatePayload : Payload, ITextProvider
     {
         // this seems to always be a bare byte, and not following normal integer encoding
         // the values in the table are all <70 so this is presumably ok
-        this.group = reader.ReadByte();
+        this.Group = reader.ReadByte();
 
-        this.key = GetInteger(reader);
+        this.Key = GetInteger(reader);
+    }
+
+    private static ReadOnlySeString ResolveTextCommand(TextCommand command)
+    {
+        // TextCommands prioritize the `Alias` field, if it not empty
+        // Example for this is /rangerpose2l which becomes /blackrangerposeb in chat
+        return !command.Alias.IsEmpty ? command.Alias : command.Command;
     }
 
     private string Resolve()
     {
         string value = null;
 
-        var sheet = this.DataResolver.GetExcelSheet<Completion>();
+        var excelModule = Service<DataManager>.Get().Excel;
+        var completionSheet = excelModule.GetSheet<Completion>();
 
-        Completion row = null;
-        try
-        {
-            // try to get the row in the Completion table itself, because this is 'easiest'
-            // The row may not exist at all (if the Key is for another table), or it could be the wrong row
-            // (again, if it's meant for another table)
-            row = sheet.GetRow(this.key);
-        }
-        catch
-        {
-        } // don't care, row will be null
+        // try to get the row in the Completion table itself, because this is 'easiest'
+        // The row may not exist at all (if the Key is for another table), or it could be the wrong row
+        // (again, if it's meant for another table)
 
-        if (row?.Group == this.group)
+        if (completionSheet.GetRowOrDefault(this.Key) is { } completion && completion.Group == this.Group)
         {
             // if the row exists in this table and the group matches, this is actually the correct data
-            value = row.Text;
+            value = completion.Text.ExtractText();
         }
         else
         {
@@ -130,38 +139,38 @@ public class AutoTranslatePayload : Payload, ITextProvider
             {
                 // we need to get the linked table and do the lookup there instead
                 // in this case, there will only be one entry for this group id
-                row = sheet.First(r => r.Group == this.group);
+                var row = completionSheet.First(r => r.Group == this.Group);
                 // many of the names contain valid id ranges after the table name, but we don't need those
-                var actualTableName = row.LookupTable.RawString.Split('[')[0];
+                var actualTableName = row.LookupTable.ExtractText().Split('[')[0];
 
                 var name = actualTableName switch
                 {
-                    "Action" => this.DataResolver.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().GetRow(this.key).Name,
-                    "ActionComboRoute" => this.DataResolver.GetExcelSheet<ActionComboRoute>().GetRow(this.key).Name,
-                    "BuddyAction" => this.DataResolver.GetExcelSheet<BuddyAction>().GetRow(this.key).Name,
-                    "ClassJob" => this.DataResolver.GetExcelSheet<ClassJob>().GetRow(this.key).Name,
-                    "Companion" => this.DataResolver.GetExcelSheet<Companion>().GetRow(this.key).Singular,
-                    "CraftAction" => this.DataResolver.GetExcelSheet<CraftAction>().GetRow(this.key).Name,
-                    "GeneralAction" => this.DataResolver.GetExcelSheet<GeneralAction>().GetRow(this.key).Name,
-                    "GuardianDeity" => this.DataResolver.GetExcelSheet<GuardianDeity>().GetRow(this.key).Name,
-                    "MainCommand" => this.DataResolver.GetExcelSheet<MainCommand>().GetRow(this.key).Name,
-                    "Mount" => this.DataResolver.GetExcelSheet<Mount>().GetRow(this.key).Singular,
-                    "Pet" => this.DataResolver.GetExcelSheet<Pet>().GetRow(this.key).Name,
-                    "PetAction" => this.DataResolver.GetExcelSheet<PetAction>().GetRow(this.key).Name,
-                    "PetMirage" => this.DataResolver.GetExcelSheet<PetMirage>().GetRow(this.key).Name,
-                    "PlaceName" => this.DataResolver.GetExcelSheet<PlaceName>().GetRow(this.key).Name,
-                    "Race" => this.DataResolver.GetExcelSheet<Race>().GetRow(this.key).Masculine,
-                    "TextCommand" => this.DataResolver.GetExcelSheet<TextCommand>().GetRow(this.key).Command,
-                    "Tribe" => this.DataResolver.GetExcelSheet<Tribe>().GetRow(this.key).Masculine,
-                    "Weather" => this.DataResolver.GetExcelSheet<Weather>().GetRow(this.key).Name,
+                    "Action" => excelModule.GetSheet<Lumina.Excel.Sheets.Action>().GetRow(this.Key).Name,
+                    "ActionComboRoute" => excelModule.GetSheet<ActionComboRoute>().GetRow(this.Key).Name,
+                    "BuddyAction" => excelModule.GetSheet<BuddyAction>().GetRow(this.Key).Name,
+                    "ClassJob" => excelModule.GetSheet<ClassJob>().GetRow(this.Key).Name,
+                    "Companion" => excelModule.GetSheet<Companion>().GetRow(this.Key).Singular,
+                    "CraftAction" => excelModule.GetSheet<CraftAction>().GetRow(this.Key).Name,
+                    "GeneralAction" => excelModule.GetSheet<GeneralAction>().GetRow(this.Key).Name,
+                    "GuardianDeity" => excelModule.GetSheet<GuardianDeity>().GetRow(this.Key).Name,
+                    "MainCommand" => excelModule.GetSheet<MainCommand>().GetRow(this.Key).Name,
+                    "Mount" => excelModule.GetSheet<Mount>().GetRow(this.Key).Singular,
+                    "Pet" => excelModule.GetSheet<Pet>().GetRow(this.Key).Name,
+                    "PetAction" => excelModule.GetSheet<PetAction>().GetRow(this.Key).Name,
+                    "PetMirage" => excelModule.GetSheet<PetMirage>().GetRow(this.Key).Name,
+                    "PlaceName" => excelModule.GetSheet<PlaceName>().GetRow(this.Key).Name,
+                    "Race" => excelModule.GetSheet<Race>().GetRow(this.Key).Masculine,
+                    "TextCommand" => AutoTranslatePayload.ResolveTextCommand(excelModule.GetSheet<TextCommand>().GetRow(this.Key)),
+                    "Tribe" => excelModule.GetSheet<Tribe>().GetRow(this.Key).Masculine,
+                    "Weather" => excelModule.GetSheet<Weather>().GetRow(this.Key).Name,
                     _ => throw new Exception(actualTableName),
                 };
 
-                value = name;
+                value = name.ExtractText();
             }
             catch (Exception e)
             {
-                Log.Error(e, $"AutoTranslatePayload - failed to resolve: {this.Type} - Group: {this.group}, Key: {this.key}");
+                Log.Error(e, $"AutoTranslatePayload - failed to resolve: {this.Type} - Group: {this.Group}, Key: {this.Key}");
             }
         }
 

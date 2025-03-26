@@ -1,8 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Dalamud.Injector
 {
+    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1124:Do not use regions", Justification = "Legacy code")]
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1413:Use trailing comma in multi-line initializers", Justification = "Legacy code")]
+    [SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1519:Braces should not be omitted from multi-line child statement", Justification = "Legacy code")]
+    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1414:Tuple types in signatures should have element names", Justification = "Legacy code")]
+    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1101:Prefix local calls with this", Justification = "Legacy code")]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Legacy code")]
+    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1204:Static elements should appear before instance elements", Justification = "Legacy code")]
     internal class LegacyBlowfish
     {
         #region P-Array and S-Boxes
@@ -203,10 +211,9 @@ namespace Dalamud.Injector
         private static readonly int Rounds = 16;
 
         /// <summary>
-        /// Initialize a new blowfish.
+        /// Initializes a new instance of the <see cref="LegacyBlowfish"/> class.
         /// </summary>
         /// <param name="key">The key to use.</param>
-        /// <param name="fucked">Whether or not a sign confusion should be introduced during key init. This is needed for SE's implementation of blowfish.</param>
         public LegacyBlowfish(byte[] key)
         {
             foreach (var (i, keyFragment) in WrappingUInt32(key, this.p.Length))
@@ -306,7 +313,9 @@ namespace Dalamud.Injector
 
                 for (var j = 0; j < 4 && enumerator.MoveNext(); j++)
                 {
+#pragma warning disable CS0675
                     n = (uint)((n << 8) | (sbyte)enumerator.Current); // NOTE(goat): THIS IS A BUG! SE's implementation wrongly uses signed numbers for this, so we need to as well.
+#pragma warning restore CS0675
                 }
 
                 yield return (i, n);

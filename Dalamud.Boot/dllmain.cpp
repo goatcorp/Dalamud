@@ -9,9 +9,9 @@
 HMODULE g_hModule;
 HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
-DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
+HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
-    
+
     std::string jsonParseError;
     try {
         from_json(nlohmann::json::parse(std::string_view(static_cast<char*>(lpParam))), g_startInfo);
@@ -21,7 +21,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     if (g_startInfo.BootShowConsole)
         ConsoleSetup(L"Dalamud Boot");
-    
+
     logging::update_dll_load_status(true);
 
     const auto logFilePath = unicode::convert<std::wstring>(g_startInfo.BootLogPath);
@@ -29,16 +29,16 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     auto attemptFallbackLog = false;
     if (logFilePath.empty()) {
         attemptFallbackLog = true;
-        
+
         logging::I("No log file path given; not logging to file.");
     } else {
         try {
             logging::start_file_logging(logFilePath, !g_startInfo.BootShowConsole);
             logging::I("Logging to file: {}", logFilePath);
-            
+
         } catch (const std::exception& e) {
             attemptFallbackLog = true;
-            
+
             logging::E("Couldn't open log file: {}", logFilePath);
             logging::E("Error: {} / {}", errno, e.what());
         }
@@ -59,15 +59,15 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
         SYSTEMTIME st;
         GetLocalTime(&st);
         logFilePath += std::format(L"Dalamud.Boot.{:04}{:02}{:02}.{:02}{:02}{:02}.{:03}.{}.log", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
-        
+
         try {
             logging::start_file_logging(logFilePath, !g_startInfo.BootShowConsole);
             logging::I("Logging to fallback log file: {}", logFilePath);
-            
+
         } catch (const std::exception& e) {
             if (!g_startInfo.BootShowConsole && !g_startInfo.BootDisableFallbackConsole)
                 ConsoleSetup(L"Dalamud Boot - Fallback Console");
-            
+
             logging::E("Couldn't open fallback log file: {}", logFilePath);
             logging::E("Error: {} / {}", errno, e.what());
         }
@@ -83,7 +83,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     } else {
         logging::E("Failed to initialize MinHook (status={}({}))", MH_StatusToString(mhStatus), static_cast<int>(mhStatus));
     }
-    
+
     logging::I("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
     logging::I("Built at: " __DATE__ "@" __TIME__);
 
@@ -114,9 +114,10 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     logging::I("Calling InitializeClrAndGetEntryPoint");
 
     void* entrypoint_vfn;
-    int result = InitializeClrAndGetEntryPoint(
+    const auto result = InitializeClrAndGetEntryPoint(
         g_hModule,
         g_startInfo.BootEnableEtw,
+        false, // !g_startInfo.BootDisableLegacyCorruptedStateExceptions,
         runtimeconfig_path,
         module_path,
         L"Dalamud.EntryPoint, Dalamud",
@@ -124,7 +125,7 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
         L"Dalamud.EntryPoint+InitDelegate, Dalamud",
         &entrypoint_vfn);
 
-    if (result != 0)
+    if (FAILED(result))
         return result;
 
     using custom_component_entry_point_fn = void (CORECLR_DELEGATE_CALLTYPE*)(LPVOID, HANDLE);
@@ -133,8 +134,8 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     // ============================== VEH ======================================== //
 
     logging::I("Initializing VEH...");
-    if (utils::is_running_on_linux()) {
-        logging::I("=> VEH was disabled, running on linux");
+    if (g_startInfo.UnhandledException == DalamudStartInfo::UnhandledExceptionHandlingMode::None) {
+        logging::W("=> Exception handlers are disabled from DalamudStartInfo.");
     } else if (g_startInfo.BootVehEnabled) {
         if (veh::add_handler(g_startInfo.BootVehFull, g_startInfo.WorkingDirectory))
             logging::I("=> Done!");
@@ -156,10 +157,10 @@ DWORD WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     entrypoint_fn(lpParam, hMainThreadContinue);
     logging::I("Done!");
 
-    return 0;
+    return S_OK;
 }
 
-DllExport DWORD WINAPI Initialize(LPVOID lpParam) {
+extern "C" DWORD WINAPI Initialize(LPVOID lpParam) {
     return InitializeImpl(lpParam, CreateEvent(nullptr, TRUE, FALSE, nullptr));
 }
 
@@ -174,11 +175,11 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
         case DLL_PROCESS_DETACH:
             // do not show debug message boxes on abort() here
             _set_abort_behavior(0, _WRITE_ABORT_MSG);
-            
+
             // process is terminating; don't bother cleaning up
             if (lpReserved)
                 return TRUE;
-        
+
             logging::update_dll_load_status(false);
 
             xivfixes::apply_all(false);

@@ -1,23 +1,10 @@
-using System.Reflection;
-
 namespace Dalamud.Game.Command;
 
 /// <summary>
-/// This class describes a registered command.
+/// Interface representing a registered command.
 /// </summary>
-public sealed class CommandInfo
+public interface IReadOnlyCommandInfo
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CommandInfo"/> class.
-    /// Create a new CommandInfo with the provided handler.
-    /// </summary>
-    /// <param name="handler">The method to call when the command is run.</param>
-    public CommandInfo(HandlerDelegate handler)
-    {
-        this.Handler = handler;
-        this.LoaderAssemblyName = Assembly.GetCallingAssembly()?.GetName()?.Name;
-    }
-
     /// <summary>
     /// The function to be executed when the command is dispatched.
     /// </summary>
@@ -28,20 +15,48 @@ public sealed class CommandInfo
     /// <summary>
     /// Gets a <see cref="HandlerDelegate"/> which will be called when the command is dispatched.
     /// </summary>
-    public HandlerDelegate Handler { get; }
+    HandlerDelegate Handler { get; }
 
     /// <summary>
-    /// Gets or sets the help message for this command.
+    /// Gets the help message for this command.
     /// </summary>
+    string HelpMessage { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether if this command should be shown in the help output.
+    /// </summary>
+    bool ShowInHelp { get; }
+
+    /// <summary>
+    /// Gets the display order of this command. Defaults to alphabetical ordering.
+    /// </summary>
+    int DisplayOrder { get; }
+}
+
+/// <summary>
+/// This class describes a registered command.
+/// </summary>
+public sealed class CommandInfo : IReadOnlyCommandInfo
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CommandInfo"/> class.
+    /// Create a new CommandInfo with the provided handler.
+    /// </summary>
+    /// <param name="handler">The method to call when the command is run.</param>
+    public CommandInfo(IReadOnlyCommandInfo.HandlerDelegate handler)
+    {
+        this.Handler = handler;
+    }
+
+    /// <inheritdoc/>
+    public IReadOnlyCommandInfo.HandlerDelegate Handler { get; }
+
+    /// <inheritdoc/>
     public string HelpMessage { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether if this command should be shown in the help output.
-    /// </summary>
+    /// <inheritdoc/>
     public bool ShowInHelp { get; set; } = true;
 
-    /// <summary>
-    /// Gets or sets the name of the assembly responsible for this command.
-    /// </summary>
-    internal string LoaderAssemblyName { get; set; } = string.Empty;
+    /// <inheritdoc/>
+    public int DisplayOrder { get; set; } = -1;
 }

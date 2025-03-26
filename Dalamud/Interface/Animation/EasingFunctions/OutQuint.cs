@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Animation.EasingFunctions;
+﻿namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "OutQuint" easing animation.
@@ -21,6 +19,6 @@ public class OutQuint : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = 1 - Math.Pow(1 - p, 5);
+        this.ValueUnclamped = 1 - Math.Pow(1 - p, 5);
     }
 }

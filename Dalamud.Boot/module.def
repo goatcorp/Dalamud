@@ -1,0 +1,5 @@
+LIBRARY Dalamud.Boot
+EXPORTS
+    Initialize @1
+    RewriteRemoteEntryPointW @2
+    RewrittenEntryPoint @3

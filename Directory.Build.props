@@ -1,0 +1,28 @@
+<!-- Shared settings for all Dalamud projects. -->
+<Project>
+
+    <PropertyGroup Label="Target">
+        <TargetFramework>net9.0-windows</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <Platforms>x64</Platforms>
+        <LangVersion>13.0</LangVersion>
+    </PropertyGroup>
+
+    <!-- Dependency versions -->
+    <PropertyGroup Label="Dependency Versions">
+        <LuminaVersion>5.6.1</LuminaVersion>
+        <LuminaExcelVersion>7.2.0</LuminaExcelVersion>
+        <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
+    </PropertyGroup>
+
+    <!-- Code analysis settings for all Dalamud projects. -->
+    <ItemGroup Label="Code Analysis">
+        <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
+        <AdditionalFiles Include="$(MSBuildThisFileDirectory)tools\BannedSymbols.txt" />
+    </ItemGroup>
+    <!--
+    <PropertyGroup Label="Code Analysis">
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)tools\dalamud.ruleset</CodeAnalysisRuleSet>
+    </PropertyGroup>
+    -->
+</Project>

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
+﻿namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 
 /// <summary>
 /// Class representing a Dalamud changelog.
@@ -40,6 +38,9 @@ internal class DalamudChangelogEntry : IChangelogEntry
 
     /// <inheritdoc/>
     public string Text { get; init; }
+
+    /// <inheritdoc/>
+    public string? Author { get; private set; } = null;
 
     /// <inheritdoc/>
     public DateTime Date => this.changelog.Date;

@@ -1,10 +1,12 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.Aetherytes;
@@ -13,30 +15,25 @@ namespace Dalamud.Game.ClientState.Aetherytes;
 /// This collection represents the list of available Aetherytes in the Teleport window.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-public sealed partial class AetheryteList : IServiceType
+[ServiceManager.EarlyLoadedService]
+#pragma warning disable SA1015
+[ResolveVia<IAetheryteList>]
+#pragma warning restore SA1015
+internal sealed unsafe partial class AetheryteList : IServiceType, IAetheryteList
 {
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();
-    private readonly ClientStateAddressResolver address;
-    private readonly UpdateAetheryteListDelegate updateAetheryteListFunc;
+
+    private readonly Telepo* telepoInstance = Telepo.Instance();
 
     [ServiceManager.ServiceConstructor]
     private AetheryteList()
     {
-        this.address = this.clientState.AddressResolver;
-        this.updateAetheryteListFunc = Marshal.GetDelegateForFunctionPointer<UpdateAetheryteListDelegate>(this.address.UpdateAetheryteList);
-
-        Log.Verbose($"Teleport address 0x{this.address.Telepo.ToInt64():X}");
+        Log.Verbose($"Teleport address {Util.DescribeAddress(this.telepoInstance)}");
     }
 
-    private delegate void UpdateAetheryteListDelegate(IntPtr telepo, byte arg1);
-
-    /// <summary>
-    /// Gets the amount of Aetherytes the local player has unlocked.
-    /// </summary>
-    public unsafe int Length
+    /// <inheritdoc/>
+    public int Length
     {
         get
         {
@@ -45,21 +42,15 @@ public sealed partial class AetheryteList : IServiceType
 
             this.Update();
 
-            if (TelepoStruct->TeleportList.First == TelepoStruct->TeleportList.Last)
+            if (this.telepoInstance->TeleportList.First == this.telepoInstance->TeleportList.Last)
                 return 0;
 
-            return (int)TelepoStruct->TeleportList.Size();
+            return this.telepoInstance->TeleportList.Count;
         }
     }
 
-    private unsafe FFXIVClientStructs.FFXIV.Client.Game.UI.Telepo* TelepoStruct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Telepo*)this.address.Telepo;
-
-    /// <summary>
-    /// Gets a Aetheryte Entry at the specified index.
-    /// </summary>
-    /// <param name="index">Index.</param>
-    /// <returns>A <see cref="AetheryteEntry"/> at the specified index.</returns>
-    public unsafe AetheryteEntry? this[int index]
+    /// <inheritdoc/>
+    public IAetheryteEntry? this[int index]
     {
         get
         {
@@ -71,7 +62,7 @@ public sealed partial class AetheryteList : IServiceType
             if (this.clientState.LocalPlayer == null)
                 return null;
 
-            return new AetheryteEntry(TelepoStruct->TeleportList.Get((ulong)index));
+            return new AetheryteEntry(this.telepoInstance->TeleportList[index]);
         }
     }
 
@@ -81,20 +72,20 @@ public sealed partial class AetheryteList : IServiceType
         if (this.clientState.LocalPlayer == null)
             return;
 
-        this.updateAetheryteListFunc(this.address.Telepo, 0);
+        this.telepoInstance->UpdateAetheryteList();
     }
 }
 
 /// <summary>
 /// This collection represents the list of available Aetherytes in the Teleport window.
 /// </summary>
-public sealed partial class AetheryteList : IReadOnlyCollection<AetheryteEntry>
+internal sealed partial class AetheryteList
 {
     /// <inheritdoc/>
     public int Count => this.Length;
 
     /// <inheritdoc/>
-    public IEnumerator<AetheryteEntry> GetEnumerator()
+    public IEnumerator<IAetheryteEntry> GetEnumerator()
     {
         for (var i = 0; i < this.Length; i++)
         {

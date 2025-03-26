@@ -428,7 +428,14 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while bound by duty.
     /// </summary>
+    [Obsolete("Use InDutyQueue")]
     BoundToDuty97 = 91,
+    
+    /// <summary>
+    /// Unable to execute command while bound by duty.
+    /// Specifically triggered when you are in a queue for a duty but not inside a duty.
+    /// </summary>
+    InDutyQueue = 91,
 
     /// <summary>
     /// Unable to execute command while readying to visit another World.
@@ -464,4 +471,14 @@ public enum ConditionFlag
     /// Unable to execute command while recruiting for a non-cross-world party.
     /// </summary>
     RecruitingWorldOnly = 98,
+
+    /// <summary>
+    /// Command unavailable in this location.
+    /// </summary>
+    Unknown99 = 99,
+
+    /// <summary>
+    /// Unable to execute command while editing a portrait.
+    /// </summary>
+    EditingPortrait = 100,
 }

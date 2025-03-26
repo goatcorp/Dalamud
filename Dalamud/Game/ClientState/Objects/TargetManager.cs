@@ -1,8 +1,10 @@
-using System;
-
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
+
+#pragma warning disable CS0618
 
 namespace Dalamud.Game.ClientState.Objects;
 
@@ -10,158 +12,68 @@ namespace Dalamud.Game.ClientState.Objects;
 /// Get and set various kinds of targets for the player.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-public sealed unsafe class TargetManager : IServiceType
+[ServiceManager.EarlyLoadedService]
+#pragma warning disable SA1015
+[ResolveVia<ITargetManager>]
+#pragma warning restore SA1015
+internal sealed unsafe class TargetManager : IServiceType, ITargetManager
 {
     [ServiceManager.ServiceDependency]
-    private readonly ClientState clientState = Service<ClientState>.Get();
-
-    [ServiceManager.ServiceDependency]
     private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
-
-    private readonly ClientStateAddressResolver address;
 
     [ServiceManager.ServiceConstructor]
     private TargetManager()
     {
-        this.address = this.clientState.AddressResolver;
     }
 
-    /// <summary>
-    /// Gets the address of the target manager.
-    /// </summary>
-    public IntPtr Address => this.address.TargetManager;
-
-    /// <summary>
-    /// Gets or sets the current target.
-    /// </summary>
-    public GameObject? Target
+    /// <inheritdoc/>
+    public IGameObject? Target
     {
-        get => this.objectTable.CreateObjectReference((IntPtr)Struct->Target);
-        set => this.SetTarget(value);
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->GetHardTarget());
+        set => Struct->SetHardTarget((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address);
     }
 
-    /// <summary>
-    /// Gets or sets the mouseover target.
-    /// </summary>
-    public GameObject? MouseOverTarget
+    /// <inheritdoc/>
+    public IGameObject? MouseOverTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->MouseOverTarget);
-        set => this.SetMouseOverTarget(value);
+        set => Struct->MouseOverTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
-    /// <summary>
-    /// Gets or sets the focus target.
-    /// </summary>
-    public GameObject? FocusTarget
+    /// <inheritdoc/>
+    public IGameObject? FocusTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->FocusTarget);
-        set => this.SetFocusTarget(value);
+        set => Struct->FocusTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
-    /// <summary>
-    /// Gets or sets the previous target.
-    /// </summary>
-    public GameObject? PreviousTarget
+    /// <inheritdoc/>
+    public IGameObject? PreviousTarget
     {
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->PreviousTarget);
-        set => this.SetPreviousTarget(value);
+        set => Struct->PreviousTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
 
-    /// <summary>
-    /// Gets or sets the soft target.
-    /// </summary>
-    public GameObject? SoftTarget
+    /// <inheritdoc/>
+    public IGameObject? SoftTarget
     {
-        get => this.objectTable.CreateObjectReference((IntPtr)Struct->SoftTarget);
-        set => this.SetSoftTarget(value);
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->GetSoftTarget());
+        set => Struct->SetSoftTarget((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address);
     }
 
-    private FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem* Struct => (FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem*)this.Address;
+    /// <inheritdoc/>
+    public IGameObject? GPoseTarget
+    {
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->GPoseTarget);
+        set => Struct->GPoseTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
+    }
 
-    /// <summary>
-    /// Sets the current target.
-    /// </summary>
-    /// <param name="actor">Actor to target.</param>
-    public void SetTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
+    /// <inheritdoc/>
+    public IGameObject? MouseOverNameplateTarget
+    {
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->MouseOverNameplateTarget);
+        set => Struct->MouseOverNameplateTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
+    }
 
-    /// <summary>
-    /// Sets the mouseover target.
-    /// </summary>
-    /// <param name="actor">Actor to target.</param>
-    public void SetMouseOverTarget(GameObject? actor) => this.SetMouseOverTarget(actor?.Address ?? IntPtr.Zero);
-
-    /// <summary>
-    /// Sets the focus target.
-    /// </summary>
-    /// <param name="actor">Actor to target.</param>
-    public void SetFocusTarget(GameObject? actor) => this.SetFocusTarget(actor?.Address ?? IntPtr.Zero);
-
-    /// <summary>
-    /// Sets the previous target.
-    /// </summary>
-    /// <param name="actor">Actor to target.</param>
-    public void SetPreviousTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
-
-    /// <summary>
-    /// Sets the soft target.
-    /// </summary>
-    /// <param name="actor">Actor to target.</param>
-    public void SetSoftTarget(GameObject? actor) => this.SetTarget(actor?.Address ?? IntPtr.Zero);
-
-    /// <summary>
-    /// Sets the current target.
-    /// </summary>
-    /// <param name="actorAddress">Actor (address) to target.</param>
-    public void SetTarget(IntPtr actorAddress) => Struct->Target = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
-
-    /// <summary>
-    /// Sets the mouseover target.
-    /// </summary>
-    /// <param name="actorAddress">Actor (address) to target.</param>
-    public void SetMouseOverTarget(IntPtr actorAddress) => Struct->MouseOverTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
-
-    /// <summary>
-    /// Sets the focus target.
-    /// </summary>
-    /// <param name="actorAddress">Actor (address) to target.</param>
-    public void SetFocusTarget(IntPtr actorAddress) => Struct->FocusTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
-
-    /// <summary>
-    /// Sets the previous target.
-    /// </summary>
-    /// <param name="actorAddress">Actor (address) to target.</param>
-    public void SetPreviousTarget(IntPtr actorAddress) => Struct->PreviousTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
-
-    /// <summary>
-    /// Sets the soft target.
-    /// </summary>
-    /// <param name="actorAddress">Actor (address) to target.</param>
-    public void SetSoftTarget(IntPtr actorAddress) => Struct->SoftTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actorAddress;
-
-    /// <summary>
-    /// Clears the current target.
-    /// </summary>
-    public void ClearTarget() => this.SetTarget(IntPtr.Zero);
-
-    /// <summary>
-    /// Clears the mouseover target.
-    /// </summary>
-    public void ClearMouseOverTarget() => this.SetMouseOverTarget(IntPtr.Zero);
-
-    /// <summary>
-    /// Clears the focus target.
-    /// </summary>
-    public void ClearFocusTarget() => this.SetFocusTarget(IntPtr.Zero);
-
-    /// <summary>
-    /// Clears the previous target.
-    /// </summary>
-    public void ClearPreviousTarget() => this.SetPreviousTarget(IntPtr.Zero);
-
-    /// <summary>
-    /// Clears the soft target.
-    /// </summary>
-    public void ClearSoftTarget() => this.SetSoftTarget(IntPtr.Zero);
+    private TargetSystem* Struct => TargetSystem.Instance();
 }

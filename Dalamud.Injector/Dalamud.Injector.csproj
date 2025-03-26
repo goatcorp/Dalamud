@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup Label="Target">
-        <TargetFramework>net6.0</TargetFramework>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-        <PlatformTarget>x64</PlatformTarget>
-        <Platforms>x64;AnyCPU</Platforms>
-        <LangVersion>10.0</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup Label="Feature">
@@ -45,10 +41,6 @@
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
         <DefineConstants>DEBUG;TRACE</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
-        <PathMap>$(AppOutputBase)=C:\goatsoft\companysecrets\injector\</PathMap>
-    </PropertyGroup>
 
     <PropertyGroup Label="Warnings">
         <NoWarn>IDE0003;IDE0044;IDE1006;CS1591;CS1701;CS1702</NoWarn>
@@ -62,7 +54,7 @@
     <ItemGroup>
         <PackageReference Include="Iced" Version="1.17.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
         <PackageReference Include="PeNet" Version="2.6.4" />
         <PackageReference Include="Reloaded.Memory" Version="7.0.0" />
         <PackageReference Include="Reloaded.Memory.Buffers" Version="2.0.0" />
@@ -81,12 +73,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- This prevents us from having to include Dalamud itself as a dependency -->
-        <!-- If the files move just update the paths here -->
-        <Compile Include="..\Dalamud\ClientLanguage.cs" Link="Included\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\IServiceType.cs" Link="Included\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\DalamudStartInfo.cs" Link="Included\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\Game\GameVersion.cs" Link="Included\Game\%(Filename)%(Extension)" />
-        <Compile Include="..\Dalamud\Game\GameVersionConverter.cs" Link="Included\Game\%(Filename)%(Extension)" />
+      <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
     </ItemGroup>
 </Project>

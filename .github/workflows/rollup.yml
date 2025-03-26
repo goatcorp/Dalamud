@@ -1,0 +1,49 @@
+name: Rollup changes to next version
+on:
+#  push:
+#    branches:
+#      - master
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branches:
+          - net9
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+          ref: ${{ matrix.branches }}
+          token: ${{ secrets.UPDATE_PAT }}
+      - name: Create update branch
+        run: git checkout -b ${{ matrix.branches }}-rollup
+      - name: Initialize mandatory git config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email noreply@github.com
+          git config --global pull.rebase false
+      - name: Update submodule
+        run: |
+          git fetch origin master
+          git merge -s recursive -X ours origin/master
+          git push origin ${{ matrix.branches }}-rollup --force
+      - name: Create PR
+        run: |
+          echo ${{ secrets.UPDATE_PAT }} | gh auth login --with-token
+          prNumber=$(gh pr list --base ${{ matrix.branches }} --head ${{ matrix.branches }}-rollup --state open --json number --template "{{range .}}{{.number}}{{end}}")
+          if [ -z "$prNumber" ]; then
+            echo "No PR found, creating one"
+            gh pr create --head ${{ matrix.branches }}-rollup --title "[${{ matrix.branches }}] Rollup changes from master" --body "" --base ${{ matrix.branches }}
+          else
+            echo "PR already exists, ignoring"
+          fi

@@ -1,10 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Plugin.Services;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -26,12 +27,6 @@ public abstract partial class Payload
     // private for now, since subclasses shouldn't interact with this.
     // To force-invalidate it, Dirty can be set to true
     private byte[] encodedData;
-
-    /// <summary>
-    /// Gets the Lumina instance to use for any necessary data lookups.
-    /// </summary>
-    [JsonIgnore]
-    public DataManager DataResolver => Service<DataManager>.Get();
 
     /// <summary>
     /// Gets the type of this payload.
@@ -168,6 +163,12 @@ public abstract partial class Payload
                             payload = new DalamudLinkPayload();
                             break;
 
+                        case EmbeddedInfoType.PartyFinderNotificationLink:
+                        // this is handled by PartyFinderPayload, so let this fall through
+                        case EmbeddedInfoType.PartyFinderLink:
+                            payload = new PartyFinderPayload();
+                            break;
+
                         case EmbeddedInfoType.LinkTerminator:
                         // this has no custom handling and so needs to fallthrough to ensure it is captured
                         default:
@@ -202,7 +203,7 @@ public abstract partial class Payload
                 break;
 
             default:
-                Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
+                // Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                 break;
         }
 
@@ -268,9 +269,19 @@ public abstract partial class Payload
         QuestLink = 0x05,
 
         /// <summary>
+        /// The link to the party finder search conditions.
+        /// </summary>
+        PartyFinderNotificationLink = 0x08,
+
+        /// <summary>
         /// A status effect.
         /// </summary>
         Status = 0x09,
+
+        /// <summary>
+        /// The link to a party finder listing.
+        /// </summary>
+        PartyFinderLink = 0x0A,
 
         /// <summary>
         /// A custom Dalamud link.
@@ -292,6 +303,11 @@ public abstract partial class Payload
     protected enum SeStringChunkType
     {
         /// <summary>
+        /// See the <see cref="NewLinePayload"/>.
+        /// </summary>
+        NewLine = 0x10,
+
+        /// <summary>
         /// See the <see cref="IconPayload"/> class.
         /// </summary>
         Icon = 0x12,
@@ -300,11 +316,6 @@ public abstract partial class Payload
         /// See the <see cref="EmphasisItalicPayload"/> class.
         /// </summary>
         EmphasisItalic = 0x1A,
-
-        /// <summary>
-        /// See the <see cref="NewLinePayload"/>.
-        /// </summary>
-        NewLine = 0x10,
 
         /// <summary>
         /// See the <see cref="SeHyphenPayload"/> class.

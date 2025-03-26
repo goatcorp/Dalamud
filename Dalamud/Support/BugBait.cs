@@ -2,7 +2,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-using Dalamud.Plugin.Internal.Types;
+using Dalamud.Networking.Http;
+using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Utility;
 using Newtonsoft.Json;
 
@@ -24,7 +25,7 @@ internal static class BugBait
     /// <param name="reporter">The reporter name.</param>
     /// <param name="includeException">Whether or not the most recent exception to occur should be included in the report.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public static async Task SendFeedback(PluginManifest plugin, bool isTesting, string content, string reporter, bool includeException)
+    public static async Task SendFeedback(IPluginManifest plugin, bool isTesting, string content, string reporter, bool includeException)
     {
         if (content.IsNullOrWhitespace())
             return;
@@ -35,16 +36,18 @@ internal static class BugBait
             Reporter = reporter,
             Name = plugin.InternalName,
             Version = isTesting ? plugin.TestingAssemblyVersion?.ToString() : plugin.AssemblyVersion.ToString(),
-            DalamudHash = Util.GetGitHash(),
+            DalamudHash = Util.GetScmVersion(),
         };
 
         if (includeException)
         {
             model.Exception = Troubleshooting.LastException == null ? "Was included, but none happened" : Troubleshooting.LastException?.ToString();
         }
+        
+        var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
 
         var postContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-        var response = await Util.HttpClient.PostAsync(BugBaitUrl, postContent);
+        var response = await httpClient.PostAsync(BugBaitUrl, postContent);
 
         response.EnsureSuccessStatusCode();
     }

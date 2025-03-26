@@ -1,8 +1,12 @@
-using System;
+using System.Numerics;
 
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
+
+using FFXIVClientStructs.FFXIV.Client.System.Input;
+
 using ImGuiNET;
 using Serilog;
 
@@ -14,11 +18,13 @@ namespace Dalamud.Game.ClientState.GamePad;
 /// Will block game's gamepad input if <see cref="ImGuiConfigFlags.NavEnableGamepad"/> is set.
 /// </summary>
 [PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-public unsafe class GamepadState : IDisposable, IServiceType
+[ServiceManager.EarlyLoadedService]
+#pragma warning disable SA1015
+[ResolveVia<IGamepadState>]
+#pragma warning restore SA1015
+internal unsafe class GamepadState : IInternalDisposableService, IGamepadState
 {
-    private readonly Hook<ControllerPoll> gamepadPoll;
+    private readonly Hook<PadDevice.Delegates.Poll>? gamepadPoll;
 
     private bool isDisposed;
 
@@ -30,85 +36,50 @@ public unsafe class GamepadState : IDisposable, IServiceType
     [ServiceManager.ServiceConstructor]
     private GamepadState(ClientState clientState)
     {
-        var resolver = clientState.AddressResolver;
-        Log.Verbose($"GamepadPoll address 0x{resolver.GamepadPoll.ToInt64():X}");
-        this.gamepadPoll = Hook<ControllerPoll>.FromAddress(resolver.GamepadPoll, this.GamepadPollDetour);
+        this.gamepadPoll = Hook<PadDevice.Delegates.Poll>.FromAddress((nint)PadDevice.StaticVirtualTablePointer->Poll, this.GamepadPollDetour);
+        this.gamepadPoll?.Enable();
     }
-
-    private delegate int ControllerPoll(IntPtr controllerInput);
 
     /// <summary>
     /// Gets the pointer to the current instance of the GamepadInput struct.
     /// </summary>
     public IntPtr GamepadInputAddress { get; private set; }
 
-    /// <summary>
-    ///     Gets the state of the left analogue stick in the left direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    public float LeftStickLeft => this.leftStickX < 0 ? -this.leftStickX / 100f : 0;
+    /// <inheritdoc/>
+    public Vector2 LeftStick =>
+        new(this.leftStickX, this.leftStickY);
 
-    /// <summary>
-    ///     Gets the state of the left analogue stick in the right direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    public float LeftStickRight => this.leftStickX > 0 ? this.leftStickX / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the left analogue stick in the up direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    public float LeftStickUp => this.leftStickY > 0 ? this.leftStickY / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the left analogue stick in the down direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    public float LeftStickDown => this.leftStickY < 0 ? -this.leftStickY / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the right analogue stick in the left direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    public float RightStickLeft => this.rightStickX < 0 ? -this.rightStickX / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the right analogue stick in the right direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    public float RightStickRight => this.rightStickX > 0 ? this.rightStickX / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the right analogue stick in the up direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    public float RightStickUp => this.rightStickY > 0 ? this.rightStickY / 100f : 0;
-
-    /// <summary>
-    ///     Gets the state of the right analogue stick in the down direction between 0 (not tilted) and 1 (max tilt).
-    /// </summary>
-    public float RightStickDown => this.rightStickY < 0 ? -this.rightStickY / 100f : 0;
+    /// <inheritdoc/>
+    public Vector2 RightStick =>
+        new(this.rightStickX, this.rightStickY);
 
     /// <summary>
     /// Gets buttons pressed bitmask, set once when the button is pressed. See <see cref="GamepadButtons"/> for the mapping.
     ///
     /// Exposed internally for Debug Data window.
     /// </summary>
-    internal ushort ButtonsPressed { get; private set; }
+    internal GamepadButtons ButtonsPressed { get; private set; }
 
     /// <summary>
     /// Gets raw button bitmask, set the whole time while a button is held. See <see cref="GamepadButtons"/> for the mapping.
     ///
     /// Exposed internally for Debug Data window.
     /// </summary>
-    internal ushort ButtonsRaw { get; private set; }
+    internal GamepadButtons ButtonsRaw { get; private set; }
 
     /// <summary>
     /// Gets button released bitmask, set once right after the button is not hold anymore. See <see cref="GamepadButtons"/> for the mapping.
     ///
     /// Exposed internally for Debug Data window.
     /// </summary>
-    internal ushort ButtonsReleased { get; private set; }
+    internal GamepadButtons ButtonsReleased { get; private set; }
 
     /// <summary>
     /// Gets button repeat bitmask, emits the held button input in fixed intervals. See <see cref="GamepadButtons"/> for the mapping.
     ///
     /// Exposed internally for Debug Data window.
     /// </summary>
-    internal ushort ButtonsRepeat { get; private set; }
+    internal GamepadButtons ButtonsRepeat { get; private set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether detour should block gamepad input for game.
@@ -120,82 +91,49 @@ public unsafe class GamepadState : IDisposable, IServiceType
     /// </summary>
     internal bool NavEnableGamepad { get; set; }
 
-    /// <summary>
-    /// Gets whether <paramref name="button"/> has been pressed.
-    ///
-    /// Only true on first frame of the press.
-    /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
-    /// </summary>
-    /// <param name="button">The button to check for.</param>
-    /// <returns>1 if pressed, 0 otherwise.</returns>
-    public float Pressed(GamepadButtons button) => (this.ButtonsPressed & (ushort)button) > 0 ? 1 : 0;
+    /// <inheritdoc/>
+    public float Pressed(GamepadButtons button) => (this.ButtonsPressed & button) > 0 ? 1 : 0;
 
-    /// <summary>
-    /// Gets whether <paramref name="button"/> is being pressed.
-    ///
-    /// True in intervals if button is held down.
-    /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
-    /// </summary>
-    /// <param name="button">The button to check for.</param>
-    /// <returns>1 if still pressed during interval, 0 otherwise or in between intervals.</returns>
-    public float Repeat(GamepadButtons button) => (this.ButtonsRepeat & (ushort)button) > 0 ? 1 : 0;
+    /// <inheritdoc/>
+    public float Repeat(GamepadButtons button) => (this.ButtonsRepeat & button) > 0 ? 1 : 0;
 
-    /// <summary>
-    /// Gets whether <paramref name="button"/> has been released.
-    ///
-    /// Only true the frame after release.
-    /// If ImGuiConfigFlags.NavEnableGamepad is set, this is unreliable.
-    /// </summary>
-    /// <param name="button">The button to check for.</param>
-    /// <returns>1 if released, 0 otherwise.</returns>
-    public float Released(GamepadButtons button) => (this.ButtonsReleased & (ushort)button) > 0 ? 1 : 0;
+    /// <inheritdoc/>
+    public float Released(GamepadButtons button) => (this.ButtonsReleased & button) > 0 ? 1 : 0;
 
-    /// <summary>
-    /// Gets the raw state of <paramref name="button"/>.
-    ///
-    /// Is set the entire time a button is pressed down.
-    /// </summary>
-    /// <param name="button">The button to check for.</param>
-    /// <returns>1 the whole time button is pressed, 0 otherwise.</returns>
-    public float Raw(GamepadButtons button) => (this.ButtonsRaw & (ushort)button) > 0 ? 1 : 0;
+    /// <inheritdoc/>
+    public float Raw(GamepadButtons button) => (this.ButtonsRaw & button) > 0 ? 1 : 0;
 
     /// <summary>
     /// Disposes this instance, alongside its hooks.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction()
+    private nint GamepadPollDetour(PadDevice* gamepadInput)
     {
-        this.gamepadPoll.Enable();
-    }
-
-    private int GamepadPollDetour(IntPtr gamepadInput)
-    {
-        var original = this.gamepadPoll.Original(gamepadInput);
+        var original = this.gamepadPoll!.Original(gamepadInput);
         try
         {
-            this.GamepadInputAddress = gamepadInput;
-            var input = (GamepadInput*)gamepadInput;
-            this.leftStickX = input->LeftStickX;
-            this.leftStickY = input->LeftStickY;
-            this.rightStickX = input->RightStickX;
-            this.rightStickY = input->RightStickY;
-            this.ButtonsRaw = input->ButtonsRaw;
-            this.ButtonsPressed = input->ButtonsPressed;
-            this.ButtonsReleased = input->ButtonsReleased;
-            this.ButtonsRepeat = input->ButtonsRepeat;
+            this.GamepadInputAddress = (nint)gamepadInput;
+
+            this.leftStickX = gamepadInput->GamepadInputData.LeftStickX;
+            this.leftStickY = gamepadInput->GamepadInputData.LeftStickY;
+            this.rightStickX = gamepadInput->GamepadInputData.RightStickX;
+            this.rightStickY = gamepadInput->GamepadInputData.RightStickY;
+            this.ButtonsRaw = (GamepadButtons)gamepadInput->GamepadInputData.Buttons;
+            this.ButtonsPressed = (GamepadButtons)gamepadInput->GamepadInputData.ButtonsPressed;
+            this.ButtonsReleased = (GamepadButtons)gamepadInput->GamepadInputData.ButtonsReleased;
+            this.ButtonsRepeat = (GamepadButtons)gamepadInput->GamepadInputData.ButtonsRepeat;
 
             if (this.NavEnableGamepad)
             {
-                input->LeftStickX = 0;
-                input->LeftStickY = 0;
-                input->RightStickX = 0;
-                input->RightStickY = 0;
+                gamepadInput->GamepadInputData.LeftStickX = 0;
+                gamepadInput->GamepadInputData.LeftStickY = 0;
+                gamepadInput->GamepadInputData.RightStickX = 0;
+                gamepadInput->GamepadInputData.RightStickY = 0;
 
                 // NOTE (Chiv) Zeroing `ButtonsRaw` destroys `ButtonPressed`, `ButtonReleased`
                 // and `ButtonRepeat` as the game uses the RAW input to determine those (apparently).
@@ -212,16 +150,16 @@ public unsafe class GamepadState : IDisposable, IServiceType
                 // `ButtonPressed` while ImGuiConfigFlags.NavEnableGamepad is set.
                 // This is debatable.
                 // ImGui itself does not care either way as it uses the Raw values and does its own state handling.
-                const ushort deletionMask = (ushort)(~GamepadButtons.L2
-                                                     & ~GamepadButtons.R2
-                                                     & ~GamepadButtons.DpadDown
-                                                     & ~GamepadButtons.DpadLeft
-                                                     & ~GamepadButtons.DpadUp
-                                                     & ~GamepadButtons.DpadRight);
-                input->ButtonsRaw &= deletionMask;
-                input->ButtonsPressed = 0;
-                input->ButtonsReleased = 0;
-                input->ButtonsRepeat = 0;
+                const GamepadButtonsFlags deletionMask = ~GamepadButtonsFlags.L2
+                                                     & ~GamepadButtonsFlags.R2
+                                                     & ~GamepadButtonsFlags.DPadDown
+                                                     & ~GamepadButtonsFlags.DPadLeft
+                                                     & ~GamepadButtonsFlags.DPadUp
+                                                     & ~GamepadButtonsFlags.DPadRight;
+                gamepadInput->GamepadInputData.Buttons &= deletionMask;
+                gamepadInput->GamepadInputData.ButtonsPressed = 0;
+                gamepadInput->GamepadInputData.ButtonsReleased = 0;
+                gamepadInput->GamepadInputData.ButtonsRepeat = 0;
                 return 0;
             }
 

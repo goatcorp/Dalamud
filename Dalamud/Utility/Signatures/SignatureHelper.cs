@@ -1,4 +1,4 @@
-﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -7,30 +7,34 @@ using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using Dalamud.Utility.Signatures.Wrappers;
+using Serilog;
 
 namespace Dalamud.Utility.Signatures;
 
 /// <summary>
 /// A utility class to help reduce signature boilerplate code.
 /// </summary>
-public static class SignatureHelper
+internal static class SignatureHelper
 {
     private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
     /// <summary>
-    /// Initialises an object's fields and properties that are annotated with a
+    /// Initializes an object's fields and properties that are annotated with a
     /// <see cref="SignatureAttribute"/>.
     /// </summary>
-    /// <param name="self">The object to initialise.</param>
-    /// <param name="log">If warnings should be logged using <see cref="PluginLog"/>.</param>
-    public static void Initialise(object self, bool log = true)
+    /// <param name="self">The object to initialize.</param>
+    /// <param name="log">If warnings should be logged.</param>
+    /// <returns>Collection of created IDalamudHooks.</returns>
+    internal static IEnumerable<IDalamudHook> Initialize(object self, bool log = true)
     {
-        var scanner = Service<SigScanner>.Get();
+        var scanner = Service<TargetSigScanner>.Get();
         var selfType = self.GetType();
         var fields = selfType.GetFields(Flags).Select(field => (IFieldOrPropertyInfo)new FieldInfoWrapper(field))
                              .Concat(selfType.GetProperties(Flags).Select(prop => new PropertyInfoWrapper(prop)))
                              .Select(field => (field, field.GetCustomAttribute<SignatureAttribute>()))
                              .Where(field => field.Item2 != null);
+
+        var createdHooks = new List<IDalamudHook>();
 
         foreach (var (info, sig) in fields)
         {
@@ -60,7 +64,7 @@ public static class SignatureHelper
                                    : message;
                 if (fallible)
                 {
-                    PluginLog.Warning(errorMsg);
+                    Log.Warning(errorMsg);
                 }
                 else
                 {
@@ -84,7 +88,7 @@ public static class SignatureHelper
 
             switch (sig.UseFlags)
             {
-                case SignatureUseFlags.Auto when actualType == typeof(IntPtr) || actualType.IsPointer || actualType.IsAssignableTo(typeof(Delegate)):
+                case SignatureUseFlags.Auto when actualType == typeof(IntPtr) || actualType.IsFunctionPointer || actualType.IsUnmanagedFunctionPointer || actualType.IsPointer || actualType.IsAssignableTo(typeof(Delegate)):
                 case SignatureUseFlags.Pointer:
                 {
                     if (actualType.IsAssignableTo(typeof(Delegate)))
@@ -148,15 +152,16 @@ public static class SignatureHelper
                         detour = del;
                     }
 
-                    var ctor = actualType.GetConstructor(new[] { typeof(IntPtr), hookDelegateType });
-                    if (ctor == null)
+                    var creator = actualType.GetMethod("FromAddress", BindingFlags.Static | BindingFlags.NonPublic);
+                    if (creator == null)
                     {
-                        PluginLog.Error("Error in SignatureHelper: could not find Hook constructor");
+                        Log.Error("Error in SignatureHelper: could not find Hook creator");
                         continue;
                     }
 
-                    var hook = ctor.Invoke(new object?[] { ptr, detour });
+                    var hook = creator.Invoke(null, new object?[] { ptr, detour, false }) as IDalamudHook;
                     info.SetValue(self, hook);
+                    createdHooks.Add(hook);
 
                     break;
                 }
@@ -181,5 +186,7 @@ public static class SignatureHelper
                 }
             }
         }
+
+        return createdHooks;
     }
 }

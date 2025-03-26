@@ -9,86 +9,109 @@ namespace Dalamud.Game.Gui.PartyFinder.Internal;
 /// </summary>
 [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:Elements should be ordered by access", Justification = "Sequential struct marshaling.")]
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Document the field usage.")]
-[StructLayout(LayoutKind.Sequential)]
-internal readonly struct PartyFinderPacketListing
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+internal unsafe struct PartyFinderPacketListing
 {
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-    private readonly byte[] header1;
-    internal readonly uint Id;
+    private fixed byte padding1[4];
+    internal uint Id;
 
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-    private readonly byte[] header2;
+    private fixed byte padding2[4];
+    internal uint PaddingId;
 
-    internal readonly uint ContentIdLower;
-    private readonly ushort unknownShort1;
-    private readonly ushort unknownShort2;
+    private fixed byte padding3[4];
+    internal ulong ContentId;
 
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
-    private readonly byte[] header3;
+    private fixed byte padding4[4];
+    internal ushort Category;
 
-    internal readonly byte Category;
+    private fixed byte padding5[2];
+    internal ushort Duty;
+    internal byte DutyType;
 
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-    private readonly byte[] header4;
+    private fixed byte padding6[11];
+    internal ushort World;
 
-    internal readonly ushort Duty;
-    internal readonly byte DutyType;
+    private fixed byte padding7[8];
+    internal byte Objective;
+    internal byte BeginnersWelcome;
+    internal byte Conditions;
+    internal byte DutyFinderSettings;
+    internal byte LootRules;
 
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 11)]
-    private readonly byte[] header5;
+    private fixed byte padding8[3];
+    internal uint LastPatchHotfixTimestamp; // last time the servers were restarted?
+    internal ushort SecondsRemaining;
 
-    internal readonly ushort World;
+    private fixed byte padding9[6];
+    internal ushort MinimumItemLevel;
+    internal ushort HomeWorld;
+    internal ushort CurrentWorld;
 
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-    private readonly byte[] header6;
+    private byte padding10;
+    internal byte NumSlots;
+    internal byte NumSlotsFilled;
 
-    internal readonly byte Objective;
-    internal readonly byte BeginnersWelcome;
-    internal readonly byte Conditions;
-    internal readonly byte DutyFinderSettings;
-    internal readonly byte LootRules;
+    private byte padding11;
+    internal byte SearchArea;
 
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-    private readonly byte[] header7; // all zero in every pf I've examined
+    private byte padding12;
+    internal byte NumParties;
 
-    internal readonly uint LastPatchHotfixTimestamp; // last time the servers were restarted?
-    internal readonly ushort SecondsRemaining;
+    private fixed byte padding13[7];
+    private fixed ulong slots[8];
+    private fixed byte jobsPresent[8];
+    private fixed byte name[32];
+    private fixed byte description[192];
 
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-    private readonly byte[] header8; // 00 00 01 00 00 00 in every pf I've examined
+    private fixed byte padding14[4];
+    
+    #region Helper
 
-    internal readonly ushort MinimumItemLevel;
-    internal readonly ushort HomeWorld;
-    internal readonly ushort CurrentWorld;
+    internal ulong[] Slots
+    {
+        get
+        {
+            fixed (ulong* ptr = this.slots)
+            {
+                return new ReadOnlySpan<ulong>(ptr, 8).ToArray();
+            }
+        }
+    }
 
-    private readonly byte header9;
+    internal byte[] JobsPresent
+    {
+        get
+        {
+            fixed (byte* ptr = this.jobsPresent)
+            {
+                return new ReadOnlySpan<byte>(ptr, 8).ToArray();
+            }
+        }
+    }
 
-    internal readonly byte NumSlots;
+    internal byte[] Name
+    {
+        get
+        {
+            fixed (byte* ptr = this.name)
+            {
+                return new ReadOnlySpan<byte>(ptr, 32).ToArray();
+            }
+        }
+    }
 
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-    private readonly byte[] header10;
+    internal byte[] Description
+    {
+        get
+        {
+            fixed (byte* ptr = this.description)
+            {
+                return new ReadOnlySpan<byte>(ptr, 192).ToArray();
+            }
+        }
+    }
 
-    internal readonly byte SearchArea;
-
-    private readonly byte header11;
-
-    internal readonly byte NumParties;
-
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-    private readonly byte[] header12; // 00 00 00 always. maybe numParties is a u32?
-
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-    internal readonly uint[] Slots;
-
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-    internal readonly byte[] JobsPresent;
-
-    // Note that ByValTStr will not work here because the strings are UTF-8 and there's only a CharSet for UTF-16 in C#.
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
-    internal readonly byte[] Name;
-
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 192)]
-    internal readonly byte[] Description;
+    #endregion
 
     internal bool IsNull()
     {

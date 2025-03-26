@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -6,13 +5,14 @@ using System.Reflection;
 
 using CheapLoc;
 using Dalamud.Configuration.Internal;
-using Dalamud.Data;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.StyleEditor;
@@ -41,7 +41,6 @@ public class StyleEditorWindow : Window
         this.SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(890, 560),
-            MaximumSize = new Vector2(10000, 10000),
         };
     }
 
@@ -81,6 +80,7 @@ public class StyleEditorWindow : Window
         var workStyle = config.SavedStyles[this.currentSel];
         workStyle.BuiltInColors ??= StyleModelV1.DalamudStandard.BuiltInColors;
 
+        var isBuiltinStyle = this.currentSel < 2;
         var appliedThisFrame = false;
 
         var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
@@ -97,7 +97,7 @@ public class StyleEditorWindow : Window
             this.SaveStyle();
 
             var newStyle = StyleModelV1.DalamudStandard;
-            newStyle.Name = GetRandomName();
+            newStyle.Name = Util.GetRandomName();
             config.SavedStyles.Add(newStyle);
 
             this.currentSel = config.SavedStyles.Count - 1;
@@ -110,6 +110,9 @@ public class StyleEditorWindow : Window
 
         ImGui.SameLine();
 
+        if (isBuiltinStyle)
+            ImGui.BeginDisabled();
+        
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash) && this.currentSel != 0)
         {
             this.currentSel--;
@@ -154,6 +157,9 @@ public class StyleEditorWindow : Window
 
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
+        
+        if (isBuiltinStyle)
+            ImGui.EndDisabled();
 
         ImGui.SameLine();
 
@@ -167,11 +173,11 @@ public class StyleEditorWindow : Window
             {
                 var newStyle = StyleModel.Deserialize(styleJson);
 
-                newStyle.Name ??= GetRandomName();
+                newStyle.Name ??= Util.GetRandomName();
 
                 if (config.SavedStyles.Any(x => x.Name == newStyle.Name))
                 {
-                    newStyle.Name = $"{newStyle.Name} ({GetRandomName()} Mix)";
+                    newStyle.Name = $"{newStyle.Name} ({Util.GetRandomName()} Mix)";
                 }
 
                 config.SavedStyles.Add(newStyle);
@@ -195,7 +201,7 @@ public class StyleEditorWindow : Window
 
         ImGui.PushItemWidth(ImGui.GetWindowWidth() * 0.50f);
 
-        if (this.currentSel < 2)
+        if (isBuiltinStyle)
         {
             ImGui.TextColored(ImGuiColors.DalamudRed, Loc.Localize("StyleEditorNotAllowed", "You cannot edit built-in styles. Please add a new style first."));
         }
@@ -209,120 +215,121 @@ public class StyleEditorWindow : Window
 
             if (ImGui.BeginTabItem(Loc.Localize("StyleEditorVariables", "Variables")))
             {
-                ImGui.BeginChild($"ScrollingVars", ImGuiHelpers.ScaledVector2(0, -32), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
+                if (ImGui.BeginChild($"ScrollingVars", ImGuiHelpers.ScaledVector2(0, -32), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                {
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
-                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
+                    ImGui.SliderFloat2("WindowPadding", ref style.WindowPadding, 0.0f, 20.0f, "%.0f");
+                    ImGui.SliderFloat2("FramePadding", ref style.FramePadding, 0.0f, 20.0f, "%.0f");
+                    ImGui.SliderFloat2("CellPadding", ref style.CellPadding, 0.0f, 20.0f, "%.0f");
+                    ImGui.SliderFloat2("ItemSpacing", ref style.ItemSpacing, 0.0f, 20.0f, "%.0f");
+                    ImGui.SliderFloat2("ItemInnerSpacing", ref style.ItemInnerSpacing, 0.0f, 20.0f, "%.0f");
+                    ImGui.SliderFloat2("TouchExtraPadding", ref style.TouchExtraPadding, 0.0f, 10.0f, "%.0f");
+                    ImGui.SliderFloat("IndentSpacing", ref style.IndentSpacing, 0.0f, 30.0f, "%.0f");
+                    ImGui.SliderFloat("ScrollbarSize", ref style.ScrollbarSize, 1.0f, 20.0f, "%.0f");
+                    ImGui.SliderFloat("GrabMinSize", ref style.GrabMinSize, 1.0f, 20.0f, "%.0f");
+                    ImGui.Text("Borders");
+                    ImGui.SliderFloat("WindowBorderSize", ref style.WindowBorderSize, 0.0f, 1.0f, "%.0f");
+                    ImGui.SliderFloat("ChildBorderSize", ref style.ChildBorderSize, 0.0f, 1.0f, "%.0f");
+                    ImGui.SliderFloat("PopupBorderSize", ref style.PopupBorderSize, 0.0f, 1.0f, "%.0f");
+                    ImGui.SliderFloat("FrameBorderSize", ref style.FrameBorderSize, 0.0f, 1.0f, "%.0f");
+                    ImGui.SliderFloat("TabBorderSize", ref style.TabBorderSize, 0.0f, 1.0f, "%.0f");
+                    ImGui.Text("Rounding");
+                    ImGui.SliderFloat("WindowRounding", ref style.WindowRounding, 0.0f, 12.0f, "%.0f");
+                    ImGui.SliderFloat("ChildRounding", ref style.ChildRounding, 0.0f, 12.0f, "%.0f");
+                    ImGui.SliderFloat("FrameRounding", ref style.FrameRounding, 0.0f, 12.0f, "%.0f");
+                    ImGui.SliderFloat("PopupRounding", ref style.PopupRounding, 0.0f, 12.0f, "%.0f");
+                    ImGui.SliderFloat("ScrollbarRounding", ref style.ScrollbarRounding, 0.0f, 12.0f, "%.0f");
+                    ImGui.SliderFloat("GrabRounding", ref style.GrabRounding, 0.0f, 12.0f, "%.0f");
+                    ImGui.SliderFloat("LogSliderDeadzone", ref style.LogSliderDeadzone, 0.0f, 12.0f, "%.0f");
+                    ImGui.SliderFloat("TabRounding", ref style.TabRounding, 0.0f, 12.0f, "%.0f");
+                    ImGui.Text("Alignment");
+                    ImGui.SliderFloat2("WindowTitleAlign", ref style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
+                    var windowMenuButtonPosition = (int)style.WindowMenuButtonPosition + 1;
+                    if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, "None\0Left\0Right\0"))
+                        style.WindowMenuButtonPosition = (ImGuiDir)(windowMenuButtonPosition - 1);
+                    ImGui.SliderFloat2("ButtonTextAlign", ref style.ButtonTextAlign, 0.0f, 1.0f, "%.2f");
+                    ImGui.SameLine();
+                    ImGuiComponents.HelpMarker("Alignment applies when a button is larger than its text content.");
+                    ImGui.SliderFloat2("SelectableTextAlign", ref style.SelectableTextAlign, 0.0f, 1.0f, "%.2f");
+                    ImGui.SameLine();
+                    ImGuiComponents.HelpMarker("Alignment applies when a selectable is larger than its text content.");
+                    ImGui.SliderFloat2("DisplaySafeAreaPadding", ref style.DisplaySafeAreaPadding, 0.0f, 30.0f, "%.0f");
+                    ImGui.SameLine();
+                    ImGuiComponents.HelpMarker(
+                        "Adjust if you cannot see the edges of your screen (e.g. on a TV where scaling has not been configured).");
 
-                ImGui.SliderFloat2("WindowPadding", ref style.WindowPadding, 0.0f, 20.0f, "%.0f");
-                ImGui.SliderFloat2("FramePadding", ref style.FramePadding, 0.0f, 20.0f, "%.0f");
-                ImGui.SliderFloat2("CellPadding", ref style.CellPadding, 0.0f, 20.0f, "%.0f");
-                ImGui.SliderFloat2("ItemSpacing", ref style.ItemSpacing, 0.0f, 20.0f, "%.0f");
-                ImGui.SliderFloat2("ItemInnerSpacing", ref style.ItemInnerSpacing, 0.0f, 20.0f, "%.0f");
-                ImGui.SliderFloat2("TouchExtraPadding", ref style.TouchExtraPadding, 0.0f, 10.0f, "%.0f");
-                ImGui.SliderFloat("IndentSpacing", ref style.IndentSpacing, 0.0f, 30.0f, "%.0f");
-                ImGui.SliderFloat("ScrollbarSize", ref style.ScrollbarSize, 1.0f, 20.0f, "%.0f");
-                ImGui.SliderFloat("GrabMinSize", ref style.GrabMinSize, 1.0f, 20.0f, "%.0f");
-                ImGui.Text("Borders");
-                ImGui.SliderFloat("WindowBorderSize", ref style.WindowBorderSize, 0.0f, 1.0f, "%.0f");
-                ImGui.SliderFloat("ChildBorderSize", ref style.ChildBorderSize, 0.0f, 1.0f, "%.0f");
-                ImGui.SliderFloat("PopupBorderSize", ref style.PopupBorderSize, 0.0f, 1.0f, "%.0f");
-                ImGui.SliderFloat("FrameBorderSize", ref style.FrameBorderSize, 0.0f, 1.0f, "%.0f");
-                ImGui.SliderFloat("TabBorderSize", ref style.TabBorderSize, 0.0f, 1.0f, "%.0f");
-                ImGui.Text("Rounding");
-                ImGui.SliderFloat("WindowRounding", ref style.WindowRounding, 0.0f, 12.0f, "%.0f");
-                ImGui.SliderFloat("ChildRounding", ref style.ChildRounding, 0.0f, 12.0f, "%.0f");
-                ImGui.SliderFloat("FrameRounding", ref style.FrameRounding, 0.0f, 12.0f, "%.0f");
-                ImGui.SliderFloat("PopupRounding", ref style.PopupRounding, 0.0f, 12.0f, "%.0f");
-                ImGui.SliderFloat("ScrollbarRounding", ref style.ScrollbarRounding, 0.0f, 12.0f, "%.0f");
-                ImGui.SliderFloat("GrabRounding", ref style.GrabRounding, 0.0f, 12.0f, "%.0f");
-                ImGui.SliderFloat("LogSliderDeadzone", ref style.LogSliderDeadzone, 0.0f, 12.0f, "%.0f");
-                ImGui.SliderFloat("TabRounding", ref style.TabRounding, 0.0f, 12.0f, "%.0f");
-                ImGui.Text("Alignment");
-                ImGui.SliderFloat2("WindowTitleAlign", ref style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
-                var windowMenuButtonPosition = (int)style.WindowMenuButtonPosition + 1;
-                if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, "None\0Left\0Right\0"))
-                    style.WindowMenuButtonPosition = (ImGuiDir)(windowMenuButtonPosition - 1);
-                ImGui.SliderFloat2("ButtonTextAlign", ref style.ButtonTextAlign, 0.0f, 1.0f, "%.2f");
-                ImGui.SameLine();
-                ImGuiComponents.HelpMarker("Alignment applies when a button is larger than its text content.");
-                ImGui.SliderFloat2("SelectableTextAlign", ref style.SelectableTextAlign, 0.0f, 1.0f, "%.2f");
-                ImGui.SameLine();
-                ImGuiComponents.HelpMarker("Alignment applies when a selectable is larger than its text content.");
-                ImGui.SliderFloat2("DisplaySafeAreaPadding", ref style.DisplaySafeAreaPadding, 0.0f, 30.0f, "%.0f");
-                ImGui.SameLine();
-                ImGuiComponents.HelpMarker(
-                    "Adjust if you cannot see the edges of your screen (e.g. on a TV where scaling has not been configured).");
-                ImGui.EndTabItem();
-
-                ImGui.EndChild();
+                    ImGui.EndChild();
+                }
 
                 ImGui.EndTabItem();
             }
 
             if (ImGui.BeginTabItem(Loc.Localize("StyleEditorColors", "Colors")))
             {
-                ImGui.BeginChild("ScrollingColors", ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground);
-
-                ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
-
-                if (ImGui.RadioButton("Opaque", this.alphaFlags == ImGuiColorEditFlags.None))
-                    this.alphaFlags = ImGuiColorEditFlags.None;
-                ImGui.SameLine();
-                if (ImGui.RadioButton("Alpha", this.alphaFlags == ImGuiColorEditFlags.AlphaPreview))
-                    this.alphaFlags = ImGuiColorEditFlags.AlphaPreview;
-                ImGui.SameLine();
-                if (ImGui.RadioButton("Both", this.alphaFlags == ImGuiColorEditFlags.AlphaPreviewHalf))
-                    this.alphaFlags = ImGuiColorEditFlags.AlphaPreviewHalf;
-                ImGui.SameLine();
-
-                ImGuiComponents.HelpMarker(
-                    "In the color list:\n" +
-                    "Left-click on color square to open color picker,\n" +
-                    "Right-click to open edit options menu.");
-
-                foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
+                if (ImGui.BeginChild("ScrollingColors", ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                 {
-                    if (imGuiCol == ImGuiCol.COUNT)
-                        continue;
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
-                    ImGui.PushID(imGuiCol.ToString());
+                    if (ImGui.RadioButton("Opaque", this.alphaFlags == ImGuiColorEditFlags.None))
+                        this.alphaFlags = ImGuiColorEditFlags.None;
+                    ImGui.SameLine();
+                    if (ImGui.RadioButton("Alpha", this.alphaFlags == ImGuiColorEditFlags.AlphaPreview))
+                        this.alphaFlags = ImGuiColorEditFlags.AlphaPreview;
+                    ImGui.SameLine();
+                    if (ImGui.RadioButton("Both", this.alphaFlags == ImGuiColorEditFlags.AlphaPreviewHalf))
+                        this.alphaFlags = ImGuiColorEditFlags.AlphaPreviewHalf;
+                    ImGui.SameLine();
 
-                    ImGui.ColorEdit4("##color", ref style.Colors[(int)imGuiCol], ImGuiColorEditFlags.AlphaBar | this.alphaFlags);
+                    ImGuiComponents.HelpMarker(
+                        "In the color list:\n" +
+                        "Left-click on color square to open color picker,\n" +
+                        "Right-click to open edit options menu.");
 
-                    ImGui.SameLine(0.0f, style.ItemInnerSpacing.X);
-                    ImGui.TextUnformatted(imGuiCol.ToString());
-
-                    ImGui.PopID();
-                }
-
-                ImGui.Separator();
-
-                foreach (var property in typeof(DalamudColors).GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                {
-                    ImGui.PushID(property.Name);
-
-                    var colorVal = property.GetValue(workStyle.BuiltInColors);
-                    if (colorVal == null)
+                    foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
                     {
-                        colorVal = property.GetValue(StyleModelV1.DalamudStandard.BuiltInColors);
-                        property.SetValue(workStyle.BuiltInColors, colorVal);
+                        if (imGuiCol == ImGuiCol.COUNT)
+                            continue;
+
+                        ImGui.PushID(imGuiCol.ToString());
+
+                        ImGui.ColorEdit4("##color", ref style.Colors[(int)imGuiCol], ImGuiColorEditFlags.AlphaBar | this.alphaFlags);
+
+                        ImGui.SameLine(0.0f, style.ItemInnerSpacing.X);
+                        ImGui.TextUnformatted(imGuiCol.ToString());
+
+                        ImGui.PopID();
                     }
 
-                    var color = (Vector4)colorVal;
+                    ImGui.Separator();
 
-                    if (ImGui.ColorEdit4("##color", ref color, ImGuiColorEditFlags.AlphaBar | this.alphaFlags))
+                    foreach (var property in typeof(DalamudColors).GetProperties(BindingFlags.Public | BindingFlags.Instance))
                     {
-                        property.SetValue(workStyle.BuiltInColors, color);
-                        workStyle.BuiltInColors?.Apply();
+                        ImGui.PushID(property.Name);
+
+                        var colorVal = property.GetValue(workStyle.BuiltInColors);
+                        if (colorVal == null)
+                        {
+                            colorVal = property.GetValue(StyleModelV1.DalamudStandard.BuiltInColors);
+                            property.SetValue(workStyle.BuiltInColors, colorVal);
+                        }
+
+                        var color = (Vector4)colorVal;
+
+                        if (ImGui.ColorEdit4("##color", ref color, ImGuiColorEditFlags.AlphaBar | this.alphaFlags))
+                        {
+                            property.SetValue(workStyle.BuiltInColors, color);
+                            workStyle.BuiltInColors?.Apply();
+                        }
+
+                        ImGui.SameLine(0.0f, style.ItemInnerSpacing.X);
+                        ImGui.TextUnformatted(property.Name);
+
+                        ImGui.PopID();
                     }
 
-                    ImGui.SameLine(0.0f, style.ItemInnerSpacing.X);
-                    ImGui.TextUnformatted(property.Name);
-
-                    ImGui.PopID();
+                    ImGui.EndChild();
                 }
-
-                ImGui.EndChild();
 
                 ImGui.EndTabItem();
             }
@@ -373,15 +380,6 @@ public class StyleEditorWindow : Window
 
             ImGui.EndPopup();
         }
-    }
-
-    private static string GetRandomName()
-    {
-        var data = Service<DataManager>.Get();
-        var names = data.GetExcelSheet<BNpcName>(ClientLanguage.English);
-        var rng = new Random();
-
-        return names.ElementAt(rng.Next(0, names.Count() - 1)).Singular.RawString;
     }
 
     private void SaveStyle()

@@ -1,5 +1,5 @@
-using Dalamud.Data;
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Plugin.Services;
+using Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Gui.PartyFinder.Types;
 
@@ -14,7 +14,7 @@ public static class JobFlagsExtensions
     /// <param name="job">A JobFlags enum member.</param>
     /// <param name="data">A DataManager to get the ClassJob from.</param>
     /// <returns>A ClassJob if found or null if not.</returns>
-    public static ClassJob ClassJob(this JobFlags job, DataManager data)
+    public static ClassJob? ClassJob(this JobFlags job, IDataManager data)
     {
         var jobs = data.GetExcelSheet<ClassJob>();
 
@@ -49,9 +49,11 @@ public static class JobFlagsExtensions
             JobFlags.Dancer => 38,
             JobFlags.Reaper => 39,
             JobFlags.Sage => 40,
+            JobFlags.Viper => 41,
+            JobFlags.Pictomancer => 42,
             _ => null,
         };
 
-        return row == null ? null : jobs.GetRow((uint)row);
+        return row == null ? null : jobs?.GetRow((uint)row);
     }
 }

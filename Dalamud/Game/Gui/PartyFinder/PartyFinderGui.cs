@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.Gui.PartyFinder.Internal;
@@ -6,6 +5,10 @@ using Dalamud.Game.Gui.PartyFinder.Types;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Services;
+
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
+
 using Serilog;
 
 namespace Dalamud.Game.Gui.PartyFinder;
@@ -13,52 +16,33 @@ namespace Dalamud.Game.Gui.PartyFinder;
 /// <summary>
 /// This class handles interacting with the native PartyFinder window.
 /// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-public sealed class PartyFinderGui : IDisposable, IServiceType
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IPartyFinderGui
 {
-    private readonly PartyFinderAddressResolver address;
-    private readonly IntPtr memory;
+    private readonly nint memory;
 
-    private readonly Hook<ReceiveListingDelegate> receiveListingHook;
+    private readonly Hook<InfoProxyCrossRealm.Delegates.ReceiveListing> receiveListingHook;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PartyFinderGui"/> class.
     /// </summary>
     /// <param name="sigScanner">Sig scanner to use.</param>
     [ServiceManager.ServiceConstructor]
-    private PartyFinderGui(SigScanner sigScanner)
+    private PartyFinderGui(TargetSigScanner sigScanner)
     {
-        this.address = new PartyFinderAddressResolver();
-        this.address.Setup(sigScanner);
-
         this.memory = Marshal.AllocHGlobal(PartyFinderPacket.PacketSize);
 
-        this.receiveListingHook = Hook<ReceiveListingDelegate>.FromAddress(this.address.ReceiveListing, new ReceiveListingDelegate(this.HandleReceiveListingDetour));
+        this.receiveListingHook = Hook<InfoProxyCrossRealm.Delegates.ReceiveListing>.FromAddress(InfoProxyCrossRealm.Addresses.ReceiveListing.Value, this.HandleReceiveListingDetour);
+        this.receiveListingHook.Enable();
     }
 
-    /// <summary>
-    /// Event type fired each time the game receives an individual Party Finder listing.
-    /// Cannot modify listings but can hide them.
-    /// </summary>
-    /// <param name="listing">The listings received.</param>
-    /// <param name="args">Additional arguments passed by the game.</param>
-    public delegate void PartyFinderListingEventDelegate(PartyFinderListing listing, PartyFinderListingEventArgs args);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void ReceiveListingDelegate(IntPtr managerPtr, IntPtr data);
-
-    /// <summary>
-    /// Event fired each time the game receives an individual Party Finder listing.
-    /// Cannot modify listings but can hide them.
-    /// </summary>
-    public event PartyFinderListingEventDelegate ReceiveListing;
+    /// <inheritdoc/>
+    public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.receiveListingHook.Dispose();
 
@@ -72,27 +56,21 @@ public sealed class PartyFinderGui : IDisposable, IServiceType
         }
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(GameGui gameGui)
-    {
-        this.receiveListingHook.Enable();
-    }
-
-    private void HandleReceiveListingDetour(IntPtr managerPtr, IntPtr data)
+    private void HandleReceiveListingDetour(InfoProxyCrossRealm* infoProxy, nint packet)
     {
         try
         {
-            this.HandleListingEvents(data);
+            this.HandleListingEvents(packet);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Exception on ReceiveListing hook.");
         }
 
-        this.receiveListingHook.Original(managerPtr, data);
+        this.receiveListingHook.Original(infoProxy, packet);
     }
 
-    private void HandleListingEvents(IntPtr data)
+    private void HandleListingEvents(nint data)
     {
         var dataPtr = data + 0x10;
 
@@ -137,4 +115,39 @@ public sealed class PartyFinderGui : IDisposable, IServiceType
             Buffer.MemoryCopy((void*)this.memory, (void*)dataPtr, PartyFinderPacket.PacketSize, PartyFinderPacket.PacketSize);
         }
     }
+}
+
+/// <summary>
+/// A scoped variant of the PartyFinderGui service.
+/// </summary>
+[PluginInterface]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IPartyFinderGui>]
+#pragma warning restore SA1015
+internal class PartyFinderGuiPluginScoped : IInternalDisposableService, IPartyFinderGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly PartyFinderGui partyFinderGuiService = Service<PartyFinderGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PartyFinderGuiPluginScoped"/> class.
+    /// </summary>
+    internal PartyFinderGuiPluginScoped()
+    {
+        this.partyFinderGuiService.ReceiveListing += this.ReceiveListingForward;
+    }
+
+    /// <inheritdoc/>
+    public event IPartyFinderGui.PartyFinderListingEventDelegate? ReceiveListing;
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        this.partyFinderGuiService.ReceiveListing -= this.ReceiveListingForward;
+
+        this.ReceiveListing = null;
+    }
+
+    private void ReceiveListingForward(IPartyFinderListing listing, IPartyFinderListingEventArgs args) => this.ReceiveListing?.Invoke(listing, args);
 }

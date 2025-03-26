@@ -79,4 +79,9 @@ public enum PayloadType
     /// An SeString payload representing a doublewide SE hypen.
     /// </summary>
     SeHyphen,
+
+    /// <summary>
+    /// An SeString payload representing a party finder link.
+    /// </summary>
+    PartyFinder,
 }

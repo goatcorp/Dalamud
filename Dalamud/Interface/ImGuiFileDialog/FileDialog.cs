@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -52,7 +51,6 @@ public partial class FileDialog
     private float footerHeight = 0;
 
     private string selectedSideBar = string.Empty;
-    private List<SideBarItem> drives = new();
     private List<SideBarItem> quickAccess = new();
 
     /// <summary>
@@ -122,16 +120,6 @@ public partial class FileDialog
     public bool GetIsOk()
     {
         return this.isOk;
-    }
-
-    /// <summary>
-    /// Gets the result of the selection.
-    /// </summary>
-    /// <returns>The result of the selection (file or folder path). If multiple entries were selected, they are separated with commas.</returns>
-    [Obsolete("Use GetResults() instead.", true)]
-    public string GetResult()
-    {
-        return string.Join(',', this.GetResults());
     }
 
     /// <summary>
@@ -259,6 +247,7 @@ public partial class FileDialog
 
     private void SetPath(string path)
     {
+        this.searchBuffer = string.Empty;
         this.selectedSideBar = string.Empty;
         this.currentPath = path;
         this.files.Clear();

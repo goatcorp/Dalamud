@@ -1,7 +1,6 @@
 // Copyright (c) Nate McMaster, Dalamud contributors.
 // Licensed under the Apache License, Version 2.0. See License.txt in the Loader root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -131,9 +130,16 @@ internal class AssemblyLoadContextBuilder
     /// or the default app context.
     /// </summary>
     /// <param name="assemblyName">The name of the assembly.</param>
+    /// <param name="recursive">Pull assmeblies recursively.</param>
     /// <returns>The builder.</returns>
-    public AssemblyLoadContextBuilder PreferDefaultLoadContextAssembly(AssemblyName assemblyName)
+    public AssemblyLoadContextBuilder PreferDefaultLoadContextAssembly(AssemblyName assemblyName, bool recursive)
     {
+        if (!recursive)
+        {
+            this.defaultAssemblies.Add(assemblyName.Name);
+            return this;
+        }
+
         var names = new Queue<AssemblyName>(new[] { assemblyName });
 
         while (names.TryDequeue(out var name))

@@ -68,19 +68,53 @@ void from_json(const nlohmann::json& json, DalamudStartInfo::ClientLanguage& val
     }
 }
 
+void from_json(const nlohmann::json& json, DalamudStartInfo::LoadMethod& value) {
+    if (json.is_number_integer()) {
+        value = static_cast<DalamudStartInfo::LoadMethod>(json.get<int>());
+
+    }
+    else if (json.is_string()) {
+        const auto langstr = unicode::convert<std::string>(json.get<std::string>(), &unicode::lower);
+        if (langstr == "entrypoint")
+            value = DalamudStartInfo::LoadMethod::Entrypoint;
+        else if (langstr == "inject")
+            value = DalamudStartInfo::LoadMethod::DllInject;
+    }
+}
+
+void from_json(const nlohmann::json& json, DalamudStartInfo::UnhandledExceptionHandlingMode& value) {
+    if (json.is_number_integer()) {
+        value = static_cast<DalamudStartInfo::UnhandledExceptionHandlingMode>(json.get<int>());
+
+    } else if (json.is_string()) {
+        const auto langstr = unicode::convert<std::string>(json.get<std::string>(), &unicode::lower);
+        if (langstr == "default")
+            value = DalamudStartInfo::UnhandledExceptionHandlingMode::Default;
+        else if (langstr == "stalldebug")
+            value = DalamudStartInfo::UnhandledExceptionHandlingMode::StallDebug;
+        else if (langstr == "none")
+            value = DalamudStartInfo::UnhandledExceptionHandlingMode::None;
+    }
+}
+
 void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     if (!json.is_object())
         return;
 
+    config.DalamudLoadMethod = json.value("LoadMethod", config.DalamudLoadMethod);
     config.WorkingDirectory = json.value("WorkingDirectory", config.WorkingDirectory);
     config.ConfigurationPath = json.value("ConfigurationPath", config.ConfigurationPath);
+    config.LogPath = json.value("LogPath", config.LogPath);
+    config.LogName = json.value("LogName", config.LogName);
     config.PluginDirectory = json.value("PluginDirectory", config.PluginDirectory);
-    config.DefaultPluginDirectory = json.value("DefaultPluginDirectory", config.DefaultPluginDirectory);
     config.AssetDirectory = json.value("AssetDirectory", config.AssetDirectory);
     config.Language = json.value("Language", config.Language);
+    config.Platform = json.value("Platform", config.Platform);
     config.GameVersion = json.value("GameVersion", config.GameVersion);
-    config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
     config.TroubleshootingPackData = json.value("TroubleshootingPackData", std::string{});
+    config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
+    config.NoLoadPlugins = json.value("NoLoadPlugins", config.NoLoadPlugins);
+    config.NoLoadThirdPartyPlugins = json.value("NoLoadThirdPartyPlugins", config.NoLoadThirdPartyPlugins);
 
     config.BootLogPath = json.value("BootLogPath", config.BootLogPath);
     config.BootShowConsole = json.value("BootShowConsole", config.BootShowConsole);
@@ -90,6 +124,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.BootVehEnabled = json.value("BootVehEnabled", config.BootVehEnabled);
     config.BootVehFull = json.value("BootVehFull", config.BootVehFull);
     config.BootEnableEtw = json.value("BootEnableEtw", config.BootEnableEtw);
+    config.BootDisableLegacyCorruptedStateExceptions = json.value("BootDisableLegacyCorruptedStateExceptions", config.BootDisableLegacyCorruptedStateExceptions);
     config.BootDotnetOpenProcessHookMode = json.value("BootDotnetOpenProcessHookMode", config.BootDotnetOpenProcessHookMode);
     if (const auto it = json.find("BootEnabledGameFixes"); it != json.end() && it->is_array()) {
         config.BootEnabledGameFixes.clear();
@@ -103,6 +138,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     }
 
     config.CrashHandlerShow = json.value("CrashHandlerShow", config.CrashHandlerShow);
+    config.UnhandledException = json.value("UnhandledException", config.UnhandledException);
 }
 
 void DalamudStartInfo::from_envvars() {
@@ -114,6 +150,7 @@ void DalamudStartInfo::from_envvars() {
     BootVehEnabled = utils::get_env<bool>(L"DALAMUD_IS_VEH");
     BootVehFull = utils::get_env<bool>(L"DALAMUD_IS_VEH_FULL");
     BootEnableEtw = utils::get_env<bool>(L"DALAMUD_ENABLE_ETW");
+    BootDisableLegacyCorruptedStateExceptions = utils::get_env<bool>(L"DALAMUD_DISABLE_LEGACY_CORRUPTED_STATE_EXCEPTIONS");
     BootDotnetOpenProcessHookMode = static_cast<DotNetOpenProcessHookMode>(utils::get_env<int>(L"DALAMUD_DOTNET_OPENPROCESS_HOOKMODE"));
     for (const auto& item : utils::get_env_list<std::string>(L"DALAMUD_GAMEFIX_LIST"))
         BootEnabledGameFixes.insert(unicode::convert<std::string>(item, &unicode::lower));

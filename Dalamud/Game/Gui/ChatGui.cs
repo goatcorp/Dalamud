@@ -1,236 +1,216 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.Libc;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Logging.Internal;
+using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-using Serilog;
+
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text;
+using Lumina.Text.Payloads;
+using Lumina.Text.ReadOnly;
+
+using LSeStringBuilder = Lumina.Text.SeStringBuilder;
+using SeString = Dalamud.Game.Text.SeStringHandling.SeString;
+using SeStringBuilder = Dalamud.Game.Text.SeStringHandling.SeStringBuilder;
 
 namespace Dalamud.Game.Gui;
 
 /// <summary>
 /// This class handles interacting with the native chat UI.
 /// </summary>
-[PluginInterface]
-[InterfaceVersion("1.0")]
-[ServiceManager.BlockingEarlyLoadedService]
-public sealed class ChatGui : IDisposable, IServiceType
+[ServiceManager.EarlyLoadedService]
+internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 {
-    private readonly ChatGuiAddressResolver address;
+    private static readonly ModuleLog Log = new("ChatGui");
 
     private readonly Queue<XivChatEntry> chatQueue = new();
     private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
-    private readonly Hook<PopulateItemLinkDelegate> populateItemLinkHook;
-    private readonly Hook<InteractableLinkClickedDelegate> interactableLinkClickedHook;
+    private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
+    private readonly Hook<LogViewer.Delegates.HandleLinkClick> handleLinkClickHook;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-    [ServiceManager.ServiceDependency]
-    private readonly LibcFunction libcFunction = Service<LibcFunction>.Get();
-
-    private IntPtr baseAddress = IntPtr.Zero;
+    private ImmutableDictionary<(string PluginName, uint CommandId), Action<uint, SeString>>? dalamudLinkHandlersCopy;
 
     [ServiceManager.ServiceConstructor]
-    private ChatGui(SigScanner sigScanner)
+    private ChatGui()
     {
-        this.address = new ChatGuiAddressResolver();
-        this.address.Setup(sigScanner);
+        this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(RaptureLogModule.Addresses.PrintMessage.Value, this.HandlePrintMessageDetour);
+        this.inventoryItemCopyHook = Hook<InventoryItem.Delegates.Copy>.FromAddress((nint)InventoryItem.StaticVirtualTablePointer->Copy, this.InventoryItemCopyDetour);
+        this.handleLinkClickHook = Hook<LogViewer.Delegates.HandleLinkClick>.FromAddress(LogViewer.Addresses.HandleLinkClick.Value, this.HandleLinkClickDetour);
 
-        this.printMessageHook = Hook<PrintMessageDelegate>.FromAddress(this.address.PrintMessage, this.HandlePrintMessageDetour);
-        this.populateItemLinkHook = Hook<PopulateItemLinkDelegate>.FromAddress(this.address.PopulateItemLinkObject, this.HandlePopulateItemLinkDetour);
-        this.interactableLinkClickedHook = Hook<InteractableLinkClickedDelegate>.FromAddress(this.address.InteractableLinkClicked, this.InteractableLinkClickedDetour);
+        this.printMessageHook.Enable();
+        this.inventoryItemCopyHook.Enable();
+        this.handleLinkClickHook.Enable();
     }
 
-    /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessage"/> event.
-    /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="senderId">The sender ID.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-    public delegate void OnMessageDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
-
-    /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.CheckMessageHandled"/> event.
-    /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="senderId">The sender ID.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    /// <param name="isHandled">A value indicating whether the message was handled or should be propagated.</param>
-    public delegate void OnCheckMessageHandledDelegate(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled);
-
-    /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessageHandled"/> event.
-    /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="senderId">The sender ID.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    public delegate void OnMessageHandledDelegate(XivChatType type, uint senderId, SeString sender, SeString message);
-
-    /// <summary>
-    /// A delegate type used with the <see cref="ChatGui.ChatMessageUnhandled"/> event.
-    /// </summary>
-    /// <param name="type">The type of chat.</param>
-    /// <param name="senderId">The sender ID.</param>
-    /// <param name="sender">The sender name.</param>
-    /// <param name="message">The message sent.</param>
-    public delegate void OnMessageUnhandledDelegate(XivChatType type, uint senderId, SeString sender, SeString message);
-
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate IntPtr PrintMessageDelegate(IntPtr manager, XivChatType chatType, IntPtr senderName, IntPtr message, uint senderId, IntPtr parameter);
+    private delegate uint PrintMessageDelegate(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent);
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void PopulateItemLinkDelegate(IntPtr linkObjectPtr, IntPtr itemInfoPtr);
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageDelegate? ChatMessage;
 
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate void InteractableLinkClickedDelegate(IntPtr managerPtr, IntPtr messagePtr);
+    /// <inheritdoc/>
+    public event IChatGui.OnCheckMessageHandledDelegate? CheckMessageHandled;
 
-    /// <summary>
-    /// Event that will be fired when a chat message is sent to chat by the game.
-    /// </summary>
-    public event OnMessageDelegate ChatMessage;
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageHandledDelegate? ChatMessageHandled;
 
-    /// <summary>
-    /// Event that allows you to stop messages from appearing in chat by setting the isHandled parameter to true.
-    /// </summary>
-    public event OnCheckMessageHandledDelegate CheckMessageHandled;
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
 
-    /// <summary>
-    /// Event that will be fired when a chat message is handled by Dalamud or a Plugin.
-    /// </summary>
-    public event OnMessageHandledDelegate ChatMessageHandled;
+    /// <inheritdoc/>
+    public uint LastLinkedItemId { get; private set; }
 
-    /// <summary>
-    /// Event that will be fired when a chat message is not handled by Dalamud or a Plugin.
-    /// </summary>
-    public event OnMessageUnhandledDelegate ChatMessageUnhandled;
-
-    /// <summary>
-    /// Gets the ID of the last linked item.
-    /// </summary>
-    public int LastLinkedItemId { get; private set; }
-
-    /// <summary>
-    /// Gets the flags of the last linked item.
-    /// </summary>
+    /// <inheritdoc/>
     public byte LastLinkedItemFlags { get; private set; }
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers
+    {
+        get
+        {
+            var copy = this.dalamudLinkHandlersCopy;
+            if (copy is not null)
+                return copy;
+
+            lock (this.dalamudLinkHandlers)
+            {
+                return this.dalamudLinkHandlersCopy ??=
+                           this.dalamudLinkHandlers.ToImmutableDictionary(x => x.Key, x => x.Value);
+            }
+        }
+    }
 
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
-    void IDisposable.Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         this.printMessageHook.Dispose();
-        this.populateItemLinkHook.Dispose();
-        this.interactableLinkClickedHook.Dispose();
+        this.inventoryItemCopyHook.Dispose();
+        this.handleLinkClickHook.Dispose();
     }
 
-    /// <summary>
-    /// Queue a chat message. While method is named as PrintChat, it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="chat">A message to send.</param>
-    public void PrintChat(XivChatEntry chat)
+    #region DalamudSeString
+
+    /// <inheritdoc/>
+    public void Print(XivChatEntry chat)
     {
         this.chatQueue.Enqueue(chat);
     }
 
-    /// <summary>
-    /// Queue a chat message. While method is named as PrintChat (it calls it internally), it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    public void Print(string message)
+    /// <inheritdoc/>
+    public void Print(string message, string? messageTag = null, ushort? tagColor = null)
     {
-        // Log.Verbose("[CHATGUI PRINT REGULAR]{0}", message);
-        this.PrintChat(new XivChatEntry
-        {
-            Message = message,
-            Type = this.configuration.GeneralChatType,
-        });
+        this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
     }
 
-    /// <summary>
-    /// Queue a chat message. While method is named as PrintChat (it calls it internally), it only add a entry to the queue,
-    /// later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    public void Print(SeString message)
+    /// <inheritdoc/>
+    public void Print(SeString message, string? messageTag = null, ushort? tagColor = null)
     {
-        // Log.Verbose("[CHATGUI PRINT SESTRING]{0}", message.TextValue);
-        this.PrintChat(new XivChatEntry
-        {
-            Message = message,
-            Type = this.configuration.GeneralChatType,
-        });
+        this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
     }
 
-    /// <summary>
-    /// Queue an error chat message. While method is named as PrintChat (it calls it internally), it only add a entry to
-    /// the queue, later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    public void PrintError(string message)
+    /// <inheritdoc/>
+    public void PrintError(string message, string? messageTag = null, ushort? tagColor = null)
     {
-        // Log.Verbose("[CHATGUI PRINT REGULAR ERROR]{0}", message);
-        this.PrintChat(new XivChatEntry
-        {
-            Message = message,
-            Type = XivChatType.Urgent,
-        });
+        this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
     }
 
-    /// <summary>
-    /// Queue an error chat message. While method is named as PrintChat (it calls it internally), it only add a entry to
-    /// the queue, later to be processed when UpdateQueue() is called.
-    /// </summary>
-    /// <param name="message">A message to send.</param>
-    public void PrintError(SeString message)
+    /// <inheritdoc/>
+    public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
     {
-        // Log.Verbose("[CHATGUI PRINT SESTRING ERROR]{0}", message.TextValue);
-        this.PrintChat(new XivChatEntry
-        {
-            Message = message,
-            Type = XivChatType.Urgent,
-        });
+        this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
     }
+
+    #endregion
+
+    #region LuminaSeString
+
+    /// <inheritdoc/>
+    public void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
+    {
+        this.PrintTagged(message, this.configuration.GeneralChatType, messageTag, tagColor);
+    }
+
+    /// <inheritdoc/>
+    public void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
+    {
+        this.PrintTagged(message, XivChatType.Urgent, messageTag, tagColor);
+    }
+
+    #endregion
 
     /// <summary>
     /// Process a chat queue.
     /// </summary>
     public void UpdateQueue()
     {
-        while (this.chatQueue.Count > 0)
-        {
-            var chat = this.chatQueue.Dequeue();
+        if (this.chatQueue.Count == 0)
+            return;
 
-            if (this.baseAddress == IntPtr.Zero)
+        var sb = LSeStringBuilder.SharedPool.Get();
+        Span<byte> namebuf = stackalloc byte[256];
+        using var sender = new Utf8String();
+        using var message = new Utf8String();
+        while (this.chatQueue.TryDequeue(out var chat))
+        {
+            sb.Clear();
+            foreach (var c in UtfEnumerator.From(chat.MessageBytes, UtfEnumeratorFlags.Utf8SeString))
             {
-                continue;
+                if (c.IsSeStringPayload)
+                    sb.Append((ReadOnlySeStringSpan)chat.MessageBytes.AsSpan(c.ByteOffset, c.ByteLength));
+                else if (c.Value.IntValue == 0x202F)
+                    sb.BeginMacro(MacroCode.NonBreakingSpace).EndMacro();
+                else
+                    sb.Append(c);
             }
 
-            var senderRaw = (chat.Name ?? string.Empty).Encode();
-            using var senderOwned = this.libcFunction.NewString(senderRaw);
+            if (chat.NameBytes.Length + 1 < namebuf.Length)
+            {
+                chat.NameBytes.AsSpan().CopyTo(namebuf);
+                namebuf[chat.NameBytes.Length] = 0;
+                sender.SetString(namebuf);
+            }
+            else
+            {
+                sender.SetString(chat.NameBytes.NullTerminate());
+            }
 
-            var messageRaw = (chat.Message ?? string.Empty).Encode();
-            using var messageOwned = this.libcFunction.NewString(messageRaw);
+            message.SetString(sb.GetViewAsSpan());
 
-            this.HandlePrintMessageDetour(this.baseAddress, chat.Type, senderOwned.Address, messageOwned.Address, chat.SenderId, chat.Parameters);
+            var targetChannel = chat.Type ?? this.configuration.GeneralChatType;
+
+            this.HandlePrintMessageDetour(
+                RaptureLogModule.Instance(),
+                targetChannel,
+                &sender,
+                &message,
+                chat.Timestamp,
+                (byte)(chat.Silent ? 1 : 0));
         }
+
+        LSeStringBuilder.SharedPool.Return(sb);
     }
 
     /// <summary>
@@ -242,8 +222,13 @@ public sealed class ChatGui : IDisposable, IServiceType
     /// <returns>A payload for handling.</returns>
     internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
     {
-        var payload = new DalamudLinkPayload() { Plugin = pluginName, CommandId = commandId };
-        this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
+        var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
+        lock (this.dalamudLinkHandlers)
+        {
+            this.dalamudLinkHandlers.Add((pluginName, commandId), commandAction);
+            this.dalamudLinkHandlersCopy = null;
+        }
+
         return payload;
     }
 
@@ -253,9 +238,14 @@ public sealed class ChatGui : IDisposable, IServiceType
     /// <param name="pluginName">The name of the plugin handling the links.</param>
     internal void RemoveChatLinkHandler(string pluginName)
     {
-        foreach (var handler in this.dalamudLinkHandlers.Keys.ToList().Where(k => k.PluginName == pluginName))
+        lock (this.dalamudLinkHandlers)
         {
-            this.dalamudLinkHandlers.Remove(handler);
+            var changed = false;
+
+            foreach (var handler in this.RegisteredLinkHandlers.Keys.Where(k => k.PluginName == pluginName))
+                changed |= this.dalamudLinkHandlers.Remove(handler);
+            if (changed)
+                this.dalamudLinkHandlersCopy = null;
         }
     }
 
@@ -266,193 +256,311 @@ public sealed class ChatGui : IDisposable, IServiceType
     /// <param name="commandId">The ID of the command to be removed.</param>
     internal void RemoveChatLinkHandler(string pluginName, uint commandId)
     {
-        if (this.dalamudLinkHandlers.ContainsKey((pluginName, commandId)))
+        lock (this.dalamudLinkHandlers)
         {
-            this.dalamudLinkHandlers.Remove((pluginName, commandId));
+            if (this.dalamudLinkHandlers.Remove((pluginName, commandId)))
+                this.dalamudLinkHandlersCopy = null;
         }
     }
 
-    [ServiceManager.CallWhenServicesReady]
-    private void ContinueConstruction(GameGui gameGui, LibcFunction libcFunction)
+    private void PrintTagged(SeString message, XivChatType channel, string? tag, ushort? color)
     {
-        this.printMessageHook.Enable();
-        this.populateItemLinkHook.Enable();
-        this.interactableLinkClickedHook.Enable();
+        var builder = new SeStringBuilder();
+
+        if (!tag.IsNullOrEmpty())
+        {
+            if (color is not null)
+            {
+                builder.AddUiForeground($"[{tag}] ", color.Value);
+            }
+            else
+            {
+                builder.AddText($"[{tag}] ");
+            }
+        }
+
+        this.Print(new XivChatEntry
+        {
+            Message = builder.Build().Append(message),
+            Type = channel,
+        });
     }
 
-    private void HandlePopulateItemLinkDetour(IntPtr linkObjectPtr, IntPtr itemInfoPtr)
+    private void PrintTagged(ReadOnlySpan<byte> message, XivChatType channel, string? tag, ushort? color)
     {
+        var sb = LSeStringBuilder.SharedPool.Get();
+
+        if (!tag.IsNullOrEmpty())
+        {
+            if (color is not null)
+            {
+                sb.PushColorType(color.Value);
+                sb.Append($"[{tag}] ");
+                sb.PopColorType();
+            }
+            else
+            {
+                sb.Append($"[{tag}] ");
+            }
+        }
+
+        this.Print(new XivChatEntry
+        {
+            MessageBytes = sb.Append((ReadOnlySeStringSpan)message).ToArray(),
+            Type = channel,
+        });
+
+        LSeStringBuilder.SharedPool.Return(sb);
+    }
+
+    private void InventoryItemCopyDetour(InventoryItem* thisPtr, InventoryItem* otherPtr)
+    {
+        this.inventoryItemCopyHook.Original(thisPtr, otherPtr);
+
         try
         {
-            this.populateItemLinkHook.Original(linkObjectPtr, itemInfoPtr);
+            this.LastLinkedItemId = otherPtr->ItemId;
+            this.LastLinkedItemFlags = (byte)otherPtr->Flags;
 
-            this.LastLinkedItemId = Marshal.ReadInt32(itemInfoPtr, 8);
-            this.LastLinkedItemFlags = Marshal.ReadByte(itemInfoPtr, 0x14);
-
-            // Log.Verbose($"HandlePopulateItemLinkDetour {linkObjectPtr} {itemInfoPtr} - linked:{this.LastLinkedItemId}");
+            // Log.Verbose($"InventoryItemCopyDetour {thisPtr} {otherPtr} - linked:{this.LastLinkedItemId}");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Exception onPopulateItemLink hook.");
-            this.populateItemLinkHook.Original(linkObjectPtr, itemInfoPtr);
+            Log.Error(ex, "Exception in InventoryItemCopyHook");
         }
     }
 
-    private IntPtr HandlePrintMessageDetour(IntPtr manager, XivChatType chattype, IntPtr pSenderName, IntPtr pMessage, uint senderid, IntPtr parameter)
+    private uint HandlePrintMessageDetour(RaptureLogModule* manager, XivChatType chatType, Utf8String* sender, Utf8String* message, int timestamp, byte silent)
     {
-        var retVal = IntPtr.Zero;
+        var messageId = 0u;
 
         try
         {
-            var sender = StdString.ReadFromPointer(pSenderName);
-            var parsedSender = SeString.Parse(sender.RawData);
-            var originalSenderData = (byte[])sender.RawData.Clone();
-            var oldEditedSender = parsedSender.Encode();
-            var senderPtr = pSenderName;
-            OwnedStdString allocatedString = null;
+            var parsedSender = SeString.Parse(sender->AsSpan());
+            var parsedMessage = SeString.Parse(message->AsSpan());
 
-            var message = StdString.ReadFromPointer(pMessage);
-            var parsedMessage = SeString.Parse(message.RawData);
-            var originalMessageData = (byte[])message.RawData.Clone();
-            var oldEdited = parsedMessage.Encode();
-            var messagePtr = pMessage;
-            OwnedStdString allocatedStringSender = null;
-
-            // Log.Verbose("[CHATGUI][{0}][{1}]", parsedSender.TextValue, parsedMessage.TextValue);
-
-            // Log.Debug($"HandlePrintMessageDetour {manager} - [{chattype}] [{BitConverter.ToString(message.RawData).Replace("-", " ")}] {message.Value} from {senderName.Value}");
+            var terminatedSender = parsedSender.EncodeWithNullTerminator();
+            var terminatedMessage = parsedMessage.EncodeWithNullTerminator();
 
             // Call events
             var isHandled = false;
 
-            var invocationList = this.CheckMessageHandled.GetInvocationList();
-            foreach (var @delegate in invocationList)
+            if (this.CheckMessageHandled is { } handledCallback)
             {
-                try
-                {
-                    var messageHandledDelegate = @delegate as OnCheckMessageHandledDelegate;
-                    messageHandledDelegate!.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not invoke registered OnCheckMessageHandledDelegate for {Name}", @delegate.Method.Name);
-                }
-            }
-
-            if (!isHandled)
-            {
-                invocationList = this.ChatMessage.GetInvocationList();
-                foreach (var @delegate in invocationList)
+                foreach (var action in handledCallback.GetInvocationList().Cast<IChatGui.OnCheckMessageHandledDelegate>())
                 {
                     try
                     {
-                        var messageHandledDelegate = @delegate as OnMessageDelegate;
-                        messageHandledDelegate!.Invoke(chattype, senderid, ref parsedSender, ref parsedMessage, ref isHandled);
+                        action(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
                     }
                     catch (Exception e)
                     {
-                        Log.Error(e, "Could not invoke registered OnMessageDelegate for {Name}", @delegate.Method.Name);
+                        Log.Error(e, "Could not invoke registered OnCheckMessageHandledDelegate for {Name}", action.Method);
                     }
                 }
             }
 
-            var newEdited = parsedMessage.Encode();
-            if (!Util.FastByteArrayCompare(oldEdited, newEdited))
+            if (!isHandled && this.ChatMessage is { } callback)
             {
-                Log.Verbose("SeString was edited, taking precedence over StdString edit.");
-                message.RawData = newEdited;
-                // Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
+                foreach (var action in callback.GetInvocationList().Cast<IChatGui.OnMessageDelegate>())
+                {
+                    try
+                    {
+                        action(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Could not invoke registered OnMessageDelegate for {Name}", action.Method);
+                    }
+                }
             }
 
-            if (!Util.FastByteArrayCompare(originalMessageData, message.RawData))
+            var possiblyModifiedSenderData = parsedSender.EncodeWithNullTerminator();
+            var possiblyModifiedMessageData = parsedMessage.EncodeWithNullTerminator();
+
+            if (!terminatedSender.SequenceEqual(possiblyModifiedSenderData))
             {
-                allocatedString = this.libcFunction.NewString(message.RawData);
-                Log.Debug($"HandlePrintMessageDetour String modified: {originalMessageData}({messagePtr}) -> {message}({allocatedString.Address})");
-                messagePtr = allocatedString.Address;
+                Log.Verbose($"HandlePrintMessageDetour Sender modified: {SeString.Parse(terminatedSender)} -> {parsedSender}");
+                sender->SetString(possiblyModifiedSenderData);
             }
 
-            var newEditedSender = parsedSender.Encode();
-            if (!Util.FastByteArrayCompare(oldEditedSender, newEditedSender))
+            if (!terminatedMessage.SequenceEqual(possiblyModifiedMessageData))
             {
-                Log.Verbose("SeString was edited, taking precedence over StdString edit.");
-                sender.RawData = newEditedSender;
-                // Log.Debug($"\nOLD: {BitConverter.ToString(originalMessageData)}\nNEW: {BitConverter.ToString(newEdited)}");
-            }
-
-            if (!Util.FastByteArrayCompare(originalSenderData, sender.RawData))
-            {
-                allocatedStringSender = this.libcFunction.NewString(sender.RawData);
-                Log.Debug(
-                    $"HandlePrintMessageDetour Sender modified: {originalSenderData}({senderPtr}) -> {sender}({allocatedStringSender.Address})");
-                senderPtr = allocatedStringSender.Address;
+                Log.Verbose($"HandlePrintMessageDetour Message modified: {SeString.Parse(terminatedMessage)} -> {parsedMessage}");
+                message->SetString(possiblyModifiedMessageData);
             }
 
             // Print the original chat if it's handled.
             if (isHandled)
             {
-                this.ChatMessageHandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                this.ChatMessageHandled?.Invoke(chatType, timestamp, parsedSender, parsedMessage);
             }
             else
             {
-                retVal = this.printMessageHook.Original(manager, chattype, senderPtr, messagePtr, senderid, parameter);
-                this.ChatMessageUnhandled?.Invoke(chattype, senderid, parsedSender, parsedMessage);
+                messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
+                this.ChatMessageUnhandled?.Invoke(chatType, timestamp, parsedSender, parsedMessage);
             }
-
-            if (this.baseAddress == IntPtr.Zero)
-                this.baseAddress = manager;
-
-            allocatedString?.Dispose();
-            allocatedStringSender?.Dispose();
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Exception on OnChatMessage hook.");
-            retVal = this.printMessageHook.Original(manager, chattype, pSenderName, pMessage, senderid, parameter);
+            messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
         }
 
-        return retVal;
+        return messageId;
     }
 
-    private void InteractableLinkClickedDetour(IntPtr managerPtr, IntPtr messagePtr)
+    private void HandleLinkClickDetour(LogViewer* thisPtr, LinkData* linkData)
     {
+        if (linkData == null || linkData->Payload == null || (Payload.EmbeddedInfoType)(linkData->LinkType + 1) != Payload.EmbeddedInfoType.DalamudLink)
+        {
+            this.handleLinkClickHook.Original(thisPtr, linkData);
+            return;
+        }
+
+        Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
+
+        var sb = LSeStringBuilder.SharedPool.Get();
         try
         {
-            var interactableType = (Payload.EmbeddedInfoType)(Marshal.ReadByte(messagePtr, 0x1B) + 1);
+            var seStringSpan = new ReadOnlySeStringSpan(linkData->Payload);
 
-            if (interactableType != Payload.EmbeddedInfoType.DalamudLink)
+            // read until link terminator
+            foreach (var payload in seStringSpan)
             {
-                this.interactableLinkClickedHook.Original(managerPtr, messagePtr);
-                return;
+                sb.Append(payload);
+
+                if (payload.Type == ReadOnlySePayloadType.Macro &&
+                    payload.MacroCode == MacroCode.Link &&
+                    payload.TryGetExpression(out var expr1) &&
+                    expr1.TryGetInt(out var expr1Val) &&
+                    expr1Val == (int)LinkMacroPayloadType.Terminator)
+                {
+                    break;
+                }
             }
 
-            Log.Verbose($"InteractableLinkClicked: {Payload.EmbeddedInfoType.DalamudLink}");
+            var seStr = SeString.Parse(sb.ToArray());
+            if (seStr.Payloads.Count == 0 || seStr.Payloads[0] is not DalamudLinkPayload link)
+                return;
 
-            var payloadPtr = Marshal.ReadIntPtr(messagePtr, 0x10);
-            var messageSize = 0;
-            while (Marshal.ReadByte(payloadPtr, messageSize) != 0) messageSize++;
-            var payloadBytes = new byte[messageSize];
-            Marshal.Copy(payloadPtr, payloadBytes, 0, messageSize);
-            var seStr = SeString.Parse(payloadBytes);
-            var terminatorIndex = seStr.Payloads.IndexOf(RawPayload.LinkTerminator);
-            var payloads = terminatorIndex >= 0 ? seStr.Payloads.Take(terminatorIndex + 1).ToList() : seStr.Payloads;
-            if (payloads.Count == 0) return;
-            var linkPayload = payloads[0];
-            if (linkPayload is DalamudLinkPayload link)
+            if (this.RegisteredLinkHandlers.TryGetValue((link.Plugin, link.CommandId), out var value))
             {
-                if (this.dalamudLinkHandlers.ContainsKey((link.Plugin, link.CommandId)))
-                {
-                    Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
-                    this.dalamudLinkHandlers[(link.Plugin, link.CommandId)].Invoke(link.CommandId, new SeString(payloads));
-                }
-                else
-                {
-                    Log.Debug($"No DalamudLink registered for {link.Plugin} with ID of {link.CommandId}");
-                }
+                Log.Verbose($"Sending DalamudLink to {link.Plugin}: {link.CommandId}");
+                value.Invoke(link.CommandId, seStr);
+            }
+            else
+            {
+                Log.Debug($"No DalamudLink registered for {link.Plugin} with ID of {link.CommandId}");
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Exception on InteractableLinkClicked hook");
+            Log.Error(ex, "Exception in HandleLinkClickDetour");
+        }
+        finally
+        {
+            LSeStringBuilder.SharedPool.Return(sb);
         }
     }
+}
+
+/// <summary>
+/// Plugin scoped version of ChatGui.
+/// </summary>
+[PluginInterface]
+[ServiceManager.ScopedService]
+#pragma warning disable SA1015
+[ResolveVia<IChatGui>]
+#pragma warning restore SA1015
+internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
+{
+    [ServiceManager.ServiceDependency]
+    private readonly ChatGui chatGuiService = Service<ChatGui>.Get();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ChatGuiPluginScoped"/> class.
+    /// </summary>
+    internal ChatGuiPluginScoped()
+    {
+        this.chatGuiService.ChatMessage += this.OnMessageForward;
+        this.chatGuiService.CheckMessageHandled += this.OnCheckMessageForward;
+        this.chatGuiService.ChatMessageHandled += this.OnMessageHandledForward;
+        this.chatGuiService.ChatMessageUnhandled += this.OnMessageUnhandledForward;
+    }
+
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageDelegate? ChatMessage;
+
+    /// <inheritdoc/>
+    public event IChatGui.OnCheckMessageHandledDelegate? CheckMessageHandled;
+
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageHandledDelegate? ChatMessageHandled;
+
+    /// <inheritdoc/>
+    public event IChatGui.OnMessageUnhandledDelegate? ChatMessageUnhandled;
+
+    /// <inheritdoc/>
+    public uint LastLinkedItemId => this.chatGuiService.LastLinkedItemId;
+
+    /// <inheritdoc/>
+    public byte LastLinkedItemFlags => this.chatGuiService.LastLinkedItemFlags;
+
+    /// <inheritdoc/>
+    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
+
+    /// <inheritdoc/>
+    void IInternalDisposableService.DisposeService()
+    {
+        this.chatGuiService.ChatMessage -= this.OnMessageForward;
+        this.chatGuiService.CheckMessageHandled -= this.OnCheckMessageForward;
+        this.chatGuiService.ChatMessageHandled -= this.OnMessageHandledForward;
+        this.chatGuiService.ChatMessageUnhandled -= this.OnMessageUnhandledForward;
+
+        this.ChatMessage = null;
+        this.CheckMessageHandled = null;
+        this.ChatMessageHandled = null;
+        this.ChatMessageUnhandled = null;
+    }
+
+    /// <inheritdoc/>
+    public void Print(XivChatEntry chat)
+        => this.chatGuiService.Print(chat);
+
+    /// <inheritdoc/>
+    public void Print(string message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.Print(message, messageTag, tagColor);
+
+    /// <inheritdoc/>
+    public void Print(SeString message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.Print(message, messageTag, tagColor);
+
+    /// <inheritdoc/>
+    public void PrintError(string message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.PrintError(message, messageTag, tagColor);
+
+    /// <inheritdoc/>
+    public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.PrintError(message, messageTag, tagColor);
+
+    /// <inheritdoc/>
+    public void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.Print(message, messageTag, tagColor);
+
+    /// <inheritdoc/>
+    public void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null)
+        => this.chatGuiService.PrintError(message, messageTag, tagColor);
+
+    private void OnMessageForward(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+        => this.ChatMessage?.Invoke(type, timestamp, ref sender, ref message, ref isHandled);
+
+    private void OnCheckMessageForward(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+        => this.CheckMessageHandled?.Invoke(type, timestamp, ref sender, ref message, ref isHandled);
+
+    private void OnMessageHandledForward(XivChatType type, int timestamp, SeString sender, SeString message)
+        => this.ChatMessageHandled?.Invoke(type, timestamp, sender, message);
+
+    private void OnMessageUnhandledForward(XivChatType type, int timestamp, SeString sender, SeString message)
+        => this.ChatMessageUnhandled?.Invoke(type, timestamp, sender, message);
 }

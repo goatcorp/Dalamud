@@ -1,13 +1,18 @@
-using System;
-
 using Dalamud.Game.ClientState.Objects.Types;
 
 namespace Dalamud.Game.ClientState.Objects.SubKinds;
 
 /// <summary>
+/// This interface represents a NPC.
+/// </summary>
+public interface INpc : ICharacter
+{
+}
+
+/// <summary>
 /// This class represents a NPC.
 /// </summary>
-public unsafe class Npc : Character
+internal class Npc : Character, INpc
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Npc"/> class.

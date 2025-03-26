@@ -29,6 +29,7 @@
             "AppVeyor",
             "AzurePipelines",
             "Bamboo",
+            "Bitbucket",
             "Bitrise",
             "GitHubActions",
             "GitLab",
@@ -41,6 +42,10 @@
             "VisualStudio",
             "VSCode"
           ]
+        },
+        "IsDocsBuild": {
+          "type": "boolean",
+          "description": "Whether we are building for documentation - emits generated files"
         },
         "NoLogo": {
           "type": "boolean",
@@ -71,14 +76,20 @@
           "items": {
             "type": "string",
             "enum": [
+              "CI",
               "Clean",
               "Compile",
+              "CompileCImGui",
+              "CompileCImGuizmo",
+              "CompileCImPlot",
               "CompileDalamud",
               "CompileDalamudBoot",
               "CompileDalamudCrashHandler",
+              "CompileImGuiNatives",
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
+              "SetCILogging",
               "Test"
             ]
           }
@@ -93,14 +104,20 @@
           "items": {
             "type": "string",
             "enum": [
+              "CI",
               "Clean",
               "Compile",
+              "CompileCImGui",
+              "CompileCImGuizmo",
+              "CompileCImPlot",
               "CompileDalamud",
               "CompileDalamudBoot",
               "CompileDalamudCrashHandler",
+              "CompileImGuiNatives",
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
+              "SetCILogging",
               "Test"
             ]
           }

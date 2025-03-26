@@ -9,6 +9,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
+    // Take care: don't redirect stderr/out here, we need to write our pid to stdout for XL to read
+    //logging::start_file_logging("dalamud.injector.boot.log", false);
     logging::I("Dalamud Injector, (c) 2021 XIVLauncher Contributors");
     logging::I("Built at : " __DATE__ "@" __TIME__);
 
@@ -22,8 +24,9 @@ int wmain(int argc, wchar_t** argv)
     // =========================================================================== //
 
     void* entrypoint_vfn;
-    int result = InitializeClrAndGetEntryPoint(
+    const auto result = InitializeClrAndGetEntryPoint(
         GetModuleHandleW(nullptr),
+        false,
         false,
         runtimeconfig_path,
         module_path,
@@ -32,15 +35,15 @@ int wmain(int argc, wchar_t** argv)
         L"Dalamud.Injector.EntryPoint+MainDelegate, Dalamud.Injector",
         &entrypoint_vfn);
 
-    if (result != 0)
+    if (FAILED(result))
         return result;
 
-    typedef void (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(int, wchar_t**);
+    typedef int (CORECLR_DELEGATE_CALLTYPE* custom_component_entry_point_fn)(int, wchar_t**);
     custom_component_entry_point_fn entrypoint_fn = reinterpret_cast<custom_component_entry_point_fn>(entrypoint_vfn);
 
     logging::I("Running Dalamud Injector...");
-    entrypoint_fn(argc, argv);
+    const auto ret = entrypoint_fn(argc, argv);
     logging::I("Done!");
 
-    return 0;
+    return ret;
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -17,13 +16,7 @@ internal class ObjectInstance
     public ObjectInstance(Task<WeakReference> instanceTask, Type type)
     {
         this.InstanceTask = instanceTask;
-        this.Version = type.GetCustomAttribute<InterfaceVersionAttribute>();
     }
-
-    /// <summary>
-    /// Gets the current version of the instance, if it exists.
-    /// </summary>
-    public InterfaceVersionAttribute? Version { get; }
 
     /// <summary>
     /// Gets a reference to the underlying instance.

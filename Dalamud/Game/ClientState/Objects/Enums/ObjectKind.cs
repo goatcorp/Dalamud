@@ -79,4 +79,9 @@ public enum ObjectKind : byte
     /// Objects representing card stand objects.
     /// </summary>
     CardStand = 0x0E,
+
+    /// <summary>
+    /// Objects representing ornament (Fashion Accessories) objects.
+    /// </summary>
+    Ornament = 0x0F,
 }

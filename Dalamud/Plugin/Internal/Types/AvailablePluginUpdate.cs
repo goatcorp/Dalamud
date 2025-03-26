@@ -1,3 +1,5 @@
+using Dalamud.Plugin.Internal.Types.Manifest;
+
 namespace Dalamud.Plugin.Internal.Types;
 
 /// <summary>
@@ -32,4 +34,10 @@ internal record AvailablePluginUpdate
     /// Gets a value indicating whether the update should use the testing URL.
     /// </summary>
     public bool UseTesting { get; init; }
+    
+    /// <summary>
+    /// Gets the effective version to use for the update.
+    /// </summary>
+    public Version EffectiveVersion => (this.UseTesting ? this.UpdateManifest.TestingAssemblyVersion : this.UpdateManifest.AssemblyVersion)
+                            ?? throw new Exception("Update manifest does not contain a valid version.");
 }

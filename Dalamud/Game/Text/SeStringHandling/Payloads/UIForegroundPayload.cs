@@ -1,18 +1,20 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Data;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
 /// <summary>
-/// An SeString Payload representing a UI foreground color applied to following text payloads.
+/// An SeString Payload that allows text to have a specific color. The color selected will be determined by the
+/// <see cref="Lumina.Excel.Sheets.UIColor.Dark"/> theme's coloring, regardless of the active theme.
 /// </summary>
 public class UIForegroundPayload : Payload
 {
-    private UIColor color;
-
     [JsonProperty]
     private ushort colorKey;
 
@@ -51,11 +53,8 @@ public class UIForegroundPayload : Payload
     /// <summary>
     /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIForeground.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public UIColor UIColor => this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+    public RowRef<UIColor> UIColor => LuminaUtils.CreateRef<UIColor>(this.colorKey);
 
     /// <summary>
     /// Gets or sets the color key used as a lookup in the UIColor table for this foreground color.
@@ -63,29 +62,31 @@ public class UIForegroundPayload : Payload
     [JsonIgnore]
     public ushort ColorKey
     {
-        get
-        {
-            return this.colorKey;
-        }
+        get => this.colorKey;
 
         set
         {
             this.colorKey = value;
-            this.color = null;
             this.Dirty = true;
         }
     }
 
     /// <summary>
-    /// Gets the Red/Green/Blue values for this foreground color, encoded as a typical hex color.
+    /// Gets the Red/Green/Blue/Alpha values for this foreground color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGB => this.UIColor.UIForeground & 0xFFFFFF;
+    public uint RGBA => this.UIColor.Value.Dark;
+
+    /// <summary>
+    /// Gets the ABGR value for this foreground color, as ImGui requires it in PushColor.
+    /// </summary>
+    [JsonIgnore]
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.Dark);
 
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGB : 0)}";
+        return $"{this.Type} - UIColor: {this.colorKey} color: {(this.IsEnabled ? this.RGBA : 0)}";
     }
 
     /// <inheritdoc/>

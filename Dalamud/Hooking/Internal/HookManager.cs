@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +5,8 @@ using System.Runtime.InteropServices;
 
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Utility;
+
 using Iced.Intel;
 
 namespace Dalamud.Hooking.Internal;
@@ -14,9 +15,12 @@ namespace Dalamud.Hooking.Internal;
 /// This class manages the final disposition of hooks, cleaning up any that have not reverted their changes.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal class HookManager : IDisposable, IServiceType
+internal class HookManager : IInternalDisposableService
 {
-    private static readonly ModuleLog Log = new("HM");
+    /// <summary>
+    /// Logger shared with <see cref="Unhooker"/>.
+    /// </summary>
+    internal static readonly ModuleLog Log = new("HM");
 
     [ServiceManager.ServiceConstructor]
     private HookManager()
@@ -34,21 +38,48 @@ internal class HookManager : IDisposable, IServiceType
     internal static ConcurrentDictionary<Guid, HookInfo> TrackedHooks { get; } = new();
 
     /// <summary>
-    /// Gets a static dictionary of original code for a hooked address.
+    /// Gets a static dictionary of unhookers for a hooked address.
     /// </summary>
-    internal static ConcurrentDictionary<IntPtr, byte[]> Originals { get; } = new();
+    internal static ConcurrentDictionary<IntPtr, Unhooker> Unhookers { get; } = new();
 
     /// <summary>
     /// Gets a static dictionary of the number of hooks on a given address.
     /// </summary>
     internal static ConcurrentDictionary<IntPtr, List<IDalamudHook?>> MultiHookTracker { get; } = new();
 
+    /// <summary>
+    /// Creates a new Unhooker instance for the provided address if no such unhooker was already registered, or returns
+    /// an existing instance if the address was registered previously. By default, the unhooker will restore between 0
+    /// and 0x32 bytes depending on the detected size of the hook. To specify the minimum and maximum bytes restored
+    /// manually, use <see cref="RegisterUnhooker(System.IntPtr, int, int)"/>.
+    /// </summary>
+    /// <param name="address">The address of the instruction.</param>
+    /// <returns>A new Unhooker instance.</returns>
+    public static Unhooker RegisterUnhooker(IntPtr address)
+    {
+        return RegisterUnhooker(address, 0, 0x32);
+    }
+
+    /// <summary>
+    /// Creates a new Unhooker instance for the provided address if no such unhooker was already registered, or returns
+    /// an existing instance if the address was registered previously.
+    /// </summary>
+    /// <param name="address">The address of the instruction.</param>
+    /// <param name="minBytes">The minimum amount of bytes to restore when unhooking.</param>
+    /// <param name="maxBytes">The maximum amount of bytes to restore when unhooking.</param>
+    /// <returns>A new Unhooker instance.</returns>
+    public static Unhooker RegisterUnhooker(IntPtr address, int minBytes, int maxBytes)
+    {
+        Log.Verbose($"Registering hook at {Util.DescribeAddress(address)} (minBytes=0x{minBytes:X}, maxBytes=0x{maxBytes:X})");
+        return Unhookers.GetOrAdd(address, _ => new Unhooker(address, minBytes, maxBytes));
+    }
+
     /// <inheritdoc/>
-    public void Dispose()
+    void IInternalDisposableService.DisposeService()
     {
         RevertHooks();
         TrackedHooks.Clear();
-        Originals.Clear();
+        Unhookers.Clear();
     }
 
     /// <summary>
@@ -60,7 +91,7 @@ internal class HookManager : IDisposable, IServiceType
     {
         while (true)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(address);
+            var hasOtherHooks = HookManager.Unhookers.ContainsKey(address);
             if (hasOtherHooks)
             {
                 // This address has been hooked already. Do not follow a jmp into a trampoline of our own making.
@@ -124,28 +155,11 @@ internal class HookManager : IDisposable, IServiceType
         return address;
     }
 
-    private static unsafe void RevertHooks()
+    private static void RevertHooks()
     {
-        foreach (var (address, originalBytes) in Originals)
+        foreach (var unhooker in Unhookers.Values)
         {
-            var i = 0;
-            var current = (byte*)address;
-            // Find how many bytes have been modified by comparing to the saved original
-            for (; i < originalBytes.Length; i++)
-            {
-                if (current[i] == originalBytes[i])
-                    break;
-            }
-
-            var snippet = originalBytes[0..i];
-
-            if (i > 0)
-            {
-                Log.Verbose($"Reverting hook at 0x{address.ToInt64():X} ({snippet.Length} bytes)");
-                MemoryHelper.ChangePermission(address, i, MemoryProtection.ExecuteReadWrite, out var oldPermissions);
-                MemoryHelper.WriteRaw(address, snippet);
-                MemoryHelper.ChangePermission(address, i, oldPermissions);
-            }
+            unhooker.Unhook();
         }
     }
 }

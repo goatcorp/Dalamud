@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,7 +30,6 @@ public partial class FileDialog
             this.Text = text;
             this.Location = location;
             this.Icon = icon;
-            this.Exists = !this.Location.IsNullOrEmpty() && Directory.Exists(this.Location);
         }
 
         public string Text { get; init; }
@@ -39,8 +37,6 @@ public partial class FileDialog
         public string Location { get; init; }
 
         public FontAwesomeIcon Icon { get; init; }
-
-        public bool Exists { get; init; }
 
         public bool CheckExistence()
             => !this.Location.IsNullOrEmpty() && Directory.Exists(this.Location);

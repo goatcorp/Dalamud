@@ -1,7 +1,5 @@
-using System;
 using System.Reflection;
 
-using Dalamud.Memory;
 using Reloaded.Hooks;
 
 namespace Dalamud.Hooking.Internal;
@@ -25,18 +23,14 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     {
         lock (HookManager.HookEnableSyncRoot)
         {
-            var hasOtherHooks = HookManager.Originals.ContainsKey(this.Address);
-            if (!hasOtherHooks)
-            {
-                MemoryHelper.ReadRaw(this.Address, 0x32, out var original);
-                HookManager.Originals[this.Address] = original;
-            }
-
+            var unhooker = HookManager.RegisterUnhooker(address);
             this.hookImpl = ReloadedHooks.Instance.CreateHook<T>(detour, address.ToInt64());
             this.hookImpl.Activate();
             this.hookImpl.Disable();
 
-            HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, detour, callingAssembly));
+            unhooker.TrimAfterHook();
+
+            HookManager.TrackedHooks.TryAdd(this.HookId, new HookInfo(this, detour, callingAssembly));
         }
     }
 
@@ -68,6 +62,8 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     {
         if (this.IsDisposed)
             return;
+
+        HookManager.TrackedHooks.TryRemove(this.HookId, out _);
 
         this.Disable();
 

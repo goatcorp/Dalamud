@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Dalamud.Interface.Animation.EasingFunctions;
+﻿namespace Dalamud.Interface.Animation.EasingFunctions;
 
 /// <summary>
 /// Class providing an "InElastic" easing animation.
@@ -23,10 +21,10 @@ public class InElastic : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = p == 0
-                         ? 0
-                         : p == 1
-                             ? 1
-                             : -Math.Pow(2, (10 * p) - 10) * Math.Sin(((p * 10) - 10.75) * Constant);
+        this.ValueUnclamped = p == 0
+                             ? 0
+                             : p == 1
+                                 ? 1
+                                 : -Math.Pow(2, (10 * p) - 10) * Math.Sin(((p * 10) - 10.75) * Constant);
     }
 }

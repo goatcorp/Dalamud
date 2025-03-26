@@ -1,6 +1,7 @@
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
@@ -23,8 +24,8 @@ internal class TargetAgingStep : IAgingStep
         switch (this.step)
         {
             case 0:
-                targetManager.ClearTarget();
-                targetManager.ClearFocusTarget();
+                targetManager.Target = null;
+                targetManager.FocusTarget = null;
 
                 this.step++;
 
