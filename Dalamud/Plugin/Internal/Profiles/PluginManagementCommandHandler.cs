@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -216,7 +216,12 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
             
             this.chat.Print(onSuccess);
         }
-            
+
+        if (operation == PluginCommandOperation.Toggle)
+        {
+            operation = plugin.State == PluginState.Loaded ? PluginCommandOperation.Disable : PluginCommandOperation.Enable;
+        }
+
         switch (operation)
         {
             case PluginCommandOperation.Enable:
@@ -233,14 +238,6 @@ internal class PluginManagementCommandHandler : IInternalDisposableService
                     .ContinueWith(t => Continuation(t,
                                       Loc.Localize("PluginCommandsDisableSuccess", "Plugin \"{0}\" disabled.").Format(plugin.Name),
                                       Loc.Localize("PluginCommandsDisableFailed", "Failed to disable plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
-                    .ConfigureAwait(false);
-                break;
-            case PluginCommandOperation.Toggle:
-                this.chat.Print(Loc.Localize("PluginCommandsToggling", "Toggling plugin \"{0}\"...").Format(plugin.Name));
-                Task.Run(() => plugin.State == PluginState.Loaded ? plugin.UnloadAsync() : plugin.LoadAsync(PluginLoadReason.Installer))
-                    .ContinueWith(t => Continuation(t,
-                                      Loc.Localize("PluginCommandsToggleSuccess", "Plugin \"{0}\" toggled.").Format(plugin.Name),
-                                      Loc.Localize("PluginCommandsToggleFailed", "Failed to toggle plugin \"{0}\". Please check the console for errors.").Format(plugin.Name)))
                     .ConfigureAwait(false);
                 break;
             default:

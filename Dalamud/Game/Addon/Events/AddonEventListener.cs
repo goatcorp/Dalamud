@@ -11,9 +11,9 @@ namespace Dalamud.Game.Addon.Events;
 internal unsafe class AddonEventListener : IDisposable
 {
     private ReceiveEventDelegate? receiveEventDelegate;
-    
+
     private AtkEventListener* eventListener;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AddonEventListener"/> class.
     /// </summary>
@@ -24,7 +24,7 @@ internal unsafe class AddonEventListener : IDisposable
 
         this.eventListener = (AtkEventListener*)Marshal.AllocHGlobal(sizeof(AtkEventListener));
         this.eventListener->VirtualTable = (AtkEventListener.AtkEventListenerVirtualTable*)Marshal.AllocHGlobal(sizeof(void*) * 3);
-        this.eventListener->VirtualTable->Dtor = (delegate* unmanaged<AtkEventListener*, byte, void>)(delegate* unmanaged<void>)&NullSub;
+        this.eventListener->VirtualTable->Dtor = (delegate* unmanaged<AtkEventListener*, byte, AtkEventListener*>)(delegate* unmanaged<void>)&NullSub;
         this.eventListener->VirtualTable->ReceiveGlobalEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, AtkEventData*, void>)(delegate* unmanaged<void>)&NullSub;
         this.eventListener->VirtualTable->ReceiveEvent = (delegate* unmanaged<AtkEventListener*, AtkEventType, int, AtkEvent*, AtkEventData*, void>)Marshal.GetFunctionPointerForDelegate(this.receiveEventDelegate);
     }
@@ -38,17 +38,17 @@ internal unsafe class AddonEventListener : IDisposable
     /// <param name="eventPtr">Pointer to the AtkEvent.</param>
     /// <param name="eventDataPtr">Pointer to the AtkEventData.</param>
     public delegate void ReceiveEventDelegate(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventPtr, AtkEventData* eventDataPtr);
-  
+
     /// <summary>
     /// Gets the address of this listener.
     /// </summary>
     public nint Address => (nint)this.eventListener;
-    
+
     /// <inheritdoc />
     public void Dispose()
     {
         if (this.eventListener is null) return;
-        
+
         Marshal.FreeHGlobal((nint)this.eventListener->VirtualTable);
         Marshal.FreeHGlobal((nint)this.eventListener);
 
@@ -88,7 +88,7 @@ internal unsafe class AddonEventListener : IDisposable
             node->RemoveEvent(eventType, param, this.eventListener, false);
         });
     }
-    
+
     [UnmanagedCallersOnly]
     private static void NullSub()
     {

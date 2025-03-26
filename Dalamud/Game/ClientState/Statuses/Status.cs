@@ -42,8 +42,10 @@ public unsafe class Status
 
     /// <summary>
     /// Gets the stack count of this status.
+    /// Only valid if this is a non-food status.
     /// </summary>
-    public byte StackCount => this.Struct->StackCount;
+    [Obsolete($"Replaced with {nameof(Param)}", true)]
+    public byte StackCount => (byte)this.Struct->Param;
 
     /// <summary>
     /// Gets the time remaining of this status.

@@ -8,25 +8,25 @@ public enum Kaeshi : byte
     /// <summary>
     /// No Kaeshi is active.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// Kaeshi: Higanbana type.
     /// </summary>
-    HIGANBANA = 1,
+    Higanbana = 1,
 
     /// <summary>
     /// Kaeshi: Goken type.
     /// </summary>
-    GOKEN = 2,
+    Goken = 2,
 
     /// <summary>
     /// Kaeshi: Setsugekka type.
     /// </summary>
-    SETSUGEKKA = 3,
+    Setsugekka = 3,
 
     /// <summary>
     /// Kaeshi: Namikiri type.
     /// </summary>
-    NAMIKIRI = 4,
+    Namikiri = 4,
 }

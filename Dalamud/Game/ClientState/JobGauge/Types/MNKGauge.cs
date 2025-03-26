@@ -27,7 +27,7 @@ public unsafe class MNKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// Gets the types of Beast Chakra available.
     /// </summary>
     /// <remarks>
-    /// This will always return an array of size 3, inactive Beast Chakra are represented by <see cref="BeastChakra.NONE"/>.
+    /// This will always return an array of size 3, inactive Beast Chakra are represented by <see cref="Enums.BeastChakra.None"/>.
     /// </remarks>
     public BeastChakra[] BeastChakra => this.Struct->BeastChakra.Select(c => (BeastChakra)c).ToArray();
 

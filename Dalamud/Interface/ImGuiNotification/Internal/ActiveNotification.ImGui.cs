@@ -21,8 +21,8 @@ internal sealed partial class ActiveNotification
         var opacity =
             Math.Clamp(
                 (float)(this.hideEasing.IsRunning
-                            ? (this.hideEasing.IsDone || ReducedMotions ? 0 : 1f - this.hideEasing.Value)
-                            : (this.showEasing.IsDone || ReducedMotions ? 1 : this.showEasing.Value)),
+                            ? (this.hideEasing.IsDone || ReducedMotions ? 0 : 1f - this.hideEasing.ValueClamped)
+                            : (this.showEasing.IsDone || ReducedMotions ? 1 : this.showEasing.ValueClamped)),
                 0f,
                 1f);
         if (opacity <= 0)
@@ -106,7 +106,7 @@ internal sealed partial class ActiveNotification
         }
         else if (this.expandoEasing.IsRunning)
         {
-            var easedValue = ReducedMotions ? 1f : (float)this.expandoEasing.Value;
+            var easedValue = ReducedMotions ? 1f : (float)this.expandoEasing.ValueClamped;
             if (this.underlyingNotification.Minimized)
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity * (1f - easedValue));
             else
@@ -295,8 +295,8 @@ internal sealed partial class ActiveNotification
         {
             relativeOpacity =
                 this.underlyingNotification.Minimized
-                    ? 1f - (float)this.expandoEasing.Value
-                    : (float)this.expandoEasing.Value;
+                    ? 1f - (float)this.expandoEasing.ValueClamped
+                    : (float)this.expandoEasing.ValueClamped;
         }
         else
         {
@@ -543,7 +543,7 @@ internal sealed partial class ActiveNotification
         float barL, barR;
         if (this.DismissReason is not null)
         {
-            var v = this.hideEasing.IsDone || ReducedMotions ? 0f : 1f - (float)this.hideEasing.Value;
+            var v = this.hideEasing.IsDone || ReducedMotions ? 0f : 1f - (float)this.hideEasing.ValueClamped;
             var midpoint = (this.prevProgressL + this.prevProgressR) / 2f;
             var length = (this.prevProgressR - this.prevProgressL) / 2f;
             barL = midpoint - (length * v);

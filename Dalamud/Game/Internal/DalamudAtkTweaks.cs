@@ -53,7 +53,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         this.locDalamudSettings = Loc.Localize("SystemMenuSettings", "Dalamud Settings");
 
         // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
-        
+
         this.hookAgentHudOpenSystemMenu.Enable();
         this.hookUiModuleExecuteMainCommand.Enable();
         this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
@@ -180,7 +180,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         // about hooking the exd reader, thank god
         var firstStringEntry = &atkValueArgs[5 + 18];
         firstStringEntry->ChangeType(ValueType.String);
-        
+
         var secondStringEntry = &atkValueArgs[6 + 18];
         secondStringEntry->ChangeType(ValueType.String);
 
@@ -193,7 +193,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
                                         .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
                                         .Append(new UIForegroundPayload(0))
                                         .Append(this.locDalamudSettings).Encode();
-        
+
         firstStringEntry->SetManagedString(strPlugins);
         secondStringEntry->SetManagedString(strSettings);
 

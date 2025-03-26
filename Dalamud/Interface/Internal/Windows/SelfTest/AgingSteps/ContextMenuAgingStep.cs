@@ -110,7 +110,7 @@ internal class ContextMenuAgingStep : IAgingStep
 
         return SelfTestStepResult.Waiting;
     }
-    
+
     /// <inheritdoc/>
     public void CleanUp()
     {
@@ -244,7 +244,7 @@ internal class ContextMenuAgingStep : IAgingStep
                 b.AppendLine($"Container: {item.ContainerType}");
                 b.AppendLine($"Slot: {item.InventorySlot}");
                 b.AppendLine($"Quantity: {item.Quantity}");
-                b.AppendLine($"{(item.IsCollectable ? "Collectability" : "Spiritbond")}: {item.Spiritbond}");
+                b.AppendLine($"{(item.IsCollectable ? "Collectability" : "Spiritbond")}: {item.SpiritbondOrCollectability}");
                 b.AppendLine($"Condition: {item.Condition / 300f:0.00}% ({item.Condition})");
                 b.AppendLine($"Is HQ: {item.IsHq}");
                 b.AppendLine($"Is Company Crest Applied: {item.IsCompanyCrestApplied}");

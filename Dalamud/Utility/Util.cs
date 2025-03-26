@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
@@ -500,55 +499,14 @@ public static class Util
     /// Determine if Dalamud is currently running within a Wine context (e.g. either on macOS or Linux). This method
     /// will not return information about the host operating system.
     /// </summary>
-    /// <returns>Returns true if Wine is detected, false otherwise.</returns>
-    public static bool IsWine()
-    {
-        if (EnvironmentConfiguration.XlWineOnLinux) return true;
-        if (Environment.GetEnvironmentVariable("XL_PLATFORM") is not null and not "Windows") return true;
-
-        var ntdll = NativeFunctions.GetModuleHandleW("ntdll.dll");
-
-        // Test to see if any Wine specific exports exist. If they do, then we are running on Wine.
-        // The exports "wine_get_version", "wine_get_build_id", and "wine_get_host_version" will tend to be hidden
-        // by most Linux users (else FFXIV will want a macOS license), so we will additionally check some lesser-known
-        // exports as well.
-        return AnyProcExists(
-            ntdll,
-            "wine_get_version",
-            "wine_get_build_id",
-            "wine_get_host_version",
-            "wine_server_call",
-            "wine_unix_to_nt_file_name");
-
-        bool AnyProcExists(nint handle, params string[] procs) =>
-            procs.Any(p => NativeFunctions.GetProcAddress(handle, p) != nint.Zero);
-    }
+    /// <returns>Returns true if running on Wine, false otherwise.</returns>
+    public static bool IsWine() => Service<Dalamud>.Get().StartInfo.Platform != OSPlatform.Windows;
 
     /// <summary>
-    /// Gets the best guess for the current host's platform based on the <c>XL_PLATFORM</c> environment variable or
-    /// heuristics.
+    /// Gets the current host's platform based on the injector launch arguments or heuristics.
     /// </summary>
-    /// <remarks>
-    /// macOS users running without <c>XL_PLATFORM</c> being set will be reported as Linux users. Due to the way our
-    /// Wines work, there isn't a great (consistent) way to split the two apart if we're not told.
-    /// </remarks>
     /// <returns>Returns the <see cref="OSPlatform"/> that Dalamud is currently running on.</returns>
-    public static OSPlatform GetHostPlatform()
-    {
-        switch (Environment.GetEnvironmentVariable("XL_PLATFORM"))
-        {
-            case "Windows": return OSPlatform.Windows;
-            case "MacOS": return OSPlatform.OSX;
-            case "Linux": return OSPlatform.Linux;
-        }
-
-        // n.b. we had some fancy code here to check if the Wine host version returned "Darwin" but apparently
-        // *all* our Wines report Darwin if exports aren't hidden. As such, it is effectively impossible (without some
-        // (very cursed and inaccurate heuristics) to determine if we're on macOS or Linux unless we're explicitly told
-        // by our launcher. See commit a7aacb15e4603a367e2f980578271a9a639d8852 for the old check.
-
-        return IsWine() ? OSPlatform.Linux : OSPlatform.Windows;
-    }
+    public static OSPlatform GetHostPlatform() => Service<Dalamud>.Get().StartInfo.Platform;
 
     /// <summary>
     /// Heuristically determine if the Windows version is higher than Windows 11's first build.

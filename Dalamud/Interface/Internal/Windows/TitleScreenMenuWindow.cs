@@ -223,7 +223,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
                     moveEasing.Update();
 
                     var finalPos = (i + 1) * this.shadeTexture.Value.Height * scale;
-                    var pos = moveEasing.Value * finalPos;
+                    var pos = moveEasing.ValueClamped * finalPos;
 
                     // FIXME(goat): Sometimes, easings can overshoot and bring things out of alignment.
                     if (moveEasing.IsDone)
@@ -270,7 +270,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
                 this.fadeOutEasing.Update();
 
-                using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)Math.Max(this.fadeOutEasing.Value, 0)))
+                using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)this.fadeOutEasing.ValueClamped))
                 {
                     var i = 0;
                     foreach (var entry in entries)
@@ -353,7 +353,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         var initialCursor = ImGui.GetCursorPos();
 
-        using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)shadeEasing.Value))
+        using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)shadeEasing.ValueClamped))
         {
             var texture = this.shadeTexture.Value;
             ImGui.Image(texture.ImGuiHandle, new Vector2(texture.Width, texture.Height) * scale);
@@ -403,7 +403,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         if (overrideAlpha)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, isFirst ? 1f : (float)logoEasing.Value);
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, isFirst ? 1f : (float)logoEasing.ValueClamped);
         }
         else if (isFirst)
         {
@@ -430,7 +430,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         if (overrideAlpha)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, showText ? (float)Math.Min(logoEasing.Value, 1) : 0f);
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, showText ? (float)logoEasing.ValueClamped : 0f);
         }
 
         // Drop shadow
@@ -480,7 +480,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         textNode->TextFlags |= (byte)TextFlags.MultiLine;
         textNode->AlignmentType = AlignmentType.TopLeft;
 
-        var containsDalamudVersionString = textNode->OriginalTextPointer == textNode->NodeText.StringPtr;
+        var containsDalamudVersionString = textNode->OriginalTextPointer.Value == textNode->NodeText.StringPtr.Value;
         if (!this.configuration.ShowTsm || !this.showTsm.Value)
         {
             if (containsDalamudVersionString)
@@ -498,7 +498,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.lastLoadedPluginCount = count;
 
         var lssb = LSeStringBuilder.SharedPool.Get();
-        lssb.Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String)).Append("\n\n");
+        lssb.Append(new ReadOnlySeStringSpan(addon->AtkValues[1].String.Value)).Append("\n\n");
         lssb.PushEdgeColorType(701).PushColorType(539)
             .Append(SeIconChar.BoxedLetterD.ToIconChar())
             .PopColorType().PopEdgeColorType();

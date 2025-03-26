@@ -219,7 +219,7 @@ internal class InventoryWidget : IDataWindowWidget
 
                 if (!this.IsEventItem(item.ItemId))
                 {
-                    AddKeyValueRow(item.IsCollectable ? "Collectability" : "Spiritbond", item.Spiritbond.ToString());
+                    AddKeyValueRow(item.IsCollectable ? "Collectability" : "Spiritbond", item.SpiritbondOrCollectability.ToString());
 
                     if (item.CrafterContentId != 0)
                         AddKeyValueRow("CrafterContentId", item.CrafterContentId.ToString());
@@ -380,7 +380,7 @@ internal class InventoryWidget : IDataWindowWidget
 
         var rowId = this.GetItemRarityColorType(item, isEdgeColor);
         return this.dataManager.Excel.GetSheet<UIColor>().TryGetRow(rowId, out var color)
-            ? BinaryPrimitives.ReverseEndianness(color.UIForeground) | 0xFF000000
+            ? BinaryPrimitives.ReverseEndianness(color.Dark) | 0xFF000000
             : 0xFFFFFFFF;
     }
 

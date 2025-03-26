@@ -8,20 +8,20 @@ public enum Song : byte
     /// <summary>
     /// No song is active type.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// Mage's Ballad type.
     /// </summary>
-    MAGE = 1,
+    Mage = 1,
 
     /// <summary>
     /// Army's Paeon type.
     /// </summary>
-    ARMY = 2,
+    Army = 2,
 
     /// <summary>
     /// The Wanderer's Minuet type.
     /// </summary>
-    WANDERER = 3,
+    Wanderer = 3,
 }
