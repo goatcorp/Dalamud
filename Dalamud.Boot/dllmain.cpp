@@ -117,7 +117,6 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     const auto result = InitializeClrAndGetEntryPoint(
         g_hModule,
         g_startInfo.BootEnableEtw,
-        false, // !g_startInfo.BootDisableLegacyCorruptedStateExceptions,
         runtimeconfig_path,
         module_path,
         L"Dalamud.EntryPoint, Dalamud",
