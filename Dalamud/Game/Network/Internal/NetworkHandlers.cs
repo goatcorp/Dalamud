@@ -565,7 +565,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         return this.configuration.IsMbCollect;
     }
 
-    private void MarketPurchasePacketDetour(PacketDispatcher* a1, nint packetData)
+    private void MarketPurchasePacketDetour(uint targetId, nint packetData)
     {
         try
         {
@@ -576,7 +576,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Error(ex, "MarketPurchasePacketHandler threw an exception");
         }
 
-        this.mbPurchaseHook.OriginalDisposeSafe(a1, packetData);
+        this.mbPurchaseHook.OriginalDisposeSafe(targetId, packetData);
     }
 
     private void MarketHistoryPacketDetour(InfoProxyItemSearch* a1, nint packetData)
@@ -609,7 +609,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
         this.customTalkHook.OriginalDisposeSafe(a1, eventId, responseId, args, argCount);
     }
 
-    private void MarketItemRequestStartDetour(PacketDispatcher* a1, nint packetRef)
+    private void MarketItemRequestStartDetour(uint targetId, nint packetRef)
     {
         try
         {
@@ -620,7 +620,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
             Log.Error(ex, "MarketItemRequestStartDetour threw an exception");
         }
 
-        this.mbItemRequestStartHook.OriginalDisposeSafe(a1, packetRef);
+        this.mbItemRequestStartHook.OriginalDisposeSafe(targetId, packetRef);
     }
 
     private void MarketBoardOfferingsDetour(InfoProxyItemSearch* a1, nint packetRef)

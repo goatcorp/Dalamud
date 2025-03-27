@@ -38,6 +38,13 @@ public enum UiConfigOption
     BattleEffectPvPEnemyPc,
 
     /// <summary>
+    /// UiConfig option with the internal name PadMode.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("PadMode", ConfigType.UInt)]
+    PadMode,
+
+    /// <summary>
     /// UiConfig option with the internal name WeaponAutoPutAway.
     /// This option is a UInt.
     /// </summary>
@@ -113,14 +120,6 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("LockonDefaultZoom", ConfigType.Float)]
     LockonDefaultZoom,
-
-    /// <summary>
-    /// UiConfig option with the internal name LockonDefaultZoom_179.
-    /// This option is a Float.
-    /// </summary>
-    [Obsolete("This option won't work. Use LockonDefaultZoom.", true)]
-    [GameConfigOption("LockonDefaultZoom_179", ConfigType.Float)]
-    LockonDefaultZoom_179,
 
     /// <summary>
     /// UiConfig option with the internal name CameraProductionOfAction.
@@ -310,6 +309,27 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("RightClickExclusionMinion", ConfigType.UInt)]
     RightClickExclusionMinion,
+
+    /// <summary>
+    /// UiConfig option with the internal name EnableMoveTiltCharacter.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("EnableMoveTiltCharacter", ConfigType.UInt)]
+    EnableMoveTiltCharacter,
+
+    /// <summary>
+    /// UiConfig option with the internal name EnableMoveTiltMountGround.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("EnableMoveTiltMountGround", ConfigType.UInt)]
+    EnableMoveTiltMountGround,
+
+    /// <summary>
+    /// UiConfig option with the internal name EnableMoveTiltMountFly.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("EnableMoveTiltMountFly", ConfigType.UInt)]
+    EnableMoveTiltMountFly,
 
     /// <summary>
     /// UiConfig option with the internal name TurnSpeed.
@@ -1129,6 +1149,27 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("HotbarXHBEditEnable", ConfigType.UInt)]
     HotbarXHBEditEnable,
+
+    /// <summary>
+    /// UiConfig option with the internal name HotbarContentsAction2ReverseOperation.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("HotbarContentsAction2ReverseOperation", ConfigType.UInt)]
+    HotbarContentsAction2ReverseOperation,
+
+    /// <summary>
+    /// UiConfig option with the internal name HotbarContentsAction2ReturnInitialSlot.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("HotbarContentsAction2ReturnInitialSlot", ConfigType.UInt)]
+    HotbarContentsAction2ReturnInitialSlot,
+
+    /// <summary>
+    /// UiConfig option with the internal name HotbarContentsAction2ReverseRotate.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("HotbarContentsAction2ReverseRotate", ConfigType.UInt)]
+    HotbarContentsAction2ReverseRotate,
 
     /// <summary>
     /// UiConfig option with the internal name PlateType.
@@ -3572,32 +3613,4 @@ public enum UiConfigOption
     /// </summary>
     [GameConfigOption("PvPFrontlinesGCFree", ConfigType.UInt)]
     PvPFrontlinesGCFree,
-
-    /// <summary>
-    /// UiConfig option with the internal name PadMode.
-    /// This option is a UInt.
-    /// </summary>
-    [GameConfigOption("PadMode", ConfigType.UInt)]
-    PadMode,
-
-    /// <summary>
-    /// UiConfig option with the internal name EnableMoveTiltCharacter.
-    /// This option is a UInt.
-    /// </summary>
-    [GameConfigOption("EnableMoveTiltCharacter", ConfigType.UInt)]
-    EnableMoveTiltCharacter,
-
-    /// <summary>
-    /// UiConfig option with the internal name EnableMoveTiltMountGround.
-    /// This option is a UInt.
-    /// </summary>
-    [GameConfigOption("EnableMoveTiltMountGround", ConfigType.UInt)]
-    EnableMoveTiltMountGround,
-
-    /// <summary>
-    /// UiConfig option with the internal name EnableMoveTiltMountFly.
-    /// This option is a UInt.
-    /// </summary>
-    [GameConfigOption("EnableMoveTiltMountFly", ConfigType.UInt)]
-    EnableMoveTiltMountFly,
 }

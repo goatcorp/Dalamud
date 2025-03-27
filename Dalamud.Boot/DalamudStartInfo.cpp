@@ -109,6 +109,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.PluginDirectory = json.value("PluginDirectory", config.PluginDirectory);
     config.AssetDirectory = json.value("AssetDirectory", config.AssetDirectory);
     config.Language = json.value("Language", config.Language);
+    config.Platform = json.value("Platform", config.Platform);
     config.GameVersion = json.value("GameVersion", config.GameVersion);
     config.TroubleshootingPackData = json.value("TroubleshootingPackData", std::string{});
     config.DelayInitializeMs = json.value("DelayInitializeMs", config.DelayInitializeMs);
@@ -123,6 +124,7 @@ void from_json(const nlohmann::json& json, DalamudStartInfo& config) {
     config.BootVehEnabled = json.value("BootVehEnabled", config.BootVehEnabled);
     config.BootVehFull = json.value("BootVehFull", config.BootVehFull);
     config.BootEnableEtw = json.value("BootEnableEtw", config.BootEnableEtw);
+    config.BootDisableLegacyCorruptedStateExceptions = json.value("BootDisableLegacyCorruptedStateExceptions", config.BootDisableLegacyCorruptedStateExceptions);
     config.BootDotnetOpenProcessHookMode = json.value("BootDotnetOpenProcessHookMode", config.BootDotnetOpenProcessHookMode);
     if (const auto it = json.find("BootEnabledGameFixes"); it != json.end() && it->is_array()) {
         config.BootEnabledGameFixes.clear();
@@ -148,6 +150,7 @@ void DalamudStartInfo::from_envvars() {
     BootVehEnabled = utils::get_env<bool>(L"DALAMUD_IS_VEH");
     BootVehFull = utils::get_env<bool>(L"DALAMUD_IS_VEH_FULL");
     BootEnableEtw = utils::get_env<bool>(L"DALAMUD_ENABLE_ETW");
+    BootDisableLegacyCorruptedStateExceptions = utils::get_env<bool>(L"DALAMUD_DISABLE_LEGACY_CORRUPTED_STATE_EXCEPTIONS");
     BootDotnetOpenProcessHookMode = static_cast<DotNetOpenProcessHookMode>(utils::get_env<int>(L"DALAMUD_DOTNET_OPENPROCESS_HOOKMODE"));
     for (const auto& item : utils::get_env_list<std::string>(L"DALAMUD_GAMEFIX_LIST"))
         BootEnabledGameFixes.insert(unicode::convert<std::string>(item, &unicode::lower));

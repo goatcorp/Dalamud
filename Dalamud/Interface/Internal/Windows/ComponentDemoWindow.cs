@@ -147,7 +147,7 @@ internal sealed class ComponentDemoWindow : Window
             ImGui.Bullet();
 
             ImGui.SetCursorPos(cursor + new Vector2(0, 10));
-            ImGui.Text($"{easing.GetType().Name} ({easing.Value})");
+            ImGui.Text($"{easing.GetType().Name} ({easing.ValueClamped})");
             ImGuiHelpers.ScaledDummy(5);
         }
     }

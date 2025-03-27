@@ -93,34 +93,34 @@ internal class UiColorWidget : IDataWindowWidget
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_col1");
-                if (this.DrawColorColumn(row.UIForeground) &&
+                ImGui.PushID($"row{id}_dark");
+                if (this.DrawColorColumn(row.Dark) &&
                     adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.UIForeground, adjacentRow.Value.UIForeground);
+                    DrawEdgePreview(id, row.Dark, adjacentRow.Value.Dark);
                 ImGui.PopID();
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_col2");
-                if (this.DrawColorColumn(row.UIGlow) &&
+                ImGui.PushID($"row{id}_light");
+                if (this.DrawColorColumn(row.Light) &&
                     adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.UIGlow, adjacentRow.Value.UIGlow);
+                    DrawEdgePreview(id, row.Light, adjacentRow.Value.Light);
                 ImGui.PopID();
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_col3");
-                if (this.DrawColorColumn(row.Unknown0) &&
+                ImGui.PushID($"row{id}_classic");
+                if (this.DrawColorColumn(row.ClassicFF) &&
                     adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.Unknown0, adjacentRow.Value.Unknown0);
+                    DrawEdgePreview(id, row.ClassicFF, adjacentRow.Value.ClassicFF);
                 ImGui.PopID();
 
                 ImGui.TableNextColumn();
                 ImGui.AlignTextToFramePadding();
-                ImGui.PushID($"row{id}_col4");
-                if (this.DrawColorColumn(row.Unknown1) &&
+                ImGui.PushID($"row{id}_blue");
+                if (this.DrawColorColumn(row.ClearBlue) &&
                     adjacentRow.HasValue)
-                    DrawEdgePreview(id, row.Unknown1, adjacentRow.Value.Unknown1);
+                    DrawEdgePreview(id, row.ClearBlue, adjacentRow.Value.ClearBlue);
                 ImGui.PopID();
             }
         }

@@ -10,7 +10,8 @@ using Newtonsoft.Json;
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
 /// <summary>
-/// An SeString Payload representing a UI glow color applied to following text payloads.
+/// An SeString Payload that allows text to have a specific edge glow. The color selected will be determined by the
+/// <see cref="Lumina.Excel.Sheets.UIColor.Light"/> theme's coloring, regardless of the active theme.
 /// </summary>
 public class UIGlowPayload : Payload
 {
@@ -71,13 +72,13 @@ public class UIGlowPayload : Payload
     /// Gets the Red/Green/Blue/Alpha values for this glow color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGBA => this.UIColor.Value.UIGlow;
+    public uint RGBA => this.UIColor.Value.Light;
 
     /// <summary>
     /// Gets the ABGR value for this glow color, as ImGui requires it in PushColor.
     /// </summary>
     [JsonIgnore]
-    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.UIGlow);
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.Light);
 
     /// <summary>
     /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIGlow.

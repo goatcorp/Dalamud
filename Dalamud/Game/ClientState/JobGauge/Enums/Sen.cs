@@ -9,20 +9,20 @@ public enum Sen : byte
     /// <summary>
     /// No Sen.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// Setsu Sen type.
     /// </summary>
-    SETSU = 1 << 0,
+    Setsu = 1 << 0,
 
     /// <summary>
     /// Getsu Sen type.
     /// </summary>
-    GETSU = 1 << 1,
+    Getsu = 1 << 1,
 
     /// <summary>
     /// Ka Sen type.
     /// </summary>
-    KA = 1 << 2,
+    Ka = 1 << 2,
 }

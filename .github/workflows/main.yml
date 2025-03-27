@@ -23,7 +23,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
       - uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.100'
+          dotnet-version: '9.0.200'
       - name: Define VERSION
         run: |
           $env:COMMIT = $env:GITHUB_SHA.Substring(0, 7)

@@ -89,7 +89,7 @@ internal unsafe partial class TextNodeTree : ResNodeTree
             var seStringBytes = new byte[utf8String.BufUsed];
             for (var i = 0L; i < utf8String.BufUsed; i++)
             {
-                seStringBytes[i] = utf8String.StringPtr[i];
+                seStringBytes[i] = utf8String.StringPtr.Value[i];
             }
 
             var seString = SeString.Parse(seStringBytes);

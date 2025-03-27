@@ -25,12 +25,6 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
     public IntPtr ProcessPacketPlayerSetup { get; private set; }
 
     /// <summary>
-    /// Gets the address of the method which polls the gamepads for data.
-    /// Called every frame, even when `Enable Gamepad` is off in the settings.
-    /// </summary>
-    public IntPtr GamepadPoll { get; private set; }
-
-    /// <summary>
     /// Scan for and setup any configured address pointers.
     /// </summary>
     /// <param name="sig">The signature scanner to facilitate setup.</param>
@@ -43,7 +37,5 @@ internal sealed class ClientStateAddressResolver : BaseAddressResolver
         // movzx edx, byte ptr [rbx+rsi+1D5E0E0h] KeyboardStateIndexArray
         this.KeyboardState = sig.ScanText("48 8D 0C 85 ?? ?? ?? ?? 8B 04 31 85 C2 0F 85") + 0x4;
         this.KeyboardStateIndexArray = sig.ScanText("0F B6 94 33 ?? ?? ?? ?? 84 D2") + 0x4;
-
-        this.GamepadPoll = sig.ScanText("40 55 53 57 41 54 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 44 0F 29 B4 24");  // unnamed in cs
     }
 }

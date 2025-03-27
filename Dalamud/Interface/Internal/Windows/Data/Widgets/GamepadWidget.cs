@@ -12,9 +12,9 @@ internal class GamepadWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "gamepad", "controller" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Gamepad"; 
+    public string DisplayName { get; init; } = "Gamepad";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -42,24 +42,24 @@ internal class GamepadWidget : IDataWindowWidget
 
         this.DrawHelper(
             "Buttons Raw",
-            gamepadState.ButtonsRaw,
+            (uint)gamepadState.ButtonsRaw,
             gamepadState.Raw);
         this.DrawHelper(
             "Buttons Pressed",
-            gamepadState.ButtonsPressed,
+            (uint)gamepadState.ButtonsPressed,
             gamepadState.Pressed);
         this.DrawHelper(
             "Buttons Repeat",
-            gamepadState.ButtonsRepeat,
+            (uint)gamepadState.ButtonsRepeat,
             gamepadState.Repeat);
         this.DrawHelper(
             "Buttons Released",
-            gamepadState.ButtonsReleased,
+            (uint)gamepadState.ButtonsReleased,
             gamepadState.Released);
         ImGui.Text($"LeftStick {gamepadState.LeftStick}");
         ImGui.Text($"RightStick {gamepadState.RightStick}");
     }
-    
+
     private void DrawHelper(string text, uint mask, Func<GamepadButtons, float> resolve)
     {
         ImGui.Text($"{text} {mask:X4}");
