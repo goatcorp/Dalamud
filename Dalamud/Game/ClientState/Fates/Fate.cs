@@ -249,5 +249,5 @@ internal unsafe partial class Fate : IFate
     /// <summary>
     /// Gets the territory this <see cref="Fate"/> is located in.
     /// </summary>
-    public RowRef<Lumina.Excel.Sheets.TerritoryType> TerritoryType => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->TerritoryId);
+    public RowRef<Lumina.Excel.Sheets.TerritoryType> TerritoryType => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->MapMarkers[0].TerritoryId);
 }
