@@ -20,11 +20,6 @@ public unsafe class BLMGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     public short EnochianTimer => this.Struct->EnochianTimer;
 
     /// <summary>
-    /// Gets the time remaining for Astral Fire or Umbral Ice in milliseconds.
-    /// </summary>
-    public short ElementTimeRemaining => this.Struct->ElementTimeRemaining;
-
-    /// <summary>
     /// Gets the number of Polyglot stacks remaining.
     /// </summary>
     public byte PolyglotStacks => this.Struct->PolyglotStacks;
