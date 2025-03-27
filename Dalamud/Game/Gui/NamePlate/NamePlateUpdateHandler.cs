@@ -7,6 +7,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.SeStringHandling;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Gui.NamePlate;
@@ -503,7 +504,7 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     private AddonNamePlate.NamePlateObject* NamePlateObject =>
         &this.context.Addon->NamePlateObjectArray[this.NamePlateIndex];
 
-    private AddonNamePlate.AddonNamePlateNumberArray.NamePlateObjectIntArrayData* ObjectData =>
+    private NamePlateNumberArray.NamePlateObjectIntArrayData* ObjectData =>
         this.context.NumberStruct->ObjectData.GetPointer(this.ArrayIndex);
 
     /// <inheritdoc/>
