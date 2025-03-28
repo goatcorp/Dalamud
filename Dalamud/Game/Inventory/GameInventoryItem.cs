@@ -120,15 +120,10 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
             if (ItemUtil.IsEventItem(baseItemId) || this.IsMateriaUsedForDate)
                 return [];
 
-            var dataManager = Service<DataManager>.Get();
+            Span<ushort> materiaIds = new ushort[this.InternalItem.Materia.Length];
+            var materiaRowCount = Service<DataManager>.Get().GetExcelSheet<Materia>().Count;
 
-            if (!dataManager.GetExcelSheet<Item>().TryGetRow(baseItemId, out var item) || item.MateriaSlotCount == 0)
-                return [];
-
-            Span<ushort> materiaIds = new ushort[item.MateriaSlotCount];
-            var materiaRowCount = dataManager.GetExcelSheet<Materia>().Count;
-
-            for (byte i = 0; i < item.MateriaSlotCount; i++)
+            for (byte i = 0; i < this.InternalItem.Materia.Length; i++)
             {
                 var materiaId = this.InternalItem.GetMateriaId(i);
                 if (materiaId < materiaRowCount)
@@ -151,15 +146,10 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
             if (ItemUtil.IsEventItem(baseItemId) || this.IsMateriaUsedForDate)
                 return [];
 
-            var dataManager = Service<DataManager>.Get();
+            Span<byte> materiaGrades = new byte[this.InternalItem.MateriaGrades.Length];
+            var materiaGradeRowCount = Service<DataManager>.Get().GetExcelSheet<MateriaGrade>().Count;
 
-            if (!dataManager.GetExcelSheet<Item>().TryGetRow(baseItemId, out var item) || item.MateriaSlotCount == 0)
-                return [];
-
-            Span<byte> materiaGrades = new byte[item.MateriaSlotCount];
-            var materiaGradeRowCount = dataManager.GetExcelSheet<MateriaGrade>().Count;
-
-            for (byte i = 0; i < item.MateriaSlotCount; i++)
+            for (byte i = 0; i < this.InternalItem.MateriaGrades.Length; i++)
             {
                 var materiaGrade = this.InternalItem.GetMateriaGrade(i);
                 if (materiaGrade < materiaGradeRowCount)
