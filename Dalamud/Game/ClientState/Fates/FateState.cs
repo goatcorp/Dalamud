@@ -8,25 +8,25 @@ public enum FateState : byte
     /// <summary>
     /// The Fate is active.
     /// </summary>
-    Running = 0x02,
+    Running = 0x04,
 
     /// <summary>
     /// The Fate has ended.
     /// </summary>
-    Ended = 0x04,
+    Ended = 0x07,
 
     /// <summary>
     /// The player failed the Fate.
     /// </summary>
-    Failed = 0x05,
+    Failed = 0x08,
 
     /// <summary>
     /// The Fate is preparing to run.
     /// </summary>
-    Preparation = 0x07,
+    Preparation = 0x03,
 
     /// <summary>
     /// The Fate is preparing to end.
     /// </summary>
-    WaitingForEnd = 0x08,
+    WaitingForEnd = 0x05,
 }
