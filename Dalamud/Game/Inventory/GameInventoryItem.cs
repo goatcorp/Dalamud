@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -86,7 +87,8 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets the repair condition of this item.
     /// </summary>
-    public uint Condition => this.InternalItem.GetCondition(); // Note: This will be the Breeding Capacity of Race Chocobos
+    public uint Condition =>
+        this.InternalItem.GetCondition(); // Note: This will be the Breeding Capacity of Race Chocobos
 
     /// <summary>
     /// Gets a value indicating whether the item is High Quality.
@@ -96,7 +98,8 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// <summary>
     /// Gets a value indicating whether the  item has a company crest applied.
     /// </summary>
-    public bool IsCompanyCrestApplied => this.InternalItem.GetFlags().HasFlag(InventoryItem.ItemFlags.CompanyCrestApplied);
+    public bool IsCompanyCrestApplied =>
+        this.InternalItem.GetFlags().HasFlag(InventoryItem.ItemFlags.CompanyCrestApplied);
 
     /// <summary>
     /// Gets a value indicating whether the item is a relic.
@@ -157,6 +160,28 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
             }
 
             return materiaGrades;
+        }
+    }
+
+    /// <summary>
+    /// Gets a list of Materia entries for this item. Includes the Materia and Grade information.
+    /// </summary>
+    public IReadOnlyList<MateriaEntry> MateriaEntries
+    {
+        get
+        {
+            if (ItemUtil.IsEventItem(this.BaseItemId) || this.IsMateriaUsedForDate)
+                return [];
+
+            var result = new List<MateriaEntry>();
+            for (byte i = 0; i < this.InternalItem.GetMateriaCount(); i++)
+            {
+                var entry = new MateriaEntry(this.InternalItem.GetMateriaId(i), this.InternalItem.GetMateriaGrade(i));
+                if (entry.IsValid())
+                    result.Add(entry);
+            }
+
+            return result;
         }
     }
 
@@ -230,17 +255,17 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
     /// Gets a value indicating whether the Materia fields are used to store a date.
     /// </summary>
     private bool IsMateriaUsedForDate => this.BaseItemId
-                // Race Chocobo related items
-                is 9560 // Proof of Covering
+                                             // Race Chocobo related items
+                                             is 9560 // Proof of Covering
 
-                // Wedding related items
-                or 8575 // Eternity Ring
-                or 8693 // Promise of Innocence
-                or 8694 // Promise of Passion
-                or 8695 // Promise of Devotion
-                or 8696 // (Unknown/unused)
-                or 8698 // Blank Invitation
-                or 8699; // Ceremony Invitation
+                                             // Wedding related items
+                                             or 8575 // Eternity Ring
+                                             or 8693 // Promise of Innocence
+                                             or 8694 // Promise of Passion
+                                             or 8695 // Promise of Devotion
+                                             or 8696 // (Unknown/unused)
+                                             or 8698 // Blank Invitation
+                                             or 8699; // Ceremony Invitation
 
     public static bool operator ==(in GameInventoryItem l, in GameInventoryItem r) => l.Equals(r);
 
@@ -295,5 +320,58 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
         if (inventory is null) return default;
 
         return new ReadOnlySpan<GameInventoryItem>(inventory->Items, (int)inventory->Size);
+    }
+
+    /// <summary>
+    /// A class for holding materia entries.
+    /// </summary>
+    public record MateriaEntry
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MateriaEntry"/> class.
+        /// </summary>
+        /// <param name="id">The ID of this materia entry.</param>
+        /// <param name="grade">The grade of this materia entry.</param>
+        public MateriaEntry(ushort id, byte grade)
+        {
+            this.TypeId = id;
+            this.Grade = grade;
+        }
+
+        /// <summary>
+        /// Gets the raw ID of this materia.
+        /// </summary>
+        public ushort TypeId { get; }
+
+        /// <summary>
+        /// Gets the grade for this materia. Will be zero-indexed (e.g. value 0 is Materia I, value 1 is Materia II, etc).
+        /// </summary>
+        public byte Grade { get; }
+
+        /// <summary>
+        /// Gets the grade for this materia, but with a convenient automatic +1 added to it.
+        /// </summary>
+        public byte FriendlyGrade => (byte)(this.Grade + 1);
+
+        /// <summary>
+        /// Gets the Lumina row for this Materia.
+        /// </summary>
+        public Materia Type => Service<DataManager>.Get().GetExcelSheet<Materia>().GetRow(this.TypeId);
+
+        /// <summary>
+        /// Gets the Lumina row for this Materia's grade.
+        /// </summary>
+        public MateriaGrade GradeEntry => Service<DataManager>.Get().GetExcelSheet<MateriaGrade>().GetRow(this.Grade);
+
+        /// <summary>
+        /// Checks if this MateriaEntry is valid.
+        /// </summary>
+        /// <returns>True if valid, false otherwise.</returns>
+        internal bool IsValid()
+        {
+            var materiaSheet = Service<DataManager>.Get().GetExcelSheet<Materia>();
+            var materiaGradeSheet = Service<DataManager>.Get().GetExcelSheet<MateriaGrade>();
+            return materiaSheet.HasRow(this.TypeId) && materiaGradeSheet.HasRow(this.Grade);
+        }
     }
 }
