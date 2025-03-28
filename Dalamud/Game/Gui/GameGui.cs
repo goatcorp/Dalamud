@@ -307,15 +307,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (values != null && valueCount == 1 && values->Int == -1)
         {
             this.HoveredItem = 0;
-
-            try
-            {
-                this.HoveredItemChanged?.Invoke(this, 0);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Could not dispatch HoveredItemChanged event.");
-            }
+            this.HoveredItemChanged?.InvokeSafely(this, 0ul);
 
             Log.Verbose("HoveredItem changed: 0");
         }
@@ -347,15 +339,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
                 this.HoveredAction.ActionKind = HoverActionKind.None;
                 this.HoveredAction.BaseActionID = 0;
                 this.HoveredAction.ActionID = 0;
-
-                try
-                {
-                    this.HoveredActionChanged?.Invoke(this, this.HoveredAction);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "Could not dispatch HoveredActionChanged event.");
-                }
+                this.HoveredActionChanged?.InvokeSafely(this, this.HoveredAction);
 
                 Log.Verbose("HoverActionId: 0");
             }
