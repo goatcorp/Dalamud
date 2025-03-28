@@ -120,9 +120,7 @@ internal class GameInventory : IInternalDisposableService
                 continue;
 
             // Assumption: newItems is sorted by slots, and the last item has the highest slot number.
-            var oldItems = this.inventoryItems[i] ??= new GameInventoryItem[newItems[^1].InternalItem.Slot + 1];
-            if (this.inventoryItems[i] == null)
-                oldItems.Initialize();
+            var oldItems = this.inventoryItems[i] ??= this.CreateItemsArray(newItems[^1].InternalItem.Slot + 1);
 
             foreach (ref readonly var newItem in newItems)
             {
@@ -312,6 +310,13 @@ internal class GameInventory : IInternalDisposableService
         this.movedEvents.Clear();
         this.splitEvents.Clear();
         this.mergedEvents.Clear();
+    }
+
+    private GameInventoryItem[] CreateItemsArray(int length)
+    {
+        var items = new GameInventoryItem[length];
+        items.Initialize();
+        return items;
     }
 
     private unsafe void RaptureAtkModuleUpdateDetour(RaptureAtkModule* ram, float f1)
