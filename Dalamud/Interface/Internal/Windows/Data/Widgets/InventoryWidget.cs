@@ -9,6 +9,7 @@ using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 
@@ -145,11 +146,8 @@ internal class InventoryWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Item
             if (item.ItemId != 0 && item.Quantity != 0)
             {
-                var itemName = this.GetItemName(item.ItemId);
+                var itemName = ItemUtil.GetItemName(item.ItemId).ExtractText();
                 var iconId = this.GetItemIconId(item.ItemId);
-
-                if (item.IsHq)
-                    itemName += " " + SeIconChar.HighQuality.ToIconString();
 
                 if (this.textureManager.Shared.TryGetFromGameIcon(new GameIconLookup(iconId, item.IsHq), out var tex) && tex.TryGetWrap(out var texture, out _))
                 {
@@ -217,7 +215,7 @@ internal class InventoryWidget : IDataWindowWidget
                 AddKeyValueRow("Quantity", item.Quantity.ToString());
                 AddKeyValueRow("GlamourId", item.GlamourId.ToString());
 
-                if (!this.IsEventItem(item.ItemId))
+                if (!ItemUtil.IsEventItem(item.ItemId))
                 {
                     AddKeyValueRow(item.IsCollectable ? "Collectability" : "Spiritbond", item.SpiritbondOrCollectability.ToString());
 
@@ -261,9 +259,9 @@ internal class InventoryWidget : IDataWindowWidget
 
                 AddKeyValueRow("Flags", flagsBuilder.ToString());
 
-                if (this.IsNormalItem(item.ItemId) && this.dataManager.Excel.GetSheet<Item>().TryGetRow(item.ItemId, out var itemRow))
+                if (ItemUtil.IsNormalItem(item.ItemId) && this.dataManager.Excel.GetSheet<Item>().TryGetRow(item.ItemId, out var itemRow))
                 {
-                    if (itemRow.DyeCount > 0)
+                    if (itemRow.DyeCount > 0 && item.Stains.Length > 0)
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
@@ -279,11 +277,12 @@ internal class InventoryWidget : IDataWindowWidget
 
                         for (var i = 0; i < itemRow.DyeCount; i++)
                         {
-                            AddValueValueRow(item.Stains[i].ToString(), this.GetStainName(item.Stains[i]));
+                            var stainId = item.Stains[i];
+                            AddValueValueRow(stainId.ToString(), this.GetStainName(stainId));
                         }
                     }
 
-                    if (itemRow.MateriaSlotCount > 0)
+                    if (itemRow.MateriaSlotCount > 0 && item.Materia.Length > 0)
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
@@ -307,45 +306,6 @@ internal class InventoryWidget : IDataWindowWidget
         }
     }
 
-    private bool IsEventItem(uint itemId) => itemId is > 2_000_000;
-
-    private bool IsHighQuality(uint itemId) => itemId is > 1_000_000 and < 2_000_000;
-
-    private bool IsCollectible(uint itemId) => itemId is > 500_000 and < 1_000_000;
-
-    private bool IsNormalItem(uint itemId) => itemId is < 500_000;
-
-    private uint GetBaseItemId(uint itemId)
-    {
-        if (this.IsEventItem(itemId)) return itemId; // uses EventItem sheet
-        if (this.IsHighQuality(itemId)) return itemId - 1_000_000;
-        if (this.IsCollectible(itemId)) return itemId - 500_000;
-        return itemId;
-    }
-
-    private string GetItemName(uint itemId)
-    {
-        // EventItem
-        if (this.IsEventItem(itemId))
-        {
-            return this.dataManager.Excel.GetSheet<EventItem>().TryGetRow(itemId, out var eventItemRow)
-                ? StripSoftHypen(eventItemRow.Name.ExtractText())
-                : $"EventItem#{itemId}";
-        }
-
-        // HighQuality
-        if (this.IsHighQuality(itemId))
-            itemId -= 1_000_000;
-
-        // Collectible
-        if (this.IsCollectible(itemId))
-            itemId -= 500_000;
-
-        return this.dataManager.Excel.GetSheet<Item>().TryGetRow(itemId, out var itemRow)
-            ? StripSoftHypen(itemRow.Name.ExtractText())
-            : $"Item#{itemId}";
-    }
-
     private string GetStainName(uint stainId)
     {
         return this.dataManager.Excel.GetSheet<Stain>().TryGetRow(stainId, out var stainRow)
@@ -353,32 +313,15 @@ internal class InventoryWidget : IDataWindowWidget
             : $"Stain#{stainId}";
     }
 
-    private uint GetItemRarityColorType(Item item, bool isEdgeColor = false)
-    {
-        return (isEdgeColor ? 548u : 547u) + item.Rarity * 2u;
-    }
-
-    private uint GetItemRarityColorType(uint itemId, bool isEdgeColor = false)
-    {
-        // EventItem
-        if (this.IsEventItem(itemId))
-            return this.GetItemRarityColorType(1, isEdgeColor);
-
-        if (!this.dataManager.Excel.GetSheet<Item>().TryGetRow(this.GetBaseItemId(itemId), out var item))
-            return this.GetItemRarityColorType(1, isEdgeColor);
-
-        return this.GetItemRarityColorType(item, isEdgeColor);
-    }
-
     private uint GetItemRarityColor(uint itemId, bool isEdgeColor = false)
     {
-        if (this.IsEventItem(itemId))
+        if (ItemUtil.IsEventItem(itemId))
             return isEdgeColor ? 0xFF000000 : 0xFFFFFFFF;
 
-        if (!this.dataManager.Excel.GetSheet<Item>().TryGetRow(this.GetBaseItemId(itemId), out var item))
+        if (!this.dataManager.Excel.GetSheet<Item>().TryGetRow(ItemUtil.GetBaseId(itemId).ItemId, out var item))
             return isEdgeColor ? 0xFF000000 : 0xFFFFFFFF;
 
-        var rowId = this.GetItemRarityColorType(item, isEdgeColor);
+        var rowId = ItemUtil.GetItemRarityColorType(item.RowId, isEdgeColor);
         return this.dataManager.Excel.GetSheet<UIColor>().TryGetRow(rowId, out var color)
             ? BinaryPrimitives.ReverseEndianness(color.Dark) | 0xFF000000
             : 0xFFFFFFFF;
@@ -387,15 +330,15 @@ internal class InventoryWidget : IDataWindowWidget
     private uint GetItemIconId(uint itemId)
     {
         // EventItem
-        if (this.IsEventItem(itemId))
+        if (ItemUtil.IsEventItem(itemId))
             return this.dataManager.Excel.GetSheet<EventItem>().TryGetRow(itemId, out var eventItem) ? eventItem.Icon : 0u;
 
         // HighQuality
-        if (this.IsHighQuality(itemId))
+        if (ItemUtil.IsHighQuality(itemId))
             itemId -= 1_000_000;
 
         // Collectible
-        if (this.IsCollectible(itemId))
+        if (ItemUtil.IsCollectible(itemId))
             itemId -= 500_000;
 
         return this.dataManager.Excel.GetSheet<Item>().TryGetRow(itemId, out var item) ? item.Icon : 0u;
