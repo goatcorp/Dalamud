@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -121,6 +121,8 @@ internal class GameInventory : IInternalDisposableService
 
             // Assumption: newItems is sorted by slots, and the last item has the highest slot number.
             var oldItems = this.inventoryItems[i] ??= new GameInventoryItem[newItems[^1].InternalItem.Slot + 1];
+            if (this.inventoryItems[i] != null)
+                oldItems.Initialize();
 
             foreach (ref readonly var newItem in newItems)
             {
