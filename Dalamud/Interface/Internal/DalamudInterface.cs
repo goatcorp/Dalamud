@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using CheapLoc;
@@ -37,6 +38,8 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
 using ImGuiNET;
 
 using ImPlotNET;
@@ -828,6 +831,18 @@ internal class DalamudInterface : IInternalDisposableService
                                     });
                                 hook.Enable();
                             }
+                        }
+
+                        if (ImGui.MenuItem("Cause CLR fastfail"))
+                        {
+                            unsafe void CauseFastFail()
+                            {
+                                // ReSharper disable once NotAccessedVariable
+                                var texture = Unsafe.AsRef<AtkTexture>((void*)0x12345678);
+                                texture.TextureType = TextureType.Crest;
+                            }
+
+                            Service<Game.Framework>.Get().RunOnFrameworkThread(CauseFastFail);
                         }
 
                         if (ImGui.MenuItem("Cause ImGui assert"))
