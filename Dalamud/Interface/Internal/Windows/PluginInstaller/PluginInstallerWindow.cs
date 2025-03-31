@@ -144,7 +144,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private string[] aprilFoolsLines =
     [
         "We sincerely apologize for this year's April Fool's joke.\nWe hope you enjoyed it, and we promise to do better next year.",
-        "Congratulations! You are Dalamud's 1,000,000th user!\nClick here to claim your prize!",
+        "Congratulations! You are Dalamud's 1,000,000th user!\nClick here to claim your prize, a set of 4 high quality wallpapers!",
         "Please do not feed the ducks.\nThey are not ducks.",
     ];
 
@@ -1561,13 +1561,17 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.PopStyleColor();
         }
 
-        void DrawLinesCentered(string text)
+        bool DrawLinesCentered(string text)
         {
+            var clicked = false;
             var lines = text.Split('\n');
             foreach (var line in lines)
             {
                 ImGuiHelpers.CenteredText(line);
+                clicked |= ImGui.IsItemClicked();
             }
+
+            return clicked;
         }
 
         var pm = Service<PluginManager>.Get();
@@ -1583,7 +1587,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             ImGuiHelpers.ScaledDummy(10);
             this.aprilFoolsLineIdx ??= new Random().Next(0, this.aprilFoolsLines.Length);
-            DrawLinesCentered(this.aprilFoolsLines[this.aprilFoolsLineIdx.Value]);
+
+            var clicked = DrawLinesCentered(this.aprilFoolsLines[this.aprilFoolsLineIdx.Value]);
+            if (clicked && this.aprilFoolsLineIdx == 1)
+            {
+                Util.OpenLink("https://goatcorp.github.io/high_quality_wallpapers.zip");
+            }
+
             ImGuiHelpers.ScaledDummy(10);
         }
 
