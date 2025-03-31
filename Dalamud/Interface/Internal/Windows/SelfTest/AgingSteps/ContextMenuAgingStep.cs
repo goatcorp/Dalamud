@@ -283,11 +283,6 @@ internal class ContextMenuAgingStep : IAgingStep
                     }
                 }
 
-                if (item.Stains[0] != 0)
-                    b.AppendLine($"{this.stainSheet.GetRowOrDefault(item.Stains[0])?.Name.ExtractText() ?? "Unknown"} ({item.Stains[0]})");
-                else
-                    b.AppendLine("None");
-
                 b.Append("Glamoured Item: ");
                 if (item.GlamourId != 0)
                     b.AppendLine($"{this.itemSheet.GetRowOrDefault(item.GlamourId)?.Name.ExtractText() ?? "Unknown"} ({item.GlamourId})");
