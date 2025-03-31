@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using CheapLoc;
 
+using Dalamud.Common;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
@@ -503,6 +504,22 @@ internal partial class InterfaceManager : IInternalDisposableService
                     sizeof(int))).ThrowOnError();
     }
 
+    /// <summary>
+    /// Set the AppUserModelID for FFXIV for taskbar grouping.
+    /// </summary>
+    internal void SetAppUserModelId(string appId)
+    {
+        if (Service<Dalamud>.Get().StartInfo.LoadMethod != LoadMethod.Entrypoint) return;
+
+        if (this.GameWindowHandle != 0)
+        {
+            Log.Warning("Game window was already created! AppID can't be set.");
+            return;
+        }
+
+        NativeFunctions.SetCurrentProcessExplicitAppUserModelID(appId);
+    }
+
     private static InterfaceManager WhenFontsReady()
     {
         var im = Service<InterfaceManager>.GetNullable();
@@ -819,6 +836,9 @@ internal partial class InterfaceManager : IInternalDisposableService
                     });
             };
         }
+
+        // Set app ID before the game UI is created.
+        this.SetAppUserModelId("com.squirrel.XIVLauncher.XIVLauncher");
 
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync();
