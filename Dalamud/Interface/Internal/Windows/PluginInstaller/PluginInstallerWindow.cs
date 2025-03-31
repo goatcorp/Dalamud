@@ -140,6 +140,14 @@ internal class PluginInstallerWindow : Window, IDisposable
 
     private string? staleDalamudNewVersion = null;
 
+    private int? aprilFoolsLineIdx = null;
+    private string[] aprilFoolsLines =
+    [
+        "We sincerely apologize for this year's April Fool's joke.\nWe hope you enjoyed it, and we promise to do better next year.",
+        "Congratulations! You are Dalamud's 1,000,000th user!\nClick here to claim your prize!",
+        "Please do not feed the ducks.\nThey are not ducks.",
+    ];
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginInstallerWindow"/> class.
     /// </summary>
@@ -1568,6 +1576,14 @@ internal class PluginInstallerWindow : Window, IDisposable
             DrawWarningIcon();
             DrawLinesCentered(Locs.SafeModeDisclaimer);
 
+            ImGuiHelpers.ScaledDummy(10);
+        }
+
+        if (DateTime.Now is { Day: 1, Month: 4 })
+        {
+            ImGuiHelpers.ScaledDummy(10);
+            this.aprilFoolsLineIdx ??= new Random().Next(0, this.aprilFoolsLines.Length);
+            DrawLinesCentered(this.aprilFoolsLines[this.aprilFoolsLineIdx.Value]);
             ImGuiHelpers.ScaledDummy(10);
         }
 
