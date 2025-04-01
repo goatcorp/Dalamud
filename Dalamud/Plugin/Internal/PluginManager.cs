@@ -1432,8 +1432,8 @@ internal class PluginManager : IInternalDisposableService
         else
         {
             // If we are doing anything other than a fresh install, not having a workingPluginId is an error that must be fixed
-            if (inheritedWorkingPluginId != null)
-                throw new InvalidOperationException("Inherited WorkingPluginId must not be null");
+            if (inheritedWorkingPluginId == null)
+                throw new ArgumentNullException(nameof(inheritedWorkingPluginId), "Inherited WorkingPluginId must not be null when updating");
         }
 
         // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
