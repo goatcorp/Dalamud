@@ -143,16 +143,14 @@ internal unsafe class PluginEventController : IDisposable
         if (atkUnitBase->UldManager.LoadedState == AtkLoadState.Unloaded) return;
 
         // Does this addon contain the node this event is for? (by address)
-        var atkUnitBase = (AtkUnitBase*)currentAddonPointer;
         var nodeFound = false;
-        foreach (var index in Enumerable.Range(0, atkUnitBase->UldManager.NodeListCount))
+        foreach (var node in atkUnitBase->UldManager.Nodes)
         {
-            var node = atkUnitBase->UldManager.NodeList[index];
-            
             // If this node matches our node, then we know our node is still valid.
-            if (node is not null && (nint)node == eventEntry.Node)
+            if ((nint)node.Value == eventEntry.Node)
             {
                 nodeFound = true;
+                break;
             }
         }
         
