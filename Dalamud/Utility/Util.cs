@@ -604,10 +604,9 @@ public static class Util
     /// </summary>
     /// <param name="path">The path of the file to write to.</param>
     /// <param name="text">The text to write.</param>
-    public static void WriteAllTextSafe(string path, string text)
-    {
-        WriteAllTextSafe(path, text, Encoding.UTF8);
-    }
+    [Api13ToDo("Remove.")]
+    [Obsolete("Replaced with FilesystemUtil.WriteAllTextSafe()")]
+    public static void WriteAllTextSafe(string path, string text) => FilesystemUtil.WriteAllTextSafe(path, text);
 
     /// <summary>
     /// Overwrite text in a file by first writing it to a temporary file, and then
@@ -616,10 +615,9 @@ public static class Util
     /// <param name="path">The path of the file to write to.</param>
     /// <param name="text">The text to write.</param>
     /// <param name="encoding">Encoding to use.</param>
-    public static void WriteAllTextSafe(string path, string text, Encoding encoding)
-    {
-        WriteAllBytesSafe(path, encoding.GetBytes(text));
-    }
+    [Api13ToDo("Remove.")]
+    [Obsolete("Replaced with FilesystemUtil.WriteAllTextSafe()")]
+    public static void WriteAllTextSafe(string path, string text, Encoding encoding) => FilesystemUtil.WriteAllTextSafe(path, text, encoding);
 
     /// <summary>
     /// Overwrite data in a file by first writing it to a temporary file, and then
@@ -627,41 +625,9 @@ public static class Util
     /// </summary>
     /// <param name="path">The path of the file to write to.</param>
     /// <param name="bytes">The data to write.</param>
-    public static unsafe void WriteAllBytesSafe(string path, byte[] bytes)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(path);
-
-        // Open the temp file
-        var tempPath = path + ".tmp";
-
-        using var tempFile = Windows.Win32.PInvoke.CreateFile(
-            tempPath,
-            (uint)(FILE_ACCESS_RIGHTS.FILE_GENERIC_READ | FILE_ACCESS_RIGHTS.FILE_GENERIC_WRITE),
-            FILE_SHARE_MODE.FILE_SHARE_NONE,
-            null,
-            FILE_CREATION_DISPOSITION.CREATE_ALWAYS,
-            FILE_FLAGS_AND_ATTRIBUTES.FILE_ATTRIBUTE_NORMAL,
-            null);
-
-        if (tempFile.IsInvalid)
-            throw new Win32Exception();
-
-        // Write the data
-        uint bytesWritten = 0;
-        if (!Windows.Win32.PInvoke.WriteFile(tempFile, new ReadOnlySpan<byte>(bytes), &bytesWritten, null))
-            throw new Win32Exception();
-
-        if (bytesWritten != bytes.Length)
-            throw new Exception($"Could not write all bytes to temp file ({bytesWritten} of {bytes.Length})");
-
-        if (!Windows.Win32.PInvoke.FlushFileBuffers(tempFile))
-            throw new Win32Exception();
-
-        tempFile.Close();
-
-        if (!Windows.Win32.PInvoke.MoveFileEx(tempPath, path, MOVE_FILE_FLAGS.MOVEFILE_REPLACE_EXISTING | MOVE_FILE_FLAGS.MOVEFILE_WRITE_THROUGH))
-            throw new Win32Exception();
-    }
+    [Api13ToDo("Remove.")]
+    [Obsolete("Replaced with FilesystemUtil.WriteAllBytesSafe()")]
+    public static void WriteAllBytesSafe(string path, byte[] bytes) => FilesystemUtil.WriteAllBytesSafe(path, bytes);
 
     /// <summary>Gets a temporary file name, for use as the sourceFileName in
     /// <see cref="File.Replace(string,string,string?)"/>.</summary>
@@ -669,7 +635,7 @@ public static class Util
     /// <returns>A temporary file name that should be usable with <see cref="File.Replace(string,string,string?)"/>.
     /// </returns>
     /// <remarks>No write operation is done on the filesystem.</remarks>
-    public static string GetTempFileNameForFileReplacement(string targetFile)
+    public static string GetReplaceableFileName(string targetFile)
     {
         Span<byte> buf = stackalloc byte[9];
         Random.Shared.NextBytes(buf);
