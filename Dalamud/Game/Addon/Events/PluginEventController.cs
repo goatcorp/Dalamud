@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -138,6 +137,10 @@ internal unsafe class PluginEventController : IDisposable
 
         // Is our stored addon pointer the same as the active addon pointer?
         if (currentAddonPointer != eventEntry.Addon) return;
+
+        // Make sure the addon is not unloaded
+        var atkUnitBase = (AtkUnitBase*)currentAddonPointer;
+        if (atkUnitBase->UldManager.LoadedState == AtkLoadState.Unloaded) return;
 
         // Does this addon contain the node this event is for? (by address)
         var atkUnitBase = (AtkUnitBase*)currentAddonPointer;
