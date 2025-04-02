@@ -1,11 +1,11 @@
 using Dalamud.Game.Gui.Toast;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for toasts.
 /// </summary>
-internal class ToastAgingStep : IAgingStep
+internal class ToastSelfTestStep : ISelfTestStep
 {
     /// <inheritdoc/>
     public string Name => "Test Toasts";

@@ -12,12 +12,12 @@ using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Tests for context menu.
 /// </summary>
-internal class ContextMenuAgingStep : IAgingStep
+internal class ContextMenuSelfTestStep : ISelfTestStep
 {
     private SubStep currentSubStep;
 

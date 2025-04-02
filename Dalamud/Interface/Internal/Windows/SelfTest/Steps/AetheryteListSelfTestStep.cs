@@ -2,12 +2,12 @@ using Dalamud.Game.ClientState.Aetherytes;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for the Aetheryte List.
 /// </summary>
-internal class AetheryteListAgingStep : IAgingStep
+internal class AetheryteListSelfTestStep : ISelfTestStep
 {
     private int index = 0;
 

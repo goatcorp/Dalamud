@@ -1,18 +1,18 @@
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test that waits N frames.
 /// </summary>
-internal class WaitFramesAgingStep : IAgingStep
+internal class WaitFramesSelfTestStep : ISelfTestStep
 {
     private readonly int frames;
     private int cFrames;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WaitFramesAgingStep"/> class.
+    /// Initializes a new instance of the <see cref="WaitFramesSelfTestStep"/> class.
     /// </summary>
     /// <param name="frames">Amount of frames to wait.</param>
-    public WaitFramesAgingStep(int frames)
+    public WaitFramesSelfTestStep(int frames)
     {
         this.frames = frames;
         this.cFrames = frames;

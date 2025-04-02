@@ -4,7 +4,7 @@ using System.Numerics;
 
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
-using Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+using Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
@@ -20,40 +20,40 @@ internal class SelfTestWindow : Window
 {
     private static readonly ModuleLog Log = new("AGING");
 
-    private readonly List<IAgingStep> steps =
+    private readonly List<ISelfTestStep> steps =
         new()
         {
-            new LoginEventAgingStep(),
-            new WaitFramesAgingStep(1000),
-            new EnterTerritoryAgingStep(148, "Central Shroud"),
-            new ItemPayloadAgingStep(),
-            new ContextMenuAgingStep(),
-            new NamePlateAgingStep(),
-            new ActorTableAgingStep(),
-            new FateTableAgingStep(),
-            new AetheryteListAgingStep(),
-            new ConditionAgingStep(),
-            new ToastAgingStep(),
-            new TargetAgingStep(),
-            new KeyStateAgingStep(),
-            new GamepadStateAgingStep(),
-            new ChatAgingStep(),
-            new HoverAgingStep(),
-            new LuminaAgingStep<Item>(true),
-            new LuminaAgingStep<Level>(true),
-            new LuminaAgingStep<Lumina.Excel.Sheets.Action>(true),
-            new LuminaAgingStep<Quest>(true),
-            new LuminaAgingStep<TerritoryType>(false),
-            new AddonLifecycleAgingStep(),
-            new PartyFinderAgingStep(),
-            new HandledExceptionAgingStep(),
-            new DutyStateAgingStep(),
-            new GameConfigAgingStep(),
-            new MarketBoardAgingStep(),
-            new SheetRedirectResolverAgingStep(),
-            new NounProcessorAgingStep(),
-            new SeStringEvaluatorAgingStep(),
-            new LogoutEventAgingStep(),
+            new LoginEventSelfTestStep(),
+            new WaitFramesSelfTestStep(1000),
+            new EnterTerritorySelfTestStep(148, "Central Shroud"),
+            new ItemPayloadSelfTestStep(),
+            new ContextMenuSelfTestStep(),
+            new NamePlateSelfTestStep(),
+            new ActorTableSelfTestStep(),
+            new FateTableSelfTestStep(),
+            new AetheryteListSelfTestStep(),
+            new ConditionSelfTestStep(),
+            new ToastSelfTestStep(),
+            new TargetSelfTestStep(),
+            new KeyStateSelfTestStep(),
+            new GamepadStateSelfTestStep(),
+            new ChatSelfTestStep(),
+            new HoverSelfTestStep(),
+            new LuminaSelfTestStep<Item>(true),
+            new LuminaSelfTestStep<Level>(true),
+            new LuminaSelfTestStep<Lumina.Excel.Sheets.Action>(true),
+            new LuminaSelfTestStep<Quest>(true),
+            new LuminaSelfTestStep<TerritoryType>(false),
+            new AddonLifecycleSelfTestStep(),
+            new PartyFinderSelfTestStep(),
+            new HandledExceptionSelfTestStep(),
+            new DutyStateSelfTestStep(),
+            new GameConfigSelfTestStep(),
+            new MarketBoardSelfTestStep(),
+            new SheetRedirectResolverSelfTestStep(),
+            new NounProcessorSelfTestStep(),
+            new SeStringEvaluatorSelfTestStep(),
+            new LogoutEventSelfTestStep(),
         };
 
     private readonly List<(SelfTestStepResult Result, TimeSpan? Duration)> stepResults = new();

@@ -2,12 +2,12 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for the Actor Table.
 /// </summary>
-internal class ActorTableAgingStep : IAgingStep
+internal class ActorTableSelfTestStep : ISelfTestStep
 {
     private int index = 0;
 

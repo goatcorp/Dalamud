@@ -5,12 +5,12 @@ using ImGuiNET;
 
 using Lumina.Text.ReadOnly;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for SeStringEvaluator.
 /// </summary>
-internal class SeStringEvaluatorAgingStep : IAgingStep
+internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
 {
     private int step = 0;
 

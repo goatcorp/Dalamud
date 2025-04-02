@@ -3,12 +3,12 @@ using Dalamud.Game.ClientState.Conditions;
 using ImGuiNET;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for Condition.
 /// </summary>
-internal class ConditionAgingStep : IAgingStep
+internal class ConditionSelfTestStep : ISelfTestStep
 {
     /// <inheritdoc/>
     public string Name => "Test Condition";

@@ -1,9 +1,9 @@
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Interface for test implementations.
 /// </summary>
-internal interface IAgingStep
+internal interface ISelfTestStep
 {
     /// <summary>
     /// Gets the name of the test.

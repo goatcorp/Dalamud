@@ -6,12 +6,12 @@ using ImGuiNET;
 
 using LSheets = Lumina.Excel.Sheets;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for NounProcessor.
 /// </summary>
-internal class NounProcessorAgingStep : IAgingStep
+internal class NounProcessorSelfTestStep : ISelfTestStep
 {
     private NounTestEntry[] tests =
     [

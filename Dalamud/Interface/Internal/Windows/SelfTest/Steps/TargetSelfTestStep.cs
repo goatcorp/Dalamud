@@ -4,12 +4,12 @@ using Dalamud.Game.ClientState.Objects.Types;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for targets.
 /// </summary>
-internal class TargetAgingStep : IAgingStep
+internal class TargetSelfTestStep : ISelfTestStep
 {
     private int step = 0;
 

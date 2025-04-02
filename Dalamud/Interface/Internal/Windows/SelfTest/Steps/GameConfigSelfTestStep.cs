@@ -2,12 +2,12 @@
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test of GameConfig.
 /// </summary>
-internal class GameConfigAgingStep : IAgingStep
+internal class GameConfigSelfTestStep : ISelfTestStep
 {
     private bool started;
     private bool isStartedLegacy;

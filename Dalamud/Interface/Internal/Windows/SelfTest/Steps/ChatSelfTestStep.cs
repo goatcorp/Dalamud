@@ -4,12 +4,12 @@ using Dalamud.Game.Text.SeStringHandling;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for Chat.
 /// </summary>
-internal class ChatAgingStep : IAgingStep
+internal class ChatSelfTestStep : ISelfTestStep
 {
     private int step = 0;
     private bool subscribed = false;

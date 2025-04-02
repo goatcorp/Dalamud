@@ -7,12 +7,12 @@ using Lumina.Text.Payloads;
 
 using LSeStringBuilder = Lumina.Text.SeStringBuilder;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for the Gamepad State.
 /// </summary>
-internal class GamepadStateAgingStep : IAgingStep
+internal class GamepadStateSelfTestStep : ISelfTestStep
 {
     /// <inheritdoc/>
     public string Name => "Test GamePadState";
