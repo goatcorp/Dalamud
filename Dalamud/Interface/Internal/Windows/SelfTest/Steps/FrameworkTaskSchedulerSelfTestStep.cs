@@ -3,6 +3,10 @@ using System.Threading.Tasks;
 using Dalamud.Game;
 using Dalamud.Utility;
 
+using Microsoft.VisualBasic.Logging;
+
+using Log = Serilog.Log;
+
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
@@ -25,15 +29,29 @@ internal class FrameworkTaskSchedulerSelfTestStep : ISelfTestStep
         {
             ThreadSafety.AssertNotMainThread();
 
+            await framework.Run(async () =>
+            {
+                ThreadSafety.AssertMainThread();
+
+                await Task.Delay(100).ConfigureAwait(true);
+                ThreadSafety.AssertMainThread();
+
+                await Task.Delay(100).ConfigureAwait(false);
+                ThreadSafety.AssertNotMainThread();
+            }).ConfigureAwait(true);
+
+            ThreadSafety.AssertNotMainThread();
+
             await framework.RunOnTick(async () =>
             {
                 ThreadSafety.AssertMainThread();
-                await Task.Delay(100);
 
-                // TODO: Should we be scheduled back to the framework thread here?
-                // ThreadSafety.AssertMainThread();
+                await Task.Delay(100).ConfigureAwait(true);
                 ThreadSafety.AssertNotMainThread();
-            }).ConfigureAwait(false);
+
+                await Task.Delay(100).ConfigureAwait(false);
+                ThreadSafety.AssertNotMainThread();
+            }).ConfigureAwait(true);
 
             ThreadSafety.AssertNotMainThread();
 
@@ -45,7 +63,14 @@ internal class FrameworkTaskSchedulerSelfTestStep : ISelfTestStep
             ThreadSafety.AssertMainThread();
 
             this.passed = true;
-        });
+        }).ContinueWith(
+            t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Log.Error(t.Exception, "Framework Task scheduler test failed");
+                }
+            });
 
         if (this.task is { IsFaulted: true } or { IsCanceled: true })
         {
