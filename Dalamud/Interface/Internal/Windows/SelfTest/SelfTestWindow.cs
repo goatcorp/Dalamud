@@ -6,6 +6,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using ImGuiNET;
@@ -56,7 +57,7 @@ internal class SelfTestWindow : Window
             new LogoutEventSelfTestStep(),
         };
 
-    private readonly List<(SelfTestStepResult Result, TimeSpan? Duration)> stepResults = new();
+    private readonly Dictionary<int, (SelfTestStepResult Result, TimeSpan? Duration)> testIndexToResult = new();
 
     private bool selfTestRunning = false;
     private int currentStep = 0;
@@ -89,7 +90,7 @@ internal class SelfTestWindow : Window
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.StepForward))
             {
-                this.stepResults.Add((SelfTestStepResult.NotRan, null));
+                this.testIndexToResult.Add(this.currentStep, (SelfTestStepResult.NotRan, null));
                 this.steps[this.currentStep].CleanUp();
                 this.currentStep++;
                 this.lastTestStart = DateTimeOffset.Now;
@@ -106,7 +107,7 @@ internal class SelfTestWindow : Window
             {
                 this.selfTestRunning = true;
                 this.currentStep = 0;
-                this.stepResults.Clear();
+                this.testIndexToResult.Clear();
                 this.lastTestStart = DateTimeOffset.Now;
             }
         }
@@ -128,7 +129,7 @@ internal class SelfTestWindow : Window
                 this.StopTests();
             }
 
-            if (this.stepResults.Any(x => x.Result == SelfTestStepResult.Fail))
+            if (this.testIndexToResult.Any(x => x.Value.Result == SelfTestStepResult.Fail))
             {
                 ImGui.TextColored(ImGuiColors.DalamudRed, "One or more checks failed!");
             }
@@ -168,8 +169,8 @@ internal class SelfTestWindow : Window
         if (result != SelfTestStepResult.Waiting)
         {
             var duration = DateTimeOffset.Now - this.lastTestStart;
+            this.testIndexToResult.Add(this.currentStep, (result, duration));
             this.currentStep++;
-            this.stepResults.Add((result, duration));
 
             this.lastTestStart = DateTimeOffset.Now;
         }
@@ -177,12 +178,13 @@ internal class SelfTestWindow : Window
 
     private void DrawResultTable()
     {
-        if (ImGui.BeginTable("agingResultTable", 4, ImGuiTableFlags.Borders))
+        if (ImGui.BeginTable("agingResultTable", 5, ImGuiTableFlags.Borders))
         {
-            ImGui.TableSetupColumn("###index", ImGuiTableColumnFlags.WidthFixed, 12f);
+            ImGui.TableSetupColumn("###index", ImGuiTableColumnFlags.WidthFixed, 12f * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn("Name");
-            ImGui.TableSetupColumn("Result", ImGuiTableColumnFlags.WidthFixed, 40f);
-            ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 90f);
+            ImGui.TableSetupColumn("Result", ImGuiTableColumnFlags.WidthFixed, 40f * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 90f * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(string.Empty, ImGuiTableColumnFlags.WidthFixed, 30f * ImGuiHelpers.GlobalScale);
 
             ImGui.TableHeadersRow();
 
@@ -197,11 +199,10 @@ internal class SelfTestWindow : Window
                 ImGui.TableSetColumnIndex(1);
                 ImGui.Text(step.Name);
 
-                ImGui.TableSetColumnIndex(2);
-                ImGui.PushFont(Interface.Internal.InterfaceManager.MonoFont);
-                if (this.stepResults.Count > i)
+                if (this.testIndexToResult.TryGetValue(i, out var result))
                 {
-                    var result = this.stepResults[i];
+                    ImGui.TableSetColumnIndex(2);
+                    ImGui.PushFont(InterfaceManager.MonoFont);
 
                     switch (result.Result)
                     {
@@ -215,9 +216,18 @@ internal class SelfTestWindow : Window
                             ImGui.TextColored(ImGuiColors.DalamudGrey, "NR");
                             break;
                     }
+
+                    ImGui.PopFont();
+
+                    ImGui.TableSetColumnIndex(3);
+                    if (result.Duration.HasValue)
+                    {
+                        ImGui.TextUnformatted(result.Duration.Value.ToString("g"));
+                    }
                 }
                 else
                 {
+                    ImGui.TableSetColumnIndex(2);
                     if (this.selfTestRunning && this.currentStep == i)
                     {
                         ImGui.TextColored(ImGuiColors.DalamudGrey, "WAIT");
@@ -226,26 +236,28 @@ internal class SelfTestWindow : Window
                     {
                         ImGui.TextColored(ImGuiColors.DalamudGrey, "NR");
                     }
-                }
 
-                ImGui.PopFont();
-
-                ImGui.TableSetColumnIndex(3);
-                if (this.stepResults.Count > i)
-                {
-                    var (_, duration) = this.stepResults[i];
-
-                    if (duration.HasValue)
-                    {
-                        ImGui.TextUnformatted(duration.Value.ToString("g"));
-                    }
-                }
-                else
-                {
+                    ImGui.TableSetColumnIndex(3);
                     if (this.selfTestRunning && this.currentStep == i)
                     {
                         ImGui.TextUnformatted((DateTimeOffset.Now - this.lastTestStart).ToString("g"));
                     }
+                }
+
+                ImGui.TableSetColumnIndex(4);
+                using var id = ImRaii.PushId($"selfTest{i}");
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.FastForward))
+                {
+                    this.StopTests();
+                    this.testIndexToResult.Remove(i);
+                    this.currentStep = i;
+                    this.selfTestRunning = true;
+                    this.lastTestStart = DateTimeOffset.Now;
+                }
+
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip("Jump to this test");
                 }
             }
 
