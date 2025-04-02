@@ -30,8 +30,8 @@ internal class FrameworkTaskSchedulerSelfTestStep : ISelfTestStep
                 ThreadSafety.AssertMainThread();
                 await Task.Delay(100);
 
-                // TODO: We used to be scheduled back to the framework thread here. Is that by design?
-                //ThreadSafety.AssertMainThread();
+                // TODO: Should we be scheduled back to the framework thread here?
+                // ThreadSafety.AssertMainThread();
                 ThreadSafety.AssertNotMainThread();
             }).ConfigureAwait(false);
 
