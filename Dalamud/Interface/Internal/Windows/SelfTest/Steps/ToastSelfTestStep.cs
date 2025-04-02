@@ -1,5 +1,7 @@
 using Dalamud.Game.Gui.Toast;
 
+using ImGuiNET;
+
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
@@ -7,23 +9,42 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 /// </summary>
 internal class ToastSelfTestStep : ISelfTestStep
 {
+    private bool sentToasts = false;
+
     /// <inheritdoc/>
     public string Name => "Test Toasts";
 
     /// <inheritdoc/>
     public SelfTestStepResult RunStep()
     {
-        var toastGui = Service<ToastGui>.Get();
+        if (!this.sentToasts)
+        {
+            var toastGui = Service<ToastGui>.Get();
+            toastGui.ShowNormal("Normal Toast");
+            toastGui.ShowError("Error Toast");
+            toastGui.ShowQuest("Quest Toast");
+            this.sentToasts = true;
+        }
 
-        toastGui.ShowNormal("Normal Toast");
-        toastGui.ShowError("Error Toast");
+        ImGui.Text("Did you see a normal toast, a quest toast and an error toast?");
 
-        return SelfTestStepResult.Pass;
+        if (ImGui.Button("Yes"))
+        {
+            return SelfTestStepResult.Pass;
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button("No"))
+        {
+            return SelfTestStepResult.Fail;
+        }
+
+        return SelfTestStepResult.Waiting;
     }
 
     /// <inheritdoc/>
     public void CleanUp()
     {
-        // ignored
+        this.sentToasts = false;
     }
 }
