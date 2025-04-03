@@ -7,9 +7,6 @@
 [submodule "lib/TsudaKageyu-minhook"]
 	path = lib/TsudaKageyu-minhook
 	url = https://github.com/TsudaKageyu/minhook.git
-[submodule "lib/ImGui.NET"]
-	path = lib/ImGui.NET
-	url = https://github.com/goatcorp/ImGui.NET.git
 [submodule "lib/cimgui"]
 	path = lib/cimgui
 	url = https://github.com/goatcorp/gc-cimgui
@@ -19,3 +16,6 @@
 [submodule "lib/cimguizmo"]
 	path = lib/cimguizmo
 	url = https://github.com/goatcorp/gc-cimguizmo
+[submodule "lib/Hexa.NET.ImGui"]
+	path = lib/Hexa.NET.ImGui
+	url = https://github.com/HexaEngine/Hexa.NET.ImGui.git
