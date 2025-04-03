@@ -10,6 +10,7 @@ using System.Text.Unicode;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -17,14 +18,15 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
 
 using ImGuiNET;
-using ImGuiScene;
+
+using VirtualKey = Dalamud.Game.ClientState.Keys.VirtualKey;
 
 namespace Dalamud.Interface.Utility;
 
 /// <summary>
 /// Class containing various helper methods for use with ImGui inside Dalamud.
 /// </summary>
-public static class ImGuiHelpers
+public static partial class ImGuiHelpers
 {
     /// <summary>
     /// Gets the main viewport.
@@ -111,7 +113,7 @@ public static class ImGuiHelpers
     /// </summary>
     /// <param name="size">The size of the indent.</param>
     public static void ScaledIndent(float size) => ImGui.Indent(size * GlobalScale);
-    
+
     /// <summary>
     /// Use a relative ImGui.SameLine() from your current cursor position, scaled by the Dalamud global scale.
     /// </summary>
@@ -286,7 +288,7 @@ public static class ImGuiHelpers
 
         foreach (ref var kp in new Span<ImFontKerningPair>((void*)font->KerningPairs.Data, font->KerningPairs.Size))
             kp.AdvanceXAdjustment = rounder(kp.AdvanceXAdjustment * scale);
-        
+
         foreach (ref var fkp in new Span<float>((void*)font->FrequentKerningPairs.Data, font->FrequentKerningPairs.Size))
             fkp = rounder(fkp * scale);
     }
@@ -425,7 +427,7 @@ public static class ImGuiHelpers
     /// <returns>The ImGuiKey that corresponds to this VirtualKey, or <c>ImGuiKey.None</c> otherwise.</returns>
     public static ImGuiKey VirtualKeyToImGuiKey(VirtualKey key)
     {
-        return ImGui_Input_Impl_Direct.VirtualKeyToImGuiKey((int)key);
+        return Win32InputHandler.VirtualKeyToImGuiKey((int)key);
     }
 
     /// <summary>
@@ -435,7 +437,7 @@ public static class ImGuiHelpers
     /// <returns>The VirtualKey that corresponds to this ImGuiKey, or <c>VirtualKey.NO_KEY</c> otherwise.</returns>
     public static VirtualKey ImGuiKeyToVirtualKey(ImGuiKey key)
     {
-        return (VirtualKey)ImGui_Input_Impl_Direct.ImGuiKeyToVirtualKey(key);
+        return (VirtualKey)Win32InputHandler.ImGuiKeyToVirtualKey(key);
     }
 
     /// <summary>
@@ -535,7 +537,7 @@ public static class ImGuiHelpers
         builder.BuildRanges(out var vec);
         return new ReadOnlySpan<ushort>((void*)vec.Data, vec.Size).ToArray();
     }
-    
+
     /// <inheritdoc cref="CreateImGuiRangesFrom(IEnumerable{UnicodeRange})"/>
     public static ushort[] CreateImGuiRangesFrom(params UnicodeRange[] ranges)
         => CreateImGuiRangesFrom((IEnumerable<UnicodeRange>)ranges);
@@ -618,7 +620,7 @@ public static class ImGuiHelpers
             ImGuiNative.ImGuiInputTextCallbackData_InsertChars(data, 0, pBuf, pBuf + len);
         ImGuiNative.ImGuiInputTextCallbackData_SelectAll(data);
     }
-    
+
     /// <summary>
     /// Finds the corresponding ImGui viewport ID for the given window handle.
     /// </summary>
@@ -638,6 +640,12 @@ public static class ImGuiHelpers
 
         return -1;
     }
+
+    /// <summary>
+    /// Clears the stack in the current ImGui context.
+    /// </summary>
+    [LibraryImport("cimgui", EntryPoint = "igCustom_ClearStacks")]
+    internal static partial void ClearStacksOnContext();
 
     /// <summary>
     /// Attempts to validate that <paramref name="fontPtr"/> is valid.

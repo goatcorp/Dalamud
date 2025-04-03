@@ -91,6 +91,7 @@ namespace Dalamud.Injector
 
                 startInfo = ExtractAndInitializeStartInfoFromArguments(startInfo, args);
                 // Remove already handled arguments
+                args.Remove("--debug-directx");
                 args.Remove("--console");
                 args.Remove("--msgbox1");
                 args.Remove("--msgbox2");
@@ -464,6 +465,7 @@ namespace Dalamud.Injector
             startInfo.LogName ??= string.Empty;
 
             // Set boot defaults
+            startInfo.BootDebugDirectX = args.Contains("--debug-directx");
             startInfo.BootShowConsole = args.Contains("--console");
             startInfo.BootEnableEtw = args.Contains("--etw");
             startInfo.BootLogPath = GetLogPath(startInfo.LogPath, "dalamud.boot", startInfo.LogName);

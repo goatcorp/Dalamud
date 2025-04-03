@@ -58,7 +58,7 @@ internal sealed partial class TextureManager
     private unsafe TextureManager(InterfaceManager.InterfaceManagerWithScene withScene)
     {
         using var failsafe = new DisposeSafety.ScopedFinalizer();
-        failsafe.Add(this.device = new((ID3D11Device*)withScene.Manager.Device!.NativePointer));
+        failsafe.Add(this.device = new((ID3D11Device*)withScene.Manager.Backend!.DeviceHandle));
         failsafe.Add(this.dynamicPriorityTextureLoader = new(Math.Max(1, Environment.ProcessorCount - 1)));
         failsafe.Add(this.sharedTextureManager = new(this));
         failsafe.Add(this.wicManager = new(this));

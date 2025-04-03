@@ -119,13 +119,13 @@ internal unsafe partial class InterfaceManager
 
         this.ResizeBuffers?.InvokeSafely();
 
-        this.scene?.OnPreResize();
+        this.backend?.OnPreResize();
 
         var ret = this.dxgiSwapChainResizeBuffersHook!.Original(swapChain, bufferCount, width, height, newFormat, swapChainFlags);
         if (ret == DXGI.DXGI_ERROR_INVALID_CALL)
             Log.Error("invalid call to resizeBuffers");
 
-        this.scene?.OnPostResize((int)width, (int)height);
+        this.backend?.OnPostResize((int)width, (int)height);
 
         return ret;
     }

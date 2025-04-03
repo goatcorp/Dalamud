@@ -70,6 +70,12 @@
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="MinSharp" Version="1.0.4" />
+        <PackageReference Include="PInvoke.DwmApi" Version="0.7.104" />
+        <PackageReference Include="PInvoke.Kernel32" Version="0.7.104" />
+        <PackageReference Include="PInvoke.User32" Version="0.7.104" />
+        <PackageReference Include="PInvoke.Win32" Version="0.7.104" />
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
         <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
         <PackageReference Include="Serilog" Version="4.0.2" />
         <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
@@ -88,12 +94,18 @@
         <PackageReference Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
     </ItemGroup>
     <ItemGroup>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\imgui-frag.hlsl.bytes">
+          <LogicalName>imgui-frag.hlsl.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\imgui-vertex.hlsl.bytes">
+          <LogicalName>imgui-vertex.hlsl.bytes</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
+        <ProjectReference Include="..\lib\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
-        <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
-        <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj" />
-        <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj" />
     </ItemGroup>
 
     <ItemGroup>
