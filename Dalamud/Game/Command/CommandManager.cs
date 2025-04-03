@@ -2,17 +2,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 using Dalamud.Console;
-using Dalamud.Game.Gui;
-using Dalamud.Game.Text;
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.Shell;
 
 namespace Dalamud.Game.Command;
 
@@ -20,38 +22,26 @@ namespace Dalamud.Game.Command;
 /// This class manages registered in-game slash commands.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed class CommandManager : IInternalDisposableService, ICommandManager
+internal sealed unsafe class CommandManager : IInternalDisposableService, ICommandManager
 {
     private static readonly ModuleLog Log = new("Command");
 
     private readonly ConcurrentDictionary<string, IReadOnlyCommandInfo> commandMap = new();
     private readonly ConcurrentDictionary<(string, IReadOnlyCommandInfo), string> commandAssemblyNameMap = new();
-    private readonly Regex commandRegexEn = new(@"^The command (?<command>.+) does not exist\.$", RegexOptions.Compiled);
-    private readonly Regex commandRegexJp = new(@"^そのコマンドはありません。： (?<command>.+)$", RegexOptions.Compiled);
-    private readonly Regex commandRegexDe = new(@"^„(?<command>.+)“ existiert nicht als Textkommando\.$", RegexOptions.Compiled);
-    private readonly Regex commandRegexFr = new(@"^La commande texte “(?<command>.+)” n'existe pas\.$", RegexOptions.Compiled);
-    private readonly Regex commandRegexCn = new(@"^^(“|「)(?<command>.+)(”|」)(出现问题：该命令不存在|出現問題：該命令不存在)。$", RegexOptions.Compiled);
-    private readonly Regex currentLangCommandRegex;
 
-    [ServiceManager.ServiceDependency]
-    private readonly ChatGui chatGui = Service<ChatGui>.Get();
-    
+    private readonly Hook<ShellCommands.Delegates.TryInvokeDebugCommand>? tryInvokeDebugCommandHook;
+
     [ServiceManager.ServiceDependency]
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
 
     [ServiceManager.ServiceConstructor]
     private CommandManager(Dalamud dalamud)
     {
-        this.currentLangCommandRegex = (ClientLanguage)dalamud.StartInfo.Language switch
-        {
-            ClientLanguage.Japanese => this.commandRegexJp,
-            ClientLanguage.English => this.commandRegexEn,
-            ClientLanguage.German => this.commandRegexDe,
-            ClientLanguage.French => this.commandRegexFr,
-            _ => this.commandRegexEn,
-        };
+        this.tryInvokeDebugCommandHook = Hook<ShellCommands.Delegates.TryInvokeDebugCommand>.FromAddress(
+            (nint)ShellCommands.MemberFunctionPointers.TryInvokeDebugCommand,
+            this.OnTryInvokeDebugCommand);
+        this.tryInvokeDebugCommandHook.Enable();
 
-        this.chatGui.CheckMessageHandled += this.OnCheckMessageHandled;
         this.console.Invoke += this.ConsoleOnInvoke;
     }
 
@@ -113,7 +103,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
             Log.Error(ex, "Error while dispatching command {CommandName} (Argument: {Argument})", command, argument);
         }
     }
-    
+
     /// <summary>
     /// Add a command handler, which you can use to add your own custom commands to the in-game chat.
     /// </summary>
@@ -131,7 +121,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
             Log.Error("Command {CommandName} is already registered", command);
             return false;
         }
-        
+
         if (!this.commandAssemblyNameMap.TryAdd((command, info), loaderAssemblyName))
         {
             this.commandMap.Remove(command, out _);
@@ -160,6 +150,11 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {
+        if (this.commandAssemblyNameMap.FindFirst(c => c.Key.Item1 == command, out var assemblyKeyValuePair))
+        {
+            this.commandAssemblyNameMap.TryRemove(assemblyKeyValuePair.Key, out _);
+        }
+
         return this.commandMap.Remove(command, out _);
     }
 
@@ -184,7 +179,8 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     /// </summary>
     /// <param name="assemblyName">The name of the assembly.</param>
     /// <returns>A list of commands and their associated activation string.</returns>
-    public List<KeyValuePair<(string Command, IReadOnlyCommandInfo CommandInfo), string>> GetHandlersByAssemblyName(string assemblyName)
+    public List<KeyValuePair<(string Command, IReadOnlyCommandInfo CommandInfo), string>> GetHandlersByAssemblyName(
+        string assemblyName)
     {
         return this.commandAssemblyNameMap.Where(c => c.Value == assemblyName).ToList();
     }
@@ -193,37 +189,20 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
     void IInternalDisposableService.DisposeService()
     {
         this.console.Invoke -= this.ConsoleOnInvoke;
-        this.chatGui.CheckMessageHandled -= this.OnCheckMessageHandled;
+        this.tryInvokeDebugCommandHook?.Dispose();
     }
-    
+
     private bool ConsoleOnInvoke(string arg)
     {
         return arg.StartsWith('/') && this.ProcessCommand(arg);
     }
 
-    private void OnCheckMessageHandled(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    private int OnTryInvokeDebugCommand(ShellCommands* self, Utf8String* command, UIModule* uiModule)
     {
-        if (type == XivChatType.ErrorMessage && timestamp == 0)
-        {
-            var cmdMatch = this.currentLangCommandRegex.Match(message.TextValue).Groups["command"];
-            if (cmdMatch.Success)
-            {
-                // Yes, it's a chat command.
-                var command = cmdMatch.Value;
-                if (this.ProcessCommand(command)) isHandled = true;
-            }
-            else
-            {
-                // Always match for china, since they patch in language files without changing the ClientLanguage.
-                cmdMatch = this.commandRegexCn.Match(message.TextValue).Groups["command"];
-                if (cmdMatch.Success)
-                {
-                    // Yes, it's a Chinese fallback chat command.
-                    var command = cmdMatch.Value;
-                    if (this.ProcessCommand(command)) isHandled = true;
-                }
-            }
-        }
+        var result = this.tryInvokeDebugCommandHook!.OriginalDisposeSafe(self, command, uiModule);
+        if (result != -1) return result;
+
+        return this.ProcessCommand(command->ToString()) ? 0 : result;
     }
 }
 
@@ -238,7 +217,7 @@ internal sealed class CommandManager : IInternalDisposableService, ICommandManag
 internal class CommandManagerPluginScoped : IInternalDisposableService, ICommandManager
 {
     private static readonly ModuleLog Log = new("Command");
-    
+
     [ServiceManager.ServiceDependency]
     private readonly CommandManager commandManagerService = Service<CommandManager>.Get();
 
@@ -253,10 +232,10 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     {
         this.pluginInfo = localPlugin;
     }
-    
+
     /// <inheritdoc/>
     public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => this.commandManagerService.Commands;
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -264,7 +243,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         {
             this.commandManagerService.RemoveHandler(command);
         }
-        
+
         this.pluginRegisteredCommands.Clear();
     }
 
@@ -275,7 +254,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     /// <inheritdoc/>
     public void DispatchCommand(string command, string argument, IReadOnlyCommandInfo info)
         => this.commandManagerService.DispatchCommand(command, argument, info);
-    
+
     /// <inheritdoc/>
     public bool AddHandler(string command, CommandInfo info)
     {
@@ -294,7 +273,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
 
         return false;
     }
-    
+
     /// <inheritdoc/>
     public bool RemoveHandler(string command)
     {

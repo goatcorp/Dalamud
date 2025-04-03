@@ -766,4 +766,54 @@ public enum SeIconChar
     /// The Japanese Eorzea time icon unicode character.
     /// </summary>
     EorzeaTimeJa = 0xE0DB,
+
+    /// <summary>
+    /// The boxed, outlined number 0 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber0 = 0xE0E0,
+
+    /// <summary>
+    /// The boxed, outlined number 1 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber1 = 0xE0E1,
+
+    /// <summary>
+    /// The boxed, outlined number 2 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber2 = 0xE0E2,
+
+    /// <summary>
+    /// The boxed, outlined number 3 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber3 = 0xE0E3,
+
+    /// <summary>
+    /// The boxed, outlined number 4 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber4 = 0xE0E4,
+
+    /// <summary>
+    /// The boxed, outlined number 5 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber5 = 0xE0E5,
+
+    /// <summary>
+    /// The boxed, outlined number 6 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber6 = 0xE0E6,
+
+    /// <summary>
+    /// The boxed, outlined number 7 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber7 = 0xE0E7,
+
+    /// <summary>
+    /// The boxed, outlined number 8 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber8 = 0xE0E8,
+
+    /// <summary>
+    /// The boxed, outlined number 9 icon unicode character.
+    /// </summary>
+    BoxedOutlinedNumber9 = 0xE0E9,
 }

@@ -8,15 +8,15 @@ public enum Mudras : byte
     /// <summary>
     /// Ten mudra.
     /// </summary>
-    TEN = 1,
+    Ten = 1,
 
     /// <summary>
     /// Chi mudra.
     /// </summary>
-    CHI = 2,
+    Chi = 2,
 
     /// <summary>
     /// Jin mudra.
     /// </summary>
-    JIN = 3,
+    Jin = 3,
 }

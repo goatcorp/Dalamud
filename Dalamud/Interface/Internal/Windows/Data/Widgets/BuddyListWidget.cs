@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.Buddy;
+using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Utility;
 using ImGuiNET;
 
@@ -32,8 +32,6 @@ internal class BuddyListWidget : IDataWindowWidget
         var buddyList = Service<BuddyList>.Get();
 
         ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
-
-        ImGui.Text($"BuddyList: {buddyList.BuddyListAddress.ToInt64():X}");
         {
             var member = buddyList.CompanionBuddy;
             if (member == null)

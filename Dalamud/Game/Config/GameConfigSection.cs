@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text;
 
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -51,7 +52,7 @@ public class GameConfigSection
     /// <summary>
     /// Event which is fired when a game config option is changed within the section.
     /// </summary>
-    internal event EventHandler<ConfigChangeEvent>? Changed; 
+    internal event EventHandler<ConfigChangeEvent>? Changed;
 
     /// <summary>
     /// Gets the number of config entries contained within the section.
@@ -357,6 +358,40 @@ public class GameConfigSection
         return value;
     }
 
+    /// <summary>Attempts to get a string config value as an enum value.</summary>
+    /// <param name="name">Name of the config option.</param>
+    /// <param name="value">The returned value of the config option.</param>
+    /// <typeparam name="T">Type of the enum. Name of each enum fields are compared against.</typeparam>
+    /// <returns>A value representing the success.</returns>
+    public unsafe bool TryGetStringAsEnum<T>(string name, out T value) where T : struct, Enum
+    {
+        value = default;
+        if (!this.TryGetIndex(name, out var index))
+        {
+            return false;
+        }
+
+        if (!this.TryGetEntry(index, out var entry))
+        {
+            return false;
+        }
+
+        if (entry->Type != 4)
+        {
+            return false;
+        }
+
+        if (entry->Value.String == null)
+        {
+            return false;
+        }
+
+        var n8 = entry->Value.String->AsSpan();
+        Span<char> n16 = stackalloc char[Encoding.UTF8.GetCharCount(n8)];
+        Encoding.UTF8.GetChars(n8, n16);
+        return Enum.TryParse(n16, out value);
+    }
+
     /// <summary>
     /// Set a string config option.
     /// Note: Not all config options will be be immediately reflected in the game.
@@ -491,8 +526,8 @@ public class GameConfigSection
     {
         if (!this.enumMap.TryGetValue(entry->Index, out var enumObject))
         {
-            if (entry->Name == null) return null;
-            var name = MemoryHelper.ReadStringNullTerminated(new IntPtr(entry->Name));
+            if (entry->Name.Value == null) return null;
+            var name = entry->Name.ToString();
             if (Enum.TryParse(typeof(TEnum), name, out enumObject))
             {
                 this.enumMap.TryAdd(entry->Index, enumObject);
@@ -509,7 +544,7 @@ public class GameConfigSection
         this.Changed?.InvokeSafely(this, eventArgs);
         return eventArgs;
     }
-    
+
     private unsafe bool TryGetIndex(string name, out uint index)
     {
         if (this.indexMap.TryGetValue(name, out index))
@@ -521,12 +556,12 @@ public class GameConfigSection
         var e = configBase->ConfigEntry;
         for (var i = 0U; i < configBase->ConfigCount; i++, e++)
         {
-            if (e->Name == null)
+            if (e->Name.Value == null)
             {
                 continue;
             }
 
-            var eName = MemoryHelper.ReadStringNullTerminated(new IntPtr(e->Name));
+            var eName = e->Name.ToString();
             if (eName.Equals(name))
             {
                 this.indexMap.TryAdd(name, i);

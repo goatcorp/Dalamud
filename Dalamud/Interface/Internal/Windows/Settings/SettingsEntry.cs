@@ -41,6 +41,13 @@ public abstract class SettingsEntry
     public abstract void Draw();
 
     /// <summary>
+    /// Called after the draw function and when the style overrides are removed.
+    /// </summary>
+    public virtual void PostDraw()
+    {
+    }
+
+    /// <summary>
     /// Function to be called when the tab is opened.
     /// </summary>
     public virtual void OnOpen()

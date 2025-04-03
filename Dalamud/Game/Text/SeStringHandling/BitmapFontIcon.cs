@@ -488,7 +488,12 @@ public enum BitmapFontIcon : uint
     /// <summary>
     /// A blue star icon with an orange exclamation mark.
     /// </summary>
-    BlueStarProblem = 121,
+    BlueStarProblem = 122,
+
+    /// <summary>
+    /// The PlayStation Plus icon.
+    /// </summary>
+    PlayStationPlus = 123,
 
     /// <summary>
     /// The Disconnecting icon.
@@ -578,12 +583,12 @@ public enum BitmapFontIcon : uint
     /// <summary>
     /// The Alchemist icon.
     /// </summary>
-    Alchemist = 131,
+    Alchemist = 141,
 
     /// <summary>
     /// The Culinarian icon.
     /// </summary>
-    Culinarian = 132,
+    Culinarian = 142,
 
     /// <summary>
     /// The Miner icon.
@@ -714,4 +719,69 @@ public enum BitmapFontIcon : uint
     /// The Waiting For Duty Finder icon.
     /// </summary>
     WaitingForDutyFinder = 168,
+
+    /// <summary>
+    /// The Tural flag icon.
+    /// </summary>
+    Tural = 169,
+
+    /// <summary>
+    /// The Viper icon.
+    /// </summary>
+    Viper = 170,
+
+    /// <summary>
+    /// The Pictomancer icon.
+    /// </summary>
+    Pictomancer = 171,
+
+    /// <summary>
+    /// The Venture Delivery Moogle icon.
+    /// </summary>
+    VentureDeliveryMoogle = 172,
+
+    /// <summary>
+    /// The Watching Cutscene icon.
+    /// </summary>
+    WatchingCutscene = 173,
+
+    /// <summary>
+    /// The Away from Keyboard icon.
+    /// </summary>
+    Away = 174,
+
+    /// <summary>
+    /// The Camera Mode icon.
+    /// </summary>
+    CameraMode = 175,
+
+    /// <summary>
+    /// The Looking For Party icon.
+    /// </summary>
+    LookingForParty = 176,
+
+    /// <summary>
+    /// The Group Finder icon.
+    /// </summary>
+    GroupFinder = 177,
+
+    /// <summary>
+    /// The Party Leader icon.
+    /// </summary>
+    PartyLeader = 178,
+
+    /// <summary>
+    /// The Party Member icon.
+    /// </summary>
+    PartyMember = 179,
+
+    /// <summary>
+    /// The Cross-World Party Leader icon.
+    /// </summary>
+    CrossWorldPartyLeader = 180,
+
+    /// <summary>
+    /// The Cross-World Party Member icon.
+    /// </summary>
+    CrossWorldPartyMember = 181,
 }

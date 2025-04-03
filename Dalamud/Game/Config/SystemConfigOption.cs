@@ -598,6 +598,20 @@ public enum SystemConfigOption
     EnablePsFunction,
 
     /// <summary>
+    /// System option with the internal name ActiveInstanceGuid.
+    /// This option is a String.
+    /// </summary>
+    [GameConfigOption("ActiveInstanceGuid", ConfigType.String)]
+    ActiveInstanceGuid,
+
+    /// <summary>
+    /// System option with the internal name ActiveProductGuid.
+    /// This option is a String.
+    /// </summary>
+    [GameConfigOption("ActiveProductGuid", ConfigType.String)]
+    ActiveProductGuid,
+
+    /// <summary>
     /// System option with the internal name WaterWet.
     /// This option is a UInt.
     /// </summary>
@@ -997,6 +1011,27 @@ public enum SystemConfigOption
     AutoChangeCameraMode,
 
     /// <summary>
+    /// System option with the internal name MsqProgress.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("MsqProgress", ConfigType.UInt)]
+    MsqProgress,
+
+    /// <summary>
+    /// System option with the internal name PromptConfigUpdate.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("PromptConfigUpdate", ConfigType.UInt)]
+    PromptConfigUpdate,
+
+    /// <summary>
+    /// System option with the internal name TitleScreenType.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("TitleScreenType", ConfigType.UInt)]
+    TitleScreenType,
+
+    /// <summary>
     /// System option with the internal name AccessibilitySoundVisualEnable.
     /// This option is a UInt.
     /// </summary>
@@ -1058,6 +1093,13 @@ public enum SystemConfigOption
     /// </summary>
     [GameConfigOption("IdlingCameraAFK", ConfigType.UInt)]
     IdlingCameraAFK,
+
+    /// <summary>
+    /// System option with the internal name FirstConfigBackup.
+    /// This option is a UInt.
+    /// </summary>
+    [GameConfigOption("FirstConfigBackup", ConfigType.UInt)]
+    FirstConfigBackup,
 
     /// <summary>
     /// System option with the internal name MouseSpeed.

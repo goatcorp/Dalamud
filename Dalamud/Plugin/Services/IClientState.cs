@@ -10,9 +10,40 @@ namespace Dalamud.Plugin.Services;
 public interface IClientState
 {
     /// <summary>
+    /// A delegate type used for the <see cref="ClassJobChanged"/> event.
+    /// </summary>
+    /// <param name="classJobId">The new ClassJob id.</param>
+    public delegate void ClassJobChangeDelegate(uint classJobId);
+
+    /// <summary>
+    /// A delegate type used for the <see cref="LevelChanged"/> event.
+    /// </summary>
+    /// <param name="classJobId">The ClassJob id.</param>
+    /// <param name="level">The level of the corresponding ClassJob.</param>
+    public delegate void LevelChangeDelegate(uint classJobId, uint level);
+
+    /// <summary>
+    /// A delegate type used for the <see cref="Logout"/> event.
+    /// </summary>
+    /// <param name="type">The type of logout.</param>
+    /// <param name="code">The success/failure code.</param>
+    public delegate void LogoutDelegate(int type, int code);
+
+    /// <summary>
     /// Event that gets fired when the current Territory changes.
     /// </summary>
     public event Action<ushort> TerritoryChanged;
+
+    /// <summary>
+    /// Event that fires when a characters ClassJob changed.
+    /// </summary>
+    public event ClassJobChangeDelegate? ClassJobChanged;
+
+    /// <summary>
+    /// Event that fires when <em>any</em> character level changes, including levels
+    /// for a not-currently-active ClassJob (e.g. PvP matches, DoH/DoL).
+    /// </summary>
+    public event LevelChangeDelegate? LevelChanged;
 
     /// <summary>
     /// Event that fires when a character is logging in, and the local character object is available.
@@ -22,7 +53,7 @@ public interface IClientState
     /// <summary>
     /// Event that fires when a character is logging out.
     /// </summary>
-    public event Action Logout;
+    public event LogoutDelegate Logout;
 
     /// <summary>
     /// Event that fires when a character is entering PvP.
@@ -37,7 +68,7 @@ public interface IClientState
     /// <summary>
     /// Event that gets fired when a duty is ready.
     /// </summary>
-    public event Action<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
+    public event Action<Lumina.Excel.Sheets.ContentFinderCondition> CfPop;
 
     /// <summary>
     /// Gets the language of the client.

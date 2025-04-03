@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Configuration.Internal;
-using Dalamud.Interface.Internal.ManagedAsserts;
+using Dalamud.Interface.Windowing.Persistence;
 
 using ImGuiNET;
 using Serilog;
@@ -104,20 +104,28 @@ public class WindowSystem
         if (hasNamespace)
             ImGui.PushID(this.Namespace);
 
+        // These must be nullable, people are using stock WindowSystems and Windows without Dalamud for tests
         var config = Service<DalamudConfiguration>.GetNullable();
+        var persistence = Service<WindowSystemPersistence>.GetNullable();
+
+        var flags = Window.WindowDrawFlags.None;
+
+        if (config?.EnablePluginUISoundEffects ?? false)
+            flags |= Window.WindowDrawFlags.UseSoundEffects;
+
+        if (config?.EnablePluginUiAdditionalOptions ?? false)
+            flags |= Window.WindowDrawFlags.UseAdditionalOptions;
+
+        if (config?.IsFocusManagementEnabled ?? false)
+            flags |= Window.WindowDrawFlags.UseFocusManagement;
 
         // Shallow clone the list of windows so that we can edit it without modifying it while the loop is iterating
         foreach (var window in this.windows.ToArray())
         {
 #if DEBUG
-                // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
+            // Log.Verbose($"[WS{(hasNamespace ? "/" + this.Namespace : string.Empty)}] Drawing {window.WindowName}");
 #endif
-            var snapshot = ImGuiManagedAsserts.GetSnapshot();
-
-            window.DrawInternal(config);
-
-            var source = ($"{this.Namespace}::" ?? string.Empty) + window.WindowName;
-            ImGuiManagedAsserts.ReportProblems(source, snapshot);
+            window.DrawInternal(flags, persistence);
         }
 
         var focusedWindow = this.windows.FirstOrDefault(window => window.IsFocused && window.RespectCloseHotkey);

@@ -1,3 +1,5 @@
+using Dalamud.Interface.Utility.Raii;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
@@ -24,7 +26,13 @@ public static partial class ImGuiComponents
         else
         {
             ImGui.Text(value + "*");
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip(hint);
+            if (ImGui.IsItemHovered())
+            {
+                using (ImRaii.Tooltip())
+                {
+                    ImGui.TextUnformatted(hint);
+                }
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ internal sealed unsafe class TargetManager : IServiceType, ITargetManager
 {
     [ServiceManager.ServiceDependency]
     private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
-    
+
     [ServiceManager.ServiceConstructor]
     private TargetManager()
     {
@@ -29,8 +29,8 @@ internal sealed unsafe class TargetManager : IServiceType, ITargetManager
     /// <inheritdoc/>
     public IGameObject? Target
     {
-        get => this.objectTable.CreateObjectReference((IntPtr)Struct->Target);
-        set => Struct->Target = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->GetHardTarget());
+        set => Struct->SetHardTarget((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address);
     }
 
     /// <inheritdoc/>
@@ -57,8 +57,8 @@ internal sealed unsafe class TargetManager : IServiceType, ITargetManager
     /// <inheritdoc/>
     public IGameObject? SoftTarget
     {
-        get => this.objectTable.CreateObjectReference((IntPtr)Struct->SoftTarget);
-        set => Struct->SoftTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
+        get => this.objectTable.CreateObjectReference((IntPtr)Struct->GetSoftTarget());
+        set => Struct->SetSoftTarget((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address);
     }
 
     /// <inheritdoc/>
@@ -67,7 +67,7 @@ internal sealed unsafe class TargetManager : IServiceType, ITargetManager
         get => this.objectTable.CreateObjectReference((IntPtr)Struct->GPoseTarget);
         set => Struct->GPoseTarget = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)value?.Address;
     }
-    
+
     /// <inheritdoc/>
     public IGameObject? MouseOverNameplateTarget
     {

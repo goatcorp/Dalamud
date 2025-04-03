@@ -76,14 +76,20 @@
           "items": {
             "type": "string",
             "enum": [
+              "CI",
               "Clean",
               "Compile",
+              "CompileCImGui",
+              "CompileCImGuizmo",
+              "CompileCImPlot",
               "CompileDalamud",
               "CompileDalamudBoot",
               "CompileDalamudCrashHandler",
+              "CompileImGuiNatives",
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
+              "SetCILogging",
               "Test"
             ]
           }
@@ -98,14 +104,20 @@
           "items": {
             "type": "string",
             "enum": [
+              "CI",
               "Clean",
               "Compile",
+              "CompileCImGui",
+              "CompileCImGuizmo",
+              "CompileCImPlot",
               "CompileDalamud",
               "CompileDalamudBoot",
               "CompileDalamudCrashHandler",
+              "CompileImGuiNatives",
               "CompileInjector",
               "CompileInjectorBoot",
               "Restore",
+              "SetCILogging",
               "Test"
             ]
           }

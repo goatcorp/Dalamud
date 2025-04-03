@@ -8,10 +8,10 @@ public enum DrawType : byte
     /// <summary>
     /// Astral Draw active.
     /// </summary>
-    ASTRAL = 0,
+    Astral = 0,
 
     /// <summary>
     /// Umbral Draw active.
     /// </summary>
-    UMBRAL = 1,
+    Umbral = 1,
 }

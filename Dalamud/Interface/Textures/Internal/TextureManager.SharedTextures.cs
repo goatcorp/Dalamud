@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 using BitFaster.Caching.Lru;
 
@@ -65,12 +67,21 @@ internal sealed partial class TextureManager
         private readonly ConcurrentDictionary<(Assembly, string), SharedImmediateTexture> manifestResourceDict = new();
         private readonly HashSet<SharedImmediateTexture> invalidatedTextures = new();
 
+        private readonly Thread sharedTextureReleaseThread;
+
+        private readonly CancellationTokenSource disposingCancellationTokenSource = new();
+
         /// <summary>Initializes a new instance of the <see cref="SharedTextureManager"/> class.</summary>
         /// <param name="textureManager">An instance of <see cref="Interface.Textures.Internal.TextureManager"/>.</param>
         public SharedTextureManager(TextureManager textureManager)
         {
             this.textureManager = textureManager;
-            this.textureManager.framework.Update += this.FrameworkOnUpdate;
+
+            this.sharedTextureReleaseThread = new(this.ReleaseSharedTextures)
+            {
+                Priority = ThreadPriority.Lowest,
+            };
+            this.sharedTextureReleaseThread.Start();
         }
 
         /// <summary>Gets all the loaded textures from game resources.</summary>
@@ -90,14 +101,20 @@ internal sealed partial class TextureManager
             Justification = "Debug use only; users are expected to lock around this")]
         public ICollection<SharedImmediateTexture> ForDebugInvalidatedTextures => this.invalidatedTextures;
 
+        private SharedTextureManager NonDisposed =>
+            this.disposingCancellationTokenSource.IsCancellationRequested
+                ? throw new ObjectDisposedException(nameof(SharedTextureManager))
+                : this;
+
         /// <inheritdoc/> 
         public void Dispose()
         {
-            this.textureManager.framework.Update -= this.FrameworkOnUpdate;
+            this.disposingCancellationTokenSource.Cancel();
             this.lookupCache.Clear();
             ReleaseSelfReferences(this.gameDict);
             ReleaseSelfReferences(this.fileDict);
             ReleaseSelfReferences(this.manifestResourceDict);
+            this.sharedTextureReleaseThread.Join();
             return;
 
             static void ReleaseSelfReferences<T>(ConcurrentDictionary<T, SharedImmediateTexture> dict)
@@ -111,12 +128,14 @@ internal sealed partial class TextureManager
         /// <inheritdoc cref="ITextureProvider.GetFromGameIcon"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromGameIcon(in GameIconLookup lookup) =>
-            this.GetFromGame(this.lookupCache.GetOrAdd(lookup, this.GetIconPathByValue));
+            this.NonDisposed.GetFromGame(this.lookupCache.GetOrAdd(lookup, this.GetIconPathByValue));
         
         /// <inheritdoc cref="ITextureProvider.TryGetFromGameIcon"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out SharedImmediateTexture.PureImpl? texture)
         {
+            ObjectDisposedException.ThrowIf(this.disposingCancellationTokenSource.IsCancellationRequested, this);
+
             texture = null;
 
             if (!this.lookupCache.TryGet(lookup, out var path))
@@ -134,29 +153,29 @@ internal sealed partial class TextureManager
         /// <inheritdoc cref="ITextureProvider.GetFromGame"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromGame(string path) =>
-            this.gameDict.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder)
+            this.NonDisposed.gameDict.GetOrAdd(path, GamePathSharedImmediateTexture.CreatePlaceholder)
                 .PublicUseInstance;
 
         /// <inheritdoc cref="ITextureProvider.GetFromFile(string)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromFile(string path) =>
-            this.GetFromFile(new FileInfo(path));
+            this.NonDisposed.GetFromFile(new FileInfo(path));
         
         /// <inheritdoc cref="ITextureProvider.GetFromFile(FileInfo)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromFile(FileInfo file) =>
-            this.GetFromFileAbsolute(file.FullName);
+            this.NonDisposed.GetFromFileAbsolute(file.FullName);
 
         /// <inheritdoc cref="ITextureProvider.GetFromFileAbsolute(string)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromFileAbsolute(string fullPath) =>
-            this.fileDict.GetOrAdd(fullPath, FileSystemSharedImmediateTexture.CreatePlaceholder)
+            this.NonDisposed.fileDict.GetOrAdd(fullPath, FileSystemSharedImmediateTexture.CreatePlaceholder)
                 .PublicUseInstance;
 
         /// <inheritdoc cref="ITextureProvider.GetFromManifestResource"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SharedImmediateTexture.PureImpl GetFromManifestResource(Assembly assembly, string name) =>
-            this.manifestResourceDict.GetOrAdd(
+            this.NonDisposed.manifestResourceDict.GetOrAdd(
                 (assembly, name),
                 ManifestResourceSharedImmediateTexture.CreatePlaceholder)
                 .PublicUseInstance;
@@ -166,6 +185,9 @@ internal sealed partial class TextureManager
         /// <param name="path">The path to invalidate.</param>
         public void FlushFromGameCache(string path)
         {
+            if (this.disposingCancellationTokenSource.IsCancellationRequested)
+                return;
+
             if (this.gameDict.TryRemove(path, out var r))
             {
                 if (r.ReleaseSelfReference(true) != 0)
@@ -178,19 +200,33 @@ internal sealed partial class TextureManager
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string GetIconPathByValue(GameIconLookup lookup) =>
-            this.textureManager.TryGetIconPath(lookup, out var path) ? path : throw new IconNotFoundException(lookup);
+            this.NonDisposed.textureManager.TryGetIconPath(lookup, out var path)
+                ? path
+                : throw new IconNotFoundException(lookup);
 
-        private void FrameworkOnUpdate(IFramework unused)
+        private void ReleaseSharedTextures()
         {
-            RemoveFinalReleased(this.gameDict);
-            RemoveFinalReleased(this.fileDict);
-            RemoveFinalReleased(this.manifestResourceDict);
-
-            // ReSharper disable once InconsistentlySynchronizedField
-            if (this.invalidatedTextures.Count != 0)
+            while (!this.disposingCancellationTokenSource.IsCancellationRequested)
             {
-                lock (this.invalidatedTextures)
-                    this.invalidatedTextures.RemoveWhere(TextureFinalReleasePredicate);
+                RemoveFinalReleased(this.gameDict);
+                RemoveFinalReleased(this.fileDict);
+                RemoveFinalReleased(this.manifestResourceDict);
+
+                // ReSharper disable once InconsistentlySynchronizedField
+                if (this.invalidatedTextures.Count != 0)
+                {
+                    lock (this.invalidatedTextures)
+                        this.invalidatedTextures.RemoveWhere(TextureFinalReleasePredicate);
+                }
+
+                try
+                {
+                    this.textureManager.framework.DelayTicks(60).Wait(this.disposingCancellationTokenSource.Token);
+                }
+                catch (Exception)
+                {
+                    // who cares
+                }
             }
 
             return;
@@ -198,13 +234,13 @@ internal sealed partial class TextureManager
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static void RemoveFinalReleased<T>(ConcurrentDictionary<T, SharedImmediateTexture> dict)
             {
-                if (!dict.IsEmpty)
+                if (dict.IsEmpty)
+                    return;
+
+                foreach (var (k, v) in dict)
                 {
-                    foreach (var (k, v) in dict)
-                    {
-                        if (TextureFinalReleasePredicate(v))
-                            _ = dict.TryRemove(k, out _);
-                    }
+                    if (TextureFinalReleasePredicate(v))
+                        _ = dict.TryRemove(k, out _);
                 }
             }
 

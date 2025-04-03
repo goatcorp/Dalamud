@@ -5,9 +5,8 @@ using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
-using Serilog;
+using CSJobGaugeManager = FFXIVClientStructs.FFXIV.Client.Game.JobGaugeManager;
 
 namespace Dalamud.Game.ClientState.JobGauge;
 
@@ -21,18 +20,15 @@ namespace Dalamud.Game.ClientState.JobGauge;
 #pragma warning restore SA1015
 internal class JobGauges : IServiceType, IJobGauges
 {
-    private Dictionary<Type, JobGaugeBase> cache = new();
+    private Dictionary<Type, JobGaugeBase> cache = [];
 
     [ServiceManager.ServiceConstructor]
-    private JobGauges(ClientState clientState)
+    private JobGauges()
     {
-        this.Address = clientState.AddressResolver.JobGaugeData;
-
-        Log.Verbose($"JobGaugeData address {Util.DescribeAddress(this.Address)}");
     }
 
     /// <inheritdoc/>
-    public IntPtr Address { get; }
+    public unsafe IntPtr Address => (nint)(&CSJobGaugeManager.Instance()->EmptyGauge);
 
     /// <inheritdoc/>
     public T Get<T>() where T : JobGaugeBase

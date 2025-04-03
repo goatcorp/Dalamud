@@ -39,18 +39,6 @@ public class SettingsTabExperimental : SettingsTab
 
         new GapSettingsEntry(5),
 
-        new SettingsEntry<bool>(
-            Loc.Localize(
-                "DalamudSettingEnablePluginUIAdditionalOptions",
-                "Add a button to the title bar of plugin windows to open additional options"),
-            Loc.Localize(
-                "DalamudSettingEnablePluginUIAdditionalOptionsHint",
-                "This will allow you to pin certain plugin windows, make them clickthrough or adjust their opacity.\nThis may not be supported by all of your plugins. Contact the plugin author if you want them to support this feature."),
-            c => c.EnablePluginUiAdditionalOptions,
-            (v, c) => c.EnablePluginUiAdditionalOptions = v),
-
-        new GapSettingsEntry(5),
-
         new ButtonSettingsEntry(
             Loc.Localize("DalamudSettingsClearHidden", "Clear hidden plugins"),
             Loc.Localize(
@@ -65,6 +53,26 @@ public class SettingsTabExperimental : SettingsTab
         new GapSettingsEntry(5, true),
 
         new DevPluginsSettingsEntry(),
+
+        new SettingsEntry<bool>(
+            Loc.Localize(
+                "DalamudSettingEnableImGuiAsserts",
+                "Enable ImGui asserts"),
+            Loc.Localize(
+                "DalamudSettingEnableImGuiAssertsHint",
+                "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins."),
+            c => Service<InterfaceManager>.Get().ShowAsserts,
+            (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v),
+
+        new SettingsEntry<bool>(
+            Loc.Localize(
+                "DalamudSettingEnableImGuiAssertsAtStartup",
+                "Always enable ImGui asserts at startup"),
+            Loc.Localize(
+                "DalamudSettingEnableImGuiAssertsAtStartupHint",
+                "This will enable ImGui asserts every time the game starts."),
+            c => c.ImGuiAssertsEnabledAtStartup ?? false,
+            (v, c) => c.ImGuiAssertsEnabledAtStartup = v),
 
         new GapSettingsEntry(5, true),
 
@@ -81,10 +89,24 @@ public class SettingsTabExperimental : SettingsTab
             (v, c) => c.ReShadeHandlingMode = v,
             fallbackValue: ReShadeHandlingMode.Default,
             warning: static rshm =>
-                rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None ||
-                Service<DalamudConfiguration>.Get().SwapChainHookMode == SwapChainHelper.HookMode.ByteCode
-                    ? null
-                    : "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set.")
+            {
+                var warning = string.Empty;
+                warning += rshm is ReShadeHandlingMode.UnwrapReShade or ReShadeHandlingMode.None ||
+                           Service<DalamudConfiguration>.Get().SwapChainHookMode == SwapChainHelper.HookMode.ByteCode
+                               ? string.Empty
+                               : "Current option will be ignored and no special ReShade handling will be done, because SwapChain vtable hook mode is set.";
+
+                if (ReShadeAddonInterface.ReShadeIsSignedByReShade)
+                {
+                    warning += warning.Length > 0 ? "\n" : string.Empty;
+                    warning += Loc.Localize(
+                        "ReShadeNoAddonSupportNotificationContent",
+                        "Your installation of ReShade does not have full addon support, and may not work with Dalamud and/or the game.\n" +
+                        "Download and install ReShade with full addon-support.");
+                }
+
+                return warning.Length > 0 ? warning : null;
+            })
         {
             FriendlyEnumNameGetter = x => x switch
             {

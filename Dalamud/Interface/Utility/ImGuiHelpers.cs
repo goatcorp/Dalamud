@@ -8,7 +8,11 @@ using System.Text;
 using System.Text.Unicode;
 
 using Dalamud.Configuration.Internal;
+using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
+using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
@@ -109,7 +113,7 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="size">The size of the indent.</param>
     public static void ScaledIndent(float size) => ImGui.Indent(size * GlobalScale);
-    
+
     /// <summary>
     /// Use a relative ImGui.SameLine() from your current cursor position, scaled by the Dalamud global scale.
     /// </summary>
@@ -165,18 +169,69 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="text">The text to show.</param>
     /// <param name="textCopy">The text to copy when clicked.</param>
-    public static void ClickToCopyText(string text, string? textCopy = null)
+    /// <param name="color">The color of the text.</param>
+    public static void ClickToCopyText(string text, string? textCopy = null, Vector4? color = null)
     {
         textCopy ??= text;
-        ImGui.Text($"{text}");
+
+        using (var col = new ImRaii.Color())
+        {
+            if (color.HasValue)
+            {
+                col.Push(ImGuiCol.Text, color.Value);
+            }
+
+            ImGui.TextUnformatted($"{text}");
+        }
+
         if (ImGui.IsItemHovered())
         {
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            if (textCopy != text) ImGui.SetTooltip(textCopy);
+
+            using (ImRaii.Tooltip())
+            {
+                using (ImRaii.PushFont(UiBuilder.IconFont))
+                {
+                    ImGui.TextUnformatted(FontAwesomeIcon.Copy.ToIconString());
+                }
+
+                ImGui.SameLine();
+                ImGui.TextUnformatted(textCopy);
+            }
         }
 
-        if (ImGui.IsItemClicked()) ImGui.SetClipboardText($"{textCopy}");
+        if (ImGui.IsItemClicked())
+        {
+            ImGui.SetClipboardText(textCopy);
+        }
     }
+
+    /// <summary>Draws a SeString.</summary>
+    /// <param name="sss">SeString to draw.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
+    /// <returns>Interaction result of the rendered text.</returns>
+    public static SeStringDrawResult SeStringWrapped(
+        ReadOnlySpan<byte> sss,
+        scoped in SeStringDrawParams style = default,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
+        Service<SeStringRenderer>.Get().Draw(sss, style, imGuiId, buttonFlags);
+
+    /// <summary>Creates and caches a SeString from a text macro representation, and then draws it.</summary>
+    /// <param name="text">SeString text macro representation.
+    /// Newline characters will be normalized to <see cref="NewLinePayload"/>.</param>
+    /// <param name="style">Initial rendering style.</param>
+    /// <param name="imGuiId">ImGui ID, if link functionality is desired.</param>
+    /// <param name="buttonFlags">Button flags to use on link interaction.</param>
+    /// <returns>Interaction result of the rendered text.</returns>
+    public static SeStringDrawResult CompileSeStringWrapped(
+        string text,
+        scoped in SeStringDrawParams style = default,
+        ImGuiId imGuiId = default,
+        ImGuiButtonFlags buttonFlags = ImGuiButtonFlags.MouseButtonDefault) =>
+        Service<SeStringRenderer>.Get().CompileAndDrawWrapped(text, style, imGuiId, buttonFlags);
 
     /// <summary>
     /// Write unformatted text wrapped.
@@ -233,7 +288,7 @@ public static partial class ImGuiHelpers
 
         foreach (ref var kp in new Span<ImFontKerningPair>((void*)font->KerningPairs.Data, font->KerningPairs.Size))
             kp.AdvanceXAdjustment = rounder(kp.AdvanceXAdjustment * scale);
-        
+
         foreach (ref var fkp in new Span<float>((void*)font->FrequentKerningPairs.Data, font->FrequentKerningPairs.Size))
             fkp = rounder(fkp * scale);
     }
@@ -482,7 +537,7 @@ public static partial class ImGuiHelpers
         builder.BuildRanges(out var vec);
         return new ReadOnlySpan<ushort>((void*)vec.Data, vec.Size).ToArray();
     }
-    
+
     /// <inheritdoc cref="CreateImGuiRangesFrom(IEnumerable{UnicodeRange})"/>
     public static ushort[] CreateImGuiRangesFrom(params UnicodeRange[] ranges)
         => CreateImGuiRangesFrom((IEnumerable<UnicodeRange>)ranges);
@@ -565,7 +620,7 @@ public static partial class ImGuiHelpers
             ImGuiNative.ImGuiInputTextCallbackData_InsertChars(data, 0, pBuf, pBuf + len);
         ImGuiNative.ImGuiInputTextCallbackData_SelectAll(data);
     }
-    
+
     /// <summary>
     /// Finds the corresponding ImGui viewport ID for the given window handle.
     /// </summary>

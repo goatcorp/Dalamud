@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface;
@@ -11,6 +12,7 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Style;
+using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Profiles;
@@ -45,6 +47,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     [JsonIgnore]
     private bool isSaveQueued;
 
+    private Task? writeTask;
+
     /// <summary>
     /// Delegate for the <see cref="DalamudConfiguration.DalamudConfigurationSaved"/> event that occurs when the dalamud configuration is saved.
     /// </summary>
@@ -57,7 +61,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public event DalamudConfigurationSavedDelegate? DalamudConfigurationSaved;
 
     /// <summary>
-    /// Gets or sets a list of muted works.
+    /// Gets or sets a list of muted words.
     /// </summary>
     public List<string>? BadWords { get; set; }
 
@@ -243,13 +247,13 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// <summary>
     /// Gets or sets a value indicating whether or not ImGui asserts should be enabled at startup.
     /// </summary>
-    public bool AssertsEnabledAtStartup { get; set; }
+    public bool? ImGuiAssertsEnabledAtStartup { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
     /// </summary>
     public bool IsDocking { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
     /// This setting is effected by the in-game "System Sounds" option and volume.
@@ -261,8 +265,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
     /// on plugin title bars when using the Window System.
     /// </summary>
-    [JsonProperty("EnablePluginUiAdditionalOptionsExperimental")]
-    public bool EnablePluginUiAdditionalOptions { get; set; } = false;
+    public bool EnablePluginUiAdditionalOptions { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether viewports should always be disabled.
@@ -347,6 +350,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether or not the user has seen the profiles tutorial.
     /// </summary>
     public bool ProfilesHasSeenTutorial { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the default UI preset.
+    /// </summary>
+    public PresetModel DefaultUiPreset { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the order of DTR elements, by title.
@@ -484,9 +492,14 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public AutoUpdateBehavior? AutoUpdateBehavior { get; set; } = null;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not users should be notified regularly about pending updates.
+    /// Gets or sets a value indicating whether users should be notified regularly about pending updates.
     /// </summary>
     public bool CheckPeriodicallyForUpdates { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether users should be notified about updates in chat.
+    /// </summary>
+    public bool SendUpdateNotificationToChat { get; set; } = false;
 
     /// <summary>
     /// Load a configuration from the provided path.
@@ -504,7 +517,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
             {
                 deserialized =
                     JsonConvert.DeserializeObject<DalamudConfiguration>(text, SerializerSettings);
-                
+
                 // If this reads as null, the file was empty, that's no good
                 if (deserialized == null)
                     throw new Exception("Read config was null.");
@@ -530,7 +543,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             Log.Error(e, "Failed to set defaults for DalamudConfiguration");
         }
-        
+
         return deserialized;
     }
 
@@ -549,12 +562,15 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     {
         this.Save();
     }
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
         // Make sure that we save, if a save is queued while we are shutting down
         this.Update();
+
+        // Wait for the write task to finish
+        this.writeTask?.Wait();
     }
 
     /// <summary>
@@ -595,22 +611,36 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
                 this.ReduceMotions = winAnimEnabled == 0;
             }
         }
-        
+
         // Migrate old auto-update setting to new auto-update behavior
         this.AutoUpdateBehavior ??= this.AutoUpdatePlugins
                                         ? Plugin.Internal.AutoUpdate.AutoUpdateBehavior.UpdateAll
                                         : Plugin.Internal.AutoUpdate.AutoUpdateBehavior.OnlyNotify;
 #pragma warning restore CS0618
     }
-    
+
     private void Save()
     {
         ThreadSafety.AssertMainThread();
         if (this.configPath is null)
             throw new InvalidOperationException("configPath is not set.");
 
-        Service<ReliableFileStorage>.Get().WriteAllText(
-            this.configPath, JsonConvert.SerializeObject(this, SerializerSettings));
+        // Wait for previous write to finish
+        this.writeTask?.Wait();
+
+        this.writeTask = Task.Run(() =>
+        {
+            Service<ReliableFileStorage>.Get().WriteAllText(
+                this.configPath,
+                JsonConvert.SerializeObject(this, SerializerSettings));
+        }).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                Log.Error(t.Exception, "Failed to save DalamudConfiguration to {Path}", this.configPath);
+            }
+        });
+
         this.DalamudConfigurationSaved?.Invoke(this);
     }
 }

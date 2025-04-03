@@ -121,7 +121,10 @@ internal sealed class GameConfig : IInternalDisposableService, IGameConfig
     
     /// <inheritdoc/>
     public bool TryGet(SystemConfigOption option, out StringConfigProperties? properties) => this.System.TryGetProperties(option.GetName(), out properties);
-    
+
+    /// <inheritdoc/>
+    public bool TryGet(SystemConfigOption option, out PadButtonValue value) => this.System.TryGetStringAsEnum(option.GetName(), out value);
+
     /// <inheritdoc/>
     public bool TryGet(UiConfigOption option, out bool value) => this.UiConfig.TryGet(option.GetName(), out value);
 
@@ -346,7 +349,11 @@ internal class GameConfigPluginScoped : IInternalDisposableService, IGameConfig
     /// <inheritdoc/>
     public bool TryGet(SystemConfigOption option, out StringConfigProperties? properties)
         => this.gameConfigService.TryGet(option, out properties);
-    
+
+    /// <inheritdoc/>
+    public bool TryGet(SystemConfigOption option, out PadButtonValue value)
+        => this.gameConfigService.TryGet(option, out value);
+
     /// <inheritdoc/>
     public bool TryGet(UiConfigOption option, out bool value)
         => this.gameConfigService.TryGet(option, out value);

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -120,7 +120,7 @@ internal class GameInventory : IInternalDisposableService
                 continue;
 
             // Assumption: newItems is sorted by slots, and the last item has the highest slot number.
-            var oldItems = this.inventoryItems[i] ??= new GameInventoryItem[newItems[^1].InternalItem.Slot + 1];
+            var oldItems = this.inventoryItems[i] ??= this.CreateItemsArray(newItems[^1].InternalItem.Slot + 1);
 
             foreach (ref readonly var newItem in newItems)
             {
@@ -312,6 +312,13 @@ internal class GameInventory : IInternalDisposableService
         this.mergedEvents.Clear();
     }
 
+    private GameInventoryItem[] CreateItemsArray(int length)
+    {
+        var items = new GameInventoryItem[length];
+        items.Initialize();
+        return items;
+    }
+
     private unsafe void RaptureAtkModuleUpdateDetour(RaptureAtkModule* ram, float f1)
     {
         this.inventoriesMightBeChanged |= ram->AgentUpdateFlag != 0;
@@ -402,6 +409,9 @@ internal class GameInventoryPluginScoped : IInternalDisposableService, IGameInve
 
     /// <inheritdoc/>
     public event IGameInventory.InventoryChangedDelegate<InventoryItemMergedArgs>? ItemMergedExplicit;
+
+    /// <inheritdoc/>
+    public ReadOnlySpan<GameInventoryItem> GetInventoryItems(GameInventoryType type) => GameInventoryItem.GetReadOnlySpanOfInventory(type);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()

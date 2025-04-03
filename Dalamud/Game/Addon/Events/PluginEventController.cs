@@ -165,7 +165,7 @@ internal unsafe class PluginEventController : IDisposable
         {
             var paramKeyMatches = currentEvent->Param == eventEntry.ParamKey;
             var eventListenerAddressMatches = (nint)currentEvent->Listener == this.EventListener.Address;
-            var eventTypeMatches = currentEvent->Type == eventType;
+            var eventTypeMatches = currentEvent->State.EventType == eventType;
             
             if (paramKeyMatches && eventListenerAddressMatches && eventTypeMatches)
             {

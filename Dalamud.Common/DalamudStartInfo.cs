@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Dalamud.Common.Game;
 using Newtonsoft.Json;
 
@@ -15,7 +16,7 @@ public record DalamudStartInfo
     /// </summary>
     public DalamudStartInfo()
     {
-        // ignored
+        this.Platform = OSPlatform.Create("UNKNOWN");
     }
 
     /// <summary>
@@ -57,6 +58,12 @@ public record DalamudStartInfo
     /// Gets or sets the language of the game client.
     /// </summary>
     public ClientLanguage Language { get; set; } = ClientLanguage.English;
+
+    /// <summary>
+    /// Gets or sets the underlying platform�Dalamud runs on.
+    /// </summary>
+    [JsonConverter(typeof(OSPlatformConverter))]
+    public OSPlatform Platform { get; set; }
 
     /// <summary>
     /// Gets or sets the current game version code.
@@ -125,7 +132,7 @@ public record DalamudStartInfo
     public bool BootVehFull { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not ETW should be enabled.
+    /// Gets or sets a value indicating whether ETW should be enabled.
     /// </summary>
     public bool BootEnableEtw { get; set; }
 

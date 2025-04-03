@@ -15,7 +15,7 @@ HINSTANCE g_hGameInstance = GetModuleHandleW(nullptr);
 
 HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     g_startInfo.from_envvars();
-    
+
     std::string jsonParseError;
     try {
         from_json(nlohmann::json::parse(std::string_view(static_cast<char*>(lpParam))), g_startInfo);
@@ -25,7 +25,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
 
     if (g_startInfo.BootShowConsole)
         ConsoleSetup(L"Dalamud Boot");
-    
+
     logging::update_dll_load_status(true);
 
     const auto logFilePath = unicode::convert<std::wstring>(g_startInfo.BootLogPath);
@@ -33,16 +33,16 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     auto attemptFallbackLog = false;
     if (logFilePath.empty()) {
         attemptFallbackLog = true;
-        
+
         logging::I("No log file path given; not logging to file.");
     } else {
         try {
             logging::start_file_logging(logFilePath, !g_startInfo.BootShowConsole);
             logging::I("Logging to file: {}", logFilePath);
-            
+
         } catch (const std::exception& e) {
             attemptFallbackLog = true;
-            
+
             logging::E("Couldn't open log file: {}", logFilePath);
             logging::E("Error: {} / {}", errno, e.what());
         }
@@ -63,15 +63,15 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
         SYSTEMTIME st;
         GetLocalTime(&st);
         logFilePath += std::format(L"Dalamud.Boot.{:04}{:02}{:02}.{:02}{:02}{:02}.{:03}.{}.log", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
-        
+
         try {
             logging::start_file_logging(logFilePath, !g_startInfo.BootShowConsole);
             logging::I("Logging to fallback log file: {}", logFilePath);
-            
+
         } catch (const std::exception& e) {
             if (!g_startInfo.BootShowConsole && !g_startInfo.BootDisableFallbackConsole)
                 ConsoleSetup(L"Dalamud Boot - Fallback Console");
-            
+
             logging::E("Couldn't open fallback log file: {}", logFilePath);
             logging::E("Error: {} / {}", errno, e.what());
         }
@@ -87,7 +87,7 @@ HRESULT WINAPI InitializeImpl(LPVOID lpParam, HANDLE hMainThreadContinue) {
     } else {
         logging::E("Failed to initialize MinHook (status={}({}))", MH_StatusToString(mhStatus), static_cast<int>(mhStatus));
     }
-    
+
     logging::I("Dalamud.Boot Injectable, (c) 2021 XIVLauncher Contributors");
     logging::I("Built at: " __DATE__ "@" __TIME__);
 
@@ -241,11 +241,11 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD dwReason, LPVOID lpRese
         case DLL_PROCESS_DETACH:
             // do not show debug message boxes on abort() here
             _set_abort_behavior(0, _WRITE_ABORT_MSG);
-            
+
             // process is terminating; don't bother cleaning up
             if (lpReserved)
                 return TRUE;
-        
+
             logging::update_dll_load_status(false);
 
             xivfixes::apply_all(false);

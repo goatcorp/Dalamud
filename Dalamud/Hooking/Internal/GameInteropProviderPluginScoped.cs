@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 
 using Dalamud.Game;
@@ -7,6 +6,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using Dalamud.Utility.Signatures;
 using Serilog;
 
@@ -25,7 +25,7 @@ internal class GameInteropProviderPluginScoped : IGameInteropProvider, IInternal
     private readonly LocalPlugin plugin;
     private readonly SigScanner scanner;
 
-    private readonly ConcurrentBag<IDalamudHook> trackedHooks = new();
+    private readonly WeakConcurrentCollection<IDalamudHook> trackedHooks = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GameInteropProviderPluginScoped"/> class.

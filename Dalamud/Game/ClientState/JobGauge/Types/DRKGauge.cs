@@ -1,9 +1,12 @@
+using Dalamud.Game.ClientState.JobGauge.Enums;
+using FFXIVClientStructs.FFXIV.Client.Game.Gauge;
+
 namespace Dalamud.Game.ClientState.JobGauge.Types;
 
 /// <summary>
 /// In-memory DRK job gauge.
 /// </summary>
-public unsafe class DRKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game.Gauge.DarkKnightGauge>
+public unsafe class DRKGauge : JobGaugeBase<DarkKnightGauge>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="DRKGauge"/> class.
@@ -34,4 +37,16 @@ public unsafe class DRKGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
     public bool HasDarkArts => this.Struct->DarkArtsState > 0;
+
+    /// <summary>
+    /// Gets the step of the Delirium Combo (Scarlet Delirium, Comeuppance,
+    /// Torcleaver) that the player is on.<br/>
+    /// Does not in any way consider whether the player is still under Delirium, or
+    /// if the player still has stacks of Delirium to use.
+    /// </summary>
+    /// <remarks>
+    /// Value will persist until combo is finished OR
+    /// if the combo is not completed then the value will stay until about halfway into Delirium's cooldown.
+    /// </remarks>
+    public DeliriumStep DeliriumComboStep => (DeliriumStep)this.Struct->DeliriumStep;
 }

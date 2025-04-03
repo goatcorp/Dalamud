@@ -77,6 +77,30 @@ public static partial class ImRaii
         return new EndUnconditionally(ImGui.EndTooltip, true);
     }
 
+    /// <summary>
+    ///     Pushes the item width for the next widget and returns an <c>IDisposable</c> that pops
+    ///     the width when done.
+    /// </summary>
+    /// <param name="width">The width to set the next widget to.</param>
+    /// <returns>An <see cref="IDisposable"/> for use in a <c>using</c> statement.</returns>
+    public static IEndObject ItemWidth(float width)
+    {
+        ImGui.PushItemWidth(width);
+        return new EndUnconditionally(ImGui.PopItemWidth, true);
+    }
+
+    /// <summary>
+    ///     Pushes the item wrapping width for the next string written and returns an <c>IDisposable</c>
+    ///     that pops the wrap width when done.
+    /// </summary>
+    /// <param name="pos">The wrap width to set the next text written to.</param>
+    /// <returns>An <see cref="IDisposable"/> for use in a <c>using</c> statement.</returns>
+    public static IEndObject TextWrapPos(float pos)
+    {
+        ImGui.PushTextWrapPos(pos);
+        return new EndUnconditionally(ImGui.PopTextWrapPos, true);
+    }
+
     public static IEndObject ListBox(string label)
         => new EndConditionally(ImGui.EndListBox, ImGui.BeginListBox(label));
 
@@ -110,7 +134,7 @@ public static partial class ImRaii
     public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
     {
         ArgumentNullException.ThrowIfNull(label);
-        
+
         // One-off for now, we should make this into a generic solution if we need it more often
         const int labelMaxAlloc = 2048;
 

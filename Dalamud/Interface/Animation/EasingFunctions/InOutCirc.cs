@@ -19,8 +19,8 @@ public class InOutCirc : Easing
     public override void Update()
     {
         var p = this.Progress;
-        this.Value = p < 0.5
-                         ? (1 - Math.Sqrt(1 - Math.Pow(2 * p, 2))) / 2
-                         : (Math.Sqrt(1 - Math.Pow((-2 * p) + 2, 2)) + 1) / 2;
+        this.ValueUnclamped = p < 0.5
+                                  ? (1 - Math.Sqrt(1 - Math.Pow(2 * p, 2))) / 2
+                                  : (Math.Sqrt(1 - Math.Pow((-2 * p) + 2, 2)) + 1) / 2;
     }
 }

@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.Addon.Lifecycle;
-using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Serilog;
 
 namespace Dalamud.Game.Gui.NamePlate;
 
@@ -18,16 +20,6 @@ namespace Dalamud.Game.Gui.NamePlate;
 [ServiceManager.EarlyLoadedService]
 internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 {
-    /// <summary>
-    /// The index for the number array used by the NamePlate addon.
-    /// </summary>
-    public const int NumberArrayIndex = 5;
-
-    /// <summary>
-    /// The index for the string array used by the NamePlate addon.
-    /// </summary>
-    public const int StringArrayIndex = 4;
-
     /// <summary>
     /// The index for of the FullUpdate entry in the NamePlate number array.
     /// </summary>
@@ -39,59 +31,58 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
     internal static readonly nint EmptyStringPointer = CreateEmptyStringPointer();
 
     [ServiceManager.ServiceDependency]
-    private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
-
-    [ServiceManager.ServiceDependency]
     private readonly GameGui gameGui = Service<GameGui>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly ObjectTable objectTable = Service<ObjectTable>.Get();
 
-    private readonly AddonLifecycleEventListener preRequestedUpdateListener;
+    private readonly NamePlateGuiAddressResolver address;
+
+    private readonly Hook<AtkUnitBase.Delegates.OnRequestedUpdate> onRequestedUpdateHook;
 
     private NamePlateUpdateContext? context;
 
     private NamePlateUpdateHandler[] updateHandlers = [];
 
     [ServiceManager.ServiceConstructor]
-    private NamePlateGui()
+    private unsafe NamePlateGui(TargetSigScanner sigScanner)
     {
-        this.preRequestedUpdateListener = new AddonLifecycleEventListener(
-            AddonEvent.PreRequestedUpdate,
-            "NamePlate",
-            this.OnPreRequestedUpdate);
+        this.address = new NamePlateGuiAddressResolver();
+        this.address.Setup(sigScanner);
 
-        this.addonLifecycle.RegisterListener(this.preRequestedUpdateListener);
+        this.onRequestedUpdateHook = Hook<AtkUnitBase.Delegates.OnRequestedUpdate>.FromAddress(
+            this.address.OnRequestedUpdate,
+            this.OnRequestedUpdateDetour);
+        this.onRequestedUpdateHook.Enable();
     }
 
     /// <inheritdoc/>
     public event INamePlateGui.OnPlateUpdateDelegate? OnNamePlateUpdate;
 
     /// <inheritdoc/>
+    public event INamePlateGui.OnPlateUpdateDelegate? OnPostNamePlateUpdate;
+
+    /// <inheritdoc/>
     public event INamePlateGui.OnPlateUpdateDelegate? OnDataUpdate;
+
+    /// <inheritdoc/>
+    public event INamePlateGui.OnPlateUpdateDelegate? OnPostDataUpdate;
 
     /// <inheritdoc/>
     public unsafe void RequestRedraw()
     {
-        var addon = this.gameGui.GetAddonByName("NamePlate");
-        if (addon != 0)
+        var addon = (AddonNamePlate*)this.gameGui.GetAddonByName("NamePlate");
+        if (addon != null)
         {
-            var raptureAtkModule = RaptureAtkModule.Instance();
-            if (raptureAtkModule == null)
-            {
-                return;
-            }
-
-            ((AddonNamePlate*)addon)->DoFullUpdate = 1;
-            var namePlateNumberArrayData = raptureAtkModule->AtkArrayDataHolder.NumberArrays[NumberArrayIndex];
-            namePlateNumberArrayData->SetValue(NumberArrayFullUpdateIndex, 1);
+            addon->DoFullUpdate = 1;
+            AtkStage.Instance()->GetNumberArrayData(NumberArrayType.NamePlate)->SetValue(NumberArrayFullUpdateIndex, 1);
         }
     }
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.addonLifecycle.UnregisterListener(this.preRequestedUpdateListener);
+        this.onRequestedUpdateHook.Dispose();
     }
 
     /// <summary>
@@ -144,70 +135,140 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
         this.updateHandlers = handlers.ToArray();
     }
 
-    private void OnPreRequestedUpdate(AddonEvent type, AddonArgs args)
+    private unsafe void OnRequestedUpdateDetour(
+        AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
     {
-        if (this.OnDataUpdate == null && this.OnNamePlateUpdate == null)
-        {
-            return;
-        }
+        var calledOriginal = false;
 
-        var reqArgs = (AddonRequestedUpdateArgs)args;
-        if (this.context == null)
+        try
         {
-            this.context = new NamePlateUpdateContext(this.objectTable, reqArgs);
-            this.CreateHandlers(this.context);
-        }
-        else
-        {
-            this.context.ResetState(reqArgs);
-        }
-
-        var activeNamePlateCount = this.context.ActiveNamePlateCount;
-        if (activeNamePlateCount == 0)
-            return;
-
-        var activeHandlers = this.updateHandlers[..activeNamePlateCount];
-
-        if (this.context.IsFullUpdate)
-        {
-            foreach (var handler in activeHandlers)
+            if (this.OnDataUpdate == null && this.OnNamePlateUpdate == null && this.OnPostDataUpdate == null &&
+                this.OnPostNamePlateUpdate == null)
             {
-                handler.ResetState();
+                return;
             }
 
-            this.OnDataUpdate?.Invoke(this.context, activeHandlers);
-            this.OnNamePlateUpdate?.Invoke(this.context, activeHandlers);
-            if (this.context.HasParts)
-                this.ApplyBuilders(activeHandlers);
-        }
-        else
-        {
-            var udpatedHandlers = new List<NamePlateUpdateHandler>(activeNamePlateCount);
-            foreach (var handler in activeHandlers)
+            if (this.context == null)
             {
-                handler.ResetState();
-                if (handler.IsUpdating)
-                    udpatedHandlers.Add(handler);
+                this.context = new NamePlateUpdateContext(this.objectTable);
+                this.CreateHandlers(this.context);
             }
 
-            if (this.OnDataUpdate is not null)
+            this.context.ResetState(addon, numberArrayData, stringArrayData);
+
+            var activeNamePlateCount = this.context!.ActiveNamePlateCount;
+            if (activeNamePlateCount == 0)
+                return;
+
+            var activeHandlers = this.updateHandlers[..activeNamePlateCount];
+
+            if (this.context.IsFullUpdate)
             {
+                foreach (var handler in activeHandlers)
+                {
+                    handler.ResetState();
+                }
+
                 this.OnDataUpdate?.Invoke(this.context, activeHandlers);
-                this.OnNamePlateUpdate?.Invoke(this.context, udpatedHandlers);
+                this.OnNamePlateUpdate?.Invoke(this.context, activeHandlers);
+
                 if (this.context.HasParts)
                     this.ApplyBuilders(activeHandlers);
+
+                try
+                {
+                    calledOriginal = true;
+                    this.onRequestedUpdateHook.Original.Invoke(addon, numberArrayData, stringArrayData);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
+                }
+
+                this.OnPostNamePlateUpdate?.Invoke(this.context, activeHandlers);
+                this.OnPostDataUpdate?.Invoke(this.context, activeHandlers);
             }
-            else if (udpatedHandlers.Count != 0)
+            else
             {
-                var changedHandlersSpan = udpatedHandlers.ToArray().AsSpan();
-                this.OnNamePlateUpdate?.Invoke(this.context, udpatedHandlers);
-                if (this.context.HasParts)
-                    this.ApplyBuilders(changedHandlersSpan);
+                var updatedHandlers = new List<NamePlateUpdateHandler>(activeNamePlateCount);
+                foreach (var handler in activeHandlers)
+                {
+                    handler.ResetState();
+                    if (handler.IsUpdating)
+                        updatedHandlers.Add(handler);
+                }
+
+                if (this.OnDataUpdate is not null)
+                {
+                    this.OnDataUpdate?.Invoke(this.context, activeHandlers);
+                    this.OnNamePlateUpdate?.Invoke(this.context, updatedHandlers);
+
+                    if (this.context.HasParts)
+                        this.ApplyBuilders(activeHandlers);
+
+                    try
+                    {
+                        calledOriginal = true;
+                        this.onRequestedUpdateHook.Original.Invoke(addon, numberArrayData, stringArrayData);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
+                    }
+
+                    this.OnPostNamePlateUpdate?.Invoke(this.context, updatedHandlers);
+                    this.OnPostDataUpdate?.Invoke(this.context, activeHandlers);
+                }
+                else if (updatedHandlers.Count != 0)
+                {
+                    this.OnNamePlateUpdate?.Invoke(this.context, updatedHandlers);
+
+                    if (this.context.HasParts)
+                        this.ApplyBuilders(updatedHandlers);
+
+                    try
+                    {
+                        calledOriginal = true;
+                        this.onRequestedUpdateHook.Original.Invoke(addon, numberArrayData, stringArrayData);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
+                    }
+
+                    this.OnPostNamePlateUpdate?.Invoke(this.context, updatedHandlers);
+                    this.OnPostDataUpdate?.Invoke(this.context, activeHandlers);
+                }
+            }
+        }
+        finally
+        {
+            if (!calledOriginal)
+            {
+                try
+                {
+                    this.onRequestedUpdateHook.Original.Invoke(addon, numberArrayData, stringArrayData);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
+                }
             }
         }
     }
 
     private void ApplyBuilders(Span<NamePlateUpdateHandler> handlers)
+    {
+        foreach (var handler in handlers)
+        {
+            if (handler.PartsContainer is { } container)
+            {
+                container.ApplyBuilders(handler);
+            }
+        }
+    }
+
+    private void ApplyBuilders(List<NamePlateUpdateHandler> handlers)
     {
         foreach (var handler in handlers)
         {
@@ -239,6 +300,7 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
         {
             if (this.OnNamePlateUpdateScoped == null)
                 this.parentService.OnNamePlateUpdate += this.OnNamePlateUpdateForward;
+
             this.OnNamePlateUpdateScoped += value;
         }
 
@@ -251,12 +313,32 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
     }
 
     /// <inheritdoc/>
+    public event INamePlateGui.OnPlateUpdateDelegate? OnPostNamePlateUpdate
+    {
+        add
+        {
+            if (this.OnPostNamePlateUpdateScoped == null)
+                this.parentService.OnPostNamePlateUpdate += this.OnPostNamePlateUpdateForward;
+
+            this.OnPostNamePlateUpdateScoped += value;
+        }
+
+        remove
+        {
+            this.OnPostNamePlateUpdateScoped -= value;
+            if (this.OnPostNamePlateUpdateScoped == null)
+                this.parentService.OnPostNamePlateUpdate -= this.OnPostNamePlateUpdateForward;
+        }
+    }
+
+    /// <inheritdoc/>
     public event INamePlateGui.OnPlateUpdateDelegate? OnDataUpdate
     {
         add
         {
             if (this.OnDataUpdateScoped == null)
                 this.parentService.OnDataUpdate += this.OnDataUpdateForward;
+
             this.OnDataUpdateScoped += value;
         }
 
@@ -268,9 +350,32 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
         }
     }
 
+    /// <inheritdoc/>
+    public event INamePlateGui.OnPlateUpdateDelegate? OnPostDataUpdate
+    {
+        add
+        {
+            if (this.OnPostDataUpdateScoped == null)
+                this.parentService.OnPostDataUpdate += this.OnPostDataUpdateForward;
+
+            this.OnPostDataUpdateScoped += value;
+        }
+
+        remove
+        {
+            this.OnPostDataUpdateScoped -= value;
+            if (this.OnPostDataUpdateScoped == null)
+                this.parentService.OnPostDataUpdate -= this.OnPostDataUpdateForward;
+        }
+    }
+
     private event INamePlateGui.OnPlateUpdateDelegate? OnNamePlateUpdateScoped;
 
+    private event INamePlateGui.OnPlateUpdateDelegate? OnPostNamePlateUpdateScoped;
+
     private event INamePlateGui.OnPlateUpdateDelegate? OnDataUpdateScoped;
+
+    private event INamePlateGui.OnPlateUpdateDelegate? OnPostDataUpdateScoped;
 
     /// <inheritdoc/>
     public void RequestRedraw()
@@ -284,8 +389,14 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
         this.parentService.OnNamePlateUpdate -= this.OnNamePlateUpdateForward;
         this.OnNamePlateUpdateScoped = null;
 
+        this.parentService.OnPostNamePlateUpdate -= this.OnPostNamePlateUpdateForward;
+        this.OnPostNamePlateUpdateScoped = null;
+
         this.parentService.OnDataUpdate -= this.OnDataUpdateForward;
         this.OnDataUpdateScoped = null;
+
+        this.parentService.OnPostDataUpdate -= this.OnPostDataUpdateForward;
+        this.OnPostDataUpdateScoped = null;
     }
 
     private void OnNamePlateUpdateForward(
@@ -294,9 +405,21 @@ internal class NamePlateGuiPluginScoped : IInternalDisposableService, INamePlate
         this.OnNamePlateUpdateScoped?.Invoke(context, handlers);
     }
 
+    private void OnPostNamePlateUpdateForward(
+        INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers)
+    {
+        this.OnPostNamePlateUpdateScoped?.Invoke(context, handlers);
+    }
+
     private void OnDataUpdateForward(
         INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers)
     {
         this.OnDataUpdateScoped?.Invoke(context, handlers);
+    }
+
+    private void OnPostDataUpdateForward(
+        INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers)
+    {
+        this.OnPostDataUpdateScoped?.Invoke(context, handlers);
     }
 }

@@ -9,15 +9,15 @@ public enum Nadi : byte
     /// <summary>
     /// No nadi.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// The Lunar nadi.
     /// </summary>
-    LUNAR = 1,
+    Lunar = 1,
 
     /// <summary>
     /// The Solar nadi.
     /// </summary>
-    SOLAR = 2,
+    Solar = 2,
 }

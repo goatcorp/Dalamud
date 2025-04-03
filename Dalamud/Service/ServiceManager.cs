@@ -280,11 +280,8 @@ internal static class ServiceManager
 
                 Log.Error(e, "Failed resolving blocking services");
             }
-            finally
-            {
-                loadingDialog.HideAndJoin();
-            }
 
+            await loadingDialog.HideAndJoin();
             return;
 
             async Task WaitWithTimeoutConsent(IEnumerable<Task> tasksEnumerable, LoadingDialog.State state)
@@ -414,12 +411,13 @@ internal static class ServiceManager
             try
             {
                 BlockingServicesLoadedTaskCompletionSource.SetException(e);
-                loadingDialog.HideAndJoin();
             }
             catch (Exception)
             {
                 // don't care, as this means task result/exception has already been set
             }
+
+            await loadingDialog.HideAndJoin();
 
             while (tasks.Any())
             {

@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -7,6 +7,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text.SeStringHandling;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Gui.NamePlate;
@@ -328,9 +329,22 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     public ulong GameObjectId => this.gameObjectId ??= this.NamePlateInfo->ObjectId;
 
     /// <inheritdoc/>
-    public IGameObject? GameObject => this.gameObject ??= this.context.ObjectTable.CreateObjectReference(
-                                          (nint)this.context.Ui3DModule->NamePlateObjectInfoPointers[
-                                              this.ArrayIndex].Value->GameObject);
+    public IGameObject? GameObject
+    {
+        get
+        {
+            if (this.GameObjectId == 0xE0000000)
+            {
+                // Skipping Ui3DModule lookup for invalid nameplate (NamePlateInfo->ObjectId is 0xE0000000). This
+                // prevents crashes around certain Doman Reconstruction cutscenes.
+                return null;
+            }
+
+            return this.gameObject ??= this.context.ObjectTable[
+                       this.context.Ui3DModule->NamePlateObjectInfoPointers[this.ArrayIndex]
+                           .Value->GameObject->ObjectIndex];
+        }
+    }
 
     /// <inheritdoc/>
     public IBattleChara? BattleChara => this.GameObject as IBattleChara;
@@ -490,7 +504,7 @@ internal unsafe class NamePlateUpdateHandler : INamePlateUpdateHandler
     private AddonNamePlate.NamePlateObject* NamePlateObject =>
         &this.context.Addon->NamePlateObjectArray[this.NamePlateIndex];
 
-    private AddonNamePlate.NamePlateIntArrayData.NamePlateObjectIntArrayData* ObjectData =>
+    private NamePlateNumberArray.NamePlateObjectIntArrayData* ObjectData =>
         this.context.NumberStruct->ObjectData.GetPointer(this.ArrayIndex);
 
     /// <inheritdoc/>

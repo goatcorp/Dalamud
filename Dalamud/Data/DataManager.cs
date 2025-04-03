@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Dalamud.Game;
 using Dalamud.IoC;
@@ -10,6 +11,7 @@ using Dalamud.Utility.Timing;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
+
 using Newtonsoft.Json;
 using Serilog;
 
@@ -27,11 +29,14 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
 {
     private readonly Thread luminaResourceThread;
     private readonly CancellationTokenSource luminaCancellationTokenSource;
+    private readonly RsvResolver rsvResolver;
 
     [ServiceManager.ServiceConstructor]
     private DataManager(Dalamud dalamud)
     {
         this.Language = (ClientLanguage)dalamud.StartInfo.Language;
+
+        this.rsvResolver = new();
 
         try
         {
@@ -43,11 +48,8 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
                 {
                     LoadMultithreaded = true,
                     CacheFileResources = true,
-#if NEVER // Lumina bug
                     PanicOnSheetChecksumMismatch = true,
-#else
-                    PanicOnSheetChecksumMismatch = false,
-#endif
+                    RsvResolver = this.rsvResolver.TryResolve,
                     DefaultExcelLanguage = this.Language.ToLumina(),
                 };
 
@@ -128,12 +130,12 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     #region Lumina Wrappers
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>() where T : ExcelRow 
-        => this.Excel.GetSheet<T>();
+    public ExcelSheet<T> GetExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelRow<T> 
+        => this.Excel.GetSheet<T>(language?.ToLumina(), name);
 
     /// <inheritdoc/>
-    public ExcelSheet<T>? GetExcelSheet<T>(ClientLanguage language) where T : ExcelRow 
-        => this.Excel.GetSheet<T>(language.ToLumina());
+    public SubrowExcelSheet<T> GetSubrowExcelSheet<T>(ClientLanguage? language = null, string? name = null) where T : struct, IExcelSubrow<T>
+        => this.Excel.GetSubrowSheet<T>(language?.ToLumina(), name);
 
     /// <inheritdoc/>
     public FileResource? GetFile(string path) 
@@ -149,6 +151,16 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     }
 
     /// <inheritdoc/>
+    public Task<T> GetFileAsync<T>(string path, CancellationToken cancellationToken) where T : FileResource =>
+        GameData.ParseFilePath(path) is { } filePath &&
+        this.GameData.Repositories.TryGetValue(filePath.Repository, out var repository)
+            ? Task.Run(
+                () => repository.GetFile<T>(filePath.Category, filePath) ?? throw new FileNotFoundException(
+                          "Failed to load file, most likely because the file could not be found."),
+                cancellationToken)
+            : Task.FromException<T>(new FileNotFoundException("The file could not be found."));
+
+    /// <inheritdoc/>
     public bool FileExists(string path) 
         => this.GameData.FileExists(path);
 
@@ -159,6 +171,7 @@ internal sealed class DataManager : IInternalDisposableService, IDataManager
     {
         this.luminaCancellationTokenSource.Cancel();
         this.GameData.Dispose();
+        this.rsvResolver.Dispose();
     }
 
     private class LauncherTroubleshootingInfo

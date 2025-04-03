@@ -48,7 +48,7 @@ public interface IChatGui
     /// <param name="sender">The sender name.</param>
     /// <param name="message">The message sent.</param>
     public delegate void OnMessageUnhandledDelegate(XivChatType type, int timestamp, SeString sender, SeString message);
-    
+
     /// <summary>
     /// Event that will be fired when a chat message is sent to chat by the game.
     /// </summary>
@@ -68,17 +68,17 @@ public interface IChatGui
     /// Event that will be fired when a chat message is not handled by Dalamud or a Plugin.
     /// </summary>
     public event OnMessageUnhandledDelegate ChatMessageUnhandled;
-    
+
     /// <summary>
     /// Gets the ID of the last linked item.
     /// </summary>
-    public int LastLinkedItemId { get; }
-    
+    public uint LastLinkedItemId { get; }
+
     /// <summary>
     /// Gets the flags of the last linked item.
     /// </summary>
     public byte LastLinkedItemFlags { get; }
-    
+
     /// <summary>
     /// Gets the dictionary of Dalamud Link Handlers.
     /// </summary>
@@ -121,4 +121,20 @@ public interface IChatGui
     /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
     /// <param name="tagColor">Color to display the message tag with.</param>
     public void PrintError(SeString message, string? messageTag = null, ushort? tagColor = null);
+
+    /// <summary>
+    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
+    /// </summary>
+    /// <param name="message">A message to send.</param>
+    /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
+    /// <param name="tagColor">Color to display the message tag with.</param>
+    public void Print(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null);
+
+    /// <summary>
+    /// Queue a chat message. Dalamud will send queued messages on the next framework event.
+    /// </summary>
+    /// <param name="message">A message to send.</param>
+    /// <param name="messageTag">String to prepend message with "[messageTag] ".</param>
+    /// <param name="tagColor">Color to display the message tag with.</param>
+    public void PrintError(ReadOnlySpan<byte> message, string? messageTag = null, ushort? tagColor = null);
 }
