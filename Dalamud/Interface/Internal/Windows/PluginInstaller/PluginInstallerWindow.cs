@@ -110,6 +110,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     private bool feedbackModalIncludeException = false;
     private IPluginManifest? feedbackPlugin = null;
     private bool feedbackIsTesting = false;
+    private bool feedbackIsCustomRepo = false;
 
     private int updatePluginCount = 0;
     private List<PluginUpdateStatus>? updatedPlugins;
@@ -1074,6 +1075,11 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             ImGui.TextColored(ImGuiColors.DalamudRed, Locs.FeedbackModal_ContactInformationWarning);
 
+            if (this.feedbackPlugin?.FeedbackWebhook != null && this.feedbackIsCustomRepo)
+            {
+                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudRed, Locs.FeedbackModal_IPAddressWarning);
+            }
+
             ImGui.Spacing();
 
             ImGui.Checkbox(Locs.FeedbackModal_IncludeLastError, ref this.feedbackModalIncludeException);
@@ -1104,6 +1110,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         Task.Run(async () => await BugBait.SendFeedback(
                                                  this.feedbackPlugin,
                                                  this.feedbackIsTesting,
+                                                 this.feedbackIsCustomRepo,
                                                  this.feedbackModalBody,
                                                  this.feedbackModalContact,
                                                  this.feedbackModalIncludeException))
@@ -2494,10 +2501,13 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGuiHelpers.ScaledDummy(3);
             }
 
-            if (!manifest.SourceRepo.IsThirdParty && manifest.AcceptsFeedback && !isOutdated)
+            var feedbackEligible = manifest.AcceptsFeedback &&
+                                   (!manifest.SourceRepo.IsThirdParty || manifest.FeedbackWebhook != null);
+
+            if (feedbackEligible && !isOutdated)
             {
                 ImGui.SameLine();
-                this.DrawSendFeedbackButton(manifest, false, true);
+                this.DrawSendFeedbackButton(manifest, false, manifest.SourceRepo.IsThirdParty, true);
             }
 
             ImGuiHelpers.ScaledDummy(5);
@@ -2772,16 +2782,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.SameLine();
             ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
 
-            var acceptsFeedback =
-                this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName && x.AcceptsFeedback);
-
             var isThirdParty = plugin.IsThirdParty;
-            var canFeedback = !isThirdParty &&
-                              !plugin.IsDev &&
+            var canFeedback = !plugin.IsDev &&
                               !plugin.IsOrphaned &&
                               (plugin.Manifest.DalamudApiLevel == PluginManager.DalamudApiLevel ||
                                (plugin.Manifest.TestingDalamudApiLevel == PluginManager.DalamudApiLevel && hasTestingAvailable)) &&
-                              acceptsFeedback &&
+                              plugin.Manifest.AcceptsFeedback && (!plugin.IsThirdParty || plugin.Manifest.FeedbackWebhook != null) &&
                               availablePluginUpdate == default;
 
             // Installed from
@@ -2848,7 +2854,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (canFeedback)
             {
                 ImGui.SameLine();
-                this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting, false);
+                this.DrawSendFeedbackButton(plugin.Manifest, plugin.IsTesting, plugin.IsThirdParty, false);
             }
 
             if (availablePluginUpdate != default && !plugin.IsDev)
@@ -3330,7 +3336,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         }
     }
 
-    private void DrawSendFeedbackButton(IPluginManifest manifest, bool isTesting, bool big)
+    private void DrawSendFeedbackButton(IPluginManifest manifest, bool isTesting, bool isCustomRepo, bool big)
     {
         var clicked = big ?
                           ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Comment, Locs.FeedbackModal_Title) :
@@ -3341,6 +3347,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             this.feedbackPlugin = manifest;
             this.feedbackModalOnNextFrame = true;
             this.feedbackIsTesting = isTesting;
+            this.feedbackIsCustomRepo = isCustomRepo;
         }
 
         if (ImGui.IsItemHovered())
@@ -3808,7 +3815,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             case PluginSortKind.EnabledDisabled:
                 this.pluginListAvailable.Sort((p1, p2) =>
                 {
-                    bool IsEnabled(PluginManifest manifest)
+                    bool IsEnabled(IPluginManifest manifest)
                     {
                         return this.pluginListInstalled.Any(x => x.Manifest.InternalName == manifest.InternalName);
                     }
@@ -4315,6 +4322,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string FeedbackModal_IncludeLastErrorHint => Loc.Localize("InstallerFeedbackIncludeLastErrorHint", "This option can give the plugin developer useful feedback on what exactly went wrong.");
 
         public static string FeedbackModal_Hint => Loc.Localize("InstallerFeedbackHint", "All plugin developers will be able to see your feedback.\nPlease never include any personal or revealing information.\nIf you chose to include the last error message, information like your Windows username may be included.\n\nThe collected feedback is not stored on our end and immediately relayed to Discord.");
+
+        public static string FeedbackModal_IPAddressWarning => Loc.Localize("InstallerFeedbackIPAddressWarning", "This plugin is configured to send feedback to a server defined by its maintainer, which may log your IP address. Please ensure you trust the author of this plugin!");
 
         public static string FeedbackModal_NotificationSuccess => Loc.Localize("InstallerFeedbackNotificationSuccess", "Your feedback was sent successfully!");
 
