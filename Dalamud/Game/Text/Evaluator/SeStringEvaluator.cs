@@ -24,6 +24,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
+using FFXIVClientStructs.Interop;
 
 using Lumina.Data.Structs.Excel;
 using Lumina.Excel;
@@ -445,7 +446,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (this.gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) &&
                     logCrossWorldName == 1)
-                    context.Builder.Append((ReadOnlySeStringSpan)world.Name);
+                    context.Builder.Append(new ReadOnlySeStringSpan(world.Name.GetPointer(0)));
             }
 
             return true;
