@@ -1,4 +1,4 @@
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Utility.Raii;
 
@@ -41,11 +41,11 @@ public static partial class ImRaii
             return this;
         }
 
-        public Id Push(IntPtr id, bool condition = true)
+        public unsafe Id Push(IntPtr id, bool condition = true)
         {
             if (condition)
             {
-                ImGui.PushID(id);
+                ImGui.PushID(id.ToPointer());
                 ++this.count;
             }
 

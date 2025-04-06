@@ -21,3 +21,15 @@ GlobalAlloc
 GlobalLock
 GlobalUnlock
 GLOBAL_ALLOC_FLAGS
+
+MEM_ALLOCATION_TYPE
+VirtualAlloc
+VirtualProtect
+VirtualFree
+
+ReadProcessMemory
+WriteProcessMemory
+
+GetCurrentProcess
+
+MessageBoxW

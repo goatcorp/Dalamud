@@ -1,5 +1,6 @@
 using System.Threading;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Utility;
@@ -33,10 +34,10 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
     ~UnknownTextureWrap() => this.Dispose(false);
 
     /// <inheritdoc/>
-    public nint ImGuiHandle =>
+    public ImTextureID ImGuiHandle =>
         this.imGuiHandle == nint.Zero
             ? throw new ObjectDisposedException(nameof(UnknownTextureWrap))
-            : this.imGuiHandle;
+            : new ImTextureID(this.imGuiHandle);
 
     /// <inheritdoc/>
     public int Width { get; }

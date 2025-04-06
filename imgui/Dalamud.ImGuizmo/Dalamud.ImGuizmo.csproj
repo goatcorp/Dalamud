@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="HexaGen.Runtime" Version="1.1.17" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Dalamud.ImGui\Dalamud.ImGui.csproj" />
+    </ItemGroup>
+
+</Project>

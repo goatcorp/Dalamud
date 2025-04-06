@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using TerraFX.Interop.Windows;
 
@@ -75,16 +75,16 @@ internal sealed partial class Win32InputHandler
         VK.VK_RMENU => ImGuiKey.RightAlt,
         VK.VK_RWIN => ImGuiKey.RightSuper,
         VK.VK_APPS => ImGuiKey.Menu,
-        '0' => ImGuiKey._0,
-        '1' => ImGuiKey._1,
-        '2' => ImGuiKey._2,
-        '3' => ImGuiKey._3,
-        '4' => ImGuiKey._4,
-        '5' => ImGuiKey._5,
-        '6' => ImGuiKey._6,
-        '7' => ImGuiKey._7,
-        '8' => ImGuiKey._8,
-        '9' => ImGuiKey._9,
+        '0' => ImGuiKey.Key0,
+        '1' => ImGuiKey.Key1,
+        '2' => ImGuiKey.Key2,
+        '3' => ImGuiKey.Key3,
+        '4' => ImGuiKey.Key4,
+        '5' => ImGuiKey.Key5,
+        '6' => ImGuiKey.Key6,
+        '7' => ImGuiKey.Key7,
+        '8' => ImGuiKey.Key8,
+        '9' => ImGuiKey.Key9,
         'A' => ImGuiKey.A,
         'B' => ImGuiKey.B,
         'C' => ImGuiKey.C,
@@ -190,16 +190,16 @@ internal sealed partial class Win32InputHandler
         ImGuiKey.RightAlt => VK.VK_RMENU,
         ImGuiKey.RightSuper => VK.VK_RWIN,
         ImGuiKey.Menu => VK.VK_APPS,
-        ImGuiKey._0 => '0',
-        ImGuiKey._1 => '1',
-        ImGuiKey._2 => '2',
-        ImGuiKey._3 => '3',
-        ImGuiKey._4 => '4',
-        ImGuiKey._5 => '5',
-        ImGuiKey._6 => '6',
-        ImGuiKey._7 => '7',
-        ImGuiKey._8 => '8',
-        ImGuiKey._9 => '9',
+        ImGuiKey.Key0 => '0',
+        ImGuiKey.Key1 => '1',
+        ImGuiKey.Key2 => '2',
+        ImGuiKey.Key3 => '3',
+        ImGuiKey.Key4 => '4',
+        ImGuiKey.Key5 => '5',
+        ImGuiKey.Key6 => '6',
+        ImGuiKey.Key7 => '7',
+        ImGuiKey.Key8 => '8',
+        ImGuiKey.Key9 => '9',
         ImGuiKey.A => 'A',
         ImGuiKey.B => 'B',
         ImGuiKey.C => 'C',
@@ -274,14 +274,14 @@ internal sealed partial class Win32InputHandler
     private static void UpAllKeys()
     {
         var io = ImGui.GetIO();
-        for (var i = (int)ImGuiKey.NamedKey_BEGIN; i < (int)ImGuiKey.NamedKey_END; i++)
+        for (var i = (int)ImGuiKey.NamedKeyBegin; i < (int)ImGuiKey.NamedKeyEnd; i++)
             io.AddKeyEvent((ImGuiKey)i, false);
     }
 
     private static void UpAllMouseButton()
     {
         var io = ImGui.GetIO();
-        for (var i = 0; i < io.MouseDown.Count; i++)
+        for (var i = 0; i < io.MouseDown.Length; i++)
             io.MouseDown[i] = false;
     }
 

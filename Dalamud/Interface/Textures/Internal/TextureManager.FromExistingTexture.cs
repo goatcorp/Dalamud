@@ -320,7 +320,7 @@ internal sealed partial class TextureManager
         {
             this.wrapToClose = leaveWrapOpen ? null : wrap;
 
-            using var unk = new ComPtr<IUnknown>((IUnknown*)wrap.ImGuiHandle);
+            using var unk = new ComPtr<IUnknown>((IUnknown*)wrap.ImGuiHandle.Handle);
 
             using var srvTemp = default(ComPtr<ID3D11ShaderResourceView>);
             unk.As(&srvTemp).ThrowOnError();

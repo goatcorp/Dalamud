@@ -1,5 +1,3 @@
-using ImGuiNET;
-
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>

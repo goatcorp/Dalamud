@@ -12,11 +12,11 @@ namespace Dalamud;
 /// </remarks>
 public static class SafeMemory
 {
-    private static readonly IntPtr Handle;
+    private static readonly SafeHandle Handle;
 
     static SafeMemory()
     {
-        Handle = Imports.GetCurrentProcess();
+        Handle = Windows.Win32.PInvoke.GetCurrentProcess_SafeHandle();
     }
 
     /// <summary>
@@ -26,10 +26,24 @@ public static class SafeMemory
     /// <param name="count">The amount of bytes to read.</param>
     /// <param name="buffer">The result buffer.</param>
     /// <returns>Whether or not the read succeeded.</returns>
-    public static bool ReadBytes(IntPtr address, int count, out byte[] buffer)
+    public static unsafe bool ReadBytes(IntPtr address, int count, out byte[] buffer)
     {
         buffer = new byte[count <= 0 ? 0 : count];
-        return Imports.ReadProcessMemory(Handle, address, buffer, buffer.Length, out _);
+        fixed (byte* p = buffer)
+        {
+            UIntPtr bytesRead;
+            if (!Windows.Win32.PInvoke.ReadProcessMemory(
+                Handle,
+                address.ToPointer(),
+                p,
+                new UIntPtr((uint)count),
+                &bytesRead))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -38,9 +52,26 @@ public static class SafeMemory
     /// <param name="address">The address to write to.</param>
     /// <param name="buffer">The buffer to write.</param>
     /// <returns>Whether or not the write succeeded.</returns>
-    public static bool WriteBytes(IntPtr address, byte[] buffer)
+    public static unsafe bool WriteBytes(IntPtr address, byte[] buffer)
     {
-        return Imports.WriteProcessMemory(Handle, address, buffer, buffer.Length, out _);
+        if (buffer.Length == 0)
+            return true;
+
+        UIntPtr bytesWritten;
+        fixed (byte* p = buffer)
+        {
+            if (!Windows.Win32.PInvoke.WriteProcessMemory(
+                Handle,
+                address.ToPointer(),
+                p,
+                new UIntPtr((uint)buffer.Length),
+                &bytesWritten))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -238,18 +269,6 @@ public static class SafeMemory
                 type = type.GetEnumUnderlyingType();
             Size = Type.GetTypeCode(type) == TypeCode.Boolean ? 1 : Marshal.SizeOf(type);
         }
-    }
-
-    private static class Imports
-    {
-        [DllImport("kernel32", SetLastError = true)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int nSize, out int lpNumberOfBytesRead);
-
-        [DllImport("kernel32", SetLastError = true)]
-        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out int lpNumberOfBytesWritten);
-
-        [DllImport("kernel32", SetLastError = false)]
-        public static extern IntPtr GetCurrentProcess();
     }
 
     private sealed class LocalMemory : IDisposable

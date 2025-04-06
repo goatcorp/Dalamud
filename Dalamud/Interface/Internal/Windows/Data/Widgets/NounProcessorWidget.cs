@@ -8,7 +8,7 @@ using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Interface.Utility.Raii;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Data;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;

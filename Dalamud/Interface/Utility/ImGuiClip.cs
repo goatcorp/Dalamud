@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Utility;
 
@@ -37,7 +37,7 @@ public static class ImGuiClip
         ImGuiListClipperPtr clipper;
         unsafe
         {
-            clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
         }
 
         clipper.Begin(data.Count, lineHeight);
@@ -72,11 +72,11 @@ public static class ImGuiClip
         ImGuiListClipperPtr clipper;
         unsafe
         {
-            clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
         }
-        
+
         var maxRows = (int)MathF.Ceiling((float)data.Count / itemsPerLine);
-        
+
         clipper.Begin(maxRows, lineHeight);
         while (clipper.Step())
         {
@@ -91,7 +91,7 @@ public static class ImGuiClip
                 var itemsForRow = data
                                   .Skip(actualRow * itemsPerLine)
                                   .Take(itemsPerLine);
-                
+
                 var currentIndex = 0;
                 foreach (var item in itemsForRow)
                 {
@@ -99,7 +99,7 @@ public static class ImGuiClip
                     {
                         ImGui.SameLine();
                     }
-                    
+
                     draw(item);
                 }
             }
@@ -116,7 +116,7 @@ public static class ImGuiClip
         ImGuiListClipperPtr clipper;
         unsafe
         {
-            clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
         }
 
         clipper.Begin(data.Count, lineHeight);

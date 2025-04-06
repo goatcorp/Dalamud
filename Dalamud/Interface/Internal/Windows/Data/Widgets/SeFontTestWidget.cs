@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 
 using Dalamud.Game.Text;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -12,9 +12,9 @@ internal class SeFontTestWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "sefont", "sefonttest" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "SeFont Test"; 
+    public string DisplayName { get; init; } = "SeFont Test";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

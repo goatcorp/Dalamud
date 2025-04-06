@@ -1,7 +1,7 @@
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Evaluator;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Text.ReadOnly;
 

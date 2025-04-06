@@ -4,7 +4,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.DesignSystem;
 
@@ -45,7 +45,7 @@ internal static partial class DalamudComponents
             return Button(text);
         }
     }
-    
+
     private static bool Button(string text)
     {
         using (ImRaii.PushStyle(ImGuiStyleVar.FramePadding, ButtonPadding))

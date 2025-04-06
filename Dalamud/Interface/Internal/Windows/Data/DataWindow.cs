@@ -8,7 +8,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data;

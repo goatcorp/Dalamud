@@ -5,7 +5,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 

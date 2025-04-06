@@ -19,7 +19,7 @@ using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 #if IMEDEBUG
 using Serilog;
@@ -136,7 +136,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         this.interfaceManager = imws.Manager;
         this.setPlatformImeDataDelegate = this.ImGuiSetPlatformImeData;
 
-        ImGui.GetIO().SetPlatformImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate);
+        var io = ImGui.GetIO();
+        io.SetPlatformImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate).ToPointer();
         this.interfaceManager.Draw += this.Draw;
         this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
     }
@@ -278,7 +279,10 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
     private void ReleaseUnmanagedResources()
     {
         if (ImGuiHelpers.IsImGuiInitialized)
-            ImGui.GetIO().SetPlatformImeDataFn = nint.Zero;
+        {
+            var io = ImGui.GetIO();
+            io.SetPlatformImeDataFn = null;
+        }
     }
 
     private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
@@ -477,7 +481,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                     if (!string.IsNullOrEmpty(ImmGetCompositionString(hImc, GCS.GCS_COMPSTR)))
                     {
                         ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
-                        
+
                         // Disable further handling of mouse button down event, or something would lock up the cursor.
                         args.SuppressWithValue(1);
                     }
@@ -670,7 +674,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
             return;
 
         var viewport = ime.associatedViewport;
-        if (viewport.NativePtr is null)
+        if (viewport.Handle is null)
             return;
 
         var drawCand = ime.candidateStrings.Count != 0;

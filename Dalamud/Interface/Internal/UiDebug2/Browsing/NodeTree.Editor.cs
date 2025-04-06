@@ -6,16 +6,16 @@ using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.FontAwesomeIcon;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Interface.Utility.ImGuiHelpers;
-using static ImGuiNET.ImGuiColorEditFlags;
-using static ImGuiNET.ImGuiInputTextFlags;
-using static ImGuiNET.ImGuiTableColumnFlags;
-using static ImGuiNET.ImGuiTableFlags;
+using static Dalamud.Bindings.ImGui.ImGuiColorEditFlags;
+using static Dalamud.Bindings.ImGui.ImGuiInputTextFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 
@@ -266,7 +266,7 @@ internal unsafe partial class NineGridNodeTree
         ImGui.Text("Ninegrid Offsets:");
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
-        if (ImGui.DragFloat2($"##{(nint)this.Node:X}ngOffsetLR", ref lr, 1, 0))
+        if (ImGui.DragFloat2($"##{(nint)this.Node:X}ngOffsetLR", ref lr, 1f, 0f))
         {
             this.NgNode->LeftOffset = (short)Math.Max(0, lr.X);
             this.NgNode->RightOffset = (short)Math.Max(0, lr.Y);
@@ -278,7 +278,7 @@ internal unsafe partial class NineGridNodeTree
         ImGui.TableNextColumn();
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
-        if (ImGui.DragFloat2($"##{(nint)this.Node:X}ngOffsetTB", ref tb, 1, 0))
+        if (ImGui.DragFloat2($"##{(nint)this.Node:X}ngOffsetTB", ref tb, 1f, 0f))
         {
             this.NgNode->TopOffset = (short)Math.Max(0, tb.X);
             this.NgNode->BottomOffset = (short)Math.Max(0, tb.Y);

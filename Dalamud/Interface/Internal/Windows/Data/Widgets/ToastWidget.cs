@@ -3,7 +3,7 @@
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Interface.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -19,12 +19,12 @@ internal class ToastWidget : IDataWindowWidget
     private bool questToastSound;
     private int questToastIconId;
     private bool questToastCheckmark;
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "toast" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Toast"; 
+    public string DisplayName { get; init; } = "Toast";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

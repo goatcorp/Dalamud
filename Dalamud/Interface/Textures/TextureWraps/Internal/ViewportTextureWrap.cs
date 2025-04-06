@@ -9,7 +9,7 @@ using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -53,12 +53,12 @@ internal sealed class ViewportTextureWrap : IDalamudTextureWrap, IDeferredDispos
     ~ViewportTextureWrap() => this.Dispose(false);
 
     /// <inheritdoc/>
-    public unsafe nint ImGuiHandle
+    public unsafe ImTextureID ImGuiHandle
     {
         get
         {
             var t = (nint)this.srv.Get();
-            return t == nint.Zero ? Service<DalamudAssetManager>.Get().Empty4X4.ImGuiHandle : t;
+            return t == nint.Zero ? Service<DalamudAssetManager>.Get().Empty4X4.ImGuiHandle : ImTextureID.Null;
         }
     }
 

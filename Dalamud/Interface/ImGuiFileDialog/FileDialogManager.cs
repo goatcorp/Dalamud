@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiFileDialog;
 

@@ -2,12 +2,10 @@
 using System.IO;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
-using Dalamud.Utility;
-
-using ImGuiNET;
 
 using TerraFX.Interop.DirectX;
 
@@ -211,7 +209,7 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// </param>
     /// <param name="style">The font style, in range from <c>0</c> to <c>2</c>. <c>0</c> is normal.</param>
     /// <remarks>
-    /// <para>May do nothing at all if <paramref name="cultureInfo"/> is unsupported by Dalamud font handler.</para> 
+    /// <para>May do nothing at all if <paramref name="cultureInfo"/> is unsupported by Dalamud font handler.</para>
     /// <para>See
     /// <a href="https://learn.microsoft.com/en-us/windows/apps/design/globalizing/loc-international-fonts">Microsoft
     /// Learn</a> for the fonts.</para>

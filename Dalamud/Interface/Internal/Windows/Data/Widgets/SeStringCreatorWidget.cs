@@ -19,7 +19,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Data;
 using Lumina.Data.Files.Excel;
@@ -225,7 +225,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEW);
+            ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEw);
 
             if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {

@@ -5,7 +5,7 @@ using System.Numerics;
 using Dalamud.Interface.Components;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using static Dalamud.Interface.FontAwesomeIcon;
 using static Dalamud.Interface.Internal.UiDebug2.ElementSelector;

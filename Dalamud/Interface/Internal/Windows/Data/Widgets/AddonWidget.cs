@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.Gui;
 using Dalamud.Memory;
 using Dalamud.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -15,7 +15,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
     private nint findAgentInterfacePtr;
 
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Addon"; 
+    public string DisplayName { get; init; } = "Addon";
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; }

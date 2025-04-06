@@ -11,7 +11,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Ipc.Internal;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Newtonsoft.Json;
 
@@ -124,13 +124,13 @@ internal class DataShareWidget : IDataWindowWidget
             if (ImGui.Button("Copy"))
             {
                 fixed (byte* pData = data)
-                    ImGuiNative.igSetClipboardText(pData);
+                    ImGui.SetClipboardText(pData);
             }
 
             fixed (byte* pLabel = "text"u8)
             fixed (byte* pData = data)
             {
-                ImGuiNative.igInputTextMultiline(
+                ImGui.InputTextMultiline(
                     pLabel,
                     pData,
                     (uint)data.Length,
@@ -148,7 +148,7 @@ internal class DataShareWidget : IDataWindowWidget
     {
         if (mi is null)
             return "-";
-        
+
         var sb = new StringBuilder();
         sb.Append(ReprType(mi.DeclaringType))
           .Append("::")
@@ -245,7 +245,7 @@ internal class DataShareWidget : IDataWindowWidget
         {
             ImGui.SetClipboardText(tooltip?.Invoke() ?? s);
             Service<NotificationManager>.Get().AddNotification(
-                $"Copied {ImGui.TableGetColumnName()} to clipboard.",
+                $"Copied {ImGui.TableGetColumnNameS()} to clipboard.",
                 this.DisplayName,
                 NotificationType.Success);
         }

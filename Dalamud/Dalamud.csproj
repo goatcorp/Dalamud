@@ -66,7 +66,7 @@
         <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
         <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
         <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
-        <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
+        <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="MinSharp" Version="1.0.4" />
@@ -103,8 +103,10 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.ImGuizmo\Dalamud.ImGuizmo.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.ImGui\Dalamud.ImGui.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.ImPlot\Dalamud.ImPlot.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
-        <ProjectReference Include="..\lib\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
     </ItemGroup>
 

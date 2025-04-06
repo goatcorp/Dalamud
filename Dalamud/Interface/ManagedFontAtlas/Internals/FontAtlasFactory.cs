@@ -18,7 +18,7 @@ using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Data.Files;
 

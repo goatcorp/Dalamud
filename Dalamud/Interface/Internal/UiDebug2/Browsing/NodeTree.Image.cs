@@ -5,15 +5,15 @@ using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
 using static FFXIVClientStructs.FFXIV.Component.GUI.TextureType;
-using static ImGuiNET.ImGuiTableColumnFlags;
-using static ImGuiNET.ImGuiTableFlags;
-using static ImGuiNET.ImGuiTreeNodeFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTreeNodeFlags;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 

@@ -1,6 +1,6 @@
 using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -16,9 +16,9 @@ internal class BuddyListWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "buddy", "buddylist" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Buddy List"; 
+    public string DisplayName { get; init; } = "Buddy List";
 
     /// <inheritdoc/>
     public void Load()

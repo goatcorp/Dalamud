@@ -38,9 +38,6 @@
         <ProjectReference Include="..\Dalamud\Dalamud.csproj">
             <Private>false</Private>
         </ProjectReference>
-        <ProjectReference Include="..\lib\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj">
-            <Private>false</Private>
-        </ProjectReference>
     </ItemGroup>
 
     <ItemGroup>

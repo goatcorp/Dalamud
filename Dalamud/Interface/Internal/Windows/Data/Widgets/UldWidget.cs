@@ -13,7 +13,7 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Memory;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Uld;

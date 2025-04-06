@@ -9,9 +9,9 @@ using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
-using static ImGuiNET.ImGuiWindowFlags;
+using static Dalamud.Bindings.ImGui.ImGuiWindowFlags;
 
 namespace Dalamud.Interface.Internal.UiDebug2;
 

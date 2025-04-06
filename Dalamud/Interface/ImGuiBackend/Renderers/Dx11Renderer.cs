@@ -15,7 +15,7 @@ using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -67,7 +67,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
     public Dx11Renderer(IDXGISwapChain* swapChain, ID3D11Device* device, ID3D11DeviceContext* context)
     {
         var io = ImGui.GetIO();
-        if (ImGui.GetIO().NativePtr->BackendRendererName is not null)
+        if (ImGui.GetIO().Handle->BackendRendererName is not null)
             throw new InvalidOperationException("ImGui backend renderer seems to be have been already attached.");
         try
         {
@@ -81,7 +81,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasViewports;
 
             this.renderNamePtr = Marshal.StringToHGlobalAnsi("imgui_impl_dx11_c#");
-            io.NativePtr->BackendRendererName = (byte*)this.renderNamePtr;
+            io.Handle->BackendRendererName = (byte*)this.renderNamePtr;
 
             if (io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
             {
@@ -102,7 +102,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             }
 
             this.mainViewport = ViewportData.Create(this, swapChain, null, null);
-            ImGui.GetPlatformIO().Viewports[0].RendererUserData = this.mainViewport.Handle;
+            var vp = ImGui.GetPlatformIO().Viewports[0];
+            vp.RendererUserData = this.mainViewport.Handle;
         }
         catch
         {
@@ -205,7 +206,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                     this.device.Get()->CreateTexture2D(&texDesc, &subrdata, texture.GetAddressOf()));
             }
         }
-        
+
         texture.Get()->SetDebugName($"Texture:{debugName}:SRV");
 
         using var srvTemp = default(ComPtr<ID3D11ShaderResourceView>);
@@ -243,7 +244,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         if (!drawData.Valid || drawData.CmdListsCount == 0)
             return;
 
-        var cmdLists = new Span<ImDrawListPtr>(drawData.NativePtr->CmdLists, drawData.NativePtr->CmdListsCount);
+        var cmdLists = new Span<ImDrawListPtr>(drawData.Handle->CmdLists, drawData.Handle->CmdListsCount);
 
         // Create and grow vertex/index buffers if needed
         if (this.vertexBufferSize < drawData.TotalVtxCount)
@@ -298,8 +299,8 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             var targetIndices = new Span<ushort>(indexData.pData, this.indexBufferSize);
             foreach (ref var cmdList in cmdLists)
             {
-                var vertices = new ImVectorWrapper<ImDrawVert>(&cmdList.NativePtr->VtxBuffer);
-                var indices = new ImVectorWrapper<ushort>(&cmdList.NativePtr->IdxBuffer);
+                var vertices = new ImVectorWrapper<ImDrawVert>(cmdList.Handle->VtxBuffer.ToUntyped());
+                var indices = new ImVectorWrapper<ushort>(cmdList.Handle->IdxBuffer.ToUntyped());
 
                 vertices.DataSpan.CopyTo(targetVertices);
                 indices.DataSpan.CopyTo(targetIndices);
@@ -346,7 +347,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         var clipOff = new Vector4(drawData.DisplayPos, drawData.DisplayPos.X, drawData.DisplayPos.Y);
         foreach (ref var cmdList in cmdLists)
         {
-            var cmds = new ImVectorWrapper<ImDrawCmd>(&cmdList.NativePtr->CmdBuffer);
+            var cmds = new ImVectorWrapper<ImDrawCmd>(cmdList.Handle->CmdBuffer.ToUntyped());
             foreach (ref var cmd in cmds.DataSpan)
             {
                 var clipV4 = cmd.ClipRect - clipOff;
@@ -358,10 +359,10 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
 
                 this.context.Get()->RSSetScissorRects(1, &clipRect);
 
-                if (cmd.UserCallback == nint.Zero)
+                if (cmd.UserCallback != null)
                 {
                     // Bind texture and draw
-                    var srv = (ID3D11ShaderResourceView*)cmd.TextureId;
+                    var srv = (ID3D11ShaderResourceView*)cmd.TextureId.Handle;
                     this.context.Get()->PSSetShader(this.pixelShader, null, 0);
                     this.context.Get()->PSSetSamplers(0, 1, this.sampler.GetAddressOf());
                     this.context.Get()->PSSetShaderResources(0, 1, &srv);
@@ -397,13 +398,16 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
              textureIndex < textureCount;
              textureIndex++)
         {
+            int width = 0, height = 0, bytespp = 0;
+            byte* fontPixels = null;
+
             // Build texture atlas
             io.Fonts.GetTexDataAsRGBA32(
                 textureIndex,
-                out byte* fontPixels,
-                out var width,
-                out var height,
-                out var bytespp);
+                &fontPixels,
+                ref width,
+                ref height,
+                ref bytespp);
 
             var tex = this.CreateTexture2D(
                 new(fontPixels, width * height * bytespp),
@@ -539,7 +543,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             fixed (ID3D11SamplerState** ppSampler = &this.sampler.GetPinnableReference())
                 this.device.Get()->CreateSamplerState(&samplerDesc, ppSampler).ThrowOnError();
         }
-        
+
         // Create the constant buffer
         if (this.vertexConstantBuffer.IsEmpty())
         {
@@ -630,14 +634,15 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         this.releaseUnmanagedResourceCalled = true;
 
         this.mainViewport.Dispose();
-        ImGui.GetPlatformIO().Viewports[0].RendererUserData = nint.Zero;
+        var vp = ImGui.GetPlatformIO().Viewports[0];
+        vp.RendererUserData = null;
         ImGui.DestroyPlatformWindows();
 
         this.viewportHandler.Dispose();
 
         var io = ImGui.GetIO();
-        if (io.NativePtr->BackendRendererName == (void*)this.renderNamePtr)
-            io.NativePtr->BackendRendererName = null;
+        if (io.Handle->BackendRendererName == (void*)this.renderNamePtr)
+            io.Handle->BackendRendererName = null;
         if (this.renderNamePtr != 0)
             Marshal.FreeHGlobal(this.renderNamePtr);
 
@@ -645,7 +650,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
             fontResourceView.Dispose();
 
         foreach (var i in Enumerable.Range(0, io.Fonts.Textures.Size))
-            io.Fonts.SetTexID(i, nint.Zero);
+            io.Fonts.SetTexID(i, ImTextureID.Null);
 
         this.device.Reset();
         this.context.Reset();

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using TerraFX.Interop.Windows;
 
@@ -68,7 +68,7 @@ internal static class ImGuiViewportHelpers
     /// <param name="viewport">An instance of <see cref="ImGuiViewportPtr"/>.</param>
     /// <returns>Same value with <paramref name="returnStorage"/>.</returns>
     public unsafe delegate Vector2* GetWindowPosDelegate(Vector2* returnStorage, ImGuiViewportPtr viewport);
-    
+
     /// <summary>
     /// Delegate to be called when the window should be moved.
     /// </summary>
@@ -83,7 +83,7 @@ internal static class ImGuiViewportHelpers
     /// <param name="viewport">An instance of <see cref="ImGuiViewportPtr"/>.</param>
     /// <returns>Same value with <paramref name="returnStorage"/>.</returns>
     public unsafe delegate Vector2* GetWindowSizeDelegate(Vector2* returnStorage, ImGuiViewportPtr viewport);
-    
+
     /// <summary>
     /// Delegate to be called when the window should be given focus.
     /// </summary>

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Interface.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -19,12 +19,12 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     private string iconSearchInput = string.Empty;
     private bool iconSearchChanged = true;
     private bool useFixedWidth = false;
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "fa", "fatest", "fontawesome" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Font Awesome Test"; 
+    public string DisplayName { get; init; } = "Font Awesome Test";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -81,7 +81,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
         {
             this.iconSearchChanged = true;
         }
-        
+
         ImGui.Checkbox("Use fixed width font", ref this.useFixedWidth);
 
         ImGuiHelpers.ScaledDummy(10f);
@@ -96,7 +96,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
             ImGui.PopFont();
             ImGuiHelpers.ScaledDummy(2f);
         }
-        
+
         ImGui.PopStyleVar();
     }
 }

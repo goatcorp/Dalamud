@@ -13,7 +13,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Excel.Sheets;
 using Lumina.Text;
@@ -193,7 +193,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 var addon = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>() ??
                             throw new InvalidOperationException("Addon sheet not loaded.");
 
-                var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+                var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
                 clipper.Begin(addon.Count);
                 while (clipper.Step())
                 {
@@ -266,14 +266,14 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         fixed (byte* labelPtr = "Test Input"u8)
         {
-            if (ImGuiNative.igInputTextMultiline(
+            if (ImGui.InputTextMultiline(
                     labelPtr,
                     this.testStringBuffer.Data,
                     (uint)this.testStringBuffer.Capacity,
                     new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
                     0,
                     null,
-                    null) != 0)
+                    null))
             {
                 var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
                 if (len + 4 >= this.testStringBuffer.Capacity)

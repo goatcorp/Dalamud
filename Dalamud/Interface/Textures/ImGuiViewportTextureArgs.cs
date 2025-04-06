@@ -4,7 +4,7 @@ using System.Text;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using TerraFX.Interop.DirectX;
 

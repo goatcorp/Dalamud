@@ -1,7 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
+
 using Dalamud.Hooking;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using PInvoke;
 using Serilog;
 
@@ -14,19 +17,19 @@ internal class HookWidget : IDataWindowWidget
 {
     private Hook<MessageBoxWDelegate>? messageBoxMinHook;
     private bool hookUseMinHook;
-    
+
     private delegate int MessageBoxWDelegate(
         IntPtr hWnd,
         [MarshalAs(UnmanagedType.LPWStr)] string text,
         [MarshalAs(UnmanagedType.LPWStr)] string caption,
-        NativeFunctions.MessageBoxType type);
-    
+        MESSAGEBOX_STYLE type);
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Hook"; 
+    public string DisplayName { get; init; } = "Hook";
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "hook" };
-    
+
     /// <inheritdoc/>
     public bool Ready { get; set; }
 
@@ -53,7 +56,7 @@ internal class HookWidget : IDataWindowWidget
                 this.messageBoxMinHook?.Disable();
 
             if (ImGui.Button("Call Original"))
-                this.messageBoxMinHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", NativeFunctions.MessageBoxType.Ok);
+                this.messageBoxMinHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", MESSAGEBOX_STYLE.MB_OK);
 
             if (ImGui.Button("Dispose"))
             {
@@ -62,7 +65,7 @@ internal class HookWidget : IDataWindowWidget
             }
 
             if (ImGui.Button("Test"))
-                _ = NativeFunctions.MessageBoxW(IntPtr.Zero, "Hi", "Hello", NativeFunctions.MessageBoxType.Ok);
+                _ = global::Windows.Win32.PInvoke.MessageBox(HWND.Null, "Hi", "Hello", MESSAGEBOX_STYLE.MB_OK);
 
             if (this.messageBoxMinHook != null)
                 ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
@@ -72,12 +75,12 @@ internal class HookWidget : IDataWindowWidget
             Log.Error(ex, "MinHook error caught");
         }
     }
-    
-    private int MessageBoxWDetour(IntPtr hwnd, string text, string caption, NativeFunctions.MessageBoxType type)
+
+    private int MessageBoxWDetour(IntPtr hwnd, string text, string caption, MESSAGEBOX_STYLE type)
     {
         Log.Information("[DATAHOOK] {Hwnd} {Text} {Caption} {Type}", hwnd, text, caption, type);
 
-        var result = this.messageBoxMinHook!.Original(hwnd, "Cause Access Violation?", caption, NativeFunctions.MessageBoxType.YesNo);
+        var result = this.messageBoxMinHook!.Original(hwnd, "Cause Access Violation?", caption, MESSAGEBOX_STYLE.MB_YESNO);
 
         if (result == (int)User32.MessageBoxResult.IDYES)
         {

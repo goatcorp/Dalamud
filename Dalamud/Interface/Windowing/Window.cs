@@ -17,7 +17,7 @@ using Dalamud.Logging.Internal;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using PInvoke;
 
@@ -379,7 +379,11 @@ public abstract class Window
 
         if (this.CanShowCloseButton ? ImGui.Begin(this.WindowName, ref this.internalIsOpen, flags) : ImGui.Begin(this.WindowName, flags))
         {
-            ImGuiNativeAdditions.igCustom_WindowSetInheritNoInputs(this.internalIsClickthrough);
+            var context = ImGui.GetCurrentContext();
+            if (!context.IsNull)
+            {
+                //ImGuiNativeAdditions.igCustom_WindowSetInheritNoInputs(this.internalIsClickthrough);
+            }
 
             // Not supported yet on non-main viewports
             if ((this.internalIsPinned || this.internalIsClickthrough || this.internalAlpha.HasValue) &&
@@ -491,6 +495,7 @@ public abstract class Window
         var titleBarRect = Vector4.Zero;
         unsafe
         {
+            /*
             var window = ImGuiNativeAdditions.igGetCurrentWindow();
             ImGuiNativeAdditions.ImGuiWindow_TitleBarRect(&titleBarRect, window);
 
@@ -515,6 +520,7 @@ public abstract class Window
                                              ? this.TitleBarButtons.Append(additionsButton)
                                              : this.TitleBarButtons);
             }
+            */
         }
 
         if (wasFocused)

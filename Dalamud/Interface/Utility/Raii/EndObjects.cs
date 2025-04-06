@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Text;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Utility.Raii;
 
@@ -129,7 +129,7 @@ public static partial class ImRaii
         => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label));
 
     public static unsafe IEndObject TabItem(byte* label, ImGuiTabItemFlags flags)
-        => new EndConditionally(ImGuiNative.igEndTabItem, ImGuiNative.igBeginTabItem(label, null, flags) != 0);
+        => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, null, flags));
 
     public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
     {
@@ -155,9 +155,9 @@ public static partial class ImRaii
 
         nativeLabelStackBytes[nativeLabelOffset] = 0;
 
-        var ret = ImGuiNative.igBeginTabItem(nativeLabelStackBytes, null, flags);
+        var ret = ImGui.BeginTabItem(nativeLabelStackBytes, null, flags);
 
-        return new EndConditionally(ImGuiNative.igEndTabItem, ret != 0);
+        return new EndConditionally(ImGui.EndTabItem, true);
     }
 
     public static IEndObject TabItem(string label, ref bool open)

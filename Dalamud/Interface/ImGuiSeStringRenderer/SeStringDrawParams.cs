@@ -1,6 +1,6 @@
 using System.Numerics;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Text.Payloads;
 
@@ -105,8 +105,8 @@ public record struct SeStringDrawParams
 
     /// <summary>Gets the effective font.</summary>
     internal readonly unsafe ImFont* EffectiveFont =>
-        (this.Font ?? ImGui.GetFont()) is var f && f.NativePtr is not null
-            ? f.NativePtr
+        (this.Font ?? ImGui.GetFont()) is var f && f.Handle is not null
+            ? f.Handle
             : throw new ArgumentException("Specified font is empty.");
 
     /// <summary>Gets the effective line height in pixels.</summary>

@@ -37,7 +37,7 @@ using Dalamud.Utility.Timing;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using JetBrains.Annotations;
 
@@ -826,7 +826,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                     () =>
                     {
                         // Update the ImGui default font.
-                        ImGui.GetIO().NativePtr->FontDefault = fontLocked.ImFont;
+                        ImGui.GetIO().Handle->FontDefault = fontLocked.ImFont;
 
                         // Update the reference to the resources of the default font.
                         this.defaultFontResourceLock?.Dispose();

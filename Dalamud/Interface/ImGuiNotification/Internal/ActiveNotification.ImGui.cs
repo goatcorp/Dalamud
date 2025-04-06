@@ -5,7 +5,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
@@ -88,7 +88,11 @@ internal sealed partial class ActiveNotification
 
         if (!isTakingKeyboardInput && !isHovered && isFocused)
         {
-            ImGui.SetWindowFocus(null);
+            unsafe
+            {
+                ImGui.SetWindowFocus((byte*)null);
+            }
+
             isFocused = false;
         }
 
@@ -529,9 +533,9 @@ internal sealed partial class ActiveNotification
             verts[vertPtr++] = lastOff;
         unsafe
         {
-            var dlist = ImGui.GetWindowDrawList().NativePtr;
+            var dlist = ImGui.GetWindowDrawList().Handle;
             fixed (Vector2* pvert = verts)
-                ImGuiNative.ImDrawList_AddConvexPolyFilled(dlist, pvert, vertPtr, color);
+                dlist->AddConvexPolyFilled(pvert, vertPtr, color);
         }
     }
 

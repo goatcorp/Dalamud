@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
@@ -12,9 +13,6 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -89,7 +87,7 @@ public sealed class SingleFontChooserDialog : IDisposable
     private bool popupSizeChanged;
     private Vector2 popupPosition = new(float.NaN);
     private Vector2 popupSize = new(float.NaN);
-    
+
     /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
     /// <param name="uiBuilder">The relevant instance of UiBuilder.</param>
     /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
@@ -274,7 +272,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         return new Vector2(40, 30) * ImGui.GetTextLineHeight();
     }
 
-    /// <inheritdoc/> 
+    /// <inheritdoc/>
     public void Dispose()
     {
         this.fontHandle?.Dispose();
@@ -432,7 +430,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         this.firstDrawAfterRefresh = false;
     }
 
-    private static float GetDistanceFromMonitor(Vector2 point, ImGuiPlatformMonitorPtr monitor)
+    private static float GetDistanceFromMonitor(Vector2 point, ImGuiPlatformMonitor monitor)
     {
         var lt = monitor.MainPos;
         var rb = monitor.MainPos + monitor.MainSize;
@@ -565,7 +563,7 @@ public sealed class SingleFontChooserDialog : IDisposable
                     fixed (byte* buf = this.fontPreviewText)
                     fixed (byte* label = "##fontPreviewText"u8)
                     {
-                        ImGuiNative.igInputTextMultiline(
+                        ImGui.InputTextMultiline(
                             label,
                             buf,
                             (uint)this.fontPreviewText.Length,
@@ -691,7 +689,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##familyList", ImGui.GetContentRegionAvail()))
         {
-            var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if ((changed || this.firstDrawAfterRefresh) && this.selectedFamilyIndex != -1)
@@ -858,7 +856,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##fontList"))
         {
-            var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if ((changed || this.firstDrawAfterRefresh) && this.selectedFontIndex != -1)
@@ -962,7 +960,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##fontSizeList"))
         {
-            var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if (changed && this.selectedFontIndex != -1)
@@ -1149,7 +1147,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
                     return 0;
                 });
-            
+
             if (stylePushed)
                 ImGui.PopStyleColor();
 

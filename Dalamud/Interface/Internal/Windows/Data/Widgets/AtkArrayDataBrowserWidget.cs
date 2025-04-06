@@ -6,7 +6,7 @@ using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Text.ReadOnly;
 
@@ -36,7 +36,7 @@ internal unsafe class AtkArrayDataBrowserWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "atkarray" };
-    
+
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Atk Array Data";
 

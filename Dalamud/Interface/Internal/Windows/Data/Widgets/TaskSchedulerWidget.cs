@@ -17,7 +17,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -28,18 +28,18 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class TaskSchedulerWidget : IDataWindowWidget
 {
     private readonly FileDialogManager fileDialogManager = new();
-    private readonly byte[] urlBytes = new byte[2048];
-    private readonly byte[] localPathBytes = new byte[2048];
+    private string url = "https://geo.mirror.pkgbuild.com/iso/2024.01.01/archlinux-2024.01.01-x86_64.iso";
+    private string localPath = string.Empty;
 
     private Task? downloadTask = null;
     private (long Downloaded, long Total, float Percentage) downloadState;
     private CancellationTokenSource taskSchedulerCancelSource = new();
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "tasksched", "taskscheduler" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Task Scheduler"; 
+    public string DisplayName { get; init; } = "Task Scheduler";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -48,9 +48,6 @@ internal class TaskSchedulerWidget : IDataWindowWidget
     public void Load()
     {
         this.Ready = true;
-        Encoding.UTF8.GetBytes(
-            "https://geo.mirror.pkgbuild.com/iso/2024.01.01/archlinux-2024.01.01-x86_64.iso",
-            this.urlBytes);
     }
 
     /// <inheritdoc/>
@@ -247,13 +244,13 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         if (ImGui.CollapsingHeader("Download"))
         {
-            ImGui.InputText("URL", this.urlBytes, (uint)this.urlBytes.Length);
-            ImGui.InputText("Local Path", this.localPathBytes, (uint)this.localPathBytes.Length);
+            ImGui.InputText("URL", ref this.url, (uint)this.url.Length);
+            ImGui.InputText("Local Path", ref this.localPath, (uint)this.localPath.Length);
             ImGui.SameLine();
-            
+
             if (ImGuiComponents.IconButton("##localpathpicker", FontAwesomeIcon.File))
             {
-                var defaultFileName = Encoding.UTF8.GetString(this.urlBytes).Split('\0', 2)[0].Split('/').Last();
+                var defaultFileName = this.url.Split('\0', 2)[0].Split('/').Last();
                 this.fileDialogManager.SaveFileDialog(
                     "Choose a local path",
                     "*",
@@ -263,8 +260,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     {
                         if (accept)
                         {
-                            this.localPathBytes.AsSpan().Clear();
-                            Encoding.UTF8.GetBytes(newPath, this.localPathBytes.AsSpan());
+                            this.localPath = newPath;
                         }
                     });
             }
@@ -272,7 +268,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             ImGui.TextUnformatted($"{this.downloadState.Downloaded:##,###}/{this.downloadState.Total:##,###} ({this.downloadState.Percentage:0.00}%)");
 
             using var disabled =
-                ImRaii.Disabled(this.downloadTask?.IsCompleted is false || this.localPathBytes[0] == 0);
+                ImRaii.Disabled(this.downloadTask?.IsCompleted is false || this.localPath[0] == 0);
             ImGui.AlignTextToFramePadding();
             ImGui.TextUnformatted("Download");
             ImGui.SameLine();
@@ -281,8 +277,6 @@ internal class TaskSchedulerWidget : IDataWindowWidget
             var downloadUsingFramework = ImGui.Button("using Framework.Update");
             if (downloadUsingGlobalScheduler || downloadUsingFramework)
             {
-                var url = Encoding.UTF8.GetString(this.urlBytes).Split('\0', 2)[0];
-                var localPath = Encoding.UTF8.GetString(this.localPathBytes).Split('\0', 2)[0];
                 var ct = this.taskSchedulerCancelSource.Token;
                 this.downloadState = default;
                 var factory = downloadUsingGlobalScheduler
@@ -294,9 +288,9 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     {
                         try
                         {
-                            await using var to = File.Create(localPath);
+                            await using var to = File.Create(this.localPath);
                             using var client = new HttpClient();
-                            using var conn = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
+                            using var conn = await client.GetAsync(this.url, HttpCompletionOption.ResponseHeadersRead, ct);
                             this.downloadState.Total = conn.Content.Headers.ContentLength ?? -1L;
                             await using var from = conn.Content.ReadAsStream(ct);
                             var buffer = new byte[8192];
@@ -339,31 +333,31 @@ internal class TaskSchedulerWidget : IDataWindowWidget
         {
             var token = this.taskSchedulerCancelSource.Token;
             Task.Run(
-                () => 
+                () =>
                 {
                     for (var i = 0; i < 100; i++)
                     {
                         token.ThrowIfCancellationRequested();
                         Task.Run(
-                            () => 
+                            () =>
                             {
                                 for (var j = 0; j < 100; j++)
                                 {
                                     token.ThrowIfCancellationRequested();
                                     Task.Run(
-                                        () => 
+                                        () =>
                                         {
                                             for (var k = 0; k < 100; k++)
                                             {
                                                 token.ThrowIfCancellationRequested();
                                                 Task.Run(
-                                                    () => 
+                                                    () =>
                                                     {
                                                         for (var l = 0; l < 100; l++)
                                                         {
                                                             token.ThrowIfCancellationRequested();
                                                             Task.Run(
-                                                                async () => 
+                                                                async () =>
                                                                 {
                                                                     for (var m = 0; m < 100; m++)
                                                                     {
@@ -380,7 +374,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                     }
                 });
         }
-        
+
         ImGui.SameLine();
 
         ImGuiHelpers.ScaledDummy(20);
@@ -456,7 +450,7 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         this.fileDialogManager.Draw();
     }
-    
+
     private async Task TestTaskInTaskDelay(CancellationToken token)
     {
         await Task.Delay(5000, token);

@@ -5,7 +5,7 @@ using System.Linq;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Newtonsoft.Json;
 
@@ -38,7 +38,7 @@ public sealed class SystemFontId : IFontId
             this.EnglishName = name;
         else if (this.LocaleNames.TryGetValue("en", out name))
             this.EnglishName = name;
-        else 
+        else
             this.EnglishName = this.LocaleNames.Values.First();
     }
 

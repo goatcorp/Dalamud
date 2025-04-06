@@ -3,10 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reactive.Disposables;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -16,8 +18,6 @@ using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
 
 using VirtualKey = Dalamud.Game.ClientState.Keys.VirtualKey;
 
@@ -43,7 +43,7 @@ public static partial class ImGuiHelpers
     /// This does not necessarily mean you can call drawing functions.
     /// </summary>
     public static unsafe bool IsImGuiInitialized =>
-        ImGui.GetCurrentContext() != nint.Zero && ImGui.GetIO().NativePtr is not null;
+        ImGui.GetCurrentContext().Handle is not null && ImGui.GetIO().Handle is not null;
 
     /// <summary>
     /// Gets the global Dalamud scale; even available before drawing is ready.<br />
@@ -145,12 +145,13 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="swatchCount">The total number of swatches to use.</param>
     /// <returns>Default color palette.</returns>
-    public static List<Vector4> DefaultColorPalette(int swatchCount = 32)
+    public static unsafe List<Vector4> DefaultColorPalette(int swatchCount = 32)
     {
         var colorPalette = new List<Vector4>();
         for (var i = 0; i < swatchCount; i++)
         {
-            ImGui.ColorConvertHSVtoRGB(i / 31.0f, 0.7f, 0.8f, out var r, out var g, out var b);
+            float r = 0f, g = 0f, b = 0f;
+            ImGui.ColorConvertHSVtoRGB(i / 31.0f, 0.7f, 0.8f, ref r, ref g, ref b);
             colorPalette.Add(new Vector4(r, g, b, 1.0f));
         }
 
@@ -262,7 +263,7 @@ public static partial class ImGuiHelpers
     {
         Func<float, float> rounder = round > 0 ? x => MathF.Round(x / round) * round : x => x;
 
-        var font = fontPtr.NativePtr;
+        var font = fontPtr.Handle;
         font->FontSize = rounder(font->FontSize * scale);
         font->Ascent = rounder(font->Ascent * scale);
         font->Descent = font->FontSize - font->Ascent;
@@ -355,7 +356,7 @@ public static partial class ImGuiHelpers
             if (glyph->Codepoint < rangeLow || glyph->Codepoint > rangeHigh)
                 continue;
 
-            var prevGlyphPtr = (ImFontGlyphReal*)target.FindGlyphNoFallback((ushort)glyph->Codepoint).NativePtr;
+            var prevGlyphPtr = (ImFontGlyphReal*)target.FindGlyphNoFallback((ushort)glyph->Codepoint);
             if ((IntPtr)prevGlyphPtr == IntPtr.Zero)
             {
                 addedCodepoints.Add(glyph->Codepoint);
@@ -397,9 +398,9 @@ public static partial class ImGuiHelpers
         var kernPairs = source.KerningPairs;
         for (int j = 0, k = kernPairs.Size; j < k; j++)
         {
-            if (!addedCodepoints.Contains(kernPairs[j].Left))
+            if (!addedCodepoints.Contains((int)kernPairs[j].Left))
                 continue;
-            if (!addedCodepoints.Contains(kernPairs[j].Right))
+            if (!addedCodepoints.Contains((int)kernPairs[j].Right))
                 continue;
             target.AddKerningPair(kernPairs[j].Left, kernPairs[j].Right, kernPairs[j].AdvanceXAdjustment);
             changed = true;
@@ -414,7 +415,7 @@ public static partial class ImGuiHelpers
             // On our secondary calls of BuildLookupTable, FallbackGlyph is set to some value that is not null,
             // making ImGui attempt to treat whatever was there as a ' '.
             // This may cause random glyphs to be sized randomly, if not an access violation exception.
-            target.NativePtr->FallbackGlyph = null;
+            target.Handle->FallbackGlyph = null;
 
             target.BuildLookupTable();
         }
@@ -486,11 +487,11 @@ public static partial class ImGuiHelpers
                     length,
                     $"{nameof(length)} cannot be a negative number.");
             default:
-                var memory = ImGuiNative.igMemAlloc((uint)length);
+                var memory = ImGui.MemAlloc((uint)length);
                 if (memory is null)
                 {
                     throw new OutOfMemoryException(
-                        $"Failed to allocate {length} bytes using {nameof(ImGuiNative.igMemAlloc)}");
+                        $"Failed to allocate {length} bytes using {nameof(ImGui.MemAlloc)}");
                 }
 
                 return memory;
@@ -504,12 +505,12 @@ public static partial class ImGuiHelpers
     /// <returns>Disposable you can call.</returns>
     public static unsafe IDisposable NewFontGlyphRangeBuilderPtrScoped(out ImFontGlyphRangesBuilderPtr builder)
     {
-        builder = new(ImGuiNative.ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder());
-        var ptr = builder.NativePtr;
+        builder = new(ImGui.ImFontGlyphRangesBuilder());
+        var ptr = builder.Handle;
         return Disposable.Create(() =>
         {
             if (ptr != null)
-                ImGuiNative.ImFontGlyphRangesBuilder_destroy(ptr);
+                new ImFontGlyphRangesBuilderPtr(ptr).Destroy();
             ptr = null;
         });
     }
@@ -534,8 +535,9 @@ public static partial class ImGuiHelpers
             builder.AddChar('.');
         }
 
-        builder.BuildRanges(out var vec);
-        return new ReadOnlySpan<ushort>((void*)vec.Data, vec.Size).ToArray();
+        ImVector<ushort> outRanges = default;
+        builder.BuildRanges(&outRanges);
+        return new ReadOnlySpan<ushort>((void*)outRanges.Data, outRanges.Size).ToArray();
     }
 
     /// <inheritdoc cref="CreateImGuiRangesFrom(IEnumerable{UnicodeRange})"/>
@@ -566,21 +568,21 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="ptr">The pointer.</param>
     /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNull(this ImFontPtr ptr) => ptr.NativePtr == null;
+    public static unsafe bool IsNull(this ImFontPtr ptr) => ptr.Handle == null;
 
     /// <summary>
     /// Determines whether <paramref name="ptr"/> is empty.
     /// </summary>
     /// <param name="ptr">The pointer.</param>
     /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNotNullAndLoaded(this ImFontPtr ptr) => ptr.NativePtr != null && ptr.IsLoaded();
+    public static unsafe bool IsNotNullAndLoaded(this ImFontPtr ptr) => ptr.Handle != null && ptr.IsLoaded();
 
     /// <summary>
     /// Determines whether <paramref name="ptr"/> is empty.
     /// </summary>
     /// <param name="ptr">The pointer.</param>
     /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNull(this ImFontAtlasPtr ptr) => ptr.NativePtr == null;
+    public static unsafe bool IsNull(this ImFontAtlasPtr ptr) => ptr.Handle == null;
 
     /// <summary>
     /// If <paramref name="self"/> is default, then returns <paramref name="other"/>.
@@ -589,18 +591,18 @@ public static partial class ImGuiHelpers
     /// <param name="other">The other.</param>
     /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
     public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
-        self.NativePtr is null ? other : self;
+        self.Handle is null ? other : self;
 
     /// <summary>
     /// Mark 4K page as used, after adding a codepoint to a font.
     /// </summary>
     /// <param name="font">The font.</param>
     /// <param name="codepoint">The codepoint.</param>
-    internal static unsafe void Mark4KPageUsedAfterGlyphAdd(this ImFontPtr font, ushort codepoint)
+    internal static void Mark4KPageUsedAfterGlyphAdd(this ImFontPtr font, ushort codepoint)
     {
         // Mark 4K page as used
         var pageIndex = unchecked((ushort)(codepoint / 4096));
-        font.NativePtr->Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
+        font.Used4kPagesMap[pageIndex >> 3] |= unchecked((byte)(1 << (pageIndex & 7)));
     }
 
     /// <summary>
@@ -611,14 +613,14 @@ public static partial class ImGuiHelpers
     internal static unsafe void SetTextFromCallback(ImGuiInputTextCallbackData* data, string s)
     {
         if (data->BufTextLen != 0)
-            ImGuiNative.ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
+            data->DeleteChars(0, data->BufTextLen);
 
         var len = Encoding.UTF8.GetByteCount(s);
         var buf = len < 1024 ? stackalloc byte[len] : new byte[len];
         Encoding.UTF8.GetBytes(s, buf);
         fixed (byte* pBuf = buf)
-            ImGuiNative.ImGuiInputTextCallbackData_InsertChars(data, 0, pBuf, pBuf + len);
-        ImGuiNative.ImGuiInputTextCallbackData_SelectAll(data);
+            data->InsertChars(0, pBuf, pBuf + len);
+        data->SelectAll();
     }
 
     /// <summary>
@@ -631,10 +633,10 @@ public static partial class ImGuiHelpers
         if (!IsImGuiInitialized)
             return -1;
 
-        var viewports = new ImVectorWrapper<ImGuiViewportPtr>(&ImGui.GetPlatformIO().NativePtr->Viewports);
+        var viewports = new ImVectorWrapper<ImGuiViewportPtr>((ImVector*)Unsafe.AsPointer(ref ImGui.GetPlatformIO().Handle->Viewports));
         for (var i = 0; i < viewports.LengthUnsafe; i++)
         {
-            if (viewports.DataUnsafe[i].PlatformHandle == hwnd)
+            if (viewports.DataUnsafe[i].PlatformHandle == hwnd.ToPointer())
                 return i;
         }
 
@@ -656,27 +658,28 @@ public static partial class ImGuiHelpers
     {
         try
         {
-            var font = fontPtr.NativePtr;
+            var font = fontPtr.Handle;
             if (font is null)
                 throw new NullReferenceException("The font is null.");
 
             _ = Marshal.ReadIntPtr((nint)font);
-            if (font->IndexedHotData.Data != 0)
-                _ = Marshal.ReadIntPtr(font->IndexedHotData.Data);
-            if (font->FrequentKerningPairs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->FrequentKerningPairs.Data);
-            if (font->IndexLookup.Data != 0)
-                _ = Marshal.ReadIntPtr(font->IndexLookup.Data);
-            if (font->Glyphs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->Glyphs.Data);
-            if (font->KerningPairs.Data != 0)
-                _ = Marshal.ReadIntPtr(font->KerningPairs.Data);
+            if (font->IndexedHotData.Data != null)
+                _ = *font->IndexedHotData.Front;
+            if (font->FrequentKerningPairs.Data != null)
+                _ = font->FrequentKerningPairs.Data;
+            if (font->IndexLookup.Data != null)
+                _ = *font->IndexLookup.Data;
+            if (font->Glyphs.Data != null)
+                _ = *font->Glyphs.Data;
+            if (font->KerningPairs.Data != null)
+                _ = *font->KerningPairs.Data;
             if (font->ConfigDataCount == 0 && font->ConfigData is not null)
                 throw new InvalidOperationException("ConfigDataCount == 0 but ConfigData is not null?");
             if (font->ConfigDataCount != 0 && font->ConfigData is null)
                 throw new InvalidOperationException("ConfigDataCount != 0 but ConfigData is null?");
             if (font->ConfigData is not null)
                 _ = Marshal.ReadIntPtr((nint)font->ConfigData);
+            /*
             if (font->FallbackGlyph is not null
                 && ((nint)font->FallbackGlyph < font->Glyphs.Data || (nint)font->FallbackGlyph >= font->Glyphs.Data))
                 throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
@@ -684,6 +687,7 @@ public static partial class ImGuiHelpers
                 && ((nint)font->FallbackHotData < font->IndexedHotData.Data
                     || (nint)font->FallbackHotData >= font->IndexedHotData.Data))
                 throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
+                */
             if (font->ContainerAtlas is not null)
                 _ = Marshal.ReadIntPtr((nint)font->ContainerAtlas);
         }
@@ -703,7 +707,7 @@ public static partial class ImGuiHelpers
     internal static unsafe void UpdateFallbackChar(this ImFontPtr font, char c)
     {
         font.FallbackChar = c;
-        font.NativePtr->FallbackHotData =
+        font.Handle->FallbackHotData =
             (ImFontGlyphHotData*)((ImFontGlyphHotDataReal*)font.IndexedHotData.Data + font.FallbackChar);
     }
 

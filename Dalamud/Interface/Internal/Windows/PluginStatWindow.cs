@@ -12,7 +12,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;

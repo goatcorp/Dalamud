@@ -13,7 +13,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Excel.Sheets;
 

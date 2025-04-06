@@ -3,7 +3,7 @@ using System.Numerics;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.UiDebug2;
 

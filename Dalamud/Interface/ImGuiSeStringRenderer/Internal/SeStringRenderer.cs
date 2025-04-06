@@ -15,7 +15,7 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Excel.Sheets;
 using Lumina.Text;
@@ -58,7 +58,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     private readonly SeStringColorStackSet colorStackSet;
 
     /// <summary>Splits a draw list so that different layers of a single glyph can be drawn out of order.</summary>
-    private ImDrawListSplitter* splitter = ImGuiNative.ImDrawListSplitter_ImDrawListSplitter();
+    private ImDrawListSplitter* splitter = ImGui.ImDrawListSplitter();
 
     [ServiceManager.ServiceConstructor]
     private SeStringRenderer(DataManager dm, TargetSigScanner sigScanner)
@@ -146,15 +146,25 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             size = Vector2.Max(size, fragment.Offset + new Vector2(fragment.VisibleWidth, state.LineHeight));
 
         // If we're not drawing at all, stop further processing.
-        if (state.DrawList.NativePtr is null)
+        if (state.DrawList.Handle is null)
             return new() { Size = size };
 
         state.SplitDrawList();
 
         // Handle cases where ImGui.AlignTextToFramePadding has been called.
-        var pCurrentWindow = *(nint*)(ImGui.GetCurrentContext() + ImGuiContextCurrentWindowOffset);
-        var pWindowDc = pCurrentWindow + ImGuiWindowDcOffset;
-        var currLineTextBaseOffset = *(float*)(pWindowDc + ImGuiWindowTempDataCurrLineTextBaseOffset);
+        var context = ImGui.GetCurrentContext();
+        var currLineTextBaseOffset = 0f;
+        /*
+        if (!context.IsNull)
+        {
+            var currentWindow = context.CurrentWindow;
+            if (!currentWindow.IsNull)
+            {
+                currLineTextBaseOffset = currentWindow.DC.CurrLineTextBaseOffset;
+            }
+        }
+        */
+
         var itemSize = size;
         if (currLineTextBaseOffset != 0f)
         {
@@ -280,7 +290,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
     {
         if (this.splitter is not null)
         {
-            ImGuiNative.ImDrawListSplitter_destroy(this.splitter);
+            this.splitter->Destroy();
             this.splitter = null;
         }
     }
@@ -295,7 +305,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         var link = -1;
         foreach (var (breakAt, mandatory) in new LineBreakEnumerator(state.Span, UtfEnumeratorFlags.Utf8SeString))
         {
-            // Might have happened if custom entity was longer than the previous break unit. 
+            // Might have happened if custom entity was longer than the previous break unit.
             if (prev > breakAt)
                 continue;
 
@@ -487,7 +497,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                     if (gfdTextureSrv != 0)
                     {
                         state.Draw(
-                            gfdTextureSrv,
+                            new ImTextureID(gfdTextureSrv),
                             offset + new Vector2(x, MathF.Round((state.LineHeight - size.Y) / 2)),
                             size,
                             useHq ? gfdEntry.HqUv0 : gfdEntry.Uv0,

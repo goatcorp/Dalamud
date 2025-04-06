@@ -17,7 +17,7 @@ using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using TerraFX.Interop.DirectX;
 
@@ -288,7 +288,7 @@ internal class TexWidget : IDataWindowWidget
                 {
                     if (t.GetTexture(this.textureManager) is { } source)
                     {
-                        var psrv = (ID3D11ShaderResourceView*)source.ImGuiHandle;
+                        var psrv = (ID3D11ShaderResourceView*)source.ImGuiHandle.Handle;
                         var rcsrv = psrv->AddRef() - 1;
                         psrv->Release();
 
@@ -404,13 +404,13 @@ internal class TexWidget : IDataWindowWidget
         ImGui.TableHeadersRow();
 
         var sortSpecs = ImGui.TableGetSortSpecs();
-        if (sortSpecs.NativePtr is not null && (sortSpecs.SpecsDirty || shouldSortAgain))
+        if (sortSpecs.Handle is not null && (sortSpecs.SpecsDirty || shouldSortAgain))
         {
             allBlames.Sort(
                 static (a, b) =>
                 {
                     var sortSpecs = ImGui.TableGetSortSpecs();
-                    var specs = new Span<ImGuiTableColumnSortSpecs>(sortSpecs.NativePtr->Specs, sortSpecs.SpecsCount);
+                    var specs = new Span<ImGuiTableColumnSortSpecs>(sortSpecs.Handle->Specs, sortSpecs.SpecsCount);
                     Span<bool> sorted = stackalloc bool[(int)DrawBlameTableColumnUserId.ColumnCount];
                     foreach (ref var spec in specs)
                     {
@@ -442,7 +442,7 @@ internal class TexWidget : IDataWindowWidget
             sortSpecs.SpecsDirty = false;
         }
 
-        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
         clipper.Begin(allBlames.Count);
 
         while (clipper.Step())
@@ -531,7 +531,7 @@ internal class TexWidget : IDataWindowWidget
             (ImGui.GetStyle().ItemSpacing.X * 1 * numIcons));
         ImGui.TableHeadersRow();
 
-        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
         clipper.Begin(textures.Count);
 
         using (var enu = textures.GetEnumerator())

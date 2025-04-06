@@ -6,7 +6,7 @@ using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using static System.StringComparison;
 using static Dalamud.Interface.FontAwesomeIcon;

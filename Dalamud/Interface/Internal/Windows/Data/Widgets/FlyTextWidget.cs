@@ -2,7 +2,7 @@
 
 using Dalamud.Game.Gui.FlyText;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -20,12 +20,12 @@ internal class FlyTextWidget : IDataWindowWidget
     private int flyIcon;
     private int flyDmgIcon;
     private Vector4 flyColor = new(1, 0, 0, 1);
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "flytext" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Fly Text"; 
+    public string DisplayName { get; init; } = "Fly Text";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

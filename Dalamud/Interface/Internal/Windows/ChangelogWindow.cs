@@ -25,7 +25,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -35,7 +35,7 @@ namespace Dalamud.Interface.Internal.Windows;
 internal sealed class ChangelogWindow : Window, IDisposable
 {
     private const string WarrantsChangelogForMajorMinor = "10.0.";
-    
+
     private const string ChangeLog =
         @"• Updated Dalamud for compatibility with Patch 7.0
 • Made a lot of behind-the-scenes changes to make Dalamud and plugins more stable and reliable
@@ -43,7 +43,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 • Refreshed the Dalamud/plugin installer UI
 ";
 
-    private static readonly TimeSpan TitleScreenWaitTime = TimeSpan.FromSeconds(0.5f); 
+    private static readonly TimeSpan TitleScreenWaitTime = TimeSpan.FromSeconds(0.5f);
 
     private readonly TitleScreenMenuWindow tsmWindow;
 
@@ -54,40 +54,40 @@ internal sealed class ChangelogWindow : Window, IDisposable
     private readonly Lazy<IFontHandle> bannerFont;
     private readonly Lazy<IDalamudTextureWrap> apiBumpExplainerTexture;
     private readonly Lazy<IDalamudTextureWrap> logoTexture;
-    
+
     private readonly InOutCubic windowFade = new(TimeSpan.FromSeconds(2.5f))
     {
         Point1 = Vector2.Zero,
         Point2 = new Vector2(2f),
     };
-    
+
     private readonly InOutCubic bodyFade = new(TimeSpan.FromSeconds(0.8f))
     {
         Point1 = Vector2.Zero,
         Point2 = Vector2.One,
     };
-    
+
     private readonly InOutCubic titleFade = new(TimeSpan.FromSeconds(0.5f))
     {
         Point1 = Vector2.Zero,
         Point2 = Vector2.One,
     };
-    
+
     private readonly InOutCubic fadeOut = new(TimeSpan.FromSeconds(0.5f))
     {
         Point1 = Vector2.One,
         Point2 = Vector2.Zero,
     };
-    
+
     private State state = State.WindowFadeIn;
-    
+
     private bool needFadeRestart = false;
-    
+
     private bool isFadingOutForStateChange = false;
     private State? stateAfterFadeOut;
-    
+
     private AutoUpdateBehavior? chosenAutoUpdateBehavior;
-    
+
     private Dictionary<string, int> currentFtueLevels = new();
 
     private DateTime? isEligibleSince;
@@ -110,7 +110,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         : base("What's new in Dalamud?##ChangelogWindow", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse, true)
     {
         this.gameGui = gameGui;
-        
+
         this.tsmWindow = tsmWindow;
         this.Namespace = "DalamudChangelogWindow";
         this.privateAtlas = this.scopedFinalizer.Add(
@@ -125,7 +125,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         // If we are going to show a changelog, make sure we have the font ready, otherwise it will hitch
         if (WarrantsChangelog())
             _ = this.bannerFont.Value;
-        
+
         framework.Update += this.FrameworkOnUpdate;
         this.scopedFinalizer.Add(() => framework.Update -= this.FrameworkOnUpdate);
     }
@@ -138,7 +138,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         AskAutoUpdate,
         Links,
     }
-    
+
     /// <summary>
     /// Check if a changelog should be shown.
     /// </summary>
@@ -163,7 +163,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
         this.isFadingOutForStateChange = false;
         this.stateAfterFadeOut = null;
-        
+
         this.state = State.WindowFadeIn;
         this.windowFade.Reset();
         this.bodyFade.Reset();
@@ -172,9 +172,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
         this.needFadeRestart = true;
 
         this.chosenAutoUpdateBehavior = null;
-        
+
         this.currentFtueLevels = Service<DalamudConfiguration>.Get().SeenFtueLevels;
-        
+
         base.OnOpen();
     }
 
@@ -182,17 +182,17 @@ internal sealed class ChangelogWindow : Window, IDisposable
     public override void OnClose()
     {
         base.OnClose();
-        
+
         this.tsmWindow.AllowDrawing = true;
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(false);
 
         var configuration = Service<DalamudConfiguration>.Get();
-        
+
         if (this.chosenAutoUpdateBehavior.HasValue)
         {
             configuration.AutoUpdateBehavior = this.chosenAutoUpdateBehavior.Value;
         }
-        
+
         configuration.SeenFtueLevels = this.currentFtueLevels;
         configuration.QueueSave();
     }
@@ -203,7 +203,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 10f);
-        
+
         base.PreDraw();
 
         if (this.needFadeRestart)
@@ -212,15 +212,15 @@ internal sealed class ChangelogWindow : Window, IDisposable
             this.titleFade.Restart();
             this.needFadeRestart = false;
         }
-        
+
         this.windowFade.Update();
         this.titleFade.Update();
         this.fadeOut.Update();
         ImGui.SetNextWindowBgAlpha(Math.Clamp(this.windowFade.EasedPoint.X, 0, 0.9f));
-        
+
         this.Size = new Vector2(900, 400);
         this.SizeCondition = ImGuiCond.Always;
-        
+
         // Center the window on the main viewport
         var viewportPos = ImGuiHelpers.MainViewport.Pos;
         var viewportSize = ImGuiHelpers.MainViewport.Size;
@@ -233,9 +233,9 @@ internal sealed class ChangelogWindow : Window, IDisposable
     public override void PostDraw()
     {
         ImGui.PopStyleVar(3);
-        
+
         this.ResetMovieTimer();
-        
+
         base.PostDraw();
     }
 
@@ -248,13 +248,13 @@ internal sealed class ChangelogWindow : Window, IDisposable
             configuration.LastChangelogMajorMinor = WarrantsChangelogForMajorMinor;
             configuration.QueueSave();
         }
-        
+
         var windowSize = ImGui.GetWindowSize();
-        
+
         var dummySize = 10 * ImGuiHelpers.GlobalScale;
         ImGui.Dummy(new Vector2(dummySize));
         ImGui.SameLine();
-        
+
         var logoContainerSize = new Vector2(windowSize.X * 0.2f - dummySize, windowSize.Y);
         using (var child = ImRaii.Child("###logoContainer", logoContainerSize, false))
         {
@@ -262,23 +262,23 @@ internal sealed class ChangelogWindow : Window, IDisposable
                 return;
 
             var logoSize = new Vector2(logoContainerSize.X);
-            
+
             // Center the logo in the container
             ImGui.SetCursorPos(new Vector2(logoContainerSize.X / 2 - logoSize.X / 2, logoContainerSize.Y / 2 - logoSize.Y / 2));
-            
+
             using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(this.windowFade.EasedPoint.X - 0.5f, 0f, 1f)))
                 ImGui.Image(this.logoTexture.Value.ImGuiHandle, logoSize);
         }
-        
+
         ImGui.SameLine();
         ImGui.Dummy(new Vector2(dummySize));
         ImGui.SameLine();
-        
+
         using (var child = ImRaii.Child("###textContainer", new Vector2((windowSize.X * 0.8f) - dummySize * 4, windowSize.Y), false))
         {
             if (!child)
                 return;
-            
+
             ImGuiHelpers.ScaledDummy(20);
 
             var titleFadeVal = this.isFadingOutForStateChange ? this.fadeOut.EasedPoint.X : this.titleFade.EasedPoint.X;
@@ -292,21 +292,21 @@ internal sealed class ChangelogWindow : Window, IDisposable
                     case State.ExplainerIntro:
                         ImGuiHelpers.CenteredText("New And Improved");
                         break;
-                    
+
                     case State.ExplainerApiBump:
                         ImGuiHelpers.CenteredText("Plugin Updates");
                         break;
-                    
+
                     case State.AskAutoUpdate:
                         ImGuiHelpers.CenteredText("Auto-Updates");
                         break;
-                    
+
                     case State.Links:
                         ImGuiHelpers.CenteredText("Enjoy!");
                         break;
                 }
             }
-            
+
             ImGuiHelpers.ScaledDummy(8);
 
             if (this.state == State.WindowFadeIn && this.windowFade.EasedPoint.X > 1.5f)
@@ -321,11 +321,11 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
                 this.bodyFade.Restart();
                 this.titleFade.Restart();
-                
+
                 this.isFadingOutForStateChange = false;
                 this.stateAfterFadeOut = null;
             }
-            
+
             this.bodyFade.Update();
             var bodyFadeVal = this.isFadingOutForStateChange ? this.fadeOut.EasedPoint.X : this.bodyFade.EasedPoint.X;
             using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(bodyFadeVal, 0, 1f)))
@@ -334,10 +334,10 @@ internal sealed class ChangelogWindow : Window, IDisposable
                 {
                     this.isFadingOutForStateChange = true;
                     this.stateAfterFadeOut = nextState;
-                        
+
                     this.fadeOut.Restart();
                 }
-                
+
                 bool DrawNextButton(State nextState)
                 {
                     // Draw big, centered next button at the bottom of the window
@@ -346,7 +346,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
                     var buttonWidth = ImGui.CalcTextSize(buttonText).X + 40 * ImGuiHelpers.GlobalScale;
                     ImGui.SetCursorPosY(windowSize.Y - buttonHeight - (20 * ImGuiHelpers.GlobalScale));
                     ImGuiHelpers.CenterCursorFor((int)buttonWidth);
-                
+
                     if (ImGui.Button(buttonText, new Vector2(buttonWidth, buttonHeight)) && !this.isFadingOutForStateChange)
                     {
                         GoToNextState(nextState);
@@ -355,7 +355,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
                     return false;
                 }
-                
+
                 switch (this.state)
                 {
                     case State.WindowFadeIn:
@@ -366,10 +366,10 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         ImGuiHelpers.ScaledDummy(5);
                         ImGui.TextWrapped("This changelog is a quick overview of the most important changes in this version.");
                         ImGui.TextWrapped("Please click next to see a quick guide to updating your plugins.");
-                        
+
                         DrawNextButton(State.ExplainerApiBump);
                         break;
-                    
+
                     case State.ExplainerApiBump:
                         ImGui.TextWrapped("Take care! Due to changes in this patch, all of your plugins need to be updated and were disabled automatically.");
                         ImGui.TextWrapped("This is normal and required for major game updates.");
@@ -378,14 +378,14 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         ImGuiHelpers.ScaledDummy(5);
                         ImGui.TextWrapped("Please keep in mind that not all of your plugins may already be updated for the new version.");
                         ImGui.TextWrapped("If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available.");
-                        
+
                         ImGuiHelpers.ScaledDummy(15);
 
                         ImGuiHelpers.CenterCursorFor(this.apiBumpExplainerTexture.Value.Width);
                         ImGui.Image(
                             this.apiBumpExplainerTexture.Value.ImGuiHandle,
                             this.apiBumpExplainerTexture.Value.Size);
-                        
+
                         if (!this.currentFtueLevels.TryGetValue(FtueLevels.AutoUpdate.Name, out var autoUpdateLevel) || autoUpdateLevel < FtueLevels.AutoUpdate.AutoUpdateInitial)
                         {
                             if (DrawNextButton(State.AskAutoUpdate))
@@ -397,23 +397,23 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         {
                             DrawNextButton(State.Links);
                         }
-                        
+
                         break;
-                    
+
                     case State.AskAutoUpdate:
                         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudWhite, Loc.Localize("DalamudSettingsAutoUpdateHint",
                                                 "Dalamud can update your plugins automatically, making sure that you always " +
                                                 "have the newest features and bug fixes. You can choose when and how auto-updates are run here."));
                         ImGuiHelpers.ScaledDummy(2);
-                        
+
                         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer1",
                                                                 "You can always update your plugins manually by clicking the update button in the plugin list. " +
                                                                 "You can also opt into updates for specific plugins by right-clicking them and selecting \"Always auto-update\"."));
                         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdateDisclaimer2",
                                                                 "Dalamud will only notify you about updates while you are idle."));
-                        
+
                         ImGuiHelpers.ScaledDummy(15);
-                        
+
                         bool DrawCenteredButton(string text, float height)
                         {
                             var buttonHeight = height * ImGuiHelpers.GlobalScale;
@@ -427,97 +427,97 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         using (ImRaii.PushColor(ImGuiCol.Button, ImGuiColors.DPSRed))
                         {
                             if (DrawCenteredButton("Enable auto-updates", 30))
-                            { 
+                            {
                                 this.chosenAutoUpdateBehavior = AutoUpdateBehavior.UpdateMainRepo;
                                 GoToNextState(State.Links);
                             }
                         }
-                        
+
                         ImGuiHelpers.ScaledDummy(2);
-                        
+
                         using (ImRaii.PushStyle(ImGuiStyleVar.FrameBorderSize, 1))
                         using (var buttonColor = ImRaii.PushColor(ImGuiCol.Button, Vector4.Zero))
                         {
                             buttonColor.Push(ImGuiCol.Border, ImGuiColors.DalamudGrey3);
                             if (DrawCenteredButton("Disable auto-updates", 25))
-                            { 
+                            {
                                 this.chosenAutoUpdateBehavior = AutoUpdateBehavior.OnlyNotify;
                                 GoToNextState(State.Links);
                             }
                         }
-                        
+
                         break;
-                    
+
                     case State.Links:
                         ImGui.TextWrapped("If you note any issues or need help, please check the FAQ, and reach out on our Discord if you need help.");
                         ImGui.TextWrapped("Enjoy your time with the game and Dalamud!");
-                        
+
                         ImGuiHelpers.ScaledDummy(45);
-                        
+
                         bool CenteredIconButton(FontAwesomeIcon icon, string text)
                         {
                             var buttonWidth = ImGuiComponents.GetIconButtonWithTextWidth(icon, text);
                             ImGuiHelpers.CenterCursorFor((int)buttonWidth);
                             return ImGuiComponents.IconButtonWithText(icon, text);
                         }
-                        
+
                         if (CenteredIconButton(FontAwesomeIcon.Download, "Open Plugin Installer"))
                         {
                             Service<DalamudInterface>.Get().OpenPluginInstaller();
                             this.IsOpen = false;
                             Dismiss();
                         }
-                        
+
                         ImGuiHelpers.ScaledDummy(5);
-                        
+
                         ImGuiHelpers.CenterCursorFor(
                             (int)(ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.Globe, "See the FAQ") +
                             ImGuiComponents.GetIconButtonWithTextWidth(FontAwesomeIcon.LaughBeam, "Join our Discord server") +
-                            (5 * ImGuiHelpers.GlobalScale) + 
+                            (5 * ImGuiHelpers.GlobalScale) +
                             (ImGui.GetStyle().ItemSpacing.X * 4)));
                         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Globe, "See the FAQ"))
                         {
                             Util.OpenLink("https://goatcorp.github.io/faq/");
                         }
-                        
+
                         ImGui.SameLine();
                         ImGuiHelpers.ScaledDummy(5);
                         ImGui.SameLine();
-                        
+
                         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.LaughBeam, "Join our Discord server"))
                         {
                             Util.OpenLink("https://discord.gg/3NMcUV5");
                         }
-                        
+
                         ImGuiHelpers.ScaledDummy(5);
-                        
+
                         if (CenteredIconButton(FontAwesomeIcon.Heart, "Support what we care about"))
                         {
                             Util.OpenLink("https://goatcorp.github.io/faq/support");
                         }
-                        
+
                         var buttonHeight = 30 * ImGuiHelpers.GlobalScale;
                         var buttonText = "Close";
                         var buttonWidth = ImGui.CalcTextSize(buttonText).X + 40 * ImGuiHelpers.GlobalScale;
                         ImGui.SetCursorPosY(windowSize.Y - buttonHeight - (20 * ImGuiHelpers.GlobalScale));
                         ImGuiHelpers.CenterCursorFor((int)buttonWidth);
-                
+
                         if (ImGui.Button(buttonText, new Vector2(buttonWidth, buttonHeight)))
                         {
                             this.IsOpen = false;
                             Dismiss();
                         }
-                        
+
                         break;
                 }
             }
-            
+
             // Draw close button in the top right corner
             ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 100f);
             var btnAlpha = Math.Clamp(this.windowFade.EasedPoint.X - 0.5f, 0f, 1f);
             ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.DPSRed.WithAlpha(btnAlpha).Desaturate(0.3f));
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudWhite.WithAlpha(btnAlpha));
-            
+
             var childSize = ImGui.GetWindowSize();
             var closeButtonSize = 15 * ImGuiHelpers.GlobalScale;
             ImGui.SetCursorPos(new Vector2(childSize.X - closeButtonSize - (10 * ImGuiHelpers.GlobalScale), 10 * ImGuiHelpers.GlobalScale));
@@ -544,7 +544,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
     {
         this.scopedFinalizer.Dispose();
     }
-    
+
     private void FrameworkOnUpdate(IFramework unused)
     {
         if (!WarrantsChangelog())
@@ -555,7 +555,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
         if (this.openedThroughEligibility)
             return;
-        
+
         var isEligible = this.gameGui.GetAddonByName("_TitleMenu", 1) != IntPtr.Zero;
 
         var charaSelect = this.gameGui.GetAddonByName("CharaSelect", 1);
@@ -572,14 +572,14 @@ internal sealed class ChangelogWindow : Window, IDisposable
         {
             this.isEligibleSince = null;
         }
-        
+
         if (this.isEligibleSince != null && DateTime.Now - this.isEligibleSince > TitleScreenWaitTime)
         {
             this.IsOpen = true;
             this.openedThroughEligibility = true;
         }
     }
-    
+
     private unsafe void ResetMovieTimer()
     {
         var uiModule = UIModule.Instance();

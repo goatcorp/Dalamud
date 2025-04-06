@@ -7,7 +7,7 @@ using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.System.Input;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Game.ClientState.GamePad;

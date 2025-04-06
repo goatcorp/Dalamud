@@ -1,7 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -15,9 +15,9 @@ internal class ConditionWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "condition" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Condition"; 
+    public string DisplayName { get; init; } = "Condition";
 
     /// <inheritdoc/>
     public void Load()

@@ -9,7 +9,7 @@ using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using static System.Globalization.NumberFormatInfo;
 
@@ -18,8 +18,8 @@ using static Dalamud.Interface.Internal.UiDebug2.UiDebug2;
 using static Dalamud.Interface.UiBuilder;
 using static Dalamud.Interface.Utility.ImGuiHelpers;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeFlags;
-using static ImGuiNET.ImGuiCol;
-using static ImGuiNET.ImGuiWindowFlags;
+using static Dalamud.Bindings.ImGui.ImGuiCol;
+using static Dalamud.Bindings.ImGui.ImGuiWindowFlags;
 // ReSharper disable StructLacksIEquatable.Global
 
 #pragma warning disable CS0659

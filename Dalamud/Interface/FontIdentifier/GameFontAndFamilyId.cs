@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Newtonsoft.Json;
 

@@ -1,9 +1,13 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 using Dalamud.Common;
 using Dalamud.Configuration.Internal;
@@ -58,7 +62,7 @@ public sealed class EntryPoint
         var info = JsonConvert.DeserializeObject<DalamudStartInfo>(infoStr)!;
 
         if ((info.BootWaitMessageBox & 4) != 0)
-            MessageBoxW(IntPtr.Zero, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MessageBoxType.Ok);
+            Windows.Win32.PInvoke.MessageBox(HWND.Null, "Press OK to continue (BeforeDalamudConstruct)", "Dalamud Boot", MESSAGEBOX_STYLE.MB_OK);
 
         new Thread(() => RunThread(info, mainThreadContinueEvent)).Start();
     }
@@ -135,6 +139,8 @@ public sealed class EntryPoint
     /// <param name="mainThreadContinueEvent">Event used to signal the main thread to continue.</param>
     private static void RunThread(DalamudStartInfo info, IntPtr mainThreadContinueEvent)
     {
+        NativeLibrary.Load(Path.Combine(info.WorkingDirectory!, "cimgui.dll"));
+
         // Setup logger
         InitLogging(info.LogPath!, info.BootShowConsole, true, info.LogName);
         SerilogEventSink.Instance.LogLine += SerilogOnLogLine;
@@ -304,14 +310,14 @@ public sealed class EntryPoint
                     // ignored
                 }
 
-                const MessageBoxType flags = NativeFunctions.MessageBoxType.YesNo | NativeFunctions.MessageBoxType.IconError | NativeFunctions.MessageBoxType.SystemModal;
-                var result = MessageBoxW(
-                    Process.GetCurrentProcess().MainWindowHandle,
+                const MESSAGEBOX_STYLE flags = MESSAGEBOX_STYLE.MB_YESNO | MESSAGEBOX_STYLE.MB_ICONERROR | MESSAGEBOX_STYLE.MB_SYSTEMMODAL;
+                var result = Windows.Win32.PInvoke.MessageBox(
+                    new HWND(Process.GetCurrentProcess().MainWindowHandle),
                     $"An internal error in a Dalamud plugin occurred.\nThe game must close.\n\n{ex.GetType().Name}\n{info}\n\n{pluginInfo}More information has been recorded separately{supportText}.\n\nDo you want to disable all plugins the next time you start the game?",
                     "Dalamud",
                     flags);
 
-                if (result == (int)User32.MessageBoxResult.IDYES)
+                if (result == MESSAGEBOX_RESULT.IDYES)
                 {
                     Log.Information("User chose to disable plugins on next launch...");
                     var config = Service<DalamudConfiguration>.Get();

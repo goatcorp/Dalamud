@@ -3,7 +3,7 @@ using System.Linq;
 
 using Dalamud.Game.MarketBoard;
 using Dalamud.Game.Network.Structures;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 

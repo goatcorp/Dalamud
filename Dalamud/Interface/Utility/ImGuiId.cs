@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Utility;
 
@@ -158,15 +158,15 @@ public readonly ref struct ImGuiId
         switch (this.IdType)
         {
             case Type.Numeric:
-                ImGuiNative.igPushID_Ptr((void*)this.Numeric);
+                ImGui.PushID((void*)this.Numeric);
                 return true;
             case Type.U16:
                 fixed (void* p = this.U16)
-                    ImGuiNative.igPushID_StrStr((byte*)p, (byte*)p + (this.U16.Length * 2));
+                    ImGui.PushID((byte*)p, (byte*)p + (this.U16.Length * 2));
                 return true;
             case Type.U8:
                 fixed (void* p = this.U8)
-                    ImGuiNative.igPushID_StrStr((byte*)p, (byte*)p + this.U8.Length);
+                    ImGui.PushID((byte*)p, (byte*)p + this.U8.Length);
                 return true;
             case Type.None:
             default:

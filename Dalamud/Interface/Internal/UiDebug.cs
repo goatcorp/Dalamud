@@ -10,7 +10,7 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Text.ReadOnly;
 
@@ -213,7 +213,7 @@ internal unsafe class UiDebug
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textNode->NodeText);
 
-                    ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new IntPtr(textNode->NodeText.StringPtr), (uint)textNode->NodeText.BufSize);
+                    ImGui.InputText($"Replace Text##{(ulong)textNode:X}", textNode->NodeText.StringPtr, (uint)textNode->NodeText.BufSize);
 
                     ImGui.SameLine();
                     if (ImGui.Button($"Encode##{(ulong)textNode:X}"))
@@ -301,7 +301,7 @@ internal unsafe class UiDebug
                         if (ImGui.TreeNode($"Texture##{(ulong)kernelTexture->D3D11ShaderResourceView:X}"))
                         {
                             ImGui.Image(
-                                new IntPtr(kernelTexture->D3D11ShaderResourceView),
+                                new ImTextureID(kernelTexture->D3D11ShaderResourceView),
                                 new Vector2(kernelTexture->ActualWidth, kernelTexture->ActualHeight));
                             ImGui.TreePop();
                         }
@@ -312,7 +312,7 @@ internal unsafe class UiDebug
                                 $"Texture##{(ulong)textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView:X}"))
                         {
                             ImGui.Image(
-                                new IntPtr(textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView),
+                                new ImTextureID(textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView),
                                 new Vector2(
                                     textureInfo->AtkTexture.KernelTexture->ActualWidth,
                                     textureInfo->AtkTexture.KernelTexture->ActualHeight));

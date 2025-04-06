@@ -9,7 +9,7 @@ using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;

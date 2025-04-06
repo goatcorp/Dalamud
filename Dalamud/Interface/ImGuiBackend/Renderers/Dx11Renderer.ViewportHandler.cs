@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -36,11 +36,11 @@ internal unsafe partial class Dx11Renderer
             this.renderer = renderer;
 
             var pio = ImGui.GetPlatformIO();
-            pio.Renderer_CreateWindow = Marshal.GetFunctionPointerForDelegate(this.cwd = this.OnCreateWindow);
-            pio.Renderer_DestroyWindow = (nint)(delegate* unmanaged<ImGuiViewportPtr, void>)&OnDestroyWindow;
-            pio.Renderer_SetWindowSize = (nint)(delegate* unmanaged<ImGuiViewportPtr, Vector2, void>)&OnSetWindowSize;
-            pio.Renderer_RenderWindow = (nint)(delegate* unmanaged<ImGuiViewportPtr, nint, void>)&OnRenderWindow;
-            pio.Renderer_SwapBuffers = (nint)(delegate* unmanaged<ImGuiViewportPtr, nint, void>)&OnSwapBuffers;
+            pio.RendererCreateWindow = Marshal.GetFunctionPointerForDelegate(this.cwd = this.OnCreateWindow).ToPointer();
+            pio.RendererDestroyWindow = (delegate* unmanaged<ImGuiViewportPtr, void>)&OnDestroyWindow;
+            pio.RendererSetWindowSize = (delegate* unmanaged<ImGuiViewportPtr, Vector2, void>)&OnSetWindowSize;
+            pio.RendererRenderWindow = (delegate* unmanaged<ImGuiViewportPtr, nint, void>)&OnRenderWindow;
+            pio.RendererSwapBuffers = (delegate* unmanaged<ImGuiViewportPtr, nint, void>)&OnSwapBuffers;
         }
 
         ~ViewportHandler() => ReleaseUnmanagedResources();
@@ -54,20 +54,20 @@ internal unsafe partial class Dx11Renderer
         private static void ReleaseUnmanagedResources()
         {
             var pio = ImGui.GetPlatformIO();
-            pio.Renderer_CreateWindow = nint.Zero;
-            pio.Renderer_DestroyWindow = nint.Zero;
-            pio.Renderer_SetWindowSize = nint.Zero;
-            pio.Renderer_RenderWindow = nint.Zero;
-            pio.Renderer_SwapBuffers = nint.Zero;
+            pio.RendererCreateWindow = null;
+            pio.RendererDestroyWindow = null;
+            pio.RendererSetWindowSize = null;
+            pio.RendererRenderWindow = null;
+            pio.RendererSwapBuffers = null;
         }
 
         [UnmanagedCallersOnly]
         private static void OnDestroyWindow(ImGuiViewportPtr viewport)
         {
-            if (viewport.RendererUserData == nint.Zero)
+            if (viewport.RendererUserData == null)
                 return;
             ViewportData.Attach(viewport.RendererUserData).Dispose();
-            viewport.RendererUserData = nint.Zero;
+            viewport.RendererUserData = null;
         }
 
         [UnmanagedCallersOnly]
@@ -87,7 +87,7 @@ internal unsafe partial class Dx11Renderer
             // PlatformHandleRaw should always be a HWND, whereas PlatformHandle might be a higher-level handle (e.g. GLFWWindow*, SDL_Window*).
             // Some backend will leave PlatformHandleRaw NULL, in which case we assume PlatformHandle will contain the HWND.
             var hWnd = viewport.PlatformHandleRaw;
-            if (hWnd == 0)
+            if (hWnd == null)
                 hWnd = viewport.PlatformHandle;
             try
             {
@@ -135,12 +135,12 @@ internal unsafe partial class Dx11Renderer
 
         public IDXGISwapChain* SwapChain => this.swapChain;
 
-        public nint Handle => GCHandle.ToIntPtr(this.selfGcHandle);
+        public void* Handle => GCHandle.ToIntPtr(this.selfGcHandle).ToPointer();
 
         private DXGI_FORMAT RtvFormat => this.parent.rtvFormat;
 
-        public static ViewportData Attach(nint handle) =>
-            (ViewportData)GCHandle.FromIntPtr(handle).Target ?? throw new InvalidOperationException();
+        public static ViewportData Attach(void* handle) =>
+            (ViewportData)GCHandle.FromIntPtr(new IntPtr(handle)).Target ?? throw new InvalidOperationException();
 
         public static ViewportData Create(
             Dx11Renderer renderer,
@@ -220,7 +220,7 @@ internal unsafe partial class Dx11Renderer
             dcVisual.Get()->SetContent((IUnknown*)swapChain1.Get()).ThrowOnError();
             dcTarget.Get()->SetRoot(dcVisual).ThrowOnError();
             renderer.dcompDevice.Get()->Commit().ThrowOnError();
-            
+
             using var swapChain = default(ComPtr<IDXGISwapChain>);
             swapChain1.As(&swapChain).ThrowOnError();
             return Create(renderer, swapChain, dcVisual, dcTarget);
@@ -272,7 +272,7 @@ internal unsafe partial class Dx11Renderer
 
             return Create(renderer, swapChain, null, null);
         }
-        
+
         public void Dispose()
         {
             if (!this.selfGcHandle.IsAllocated)

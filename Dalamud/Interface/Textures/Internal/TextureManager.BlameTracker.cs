@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Internal.Types;
@@ -252,7 +253,7 @@ internal sealed partial class TextureManager
             0);
 
         /// <inheritdoc/>
-        public IntPtr ImGuiHandle
+        public ImTextureID ImGuiHandle
         {
             get
             {
@@ -261,7 +262,7 @@ internal sealed partial class TextureManager
 
                 this.srvDebugPreviewExpiryTick = Environment.TickCount64 + 1000;
                 if (!this.srvDebugPreview.IsEmpty())
-                    return (nint)this.srvDebugPreview.Get();
+                    return new ImTextureID(this.srvDebugPreview.Get());
                 var srvDesc = new D3D11_SHADER_RESOURCE_VIEW_DESC(
                     this.tex2D,
                     D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
@@ -275,7 +276,7 @@ internal sealed partial class TextureManager
                     return Service<DalamudAssetManager>.Get().Empty4X4.ImGuiHandle;
 
                 srv.Swap(ref this.srvDebugPreview);
-                return (nint)this.srvDebugPreview.Get();
+                return new ImTextureID(this.srvDebugPreview.Get());
             }
         }
 

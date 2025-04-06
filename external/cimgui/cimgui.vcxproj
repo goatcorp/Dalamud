@@ -21,6 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lib\cimgui\cimgui.h" />
+      <ClInclude Include="..\..\lib\cimgui\imgui\imgui.h" />
+      <ClInclude Include="..\..\lib\cimgui\imgui\imgui_internal.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

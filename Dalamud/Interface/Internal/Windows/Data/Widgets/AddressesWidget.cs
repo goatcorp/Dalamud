@@ -3,7 +3,7 @@
 using Dalamud.Game;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -19,7 +19,7 @@ internal class AddressesWidget : IDataWindowWidget
     public string[]? CommandShortcuts { get; init; } = { "address" };
 
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Addresses"; 
+    public string DisplayName { get; init; } = "Addresses";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -29,7 +29,7 @@ internal class AddressesWidget : IDataWindowWidget
     {
         this.Ready = true;
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {

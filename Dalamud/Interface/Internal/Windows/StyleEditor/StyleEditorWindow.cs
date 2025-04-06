@@ -11,7 +11,7 @@ using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Serilog;
 
@@ -112,7 +112,7 @@ public class StyleEditorWindow : Window
 
         if (isBuiltinStyle)
             ImGui.BeginDisabled();
-        
+
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash) && this.currentSel != 0)
         {
             this.currentSel--;
@@ -157,7 +157,7 @@ public class StyleEditorWindow : Window
 
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
-        
+
         if (isBuiltinStyle)
             ImGui.EndDisabled();
 
@@ -167,7 +167,7 @@ public class StyleEditorWindow : Window
         {
             this.SaveStyle();
 
-            var styleJson = ImGui.GetClipboardText();
+            var styleJson = ImGui.GetClipboardTextS();
 
             try
             {
@@ -288,7 +288,7 @@ public class StyleEditorWindow : Window
 
                     foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
                     {
-                        if (imGuiCol == ImGuiCol.COUNT)
+                        if (imGuiCol == ImGuiCol.Count)
                             continue;
 
                         ImGui.PushID(imGuiCol.ToString());

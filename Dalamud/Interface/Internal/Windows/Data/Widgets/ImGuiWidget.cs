@@ -11,7 +11,7 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Windowing;
 using Dalamud.Storage.Assets;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -457,7 +457,7 @@ internal class ImGuiWidget : IDataWindowWidget
 
         public DisposeLoggingTextureWrap(IDalamudTextureWrap inner) => this.inner = inner;
 
-        public nint ImGuiHandle => this.inner.ImGuiHandle;
+        public ImTextureID ImGuiHandle => this.inner.ImGuiHandle;
 
         public int Width => this.inner.Width;
 

@@ -6,7 +6,7 @@ using System.Text;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Newtonsoft.Json;
 

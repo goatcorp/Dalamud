@@ -5,7 +5,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.DragDrop;
@@ -103,7 +103,7 @@ internal partial class DragDropManager : IInternalDisposableService, IDragDropMa
     }
 
     /// <inheritdoc cref="IDragDropManager.CreateImGuiSource(string, Func{IDragDropManager, bool}, Func{IDragDropManager, bool})"/>
-    public void CreateImGuiSource(string label, Func<IDragDropManager, bool> validityCheck, Func<IDragDropManager, bool> tooltipBuilder)
+    public unsafe void CreateImGuiSource(string label, Func<IDragDropManager, bool> validityCheck, Func<IDragDropManager, bool> tooltipBuilder)
     {
         if (!this.IsDragging && !this.IsDropping())
         {
@@ -115,7 +115,7 @@ internal partial class DragDropManager : IInternalDisposableService, IDragDropMa
             return;
         }
 
-        ImGui.SetDragDropPayload(label, nint.Zero, 0);
+        ImGui.SetDragDropPayload(label, null, 0);
         if (this.CheckTooltipFrame(out var frame) && tooltipBuilder(this))
         {
             this.lastTooltipFrame = frame;
@@ -136,7 +136,7 @@ internal partial class DragDropManager : IInternalDisposableService, IDragDropMa
 
         unsafe
         {
-            if (ImGui.AcceptDragDropPayload(label, ImGuiDragDropFlags.AcceptBeforeDelivery).NativePtr != null && this.IsDropping())
+            if (ImGui.AcceptDragDropPayload(label, ImGuiDragDropFlags.AcceptBeforeDelivery).Handle != null && this.IsDropping())
             {
                 this.lastDropFrame = -2;
                 files = this.Files;

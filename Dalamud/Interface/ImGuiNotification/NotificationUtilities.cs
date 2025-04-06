@@ -13,7 +13,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiNotification;
 
@@ -56,7 +56,7 @@ public static class NotificationUtilities
         using (fontHandle.Push())
         {
             var font = ImGui.GetFont();
-            var glyphPtr = (ImGuiHelpers.ImFontGlyphReal*)font.FindGlyphNoFallback(c).NativePtr;
+            var glyphPtr = (ImGuiHelpers.ImFontGlyphReal*)font.FindGlyphNoFallback(c);
             if (glyphPtr is null)
                 return false;
 

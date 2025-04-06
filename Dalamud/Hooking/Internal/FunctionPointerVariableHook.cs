@@ -1,10 +1,15 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using Windows.Win32.System.Memory;
+
 using Dalamud.Memory;
 using JetBrains.Annotations;
+
+using PInvoke;
+
+using Win32Exception = System.ComponentModel.Win32Exception;
 
 namespace Dalamud.Hooking.Internal;
 
@@ -12,7 +17,7 @@ namespace Dalamud.Hooking.Internal;
 /// Manages a hook with MinHook.
 /// </summary>
 /// <typeparam name="T">Delegate type to represents a function prototype. This must be the same prototype as original function do.</typeparam>
-internal class FunctionPointerVariableHook<T> : Hook<T>
+internal unsafe class FunctionPointerVariableHook<T> : Hook<T>
     where T : Delegate
 {
     private readonly nint pfnDetour;
@@ -55,11 +60,11 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
                 // Note: WINE seemingly tries to clean up all heap allocations on process exit.
                 // We want our allocation to be kept there forever, until no running thread remains.
                 // Therefore we're using VirtualAlloc instead of HeapCreate/HeapAlloc.
-                var pfnThunkBytes = (byte*)NativeFunctions.VirtualAlloc(
-                    0,
+                var pfnThunkBytes = (byte*)Windows.Win32.PInvoke.VirtualAlloc(
+                    null,
                     12,
-                    NativeFunctions.AllocationType.Reserve | NativeFunctions.AllocationType.Commit,
-                    MemoryProtection.ExecuteReadWrite);
+                    VIRTUAL_ALLOCATION_TYPE.MEM_RESERVE | VIRTUAL_ALLOCATION_TYPE.MEM_COMMIT,
+                    PAGE_PROTECTION_FLAGS.PAGE_EXECUTE_READWRITE);
                 if (pfnThunkBytes == null)
                 {
                     throw new OutOfMemoryException("Failed to allocate memory for import hooks.");
@@ -78,10 +83,10 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
 
             this.ppfnThunkJumpTarget = this.pfnThunk + 2;
 
-            if (!NativeFunctions.VirtualProtect(
-                    this.Address,
+            if (!Windows.Win32.PInvoke.VirtualProtect(
+                    this.Address.ToPointer(),
                     (UIntPtr)Marshal.SizeOf<IntPtr>(),
-                    MemoryProtection.ExecuteReadWrite,
+                    PAGE_PROTECTION_FLAGS.PAGE_EXECUTE_READWRITE,
                     out var oldProtect))
             {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
@@ -93,7 +98,7 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
             Marshal.WriteIntPtr(this.Address, this.pfnThunk);
 
             // This really should not fail, but then even if it does, whatever.
-            NativeFunctions.VirtualProtect(this.Address, (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
+            Windows.Win32.PInvoke.VirtualProtect(this.Address.ToPointer(), (UIntPtr)Marshal.SizeOf<IntPtr>(), oldProtect, out _);
 
             // Add afterwards, so the hookIdent starts at 0.
             indexList.Add(this);

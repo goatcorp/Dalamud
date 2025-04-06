@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using JetBrains.Annotations;
 
@@ -58,7 +59,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
                 $"{nameof(initialCapacity)} cannot be a negative number.");
         }
 
-        this.vector = (ImVector*)ImGuiNative.igMemAlloc((uint)sizeof(ImVector));
+        this.vector = (ImVector*)ImGui.MemAlloc((uint)sizeof(ImVector));
         if (this.vector is null)
             throw new OutOfMemoryException();
         *this.vector = default;
@@ -71,7 +72,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         }
         catch
         {
-            ImGuiNative.igMemFree(this.vector);
+            ImGui.MemFree(this.vector);
             this.vector = null;
             this.HasOwnership = false;
             this.destroyer = null;
@@ -200,8 +201,8 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         {
             this.Clear();
             this.SetCapacity(0);
-            Debug.Assert(this.vector->Data == 0, "SetCapacity(0) did not free the data");
-            ImGuiNative.igMemFree(this.vector);
+            Debug.Assert(this.vector->Data == null, "SetCapacity(0) did not free the data");
+            ImGui.MemFree(this.vector);
         }
 
         this.vector = null;
@@ -492,7 +493,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
         {
             if (capacity == 0 && this.DataUnsafe is not null)
             {
-                ImGuiNative.igMemFree(this.DataUnsafe);
+                ImGui.MemFree(this.DataUnsafe);
                 this.DataUnsafe = null;
             }
 
@@ -504,7 +505,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
 
         var newAlloc = (T*)(capacity == 0
                                 ? null
-                                : ImGuiNative.igMemAlloc(checked((uint)(capacity * sizeof(T)))));
+                                : ImGui.MemAlloc(checked((uint)(capacity * sizeof(T)))));
 
         if (newAlloc is null && capacity > 0)
             throw new OutOfMemoryException();
@@ -515,7 +516,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
             oldSpan[..this.LengthUnsafe].CopyTo(newSpan);
 
         if (oldAlloc != null)
-            ImGuiNative.igMemFree(oldAlloc);
+            ImGui.MemFree(oldAlloc);
 
         this.DataUnsafe = newAlloc;
         this.CapacityUnsafe = capacity;
@@ -685,9 +686,9 @@ public static class ImVectorWrapper
     /// <param name="obj">The owner object.</param>
     /// <returns>The wrapped vector.</returns>
     public static unsafe ImVectorWrapper<ImFontConfig> ConfigDataWrapped(this ImFontAtlasPtr obj) =>
-        obj.NativePtr is null
+        obj.Handle is null
             ? throw new NullReferenceException()
-            : new(&obj.NativePtr->ConfigData, ImGuiNative.ImFontConfig_destroy);
+            : new((ImVector*)Unsafe.AsPointer(ref obj.ConfigData), x => x->Destroy());
 
     /// <summary>
     /// Wraps <see cref="ImFontAtlas.Fonts"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
@@ -696,9 +697,9 @@ public static class ImVectorWrapper
     /// <param name="obj">The owner object.</param>
     /// <returns>The wrapped vector.</returns>
     public static unsafe ImVectorWrapper<ImFontPtr> FontsWrapped(this ImFontAtlasPtr obj) =>
-        obj.NativePtr is null
+        obj.Handle is null
             ? throw new NullReferenceException()
-            : new(&obj.NativePtr->Fonts, x => ImGuiNative.ImFont_destroy(x->NativePtr));
+            : new((ImVector*)Unsafe.AsPointer(ref obj.Fonts), x => x->Destroy());
 
     /// <summary>
     /// Wraps <see cref="ImFontAtlas.Textures"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
@@ -707,9 +708,9 @@ public static class ImVectorWrapper
     /// <param name="obj">The owner object.</param>
     /// <returns>The wrapped vector.</returns>
     public static unsafe ImVectorWrapper<ImFontAtlasTexture> TexturesWrapped(this ImFontAtlasPtr obj) =>
-        obj.NativePtr is null
+        obj.Handle is null
             ? throw new NullReferenceException()
-            : new(&obj.NativePtr->Textures);
+            : new((ImVector*)Unsafe.AsPointer(ref obj.Textures));
 
     /// <summary>
     /// Wraps <see cref="ImFont.Glyphs"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
@@ -718,9 +719,9 @@ public static class ImVectorWrapper
     /// <param name="obj">The owner object.</param>
     /// <returns>The wrapped vector.</returns>
     public static unsafe ImVectorWrapper<ImGuiHelpers.ImFontGlyphReal> GlyphsWrapped(this ImFontPtr obj) =>
-        obj.NativePtr is null
+        obj.Handle is null
             ? throw new NullReferenceException()
-            : new(&obj.NativePtr->Glyphs);
+            : new((ImVector*)Unsafe.AsPointer(ref obj.Glyphs));
 
     /// <summary>
     /// Wraps <see cref="ImFont.IndexedHotData"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
@@ -729,9 +730,9 @@ public static class ImVectorWrapper
     /// <param name="obj">The owner object.</param>
     /// <returns>The wrapped vector.</returns>
     public static unsafe ImVectorWrapper<ImGuiHelpers.ImFontGlyphHotDataReal> IndexedHotDataWrapped(this ImFontPtr obj)
-        => obj.NativePtr is null
+        => obj.Handle is null
                ? throw new NullReferenceException()
-               : new(&obj.NativePtr->IndexedHotData);
+               : new((ImVector*)Unsafe.AsPointer(ref obj.IndexedHotData));
 
     /// <summary>
     /// Wraps <see cref="ImFont.IndexLookup"/> into a <see cref="ImVectorWrapper{T}"/>.<br />
@@ -740,7 +741,7 @@ public static class ImVectorWrapper
     /// <param name="obj">The owner object.</param>
     /// <returns>The wrapped vector.</returns>
     public static unsafe ImVectorWrapper<ushort> IndexLookupWrapped(this ImFontPtr obj) =>
-        obj.NativePtr is null
+        obj.Handle is null
             ? throw new NullReferenceException()
-            : new(&obj.NativePtr->IndexLookup);
+            : new((ImVector*)Unsafe.AsPointer(ref obj.IndexLookup));
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Storage.Assets;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Newtonsoft.Json;
 

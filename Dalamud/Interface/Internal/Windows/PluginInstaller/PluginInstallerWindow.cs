@@ -34,7 +34,7 @@ using Dalamud.Plugin.Internal.Types.Manifest;
 using Dalamud.Support;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.PluginInstaller;
 

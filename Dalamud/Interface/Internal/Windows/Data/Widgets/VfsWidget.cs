@@ -3,7 +3,7 @@ using System.IO;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Storage;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

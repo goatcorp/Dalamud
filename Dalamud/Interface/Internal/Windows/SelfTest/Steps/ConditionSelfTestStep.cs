@@ -1,6 +1,6 @@
 using Dalamud.Game.ClientState.Conditions;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;

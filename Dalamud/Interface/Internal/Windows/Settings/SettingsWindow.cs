@@ -12,7 +12,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
 
@@ -42,7 +42,7 @@ internal class SettingsWindow : Window
         };
 
         this.SizeCondition = ImGuiCond.FirstUseEver;
-        
+
         this.tabs =
         [
             new SettingsTabGeneral(),
@@ -143,7 +143,7 @@ internal class SettingsWindow : Window
                         flags |= ImGuiTabItemFlags.SetSelected;
                         this.setActiveTab = null;
                     }
- 
+
                     using var tab = ImRaii.TabItem(settingsTab.Title, flags);
                     if (tab)
                     {

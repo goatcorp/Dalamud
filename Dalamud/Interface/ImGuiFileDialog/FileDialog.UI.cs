@@ -5,7 +5,7 @@ using System.Numerics;
 
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiFileDialog;
 
@@ -397,7 +397,7 @@ public partial class FileDialog
                 ImGuiListClipperPtr clipper;
                 unsafe
                 {
-                    clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+                    clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
                 }
 
                 lock (this.filesLock)

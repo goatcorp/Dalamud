@@ -4,10 +4,10 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 
 using FFXIVClientStructs.FFXIV.Client.Graphics;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using static Dalamud.Interface.ColorHelpers;
-using static ImGuiNET.ImGuiCol;
+using static Dalamud.Bindings.ImGui.ImGuiCol;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Utility;
 

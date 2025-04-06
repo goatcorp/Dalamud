@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Text;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Utility;
 
@@ -20,7 +20,7 @@ public static class ImGuiExtensions
     /// <param name="textSizeIfKnown">Size of the text, if known.</param>
     /// <param name="align">Alignment.</param>
     /// <param name="clipRect">Clip rect to use.</param>
-    public static void AddTextClippedEx(this ImDrawListPtr drawListPtr, Vector2 posMin, Vector2 posMax, string text, Vector2? textSizeIfKnown, Vector2 align, Vector4? clipRect)
+    public static unsafe void AddTextClippedEx(this ImDrawListPtr drawListPtr, Vector2 posMin, Vector2 posMax, string text, Vector2? textSizeIfKnown, Vector2 align, Vector4? clipRect)
     {
         var pos = posMin;
         var textSize = textSizeIfKnown ?? ImGui.CalcTextSize(text, false, 0);
@@ -66,7 +66,7 @@ public static class ImGuiExtensions
     // TODO: This should go into ImDrawList.Manual.cs in ImGui.NET...
     public static unsafe void AddText(this ImDrawListPtr drawListPtr, ImFontPtr font, float fontSize, Vector2 pos, uint col, string textBegin, ref Vector4 cpuFineClipRect)
     {
-        var nativeFont = font.NativePtr;
+        var nativeFont = font.Handle;
         var textBeginByteCount = Encoding.UTF8.GetByteCount(textBegin);
         var nativeTextBegin = stackalloc byte[textBeginByteCount + 1];
 
@@ -81,7 +81,7 @@ public static class ImGuiExtensions
 
         fixed (Vector4* nativeCpuFineClipRect = &cpuFineClipRect)
         {
-            ImGuiNative.ImDrawList_AddText_FontPtr(drawListPtr.NativePtr, nativeFont, fontSize, pos, col, nativeTextBegin, nativeTextEnd, wrapWidth, nativeCpuFineClipRect);
+            drawListPtr.AddText(nativeFont, fontSize, pos, col, nativeTextBegin, nativeTextEnd, wrapWidth, nativeCpuFineClipRect);
         }
     }
 }

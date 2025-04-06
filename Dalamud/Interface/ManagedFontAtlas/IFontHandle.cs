@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using ImGuiNET;
-
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>
@@ -58,7 +56,7 @@ public interface IFontHandle : IDisposable
     /// <returns>A disposable object that will pop the font on dispose.</returns>
     /// <exception cref="InvalidOperationException">If called outside of the main thread.</exception>
     /// <remarks>
-    /// <para>This function uses <see cref="ImGui.PushFont"/>, and may do extra things. 
+    /// <para>This function uses <see cref="ImGui.PushFont"/>, and may do extra things.
     /// Use <see cref="IDisposable.Dispose"/> or <see cref="Pop"/> to undo this operation.
     /// Do not use <see cref="ImGui.PopFont"/>.</para>
     /// </remarks>
@@ -77,7 +75,7 @@ public interface IFontHandle : IDisposable
     /// <b>Push a font between two choices.</b>
     /// <code>
     /// using ((someCondition ? myFontHandle : dalamudPluginInterface.UiBuilder.MonoFontHandle).Push())
-    ///     ImGui.TextUnformatted("Test 3"); 
+    ///     ImGui.TextUnformatted("Test 3");
     /// </code>
     /// </example>
     IDisposable Push();

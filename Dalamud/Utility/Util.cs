@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -20,16 +19,18 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Support;
-using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Serilog;
 using TerraFX.Interop.Windows;
-using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
+using Windows.Win32.UI.WindowsAndMessaging;
+
+using Dalamud.Bindings.ImGui;
 
 using static TerraFX.Interop.Windows.Windows;
 
+using HWND = Windows.Win32.Foundation.HWND;
 using Win32_PInvoke = Windows.Win32.PInvoke;
 
 namespace Dalamud.Utility;
@@ -402,9 +403,9 @@ public static class Util
     /// <param name="exit">Specify whether to exit immediately.</param>
     public static void Fatal(string message, string caption, bool exit = true)
     {
-        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError |
-                    NativeFunctions.MessageBoxType.Topmost;
-        _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
+        var flags = MESSAGEBOX_STYLE.MB_OK | MESSAGEBOX_STYLE.MB_ICONERROR |
+                    MESSAGEBOX_STYLE.MB_TOPMOST;
+        _ = Windows.Win32.PInvoke.MessageBox(new HWND(Process.GetCurrentProcess().MainWindowHandle), message, caption, flags);
 
         if (exit)
         {

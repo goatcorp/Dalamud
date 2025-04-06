@@ -1,6 +1,6 @@
 using Dalamud.Game.ClientState;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
