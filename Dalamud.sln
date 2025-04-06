@@ -62,11 +62,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cimplot", "external\cimplot
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cimguizmo", "external\cimguizmo\cimguizmo.vcxproj", "{F258347D-31BE-4605-98CE-40E43BDF6F9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.ImGui", "imgui\Dalamud.ImGui\Dalamud.ImGui.csproj", "{B0AA8737-33A3-4766-8CBE-A48F2EF283BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.Bindings.ImGui", "imgui\Dalamud.Bindings.ImGui\Dalamud.Bindings.ImGui.csproj", "{B0AA8737-33A3-4766-8CBE-A48F2EF283BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.ImGuizmo", "imgui\Dalamud.ImGuizmo\Dalamud.ImGuizmo.csproj", "{5E6EDD75-AE95-43A6-9D67-95B840EB4B71}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.Bindings.ImGuizmo", "imgui\Dalamud.Bindings.ImGuizmo\Dalamud.Bindings.ImGuizmo.csproj", "{5E6EDD75-AE95-43A6-9D67-95B840EB4B71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.ImPlot", "imgui\Dalamud.ImPlot\Dalamud.ImPlot.csproj", "{9C70BD06-D52C-425E-9C14-5D66BC6046EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.Bindings.ImPlot", "imgui\Dalamud.Bindings.ImPlot\Dalamud.Bindings.ImPlot.csproj", "{9C70BD06-D52C-425E-9C14-5D66BC6046EF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bindings", "Bindings", "{A217B3DF-607A-4EFB-B107-3C4809348043}"
 EndProject

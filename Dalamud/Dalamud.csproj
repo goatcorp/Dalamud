@@ -103,9 +103,9 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
-        <ProjectReference Include="..\imgui\Dalamud.ImGuizmo\Dalamud.ImGuizmo.csproj" />
-        <ProjectReference Include="..\imgui\Dalamud.ImGui\Dalamud.ImGui.csproj" />
-        <ProjectReference Include="..\imgui\Dalamud.ImPlot\Dalamud.ImPlot.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.Bindings.ImGuizmo\Dalamud.Bindings.ImGuizmo.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.Bindings.ImGui\Dalamud.Bindings.ImGui.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.Bindings.ImPlot\Dalamud.Bindings.ImPlot.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
     </ItemGroup>

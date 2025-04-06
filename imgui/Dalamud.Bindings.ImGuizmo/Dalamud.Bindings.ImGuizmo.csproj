@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Dalamud.ImGui\Dalamud.ImGui.csproj" />
+      <ProjectReference Include="..\Dalamud.Bindings.ImGui\Dalamud.Bindings.ImGui.csproj" />
     </ItemGroup>
 
 </Project>
