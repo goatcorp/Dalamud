@@ -359,7 +359,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
 
                 this.context.Get()->RSSetScissorRects(1, &clipRect);
 
-                if (cmd.UserCallback != null)
+                if (cmd.UserCallback == null)
                 {
                     // Bind texture and draw
                     var srv = (ID3D11ShaderResourceView*)cmd.TextureId.Handle;

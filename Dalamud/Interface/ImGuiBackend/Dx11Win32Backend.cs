@@ -71,57 +71,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             this.WindowHandle = desc.OutputWindow;
 
             var ctx = ImGui.CreateContext();
-
             Debug.Assert(!ctx.IsNull);
-            var windowOff = Marshal.OffsetOf<ImGuiContext>("CurrentWindow");
-            //Debug.Assert(windowOff == 16368);
-
-            /*
-            void ShowOffset<T>(string name)
-            {
-                // var off = Marshal.OffsetOf<T>(name);
-                var fieldInfo = typeof(T).GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                var off = fieldInfo?.GetFieldOffset();
-
-                Log.Information($"{name} {typeof(T).Name} {off}");
-            }
-
-            //Util.Fatal($"{Marshal.SizeOf<Test>()} - {sizeof(Test)}", "", false);
-
-            ShowOffset<ImGuiIO>("ClipboardUserData");
-            ShowOffset<ImGuiIO>("MouseDrawCursor");
-
-            ShowOffset<ImGuiIO>("MouseDelta");
-            ShowOffset<ImGuiIO>("KeysDown_0");
-            ShowOffset<ImGuiIO>("MousePos");
-
-            ShowOffset<ImGuiIO>("KeyMods");
-            */
-
-            void ShowAllFields<T>()
-            {
-                var fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                foreach (var field in fields)
-                {
-                    var off = field.GetFieldOffset();
-                    Log.Information($"{field.Name} {typeof(T).Name} {off}");
-                }
-            }
-
-            ShowAllFields<ImGuiIO>();
-
-            var contextSize = Unsafe.SizeOf<ImGuiContext>();
-            var ioSize = Unsafe.SizeOf<ImGuiIO>();
-            var platformIoSize = Unsafe.SizeOf<ImGuiPlatformIO>();
-
-            //Debug.Assert(contextSize == 22688);
-            //Debug.Assert(ioSize == 14352);
-            //Debug.Assert(platformIoSize == 216);
-
-            //var platformIoOff = Unsafe.OffsetOf<ImGuiContext>("PlatformIO");
-            //Debug.Assert(platformIoOff == 14360);
-
-            Util.Fatal("bleh", "bleh", false);
 
             ImGuizmo.SetImGuiContext(ctx);
             ImPlot.SetImGuiContext(ctx);
