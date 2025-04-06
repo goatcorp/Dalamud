@@ -330,4 +330,4 @@ ASALocalRun/
 .mfractor/
 
 # HexaGen generated files
-imgui/**/Generated/**/*
+#imgui/**/Generated/**/*
