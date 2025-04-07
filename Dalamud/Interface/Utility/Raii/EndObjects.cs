@@ -156,8 +156,7 @@ public static partial class ImRaii
         nativeLabelStackBytes[nativeLabelOffset] = 0;
 
         var ret = ImGui.BeginTabItem(nativeLabelStackBytes, null, flags);
-
-        return new EndConditionally(ImGui.EndTabItem, true);
+        return new EndConditionally(ImGui.EndTabItem, ret);
     }
 
     public static IEndObject TabItem(string label, ref bool open)
