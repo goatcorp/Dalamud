@@ -636,7 +636,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             {
                 case false when digit == 0:
                     continue;
-                case true when i % 3 == 0:
+                case true when MathF.Log10(i) % 3 == 2:
                     this.ResolveStringExpression(in context, eSep);
                     break;
             }
