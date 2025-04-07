@@ -382,7 +382,7 @@ public abstract class Window
             var context = ImGui.GetCurrentContext();
             if (!context.IsNull)
             {
-                //ImGuiNativeAdditions.igCustom_WindowSetInheritNoInputs(this.internalIsClickthrough);
+                ImGuiP.GetCurrentWindow().InheritNoInputs = this.internalIsClickthrough;
             }
 
             // Not supported yet on non-main viewports
@@ -492,12 +492,12 @@ public abstract class Window
             ImGui.PopStyleVar();
         }
 
-        var titleBarRect = Vector4.Zero;
         unsafe
         {
-            /*
-            var window = ImGuiNativeAdditions.igGetCurrentWindow();
-            ImGuiNativeAdditions.ImGuiWindow_TitleBarRect(&titleBarRect, window);
+            var window = ImGuiP.GetCurrentWindow();
+
+            ImRect outRect;
+            ImGuiP.TitleBarRect(&outRect, window);
 
             var additionsButton = new TitleBarButton
             {
@@ -515,12 +515,11 @@ public abstract class Window
 
             if (flagsApplicableForTitleBarIcons)
             {
-                this.DrawTitleBarButtons(window, flags, titleBarRect,
+                this.DrawTitleBarButtons(window, flags, outRect,
                                          showAdditions
                                              ? this.TitleBarButtons.Append(additionsButton)
                                              : this.TitleBarButtons);
             }
-            */
         }
 
         if (wasFocused)
@@ -637,7 +636,7 @@ public abstract class Window
         }
     }
 
-    private unsafe void DrawTitleBarButtons(void* window, ImGuiWindowFlags flags, Vector4 titleBarRect, IEnumerable<TitleBarButton> buttons)
+    private unsafe void DrawTitleBarButtons(ImGuiWindowPtr window, ImGuiWindowFlags flags, ImRect titleBarRect, IEnumerable<TitleBarButton> buttons)
     {
         ImGui.PushClipRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), false);
 
@@ -662,7 +661,7 @@ public abstract class Window
         // Pad to the left, to get out of the way of the native buttons
         padR += numNativeButtons * (buttonSize + style.ItemInnerSpacing.X);
 
-        Vector2 GetCenter(Vector4 rect) => new((rect.X + rect.Z) * 0.5f, (rect.Y + rect.W) * 0.5f);
+        Vector2 GetCenter(ImRect rect) => new((rect.Min.X + rect.Max.X) * 0.5f, (rect.Min.Y + rect.Max.Y) * 0.5f);
 
         var numButtons = 0;
         bool DrawButton(TitleBarButton button, Vector2 pos)
@@ -670,10 +669,9 @@ public abstract class Window
             var id = ImGui.GetID($"###CustomTbButton{numButtons}");
             numButtons++;
 
-            var min = pos;
             var max = pos + new Vector2(fontSize, fontSize);
-            Vector4 bb = new(min.X, min.Y, max.X, max.Y);
-            var isClipped = !ImGuiNativeAdditions.igItemAdd(bb, id, null, 0);
+            ImRect bb = new(pos, max);
+            var isClipped = !ImGuiP.ItemAdd(bb, id, null, 0);
             bool hovered, held;
             var pressed = false;
 
@@ -683,7 +681,7 @@ public abstract class Window
                 held = false;
 
                 // ButtonBehavior does not function if the window is clickthrough, so we have to do it ourselves
-                if (ImGui.IsMouseHoveringRect(min, max))
+                if (ImGui.IsMouseHoveringRect(pos, max))
                 {
                     hovered = true;
 
@@ -697,7 +695,7 @@ public abstract class Window
             }
             else
             {
-                pressed = ImGuiNativeAdditions.igButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags.None);
+                pressed = ImGuiP.ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags.None);
             }
 
             if (isClipped)
@@ -710,14 +708,14 @@ public abstract class Window
                 drawList.AddCircleFilled(GetCenter(bb) + new Vector2(0.0f, -0.5f), (fontSize * 0.5f) + 1.0f, bgCol);
 
             var offset = button.IconOffset * ImGuiHelpers.GlobalScale;
-            drawList.AddText(InterfaceManager.IconFont, (float)(fontSize * 0.8), new Vector2(bb.X + offset.X, bb.Y + offset.Y), textCol, button.Icon.ToIconString());
+            drawList.AddText(InterfaceManager.IconFont, (float)(fontSize * 0.8), new Vector2(bb.Min.X + offset.X, bb.Min.Y + offset.Y), textCol, button.Icon.ToIconString());
 
             if (hovered)
                 button.ShowTooltip?.Invoke();
 
             // Switch to moving the window after mouse is moved beyond the initial drag threshold
             if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left) && !this.internalIsClickthrough)
-                ImGuiNativeAdditions.igStartMouseMovingWindow(window);
+                ImGuiP.StartMouseMovingWindow(window);
 
             return pressed;
         }
@@ -727,7 +725,7 @@ public abstract class Window
             if (this.internalIsClickthrough && !button.AvailableClickthrough)
                 return;
 
-            Vector2 position = new(titleBarRect.Z - padR - buttonSize, titleBarRect.Y + style.FramePadding.Y);
+            Vector2 position = new(titleBarRect.Max.X - padR - buttonSize, titleBarRect.Min.Y + style.FramePadding.Y);
             padR += buttonSize + style.ItemInnerSpacing.X;
 
             if (DrawButton(button, position))
@@ -814,27 +812,5 @@ public abstract class Window
         /// when the respective window is set to clickthrough.
         /// </summary>
         public bool AvailableClickthrough { get; set; }
-    }
-
-    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:Element should begin with upper-case letter", Justification = "imports")]
-    private static unsafe class ImGuiNativeAdditions
-    {
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool igItemAdd(Vector4 bb, uint id, Vector4* navBb, uint flags);
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool igButtonBehavior(Vector4 bb, uint id, bool* outHovered, bool* outHeld, ImGuiButtonFlags flags);
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void* igGetCurrentWindow();
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void igStartMouseMovingWindow(void* window);
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ImGuiWindow_TitleBarRect(Vector4* pOut, void* window);
-
-        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void igCustom_WindowSetInheritNoInputs(bool inherit);
     }
 }
