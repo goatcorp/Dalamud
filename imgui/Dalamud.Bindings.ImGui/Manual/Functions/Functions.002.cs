@@ -4493,9 +4493,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputTextWithHintNative(byte* label, byte* hint, byte* buf, ulong bufSize, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, ulong, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)funcTable[1267])(label, hint, buf, bufSize, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, ulong, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)funcTable[1270])(label, hint, buf, bufSize, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, ulong, ImGuiInputTextFlags, nint, nint, byte>)funcTable[1267])((nint)label, (nint)hint, (nint)buf, bufSize, flags, (nint)Utils.GetFunctionPointerForDelegate(callback), (nint)userData);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, ulong, ImGuiInputTextFlags, nint, nint, byte>)funcTable[1270])((nint)label, (nint)hint, (nint)buf, bufSize, flags, (nint)Utils.GetFunctionPointerForDelegate(callback), (nint)userData);
 			#endif
 		}
 

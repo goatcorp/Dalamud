@@ -1339,9 +1339,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImFont* AddFontFromMemoryTTFNative(ImFontAtlas* self, void* fontData, int fontSize, float sizePixels, ImFontConfig* fontCfg, ushort* glyphRanges)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, void*, int, float, ImFontConfig*, ushort*, ImFont*>)funcTable[587])(self, fontData, fontSize, sizePixels, fontCfg, glyphRanges);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, void*, int, float, ImFontConfig*, ushort*, ImFont*>)funcTable[588])(self, fontData, fontSize, sizePixels, fontCfg, glyphRanges);
 			#else
-			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, int, float, nint, nint, nint>)funcTable[587])((nint)self, (nint)fontData, fontSize, sizePixels, (nint)fontCfg, (nint)glyphRanges);
+			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, int, float, nint, nint, nint>)funcTable[588])((nint)self, (nint)fontData, fontSize, sizePixels, (nint)fontCfg, (nint)glyphRanges);
 			#endif
 		}
 
@@ -1577,9 +1577,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImFont* AddFontFromMemoryCompressedTTFNative(ImFontAtlas* self, void* compressedFontData, int compressedFontSize, float sizePixels, ImFontConfig* fontCfg, ushort* glyphRanges)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, void*, int, float, ImFontConfig*, ushort*, ImFont*>)funcTable[588])(self, compressedFontData, compressedFontSize, sizePixels, fontCfg, glyphRanges);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, void*, int, float, ImFontConfig*, ushort*, ImFont*>)funcTable[589])(self, compressedFontData, compressedFontSize, sizePixels, fontCfg, glyphRanges);
 			#else
-			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, int, float, nint, nint, nint>)funcTable[588])((nint)self, (nint)compressedFontData, compressedFontSize, sizePixels, (nint)fontCfg, (nint)glyphRanges);
+			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, int, float, nint, nint, nint>)funcTable[589])((nint)self, (nint)compressedFontData, compressedFontSize, sizePixels, (nint)fontCfg, (nint)glyphRanges);
 			#endif
 		}
 
@@ -1815,9 +1815,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImFont* AddFontFromMemoryCompressedBase85TTFNative(ImFontAtlas* self, byte* compressedFontDatabase85, float sizePixels, ImFontConfig* fontCfg, ushort* glyphRanges)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte*, float, ImFontConfig*, ushort*, ImFont*>)funcTable[589])(self, compressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte*, float, ImFontConfig*, ushort*, ImFont*>)funcTable[590])(self, compressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
 			#else
-			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, float, nint, nint, nint>)funcTable[589])((nint)self, (nint)compressedFontDatabase85, sizePixels, (nint)fontCfg, (nint)glyphRanges);
+			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, float, nint, nint, nint>)funcTable[590])((nint)self, (nint)compressedFontDatabase85, sizePixels, (nint)fontCfg, (nint)glyphRanges);
 			#endif
 		}
 
@@ -3214,9 +3214,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ClearInputDataNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[590])(self);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[591])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[590])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[591])((nint)self);
 			#endif
 		}
 
@@ -3246,9 +3246,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ClearTexDataNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[591])(self);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[592])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[591])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[592])((nint)self);
 			#endif
 		}
 
@@ -3278,9 +3278,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ClearFontsNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[592])(self);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[593])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[592])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[593])((nint)self);
 			#endif
 		}
 
@@ -3310,9 +3310,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ClearNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[593])(self);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[594])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[593])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[594])((nint)self);
 			#endif
 		}
 
@@ -3342,9 +3342,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BuildNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte>)funcTable[594])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte>)funcTable[595])(self);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[594])((nint)self);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[595])((nint)self);
 			#endif
 		}
 
@@ -3376,9 +3376,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void GetTexDataAsAlpha8Native(ImFontAtlas* self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, byte**, int*, int*, int*, void>)funcTable[595])(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, byte**, int*, int*, int*, void>)funcTable[596])(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, nint, void>)funcTable[595])((nint)self, textureIndex, (nint)outPixels, (nint)outWidth, (nint)outHeight, (nint)outBytesPerPixel);
+			((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, nint, void>)funcTable[596])((nint)self, textureIndex, (nint)outPixels, (nint)outWidth, (nint)outHeight, (nint)outBytesPerPixel);
 			#endif
 		}
 
@@ -4109,9 +4109,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void GetTexDataAsRGBA32Native(ImFontAtlas* self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, byte**, int*, int*, int*, void>)funcTable[596])(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, byte**, int*, int*, int*, void>)funcTable[597])(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, nint, void>)funcTable[596])((nint)self, textureIndex, (nint)outPixels, (nint)outWidth, (nint)outHeight, (nint)outBytesPerPixel);
+			((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, nint, void>)funcTable[597])((nint)self, textureIndex, (nint)outPixels, (nint)outWidth, (nint)outHeight, (nint)outBytesPerPixel);
 			#endif
 		}
 
@@ -4842,9 +4842,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte IsBuiltNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte>)funcTable[597])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte>)funcTable[598])(self);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[597])((nint)self);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[598])((nint)self);
 			#endif
 		}
 
@@ -4876,9 +4876,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void SetTexIDNative(ImFontAtlas* self, int textureIndex, ImTextureID id)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, ImTextureID, void>)funcTable[598])(self, textureIndex, id);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, ImTextureID, void>)funcTable[599])(self, textureIndex, id);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, ImTextureID, void>)funcTable[598])((nint)self, textureIndex, id);
+			((delegate* unmanaged[Cdecl]<nint, int, ImTextureID, void>)funcTable[599])((nint)self, textureIndex, id);
 			#endif
 		}
 
@@ -4908,9 +4908,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ClearTexIDNative(ImFontAtlas* self, ImTextureID nullId)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImTextureID, void>)funcTable[599])(self, nullId);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImTextureID, void>)funcTable[600])(self, nullId);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, ImTextureID, void>)funcTable[599])((nint)self, nullId);
+			((delegate* unmanaged[Cdecl]<nint, ImTextureID, void>)funcTable[600])((nint)self, nullId);
 			#endif
 		}
 
@@ -4940,9 +4940,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* GetGlyphRangesDefaultNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[600])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[601])(self);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[600])((nint)self);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[601])((nint)self);
 			#endif
 		}
 
@@ -4974,9 +4974,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* GetGlyphRangesKoreanNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[601])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[602])(self);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[601])((nint)self);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[602])((nint)self);
 			#endif
 		}
 
@@ -5008,9 +5008,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* GetGlyphRangesJapaneseNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[602])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[603])(self);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[602])((nint)self);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[603])((nint)self);
 			#endif
 		}
 

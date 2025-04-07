@@ -299,9 +299,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TempInputTextNative(ImRect bb, uint id, byte* label, byte* buf, int bufSize, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImRect, uint, byte*, byte*, int, ImGuiInputTextFlags, byte>)funcTable[1275])(bb, id, label, buf, bufSize, flags);
+			return ((delegate* unmanaged[Cdecl]<ImRect, uint, byte*, byte*, int, ImGuiInputTextFlags, byte>)funcTable[1278])(bb, id, label, buf, bufSize, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<ImRect, uint, nint, nint, int, ImGuiInputTextFlags, byte>)funcTable[1275])(bb, id, (nint)label, (nint)buf, bufSize, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<ImRect, uint, nint, nint, int, ImGuiInputTextFlags, byte>)funcTable[1278])(bb, id, (nint)label, (nint)buf, bufSize, flags);
 			#endif
 		}
 

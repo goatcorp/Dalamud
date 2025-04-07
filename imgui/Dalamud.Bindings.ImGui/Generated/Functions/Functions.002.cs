@@ -21,6 +21,45 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public static bool Combo(byte* label, ref int currentItem, byte** items, int itemsCount, int popupMaxHeightInItems)
+		{
+			fixed (int* pcurrentItem = &currentItem)
+			{
+				byte ret = ComboNative(label, (int*)pcurrentItem, items, itemsCount, popupMaxHeightInItems);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Combo(byte* label, ref int currentItem, byte** items, int itemsCount)
+		{
+			fixed (int* pcurrentItem = &currentItem)
+			{
+				byte ret = ComboNative(label, (int*)pcurrentItem, items, itemsCount, (int)(-1));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool Combo(ref byte label, ref int currentItem, byte** items, int itemsCount, int popupMaxHeightInItems)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (int* pcurrentItem = &currentItem)
+				{
+					byte ret = ComboNative((byte*)plabel, (int*)pcurrentItem, items, itemsCount, popupMaxHeightInItems);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public static bool Combo(ref byte label, ref int currentItem, byte** items, int itemsCount)
 		{
 			fixed (byte* plabel = &label)
@@ -512,9 +551,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ComboNative(byte* label, int* currentItem, byte* itemsSeparatedByZeros, int popupMaxHeightInItems)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, byte*, int, byte>)funcTable[161])(label, currentItem, itemsSeparatedByZeros, popupMaxHeightInItems);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, byte*, int, byte>)funcTable[162])(label, currentItem, itemsSeparatedByZeros, popupMaxHeightInItems);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, byte>)funcTable[161])((nint)label, (nint)currentItem, (nint)itemsSeparatedByZeros, popupMaxHeightInItems);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, byte>)funcTable[162])((nint)label, (nint)currentItem, (nint)itemsSeparatedByZeros, popupMaxHeightInItems);
 			#endif
 		}
 
@@ -2061,9 +2100,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ComboNative(byte* label, int* currentItem, delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool> itemsGetter, void* data, int itemsCount, int popupMaxHeightInItems)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>, void*, int, int, byte>)funcTable[162])(label, currentItem, itemsGetter, data, itemsCount, popupMaxHeightInItems);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>, void*, int, int, byte>)funcTable[163])(label, currentItem, itemsGetter, data, itemsCount, popupMaxHeightInItems);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, int, int, byte>)funcTable[162])((nint)label, (nint)currentItem, (nint)itemsGetter, (nint)data, itemsCount, popupMaxHeightInItems);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, int, int, byte>)funcTable[163])((nint)label, (nint)currentItem, (nint)itemsGetter, (nint)data, itemsCount, popupMaxHeightInItems);
 			#endif
 		}
 
@@ -2350,9 +2389,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte DragFloatNative(byte* label, float* v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, float*, float, float, float, byte*, ImGuiSliderFlags, byte>)funcTable[163])(label, v, vSpeed, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, float*, float, float, float, byte*, ImGuiSliderFlags, byte>)funcTable[164])(label, v, vSpeed, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, float, float, float, nint, ImGuiSliderFlags, byte>)funcTable[163])((nint)label, (nint)v, vSpeed, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, float, float, float, nint, ImGuiSliderFlags, byte>)funcTable[164])((nint)label, (nint)v, vSpeed, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 
@@ -4994,36 +5033,6 @@ namespace Dalamud.Bindings.ImGui
 				Utils.Free(pStr0);
 			}
 			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat(ref byte label, float* v, float vSpeed, float vMin, float vMax, ref byte format, ImGuiSliderFlags flags)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloatNative((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
-					return ret != 0;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat(ref byte label, float* v, float vSpeed, float vMin, float vMax, ref byte format)
-		{
-			fixed (byte* plabel = &label)
-			{
-				fixed (byte* pformat = &format)
-				{
-					byte ret = DragFloatNative((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
-					return ret != 0;
-				}
-			}
 		}
 	}
 }

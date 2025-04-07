@@ -25,9 +25,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void RenderTextClippedNative(Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRect* clipRect)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2, Vector2, byte*, byte*, Vector2*, Vector2, ImRect*, void>)funcTable[1175])(posMin, posMax, text, textEnd, textSizeIfKnown, align, clipRect);
+			((delegate* unmanaged[Cdecl]<Vector2, Vector2, byte*, byte*, Vector2*, Vector2, ImRect*, void>)funcTable[1176])(posMin, posMax, text, textEnd, textSizeIfKnown, align, clipRect);
 			#else
-			((delegate* unmanaged[Cdecl]<Vector2, Vector2, nint, nint, nint, Vector2, nint, void>)funcTable[1175])(posMin, posMax, (nint)text, (nint)textEnd, (nint)textSizeIfKnown, align, (nint)clipRect);
+			((delegate* unmanaged[Cdecl]<Vector2, Vector2, nint, nint, nint, Vector2, nint, void>)funcTable[1176])(posMin, posMax, (nint)text, (nint)textEnd, (nint)textSizeIfKnown, align, (nint)clipRect);
 			#endif
 		}
 
@@ -4646,9 +4646,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void RenderTextClippedExNative(ImDrawList* drawList, Vector2 posMin, Vector2 posMax, byte* text, byte* textEnd, Vector2* textSizeIfKnown, Vector2 align, ImRect* clipRect)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImDrawList*, Vector2, Vector2, byte*, byte*, Vector2*, Vector2, ImRect*, void>)funcTable[1176])(drawList, posMin, posMax, text, textEnd, textSizeIfKnown, align, clipRect);
+			((delegate* unmanaged[Cdecl]<ImDrawList*, Vector2, Vector2, byte*, byte*, Vector2*, Vector2, ImRect*, void>)funcTable[1177])(drawList, posMin, posMax, text, textEnd, textSizeIfKnown, align, clipRect);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, Vector2, Vector2, nint, nint, nint, Vector2, nint, void>)funcTable[1176])((nint)drawList, posMin, posMax, (nint)text, (nint)textEnd, (nint)textSizeIfKnown, align, (nint)clipRect);
+			((delegate* unmanaged[Cdecl]<nint, Vector2, Vector2, nint, nint, nint, Vector2, nint, void>)funcTable[1177])((nint)drawList, posMin, posMax, (nint)text, (nint)textEnd, (nint)textSizeIfKnown, align, (nint)clipRect);
 			#endif
 		}
 

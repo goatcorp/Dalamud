@@ -21,6 +21,36 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public static bool DragFloat(ref byte label, float* v, float vSpeed, float vMin, float vMax, ref byte format, ImGuiSliderFlags flags)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (byte* pformat = &format)
+				{
+					byte ret = DragFloatNative((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, flags);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragFloat(ref byte label, float* v, float vSpeed, float vMin, float vMax, ref byte format)
+		{
+			fixed (byte* plabel = &label)
+			{
+				fixed (byte* pformat = &format)
+				{
+					byte ret = DragFloatNative((byte*)plabel, v, vSpeed, vMin, vMax, (byte*)pformat, (ImGuiSliderFlags)(0));
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public static bool DragFloat(ref byte label, float* v, float vSpeed, float vMin, ref byte format)
 		{
 			fixed (byte* plabel = &label)
@@ -4603,9 +4633,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte DragFloat2Native(byte* label, float* v, float vSpeed, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, float*, float, float, float, byte*, ImGuiSliderFlags, byte>)funcTable[164])(label, v, vSpeed, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, float*, float, float, float, byte*, ImGuiSliderFlags, byte>)funcTable[165])(label, v, vSpeed, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, float, float, float, nint, ImGuiSliderFlags, byte>)funcTable[164])((nint)label, (nint)v, vSpeed, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, float, float, float, nint, ImGuiSliderFlags, byte>)funcTable[165])((nint)label, (nint)v, vSpeed, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 
@@ -4990,42 +5020,6 @@ namespace Dalamud.Bindings.ImGui
 			{
 				bool ret = DragFloat2((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
 				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat2(ReadOnlySpan<byte> label, float* v, float vSpeed)
-		{
-			fixed (byte* plabel = label)
-			{
-				bool ret = DragFloat2((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat2(ReadOnlySpan<byte> label, float* v)
-		{
-			fixed (byte* plabel = label)
-			{
-				bool ret = DragFloat2((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat2(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, byte* format)
-		{
-			fixed (byte* plabel = label)
-			{
-				byte ret = DragFloat2Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
-				return ret != 0;
 			}
 		}
 	}

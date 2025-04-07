@@ -124,9 +124,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* ImStrbolWNative(ushort* bufMidLine, ushort* bufBegin)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ushort*, ushort*, ushort*>)funcTable[706])(bufMidLine, bufBegin);
+			return ((delegate* unmanaged[Cdecl]<ushort*, ushort*, ushort*>)funcTable[707])(bufMidLine, bufBegin);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint, nint>)funcTable[706])((nint)bufMidLine, (nint)bufBegin);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint, nint>)funcTable[707])((nint)bufMidLine, (nint)bufBegin);
 			#endif
 		}
 
@@ -185,9 +185,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImStristrNative(byte* haystack, byte* haystackEnd, byte* needle, byte* needleEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, byte*, byte*>)funcTable[707])(haystack, haystackEnd, needle, needleEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, byte*, byte*>)funcTable[708])(haystack, haystackEnd, needle, needleEnd);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, nint>)funcTable[707])((nint)haystack, (nint)haystackEnd, (nint)needle, (nint)needleEnd);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, nint>)funcTable[708])((nint)haystack, (nint)haystackEnd, (nint)needle, (nint)needleEnd);
 			#endif
 		}
 

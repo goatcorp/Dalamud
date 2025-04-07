@@ -553,9 +553,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ColorEdit3Native(byte* label, float* col, ImGuiColorEditFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, float*, ImGuiColorEditFlags, byte>)funcTable[200])(label, col, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, float*, ImGuiColorEditFlags, byte>)funcTable[201])(label, col, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiColorEditFlags, byte>)funcTable[200])((nint)label, (nint)col, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiColorEditFlags, byte>)funcTable[201])((nint)label, (nint)col, flags);
 			#endif
 		}
 
@@ -986,9 +986,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ColorEdit4Native(byte* label, float* col, ImGuiColorEditFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, float*, ImGuiColorEditFlags, byte>)funcTable[201])(label, col, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, float*, ImGuiColorEditFlags, byte>)funcTable[202])(label, col, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiColorEditFlags, byte>)funcTable[201])((nint)label, (nint)col, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiColorEditFlags, byte>)funcTable[202])((nint)label, (nint)col, flags);
 			#endif
 		}
 
@@ -1419,9 +1419,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ColorPicker3Native(byte* label, float* col, ImGuiColorEditFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, float*, ImGuiColorEditFlags, byte>)funcTable[202])(label, col, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, float*, ImGuiColorEditFlags, byte>)funcTable[203])(label, col, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiColorEditFlags, byte>)funcTable[202])((nint)label, (nint)col, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiColorEditFlags, byte>)funcTable[203])((nint)label, (nint)col, flags);
 			#endif
 		}
 
@@ -1852,9 +1852,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ColorPicker4Native(byte* label, float* col, ImGuiColorEditFlags flags, float* refCol)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, float*, ImGuiColorEditFlags, float*, byte>)funcTable[203])(label, col, flags, refCol);
+			return ((delegate* unmanaged[Cdecl]<byte*, float*, ImGuiColorEditFlags, float*, byte>)funcTable[204])(label, col, flags, refCol);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiColorEditFlags, nint, byte>)funcTable[203])((nint)label, (nint)col, flags, (nint)refCol);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiColorEditFlags, nint, byte>)funcTable[204])((nint)label, (nint)col, flags, (nint)refCol);
 			#endif
 		}
 
@@ -3197,9 +3197,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ColorButtonNative(byte* descId, Vector4 col, ImGuiColorEditFlags flags, Vector2 size)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, Vector4, ImGuiColorEditFlags, Vector2, byte>)funcTable[204])(descId, col, flags, size);
+			return ((delegate* unmanaged[Cdecl]<byte*, Vector4, ImGuiColorEditFlags, Vector2, byte>)funcTable[205])(descId, col, flags, size);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector4, ImGuiColorEditFlags, Vector2, byte>)funcTable[204])((nint)descId, col, flags, size);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector4, ImGuiColorEditFlags, Vector2, byte>)funcTable[205])((nint)descId, col, flags, size);
 			#endif
 		}
 
@@ -3462,9 +3462,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void SetColorEditOptionsNative(ImGuiColorEditFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiColorEditFlags, void>)funcTable[205])(flags);
+			((delegate* unmanaged[Cdecl]<ImGuiColorEditFlags, void>)funcTable[206])(flags);
 			#else
-			((delegate* unmanaged[Cdecl]<ImGuiColorEditFlags, void>)funcTable[205])(flags);
+			((delegate* unmanaged[Cdecl]<ImGuiColorEditFlags, void>)funcTable[206])(flags);
 			#endif
 		}
 
@@ -3483,9 +3483,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeNative(byte* label)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte>)funcTable[206])(label);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte>)funcTable[207])(label);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[206])((nint)label);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[207])((nint)label);
 			#endif
 		}
 
@@ -3559,9 +3559,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeNative(byte* strId, byte* fmt)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte>)funcTable[207])(strId, fmt);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte>)funcTable[208])(strId, fmt);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, byte>)funcTable[207])((nint)strId, (nint)fmt);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, byte>)funcTable[208])((nint)strId, (nint)fmt);
 			#endif
 		}
 
@@ -3932,9 +3932,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeNative(void* ptrId, byte* fmt)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<void*, byte*, byte>)funcTable[208])(ptrId, fmt);
+			return ((delegate* unmanaged[Cdecl]<void*, byte*, byte>)funcTable[209])(ptrId, fmt);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, byte>)funcTable[208])((nint)ptrId, (nint)fmt);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, byte>)funcTable[209])((nint)ptrId, (nint)fmt);
 			#endif
 		}
 
@@ -4008,9 +4008,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeVNative(byte* strId, byte* fmt, nuint args)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, byte>)funcTable[209])(strId, fmt, args);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, nuint, byte>)funcTable[210])(strId, fmt, args);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nuint, byte>)funcTable[209])((nint)strId, (nint)fmt, args);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nuint, byte>)funcTable[210])((nint)strId, (nint)fmt, args);
 			#endif
 		}
 
@@ -4381,9 +4381,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeVNative(void* ptrId, byte* fmt, nuint args)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<void*, byte*, nuint, byte>)funcTable[210])(ptrId, fmt, args);
+			return ((delegate* unmanaged[Cdecl]<void*, byte*, nuint, byte>)funcTable[211])(ptrId, fmt, args);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nuint, byte>)funcTable[210])((nint)ptrId, (nint)fmt, args);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nuint, byte>)funcTable[211])((nint)ptrId, (nint)fmt, args);
 			#endif
 		}
 
@@ -4457,9 +4457,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeExNative(byte* label, ImGuiTreeNodeFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiTreeNodeFlags, byte>)funcTable[211])(label, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiTreeNodeFlags, byte>)funcTable[212])(label, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, byte>)funcTable[211])((nint)label, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, byte>)funcTable[212])((nint)label, flags);
 			#endif
 		}
 
@@ -4596,9 +4596,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeExNative(byte* strId, ImGuiTreeNodeFlags flags, byte* fmt)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiTreeNodeFlags, byte*, byte>)funcTable[212])(strId, flags, fmt);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiTreeNodeFlags, byte*, byte>)funcTable[213])(strId, flags, fmt);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, nint, byte>)funcTable[212])((nint)strId, flags, (nint)fmt);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, nint, byte>)funcTable[213])((nint)strId, flags, (nint)fmt);
 			#endif
 		}
 
@@ -4969,9 +4969,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeExNative(void* ptrId, ImGuiTreeNodeFlags flags, byte* fmt)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<void*, ImGuiTreeNodeFlags, byte*, byte>)funcTable[213])(ptrId, flags, fmt);
+			return ((delegate* unmanaged[Cdecl]<void*, ImGuiTreeNodeFlags, byte*, byte>)funcTable[214])(ptrId, flags, fmt);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, nint, byte>)funcTable[213])((nint)ptrId, flags, (nint)fmt);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, nint, byte>)funcTable[214])((nint)ptrId, flags, (nint)fmt);
 			#endif
 		}
 

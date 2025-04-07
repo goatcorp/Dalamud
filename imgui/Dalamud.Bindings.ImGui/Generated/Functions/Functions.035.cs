@@ -457,9 +457,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte DragIntRange2Native(byte* label, int* vCurrentMin, int* vCurrentMax, float vSpeed, int vMin, int vMax, byte* format, byte* formatMax, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, int*, float, int, int, byte*, byte*, ImGuiSliderFlags, byte>)funcTable[172])(label, vCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, formatMax, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, int*, float, int, int, byte*, byte*, ImGuiSliderFlags, byte>)funcTable[173])(label, vCurrentMin, vCurrentMax, vSpeed, vMin, vMax, format, formatMax, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, float, int, int, nint, nint, ImGuiSliderFlags, byte>)funcTable[172])((nint)label, (nint)vCurrentMin, (nint)vCurrentMax, vSpeed, vMin, vMax, (nint)format, (nint)formatMax, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, float, int, int, nint, nint, ImGuiSliderFlags, byte>)funcTable[173])((nint)label, (nint)vCurrentMin, (nint)vCurrentMax, vSpeed, vMin, vMax, (nint)format, (nint)formatMax, flags);
 			#endif
 		}
 

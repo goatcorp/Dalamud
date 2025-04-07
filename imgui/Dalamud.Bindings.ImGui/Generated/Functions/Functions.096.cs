@@ -1724,9 +1724,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* CalcWordWrapPositionANative(ImFont* self, float scale, byte* text, byte* textEnd, float wrapWidth)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, float, byte*, byte*, float, byte*>)funcTable[622])(self, scale, text, textEnd, wrapWidth);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, float, byte*, byte*, float, byte*>)funcTable[623])(self, scale, text, textEnd, wrapWidth);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, float, nint, nint, float, nint>)funcTable[622])((nint)self, scale, (nint)text, (nint)textEnd, wrapWidth);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, float, nint, nint, float, nint>)funcTable[623])((nint)self, scale, (nint)text, (nint)textEnd, wrapWidth);
 			#endif
 		}
 
@@ -3273,9 +3273,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void RenderCharNative(ImFont* self, ImDrawList* drawList, float size, Vector2 pos, uint col, ushort c)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, ImDrawList*, float, Vector2, uint, ushort, void>)funcTable[623])(self, drawList, size, pos, col, c);
+			((delegate* unmanaged[Cdecl]<ImFont*, ImDrawList*, float, Vector2, uint, ushort, void>)funcTable[624])(self, drawList, size, pos, col, c);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, float, Vector2, uint, ushort, void>)funcTable[623])((nint)self, (nint)drawList, size, pos, col, c);
+			((delegate* unmanaged[Cdecl]<nint, nint, float, Vector2, uint, ushort, void>)funcTable[624])((nint)self, (nint)drawList, size, pos, col, c);
 			#endif
 		}
 
@@ -3330,9 +3330,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void RenderTextNative(ImFont* self, ImDrawList* drawList, float size, Vector2 pos, uint col, Vector4 clipRect, byte* textBegin, byte* textEnd, float wrapWidth, byte cpuFineClip)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, ImDrawList*, float, Vector2, uint, Vector4, byte*, byte*, float, byte, void>)funcTable[624])(self, drawList, size, pos, col, clipRect, textBegin, textEnd, wrapWidth, cpuFineClip);
+			((delegate* unmanaged[Cdecl]<ImFont*, ImDrawList*, float, Vector2, uint, Vector4, byte*, byte*, float, byte, void>)funcTable[625])(self, drawList, size, pos, col, clipRect, textBegin, textEnd, wrapWidth, cpuFineClip);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, float, Vector2, uint, Vector4, nint, nint, float, byte, void>)funcTable[624])((nint)self, (nint)drawList, size, pos, col, clipRect, (nint)textBegin, (nint)textEnd, wrapWidth, cpuFineClip);
+			((delegate* unmanaged[Cdecl]<nint, nint, float, Vector2, uint, Vector4, nint, nint, float, byte, void>)funcTable[625])((nint)self, (nint)drawList, size, pos, col, clipRect, (nint)textBegin, (nint)textEnd, wrapWidth, cpuFineClip);
 			#endif
 		}
 

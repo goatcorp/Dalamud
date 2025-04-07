@@ -4746,9 +4746,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ColorConvertU32ToFloat4Native(Vector4* pOut, uint input)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector4*, uint, void>)funcTable[349])(pOut, input);
+			((delegate* unmanaged[Cdecl]<Vector4*, uint, void>)funcTable[350])(pOut, input);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, uint, void>)funcTable[349])((nint)pOut, input);
+			((delegate* unmanaged[Cdecl]<nint, uint, void>)funcTable[350])((nint)pOut, input);
 			#endif
 		}
 
@@ -4788,9 +4788,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static uint ColorConvertFloat4ToU32Native(Vector4 input)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<Vector4, uint>)funcTable[350])(input);
+			return ((delegate* unmanaged[Cdecl]<Vector4, uint>)funcTable[351])(input);
 			#else
-			return (uint)((delegate* unmanaged[Cdecl]<Vector4, uint>)funcTable[350])(input);
+			return (uint)((delegate* unmanaged[Cdecl]<Vector4, uint>)funcTable[351])(input);
 			#endif
 		}
 
@@ -4810,9 +4810,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ColorConvertRGBtoHSVNative(float r, float g, float b, float* outH, float* outS, float* outV)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, float, float, float*, float*, float*, void>)funcTable[351])(r, g, b, outH, outS, outV);
+			((delegate* unmanaged[Cdecl]<float, float, float, float*, float*, float*, void>)funcTable[352])(r, g, b, outH, outS, outV);
 			#else
-			((delegate* unmanaged[Cdecl]<float, float, float, nint, nint, nint, void>)funcTable[351])(r, g, b, (nint)outH, (nint)outS, (nint)outV);
+			((delegate* unmanaged[Cdecl]<float, float, float, nint, nint, nint, void>)funcTable[352])(r, g, b, (nint)outH, (nint)outS, (nint)outV);
 			#endif
 		}
 
@@ -4923,9 +4923,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ColorConvertHSVtoRGBNative(float h, float s, float v, float* outR, float* outG, float* outB)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<float, float, float, float*, float*, float*, void>)funcTable[352])(h, s, v, outR, outG, outB);
+			((delegate* unmanaged[Cdecl]<float, float, float, float*, float*, float*, void>)funcTable[353])(h, s, v, outR, outG, outB);
 			#else
-			((delegate* unmanaged[Cdecl]<float, float, float, nint, nint, nint, void>)funcTable[352])(h, s, v, (nint)outR, (nint)outG, (nint)outB);
+			((delegate* unmanaged[Cdecl]<float, float, float, nint, nint, nint, void>)funcTable[353])(h, s, v, (nint)outR, (nint)outG, (nint)outB);
 			#endif
 		}
 

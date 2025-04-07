@@ -3878,9 +3878,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void PlotLinesNative(byte* label, delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float> valuesGetter, void* data, int valuesCount, int valuesOffset, byte* overlayText, float scaleMin, float scaleMax, Vector2 graphSize)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float>, void*, int, int, byte*, float, float, Vector2, void>)funcTable[230])(label, valuesGetter, data, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, graphSize);
+			((delegate* unmanaged[Cdecl]<byte*, delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float>, void*, int, int, byte*, float, float, Vector2, void>)funcTable[231])(label, valuesGetter, data, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, graphSize);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, nint, int, int, nint, float, float, Vector2, void>)funcTable[230])((nint)label, (nint)valuesGetter, (nint)data, valuesCount, valuesOffset, (nint)overlayText, scaleMin, scaleMax, graphSize);
+			((delegate* unmanaged[Cdecl]<nint, nint, nint, int, int, nint, float, float, Vector2, void>)funcTable[231])((nint)label, (nint)valuesGetter, (nint)data, valuesCount, valuesOffset, (nint)overlayText, scaleMin, scaleMax, graphSize);
 			#endif
 		}
 

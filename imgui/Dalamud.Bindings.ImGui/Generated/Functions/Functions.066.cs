@@ -319,9 +319,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SliderScalarNNative(byte* label, ImGuiDataType dataType, void* pData, int components, void* pMin, void* pMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, int, void*, void*, byte*, ImGuiSliderFlags, byte>)funcTable[185])(label, dataType, pData, components, pMin, pMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, int, void*, void*, byte*, ImGuiSliderFlags, byte>)funcTable[186])(label, dataType, pData, components, pMin, pMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, int, nint, nint, nint, ImGuiSliderFlags, byte>)funcTable[185])((nint)label, dataType, (nint)pData, components, (nint)pMin, (nint)pMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, int, nint, nint, nint, ImGuiSliderFlags, byte>)funcTable[186])((nint)label, dataType, (nint)pData, components, (nint)pMin, (nint)pMax, (nint)format, flags);
 			#endif
 		}
 
@@ -1178,9 +1178,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte VSliderFloatNative(byte* label, Vector2 size, float* v, float vMin, float vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, float*, float, float, byte*, ImGuiSliderFlags, byte>)funcTable[186])(label, size, v, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, float*, float, float, byte*, ImGuiSliderFlags, byte>)funcTable[187])(label, size, v, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, nint, float, float, nint, ImGuiSliderFlags, byte>)funcTable[186])((nint)label, size, (nint)v, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, nint, float, float, nint, ImGuiSliderFlags, byte>)funcTable[187])((nint)label, size, (nint)v, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 
@@ -3003,9 +3003,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte VSliderIntNative(byte* label, Vector2 size, int* v, int vMin, int vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[187])(label, size, v, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[188])(label, size, v, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[187])((nint)label, size, (nint)v, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[188])((nint)label, size, (nint)v, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 
@@ -4828,9 +4828,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte VSliderScalarNative(byte* label, Vector2 size, ImGuiDataType dataType, void* pData, void* pMin, void* pMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, ImGuiDataType, void*, void*, void*, byte*, ImGuiSliderFlags, byte>)funcTable[188])(label, size, dataType, pData, pMin, pMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, ImGuiDataType, void*, void*, void*, byte*, ImGuiSliderFlags, byte>)funcTable[189])(label, size, dataType, pData, pMin, pMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, ImGuiDataType, nint, nint, nint, nint, ImGuiSliderFlags, byte>)funcTable[188])((nint)label, size, dataType, (nint)pData, (nint)pMin, (nint)pMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, ImGuiDataType, nint, nint, nint, nint, ImGuiSliderFlags, byte>)funcTable[189])((nint)label, size, dataType, (nint)pData, (nint)pMin, (nint)pMax, (nint)format, flags);
 			#endif
 		}
 

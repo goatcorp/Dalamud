@@ -2377,9 +2377,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte DragScalarNNative(byte* label, ImGuiDataType dataType, void* pData, int components, float vSpeed, void* pMin, void* pMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, int, float, void*, void*, byte*, ImGuiSliderFlags, byte>)funcTable[174])(label, dataType, pData, components, vSpeed, pMin, pMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, int, float, void*, void*, byte*, ImGuiSliderFlags, byte>)funcTable[175])(label, dataType, pData, components, vSpeed, pMin, pMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, int, float, nint, nint, nint, ImGuiSliderFlags, byte>)funcTable[174])((nint)label, dataType, (nint)pData, components, vSpeed, (nint)pMin, (nint)pMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, int, float, nint, nint, nint, ImGuiSliderFlags, byte>)funcTable[175])((nint)label, dataType, (nint)pData, components, vSpeed, (nint)pMin, (nint)pMax, (nint)format, flags);
 			#endif
 		}
 

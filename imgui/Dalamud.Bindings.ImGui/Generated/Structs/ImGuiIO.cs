@@ -964,651 +964,651 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte KeysDown_0;
-		public byte KeysDown_1;
-		public byte KeysDown_2;
-		public byte KeysDown_3;
-		public byte KeysDown_4;
-		public byte KeysDown_5;
-		public byte KeysDown_6;
-		public byte KeysDown_7;
-		public byte KeysDown_8;
-		public byte KeysDown_9;
-		public byte KeysDown_10;
-		public byte KeysDown_11;
-		public byte KeysDown_12;
-		public byte KeysDown_13;
-		public byte KeysDown_14;
-		public byte KeysDown_15;
-		public byte KeysDown_16;
-		public byte KeysDown_17;
-		public byte KeysDown_18;
-		public byte KeysDown_19;
-		public byte KeysDown_20;
-		public byte KeysDown_21;
-		public byte KeysDown_22;
-		public byte KeysDown_23;
-		public byte KeysDown_24;
-		public byte KeysDown_25;
-		public byte KeysDown_26;
-		public byte KeysDown_27;
-		public byte KeysDown_28;
-		public byte KeysDown_29;
-		public byte KeysDown_30;
-		public byte KeysDown_31;
-		public byte KeysDown_32;
-		public byte KeysDown_33;
-		public byte KeysDown_34;
-		public byte KeysDown_35;
-		public byte KeysDown_36;
-		public byte KeysDown_37;
-		public byte KeysDown_38;
-		public byte KeysDown_39;
-		public byte KeysDown_40;
-		public byte KeysDown_41;
-		public byte KeysDown_42;
-		public byte KeysDown_43;
-		public byte KeysDown_44;
-		public byte KeysDown_45;
-		public byte KeysDown_46;
-		public byte KeysDown_47;
-		public byte KeysDown_48;
-		public byte KeysDown_49;
-		public byte KeysDown_50;
-		public byte KeysDown_51;
-		public byte KeysDown_52;
-		public byte KeysDown_53;
-		public byte KeysDown_54;
-		public byte KeysDown_55;
-		public byte KeysDown_56;
-		public byte KeysDown_57;
-		public byte KeysDown_58;
-		public byte KeysDown_59;
-		public byte KeysDown_60;
-		public byte KeysDown_61;
-		public byte KeysDown_62;
-		public byte KeysDown_63;
-		public byte KeysDown_64;
-		public byte KeysDown_65;
-		public byte KeysDown_66;
-		public byte KeysDown_67;
-		public byte KeysDown_68;
-		public byte KeysDown_69;
-		public byte KeysDown_70;
-		public byte KeysDown_71;
-		public byte KeysDown_72;
-		public byte KeysDown_73;
-		public byte KeysDown_74;
-		public byte KeysDown_75;
-		public byte KeysDown_76;
-		public byte KeysDown_77;
-		public byte KeysDown_78;
-		public byte KeysDown_79;
-		public byte KeysDown_80;
-		public byte KeysDown_81;
-		public byte KeysDown_82;
-		public byte KeysDown_83;
-		public byte KeysDown_84;
-		public byte KeysDown_85;
-		public byte KeysDown_86;
-		public byte KeysDown_87;
-		public byte KeysDown_88;
-		public byte KeysDown_89;
-		public byte KeysDown_90;
-		public byte KeysDown_91;
-		public byte KeysDown_92;
-		public byte KeysDown_93;
-		public byte KeysDown_94;
-		public byte KeysDown_95;
-		public byte KeysDown_96;
-		public byte KeysDown_97;
-		public byte KeysDown_98;
-		public byte KeysDown_99;
-		public byte KeysDown_100;
-		public byte KeysDown_101;
-		public byte KeysDown_102;
-		public byte KeysDown_103;
-		public byte KeysDown_104;
-		public byte KeysDown_105;
-		public byte KeysDown_106;
-		public byte KeysDown_107;
-		public byte KeysDown_108;
-		public byte KeysDown_109;
-		public byte KeysDown_110;
-		public byte KeysDown_111;
-		public byte KeysDown_112;
-		public byte KeysDown_113;
-		public byte KeysDown_114;
-		public byte KeysDown_115;
-		public byte KeysDown_116;
-		public byte KeysDown_117;
-		public byte KeysDown_118;
-		public byte KeysDown_119;
-		public byte KeysDown_120;
-		public byte KeysDown_121;
-		public byte KeysDown_122;
-		public byte KeysDown_123;
-		public byte KeysDown_124;
-		public byte KeysDown_125;
-		public byte KeysDown_126;
-		public byte KeysDown_127;
-		public byte KeysDown_128;
-		public byte KeysDown_129;
-		public byte KeysDown_130;
-		public byte KeysDown_131;
-		public byte KeysDown_132;
-		public byte KeysDown_133;
-		public byte KeysDown_134;
-		public byte KeysDown_135;
-		public byte KeysDown_136;
-		public byte KeysDown_137;
-		public byte KeysDown_138;
-		public byte KeysDown_139;
-		public byte KeysDown_140;
-		public byte KeysDown_141;
-		public byte KeysDown_142;
-		public byte KeysDown_143;
-		public byte KeysDown_144;
-		public byte KeysDown_145;
-		public byte KeysDown_146;
-		public byte KeysDown_147;
-		public byte KeysDown_148;
-		public byte KeysDown_149;
-		public byte KeysDown_150;
-		public byte KeysDown_151;
-		public byte KeysDown_152;
-		public byte KeysDown_153;
-		public byte KeysDown_154;
-		public byte KeysDown_155;
-		public byte KeysDown_156;
-		public byte KeysDown_157;
-		public byte KeysDown_158;
-		public byte KeysDown_159;
-		public byte KeysDown_160;
-		public byte KeysDown_161;
-		public byte KeysDown_162;
-		public byte KeysDown_163;
-		public byte KeysDown_164;
-		public byte KeysDown_165;
-		public byte KeysDown_166;
-		public byte KeysDown_167;
-		public byte KeysDown_168;
-		public byte KeysDown_169;
-		public byte KeysDown_170;
-		public byte KeysDown_171;
-		public byte KeysDown_172;
-		public byte KeysDown_173;
-		public byte KeysDown_174;
-		public byte KeysDown_175;
-		public byte KeysDown_176;
-		public byte KeysDown_177;
-		public byte KeysDown_178;
-		public byte KeysDown_179;
-		public byte KeysDown_180;
-		public byte KeysDown_181;
-		public byte KeysDown_182;
-		public byte KeysDown_183;
-		public byte KeysDown_184;
-		public byte KeysDown_185;
-		public byte KeysDown_186;
-		public byte KeysDown_187;
-		public byte KeysDown_188;
-		public byte KeysDown_189;
-		public byte KeysDown_190;
-		public byte KeysDown_191;
-		public byte KeysDown_192;
-		public byte KeysDown_193;
-		public byte KeysDown_194;
-		public byte KeysDown_195;
-		public byte KeysDown_196;
-		public byte KeysDown_197;
-		public byte KeysDown_198;
-		public byte KeysDown_199;
-		public byte KeysDown_200;
-		public byte KeysDown_201;
-		public byte KeysDown_202;
-		public byte KeysDown_203;
-		public byte KeysDown_204;
-		public byte KeysDown_205;
-		public byte KeysDown_206;
-		public byte KeysDown_207;
-		public byte KeysDown_208;
-		public byte KeysDown_209;
-		public byte KeysDown_210;
-		public byte KeysDown_211;
-		public byte KeysDown_212;
-		public byte KeysDown_213;
-		public byte KeysDown_214;
-		public byte KeysDown_215;
-		public byte KeysDown_216;
-		public byte KeysDown_217;
-		public byte KeysDown_218;
-		public byte KeysDown_219;
-		public byte KeysDown_220;
-		public byte KeysDown_221;
-		public byte KeysDown_222;
-		public byte KeysDown_223;
-		public byte KeysDown_224;
-		public byte KeysDown_225;
-		public byte KeysDown_226;
-		public byte KeysDown_227;
-		public byte KeysDown_228;
-		public byte KeysDown_229;
-		public byte KeysDown_230;
-		public byte KeysDown_231;
-		public byte KeysDown_232;
-		public byte KeysDown_233;
-		public byte KeysDown_234;
-		public byte KeysDown_235;
-		public byte KeysDown_236;
-		public byte KeysDown_237;
-		public byte KeysDown_238;
-		public byte KeysDown_239;
-		public byte KeysDown_240;
-		public byte KeysDown_241;
-		public byte KeysDown_242;
-		public byte KeysDown_243;
-		public byte KeysDown_244;
-		public byte KeysDown_245;
-		public byte KeysDown_246;
-		public byte KeysDown_247;
-		public byte KeysDown_248;
-		public byte KeysDown_249;
-		public byte KeysDown_250;
-		public byte KeysDown_251;
-		public byte KeysDown_252;
-		public byte KeysDown_253;
-		public byte KeysDown_254;
-		public byte KeysDown_255;
-		public byte KeysDown_256;
-		public byte KeysDown_257;
-		public byte KeysDown_258;
-		public byte KeysDown_259;
-		public byte KeysDown_260;
-		public byte KeysDown_261;
-		public byte KeysDown_262;
-		public byte KeysDown_263;
-		public byte KeysDown_264;
-		public byte KeysDown_265;
-		public byte KeysDown_266;
-		public byte KeysDown_267;
-		public byte KeysDown_268;
-		public byte KeysDown_269;
-		public byte KeysDown_270;
-		public byte KeysDown_271;
-		public byte KeysDown_272;
-		public byte KeysDown_273;
-		public byte KeysDown_274;
-		public byte KeysDown_275;
-		public byte KeysDown_276;
-		public byte KeysDown_277;
-		public byte KeysDown_278;
-		public byte KeysDown_279;
-		public byte KeysDown_280;
-		public byte KeysDown_281;
-		public byte KeysDown_282;
-		public byte KeysDown_283;
-		public byte KeysDown_284;
-		public byte KeysDown_285;
-		public byte KeysDown_286;
-		public byte KeysDown_287;
-		public byte KeysDown_288;
-		public byte KeysDown_289;
-		public byte KeysDown_290;
-		public byte KeysDown_291;
-		public byte KeysDown_292;
-		public byte KeysDown_293;
-		public byte KeysDown_294;
-		public byte KeysDown_295;
-		public byte KeysDown_296;
-		public byte KeysDown_297;
-		public byte KeysDown_298;
-		public byte KeysDown_299;
-		public byte KeysDown_300;
-		public byte KeysDown_301;
-		public byte KeysDown_302;
-		public byte KeysDown_303;
-		public byte KeysDown_304;
-		public byte KeysDown_305;
-		public byte KeysDown_306;
-		public byte KeysDown_307;
-		public byte KeysDown_308;
-		public byte KeysDown_309;
-		public byte KeysDown_310;
-		public byte KeysDown_311;
-		public byte KeysDown_312;
-		public byte KeysDown_313;
-		public byte KeysDown_314;
-		public byte KeysDown_315;
-		public byte KeysDown_316;
-		public byte KeysDown_317;
-		public byte KeysDown_318;
-		public byte KeysDown_319;
-		public byte KeysDown_320;
-		public byte KeysDown_321;
-		public byte KeysDown_322;
-		public byte KeysDown_323;
-		public byte KeysDown_324;
-		public byte KeysDown_325;
-		public byte KeysDown_326;
-		public byte KeysDown_327;
-		public byte KeysDown_328;
-		public byte KeysDown_329;
-		public byte KeysDown_330;
-		public byte KeysDown_331;
-		public byte KeysDown_332;
-		public byte KeysDown_333;
-		public byte KeysDown_334;
-		public byte KeysDown_335;
-		public byte KeysDown_336;
-		public byte KeysDown_337;
-		public byte KeysDown_338;
-		public byte KeysDown_339;
-		public byte KeysDown_340;
-		public byte KeysDown_341;
-		public byte KeysDown_342;
-		public byte KeysDown_343;
-		public byte KeysDown_344;
-		public byte KeysDown_345;
-		public byte KeysDown_346;
-		public byte KeysDown_347;
-		public byte KeysDown_348;
-		public byte KeysDown_349;
-		public byte KeysDown_350;
-		public byte KeysDown_351;
-		public byte KeysDown_352;
-		public byte KeysDown_353;
-		public byte KeysDown_354;
-		public byte KeysDown_355;
-		public byte KeysDown_356;
-		public byte KeysDown_357;
-		public byte KeysDown_358;
-		public byte KeysDown_359;
-		public byte KeysDown_360;
-		public byte KeysDown_361;
-		public byte KeysDown_362;
-		public byte KeysDown_363;
-		public byte KeysDown_364;
-		public byte KeysDown_365;
-		public byte KeysDown_366;
-		public byte KeysDown_367;
-		public byte KeysDown_368;
-		public byte KeysDown_369;
-		public byte KeysDown_370;
-		public byte KeysDown_371;
-		public byte KeysDown_372;
-		public byte KeysDown_373;
-		public byte KeysDown_374;
-		public byte KeysDown_375;
-		public byte KeysDown_376;
-		public byte KeysDown_377;
-		public byte KeysDown_378;
-		public byte KeysDown_379;
-		public byte KeysDown_380;
-		public byte KeysDown_381;
-		public byte KeysDown_382;
-		public byte KeysDown_383;
-		public byte KeysDown_384;
-		public byte KeysDown_385;
-		public byte KeysDown_386;
-		public byte KeysDown_387;
-		public byte KeysDown_388;
-		public byte KeysDown_389;
-		public byte KeysDown_390;
-		public byte KeysDown_391;
-		public byte KeysDown_392;
-		public byte KeysDown_393;
-		public byte KeysDown_394;
-		public byte KeysDown_395;
-		public byte KeysDown_396;
-		public byte KeysDown_397;
-		public byte KeysDown_398;
-		public byte KeysDown_399;
-		public byte KeysDown_400;
-		public byte KeysDown_401;
-		public byte KeysDown_402;
-		public byte KeysDown_403;
-		public byte KeysDown_404;
-		public byte KeysDown_405;
-		public byte KeysDown_406;
-		public byte KeysDown_407;
-		public byte KeysDown_408;
-		public byte KeysDown_409;
-		public byte KeysDown_410;
-		public byte KeysDown_411;
-		public byte KeysDown_412;
-		public byte KeysDown_413;
-		public byte KeysDown_414;
-		public byte KeysDown_415;
-		public byte KeysDown_416;
-		public byte KeysDown_417;
-		public byte KeysDown_418;
-		public byte KeysDown_419;
-		public byte KeysDown_420;
-		public byte KeysDown_421;
-		public byte KeysDown_422;
-		public byte KeysDown_423;
-		public byte KeysDown_424;
-		public byte KeysDown_425;
-		public byte KeysDown_426;
-		public byte KeysDown_427;
-		public byte KeysDown_428;
-		public byte KeysDown_429;
-		public byte KeysDown_430;
-		public byte KeysDown_431;
-		public byte KeysDown_432;
-		public byte KeysDown_433;
-		public byte KeysDown_434;
-		public byte KeysDown_435;
-		public byte KeysDown_436;
-		public byte KeysDown_437;
-		public byte KeysDown_438;
-		public byte KeysDown_439;
-		public byte KeysDown_440;
-		public byte KeysDown_441;
-		public byte KeysDown_442;
-		public byte KeysDown_443;
-		public byte KeysDown_444;
-		public byte KeysDown_445;
-		public byte KeysDown_446;
-		public byte KeysDown_447;
-		public byte KeysDown_448;
-		public byte KeysDown_449;
-		public byte KeysDown_450;
-		public byte KeysDown_451;
-		public byte KeysDown_452;
-		public byte KeysDown_453;
-		public byte KeysDown_454;
-		public byte KeysDown_455;
-		public byte KeysDown_456;
-		public byte KeysDown_457;
-		public byte KeysDown_458;
-		public byte KeysDown_459;
-		public byte KeysDown_460;
-		public byte KeysDown_461;
-		public byte KeysDown_462;
-		public byte KeysDown_463;
-		public byte KeysDown_464;
-		public byte KeysDown_465;
-		public byte KeysDown_466;
-		public byte KeysDown_467;
-		public byte KeysDown_468;
-		public byte KeysDown_469;
-		public byte KeysDown_470;
-		public byte KeysDown_471;
-		public byte KeysDown_472;
-		public byte KeysDown_473;
-		public byte KeysDown_474;
-		public byte KeysDown_475;
-		public byte KeysDown_476;
-		public byte KeysDown_477;
-		public byte KeysDown_478;
-		public byte KeysDown_479;
-		public byte KeysDown_480;
-		public byte KeysDown_481;
-		public byte KeysDown_482;
-		public byte KeysDown_483;
-		public byte KeysDown_484;
-		public byte KeysDown_485;
-		public byte KeysDown_486;
-		public byte KeysDown_487;
-		public byte KeysDown_488;
-		public byte KeysDown_489;
-		public byte KeysDown_490;
-		public byte KeysDown_491;
-		public byte KeysDown_492;
-		public byte KeysDown_493;
-		public byte KeysDown_494;
-		public byte KeysDown_495;
-		public byte KeysDown_496;
-		public byte KeysDown_497;
-		public byte KeysDown_498;
-		public byte KeysDown_499;
-		public byte KeysDown_500;
-		public byte KeysDown_501;
-		public byte KeysDown_502;
-		public byte KeysDown_503;
-		public byte KeysDown_504;
-		public byte KeysDown_505;
-		public byte KeysDown_506;
-		public byte KeysDown_507;
-		public byte KeysDown_508;
-		public byte KeysDown_509;
-		public byte KeysDown_510;
-		public byte KeysDown_511;
-		public byte KeysDown_512;
-		public byte KeysDown_513;
-		public byte KeysDown_514;
-		public byte KeysDown_515;
-		public byte KeysDown_516;
-		public byte KeysDown_517;
-		public byte KeysDown_518;
-		public byte KeysDown_519;
-		public byte KeysDown_520;
-		public byte KeysDown_521;
-		public byte KeysDown_522;
-		public byte KeysDown_523;
-		public byte KeysDown_524;
-		public byte KeysDown_525;
-		public byte KeysDown_526;
-		public byte KeysDown_527;
-		public byte KeysDown_528;
-		public byte KeysDown_529;
-		public byte KeysDown_530;
-		public byte KeysDown_531;
-		public byte KeysDown_532;
-		public byte KeysDown_533;
-		public byte KeysDown_534;
-		public byte KeysDown_535;
-		public byte KeysDown_536;
-		public byte KeysDown_537;
-		public byte KeysDown_538;
-		public byte KeysDown_539;
-		public byte KeysDown_540;
-		public byte KeysDown_541;
-		public byte KeysDown_542;
-		public byte KeysDown_543;
-		public byte KeysDown_544;
-		public byte KeysDown_545;
-		public byte KeysDown_546;
-		public byte KeysDown_547;
-		public byte KeysDown_548;
-		public byte KeysDown_549;
-		public byte KeysDown_550;
-		public byte KeysDown_551;
-		public byte KeysDown_552;
-		public byte KeysDown_553;
-		public byte KeysDown_554;
-		public byte KeysDown_555;
-		public byte KeysDown_556;
-		public byte KeysDown_557;
-		public byte KeysDown_558;
-		public byte KeysDown_559;
-		public byte KeysDown_560;
-		public byte KeysDown_561;
-		public byte KeysDown_562;
-		public byte KeysDown_563;
-		public byte KeysDown_564;
-		public byte KeysDown_565;
-		public byte KeysDown_566;
-		public byte KeysDown_567;
-		public byte KeysDown_568;
-		public byte KeysDown_569;
-		public byte KeysDown_570;
-		public byte KeysDown_571;
-		public byte KeysDown_572;
-		public byte KeysDown_573;
-		public byte KeysDown_574;
-		public byte KeysDown_575;
-		public byte KeysDown_576;
-		public byte KeysDown_577;
-		public byte KeysDown_578;
-		public byte KeysDown_579;
-		public byte KeysDown_580;
-		public byte KeysDown_581;
-		public byte KeysDown_582;
-		public byte KeysDown_583;
-		public byte KeysDown_584;
-		public byte KeysDown_585;
-		public byte KeysDown_586;
-		public byte KeysDown_587;
-		public byte KeysDown_588;
-		public byte KeysDown_589;
-		public byte KeysDown_590;
-		public byte KeysDown_591;
-		public byte KeysDown_592;
-		public byte KeysDown_593;
-		public byte KeysDown_594;
-		public byte KeysDown_595;
-		public byte KeysDown_596;
-		public byte KeysDown_597;
-		public byte KeysDown_598;
-		public byte KeysDown_599;
-		public byte KeysDown_600;
-		public byte KeysDown_601;
-		public byte KeysDown_602;
-		public byte KeysDown_603;
-		public byte KeysDown_604;
-		public byte KeysDown_605;
-		public byte KeysDown_606;
-		public byte KeysDown_607;
-		public byte KeysDown_608;
-		public byte KeysDown_609;
-		public byte KeysDown_610;
-		public byte KeysDown_611;
-		public byte KeysDown_612;
-		public byte KeysDown_613;
-		public byte KeysDown_614;
-		public byte KeysDown_615;
-		public byte KeysDown_616;
-		public byte KeysDown_617;
-		public byte KeysDown_618;
-		public byte KeysDown_619;
-		public byte KeysDown_620;
-		public byte KeysDown_621;
-		public byte KeysDown_622;
-		public byte KeysDown_623;
-		public byte KeysDown_624;
-		public byte KeysDown_625;
-		public byte KeysDown_626;
-		public byte KeysDown_627;
-		public byte KeysDown_628;
-		public byte KeysDown_629;
-		public byte KeysDown_630;
-		public byte KeysDown_631;
-		public byte KeysDown_632;
-		public byte KeysDown_633;
-		public byte KeysDown_634;
-		public byte KeysDown_635;
-		public byte KeysDown_636;
-		public byte KeysDown_637;
-		public byte KeysDown_638;
-		public byte KeysDown_639;
-		public byte KeysDown_640;
-		public byte KeysDown_641;
-		public byte KeysDown_642;
-		public byte KeysDown_643;
-		public byte KeysDown_644;
+		public bool KeysDown_0;
+		public bool KeysDown_1;
+		public bool KeysDown_2;
+		public bool KeysDown_3;
+		public bool KeysDown_4;
+		public bool KeysDown_5;
+		public bool KeysDown_6;
+		public bool KeysDown_7;
+		public bool KeysDown_8;
+		public bool KeysDown_9;
+		public bool KeysDown_10;
+		public bool KeysDown_11;
+		public bool KeysDown_12;
+		public bool KeysDown_13;
+		public bool KeysDown_14;
+		public bool KeysDown_15;
+		public bool KeysDown_16;
+		public bool KeysDown_17;
+		public bool KeysDown_18;
+		public bool KeysDown_19;
+		public bool KeysDown_20;
+		public bool KeysDown_21;
+		public bool KeysDown_22;
+		public bool KeysDown_23;
+		public bool KeysDown_24;
+		public bool KeysDown_25;
+		public bool KeysDown_26;
+		public bool KeysDown_27;
+		public bool KeysDown_28;
+		public bool KeysDown_29;
+		public bool KeysDown_30;
+		public bool KeysDown_31;
+		public bool KeysDown_32;
+		public bool KeysDown_33;
+		public bool KeysDown_34;
+		public bool KeysDown_35;
+		public bool KeysDown_36;
+		public bool KeysDown_37;
+		public bool KeysDown_38;
+		public bool KeysDown_39;
+		public bool KeysDown_40;
+		public bool KeysDown_41;
+		public bool KeysDown_42;
+		public bool KeysDown_43;
+		public bool KeysDown_44;
+		public bool KeysDown_45;
+		public bool KeysDown_46;
+		public bool KeysDown_47;
+		public bool KeysDown_48;
+		public bool KeysDown_49;
+		public bool KeysDown_50;
+		public bool KeysDown_51;
+		public bool KeysDown_52;
+		public bool KeysDown_53;
+		public bool KeysDown_54;
+		public bool KeysDown_55;
+		public bool KeysDown_56;
+		public bool KeysDown_57;
+		public bool KeysDown_58;
+		public bool KeysDown_59;
+		public bool KeysDown_60;
+		public bool KeysDown_61;
+		public bool KeysDown_62;
+		public bool KeysDown_63;
+		public bool KeysDown_64;
+		public bool KeysDown_65;
+		public bool KeysDown_66;
+		public bool KeysDown_67;
+		public bool KeysDown_68;
+		public bool KeysDown_69;
+		public bool KeysDown_70;
+		public bool KeysDown_71;
+		public bool KeysDown_72;
+		public bool KeysDown_73;
+		public bool KeysDown_74;
+		public bool KeysDown_75;
+		public bool KeysDown_76;
+		public bool KeysDown_77;
+		public bool KeysDown_78;
+		public bool KeysDown_79;
+		public bool KeysDown_80;
+		public bool KeysDown_81;
+		public bool KeysDown_82;
+		public bool KeysDown_83;
+		public bool KeysDown_84;
+		public bool KeysDown_85;
+		public bool KeysDown_86;
+		public bool KeysDown_87;
+		public bool KeysDown_88;
+		public bool KeysDown_89;
+		public bool KeysDown_90;
+		public bool KeysDown_91;
+		public bool KeysDown_92;
+		public bool KeysDown_93;
+		public bool KeysDown_94;
+		public bool KeysDown_95;
+		public bool KeysDown_96;
+		public bool KeysDown_97;
+		public bool KeysDown_98;
+		public bool KeysDown_99;
+		public bool KeysDown_100;
+		public bool KeysDown_101;
+		public bool KeysDown_102;
+		public bool KeysDown_103;
+		public bool KeysDown_104;
+		public bool KeysDown_105;
+		public bool KeysDown_106;
+		public bool KeysDown_107;
+		public bool KeysDown_108;
+		public bool KeysDown_109;
+		public bool KeysDown_110;
+		public bool KeysDown_111;
+		public bool KeysDown_112;
+		public bool KeysDown_113;
+		public bool KeysDown_114;
+		public bool KeysDown_115;
+		public bool KeysDown_116;
+		public bool KeysDown_117;
+		public bool KeysDown_118;
+		public bool KeysDown_119;
+		public bool KeysDown_120;
+		public bool KeysDown_121;
+		public bool KeysDown_122;
+		public bool KeysDown_123;
+		public bool KeysDown_124;
+		public bool KeysDown_125;
+		public bool KeysDown_126;
+		public bool KeysDown_127;
+		public bool KeysDown_128;
+		public bool KeysDown_129;
+		public bool KeysDown_130;
+		public bool KeysDown_131;
+		public bool KeysDown_132;
+		public bool KeysDown_133;
+		public bool KeysDown_134;
+		public bool KeysDown_135;
+		public bool KeysDown_136;
+		public bool KeysDown_137;
+		public bool KeysDown_138;
+		public bool KeysDown_139;
+		public bool KeysDown_140;
+		public bool KeysDown_141;
+		public bool KeysDown_142;
+		public bool KeysDown_143;
+		public bool KeysDown_144;
+		public bool KeysDown_145;
+		public bool KeysDown_146;
+		public bool KeysDown_147;
+		public bool KeysDown_148;
+		public bool KeysDown_149;
+		public bool KeysDown_150;
+		public bool KeysDown_151;
+		public bool KeysDown_152;
+		public bool KeysDown_153;
+		public bool KeysDown_154;
+		public bool KeysDown_155;
+		public bool KeysDown_156;
+		public bool KeysDown_157;
+		public bool KeysDown_158;
+		public bool KeysDown_159;
+		public bool KeysDown_160;
+		public bool KeysDown_161;
+		public bool KeysDown_162;
+		public bool KeysDown_163;
+		public bool KeysDown_164;
+		public bool KeysDown_165;
+		public bool KeysDown_166;
+		public bool KeysDown_167;
+		public bool KeysDown_168;
+		public bool KeysDown_169;
+		public bool KeysDown_170;
+		public bool KeysDown_171;
+		public bool KeysDown_172;
+		public bool KeysDown_173;
+		public bool KeysDown_174;
+		public bool KeysDown_175;
+		public bool KeysDown_176;
+		public bool KeysDown_177;
+		public bool KeysDown_178;
+		public bool KeysDown_179;
+		public bool KeysDown_180;
+		public bool KeysDown_181;
+		public bool KeysDown_182;
+		public bool KeysDown_183;
+		public bool KeysDown_184;
+		public bool KeysDown_185;
+		public bool KeysDown_186;
+		public bool KeysDown_187;
+		public bool KeysDown_188;
+		public bool KeysDown_189;
+		public bool KeysDown_190;
+		public bool KeysDown_191;
+		public bool KeysDown_192;
+		public bool KeysDown_193;
+		public bool KeysDown_194;
+		public bool KeysDown_195;
+		public bool KeysDown_196;
+		public bool KeysDown_197;
+		public bool KeysDown_198;
+		public bool KeysDown_199;
+		public bool KeysDown_200;
+		public bool KeysDown_201;
+		public bool KeysDown_202;
+		public bool KeysDown_203;
+		public bool KeysDown_204;
+		public bool KeysDown_205;
+		public bool KeysDown_206;
+		public bool KeysDown_207;
+		public bool KeysDown_208;
+		public bool KeysDown_209;
+		public bool KeysDown_210;
+		public bool KeysDown_211;
+		public bool KeysDown_212;
+		public bool KeysDown_213;
+		public bool KeysDown_214;
+		public bool KeysDown_215;
+		public bool KeysDown_216;
+		public bool KeysDown_217;
+		public bool KeysDown_218;
+		public bool KeysDown_219;
+		public bool KeysDown_220;
+		public bool KeysDown_221;
+		public bool KeysDown_222;
+		public bool KeysDown_223;
+		public bool KeysDown_224;
+		public bool KeysDown_225;
+		public bool KeysDown_226;
+		public bool KeysDown_227;
+		public bool KeysDown_228;
+		public bool KeysDown_229;
+		public bool KeysDown_230;
+		public bool KeysDown_231;
+		public bool KeysDown_232;
+		public bool KeysDown_233;
+		public bool KeysDown_234;
+		public bool KeysDown_235;
+		public bool KeysDown_236;
+		public bool KeysDown_237;
+		public bool KeysDown_238;
+		public bool KeysDown_239;
+		public bool KeysDown_240;
+		public bool KeysDown_241;
+		public bool KeysDown_242;
+		public bool KeysDown_243;
+		public bool KeysDown_244;
+		public bool KeysDown_245;
+		public bool KeysDown_246;
+		public bool KeysDown_247;
+		public bool KeysDown_248;
+		public bool KeysDown_249;
+		public bool KeysDown_250;
+		public bool KeysDown_251;
+		public bool KeysDown_252;
+		public bool KeysDown_253;
+		public bool KeysDown_254;
+		public bool KeysDown_255;
+		public bool KeysDown_256;
+		public bool KeysDown_257;
+		public bool KeysDown_258;
+		public bool KeysDown_259;
+		public bool KeysDown_260;
+		public bool KeysDown_261;
+		public bool KeysDown_262;
+		public bool KeysDown_263;
+		public bool KeysDown_264;
+		public bool KeysDown_265;
+		public bool KeysDown_266;
+		public bool KeysDown_267;
+		public bool KeysDown_268;
+		public bool KeysDown_269;
+		public bool KeysDown_270;
+		public bool KeysDown_271;
+		public bool KeysDown_272;
+		public bool KeysDown_273;
+		public bool KeysDown_274;
+		public bool KeysDown_275;
+		public bool KeysDown_276;
+		public bool KeysDown_277;
+		public bool KeysDown_278;
+		public bool KeysDown_279;
+		public bool KeysDown_280;
+		public bool KeysDown_281;
+		public bool KeysDown_282;
+		public bool KeysDown_283;
+		public bool KeysDown_284;
+		public bool KeysDown_285;
+		public bool KeysDown_286;
+		public bool KeysDown_287;
+		public bool KeysDown_288;
+		public bool KeysDown_289;
+		public bool KeysDown_290;
+		public bool KeysDown_291;
+		public bool KeysDown_292;
+		public bool KeysDown_293;
+		public bool KeysDown_294;
+		public bool KeysDown_295;
+		public bool KeysDown_296;
+		public bool KeysDown_297;
+		public bool KeysDown_298;
+		public bool KeysDown_299;
+		public bool KeysDown_300;
+		public bool KeysDown_301;
+		public bool KeysDown_302;
+		public bool KeysDown_303;
+		public bool KeysDown_304;
+		public bool KeysDown_305;
+		public bool KeysDown_306;
+		public bool KeysDown_307;
+		public bool KeysDown_308;
+		public bool KeysDown_309;
+		public bool KeysDown_310;
+		public bool KeysDown_311;
+		public bool KeysDown_312;
+		public bool KeysDown_313;
+		public bool KeysDown_314;
+		public bool KeysDown_315;
+		public bool KeysDown_316;
+		public bool KeysDown_317;
+		public bool KeysDown_318;
+		public bool KeysDown_319;
+		public bool KeysDown_320;
+		public bool KeysDown_321;
+		public bool KeysDown_322;
+		public bool KeysDown_323;
+		public bool KeysDown_324;
+		public bool KeysDown_325;
+		public bool KeysDown_326;
+		public bool KeysDown_327;
+		public bool KeysDown_328;
+		public bool KeysDown_329;
+		public bool KeysDown_330;
+		public bool KeysDown_331;
+		public bool KeysDown_332;
+		public bool KeysDown_333;
+		public bool KeysDown_334;
+		public bool KeysDown_335;
+		public bool KeysDown_336;
+		public bool KeysDown_337;
+		public bool KeysDown_338;
+		public bool KeysDown_339;
+		public bool KeysDown_340;
+		public bool KeysDown_341;
+		public bool KeysDown_342;
+		public bool KeysDown_343;
+		public bool KeysDown_344;
+		public bool KeysDown_345;
+		public bool KeysDown_346;
+		public bool KeysDown_347;
+		public bool KeysDown_348;
+		public bool KeysDown_349;
+		public bool KeysDown_350;
+		public bool KeysDown_351;
+		public bool KeysDown_352;
+		public bool KeysDown_353;
+		public bool KeysDown_354;
+		public bool KeysDown_355;
+		public bool KeysDown_356;
+		public bool KeysDown_357;
+		public bool KeysDown_358;
+		public bool KeysDown_359;
+		public bool KeysDown_360;
+		public bool KeysDown_361;
+		public bool KeysDown_362;
+		public bool KeysDown_363;
+		public bool KeysDown_364;
+		public bool KeysDown_365;
+		public bool KeysDown_366;
+		public bool KeysDown_367;
+		public bool KeysDown_368;
+		public bool KeysDown_369;
+		public bool KeysDown_370;
+		public bool KeysDown_371;
+		public bool KeysDown_372;
+		public bool KeysDown_373;
+		public bool KeysDown_374;
+		public bool KeysDown_375;
+		public bool KeysDown_376;
+		public bool KeysDown_377;
+		public bool KeysDown_378;
+		public bool KeysDown_379;
+		public bool KeysDown_380;
+		public bool KeysDown_381;
+		public bool KeysDown_382;
+		public bool KeysDown_383;
+		public bool KeysDown_384;
+		public bool KeysDown_385;
+		public bool KeysDown_386;
+		public bool KeysDown_387;
+		public bool KeysDown_388;
+		public bool KeysDown_389;
+		public bool KeysDown_390;
+		public bool KeysDown_391;
+		public bool KeysDown_392;
+		public bool KeysDown_393;
+		public bool KeysDown_394;
+		public bool KeysDown_395;
+		public bool KeysDown_396;
+		public bool KeysDown_397;
+		public bool KeysDown_398;
+		public bool KeysDown_399;
+		public bool KeysDown_400;
+		public bool KeysDown_401;
+		public bool KeysDown_402;
+		public bool KeysDown_403;
+		public bool KeysDown_404;
+		public bool KeysDown_405;
+		public bool KeysDown_406;
+		public bool KeysDown_407;
+		public bool KeysDown_408;
+		public bool KeysDown_409;
+		public bool KeysDown_410;
+		public bool KeysDown_411;
+		public bool KeysDown_412;
+		public bool KeysDown_413;
+		public bool KeysDown_414;
+		public bool KeysDown_415;
+		public bool KeysDown_416;
+		public bool KeysDown_417;
+		public bool KeysDown_418;
+		public bool KeysDown_419;
+		public bool KeysDown_420;
+		public bool KeysDown_421;
+		public bool KeysDown_422;
+		public bool KeysDown_423;
+		public bool KeysDown_424;
+		public bool KeysDown_425;
+		public bool KeysDown_426;
+		public bool KeysDown_427;
+		public bool KeysDown_428;
+		public bool KeysDown_429;
+		public bool KeysDown_430;
+		public bool KeysDown_431;
+		public bool KeysDown_432;
+		public bool KeysDown_433;
+		public bool KeysDown_434;
+		public bool KeysDown_435;
+		public bool KeysDown_436;
+		public bool KeysDown_437;
+		public bool KeysDown_438;
+		public bool KeysDown_439;
+		public bool KeysDown_440;
+		public bool KeysDown_441;
+		public bool KeysDown_442;
+		public bool KeysDown_443;
+		public bool KeysDown_444;
+		public bool KeysDown_445;
+		public bool KeysDown_446;
+		public bool KeysDown_447;
+		public bool KeysDown_448;
+		public bool KeysDown_449;
+		public bool KeysDown_450;
+		public bool KeysDown_451;
+		public bool KeysDown_452;
+		public bool KeysDown_453;
+		public bool KeysDown_454;
+		public bool KeysDown_455;
+		public bool KeysDown_456;
+		public bool KeysDown_457;
+		public bool KeysDown_458;
+		public bool KeysDown_459;
+		public bool KeysDown_460;
+		public bool KeysDown_461;
+		public bool KeysDown_462;
+		public bool KeysDown_463;
+		public bool KeysDown_464;
+		public bool KeysDown_465;
+		public bool KeysDown_466;
+		public bool KeysDown_467;
+		public bool KeysDown_468;
+		public bool KeysDown_469;
+		public bool KeysDown_470;
+		public bool KeysDown_471;
+		public bool KeysDown_472;
+		public bool KeysDown_473;
+		public bool KeysDown_474;
+		public bool KeysDown_475;
+		public bool KeysDown_476;
+		public bool KeysDown_477;
+		public bool KeysDown_478;
+		public bool KeysDown_479;
+		public bool KeysDown_480;
+		public bool KeysDown_481;
+		public bool KeysDown_482;
+		public bool KeysDown_483;
+		public bool KeysDown_484;
+		public bool KeysDown_485;
+		public bool KeysDown_486;
+		public bool KeysDown_487;
+		public bool KeysDown_488;
+		public bool KeysDown_489;
+		public bool KeysDown_490;
+		public bool KeysDown_491;
+		public bool KeysDown_492;
+		public bool KeysDown_493;
+		public bool KeysDown_494;
+		public bool KeysDown_495;
+		public bool KeysDown_496;
+		public bool KeysDown_497;
+		public bool KeysDown_498;
+		public bool KeysDown_499;
+		public bool KeysDown_500;
+		public bool KeysDown_501;
+		public bool KeysDown_502;
+		public bool KeysDown_503;
+		public bool KeysDown_504;
+		public bool KeysDown_505;
+		public bool KeysDown_506;
+		public bool KeysDown_507;
+		public bool KeysDown_508;
+		public bool KeysDown_509;
+		public bool KeysDown_510;
+		public bool KeysDown_511;
+		public bool KeysDown_512;
+		public bool KeysDown_513;
+		public bool KeysDown_514;
+		public bool KeysDown_515;
+		public bool KeysDown_516;
+		public bool KeysDown_517;
+		public bool KeysDown_518;
+		public bool KeysDown_519;
+		public bool KeysDown_520;
+		public bool KeysDown_521;
+		public bool KeysDown_522;
+		public bool KeysDown_523;
+		public bool KeysDown_524;
+		public bool KeysDown_525;
+		public bool KeysDown_526;
+		public bool KeysDown_527;
+		public bool KeysDown_528;
+		public bool KeysDown_529;
+		public bool KeysDown_530;
+		public bool KeysDown_531;
+		public bool KeysDown_532;
+		public bool KeysDown_533;
+		public bool KeysDown_534;
+		public bool KeysDown_535;
+		public bool KeysDown_536;
+		public bool KeysDown_537;
+		public bool KeysDown_538;
+		public bool KeysDown_539;
+		public bool KeysDown_540;
+		public bool KeysDown_541;
+		public bool KeysDown_542;
+		public bool KeysDown_543;
+		public bool KeysDown_544;
+		public bool KeysDown_545;
+		public bool KeysDown_546;
+		public bool KeysDown_547;
+		public bool KeysDown_548;
+		public bool KeysDown_549;
+		public bool KeysDown_550;
+		public bool KeysDown_551;
+		public bool KeysDown_552;
+		public bool KeysDown_553;
+		public bool KeysDown_554;
+		public bool KeysDown_555;
+		public bool KeysDown_556;
+		public bool KeysDown_557;
+		public bool KeysDown_558;
+		public bool KeysDown_559;
+		public bool KeysDown_560;
+		public bool KeysDown_561;
+		public bool KeysDown_562;
+		public bool KeysDown_563;
+		public bool KeysDown_564;
+		public bool KeysDown_565;
+		public bool KeysDown_566;
+		public bool KeysDown_567;
+		public bool KeysDown_568;
+		public bool KeysDown_569;
+		public bool KeysDown_570;
+		public bool KeysDown_571;
+		public bool KeysDown_572;
+		public bool KeysDown_573;
+		public bool KeysDown_574;
+		public bool KeysDown_575;
+		public bool KeysDown_576;
+		public bool KeysDown_577;
+		public bool KeysDown_578;
+		public bool KeysDown_579;
+		public bool KeysDown_580;
+		public bool KeysDown_581;
+		public bool KeysDown_582;
+		public bool KeysDown_583;
+		public bool KeysDown_584;
+		public bool KeysDown_585;
+		public bool KeysDown_586;
+		public bool KeysDown_587;
+		public bool KeysDown_588;
+		public bool KeysDown_589;
+		public bool KeysDown_590;
+		public bool KeysDown_591;
+		public bool KeysDown_592;
+		public bool KeysDown_593;
+		public bool KeysDown_594;
+		public bool KeysDown_595;
+		public bool KeysDown_596;
+		public bool KeysDown_597;
+		public bool KeysDown_598;
+		public bool KeysDown_599;
+		public bool KeysDown_600;
+		public bool KeysDown_601;
+		public bool KeysDown_602;
+		public bool KeysDown_603;
+		public bool KeysDown_604;
+		public bool KeysDown_605;
+		public bool KeysDown_606;
+		public bool KeysDown_607;
+		public bool KeysDown_608;
+		public bool KeysDown_609;
+		public bool KeysDown_610;
+		public bool KeysDown_611;
+		public bool KeysDown_612;
+		public bool KeysDown_613;
+		public bool KeysDown_614;
+		public bool KeysDown_615;
+		public bool KeysDown_616;
+		public bool KeysDown_617;
+		public bool KeysDown_618;
+		public bool KeysDown_619;
+		public bool KeysDown_620;
+		public bool KeysDown_621;
+		public bool KeysDown_622;
+		public bool KeysDown_623;
+		public bool KeysDown_624;
+		public bool KeysDown_625;
+		public bool KeysDown_626;
+		public bool KeysDown_627;
+		public bool KeysDown_628;
+		public bool KeysDown_629;
+		public bool KeysDown_630;
+		public bool KeysDown_631;
+		public bool KeysDown_632;
+		public bool KeysDown_633;
+		public bool KeysDown_634;
+		public bool KeysDown_635;
+		public bool KeysDown_636;
+		public bool KeysDown_637;
+		public bool KeysDown_638;
+		public bool KeysDown_639;
+		public bool KeysDown_640;
+		public bool KeysDown_641;
+		public bool KeysDown_642;
+		public bool KeysDown_643;
+		public bool KeysDown_644;
 
 		/// <summary>
 		/// To be documented.
@@ -1618,11 +1618,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte MouseDown_0;
-		public byte MouseDown_1;
-		public byte MouseDown_2;
-		public byte MouseDown_3;
-		public byte MouseDown_4;
+		public bool MouseDown_0;
+		public bool MouseDown_1;
+		public bool MouseDown_2;
+		public bool MouseDown_3;
+		public bool MouseDown_4;
 
 		/// <summary>
 		/// To be documented.
@@ -2369,20 +2369,20 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte MouseClicked_0;
-		public byte MouseClicked_1;
-		public byte MouseClicked_2;
-		public byte MouseClicked_3;
-		public byte MouseClicked_4;
+		public bool MouseClicked_0;
+		public bool MouseClicked_1;
+		public bool MouseClicked_2;
+		public bool MouseClicked_3;
+		public bool MouseClicked_4;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte MouseDoubleClicked_0;
-		public byte MouseDoubleClicked_1;
-		public byte MouseDoubleClicked_2;
-		public byte MouseDoubleClicked_3;
-		public byte MouseDoubleClicked_4;
+		public bool MouseDoubleClicked_0;
+		public bool MouseDoubleClicked_1;
+		public bool MouseDoubleClicked_2;
+		public bool MouseDoubleClicked_3;
+		public bool MouseDoubleClicked_4;
 
 		/// <summary>
 		/// To be documented.
@@ -2405,29 +2405,29 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte MouseReleased_0;
-		public byte MouseReleased_1;
-		public byte MouseReleased_2;
-		public byte MouseReleased_3;
-		public byte MouseReleased_4;
+		public bool MouseReleased_0;
+		public bool MouseReleased_1;
+		public bool MouseReleased_2;
+		public bool MouseReleased_3;
+		public bool MouseReleased_4;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte MouseDownOwned_0;
-		public byte MouseDownOwned_1;
-		public byte MouseDownOwned_2;
-		public byte MouseDownOwned_3;
-		public byte MouseDownOwned_4;
+		public bool MouseDownOwned_0;
+		public bool MouseDownOwned_1;
+		public bool MouseDownOwned_2;
+		public bool MouseDownOwned_3;
+		public bool MouseDownOwned_4;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte MouseDownOwnedUnlessPopupClose_0;
-		public byte MouseDownOwnedUnlessPopupClose_1;
-		public byte MouseDownOwnedUnlessPopupClose_2;
-		public byte MouseDownOwnedUnlessPopupClose_3;
-		public byte MouseDownOwnedUnlessPopupClose_4;
+		public bool MouseDownOwnedUnlessPopupClose_0;
+		public bool MouseDownOwnedUnlessPopupClose_1;
+		public bool MouseDownOwnedUnlessPopupClose_2;
+		public bool MouseDownOwnedUnlessPopupClose_3;
+		public bool MouseDownOwnedUnlessPopupClose_4;
 
 		/// <summary>
 		/// To be documented.
@@ -2554,7 +2554,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiIO(ImGuiConfigFlags configFlags = default, ImGuiBackendFlags backendFlags = default, Vector2 displaySize = default, float deltaTime = default, float iniSavingRate = default, byte* iniFilename = default, byte* logFilename = default, float mouseDoubleClickTime = default, float mouseDoubleClickMaxDist = default, float mouseDragThreshold = default, float keyRepeatDelay = default, float keyRepeatRate = default, void* userData = default, ImFontAtlasPtr fonts = default, float fontGlobalScale = default, bool fontAllowUserScaling = default, ImFontPtr fontDefault = default, Vector2 displayFramebufferScale = default, bool configDockingNoSplit = default, bool configDockingWithShift = default, bool configDockingAlwaysTabBar = default, bool configDockingTransparentPayload = default, bool configViewportsNoAutoMerge = default, bool configViewportsNoTaskBarIcon = default, bool configViewportsNoDecoration = default, bool configViewportsNoDefaultParent = default, bool mouseDrawCursor = default, bool configMacOsxBehaviors = default, bool configInputTrickleEventQueue = default, bool configInputTextCursorBlink = default, bool configDragClickToInputText = default, bool configWindowsResizeFromEdges = default, bool configWindowsMoveFromTitleBarOnly = default, float configMemoryCompactTimer = default, byte* backendPlatformName = default, byte* backendRendererName = default, void* backendPlatformUserData = default, void* backendRendererUserData = default, void* backendLanguageUserData = default, delegate*<void*, byte*> getClipboardTextFn = default, delegate*<void*, byte*, void> setClipboardTextFn = default, void* clipboardUserData = default, delegate*<ImGuiViewport*, ImGuiPlatformImeData*, void> setPlatformImeDataFn = default, void* unusedPadding = default, bool wantCaptureMouse = default, bool wantCaptureKeyboard = default, bool wantTextInput = default, bool wantSetMousePos = default, bool wantSaveIniSettings = default, bool navActive = default, bool navVisible = default, float framerate = default, int metricsRenderVertices = default, int metricsRenderIndices = default, int metricsRenderWindows = default, int metricsActiveWindows = default, int metricsActiveAllocations = default, Vector2 mouseDelta = default, int* keyMap = default, byte* keysDown = default, Vector2 mousePos = default, byte* mouseDown = default, float mouseWheel = default, float mouseWheelH = default, uint mouseHoveredViewport = default, bool keyCtrl = default, bool keyShift = default, bool keyAlt = default, bool keySuper = default, float* navInputs = default, ImGuiModFlags keyMods = default, ImGuiKeyData* keysData = default, bool wantCaptureMouseUnlessPopupClose = default, Vector2 mousePosPrev = default, Vector2* mouseClickedPos = default, double* mouseClickedTime = default, byte* mouseClicked = default, byte* mouseDoubleClicked = default, ushort* mouseClickedCount = default, ushort* mouseClickedLastCount = default, byte* mouseReleased = default, byte* mouseDownOwned = default, byte* mouseDownOwnedUnlessPopupClose = default, float* mouseDownDuration = default, float* mouseDownDurationPrev = default, Vector2* mouseDragMaxDistanceAbs = default, float* mouseDragMaxDistanceSqr = default, float* navInputsDownDuration = default, float* navInputsDownDurationPrev = default, float penPressure = default, bool appFocusLost = default, bool appAcceptingEvents = default, byte backendUsingLegacyKeyArrays = default, bool backendUsingLegacyNavInputArray = default, ushort inputQueueSurrogate = default, ImVector<ushort> inputQueueCharacters = default)
+		public unsafe ImGuiIO(ImGuiConfigFlags configFlags = default, ImGuiBackendFlags backendFlags = default, Vector2 displaySize = default, float deltaTime = default, float iniSavingRate = default, byte* iniFilename = default, byte* logFilename = default, float mouseDoubleClickTime = default, float mouseDoubleClickMaxDist = default, float mouseDragThreshold = default, float keyRepeatDelay = default, float keyRepeatRate = default, void* userData = default, ImFontAtlasPtr fonts = default, float fontGlobalScale = default, bool fontAllowUserScaling = default, ImFontPtr fontDefault = default, Vector2 displayFramebufferScale = default, bool configDockingNoSplit = default, bool configDockingWithShift = default, bool configDockingAlwaysTabBar = default, bool configDockingTransparentPayload = default, bool configViewportsNoAutoMerge = default, bool configViewportsNoTaskBarIcon = default, bool configViewportsNoDecoration = default, bool configViewportsNoDefaultParent = default, bool mouseDrawCursor = default, bool configMacOsxBehaviors = default, bool configInputTrickleEventQueue = default, bool configInputTextCursorBlink = default, bool configDragClickToInputText = default, bool configWindowsResizeFromEdges = default, bool configWindowsMoveFromTitleBarOnly = default, float configMemoryCompactTimer = default, byte* backendPlatformName = default, byte* backendRendererName = default, void* backendPlatformUserData = default, void* backendRendererUserData = default, void* backendLanguageUserData = default, delegate*<void*, byte*> getClipboardTextFn = default, delegate*<void*, byte*, void> setClipboardTextFn = default, void* clipboardUserData = default, delegate*<ImGuiViewport*, ImGuiPlatformImeData*, void> setPlatformImeDataFn = default, void* unusedPadding = default, bool wantCaptureMouse = default, bool wantCaptureKeyboard = default, bool wantTextInput = default, bool wantSetMousePos = default, bool wantSaveIniSettings = default, bool navActive = default, bool navVisible = default, float framerate = default, int metricsRenderVertices = default, int metricsRenderIndices = default, int metricsRenderWindows = default, int metricsActiveWindows = default, int metricsActiveAllocations = default, Vector2 mouseDelta = default, int* keyMap = default, bool* keysDown = default, Vector2 mousePos = default, bool* mouseDown = default, float mouseWheel = default, float mouseWheelH = default, uint mouseHoveredViewport = default, bool keyCtrl = default, bool keyShift = default, bool keyAlt = default, bool keySuper = default, float* navInputs = default, ImGuiModFlags keyMods = default, ImGuiKeyData* keysData = default, bool wantCaptureMouseUnlessPopupClose = default, Vector2 mousePosPrev = default, Vector2* mouseClickedPos = default, double* mouseClickedTime = default, bool* mouseClicked = default, bool* mouseDoubleClicked = default, ushort* mouseClickedCount = default, ushort* mouseClickedLastCount = default, bool* mouseReleased = default, bool* mouseDownOwned = default, bool* mouseDownOwnedUnlessPopupClose = default, float* mouseDownDuration = default, float* mouseDownDurationPrev = default, Vector2* mouseDragMaxDistanceAbs = default, float* mouseDragMaxDistanceSqr = default, float* navInputsDownDuration = default, float* navInputsDownDurationPrev = default, float penPressure = default, bool appFocusLost = default, bool appAcceptingEvents = default, byte backendUsingLegacyKeyArrays = default, bool backendUsingLegacyNavInputArray = default, ushort inputQueueSurrogate = default, ImVector<ushort> inputQueueCharacters = default)
 		{
 			ConfigFlags = configFlags;
 			BackendFlags = backendFlags;
@@ -3262,7 +3262,7 @@ namespace Dalamud.Bindings.ImGui
 				KeyMap_643 = keyMap[643];
 				KeyMap_644 = keyMap[644];
 			}
-			if (keysDown != default(byte*))
+			if (keysDown != default(bool*))
 			{
 				KeysDown_0 = keysDown[0];
 				KeysDown_1 = keysDown[1];
@@ -3911,7 +3911,7 @@ namespace Dalamud.Bindings.ImGui
 				KeysDown_644 = keysDown[644];
 			}
 			MousePos = mousePos;
-			if (mouseDown != default(byte*))
+			if (mouseDown != default(bool*))
 			{
 				MouseDown_0 = mouseDown[0];
 				MouseDown_1 = mouseDown[1];
@@ -4617,7 +4617,7 @@ namespace Dalamud.Bindings.ImGui
 				MouseClickedTime_3 = mouseClickedTime[3];
 				MouseClickedTime_4 = mouseClickedTime[4];
 			}
-			if (mouseClicked != default(byte*))
+			if (mouseClicked != default(bool*))
 			{
 				MouseClicked_0 = mouseClicked[0];
 				MouseClicked_1 = mouseClicked[1];
@@ -4625,7 +4625,7 @@ namespace Dalamud.Bindings.ImGui
 				MouseClicked_3 = mouseClicked[3];
 				MouseClicked_4 = mouseClicked[4];
 			}
-			if (mouseDoubleClicked != default(byte*))
+			if (mouseDoubleClicked != default(bool*))
 			{
 				MouseDoubleClicked_0 = mouseDoubleClicked[0];
 				MouseDoubleClicked_1 = mouseDoubleClicked[1];
@@ -4765,7 +4765,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiIO(ImGuiConfigFlags configFlags = default, ImGuiBackendFlags backendFlags = default, Vector2 displaySize = default, float deltaTime = default, float iniSavingRate = default, byte* iniFilename = default, byte* logFilename = default, float mouseDoubleClickTime = default, float mouseDoubleClickMaxDist = default, float mouseDragThreshold = default, float keyRepeatDelay = default, float keyRepeatRate = default, void* userData = default, ImFontAtlasPtr fonts = default, float fontGlobalScale = default, bool fontAllowUserScaling = default, ImFontPtr fontDefault = default, Vector2 displayFramebufferScale = default, bool configDockingNoSplit = default, bool configDockingWithShift = default, bool configDockingAlwaysTabBar = default, bool configDockingTransparentPayload = default, bool configViewportsNoAutoMerge = default, bool configViewportsNoTaskBarIcon = default, bool configViewportsNoDecoration = default, bool configViewportsNoDefaultParent = default, bool mouseDrawCursor = default, bool configMacOsxBehaviors = default, bool configInputTrickleEventQueue = default, bool configInputTextCursorBlink = default, bool configDragClickToInputText = default, bool configWindowsResizeFromEdges = default, bool configWindowsMoveFromTitleBarOnly = default, float configMemoryCompactTimer = default, byte* backendPlatformName = default, byte* backendRendererName = default, void* backendPlatformUserData = default, void* backendRendererUserData = default, void* backendLanguageUserData = default, delegate*<void*, byte*> getClipboardTextFn = default, delegate*<void*, byte*, void> setClipboardTextFn = default, void* clipboardUserData = default, delegate*<ImGuiViewport*, ImGuiPlatformImeData*, void> setPlatformImeDataFn = default, void* unusedPadding = default, bool wantCaptureMouse = default, bool wantCaptureKeyboard = default, bool wantTextInput = default, bool wantSetMousePos = default, bool wantSaveIniSettings = default, bool navActive = default, bool navVisible = default, float framerate = default, int metricsRenderVertices = default, int metricsRenderIndices = default, int metricsRenderWindows = default, int metricsActiveWindows = default, int metricsActiveAllocations = default, Vector2 mouseDelta = default, Span<int> keyMap = default, Span<byte> keysDown = default, Vector2 mousePos = default, Span<byte> mouseDown = default, float mouseWheel = default, float mouseWheelH = default, uint mouseHoveredViewport = default, bool keyCtrl = default, bool keyShift = default, bool keyAlt = default, bool keySuper = default, Span<float> navInputs = default, ImGuiModFlags keyMods = default, Span<ImGuiKeyData> keysData = default, bool wantCaptureMouseUnlessPopupClose = default, Vector2 mousePosPrev = default, Span<Vector2> mouseClickedPos = default, Span<double> mouseClickedTime = default, Span<byte> mouseClicked = default, Span<byte> mouseDoubleClicked = default, Span<ushort> mouseClickedCount = default, Span<ushort> mouseClickedLastCount = default, Span<byte> mouseReleased = default, Span<byte> mouseDownOwned = default, Span<byte> mouseDownOwnedUnlessPopupClose = default, Span<float> mouseDownDuration = default, Span<float> mouseDownDurationPrev = default, Span<Vector2> mouseDragMaxDistanceAbs = default, Span<float> mouseDragMaxDistanceSqr = default, Span<float> navInputsDownDuration = default, Span<float> navInputsDownDurationPrev = default, float penPressure = default, bool appFocusLost = default, bool appAcceptingEvents = default, byte backendUsingLegacyKeyArrays = default, bool backendUsingLegacyNavInputArray = default, ushort inputQueueSurrogate = default, ImVector<ushort> inputQueueCharacters = default)
+		public unsafe ImGuiIO(ImGuiConfigFlags configFlags = default, ImGuiBackendFlags backendFlags = default, Vector2 displaySize = default, float deltaTime = default, float iniSavingRate = default, byte* iniFilename = default, byte* logFilename = default, float mouseDoubleClickTime = default, float mouseDoubleClickMaxDist = default, float mouseDragThreshold = default, float keyRepeatDelay = default, float keyRepeatRate = default, void* userData = default, ImFontAtlasPtr fonts = default, float fontGlobalScale = default, bool fontAllowUserScaling = default, ImFontPtr fontDefault = default, Vector2 displayFramebufferScale = default, bool configDockingNoSplit = default, bool configDockingWithShift = default, bool configDockingAlwaysTabBar = default, bool configDockingTransparentPayload = default, bool configViewportsNoAutoMerge = default, bool configViewportsNoTaskBarIcon = default, bool configViewportsNoDecoration = default, bool configViewportsNoDefaultParent = default, bool mouseDrawCursor = default, bool configMacOsxBehaviors = default, bool configInputTrickleEventQueue = default, bool configInputTextCursorBlink = default, bool configDragClickToInputText = default, bool configWindowsResizeFromEdges = default, bool configWindowsMoveFromTitleBarOnly = default, float configMemoryCompactTimer = default, byte* backendPlatformName = default, byte* backendRendererName = default, void* backendPlatformUserData = default, void* backendRendererUserData = default, void* backendLanguageUserData = default, delegate*<void*, byte*> getClipboardTextFn = default, delegate*<void*, byte*, void> setClipboardTextFn = default, void* clipboardUserData = default, delegate*<ImGuiViewport*, ImGuiPlatformImeData*, void> setPlatformImeDataFn = default, void* unusedPadding = default, bool wantCaptureMouse = default, bool wantCaptureKeyboard = default, bool wantTextInput = default, bool wantSetMousePos = default, bool wantSaveIniSettings = default, bool navActive = default, bool navVisible = default, float framerate = default, int metricsRenderVertices = default, int metricsRenderIndices = default, int metricsRenderWindows = default, int metricsActiveWindows = default, int metricsActiveAllocations = default, Vector2 mouseDelta = default, Span<int> keyMap = default, Span<bool> keysDown = default, Vector2 mousePos = default, Span<bool> mouseDown = default, float mouseWheel = default, float mouseWheelH = default, uint mouseHoveredViewport = default, bool keyCtrl = default, bool keyShift = default, bool keyAlt = default, bool keySuper = default, Span<float> navInputs = default, ImGuiModFlags keyMods = default, Span<ImGuiKeyData> keysData = default, bool wantCaptureMouseUnlessPopupClose = default, Vector2 mousePosPrev = default, Span<Vector2> mouseClickedPos = default, Span<double> mouseClickedTime = default, Span<bool> mouseClicked = default, Span<bool> mouseDoubleClicked = default, Span<ushort> mouseClickedCount = default, Span<ushort> mouseClickedLastCount = default, Span<bool> mouseReleased = default, Span<bool> mouseDownOwned = default, Span<bool> mouseDownOwnedUnlessPopupClose = default, Span<float> mouseDownDuration = default, Span<float> mouseDownDurationPrev = default, Span<Vector2> mouseDragMaxDistanceAbs = default, Span<float> mouseDragMaxDistanceSqr = default, Span<float> navInputsDownDuration = default, Span<float> navInputsDownDurationPrev = default, float penPressure = default, bool appFocusLost = default, bool appAcceptingEvents = default, byte backendUsingLegacyKeyArrays = default, bool backendUsingLegacyNavInputArray = default, ushort inputQueueSurrogate = default, ImVector<ushort> inputQueueCharacters = default)
 		{
 			ConfigFlags = configFlags;
 			BackendFlags = backendFlags;
@@ -5473,7 +5473,7 @@ namespace Dalamud.Bindings.ImGui
 				KeyMap_643 = keyMap[643];
 				KeyMap_644 = keyMap[644];
 			}
-			if (keysDown != default(Span<byte>))
+			if (keysDown != default(Span<bool>))
 			{
 				KeysDown_0 = keysDown[0];
 				KeysDown_1 = keysDown[1];
@@ -6122,7 +6122,7 @@ namespace Dalamud.Bindings.ImGui
 				KeysDown_644 = keysDown[644];
 			}
 			MousePos = mousePos;
-			if (mouseDown != default(Span<byte>))
+			if (mouseDown != default(Span<bool>))
 			{
 				MouseDown_0 = mouseDown[0];
 				MouseDown_1 = mouseDown[1];
@@ -6828,7 +6828,7 @@ namespace Dalamud.Bindings.ImGui
 				MouseClickedTime_3 = mouseClickedTime[3];
 				MouseClickedTime_4 = mouseClickedTime[4];
 			}
-			if (mouseClicked != default(Span<byte>))
+			if (mouseClicked != default(Span<bool>))
 			{
 				MouseClicked_0 = mouseClicked[0];
 				MouseClicked_1 = mouseClicked[1];
@@ -6836,7 +6836,7 @@ namespace Dalamud.Bindings.ImGui
 				MouseClicked_3 = mouseClicked[3];
 				MouseClicked_4 = mouseClicked[4];
 			}
-			if (mouseDoubleClicked != default(Span<byte>))
+			if (mouseDoubleClicked != default(Span<bool>))
 			{
 				MouseDoubleClicked_0 = mouseDoubleClicked[0];
 				MouseDoubleClicked_1 = mouseDoubleClicked[1];
@@ -6860,7 +6860,7 @@ namespace Dalamud.Bindings.ImGui
 				MouseClickedLastCount_3 = mouseClickedLastCount[3];
 				MouseClickedLastCount_4 = mouseClickedLastCount[4];
 			}
-			if (mouseReleased != default(Span<byte>))
+			if (mouseReleased != default(Span<bool>))
 			{
 				MouseReleased_0 = mouseReleased[0];
 				MouseReleased_1 = mouseReleased[1];
@@ -6868,7 +6868,7 @@ namespace Dalamud.Bindings.ImGui
 				MouseReleased_3 = mouseReleased[3];
 				MouseReleased_4 = mouseReleased[4];
 			}
-			if (mouseDownOwned != default(Span<byte>))
+			if (mouseDownOwned != default(Span<bool>))
 			{
 				MouseDownOwned_0 = mouseDownOwned[0];
 				MouseDownOwned_1 = mouseDownOwned[1];
@@ -6876,7 +6876,7 @@ namespace Dalamud.Bindings.ImGui
 				MouseDownOwned_3 = mouseDownOwned[3];
 				MouseDownOwned_4 = mouseDownOwned[4];
 			}
-			if (mouseDownOwnedUnlessPopupClose != default(Span<byte>))
+			if (mouseDownOwnedUnlessPopupClose != default(Span<bool>))
 			{
 				MouseDownOwnedUnlessPopupClose_0 = mouseDownOwnedUnlessPopupClose[0];
 				MouseDownOwnedUnlessPopupClose_1 = mouseDownOwnedUnlessPopupClose[1];
@@ -6978,7 +6978,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<ImGuiKeyData> KeysData
-
+		
 		{
 			get
 			{
@@ -6992,7 +6992,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<Vector2> MouseClickedPos
-
+		
 		{
 			get
 			{
@@ -7006,7 +7006,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<Vector2> MouseDragMaxDistanceAbs
-
+		
 		{
 			get
 			{
@@ -7531,7 +7531,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<int> KeyMap
-
+		
 		{
 			get
 			{
@@ -7542,7 +7542,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<bool> KeysDown
-
+		
 		{
 			get
 			{
@@ -7557,7 +7557,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<bool> MouseDown
-
+		
 		{
 			get
 			{
@@ -7596,7 +7596,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<float> NavInputs
-
+		
 		{
 			get
 			{
@@ -7611,7 +7611,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<ImGuiKeyData> KeysData
-
+		
 		{
 			get
 			{
@@ -7630,7 +7630,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<Vector2> MouseClickedPos
-
+		
 		{
 			get
 			{
@@ -7641,7 +7641,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<double> MouseClickedTime
-
+		
 		{
 			get
 			{
@@ -7652,7 +7652,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<bool> MouseClicked
-
+		
 		{
 			get
 			{
@@ -7663,7 +7663,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<bool> MouseDoubleClicked
-
+		
 		{
 			get
 			{
@@ -7674,7 +7674,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<ushort> MouseClickedCount
-
+		
 		{
 			get
 			{
@@ -7685,7 +7685,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<ushort> MouseClickedLastCount
-
+		
 		{
 			get
 			{
@@ -7696,7 +7696,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<bool> MouseReleased
-
+		
 		{
 			get
 			{
@@ -7707,7 +7707,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<bool> MouseDownOwned
-
+		
 		{
 			get
 			{
@@ -7718,7 +7718,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<bool> MouseDownOwnedUnlessPopupClose
-
+		
 		{
 			get
 			{
@@ -7729,7 +7729,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<float> MouseDownDuration
-
+		
 		{
 			get
 			{
@@ -7740,7 +7740,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<float> MouseDownDurationPrev
-
+		
 		{
 			get
 			{
@@ -7751,7 +7751,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<Vector2> MouseDragMaxDistanceAbs
-
+		
 		{
 			get
 			{
@@ -7762,7 +7762,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<float> MouseDragMaxDistanceSqr
-
+		
 		{
 			get
 			{
@@ -7773,7 +7773,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<float> NavInputsDownDuration
-
+		
 		{
 			get
 			{
@@ -7784,7 +7784,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<float> NavInputsDownDurationPrev
-
+		
 		{
 			get
 			{

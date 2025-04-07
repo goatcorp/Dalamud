@@ -28,6 +28,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public ImTextureID TexIdCommon;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public Vector2 TexUvWhitePixel;
 
 		/// <summary>
@@ -194,8 +199,9 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawListSharedData(Vector2 texUvWhitePixel = default, ImFont* font = default, float fontSize = default, float curveTessellationTol = default, float circleSegmentMaxError = default, Vector4 clipRectFullscreen = default, ImDrawListFlags initialFlags = default, Vector2* arcFastVtx = default, float arcFastRadiusCutoff = default, byte* circleSegmentCounts = default, Vector4* texUvLines = default)
+		public unsafe ImDrawListSharedData(ImTextureID texIdCommon = default, Vector2 texUvWhitePixel = default, ImFont* font = default, float fontSize = default, float curveTessellationTol = default, float circleSegmentMaxError = default, Vector4 clipRectFullscreen = default, ImDrawListFlags initialFlags = default, Vector2* arcFastVtx = default, float arcFastRadiusCutoff = default, byte* circleSegmentCounts = default, Vector4* texUvLines = default)
 		{
+			TexIdCommon = texIdCommon;
 			TexUvWhitePixel = texUvWhitePixel;
 			Font = font;
 			FontSize = fontSize;
@@ -328,8 +334,9 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImDrawListSharedData(Vector2 texUvWhitePixel = default, ImFont* font = default, float fontSize = default, float curveTessellationTol = default, float circleSegmentMaxError = default, Vector4 clipRectFullscreen = default, ImDrawListFlags initialFlags = default, Span<Vector2> arcFastVtx = default, float arcFastRadiusCutoff = default, Span<byte> circleSegmentCounts = default, Vector4* texUvLines = default)
+		public unsafe ImDrawListSharedData(ImTextureID texIdCommon = default, Vector2 texUvWhitePixel = default, ImFont* font = default, float fontSize = default, float curveTessellationTol = default, float circleSegmentMaxError = default, Vector4 clipRectFullscreen = default, ImDrawListFlags initialFlags = default, Span<Vector2> arcFastVtx = default, float arcFastRadiusCutoff = default, Span<byte> circleSegmentCounts = default, Vector4* texUvLines = default)
 		{
+			TexIdCommon = texIdCommon;
 			TexUvWhitePixel = texUvWhitePixel;
 			Font = font;
 			FontSize = fontSize;
@@ -528,6 +535,10 @@ namespace Dalamud.Bindings.ImGui
 		#if NET5_0_OR_GREATER
 		private string DebuggerDisplay => string.Format("ImDrawListSharedDataPtr [0x{0}]", ((nuint)Handle).ToString("X"));
 		#endif
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImTextureID TexIdCommon => ref Unsafe.AsRef<ImTextureID>(&Handle->TexIdCommon);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

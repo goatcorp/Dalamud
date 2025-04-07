@@ -4152,9 +4152,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ValueNative(byte* prefix, byte b)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, byte, void>)funcTable[233])(prefix, b);
+			((delegate* unmanaged[Cdecl]<byte*, byte, void>)funcTable[234])(prefix, b);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, byte, void>)funcTable[233])((nint)prefix, b);
+			((delegate* unmanaged[Cdecl]<nint, byte, void>)funcTable[234])((nint)prefix, b);
 			#endif
 		}
 
@@ -4224,9 +4224,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ValueNative(byte* prefix, int v)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, int, void>)funcTable[234])(prefix, v);
+			((delegate* unmanaged[Cdecl]<byte*, int, void>)funcTable[235])(prefix, v);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, void>)funcTable[234])((nint)prefix, v);
+			((delegate* unmanaged[Cdecl]<nint, int, void>)funcTable[235])((nint)prefix, v);
 			#endif
 		}
 
@@ -4296,9 +4296,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ValueNative(byte* prefix, uint v)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, uint, void>)funcTable[235])(prefix, v);
+			((delegate* unmanaged[Cdecl]<byte*, uint, void>)funcTable[236])(prefix, v);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, uint, void>)funcTable[235])((nint)prefix, v);
+			((delegate* unmanaged[Cdecl]<nint, uint, void>)funcTable[236])((nint)prefix, v);
 			#endif
 		}
 
@@ -4368,9 +4368,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ValueNative(byte* prefix, float v, byte* floatFormat)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, float, byte*, void>)funcTable[236])(prefix, v, floatFormat);
+			((delegate* unmanaged[Cdecl]<byte*, float, byte*, void>)funcTable[237])(prefix, v, floatFormat);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, float, nint, void>)funcTable[236])((nint)prefix, v, (nint)floatFormat);
+			((delegate* unmanaged[Cdecl]<nint, float, nint, void>)funcTable[237])((nint)prefix, v, (nint)floatFormat);
 			#endif
 		}
 
@@ -4784,9 +4784,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginMenuBarNative()
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte>)funcTable[237])();
+			return ((delegate* unmanaged[Cdecl]<byte>)funcTable[238])();
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<byte>)funcTable[237])();
+			return (byte)((delegate* unmanaged[Cdecl]<byte>)funcTable[238])();
 			#endif
 		}
 
@@ -4806,9 +4806,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void EndMenuBarNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[238])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[239])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[238])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[239])();
 			#endif
 		}
 
@@ -4827,9 +4827,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginMainMenuBarNative()
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte>)funcTable[239])();
+			return ((delegate* unmanaged[Cdecl]<byte>)funcTable[240])();
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<byte>)funcTable[239])();
+			return (byte)((delegate* unmanaged[Cdecl]<byte>)funcTable[240])();
 			#endif
 		}
 
@@ -4849,9 +4849,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void EndMainMenuBarNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[240])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[241])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[240])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[241])();
 			#endif
 		}
 
@@ -4870,9 +4870,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginMenuNative(byte* label, byte enabled)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte, byte>)funcTable[241])(label, enabled);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte, byte>)funcTable[242])(label, enabled);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte, byte>)funcTable[241])((nint)label, enabled);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, byte, byte>)funcTable[242])((nint)label, enabled);
 			#endif
 		}
 
@@ -5009,9 +5009,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void EndMenuNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[242])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[243])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[242])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[243])();
 			#endif
 		}
 

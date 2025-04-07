@@ -59,9 +59,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImParseFormatTrimDecorationsNative(byte* format, byte* buf, ulong bufSize)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, byte*>)funcTable[1270])(format, buf, bufSize);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, byte*>)funcTable[1273])(format, buf, bufSize);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, ulong, nint>)funcTable[1270])((nint)format, (nint)buf, bufSize);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, ulong, nint>)funcTable[1273])((nint)format, (nint)buf, bufSize);
 			#endif
 		}
 
@@ -1228,9 +1228,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImTextStrToUtf8Native(byte* outBuf, int outBufSize, ushort* inText, ushort* inTextEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int, ushort*, ushort*, int>)funcTable[1271])(outBuf, outBufSize, inText, inTextEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, int, ushort*, ushort*, int>)funcTable[1274])(outBuf, outBufSize, inText, inTextEnd);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int, nint, nint, int>)funcTable[1271])((nint)outBuf, outBufSize, (nint)inText, (nint)inTextEnd);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int, nint, nint, int>)funcTable[1274])((nint)outBuf, outBufSize, (nint)inText, (nint)inTextEnd);
 			#endif
 		}
 
@@ -1485,9 +1485,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImTextStrFromUtf8Native(ushort* outBuf, int outBufSize, byte* inText, byte* inTextEnd, byte** inRemaining)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ushort*, int, byte*, byte*, byte**, int>)funcTable[1272])(outBuf, outBufSize, inText, inTextEnd, inRemaining);
+			return ((delegate* unmanaged[Cdecl]<ushort*, int, byte*, byte*, byte**, int>)funcTable[1275])(outBuf, outBufSize, inText, inTextEnd, inRemaining);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, int>)funcTable[1272])((nint)outBuf, outBufSize, (nint)inText, (nint)inTextEnd, (nint)inRemaining);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, int>)funcTable[1275])((nint)outBuf, outBufSize, (nint)inText, (nint)inTextEnd, (nint)inRemaining);
 			#endif
 		}
 
@@ -3898,9 +3898,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int DataTypeFormatStringNative(byte* buf, int bufSize, ImGuiDataType dataType, void* pData, byte* format)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int, ImGuiDataType, void*, byte*, int>)funcTable[1273])(buf, bufSize, dataType, pData, format);
+			return ((delegate* unmanaged[Cdecl]<byte*, int, ImGuiDataType, void*, byte*, int>)funcTable[1276])(buf, bufSize, dataType, pData, format);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int, ImGuiDataType, nint, nint, int>)funcTable[1273])((nint)buf, bufSize, dataType, (nint)pData, (nint)format);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int, ImGuiDataType, nint, nint, int>)funcTable[1276])((nint)buf, bufSize, dataType, (nint)pData, (nint)format);
 			#endif
 		}
 
@@ -4200,9 +4200,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputTextExNative(byte* label, byte* hint, byte* buf, int bufSize, Vector2 sizeArg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* userData)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)funcTable[1274])(label, hint, buf, bufSize, sizeArg, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate*<ImGuiInputTextCallbackData*, int>, void*, byte>)funcTable[1277])(label, hint, buf, bufSize, sizeArg, flags, (delegate*<ImGuiInputTextCallbackData*, int>)Utils.GetFunctionPointerForDelegate(callback), userData);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, Vector2, ImGuiInputTextFlags, nint, nint, byte>)funcTable[1274])((nint)label, (nint)hint, (nint)buf, bufSize, sizeArg, flags, (nint)Utils.GetFunctionPointerForDelegate(callback), (nint)userData);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, Vector2, ImGuiInputTextFlags, nint, nint, byte>)funcTable[1277])((nint)label, (nint)hint, (nint)buf, bufSize, sizeArg, flags, (nint)Utils.GetFunctionPointerForDelegate(callback), (nint)userData);
 			#endif
 		}
 

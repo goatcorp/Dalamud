@@ -4780,9 +4780,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte DragInt2Native(byte* label, int* v, float vSpeed, int vMin, int vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, float, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[169])(label, v, vSpeed, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, float, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[170])(label, v, vSpeed, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, float, int, int, nint, ImGuiSliderFlags, byte>)funcTable[169])((nint)label, (nint)v, vSpeed, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, float, int, int, nint, ImGuiSliderFlags, byte>)funcTable[170])((nint)label, (nint)v, vSpeed, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 

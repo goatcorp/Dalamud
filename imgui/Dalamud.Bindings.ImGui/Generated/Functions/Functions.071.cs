@@ -457,9 +457,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputScalarNative(byte* label, ImGuiDataType dataType, void* pData, void* pStep, void* pStepFast, byte* format, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, void*, void*, byte*, ImGuiInputTextFlags, byte>)funcTable[198])(label, dataType, pData, pStep, pStepFast, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, void*, void*, byte*, ImGuiInputTextFlags, byte>)funcTable[199])(label, dataType, pData, pStep, pStepFast, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, nint, nint, nint, ImGuiInputTextFlags, byte>)funcTable[198])((nint)label, dataType, (nint)pData, (nint)pStep, (nint)pStepFast, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, nint, nint, nint, ImGuiInputTextFlags, byte>)funcTable[199])((nint)label, dataType, (nint)pData, (nint)pStep, (nint)pStepFast, (nint)format, flags);
 			#endif
 		}
 
@@ -3008,9 +3008,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputScalarNNative(byte* label, ImGuiDataType dataType, void* pData, int components, void* pStep, void* pStepFast, byte* format, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, int, void*, void*, byte*, ImGuiInputTextFlags, byte>)funcTable[199])(label, dataType, pData, components, pStep, pStepFast, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, int, void*, void*, byte*, ImGuiInputTextFlags, byte>)funcTable[200])(label, dataType, pData, components, pStep, pStepFast, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, int, nint, nint, nint, ImGuiInputTextFlags, byte>)funcTable[199])((nint)label, dataType, (nint)pData, components, (nint)pStep, (nint)pStepFast, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, int, nint, nint, nint, ImGuiInputTextFlags, byte>)funcTable[200])((nint)label, dataType, (nint)pData, components, (nint)pStep, (nint)pStepFast, (nint)format, flags);
 			#endif
 		}
 

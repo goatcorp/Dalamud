@@ -4425,9 +4425,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void RenderTextEllipsisNative(ImDrawList* drawList, Vector2 posMin, Vector2 posMax, float clipMaxX, float ellipsisMaxX, byte* text, byte* textEnd, Vector2* textSizeIfKnown)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImDrawList*, Vector2, Vector2, float, float, byte*, byte*, Vector2*, void>)funcTable[1177])(drawList, posMin, posMax, clipMaxX, ellipsisMaxX, text, textEnd, textSizeIfKnown);
+			((delegate* unmanaged[Cdecl]<ImDrawList*, Vector2, Vector2, float, float, byte*, byte*, Vector2*, void>)funcTable[1178])(drawList, posMin, posMax, clipMaxX, ellipsisMaxX, text, textEnd, textSizeIfKnown);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, Vector2, Vector2, float, float, nint, nint, nint, void>)funcTable[1177])((nint)drawList, posMin, posMax, clipMaxX, ellipsisMaxX, (nint)text, (nint)textEnd, (nint)textSizeIfKnown);
+			((delegate* unmanaged[Cdecl]<nint, Vector2, Vector2, float, float, nint, nint, nint, void>)funcTable[1178])((nint)drawList, posMin, posMax, clipMaxX, ellipsisMaxX, (nint)text, (nint)textEnd, (nint)textSizeIfKnown);
 			#endif
 		}
 

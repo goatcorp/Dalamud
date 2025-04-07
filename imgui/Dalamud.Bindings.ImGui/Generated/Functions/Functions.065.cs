@@ -475,9 +475,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SliderInt3Native(byte* label, int* v, int vMin, int vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[182])(label, v, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[183])(label, v, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[182])((nint)label, (nint)v, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[183])((nint)label, (nint)v, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 
@@ -2474,9 +2474,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SliderInt4Native(byte* label, int* v, int vMin, int vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[183])(label, v, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[184])(label, v, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[183])((nint)label, (nint)v, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[184])((nint)label, (nint)v, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 
@@ -4473,9 +4473,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SliderScalarNative(byte* label, ImGuiDataType dataType, void* pData, void* pMin, void* pMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, void*, void*, byte*, ImGuiSliderFlags, byte>)funcTable[184])(label, dataType, pData, pMin, pMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiDataType, void*, void*, void*, byte*, ImGuiSliderFlags, byte>)funcTable[185])(label, dataType, pData, pMin, pMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, nint, nint, nint, ImGuiSliderFlags, byte>)funcTable[184])((nint)label, dataType, (nint)pData, (nint)pMin, (nint)pMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiDataType, nint, nint, nint, nint, ImGuiSliderFlags, byte>)funcTable[185])((nint)label, dataType, (nint)pData, (nint)pMin, (nint)pMax, (nint)format, flags);
 			#endif
 		}
 

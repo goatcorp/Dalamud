@@ -805,9 +805,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputFloat4Native(byte* label, float* v, byte* format, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, float*, byte*, ImGuiInputTextFlags, byte>)funcTable[192])(label, v, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, float*, byte*, ImGuiInputTextFlags, byte>)funcTable[193])(label, v, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, ImGuiInputTextFlags, byte>)funcTable[192])((nint)label, (nint)v, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, ImGuiInputTextFlags, byte>)funcTable[193])((nint)label, (nint)v, (nint)format, flags);
 			#endif
 		}
 
@@ -3158,9 +3158,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputIntNative(byte* label, int* v, int step, int stepFast, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, ImGuiInputTextFlags, byte>)funcTable[193])(label, v, step, stepFast, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, ImGuiInputTextFlags, byte>)funcTable[194])(label, v, step, stepFast, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, ImGuiInputTextFlags, byte>)funcTable[193])((nint)label, (nint)v, step, stepFast, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, ImGuiInputTextFlags, byte>)funcTable[194])((nint)label, (nint)v, step, stepFast, flags);
 			#endif
 		}
 
@@ -3999,9 +3999,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputInt2Native(byte* label, int* v, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, ImGuiInputTextFlags, byte>)funcTable[194])(label, v, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, ImGuiInputTextFlags, byte>)funcTable[195])(label, v, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiInputTextFlags, byte>)funcTable[194])((nint)label, (nint)v, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiInputTextFlags, byte>)funcTable[195])((nint)label, (nint)v, flags);
 			#endif
 		}
 
@@ -4342,9 +4342,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputInt3Native(byte* label, int* v, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, ImGuiInputTextFlags, byte>)funcTable[195])(label, v, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, ImGuiInputTextFlags, byte>)funcTable[196])(label, v, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiInputTextFlags, byte>)funcTable[195])((nint)label, (nint)v, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiInputTextFlags, byte>)funcTable[196])((nint)label, (nint)v, flags);
 			#endif
 		}
 
@@ -4685,9 +4685,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputInt4Native(byte* label, int* v, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, ImGuiInputTextFlags, byte>)funcTable[196])(label, v, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, ImGuiInputTextFlags, byte>)funcTable[197])(label, v, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiInputTextFlags, byte>)funcTable[196])((nint)label, (nint)v, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiInputTextFlags, byte>)funcTable[197])((nint)label, (nint)v, flags);
 			#endif
 		}
 

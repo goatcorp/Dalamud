@@ -1255,9 +1255,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SliderAngleNative(byte* label, float* vRad, float vDegreesMin, float vDegreesMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, float*, float, float, byte*, ImGuiSliderFlags, byte>)funcTable[179])(label, vRad, vDegreesMin, vDegreesMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, float*, float, float, byte*, ImGuiSliderFlags, byte>)funcTable[180])(label, vRad, vDegreesMin, vDegreesMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, float, float, nint, ImGuiSliderFlags, byte>)funcTable[179])((nint)label, (nint)vRad, vDegreesMin, vDegreesMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, float, float, nint, ImGuiSliderFlags, byte>)funcTable[180])((nint)label, (nint)vRad, vDegreesMin, vDegreesMax, (nint)format, flags);
 			#endif
 		}
 

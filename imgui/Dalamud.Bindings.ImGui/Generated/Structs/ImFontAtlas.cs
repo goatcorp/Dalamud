@@ -194,18 +194,28 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int PackIdMouseCursors;
+		public int TextureIndexCommon;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public int PackIdLines;
+		public int PackIdCommon;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImFontAtlasCustomRect RectMouseCursors;
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ImFontAtlasCustomRect RectLines;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImFontAtlas(ImFontAtlasFlags flags = default, ImVector<ImFontAtlasTexture> textures = default, int texDesiredWidth = default, int texDesiredHeight = default, int texGlyphPadding = default, bool locked = default, bool texReady = default, bool texPixelsUseColors = default, int texWidth = default, int texHeight = default, Vector2 texUvScale = default, Vector2 texUvWhitePixel = default, ImVector<ImFontPtr> fonts = default, ImVector<ImFontAtlasCustomRect> customRects = default, ImVector<ImFontConfig> configData = default, Vector4* texUvLines = default, ImFontBuilderIO* fontBuilderIo = default, uint fontBuilderFlags = default, int packIdMouseCursors = default, int packIdLines = default)
+		public unsafe ImFontAtlas(ImFontAtlasFlags flags = default, ImVector<ImFontAtlasTexture> textures = default, int texDesiredWidth = default, int texDesiredHeight = default, int texGlyphPadding = default, bool locked = default, bool texReady = default, bool texPixelsUseColors = default, int texWidth = default, int texHeight = default, Vector2 texUvScale = default, Vector2 texUvWhitePixel = default, ImVector<ImFontPtr> fonts = default, ImVector<ImFontAtlasCustomRect> customRects = default, ImVector<ImFontConfig> configData = default, Vector4* texUvLines = default, ImFontBuilderIO* fontBuilderIo = default, uint fontBuilderFlags = default, int textureIndexCommon = default, int packIdCommon = default, ImFontAtlasCustomRect rectMouseCursors = default, ImFontAtlasCustomRect rectLines = default)
 		{
 			Flags = flags;
 			Textures = textures;
@@ -291,14 +301,16 @@ namespace Dalamud.Bindings.ImGui
 			}
 			FontBuilderIO = fontBuilderIo;
 			FontBuilderFlags = fontBuilderFlags;
-			PackIdMouseCursors = packIdMouseCursors;
-			PackIdLines = packIdLines;
+			TextureIndexCommon = textureIndexCommon;
+			PackIdCommon = packIdCommon;
+			RectMouseCursors = rectMouseCursors;
+			RectLines = rectLines;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImFontAtlas(ImFontAtlasFlags flags = default, ImVector<ImFontAtlasTexture> textures = default, int texDesiredWidth = default, int texDesiredHeight = default, int texGlyphPadding = default, bool locked = default, bool texReady = default, bool texPixelsUseColors = default, int texWidth = default, int texHeight = default, Vector2 texUvScale = default, Vector2 texUvWhitePixel = default, ImVector<ImFontPtr> fonts = default, ImVector<ImFontAtlasCustomRect> customRects = default, ImVector<ImFontConfig> configData = default, Span<Vector4> texUvLines = default, ImFontBuilderIO* fontBuilderIo = default, uint fontBuilderFlags = default, int packIdMouseCursors = default, int packIdLines = default)
+		public unsafe ImFontAtlas(ImFontAtlasFlags flags = default, ImVector<ImFontAtlasTexture> textures = default, int texDesiredWidth = default, int texDesiredHeight = default, int texGlyphPadding = default, bool locked = default, bool texReady = default, bool texPixelsUseColors = default, int texWidth = default, int texHeight = default, Vector2 texUvScale = default, Vector2 texUvWhitePixel = default, ImVector<ImFontPtr> fonts = default, ImVector<ImFontAtlasCustomRect> customRects = default, ImVector<ImFontConfig> configData = default, Span<Vector4> texUvLines = default, ImFontBuilderIO* fontBuilderIo = default, uint fontBuilderFlags = default, int textureIndexCommon = default, int packIdCommon = default, ImFontAtlasCustomRect rectMouseCursors = default, ImFontAtlasCustomRect rectLines = default)
 		{
 			Flags = flags;
 			Textures = textures;
@@ -384,8 +396,10 @@ namespace Dalamud.Bindings.ImGui
 			}
 			FontBuilderIO = fontBuilderIo;
 			FontBuilderFlags = fontBuilderFlags;
-			PackIdMouseCursors = packIdMouseCursors;
-			PackIdLines = packIdLines;
+			TextureIndexCommon = textureIndexCommon;
+			PackIdCommon = packIdCommon;
+			RectMouseCursors = rectMouseCursors;
+			RectLines = rectLines;
 		}
 
 
@@ -4647,11 +4661,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int PackIdMouseCursors => ref Unsafe.AsRef<int>(&Handle->PackIdMouseCursors);
+		public ref int TextureIndexCommon => ref Unsafe.AsRef<int>(&Handle->TextureIndexCommon);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref int PackIdLines => ref Unsafe.AsRef<int>(&Handle->PackIdLines);
+		public ref int PackIdCommon => ref Unsafe.AsRef<int>(&Handle->PackIdCommon);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImFontAtlasCustomRect RectMouseCursors => ref Unsafe.AsRef<ImFontAtlasCustomRect>(&Handle->RectMouseCursors);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public ref ImFontAtlasCustomRect RectLines => ref Unsafe.AsRef<ImFontAtlasCustomRect>(&Handle->RectLines);
 		/// <summary>
 		/// To be documented.
 		/// </summary>

@@ -2766,7 +2766,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<byte> DragDropPayloadBufLocal
-
+		
 		{
 			get
 			{
@@ -3037,7 +3037,7 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public unsafe Span<float> FramerateSecPerFrame
-
+		
 		{
 			get
 			{

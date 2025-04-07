@@ -25,9 +25,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte MenuItemNative(byte* label, byte* shortcut, byte selected, byte enabled)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte, byte, byte>)funcTable[243])(label, shortcut, selected, enabled);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte, byte, byte>)funcTable[244])(label, shortcut, selected, enabled);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, byte, byte, byte>)funcTable[243])((nint)label, (nint)shortcut, selected, enabled);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, byte, byte, byte>)funcTable[244])((nint)label, (nint)shortcut, selected, enabled);
 			#endif
 		}
 
@@ -1307,9 +1307,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte MenuItemNative(byte* label, byte* shortcut, bool* pSelected, byte enabled)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, bool*, byte, byte>)funcTable[244])(label, shortcut, pSelected, enabled);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, bool*, byte, byte>)funcTable[245])(label, shortcut, pSelected, enabled);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, byte, byte>)funcTable[244])((nint)label, (nint)shortcut, (nint)pSelected, enabled);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, byte, byte>)funcTable[245])((nint)label, (nint)shortcut, (nint)pSelected, enabled);
 			#endif
 		}
 
@@ -2856,9 +2856,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void BeginTooltipNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[245])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[246])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[245])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[246])();
 			#endif
 		}
 
@@ -2877,9 +2877,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void EndTooltipNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[246])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[247])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[246])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[247])();
 			#endif
 		}
 
@@ -2898,9 +2898,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void SetTooltipNative(byte* fmt)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[247])(fmt);
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[248])(fmt);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[247])((nint)fmt);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[248])((nint)fmt);
 			#endif
 		}
 
@@ -2970,9 +2970,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void SetTooltipVNative(byte* fmt, nuint args)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, nuint, void>)funcTable[248])(fmt, args);
+			((delegate* unmanaged[Cdecl]<byte*, nuint, void>)funcTable[249])(fmt, args);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nuint, void>)funcTable[248])((nint)fmt, args);
+			((delegate* unmanaged[Cdecl]<nint, nuint, void>)funcTable[249])((nint)fmt, args);
 			#endif
 		}
 
@@ -3042,9 +3042,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginPopupNative(byte* strId, ImGuiWindowFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiWindowFlags, byte>)funcTable[249])(strId, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiWindowFlags, byte>)funcTable[250])(strId, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiWindowFlags, byte>)funcTable[249])((nint)strId, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiWindowFlags, byte>)funcTable[250])((nint)strId, flags);
 			#endif
 		}
 
@@ -3181,9 +3181,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginPopupModalNative(byte* name, bool* pOpen, ImGuiWindowFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, bool*, ImGuiWindowFlags, byte>)funcTable[250])(name, pOpen, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, bool*, ImGuiWindowFlags, byte>)funcTable[251])(name, pOpen, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiWindowFlags, byte>)funcTable[250])((nint)name, (nint)pOpen, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiWindowFlags, byte>)funcTable[251])((nint)name, (nint)pOpen, flags);
 			#endif
 		}
 
@@ -3596,9 +3596,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void EndPopupNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[251])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[252])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[251])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[252])();
 			#endif
 		}
 
@@ -3617,9 +3617,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void OpenPopupNative(byte* strId, ImGuiPopupFlags popupFlags)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, void>)funcTable[252])(strId, popupFlags);
+			((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, void>)funcTable[253])(strId, popupFlags);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, void>)funcTable[252])((nint)strId, popupFlags);
+			((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, void>)funcTable[253])((nint)strId, popupFlags);
 			#endif
 		}
 
@@ -3748,9 +3748,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void OpenPopupNative(uint id, ImGuiPopupFlags popupFlags)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<uint, ImGuiPopupFlags, void>)funcTable[253])(id, popupFlags);
+			((delegate* unmanaged[Cdecl]<uint, ImGuiPopupFlags, void>)funcTable[254])(id, popupFlags);
 			#else
-			((delegate* unmanaged[Cdecl]<uint, ImGuiPopupFlags, void>)funcTable[253])(id, popupFlags);
+			((delegate* unmanaged[Cdecl]<uint, ImGuiPopupFlags, void>)funcTable[254])(id, popupFlags);
 			#endif
 		}
 
@@ -3777,9 +3777,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void OpenPopupOnItemClickNative(byte* strId, ImGuiPopupFlags popupFlags)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, void>)funcTable[254])(strId, popupFlags);
+			((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, void>)funcTable[255])(strId, popupFlags);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, void>)funcTable[254])((nint)strId, popupFlags);
+			((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, void>)funcTable[255])((nint)strId, popupFlags);
 			#endif
 		}
 
@@ -3924,9 +3924,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void CloseCurrentPopupNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[255])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[256])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[255])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[256])();
 			#endif
 		}
 
@@ -3945,9 +3945,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginPopupContextItemNative(byte* strId, ImGuiPopupFlags popupFlags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, byte>)funcTable[256])(strId, popupFlags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, byte>)funcTable[257])(strId, popupFlags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, byte>)funcTable[256])((nint)strId, popupFlags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, byte>)funcTable[257])((nint)strId, popupFlags);
 			#endif
 		}
 
@@ -4102,9 +4102,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginPopupContextWindowNative(byte* strId, ImGuiPopupFlags popupFlags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, byte>)funcTable[257])(strId, popupFlags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, byte>)funcTable[258])(strId, popupFlags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, byte>)funcTable[257])((nint)strId, popupFlags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, byte>)funcTable[258])((nint)strId, popupFlags);
 			#endif
 		}
 
@@ -4259,9 +4259,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginPopupContextVoidNative(byte* strId, ImGuiPopupFlags popupFlags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, byte>)funcTable[258])(strId, popupFlags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, byte>)funcTable[259])(strId, popupFlags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, byte>)funcTable[258])((nint)strId, popupFlags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, byte>)funcTable[259])((nint)strId, popupFlags);
 			#endif
 		}
 
@@ -4416,9 +4416,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte IsPopupOpenNative(byte* strId, ImGuiPopupFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, byte>)funcTable[259])(strId, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiPopupFlags, byte>)funcTable[260])(strId, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, byte>)funcTable[259])((nint)strId, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiPopupFlags, byte>)funcTable[260])((nint)strId, flags);
 			#endif
 		}
 
@@ -4555,9 +4555,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginTableNative(byte* strId, int column, ImGuiTableFlags flags, Vector2 outerSize, float innerWidth)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int, ImGuiTableFlags, Vector2, float, byte>)funcTable[260])(strId, column, flags, outerSize, innerWidth);
+			return ((delegate* unmanaged[Cdecl]<byte*, int, ImGuiTableFlags, Vector2, float, byte>)funcTable[261])(strId, column, flags, outerSize, innerWidth);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, int, ImGuiTableFlags, Vector2, float, byte>)funcTable[260])((nint)strId, column, flags, outerSize, innerWidth);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, int, ImGuiTableFlags, Vector2, float, byte>)funcTable[261])((nint)strId, column, flags, outerSize, innerWidth);
 			#endif
 		}
 

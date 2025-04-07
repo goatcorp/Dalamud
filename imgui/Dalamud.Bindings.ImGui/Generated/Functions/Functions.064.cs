@@ -1678,9 +1678,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SliderIntNative(byte* label, int* v, int vMin, int vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[180])(label, v, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[181])(label, v, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[180])((nint)label, (nint)v, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[181])((nint)label, (nint)v, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 
@@ -3503,9 +3503,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SliderInt2Native(byte* label, int* v, int vMin, int vMax, byte* format, ImGuiSliderFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[181])(label, v, vMin, vMax, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, int, int, byte*, ImGuiSliderFlags, byte>)funcTable[182])(label, v, vMin, vMax, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[181])((nint)label, (nint)v, vMin, vMax, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, ImGuiSliderFlags, byte>)funcTable[182])((nint)label, (nint)v, vMin, vMax, (nint)format, flags);
 			#endif
 		}
 

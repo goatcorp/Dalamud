@@ -243,9 +243,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImParseFormatSanitizeForScanningNative(byte* fmtIn, byte* fmtOut, ulong fmtOutSize)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, byte*>)funcTable[717])(fmtIn, fmtOut, fmtOutSize);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, byte*>)funcTable[718])(fmtIn, fmtOut, fmtOutSize);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, ulong, nint>)funcTable[717])((nint)fmtIn, (nint)fmtOut, fmtOutSize);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, ulong, nint>)funcTable[718])((nint)fmtIn, (nint)fmtOut, fmtOutSize);
 			#endif
 		}
 
@@ -1412,9 +1412,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImParseFormatPrecisionNative(byte* format, int defaultValue)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int, int>)funcTable[718])(format, defaultValue);
+			return ((delegate* unmanaged[Cdecl]<byte*, int, int>)funcTable[719])(format, defaultValue);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int, int>)funcTable[718])((nint)format, defaultValue);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int, int>)funcTable[719])((nint)format, defaultValue);
 			#endif
 		}
 
@@ -1488,9 +1488,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImTextCharToUtf8Native(byte* outBuf, uint c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, uint, byte*>)funcTable[719])(outBuf, c);
+			return ((delegate* unmanaged[Cdecl]<byte*, uint, byte*>)funcTable[720])(outBuf, c);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, uint, nint>)funcTable[719])((nint)outBuf, c);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, uint, nint>)funcTable[720])((nint)outBuf, c);
 			#endif
 		}
 
@@ -1567,9 +1567,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImTextCharFromUtf8Native(uint* outChar, byte* inText, byte* inTextEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<uint*, byte*, byte*, int>)funcTable[720])(outChar, inText, inTextEnd);
+			return ((delegate* unmanaged[Cdecl]<uint*, byte*, byte*, int>)funcTable[721])(outChar, inText, inTextEnd);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, nint, int>)funcTable[720])((nint)outChar, (nint)inText, (nint)inTextEnd);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, nint, int>)funcTable[721])((nint)outChar, (nint)inText, (nint)inTextEnd);
 			#endif
 		}
 
@@ -2348,9 +2348,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImTextCountCharsFromUtf8Native(byte* inText, byte* inTextEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int>)funcTable[721])(inText, inTextEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int>)funcTable[722])(inText, inTextEnd);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[721])((nint)inText, (nint)inTextEnd);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[722])((nint)inText, (nint)inTextEnd);
 			#endif
 		}
 
@@ -2721,9 +2721,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImTextCountUtf8BytesFromCharNative(byte* inText, byte* inTextEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int>)funcTable[722])(inText, inTextEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int>)funcTable[723])(inText, inTextEnd);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[722])((nint)inText, (nint)inTextEnd);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[723])((nint)inText, (nint)inTextEnd);
 			#endif
 		}
 
@@ -3094,9 +3094,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImTextCountUtf8BytesFromStrNative(ushort* inText, ushort* inTextEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ushort*, ushort*, int>)funcTable[723])(inText, inTextEnd);
+			return ((delegate* unmanaged[Cdecl]<ushort*, ushort*, int>)funcTable[724])(inText, inTextEnd);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[723])((nint)inText, (nint)inTextEnd);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[724])((nint)inText, (nint)inTextEnd);
 			#endif
 		}
 
@@ -3155,9 +3155,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImFileHandle ImFileOpenNative(byte* filename, byte* mode)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ImFileHandle>)funcTable[724])(filename, mode);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ImFileHandle>)funcTable[725])(filename, mode);
 			#else
-			return (ImFileHandle)((delegate* unmanaged[Cdecl]<nint, nint, ImFileHandle>)funcTable[724])((nint)filename, (nint)mode);
+			return (ImFileHandle)((delegate* unmanaged[Cdecl]<nint, nint, ImFileHandle>)funcTable[725])((nint)filename, (nint)mode);
 			#endif
 		}
 
@@ -3528,9 +3528,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ImFileCloseNative(ImFileHandle file)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFileHandle, byte>)funcTable[725])(file);
+			return ((delegate* unmanaged[Cdecl]<ImFileHandle, byte>)funcTable[726])(file);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<ImFileHandle, byte>)funcTable[725])(file);
+			return (byte)((delegate* unmanaged[Cdecl]<ImFileHandle, byte>)funcTable[726])(file);
 			#endif
 		}
 
@@ -3550,9 +3550,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ulong ImFileGetSizeNative(ImFileHandle file)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFileHandle, ulong>)funcTable[726])(file);
+			return ((delegate* unmanaged[Cdecl]<ImFileHandle, ulong>)funcTable[727])(file);
 			#else
-			return (ulong)((delegate* unmanaged[Cdecl]<ImFileHandle, ulong>)funcTable[726])(file);
+			return (ulong)((delegate* unmanaged[Cdecl]<ImFileHandle, ulong>)funcTable[727])(file);
 			#endif
 		}
 
@@ -3572,9 +3572,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ulong ImFileReadNative(void* data, ulong size, ulong count, ImFileHandle file)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<void*, ulong, ulong, ImFileHandle, ulong>)funcTable[727])(data, size, count, file);
+			return ((delegate* unmanaged[Cdecl]<void*, ulong, ulong, ImFileHandle, ulong>)funcTable[728])(data, size, count, file);
 			#else
-			return (ulong)((delegate* unmanaged[Cdecl]<nint, ulong, ulong, ImFileHandle, ulong>)funcTable[727])((nint)data, size, count, file);
+			return (ulong)((delegate* unmanaged[Cdecl]<nint, ulong, ulong, ImFileHandle, ulong>)funcTable[728])((nint)data, size, count, file);
 			#endif
 		}
 
@@ -3594,9 +3594,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ulong ImFileWriteNative(void* data, ulong size, ulong count, ImFileHandle file)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<void*, ulong, ulong, ImFileHandle, ulong>)funcTable[728])(data, size, count, file);
+			return ((delegate* unmanaged[Cdecl]<void*, ulong, ulong, ImFileHandle, ulong>)funcTable[729])(data, size, count, file);
 			#else
-			return (ulong)((delegate* unmanaged[Cdecl]<nint, ulong, ulong, ImFileHandle, ulong>)funcTable[728])((nint)data, size, count, file);
+			return (ulong)((delegate* unmanaged[Cdecl]<nint, ulong, ulong, ImFileHandle, ulong>)funcTable[729])((nint)data, size, count, file);
 			#endif
 		}
 
@@ -3616,9 +3616,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void* ImFileLoadToMemoryNative(byte* filename, byte* mode, ulong* outFileSize, int paddingBytes)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ulong*, int, void*>)funcTable[729])(filename, mode, outFileSize, paddingBytes);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ulong*, int, void*>)funcTable[730])(filename, mode, outFileSize, paddingBytes);
 			#else
-			return (void*)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, nint>)funcTable[729])((nint)filename, (nint)mode, (nint)outFileSize, paddingBytes);
+			return (void*)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, nint>)funcTable[730])((nint)filename, (nint)mode, (nint)outFileSize, paddingBytes);
 			#endif
 		}
 

@@ -3706,9 +3706,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void PlotHistogramNative(byte* label, float* values, int valuesCount, int valuesOffset, byte* overlayText, float scaleMin, float scaleMax, Vector2 graphSize, int stride)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, float*, int, int, byte*, float, float, Vector2, int, void>)funcTable[231])(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, graphSize, stride);
+			((delegate* unmanaged[Cdecl]<byte*, float*, int, int, byte*, float, float, Vector2, int, void>)funcTable[232])(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, graphSize, stride);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, float, float, Vector2, int, void>)funcTable[231])((nint)label, (nint)values, valuesCount, valuesOffset, (nint)overlayText, scaleMin, scaleMax, graphSize, stride);
+			((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, float, float, Vector2, int, void>)funcTable[232])((nint)label, (nint)values, valuesCount, valuesOffset, (nint)overlayText, scaleMin, scaleMax, graphSize, stride);
 			#endif
 		}
 

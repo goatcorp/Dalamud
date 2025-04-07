@@ -21,6 +21,30 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public static bool DragFloat3(byte* label, ref float v, float vSpeed, float vMin)
+		{
+			fixed (float* pv = &v)
+			{
+				bool ret = DragFloat3(label, (float*)pv, vSpeed, vMin, (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragFloat3(byte* label, ref float v, float vSpeed)
+		{
+			fixed (float* pv = &v)
+			{
+				bool ret = DragFloat3(label, (float*)pv, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public static bool DragFloat3(byte* label, ref float v)
 		{
 			fixed (float* pv = &v)

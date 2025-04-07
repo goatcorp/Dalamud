@@ -4605,9 +4605,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void BuildLookupTableNative(ImFont* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, void>)funcTable[625])(self);
+			((delegate* unmanaged[Cdecl]<ImFont*, void>)funcTable[626])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[625])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[626])((nint)self);
 			#endif
 		}
 
@@ -4637,9 +4637,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ClearOutputDataNative(ImFont* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, void>)funcTable[626])(self);
+			((delegate* unmanaged[Cdecl]<ImFont*, void>)funcTable[627])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[626])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[627])((nint)self);
 			#endif
 		}
 
@@ -4669,9 +4669,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void GrowIndexNative(ImFont* self, int newSize)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, int, void>)funcTable[627])(self, newSize);
+			((delegate* unmanaged[Cdecl]<ImFont*, int, void>)funcTable[628])(self, newSize);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, void>)funcTable[627])((nint)self, newSize);
+			((delegate* unmanaged[Cdecl]<nint, int, void>)funcTable[628])((nint)self, newSize);
 			#endif
 		}
 
@@ -4701,9 +4701,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void AddGlyphNative(ImFont* self, ImFontConfig* srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, ImFontConfig*, ushort, int, float, float, float, float, float, float, float, float, float, void>)funcTable[628])(self, srcCfg, c, textureIndex, x0, y0, x1, y1, u0, v0, u1, v1, advanceX);
+			((delegate* unmanaged[Cdecl]<ImFont*, ImFontConfig*, ushort, int, float, float, float, float, float, float, float, float, float, void>)funcTable[629])(self, srcCfg, c, textureIndex, x0, y0, x1, y1, u0, v0, u1, v1, advanceX);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, ushort, int, float, float, float, float, float, float, float, float, float, void>)funcTable[628])((nint)self, (nint)srcCfg, c, textureIndex, x0, y0, x1, y1, u0, v0, u1, v1, advanceX);
+			((delegate* unmanaged[Cdecl]<nint, nint, ushort, int, float, float, float, float, float, float, float, float, float, void>)funcTable[629])((nint)self, (nint)srcCfg, c, textureIndex, x0, y0, x1, y1, u0, v0, u1, v1, advanceX);
 			#endif
 		}
 
@@ -4758,9 +4758,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void AddRemapCharNative(ImFont* self, ushort dst, ushort src, byte overwriteDst)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, ushort, ushort, byte, void>)funcTable[629])(self, dst, src, overwriteDst);
+			((delegate* unmanaged[Cdecl]<ImFont*, ushort, ushort, byte, void>)funcTable[630])(self, dst, src, overwriteDst);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, ushort, ushort, byte, void>)funcTable[629])((nint)self, dst, src, overwriteDst);
+			((delegate* unmanaged[Cdecl]<nint, ushort, ushort, byte, void>)funcTable[630])((nint)self, dst, src, overwriteDst);
 			#endif
 		}
 
@@ -4809,9 +4809,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void SetGlyphVisibleNative(ImFont* self, ushort c, byte visible)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, ushort, byte, void>)funcTable[630])(self, c, visible);
+			((delegate* unmanaged[Cdecl]<ImFont*, ushort, byte, void>)funcTable[631])(self, c, visible);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, ushort, byte, void>)funcTable[630])((nint)self, c, visible);
+			((delegate* unmanaged[Cdecl]<nint, ushort, byte, void>)funcTable[631])((nint)self, c, visible);
 			#endif
 		}
 
@@ -4841,9 +4841,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte IsGlyphRangeUnusedNative(ImFont* self, uint cBegin, uint cLast)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, uint, uint, byte>)funcTable[631])(self, cBegin, cLast);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, uint, uint, byte>)funcTable[632])(self, cBegin, cLast);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, uint, uint, byte>)funcTable[631])((nint)self, cBegin, cLast);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, uint, uint, byte>)funcTable[632])((nint)self, cBegin, cLast);
 			#endif
 		}
 
@@ -4875,9 +4875,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void AddKerningPairNative(ImFont* self, ushort leftC, ushort rightC, float distanceAdjustment)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, ushort, ushort, float, void>)funcTable[632])(self, leftC, rightC, distanceAdjustment);
+			((delegate* unmanaged[Cdecl]<ImFont*, ushort, ushort, float, void>)funcTable[633])(self, leftC, rightC, distanceAdjustment);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, ushort, ushort, float, void>)funcTable[632])((nint)self, leftC, rightC, distanceAdjustment);
+			((delegate* unmanaged[Cdecl]<nint, ushort, ushort, float, void>)funcTable[633])((nint)self, leftC, rightC, distanceAdjustment);
 			#endif
 		}
 
@@ -4907,9 +4907,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static float GetDistanceAdjustmentForPairFromHotDataNative(ImFont* self, ushort leftC, ImFontGlyphHotData* rightCInfo)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ImFontGlyphHotData*, float>)funcTable[633])(self, leftC, rightCInfo);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ImFontGlyphHotData*, float>)funcTable[634])(self, leftC, rightCInfo);
 			#else
-			return (float)((delegate* unmanaged[Cdecl]<nint, ushort, nint, float>)funcTable[633])((nint)self, leftC, (nint)rightCInfo);
+			return (float)((delegate* unmanaged[Cdecl]<nint, ushort, nint, float>)funcTable[634])((nint)self, leftC, (nint)rightCInfo);
 			#endif
 		}
 
@@ -4968,9 +4968,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImGuiViewport* ImGuiViewportNative()
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImGuiViewport*>)funcTable[634])();
+			return ((delegate* unmanaged[Cdecl]<ImGuiViewport*>)funcTable[635])();
 			#else
-			return (ImGuiViewport*)((delegate* unmanaged[Cdecl]<nint>)funcTable[634])();
+			return (ImGuiViewport*)((delegate* unmanaged[Cdecl]<nint>)funcTable[635])();
 			#endif
 		}
 
@@ -4990,9 +4990,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void DestroyNative(ImGuiViewport* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImGuiViewport*, void>)funcTable[635])(self);
+			((delegate* unmanaged[Cdecl]<ImGuiViewport*, void>)funcTable[636])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[635])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[636])((nint)self);
 			#endif
 		}
 
@@ -5022,9 +5022,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void GetCenterNative(Vector2* pOut, ImGuiViewport* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, ImGuiViewport*, void>)funcTable[636])(pOut, self);
+			((delegate* unmanaged[Cdecl]<Vector2*, ImGuiViewport*, void>)funcTable[637])(pOut, self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, void>)funcTable[636])((nint)pOut, (nint)self);
+			((delegate* unmanaged[Cdecl]<nint, nint, void>)funcTable[637])((nint)pOut, (nint)self);
 			#endif
 		}
 	}

@@ -25,9 +25,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte InputDoubleNative(byte* label, double* v, double step, double stepFast, byte* format, ImGuiInputTextFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, double*, double, double, byte*, ImGuiInputTextFlags, byte>)funcTable[197])(label, v, step, stepFast, format, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, double*, double, double, byte*, ImGuiInputTextFlags, byte>)funcTable[198])(label, v, step, stepFast, format, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, double, double, nint, ImGuiInputTextFlags, byte>)funcTable[197])((nint)label, (nint)v, step, stepFast, (nint)format, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, double, double, nint, ImGuiInputTextFlags, byte>)funcTable[198])((nint)label, (nint)v, step, stepFast, (nint)format, flags);
 			#endif
 		}
 

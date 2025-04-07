@@ -25,9 +25,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeExVNative(byte* strId, ImGuiTreeNodeFlags flags, byte* fmt, nuint args)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiTreeNodeFlags, byte*, nuint, byte>)funcTable[214])(strId, flags, fmt, args);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiTreeNodeFlags, byte*, nuint, byte>)funcTable[215])(strId, flags, fmt, args);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, nint, nuint, byte>)funcTable[214])((nint)strId, flags, (nint)fmt, args);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, nint, nuint, byte>)funcTable[215])((nint)strId, flags, (nint)fmt, args);
 			#endif
 		}
 
@@ -398,9 +398,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte TreeNodeExVNative(void* ptrId, ImGuiTreeNodeFlags flags, byte* fmt, nuint args)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<void*, ImGuiTreeNodeFlags, byte*, nuint, byte>)funcTable[215])(ptrId, flags, fmt, args);
+			return ((delegate* unmanaged[Cdecl]<void*, ImGuiTreeNodeFlags, byte*, nuint, byte>)funcTable[216])(ptrId, flags, fmt, args);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, nint, nuint, byte>)funcTable[215])((nint)ptrId, flags, (nint)fmt, args);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, nint, nuint, byte>)funcTable[216])((nint)ptrId, flags, (nint)fmt, args);
 			#endif
 		}
 
@@ -474,9 +474,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void TreePushNative(byte* strId)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[216])(strId);
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[217])(strId);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[216])((nint)strId);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[217])((nint)strId);
 			#endif
 		}
 
@@ -546,9 +546,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void TreePushNative(void* ptrId)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void*, void>)funcTable[217])(ptrId);
+			((delegate* unmanaged[Cdecl]<void*, void>)funcTable[218])(ptrId);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[217])((nint)ptrId);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[218])((nint)ptrId);
 			#endif
 		}
 
@@ -575,9 +575,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void TreePopNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[218])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[219])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[218])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[219])();
 			#endif
 		}
 
@@ -596,9 +596,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static float GetTreeNodeToLabelSpacingNative()
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<float>)funcTable[219])();
+			return ((delegate* unmanaged[Cdecl]<float>)funcTable[220])();
 			#else
-			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[219])();
+			return (float)((delegate* unmanaged[Cdecl]<float>)funcTable[220])();
 			#endif
 		}
 
@@ -618,9 +618,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte CollapsingHeaderNative(byte* label, ImGuiTreeNodeFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiTreeNodeFlags, byte>)funcTable[220])(label, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, ImGuiTreeNodeFlags, byte>)funcTable[221])(label, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, byte>)funcTable[220])((nint)label, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiTreeNodeFlags, byte>)funcTable[221])((nint)label, flags);
 			#endif
 		}
 
@@ -757,9 +757,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte CollapsingHeaderNative(byte* label, bool* pVisible, ImGuiTreeNodeFlags flags)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, bool*, ImGuiTreeNodeFlags, byte>)funcTable[221])(label, pVisible, flags);
+			return ((delegate* unmanaged[Cdecl]<byte*, bool*, ImGuiTreeNodeFlags, byte>)funcTable[222])(label, pVisible, flags);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiTreeNodeFlags, byte>)funcTable[221])((nint)label, (nint)pVisible, flags);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiTreeNodeFlags, byte>)funcTable[222])((nint)label, (nint)pVisible, flags);
 			#endif
 		}
 
@@ -1046,9 +1046,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void SetNextItemOpenNative(byte isOpen, ImGuiCond cond)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[222])(isOpen, cond);
+			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[223])(isOpen, cond);
 			#else
-			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[222])(isOpen, cond);
+			((delegate* unmanaged[Cdecl]<byte, ImGuiCond, void>)funcTable[223])(isOpen, cond);
 			#endif
 		}
 
@@ -1075,9 +1075,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SelectableNative(byte* label, byte selected, ImGuiSelectableFlags flags, Vector2 size)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte, ImGuiSelectableFlags, Vector2, byte>)funcTable[223])(label, selected, flags, size);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte, ImGuiSelectableFlags, Vector2, byte>)funcTable[224])(label, selected, flags, size);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte, ImGuiSelectableFlags, Vector2, byte>)funcTable[223])((nint)label, selected, flags, size);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, byte, ImGuiSelectableFlags, Vector2, byte>)funcTable[224])((nint)label, selected, flags, size);
 			#endif
 		}
 
@@ -1592,9 +1592,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte SelectableNative(byte* label, bool* pSelected, ImGuiSelectableFlags flags, Vector2 size)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, bool*, ImGuiSelectableFlags, Vector2, byte>)funcTable[224])(label, pSelected, flags, size);
+			return ((delegate* unmanaged[Cdecl]<byte*, bool*, ImGuiSelectableFlags, Vector2, byte>)funcTable[225])(label, pSelected, flags, size);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiSelectableFlags, Vector2, byte>)funcTable[224])((nint)label, (nint)pSelected, flags, size);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ImGuiSelectableFlags, Vector2, byte>)funcTable[225])((nint)label, (nint)pSelected, flags, size);
 			#endif
 		}
 
@@ -2157,9 +2157,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte BeginListBoxNative(byte* label, Vector2 size)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, byte>)funcTable[225])(label, size);
+			return ((delegate* unmanaged[Cdecl]<byte*, Vector2, byte>)funcTable[226])(label, size);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, byte>)funcTable[225])((nint)label, size);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, Vector2, byte>)funcTable[226])((nint)label, size);
 			#endif
 		}
 
@@ -2296,9 +2296,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void EndListBoxNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void>)funcTable[226])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[227])();
 			#else
-			((delegate* unmanaged[Cdecl]<void>)funcTable[226])();
+			((delegate* unmanaged[Cdecl]<void>)funcTable[227])();
 			#endif
 		}
 
@@ -2317,9 +2317,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ListBoxNative(byte* label, int* currentItem, byte** items, int itemsCount, int heightInItems)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, byte**, int, int, byte>)funcTable[227])(label, currentItem, items, itemsCount, heightInItems);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, byte**, int, int, byte>)funcTable[228])(label, currentItem, items, itemsCount, heightInItems);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, int, byte>)funcTable[227])((nint)label, (nint)currentItem, (nint)items, itemsCount, heightInItems);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, int, int, byte>)funcTable[228])((nint)label, (nint)currentItem, (nint)items, itemsCount, heightInItems);
 			#endif
 		}
 
@@ -2982,9 +2982,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ListBoxNative(byte* label, int* currentItem, delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool> itemsGetter, void* data, int itemsCount, int heightInItems)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, int*, delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>, void*, int, int, byte>)funcTable[228])(label, currentItem, itemsGetter, data, itemsCount, heightInItems);
+			return ((delegate* unmanaged[Cdecl]<byte*, int*, delegate*<byte*, int*, delegate*<void*, int, byte**, bool>, void*, int, int, bool>, void*, int, int, byte>)funcTable[229])(label, currentItem, itemsGetter, data, itemsCount, heightInItems);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, int, int, byte>)funcTable[228])((nint)label, (nint)currentItem, (nint)itemsGetter, (nint)data, itemsCount, heightInItems);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, int, int, byte>)funcTable[229])((nint)label, (nint)currentItem, (nint)itemsGetter, (nint)data, itemsCount, heightInItems);
 			#endif
 		}
 
@@ -3271,9 +3271,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void PlotLinesNative(byte* label, float* values, int valuesCount, int valuesOffset, byte* overlayText, float scaleMin, float scaleMax, Vector2 graphSize, int stride)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, float*, int, int, byte*, float, float, Vector2, int, void>)funcTable[229])(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, graphSize, stride);
+			((delegate* unmanaged[Cdecl]<byte*, float*, int, int, byte*, float, float, Vector2, int, void>)funcTable[230])(label, values, valuesCount, valuesOffset, overlayText, scaleMin, scaleMax, graphSize, stride);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, float, float, Vector2, int, void>)funcTable[229])((nint)label, (nint)values, valuesCount, valuesOffset, (nint)overlayText, scaleMin, scaleMax, graphSize, stride);
+			((delegate* unmanaged[Cdecl]<nint, nint, int, int, nint, float, float, Vector2, int, void>)funcTable[230])((nint)label, (nint)values, valuesCount, valuesOffset, (nint)overlayText, scaleMin, scaleMax, graphSize, stride);
 			#endif
 		}
 

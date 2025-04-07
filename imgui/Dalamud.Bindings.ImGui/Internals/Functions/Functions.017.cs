@@ -22,12 +22,44 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void ImFontAtlasBuildFinishNative(ImFontAtlas* atlas)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[1263])(atlas);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[1263])((nint)atlas);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ImFontAtlasBuildFinish(ImFontAtlasPtr atlas)
+		{
+			ImFontAtlasBuildFinishNative(atlas);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void ImFontAtlasBuildFinish(ref ImFontAtlas atlas)
+		{
+			fixed (ImFontAtlas* patlas = &atlas)
+			{
+				ImFontAtlasBuildFinishNative((ImFontAtlas*)patlas);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void ImFontAtlasBuildRender8bppRectFromStringNative(ImFontAtlas* atlas, int textureIndex, int x, int y, int w, int h, byte* inStr, byte inMarkerChar, byte inMarkerPixelValue)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, int, int, int, int, byte*, byte, byte, void>)funcTable[1261])(atlas, textureIndex, x, y, w, h, inStr, inMarkerChar, inMarkerPixelValue);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, int, int, int, int, byte*, byte, byte, void>)funcTable[1264])(atlas, textureIndex, x, y, w, h, inStr, inMarkerChar, inMarkerPixelValue);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, int, int, int, int, nint, byte, byte, void>)funcTable[1261])((nint)atlas, textureIndex, x, y, w, h, (nint)inStr, inMarkerChar, inMarkerPixelValue);
+			((delegate* unmanaged[Cdecl]<nint, int, int, int, int, int, nint, byte, byte, void>)funcTable[1264])((nint)atlas, textureIndex, x, y, w, h, (nint)inStr, inMarkerChar, inMarkerPixelValue);
 			#endif
 		}
 
@@ -168,9 +200,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImFontAtlasBuildRender32bppRectFromStringNative(ImFontAtlas* atlas, int textureIndex, int x, int y, int w, int h, byte* inStr, byte inMarkerChar, uint inMarkerPixelValue)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, int, int, int, int, byte*, byte, uint, void>)funcTable[1262])(atlas, textureIndex, x, y, w, h, inStr, inMarkerChar, inMarkerPixelValue);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, int, int, int, int, byte*, byte, uint, void>)funcTable[1265])(atlas, textureIndex, x, y, w, h, inStr, inMarkerChar, inMarkerPixelValue);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, int, int, int, int, nint, byte, uint, void>)funcTable[1262])((nint)atlas, textureIndex, x, y, w, h, (nint)inStr, inMarkerChar, inMarkerPixelValue);
+			((delegate* unmanaged[Cdecl]<nint, int, int, int, int, int, nint, byte, uint, void>)funcTable[1265])((nint)atlas, textureIndex, x, y, w, h, (nint)inStr, inMarkerChar, inMarkerPixelValue);
 			#endif
 		}
 
@@ -311,9 +343,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImFontAtlasBuildMultiplyCalcLookupTableNative(byte* outTable, float inMultiplyFactor, float gammaFactor)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, float, float, void>)funcTable[1263])(outTable, inMultiplyFactor, gammaFactor);
+			((delegate* unmanaged[Cdecl]<byte*, float, float, void>)funcTable[1266])(outTable, inMultiplyFactor, gammaFactor);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, float, float, void>)funcTable[1263])((nint)outTable, inMultiplyFactor, gammaFactor);
+			((delegate* unmanaged[Cdecl]<nint, float, float, void>)funcTable[1266])((nint)outTable, inMultiplyFactor, gammaFactor);
 			#endif
 		}
 
@@ -354,9 +386,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImFontAtlasBuildMultiplyRectAlpha8Native(byte* table, byte* pixels, int x, int y, int w, int h, int stride)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, byte*, int, int, int, int, int, void>)funcTable[1264])(table, pixels, x, y, w, h, stride);
+			((delegate* unmanaged[Cdecl]<byte*, byte*, int, int, int, int, int, void>)funcTable[1267])(table, pixels, x, y, w, h, stride);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, int, int, int, int, int, void>)funcTable[1264])((nint)table, (nint)pixels, x, y, w, h, stride);
+			((delegate* unmanaged[Cdecl]<nint, nint, int, int, int, int, int, void>)funcTable[1267])((nint)table, (nint)pixels, x, y, w, h, stride);
 			#endif
 		}
 

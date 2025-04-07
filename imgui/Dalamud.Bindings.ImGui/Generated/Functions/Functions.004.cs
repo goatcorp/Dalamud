@@ -21,6 +21,42 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
+		public static bool DragFloat2(ReadOnlySpan<byte> label, float* v, float vSpeed)
+		{
+			fixed (byte* plabel = label)
+			{
+				bool ret = DragFloat2((byte*)plabel, v, vSpeed, (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragFloat2(ReadOnlySpan<byte> label, float* v)
+		{
+			fixed (byte* plabel = label)
+			{
+				bool ret = DragFloat2((byte*)plabel, v, (float)(1.0f), (float)(0.0f), (float)(0.0f), (string)"%.3f", (ImGuiSliderFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool DragFloat2(ReadOnlySpan<byte> label, float* v, float vSpeed, float vMin, byte* format)
+		{
+			fixed (byte* plabel = label)
+			{
+				byte ret = DragFloat2Native((byte*)plabel, v, vSpeed, vMin, (float)(0.0f), format, (ImGuiSliderFlags)(0));
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
 		public static bool DragFloat2(ReadOnlySpan<byte> label, float* v, float vSpeed, byte* format)
 		{
 			fixed (byte* plabel = label)
@@ -4996,39 +5032,6 @@ namespace Dalamud.Bindings.ImGui
 			fixed (byte* pformat = &format)
 			{
 				byte ret = DragFloat2Native(pStr0, v, vSpeed, vMin, (float)(0.0f), (byte*)pformat, flags);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool DragFloat2(string label, float* v, float vSpeed, ref byte format, ImGuiSliderFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (label != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(label);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(label, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (byte* pformat = &format)
-			{
-				byte ret = DragFloat2Native(pStr0, v, vSpeed, (float)(0.0f), (float)(0.0f), (byte*)pformat, flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);

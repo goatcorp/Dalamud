@@ -37,9 +37,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* GetGlyphRangesChineseFullNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[603])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[604])(self);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[603])((nint)self);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[604])((nint)self);
 			#endif
 		}
 
@@ -71,9 +71,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* GetGlyphRangesChineseSimplifiedCommonNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[604])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[605])(self);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[604])((nint)self);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[605])((nint)self);
 			#endif
 		}
 
@@ -105,9 +105,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* GetGlyphRangesCyrillicNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[605])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[606])(self);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[605])((nint)self);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[606])((nint)self);
 			#endif
 		}
 
@@ -139,9 +139,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* GetGlyphRangesThaiNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[606])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[607])(self);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[606])((nint)self);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[607])((nint)self);
 			#endif
 		}
 
@@ -173,9 +173,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ushort* GetGlyphRangesVietnameseNative(ImFontAtlas* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[607])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[608])(self);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[607])((nint)self);
+			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[608])((nint)self);
 			#endif
 		}
 
@@ -207,9 +207,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int AddCustomRectRegularNative(ImFontAtlas* self, int width, int height)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, int, int>)funcTable[608])(self, width, height);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, int, int>)funcTable[609])(self, width, height);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int, int, int>)funcTable[608])((nint)self, width, height);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int, int, int>)funcTable[609])((nint)self, width, height);
 			#endif
 		}
 
@@ -241,9 +241,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int AddCustomRectFontGlyphNative(ImFontAtlas* self, ImFont* font, ushort id, int width, int height, float advanceX, Vector2 offset)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImFont*, ushort, int, int, float, Vector2, int>)funcTable[609])(self, font, id, width, height, advanceX, offset);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImFont*, ushort, int, int, float, Vector2, int>)funcTable[610])(self, font, id, width, height, advanceX, offset);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, ushort, int, int, float, Vector2, int>)funcTable[609])((nint)self, (nint)font, id, width, height, advanceX, offset);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, ushort, int, int, float, Vector2, int>)funcTable[610])((nint)self, (nint)font, id, width, height, advanceX, offset);
 			#endif
 		}
 
@@ -350,9 +350,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImFontAtlasCustomRect* GetCustomRectByIndexNative(ImFontAtlas* self, int index)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, ImFontAtlasCustomRect*>)funcTable[610])(self, index);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, ImFontAtlasCustomRect*>)funcTable[611])(self, index);
 			#else
-			return (ImFontAtlasCustomRect*)((delegate* unmanaged[Cdecl]<nint, int, nint>)funcTable[610])((nint)self, index);
+			return (ImFontAtlasCustomRect*)((delegate* unmanaged[Cdecl]<nint, int, nint>)funcTable[611])((nint)self, index);
 			#endif
 		}
 
@@ -384,9 +384,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void CalcCustomRectUVNative(ImFontAtlas* self, ImFontAtlasCustomRect* rect, Vector2* outUvMin, Vector2* outUvMax)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImFontAtlasCustomRect*, Vector2*, Vector2*, void>)funcTable[611])(self, rect, outUvMin, outUvMax);
+			((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImFontAtlasCustomRect*, Vector2*, Vector2*, void>)funcTable[612])(self, rect, outUvMin, outUvMax);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, void>)funcTable[611])((nint)self, (nint)rect, (nint)outUvMin, (nint)outUvMax);
+			((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, void>)funcTable[612])((nint)self, (nint)rect, (nint)outUvMin, (nint)outUvMax);
 			#endif
 		}
 
@@ -621,9 +621,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte GetMouseCursorTexDataNative(ImFontAtlas* self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImGuiMouseCursor, Vector2*, Vector2*, Vector2*, Vector2*, int*, byte>)funcTable[612])(self, cursor, outOffset, outSize, outUvBorder, outUvFill, textureIndex);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImGuiMouseCursor, Vector2*, Vector2*, Vector2*, Vector2*, int*, byte>)funcTable[613])(self, cursor, outOffset, outSize, outUvBorder, outUvFill, textureIndex);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiMouseCursor, nint, nint, nint, nint, nint, byte>)funcTable[612])((nint)self, cursor, (nint)outOffset, (nint)outSize, (nint)outUvBorder, (nint)outUvFill, (nint)textureIndex);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiMouseCursor, nint, nint, nint, nint, nint, byte>)funcTable[613])((nint)self, cursor, (nint)outOffset, (nint)outSize, (nint)outUvBorder, (nint)outUvFill, (nint)textureIndex);
 			#endif
 		}
 
@@ -2698,9 +2698,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImFont* ImFontNative()
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*>)funcTable[613])();
+			return ((delegate* unmanaged[Cdecl]<ImFont*>)funcTable[614])();
 			#else
-			return (ImFont*)((delegate* unmanaged[Cdecl]<nint>)funcTable[613])();
+			return (ImFont*)((delegate* unmanaged[Cdecl]<nint>)funcTable[614])();
 			#endif
 		}
 
@@ -2720,9 +2720,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void DestroyNative(ImFont* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFont*, void>)funcTable[614])(self);
+			((delegate* unmanaged[Cdecl]<ImFont*, void>)funcTable[615])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[614])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[615])((nint)self);
 			#endif
 		}
 
@@ -2752,9 +2752,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImFontGlyph* FindGlyphNative(ImFont* self, ushort c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ImFontGlyph*>)funcTable[615])(self, c);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ImFontGlyph*>)funcTable[616])(self, c);
 			#else
-			return (ImFontGlyph*)((delegate* unmanaged[Cdecl]<nint, ushort, nint>)funcTable[615])((nint)self, c);
+			return (ImFontGlyph*)((delegate* unmanaged[Cdecl]<nint, ushort, nint>)funcTable[616])((nint)self, c);
 			#endif
 		}
 
@@ -2786,9 +2786,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static ImFontGlyph* FindGlyphNoFallbackNative(ImFont* self, ushort c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ImFontGlyph*>)funcTable[616])(self, c);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ImFontGlyph*>)funcTable[617])(self, c);
 			#else
-			return (ImFontGlyph*)((delegate* unmanaged[Cdecl]<nint, ushort, nint>)funcTable[616])((nint)self, c);
+			return (ImFontGlyph*)((delegate* unmanaged[Cdecl]<nint, ushort, nint>)funcTable[617])((nint)self, c);
 			#endif
 		}
 
@@ -2820,9 +2820,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static float GetDistanceAdjustmentForPairNative(ImFont* self, ushort leftC, ushort rightC)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ushort, float>)funcTable[617])(self, leftC, rightC);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ushort, float>)funcTable[618])(self, leftC, rightC);
 			#else
-			return (float)((delegate* unmanaged[Cdecl]<nint, ushort, ushort, float>)funcTable[617])((nint)self, leftC, rightC);
+			return (float)((delegate* unmanaged[Cdecl]<nint, ushort, ushort, float>)funcTable[618])((nint)self, leftC, rightC);
 			#endif
 		}
 
@@ -2854,9 +2854,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static float GetCharAdvanceNative(ImFont* self, ushort c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, float>)funcTable[618])(self, c);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, float>)funcTable[619])(self, c);
 			#else
-			return (float)((delegate* unmanaged[Cdecl]<nint, ushort, float>)funcTable[618])((nint)self, c);
+			return (float)((delegate* unmanaged[Cdecl]<nint, ushort, float>)funcTable[619])((nint)self, c);
 			#endif
 		}
 
@@ -2888,9 +2888,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte IsLoadedNative(ImFont* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, byte>)funcTable[619])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, byte>)funcTable[620])(self);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[619])((nint)self);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[620])((nint)self);
 			#endif
 		}
 
@@ -2922,9 +2922,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* GetDebugNameNative(ImFont* self)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFont*, byte*>)funcTable[620])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, byte*>)funcTable[621])(self);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[620])((nint)self);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[621])((nint)self);
 			#endif
 		}
 
@@ -2977,9 +2977,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void CalcTextSizeANative(Vector2* pOut, ImFont* self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<Vector2*, ImFont*, float, float, float, byte*, byte*, byte**, void>)funcTable[621])(pOut, self, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
+			((delegate* unmanaged[Cdecl]<Vector2*, ImFont*, float, float, float, byte*, byte*, byte**, void>)funcTable[622])(pOut, self, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, float, float, float, nint, nint, nint, void>)funcTable[621])((nint)pOut, (nint)self, size, maxWidth, wrapWidth, (nint)textBegin, (nint)textEnd, (nint)remaining);
+			((delegate* unmanaged[Cdecl]<nint, nint, float, float, float, nint, nint, nint, void>)funcTable[622])((nint)pOut, (nint)self, size, maxWidth, wrapWidth, (nint)textBegin, (nint)textEnd, (nint)remaining);
 			#endif
 		}
 

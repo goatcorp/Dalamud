@@ -3903,9 +3903,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImFormatStringNative(byte* buf, ulong bufSize, byte* fmt)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ulong, byte*, int>)funcTable[1268])(buf, bufSize, fmt);
+			return ((delegate* unmanaged[Cdecl]<byte*, ulong, byte*, int>)funcTable[1271])(buf, bufSize, fmt);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, ulong, nint, int>)funcTable[1268])((nint)buf, bufSize, (nint)fmt);
+			return (int)((delegate* unmanaged[Cdecl]<nint, ulong, nint, int>)funcTable[1271])((nint)buf, bufSize, (nint)fmt);
 			#endif
 		}
 
@@ -4494,9 +4494,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImFormatStringVNative(byte* buf, ulong bufSize, byte* fmt, nuint args)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ulong, byte*, nuint, int>)funcTable[1269])(buf, bufSize, fmt, args);
+			return ((delegate* unmanaged[Cdecl]<byte*, ulong, byte*, nuint, int>)funcTable[1272])(buf, bufSize, fmt, args);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, ulong, nint, nuint, int>)funcTable[1269])((nint)buf, bufSize, (nint)fmt, args);
+			return (int)((delegate* unmanaged[Cdecl]<nint, ulong, nint, nuint, int>)funcTable[1272])((nint)buf, bufSize, (nint)fmt, args);
 			#endif
 		}
 

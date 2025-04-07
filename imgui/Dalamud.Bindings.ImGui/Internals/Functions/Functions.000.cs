@@ -24,9 +24,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static uint ImHashDataNative(void* data, ulong dataSize, uint seed)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<void*, ulong, uint, uint>)funcTable[691])(data, dataSize, seed);
+			return ((delegate* unmanaged[Cdecl]<void*, ulong, uint, uint>)funcTable[692])(data, dataSize, seed);
 			#else
-			return (uint)((delegate* unmanaged[Cdecl]<nint, ulong, uint, uint>)funcTable[691])((nint)data, dataSize, seed);
+			return (uint)((delegate* unmanaged[Cdecl]<nint, ulong, uint, uint>)funcTable[692])((nint)data, dataSize, seed);
 			#endif
 		}
 
@@ -73,9 +73,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static uint ImHashStrNative(byte* data, ulong dataSize, uint seed)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ulong, uint, uint>)funcTable[692])(data, dataSize, seed);
+			return ((delegate* unmanaged[Cdecl]<byte*, ulong, uint, uint>)funcTable[693])(data, dataSize, seed);
 			#else
-			return (uint)((delegate* unmanaged[Cdecl]<nint, ulong, uint, uint>)funcTable[692])((nint)data, dataSize, seed);
+			return (uint)((delegate* unmanaged[Cdecl]<nint, ulong, uint, uint>)funcTable[693])((nint)data, dataSize, seed);
 			#endif
 		}
 
@@ -464,9 +464,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImQsortNative(void* baseValue, ulong count, ulong sizeOfElement, delegate*<void*, ulong, ulong, delegate*<void*, void*, int>, int> compareFunc)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<void*, ulong, ulong, delegate*<void*, ulong, ulong, delegate*<void*, void*, int>, int>, void>)funcTable[693])(baseValue, count, sizeOfElement, compareFunc);
+			((delegate* unmanaged[Cdecl]<void*, ulong, ulong, delegate*<void*, ulong, ulong, delegate*<void*, void*, int>, int>, void>)funcTable[694])(baseValue, count, sizeOfElement, compareFunc);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, ulong, ulong, nint, void>)funcTable[693])((nint)baseValue, count, sizeOfElement, (nint)compareFunc);
+			((delegate* unmanaged[Cdecl]<nint, ulong, ulong, nint, void>)funcTable[694])((nint)baseValue, count, sizeOfElement, (nint)compareFunc);
 			#endif
 		}
 
@@ -509,9 +509,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static uint ImAlphaBlendColorsNative(uint colA, uint colB)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<uint, uint, uint>)funcTable[694])(colA, colB);
+			return ((delegate* unmanaged[Cdecl]<uint, uint, uint>)funcTable[695])(colA, colB);
 			#else
-			return (uint)((delegate* unmanaged[Cdecl]<uint, uint, uint>)funcTable[694])(colA, colB);
+			return (uint)((delegate* unmanaged[Cdecl]<uint, uint, uint>)funcTable[695])(colA, colB);
 			#endif
 		}
 
@@ -531,9 +531,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ImIsPowerOfTwoNative(int v)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<int, byte>)funcTable[695])(v);
+			return ((delegate* unmanaged[Cdecl]<int, byte>)funcTable[696])(v);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<int, byte>)funcTable[695])(v);
+			return (byte)((delegate* unmanaged[Cdecl]<int, byte>)funcTable[696])(v);
 			#endif
 		}
 
@@ -553,9 +553,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ImIsPowerOfTwoNative(ulong v)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ulong, byte>)funcTable[696])(v);
+			return ((delegate* unmanaged[Cdecl]<ulong, byte>)funcTable[697])(v);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<ulong, byte>)funcTable[696])(v);
+			return (byte)((delegate* unmanaged[Cdecl]<ulong, byte>)funcTable[697])(v);
 			#endif
 		}
 
@@ -575,9 +575,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImUpperPowerOfTwoNative(int v)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<int, int>)funcTable[697])(v);
+			return ((delegate* unmanaged[Cdecl]<int, int>)funcTable[698])(v);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<int, int>)funcTable[697])(v);
+			return (int)((delegate* unmanaged[Cdecl]<int, int>)funcTable[698])(v);
 			#endif
 		}
 
@@ -597,9 +597,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImStricmpNative(byte* str1, byte* str2)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int>)funcTable[698])(str1, str2);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int>)funcTable[699])(str1, str2);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[698])((nint)str1, (nint)str2);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, int>)funcTable[699])((nint)str1, (nint)str2);
 			#endif
 		}
 
@@ -970,9 +970,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImStrnicmpNative(byte* str1, byte* str2, ulong count)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, int>)funcTable[699])(str1, str2, count);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, int>)funcTable[700])(str1, str2, count);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, nint, ulong, int>)funcTable[699])((nint)str1, (nint)str2, count);
+			return (int)((delegate* unmanaged[Cdecl]<nint, nint, ulong, int>)funcTable[700])((nint)str1, (nint)str2, count);
 			#endif
 		}
 
@@ -1703,9 +1703,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImStrncpyNative(byte* dst, byte* src, ulong count)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, void>)funcTable[700])(dst, src, count);
+			((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, void>)funcTable[701])(dst, src, count);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, ulong, void>)funcTable[700])((nint)dst, (nint)src, count);
+			((delegate* unmanaged[Cdecl]<nint, nint, ulong, void>)funcTable[701])((nint)dst, (nint)src, count);
 			#endif
 		}
 
@@ -2270,9 +2270,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImStrdupNative(byte* str)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[701])(str);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[702])(str);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[701])((nint)str);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[702])((nint)str);
 			#endif
 		}
 
@@ -2409,9 +2409,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImStrdupcpyNative(byte* dst, ulong* pDstSize, byte* str)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, ulong*, byte*, byte*>)funcTable[702])(dst, pDstSize, str);
+			return ((delegate* unmanaged[Cdecl]<byte*, ulong*, byte*, byte*>)funcTable[703])(dst, pDstSize, str);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint>)funcTable[702])((nint)dst, (nint)pDstSize, (nint)str);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint, nint>)funcTable[703])((nint)dst, (nint)pDstSize, (nint)str);
 			#endif
 		}
 
@@ -3650,9 +3650,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImStrchrRangeNative(byte* strBegin, byte* strEnd, byte c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte, byte*>)funcTable[703])(strBegin, strEnd, c);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte, byte*>)funcTable[704])(strBegin, strEnd, c);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, byte, nint>)funcTable[703])((nint)strBegin, (nint)strEnd, c);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, byte, nint>)funcTable[704])((nint)strBegin, (nint)strEnd, c);
 			#endif
 		}
 
@@ -4383,9 +4383,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static int ImStrlenWNative(ushort* str)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ushort*, int>)funcTable[704])(str);
+			return ((delegate* unmanaged[Cdecl]<ushort*, int>)funcTable[705])(str);
 			#else
-			return (int)((delegate* unmanaged[Cdecl]<nint, int>)funcTable[704])((nint)str);
+			return (int)((delegate* unmanaged[Cdecl]<nint, int>)funcTable[705])((nint)str);
 			#endif
 		}
 
@@ -4417,9 +4417,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImStreolRangeNative(byte* str, byte* strEnd)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*>)funcTable[705])(str, strEnd);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*>)funcTable[706])(str, strEnd);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint>)funcTable[705])((nint)str, (nint)strEnd);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint, nint>)funcTable[706])((nint)str, (nint)strEnd);
 			#endif
 		}
 

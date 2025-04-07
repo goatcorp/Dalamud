@@ -3565,9 +3565,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImStrTrimBlanksNative(byte* str)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[708])(str);
+			((delegate* unmanaged[Cdecl]<byte*, void>)funcTable[709])(str);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[708])((nint)str);
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[709])((nint)str);
 			#endif
 		}
 
@@ -3627,9 +3627,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImStrSkipBlankNative(byte* str)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[709])(str);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[710])(str);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[709])((nint)str);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[710])((nint)str);
 			#endif
 		}
 
@@ -3766,9 +3766,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ImCharIsBlankANative(byte c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte, byte>)funcTable[710])(c);
+			return ((delegate* unmanaged[Cdecl]<byte, byte>)funcTable[711])(c);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<byte, byte>)funcTable[710])(c);
+			return (byte)((delegate* unmanaged[Cdecl]<byte, byte>)funcTable[711])(c);
 			#endif
 		}
 
@@ -3788,9 +3788,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte ImCharIsBlankWNative(uint c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<uint, byte>)funcTable[711])(c);
+			return ((delegate* unmanaged[Cdecl]<uint, byte>)funcTable[712])(c);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<uint, byte>)funcTable[711])(c);
+			return (byte)((delegate* unmanaged[Cdecl]<uint, byte>)funcTable[712])(c);
 			#endif
 		}
 
@@ -3810,9 +3810,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImFormatStringToTempBufferNative(byte** outBuf, byte** outBufEnd, byte* fmt)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte**, byte**, byte*, void>)funcTable[712])(outBuf, outBufEnd, fmt);
+			((delegate* unmanaged[Cdecl]<byte**, byte**, byte*, void>)funcTable[713])(outBuf, outBufEnd, fmt);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, nint, void>)funcTable[712])((nint)outBuf, (nint)outBufEnd, (nint)fmt);
+			((delegate* unmanaged[Cdecl]<nint, nint, nint, void>)funcTable[713])((nint)outBuf, (nint)outBufEnd, (nint)fmt);
 			#endif
 		}
 
@@ -4107,9 +4107,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImFormatStringToTempBufferVNative(byte** outBuf, byte** outBufEnd, byte* fmt, nuint args)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte**, byte**, byte*, nuint, void>)funcTable[713])(outBuf, outBufEnd, fmt, args);
+			((delegate* unmanaged[Cdecl]<byte**, byte**, byte*, nuint, void>)funcTable[714])(outBuf, outBufEnd, fmt, args);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, nint, nuint, void>)funcTable[713])((nint)outBuf, (nint)outBufEnd, (nint)fmt, args);
+			((delegate* unmanaged[Cdecl]<nint, nint, nint, nuint, void>)funcTable[714])((nint)outBuf, (nint)outBufEnd, (nint)fmt, args);
 			#endif
 		}
 
@@ -4404,9 +4404,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImParseFormatFindStartNative(byte* format)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[714])(format);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[715])(format);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[714])((nint)format);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[715])((nint)format);
 			#endif
 		}
 
@@ -4543,9 +4543,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static byte* ImParseFormatFindEndNative(byte* format)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[715])(format);
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*>)funcTable[716])(format);
 			#else
-			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[715])((nint)format);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[716])((nint)format);
 			#endif
 		}
 
@@ -4682,9 +4682,9 @@ namespace Dalamud.Bindings.ImGui
 		internal static void ImParseFormatSanitizeForPrintingNative(byte* fmtIn, byte* fmtOut, ulong fmtOutSize)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, void>)funcTable[716])(fmtIn, fmtOut, fmtOutSize);
+			((delegate* unmanaged[Cdecl]<byte*, byte*, ulong, void>)funcTable[717])(fmtIn, fmtOut, fmtOutSize);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, ulong, void>)funcTable[716])((nint)fmtIn, (nint)fmtOut, fmtOutSize);
+			((delegate* unmanaged[Cdecl]<nint, nint, ulong, void>)funcTable[717])((nint)fmtIn, (nint)fmtOut, fmtOutSize);
 			#endif
 		}
 
