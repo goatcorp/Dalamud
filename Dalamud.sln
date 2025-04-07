@@ -70,6 +70,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dalamud.Bindings.ImPlot", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bindings", "Bindings", "{A217B3DF-607A-4EFB-B107-3C4809348043}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandaloneImGuiTestbed", "imgui\StandaloneImGuiTestbed\StandaloneImGuiTestbed.csproj", "{4702A911-2513-478C-A434-2776393FDE77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -156,6 +158,10 @@ Global
 		{9C70BD06-D52C-425E-9C14-5D66BC6046EF}.Debug|Any CPU.Build.0 = Debug|x64
 		{9C70BD06-D52C-425E-9C14-5D66BC6046EF}.Release|Any CPU.ActiveCfg = Release|x64
 		{9C70BD06-D52C-425E-9C14-5D66BC6046EF}.Release|Any CPU.Build.0 = Release|x64
+		{4702A911-2513-478C-A434-2776393FDE77}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{4702A911-2513-478C-A434-2776393FDE77}.Debug|Any CPU.Build.0 = Debug|x64
+		{4702A911-2513-478C-A434-2776393FDE77}.Release|Any CPU.ActiveCfg = Release|x64
+		{4702A911-2513-478C-A434-2776393FDE77}.Release|Any CPU.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -177,6 +183,7 @@ Global
 		{B0AA8737-33A3-4766-8CBE-A48F2EF283BA} = {A217B3DF-607A-4EFB-B107-3C4809348043}
 		{5E6EDD75-AE95-43A6-9D67-95B840EB4B71} = {A217B3DF-607A-4EFB-B107-3C4809348043}
 		{9C70BD06-D52C-425E-9C14-5D66BC6046EF} = {A217B3DF-607A-4EFB-B107-3C4809348043}
+		{4702A911-2513-478C-A434-2776393FDE77} = {A217B3DF-607A-4EFB-B107-3C4809348043}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {79B65AC9-C940-410E-AB61-7EA7E12C7599}

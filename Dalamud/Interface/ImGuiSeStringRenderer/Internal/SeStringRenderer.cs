@@ -154,7 +154,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
         // Handle cases where ImGui.AlignTextToFramePadding has been called.
         var context = ImGui.GetCurrentContext();
         var currLineTextBaseOffset = 0f;
-        /*
         if (!context.IsNull)
         {
             var currentWindow = context.CurrentWindow;
@@ -163,7 +162,6 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
                 currLineTextBaseOffset = currentWindow.DC.CurrLineTextBaseOffset;
             }
         }
-        */
 
         var itemSize = size;
         if (currLineTextBaseOffset != 0f)
