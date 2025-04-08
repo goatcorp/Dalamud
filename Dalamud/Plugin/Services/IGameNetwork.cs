@@ -1,10 +1,13 @@
 ﻿using Dalamud.Game.Network;
+using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Services;
 
 /// <summary>
 /// This class handles interacting with game network events.
 /// </summary>
+[Obsolete("To be removed with API13.")]
+[Api13ToDo("Remove")]
 public interface IGameNetwork
 {
     // TODO(v9): we shouldn't be passing pointers to the actual data here

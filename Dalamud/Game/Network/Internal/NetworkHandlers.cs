@@ -56,7 +56,6 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     [ServiceManager.ServiceConstructor]
     private NetworkHandlers(
-        GameNetwork gameNetwork,
         TargetSigScanner sigScanner,
         HappyHttpClient happyHttpClient)
     {
