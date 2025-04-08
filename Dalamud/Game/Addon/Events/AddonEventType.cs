@@ -135,7 +135,7 @@ public enum AddonEventType : byte
     /// <summary>
     /// AtkComponentDragDrop End.
     /// </summary>
-    DragDropBegin = 51,
+    DragDropEnd = 51,
 
     /// <summary>
     /// AtkComponentDragDrop Insert.
