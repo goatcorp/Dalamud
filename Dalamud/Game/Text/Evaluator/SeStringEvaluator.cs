@@ -19,6 +19,7 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
@@ -68,10 +69,16 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private readonly ConcurrentDictionary<StringCacheKey<ActionKind>, string> actStrCache = [];
     private readonly ConcurrentDictionary<StringCacheKey<ObjectKind>, string> objStrCache = [];
+    private nint[] excludedWordLists;
 
     [ServiceManager.ServiceConstructor]
-    private SeStringEvaluator()
+    private unsafe SeStringEvaluator(TargetSigScanner sigScanner)
     {
+        var addr = sigScanner.ScanText("48 63 10 48 8D 05 ?? ?? ?? ?? 48 8B 14 D0") + 3;
+        var wordListPtrs = (nint*)(addr + 7 + *(int*)(addr + 3));
+        this.excludedWordLists = new nint[8];
+        for (var i = 0; i < this.excludedWordLists.Length; i++)
+            this.excludedWordLists[i] = wordListPtrs[i];
     }
 
     /// <inheritdoc/>
@@ -931,6 +938,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
                 return false;
 
             var str = builder.ToReadOnlySeString();
+            using var tempStr = new Utf8String();
 
             foreach (var p in str)
             {
@@ -939,8 +947,17 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (p.Type == ReadOnlySePayloadType.Text)
                 {
-                    context.Builder.Append(
-                        context.CultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.Span)));
+                    var data = new byte[p.Body.Span.Length + 1];
+                    p.Body.Span.CopyTo(data);
+                    data[^1] = 0;
+                    tempStr.SetString(data);
+
+                    unsafe
+                    {
+                        tempStr.ToUpper(true, true, false, (byte*)this.excludedWordLists[(int)context.Language]);
+                    }
+
+                    context.Builder.Append(tempStr.StringPtr.AsReadOnlySeStringSpan());
 
                     continue;
                 }
