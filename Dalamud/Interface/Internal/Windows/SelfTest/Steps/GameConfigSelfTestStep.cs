@@ -1,6 +1,5 @@
-﻿using Dalamud.Game.Config;
-
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Config;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 

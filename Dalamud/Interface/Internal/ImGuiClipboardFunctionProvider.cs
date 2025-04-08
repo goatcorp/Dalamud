@@ -3,13 +3,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
-
-using Dalamud.Bindings.ImGui;
-
 using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;

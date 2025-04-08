@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiFileDialog;
 

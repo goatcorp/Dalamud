@@ -5,14 +5,12 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Ipc.Internal;
-
-using Dalamud.Bindings.ImGui;
-
 using Newtonsoft.Json;
 
 using Formatting = Newtonsoft.Json.Formatting;

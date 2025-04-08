@@ -1,9 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
-
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiBackend.Renderers;
 

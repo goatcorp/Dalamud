@@ -3,13 +3,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Utility;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using Dalamud.Bindings.ImGui;
-
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 

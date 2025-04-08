@@ -3,11 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
-
-using Dalamud.Bindings.ImGui;
-
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.FontIdentifier;

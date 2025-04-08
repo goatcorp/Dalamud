@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Reflection;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -11,8 +12,6 @@ using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-using Dalamud.Bindings.ImGui;
-
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.StyleEditor;

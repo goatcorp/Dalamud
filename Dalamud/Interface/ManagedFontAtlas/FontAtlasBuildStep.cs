@@ -1,3 +1,5 @@
+using Dalamud.Bindings.ImGui;
+
 namespace Dalamud.Interface.ManagedFontAtlas;
 
 /// <summary>

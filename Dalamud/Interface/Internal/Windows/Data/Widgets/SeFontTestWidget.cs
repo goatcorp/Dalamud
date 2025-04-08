@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 
-using Dalamud.Game.Text;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Text;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

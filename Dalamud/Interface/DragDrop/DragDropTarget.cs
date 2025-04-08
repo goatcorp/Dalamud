@@ -4,8 +4,8 @@ using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
-using Dalamud.Utility;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Utility;
 using Serilog;
 
 namespace Dalamud.Interface.DragDrop;

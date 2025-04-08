@@ -1,7 +1,7 @@
-﻿using Dalamud.Game.Gui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Gui;
 using Dalamud.Memory;
 using Dalamud.Utility;
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

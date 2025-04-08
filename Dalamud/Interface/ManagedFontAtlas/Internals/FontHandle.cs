@@ -4,14 +4,12 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
-
 using Serilog;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;

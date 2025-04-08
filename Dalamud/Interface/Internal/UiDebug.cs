@@ -1,17 +1,15 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Dalamud.Bindings.ImGui;
-
 using Lumina.Text.ReadOnly;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug

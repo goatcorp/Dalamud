@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 

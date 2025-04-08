@@ -1,7 +1,6 @@
-using Dalamud.Interface.Internal.UiDebug2.Utility;
-
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Internal.UiDebug2.Utility;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Utility.Util;

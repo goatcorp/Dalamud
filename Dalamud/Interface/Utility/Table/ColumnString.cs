@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Utility.Table;
 

@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
-using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.GamePad;
 
 namespace Dalamud.Plugin.Services;
 

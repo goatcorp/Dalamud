@@ -1,6 +1,5 @@
-using Dalamud.Interface.ManagedFontAtlas;
-
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.ManagedFontAtlas;
 
 namespace Dalamud.Interface.FontIdentifier;
 

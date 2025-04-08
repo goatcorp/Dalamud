@@ -2,13 +2,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
-
 using Newtonsoft.Json;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

@@ -25,7 +25,7 @@ public unsafe struct ImVectorWrapper<T> : IList<T>, IList, IReadOnlyList<T>, IDi
     /// Initializes a new instance of the <see cref="ImVectorWrapper{T}"/> struct.<br />
     /// If <paramref name="ownership"/> is set to true, you must call <see cref="Dispose"/> after use,
     /// and the underlying memory for <see cref="ImVector"/> must have been allocated using
-    /// <see cref="ImGuiNative.igMemAlloc"/>. Otherwise, it will crash.
+    /// <see cref="ImGui.MemAlloc(ulong)"/>. Otherwise, it will crash.
     /// </summary>
     /// <param name="vector">The underlying vector.</param>
     /// <param name="destroyer">The destroyer function to call on item removal.</param>

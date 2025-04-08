@@ -97,12 +97,12 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// Adds a font from memory region allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.<br />
     /// <b>It WILL crash if you try to use a memory pointer allocated in some other way.</b><br />
     /// <b>
-    /// Do NOT call <see cref="ImGuiNative.igMemFree"/> on the <paramref name="dataPointer"/> once this function has
+    /// Do NOT call <see cref="ImGui.MemFree"/> on the <paramref name="dataPointer"/> once this function has
     /// been called, unless <paramref name="freeOnException"/> is set and the function has thrown an error.
     /// </b>
     /// </summary>
     /// <param name="dataPointer">Memory address for the data allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.</param>
-    /// <param name="dataSize">The size of the font file..</param>
+    /// <param name="dataSize">The size of the font file.</param>
     /// <param name="fontConfig">The font config.</param>
     /// <param name="freeOnException">Free <paramref name="dataPointer"/> if an exception happens.</param>
     /// <param name="debugTag">A debug tag.</param>

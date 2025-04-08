@@ -2,15 +2,13 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

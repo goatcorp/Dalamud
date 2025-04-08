@@ -1,6 +1,5 @@
-using Dalamud.Game.ClientState.Aetherytes;
-
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Aetherytes;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

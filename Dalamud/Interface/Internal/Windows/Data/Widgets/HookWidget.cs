@@ -1,12 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 
-using Windows.Win32.Foundation;
-using Windows.Win32.UI.WindowsAndMessaging;
-
-using Dalamud.Hooking;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Hooking;
 using PInvoke;
 using Serilog;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

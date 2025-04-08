@@ -1,11 +1,9 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using Dalamud.Bindings.ImGui;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 

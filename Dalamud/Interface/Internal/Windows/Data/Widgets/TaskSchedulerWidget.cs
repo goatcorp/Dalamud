@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -16,8 +17,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -314,10 +313,10 @@ internal class TaskSchedulerWidget : IDataWindowWidget
                         }
                         catch (Exception e)
                         {
-                            Log.Error(e, "Failed to download {from} to {to}.", url, localPath);
+                            Log.Error(e, "Failed to download {from} to {to}.", this.url, this.localPath);
                             try
                             {
-                                File.Delete(localPath);
+                                File.Delete(this.localPath);
                             }
                             catch
                             {

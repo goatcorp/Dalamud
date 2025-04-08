@@ -5,13 +5,12 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Networking.Http;
-
-using Dalamud.Bindings.ImGui;
 using Newtonsoft.Json;
 
 namespace Dalamud.Interface.Internal.Windows;

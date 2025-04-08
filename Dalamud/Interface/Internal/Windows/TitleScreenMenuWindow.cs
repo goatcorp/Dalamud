@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
@@ -21,13 +22,8 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using Dalamud.Bindings.ImGui;
-
 using Lumina.Text.ReadOnly;
-
 using Serilog;
 
 using LSeStringBuilder = Lumina.Text.SeStringBuilder;

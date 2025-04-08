@@ -1,10 +1,9 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Dalamud.Bindings.ImGui;
 
 using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
 using static Dalamud.Bindings.ImGui.ImGuiTableFlags;

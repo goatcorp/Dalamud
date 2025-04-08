@@ -1,7 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Windowing;
-
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows;
 

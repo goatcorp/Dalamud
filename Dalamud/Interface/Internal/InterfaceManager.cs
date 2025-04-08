@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.GamePad;
@@ -34,13 +34,8 @@ using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-
 using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
-
-using Dalamud.Bindings.ImGui;
-
 using JetBrains.Annotations;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

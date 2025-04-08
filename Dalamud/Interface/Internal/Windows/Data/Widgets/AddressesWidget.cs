@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

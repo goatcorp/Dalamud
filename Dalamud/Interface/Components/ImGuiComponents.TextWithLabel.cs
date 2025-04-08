@@ -1,6 +1,5 @@
-using Dalamud.Interface.Utility.Raii;
-
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility.Raii;
 
 namespace Dalamud.Interface.Components;
 

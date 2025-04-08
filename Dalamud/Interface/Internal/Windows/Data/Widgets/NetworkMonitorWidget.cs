@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Network;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
-
-using Dalamud.Bindings.ImGui;
 
 using ImGuiTable = Dalamud.Interface.Utility.ImGuiTable;
 

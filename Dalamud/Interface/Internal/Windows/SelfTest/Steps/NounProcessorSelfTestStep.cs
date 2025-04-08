@@ -1,8 +1,7 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
-
-using Dalamud.Bindings.ImGui;
 
 using LSheets = Lumina.Excel.Sheets;
 

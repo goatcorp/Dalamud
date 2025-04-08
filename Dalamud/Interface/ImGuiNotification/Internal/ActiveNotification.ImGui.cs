@@ -1,11 +1,10 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
@@ -152,7 +151,7 @@ internal sealed partial class ActiveNotification
     /// <summary>Calculates the effective expiry, taking ImGui window state into account.</summary>
     /// <param name="warrantsExtension">Notification will not dismiss while this paramter is <c>true</c>.</param>
     /// <returns>The calculated effective expiry.</returns>
-    /// <remarks>Expected to be called BETWEEN <see cref="ImGui.Begin(string)"/> and <see cref="ImGui.End"/>.</remarks>
+    /// <remarks>Expected to be called BETWEEN <see cref="ImGui.Begin(string)"/> and <see cref="ImGui.End()"/>.</remarks>
     private DateTime CalculateEffectiveExpiry(ref bool warrantsExtension)
     {
         DateTime expiry;

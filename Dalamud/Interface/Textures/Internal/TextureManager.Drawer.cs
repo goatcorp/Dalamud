@@ -2,11 +2,9 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

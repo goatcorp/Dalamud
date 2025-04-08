@@ -3,16 +3,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using Windows.Win32.System.Memory;
-
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
-
 using Microsoft.Extensions.ObjectPool;
+using Windows.Win32.System.Memory;
 
 using static Dalamud.NativeFunctions;
 

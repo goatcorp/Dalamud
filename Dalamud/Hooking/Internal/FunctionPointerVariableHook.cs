@@ -2,12 +2,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-using Windows.Win32.System.Memory;
-
 using Dalamud.Memory;
 using JetBrains.Annotations;
-
 using PInvoke;
+using Windows.Win32.System.Memory;
 
 using Win32Exception = System.ComponentModel.Win32Exception;
 

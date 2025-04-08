@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiBackend.Helpers;
 using Dalamud.Interface.ImGuiBackend.Helpers.D3D11;
 using Dalamud.Interface.Textures;
@@ -14,9 +15,6 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

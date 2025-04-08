@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 

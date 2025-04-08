@@ -939,7 +939,6 @@ internal static partial class NativeFunctions
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1629:Documentation text should end with a period", Justification = "Stupid rule")]
 internal static partial class NativeFunctions
 {
-
     /// <summary>
     /// SEM_* from errhandlingapi.
     /// </summary>
@@ -1428,6 +1427,7 @@ internal static partial class NativeFunctions
     /// </returns>
     [DllImport("kernel32.dll", SetLastError=false)]
     public static extern nint HeapAlloc(nint hHeap, HeapOptions dwFlags, nuint dwBytes);
+
     /// <summary>
     /// Writes data to an area of memory in a specified process. The entire area to be written to must be accessible or
     /// the operation fails.

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
@@ -23,8 +23,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
-
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Plugin.Internal.AutoUpdate;
 

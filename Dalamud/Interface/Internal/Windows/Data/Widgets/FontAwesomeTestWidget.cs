@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Numerics;
 
-using Dalamud.Interface.Utility;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

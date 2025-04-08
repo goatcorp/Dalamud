@@ -3,12 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility.Numerics;
 using Dalamud.Utility.Timing;
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows;
 

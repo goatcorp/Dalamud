@@ -1,13 +1,12 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Client.Graphics;
-using Dalamud.Bindings.ImGui;
 
-using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Bindings.ImGui.ImGuiCol;
+using static Dalamud.Interface.ColorHelpers;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Utility;
 

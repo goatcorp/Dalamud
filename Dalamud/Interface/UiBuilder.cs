@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
@@ -13,9 +14,6 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
-
 using Serilog;
 
 namespace Dalamud.Interface;

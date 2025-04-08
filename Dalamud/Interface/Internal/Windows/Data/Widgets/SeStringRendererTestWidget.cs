@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -10,11 +11,7 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using Dalamud.Bindings.ImGui;
-
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Payloads;

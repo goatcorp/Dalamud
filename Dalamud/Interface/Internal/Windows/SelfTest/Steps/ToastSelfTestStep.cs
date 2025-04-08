@@ -1,6 +1,5 @@
-using Dalamud.Game.Gui.Toast;
-
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Gui.Toast;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 

@@ -1,14 +1,13 @@
 using System.Linq;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Interface.Utility.Raii;
-
-using Dalamud.Bindings.ImGui;
 using Lumina.Data;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;

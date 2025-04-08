@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.IO;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Storage;
-using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;

@@ -1,6 +1,5 @@
-﻿using Dalamud.Game.DutyState;
-
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.DutyState;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 

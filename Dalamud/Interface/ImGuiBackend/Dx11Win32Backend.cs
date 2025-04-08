@@ -71,8 +71,6 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
             this.WindowHandle = desc.OutputWindow;
 
             var ctx = ImGui.CreateContext();
-            Debug.Assert(!ctx.IsNull);
-
             ImGuizmo.SetImGuiContext(ctx);
             ImPlot.SetImGuiContext(ctx);
             ImPlot.CreateContext();
@@ -251,4 +249,3 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.swapChainPossiblyWrapped.Dispose();
     }
 }
-

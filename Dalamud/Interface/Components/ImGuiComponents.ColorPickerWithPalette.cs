@@ -1,9 +1,8 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Components;
 

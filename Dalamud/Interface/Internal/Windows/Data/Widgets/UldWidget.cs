@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Colors;
@@ -12,9 +13,6 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Memory;
-
-using Dalamud.Bindings.ImGui;
-
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Uld;
 

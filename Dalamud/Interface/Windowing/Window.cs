@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -14,11 +14,7 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.Logging.Internal;
-
 using FFXIVClientStructs.FFXIV.Client.UI;
-
-using Dalamud.Bindings.ImGui;
-
 using PInvoke;
 
 namespace Dalamud.Interface.Windowing;

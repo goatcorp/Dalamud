@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
@@ -14,11 +15,7 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
-using Dalamud.Bindings.ImGui;
-
 using SharpDX.DXGI;
-
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -265,14 +262,14 @@ internal sealed partial class FontAtlasFactory
                 stream = ms;
             }
 
-            var length = checked((int)(uint)stream.Length);
+            var length = checked((uint)stream.Length);
             var memory = ImGuiHelpers.AllocateMemory(length);
             try
             {
-                stream.ReadExactly(new(memory, length));
+                stream.ReadExactly(new(memory, checked((int)length)));
                 return this.AddFontFromImGuiHeapAllocatedMemory(
                     memory,
-                    length,
+                    checked((int)length),
                     fontConfig,
                     false,
                     $"{nameof(this.AddFontFromStream)}({debugTag})");
@@ -291,7 +288,7 @@ internal sealed partial class FontAtlasFactory
             string debugTag)
         {
             var length = span.Length;
-            var memory = ImGuiHelpers.AllocateMemory(length);
+            var memory = ImGuiHelpers.AllocateMemory(checked((uint)length));
             try
             {
                 span.CopyTo(new(memory, length));

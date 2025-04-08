@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Hooking.Internal;
 using Dalamud.Interface.Components;
@@ -12,7 +13,6 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-using Dalamud.Bindings.ImGui;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows;

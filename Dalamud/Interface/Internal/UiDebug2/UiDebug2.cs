@@ -1,15 +1,13 @@
 using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.Internal.UiDebug2.Browsing;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using Dalamud.Bindings.ImGui;
 
 using static Dalamud.Bindings.ImGui.ImGuiWindowFlags;
 

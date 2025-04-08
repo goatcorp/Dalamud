@@ -465,37 +465,24 @@ public static partial class ImGuiHelpers
         ImGui.SetCursorPosX((int)((ImGui.GetWindowWidth() - itemWidth) / 2));
 
     /// <summary>
-    /// Allocates memory on the heap using <see cref="ImGuiNative.igMemAlloc"/><br />
-    /// Memory must be freed using <see cref="ImGuiNative.igMemFree"/>.
+    /// Allocates memory on the heap using <see cref="ImGui.MemAlloc(nuint)"/><br />
+    /// Memory must be freed using <see cref="ImGui.MemFree"/>.
     /// <br />
     /// Note that null is a valid return value when <paramref name="length"/> is 0.
     /// </summary>
     /// <param name="length">The length of allocated memory.</param>
     /// <returns>The allocated memory.</returns>
-    /// <exception cref="OutOfMemoryException">If <see cref="ImGuiNative.igMemAlloc"/> returns null.</exception>
-    public static unsafe void* AllocateMemory(int length)
+    /// <exception cref="OutOfMemoryException">If <see cref="ImGui.MemAlloc(nuint)"/> returns null.</exception>
+    public static unsafe void* AllocateMemory(nuint length)
     {
-        // TODO: igMemAlloc takes size_t, which is nint; ImGui.NET apparently interpreted that as uint.
-        // fix that in ImGui.NET.
-        switch (length)
+        var memory = ImGui.MemAlloc((uint)length);
+        if (memory is null)
         {
-            case 0:
-                return null;
-            case < 0:
-                throw new ArgumentOutOfRangeException(
-                    nameof(length),
-                    length,
-                    $"{nameof(length)} cannot be a negative number.");
-            default:
-                var memory = ImGui.MemAlloc((uint)length);
-                if (memory is null)
-                {
-                    throw new OutOfMemoryException(
-                        $"Failed to allocate {length} bytes using {nameof(ImGui.MemAlloc)}");
-                }
-
-                return memory;
+            throw new OutOfMemoryException(
+                $"Failed to allocate {length} bytes using {nameof(ImGui.MemAlloc)}");
         }
+
+        return memory;
     }
 
     /// <summary>

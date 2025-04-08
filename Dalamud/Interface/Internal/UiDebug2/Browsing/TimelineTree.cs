@@ -2,20 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Dalamud.Bindings.ImGui;
 
+using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTreeNodeFlags;
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeType;
-using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
-using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
-using static Dalamud.Bindings.ImGui.ImGuiTreeNodeFlags;
 
 // ReSharper disable SuggestBaseTypeForParameter
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;

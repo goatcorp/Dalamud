@@ -1,6 +1,6 @@
-﻿using Dalamud.Game.ClientState.Party;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Utility;
-using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
