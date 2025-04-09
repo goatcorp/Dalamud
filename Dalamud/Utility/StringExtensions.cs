@@ -83,7 +83,7 @@ public static class StringExtensions
     public static string StripSoftHyphen(this string input) => input.Replace("\u00AD", string.Empty);
 
     /// <summary>
-    /// Truncates the given string to the specified maximum number of characters,  
+    /// Truncates the given string to the specified maximum number of characters,
     /// appending an ellipsis if truncation occurs.
     /// </summary>
     /// <param name="input">The string to truncate.</param>
@@ -105,6 +105,7 @@ public static class StringExtensions
     /// <param name="normalizeVowels">Whether to normalize vowels to uppercase if they appear at the beginning of a word.</param>
     /// <param name="language">The language context used to determine which words to exclude from capitalization.</param>
     /// <returns>A new string with the appropriate characters converted to uppercase.</returns>
+    /// <remarks>This is a C# implementation of Client::System::String::Utf8String.ToUpper with word exclusion lists as used by the HeadAll macro.</remarks>
     public static string ToUpper(this string input, bool firstCharOnly, bool everyWord, bool normalizeVowels, ClientLanguage language)
     {
         return ToUpper(input, firstCharOnly, everyWord, normalizeVowels, language switch
@@ -127,6 +128,7 @@ public static class StringExtensions
     /// <param name="normalizeVowels">Whether to normalize vowels to uppercase if they appear at the beginning of a word.</param>
     /// <param name="excludedWords">A list of words to exclude from being capitalized. Words in this list will remain lowercase.</param>
     /// <returns>A new string with the appropriate characters converted to uppercase.</returns>
+    /// <remarks>This is a C# implementation of Client::System::String::Utf8String.ToUpper.</remarks>
     public static string ToUpper(this string input, bool firstCharOnly, bool everyWord, bool normalizeVowels, ReadOnlySpan<string> excludedWords)
     {
         if (string.IsNullOrEmpty(input))
