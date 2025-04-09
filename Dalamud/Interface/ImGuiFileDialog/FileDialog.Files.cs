@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Dalamud.Utility;
+
 namespace Dalamud.Interface.ImGuiFileDialog;
 
 /// <summary>
@@ -13,11 +15,44 @@ public partial class FileDialog
 
     private readonly DriveListLoader driveListLoader = new();
 
-    private List<FileStruct> files = new();
-    private List<FileStruct> filteredFiles = new();
+    private readonly List<FileStruct> files = [];
+    private readonly List<FileStruct> filteredFiles = [];
 
     private SortingField currentSortingField = SortingField.FileName;
-    private bool[] sortDescending = { false, false, false, false };
+
+    /// <summary> Fired whenever the sorting field changes. </summary>
+    public event Action<SortingField>? SortOrderChanged;
+
+    /// <summary> The sorting type of the file selector. </summary>
+    public enum SortingField
+    {
+        /// <summary> No sorting specified. </summary>
+        None = 0,
+
+        /// <summary> Sort for ascending file names in culture-specific order. </summary>
+        FileName = 1,
+
+        /// <summary> Sort for ascending file types in culture-specific order. </summary>
+        Type = 2,
+
+        /// <summary> Sort for ascending file sizes. </summary>
+        Size = 3,
+
+        /// <summary> Sort for ascending last update dates. </summary>
+        Date = 4,
+
+        /// <summary> Sort for descending file names in culture-specific order. </summary>
+        FileNameDescending = 5,
+
+        /// <summary> Sort for descending file types in culture-specific order. </summary>
+        TypeDescending = 6,
+
+        /// <summary> Sort for descending file sizes. </summary>
+        SizeDescending = 7,
+
+        /// <summary> Sort for descending last update dates. </summary>
+        DateDescending = 8,
+    }
 
     private enum FileStructType
     {
@@ -25,48 +60,64 @@ public partial class FileDialog
         Directory,
     }
 
-    private enum SortingField
+    /// <summary> Specify the current and subsequent sort order. </summary>
+    /// <param name="sortingField"> The new sort order. None is invalid and will not have any effect. </param>
+    public void SortFields(SortingField sortingField)
     {
-        None,
-        FileName,
-        Type,
-        Size,
-        Date,
+        Comparison<FileStruct>? sortFunc = sortingField switch
+        {
+            SortingField.FileName => SortByFileNameAsc,
+            SortingField.FileNameDescending => SortByFileNameDesc,
+            SortingField.Type => SortByTypeAsc,
+            SortingField.TypeDescending => SortByTypeDesc,
+            SortingField.Size => SortBySizeAsc,
+            SortingField.SizeDescending => SortBySizeDesc,
+            SortingField.Date => SortByDateAsc,
+            SortingField.DateDescending => SortByDateDesc,
+            _ => null,
+        };
+
+        if (sortFunc is null)
+        {
+            return;
+        }
+
+        this.files.Sort(sortFunc);
+        this.currentSortingField = sortingField;
+        this.ApplyFilteringOnFileList();
+        this.SortOrderChanged?.InvokeSafely(this.currentSortingField);
     }
 
-    private static string ComposeNewPath(List<string> decomp)
+    private static string ComposeNewPath(List<string> decomposition)
     {
-        // Handle UNC paths (network paths)
-        if (decomp.Count >= 2 && string.IsNullOrEmpty(decomp[0]) && string.IsNullOrEmpty(decomp[1]))
+        switch (decomposition.Count)
         {
-            var pathParts = new List<string>(decomp);
-            pathParts.RemoveRange(0, 2);
-            // Can not access server level or UNC root
-            if (pathParts.Count <= 1)
-            {
-                return string.Empty;
-            }
+            // Handle UNC paths (network paths)
+            case >= 2 when string.IsNullOrEmpty(decomposition[0]) && string.IsNullOrEmpty(decomposition[1]):
+                var pathParts = new List<string>(decomposition);
+                pathParts.RemoveRange(0, 2);
 
-            return $"\\\\{string.Join('\\', pathParts)}";
+                // Can not access server level or UNC root
+                if (pathParts.Count <= 1)
+                {
+                    return string.Empty;
+                }
+
+                return $@"\\{string.Join('\\', pathParts)}";
+            case 1:
+                var drivePath = decomposition[0];
+                if (drivePath[^1] != Path.DirectorySeparatorChar)
+                { // turn C: into C:\
+                    drivePath += Path.DirectorySeparatorChar;
+                }
+
+                return drivePath;
+            default: return Path.Combine(decomposition.ToArray());
         }
-        
-        if (decomp.Count == 1)
-        {
-            var drivePath = decomp[0];
-            if (drivePath[^1] != Path.DirectorySeparatorChar)
-            { // turn C: into C:\
-                drivePath += Path.DirectorySeparatorChar;
-            }
-
-            return drivePath;
-        }
-
-        return Path.Combine(decomp.ToArray());
     }
 
     private static FileStruct GetFile(FileInfo file, string path)
-    {
-        return new FileStruct
+        => new()
         {
             FileName = file.Name,
             FilePath = path,
@@ -76,11 +127,9 @@ public partial class FileDialog
             Type = FileStructType.File,
             Ext = file.Extension.Trim('.'),
         };
-    }
 
     private static FileStruct GetDir(DirectoryInfo dir, string path)
-    {
-        return new FileStruct
+        => new()
         {
             FileName = dir.Name,
             FilePath = path,
@@ -90,136 +139,191 @@ public partial class FileDialog
             Type = FileStructType.Directory,
             Ext = string.Empty,
         };
-    }
 
     private static int SortByFileNameDesc(FileStruct a, FileStruct b)
     {
-        if (a.FileName[0] == '.' && b.FileName[0] != '.')
+        switch (a.FileName, b.FileName)
         {
-            return 1;
+            case ("..", ".."): return 0;
+            case ("..", _): return -1;
+            case (_, ".."): return 1;
         }
 
-        if (a.FileName[0] != '.' && b.FileName[0] == '.')
+        if (a.FileName[0] is '.')
         {
-            return -1;
-        }
-
-        if (a.FileName[0] == '.' && b.FileName[0] == '.')
-        {
-            if (a.FileName.Length == 1)
-            {
-                return -1;
-            }
-
-            if (b.FileName.Length == 1)
+            if (b.FileName[0] is not '.')
             {
                 return 1;
             }
 
-            return -1 * string.Compare(a.FileName[1..], b.FileName[1..]);
+            if (a.FileName.Length is 1)
+            {
+                return -1;
+            }
+
+            if (b.FileName.Length is 1)
+            {
+                return 1;
+            }
+
+            return -1 * string.Compare(a.FileName[1..], b.FileName[1..], StringComparison.CurrentCulture);
+        }
+
+        if (b.FileName[0] is '.')
+        {
+            return -1;
         }
 
         if (a.Type != b.Type)
         {
-            return a.Type == FileStructType.Directory ? 1 : -1;
+            return a.Type is FileStructType.Directory ? 1 : -1;
         }
 
-        return -1 * string.Compare(a.FileName, b.FileName);
+        return -string.Compare(a.FileName, b.FileName, StringComparison.CurrentCulture);
     }
 
     private static int SortByFileNameAsc(FileStruct a, FileStruct b)
     {
-        if (a.FileName[0] == '.' && b.FileName[0] != '.')
+        switch (a.FileName, b.FileName)
         {
-            return -1;
+            case ("..", ".."): return 0;
+            case ("..", _): return -1;
+            case (_, ".."): return 1;
         }
 
-        if (a.FileName[0] != '.' && b.FileName[0] == '.')
+        if (a.FileName[0] is '.')
         {
-            return 1;
-        }
-
-        if (a.FileName[0] == '.' && b.FileName[0] == '.')
-        {
-            if (a.FileName.Length == 1)
-            {
-                return 1;
-            }
-
-            if (b.FileName.Length == 1)
+            if (b.FileName[0] is not '.')
             {
                 return -1;
             }
 
-            return string.Compare(a.FileName[1..], b.FileName[1..]);
+            if (a.FileName.Length is 1)
+            {
+                return 1;
+            }
+
+            if (b.FileName.Length is 1)
+            {
+                return -1;
+            }
+
+            return string.Compare(a.FileName[1..], b.FileName[1..], StringComparison.CurrentCulture);
+        }
+
+        if (b.FileName[0] is '.')
+        {
+            return 1;
         }
 
         if (a.Type != b.Type)
         {
-            return a.Type == FileStructType.Directory ? -1 : 1;
+            return a.Type is FileStructType.Directory ? -1 : 1;
         }
 
-        return string.Compare(a.FileName, b.FileName);
+        return string.Compare(a.FileName, b.FileName, StringComparison.CurrentCulture);
     }
 
     private static int SortByTypeDesc(FileStruct a, FileStruct b)
     {
+        switch (a.FileName, b.FileName)
+        {
+            case ("..", ".."): return 0;
+            case ("..", _): return -1;
+            case (_, ".."): return 1;
+        }
+
         if (a.Type != b.Type)
         {
             return (a.Type == FileStructType.Directory) ? 1 : -1;
         }
 
-        return string.Compare(a.Ext, b.Ext);
+        return string.Compare(a.Ext, b.Ext, StringComparison.CurrentCulture);
     }
 
     private static int SortByTypeAsc(FileStruct a, FileStruct b)
     {
+        switch (a.FileName, b.FileName)
+        {
+            case ("..", ".."): return 0;
+            case ("..", _): return -1;
+            case (_, ".."): return 1;
+        }
+
         if (a.Type != b.Type)
         {
             return (a.Type == FileStructType.Directory) ? -1 : 1;
         }
 
-        return -1 * string.Compare(a.Ext, b.Ext);
+        return -string.Compare(a.Ext, b.Ext, StringComparison.CurrentCulture);
     }
 
     private static int SortBySizeDesc(FileStruct a, FileStruct b)
     {
-        if (a.Type != b.Type)
+        switch (a.FileName, b.FileName)
         {
-            return (a.Type == FileStructType.Directory) ? 1 : -1;
+            case ("..", ".."): return 0;
+            case ("..", _): return -1;
+            case (_, ".."): return 1;
         }
 
-        return (a.FileSize > b.FileSize) ? 1 : -1;
+        if (a.Type != b.Type)
+        {
+            return (a.Type is FileStructType.Directory) ? 1 : -1;
+        }
+
+        return a.FileSize.CompareTo(b.FileSize);
     }
 
     private static int SortBySizeAsc(FileStruct a, FileStruct b)
     {
-        if (a.Type != b.Type)
+        switch (a.FileName, b.FileName)
         {
-            return (a.Type == FileStructType.Directory) ? -1 : 1;
+            case ("..", ".."): return 0;
+            case ("..", _): return -1;
+            case (_, ".."): return 1;
         }
 
-        return (a.FileSize > b.FileSize) ? -1 : 1;
+        if (a.Type != b.Type)
+        {
+            return (a.Type is FileStructType.Directory) ? -1 : 1;
+        }
+
+        return -a.FileSize.CompareTo(b.FileSize);
     }
 
     private static int SortByDateDesc(FileStruct a, FileStruct b)
     {
+        switch (a.FileName, b.FileName)
+        {
+            case ("..", ".."): return 0;
+            case ("..", _): return -1;
+            case (_, ".."): return 1;
+        }
+
         if (a.Type != b.Type)
         {
             return (a.Type == FileStructType.Directory) ? 1 : -1;
         }
 
-        return string.Compare(a.FileModifiedDate, b.FileModifiedDate);
+        return string.Compare(a.FileModifiedDate, b.FileModifiedDate, StringComparison.CurrentCulture);
     }
 
     private static int SortByDateAsc(FileStruct a, FileStruct b)
     {
+        switch (a.FileName, b.FileName)
+        {
+            case ("..", ".."): return 0;
+            case ("..", _): return -1;
+            case (_, ".."): return 1;
+        }
+
         if (a.Type != b.Type)
         {
             return (a.Type == FileStructType.Directory) ? -1 : 1;
         }
 
-        return -1 * string.Compare(a.FileModifiedDate, b.FileModifiedDate);
+        return -string.Compare(a.FileModifiedDate, b.FileModifiedDate, StringComparison.CurrentCulture);
     }
 
     private bool CreateDir(string dirPath)
@@ -336,52 +440,17 @@ public partial class FileDialog
         this.quickAccess.Add(new SideBarItem("Videos", Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), FontAwesomeIcon.Video));
     }
 
-    private void SortFields(SortingField sortingField, bool canChangeOrder = false)
-    {
-        switch (sortingField)
+    private SortingField GetNewSorting(int column)
+        => column switch
         {
-            case SortingField.FileName:
-                if (canChangeOrder && sortingField == this.currentSortingField)
-                {
-                    this.sortDescending[0] = !this.sortDescending[0];
-                }
-
-                this.files.Sort(this.sortDescending[0] ? SortByFileNameDesc : SortByFileNameAsc);
-                break;
-
-            case SortingField.Type:
-                if (canChangeOrder && sortingField == this.currentSortingField)
-                {
-                    this.sortDescending[1] = !this.sortDescending[1];
-                }
-
-                this.files.Sort(this.sortDescending[1] ? SortByTypeDesc : SortByTypeAsc);
-                break;
-
-            case SortingField.Size:
-                if (canChangeOrder && sortingField == this.currentSortingField)
-                {
-                    this.sortDescending[2] = !this.sortDescending[2];
-                }
-
-                this.files.Sort(this.sortDescending[2] ? SortBySizeDesc : SortBySizeAsc);
-                break;
-
-            case SortingField.Date:
-                if (canChangeOrder && sortingField == this.currentSortingField)
-                {
-                    this.sortDescending[3] = !this.sortDescending[3];
-                }
-
-                this.files.Sort(this.sortDescending[3] ? SortByDateDesc : SortByDateAsc);
-                break;
-        }
-
-        if (sortingField != SortingField.None)
-        {
-            this.currentSortingField = sortingField;
-        }
-
-        this.ApplyFilteringOnFileList();
-    }
+            0 when this.currentSortingField is SortingField.FileName => SortingField.FileNameDescending,
+            0 => SortingField.FileName,
+            1 when this.currentSortingField is SortingField.Type => SortingField.TypeDescending,
+            1 => SortingField.Type,
+            2 when this.currentSortingField is SortingField.Size => SortingField.SizeDescending,
+            2 => SortingField.Size,
+            3 when this.currentSortingField is SortingField.Date => SortingField.DateDescending,
+            3 => SortingField.Date,
+            _ => SortingField.None,
+        };
 }

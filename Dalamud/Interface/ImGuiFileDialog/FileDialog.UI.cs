@@ -373,22 +373,8 @@ public partial class FileDialog
                 ImGui.PopID();
                 if (ImGui.IsItemClicked())
                 {
-                    if (column == 0)
-                    {
-                        this.SortFields(SortingField.FileName, true);
-                    }
-                    else if (column == 1)
-                    {
-                        this.SortFields(SortingField.Type, true);
-                    }
-                    else if (column == 2)
-                    {
-                        this.SortFields(SortingField.Size, true);
-                    }
-                    else
-                    {
-                        this.SortFields(SortingField.Date, true);
-                    }
+                    var sorting = this.GetNewSorting(column);
+                    this.SortFields(sorting);
                 }
             }
 
