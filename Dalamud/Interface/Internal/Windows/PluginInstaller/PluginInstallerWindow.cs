@@ -2715,7 +2715,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
 
-        var applicableChangelog = plugin.IsTesting ? remoteManifest?.Changelog : remoteManifest?.TestingChangelog;
+        var applicableChangelog = plugin.IsTesting ? remoteManifest?.TestingChangelog : remoteManifest?.Changelog;
         var hasChangelog = !applicableChangelog.IsNullOrWhitespace();
         var didDrawApplicableChangelogInsideCollapsible = false;
 
