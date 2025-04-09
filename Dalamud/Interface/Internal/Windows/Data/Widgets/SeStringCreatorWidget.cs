@@ -1014,7 +1014,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 ImGui.TextUnformatted(Enum.GetName(articleTypeEnumType, u32));
             }
 
-            if (macroCode is MacroCode.DeNoun && exprIdx == 4 && u32 is >= 0 and <= 3)
+            if (macroCode is MacroCode.DeNoun && exprIdx == 4 && u32 is >= 0 and <= 4)
             {
                 ImGui.SameLine();
                 ImGui.TextUnformatted(NounProcessorWidget.GermanCases[u32]);
