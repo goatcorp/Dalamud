@@ -172,21 +172,22 @@ public static class StringExtensions
                 {
                     builder[i] = char.ToUpperInvariant(ch);
                 }
-
-                isWordBeginning = false;
-                continue;
             }
 
             // Special œ → Œ
-            if (ch == 'œ')
+            else if (ch == 'œ')
             {
                 builder[i] = 'Œ';
-                isWordBeginning = false;
-                continue;
+            }
+
+            // Characters with accents
+            else if (ch >= 'à' && ch <= 'ý' && ch != '÷')
+            {
+                builder[i] = char.ToUpperInvariant(ch);
             }
 
             // Normalize vowels with accents
-            if (normalizeVowels && isWordBeginning)
+            else if (normalizeVowels && isWordBeginning)
             {
                 if ("àáâãäå".Contains(ch))
                 {
