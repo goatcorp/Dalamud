@@ -939,9 +939,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (p.Type == ReadOnlySePayloadType.Text)
                 {
-                    context.Builder.Append(
-                        context.CultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.Span)));
-
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).ToUpper(true, true, false, context.Language));
                     continue;
                 }
 
