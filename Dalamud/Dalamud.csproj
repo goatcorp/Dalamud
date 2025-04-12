@@ -35,6 +35,10 @@
         <Deterministic>true</Deterministic>
         <Nullable>annotations</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <!-- Enable when cswin32 properly supports implementing COM interfaces and we can
+             make IDropTarget work -->
+        <!-- <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling> -->
     </PropertyGroup>
 
     <PropertyGroup Label="Configuration">

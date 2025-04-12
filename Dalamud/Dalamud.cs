@@ -15,6 +15,7 @@ using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 using PInvoke;
 using Serilog;
+using Windows.Win32.Foundation;
 
 #if DEBUG
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
@@ -29,13 +30,13 @@ namespace Dalamud;
 /// The main Dalamud class containing all subsystems.
 /// </summary>
 [ServiceManager.ProvidedService]
-internal sealed class Dalamud : IServiceType
+internal sealed unsafe class Dalamud : IServiceType
 {
     #region Internals
 
     private static int shownServiceError = 0;
     private readonly ManualResetEvent unloadSignal;
-    
+
     #endregion
 
     /// <summary>
@@ -48,15 +49,15 @@ internal sealed class Dalamud : IServiceType
     public Dalamud(DalamudStartInfo info, ReliableFileStorage fs, DalamudConfiguration configuration, IntPtr mainThreadContinueEvent)
     {
         this.StartInfo = info;
-        
+
         this.unloadSignal = new ManualResetEvent(false);
         this.unloadSignal.Reset();
-        
+
         // Directory resolved signatures(CS, our own) will be cached in
         var cacheDir = new DirectoryInfo(Path.Combine(this.StartInfo.WorkingDirectory!, "cachedSigs"));
         if (!cacheDir.Exists)
             cacheDir.Create();
-        
+
         // Set up the SigScanner for our target module
         TargetSigScanner scanner;
         using (Timings.Start("SigScanner Init"))
@@ -71,21 +72,21 @@ internal sealed class Dalamud : IServiceType
             configuration,
             scanner,
             Localization.FromAssets(info.AssetDirectory!, configuration.LanguageOverride));
-        
+
         // Set up FFXIVClientStructs
         this.SetupClientStructsResolver(cacheDir);
-        
+
         void KickoffGameThread()
         {
             Log.Verbose("=============== GAME THREAD KICKOFF ===============");
             Timings.Event("Game thread kickoff");
-            NativeFunctions.SetEvent(mainThreadContinueEvent);
+            Windows.Win32.PInvoke.SetEvent(new HANDLE(mainThreadContinueEvent));
         }
 
         void HandleServiceInitFailure(Task t)
         {
             Log.Error(t.Exception!, "Service initialization failure");
-            
+
             if (Interlocked.CompareExchange(ref shownServiceError, 1, 0) != 0)
                 return;
 
@@ -116,15 +117,15 @@ internal sealed class Dalamud : IServiceType
                 HandleServiceInitFailure(t);
             });
 
-        this.DefaultExceptionFilter = NativeFunctions.SetUnhandledExceptionFilter(nint.Zero);
-        NativeFunctions.SetUnhandledExceptionFilter(this.DefaultExceptionFilter);
-        Log.Debug($"SE default exception filter at {this.DefaultExceptionFilter.ToInt64():X}");
+        this.DefaultExceptionFilter = SetExceptionHandler(nint.Zero);
+        SetExceptionHandler(this.DefaultExceptionFilter);
+        Log.Debug($"SE default exception filter at {new IntPtr(this.DefaultExceptionFilter):X}");
 
         var debugSig = "40 55 53 57 48 8D AC 24 70 AD FF FF";
         this.DebugExceptionFilter = Service<TargetSigScanner>.Get().ScanText(debugSig);
         Log.Debug($"SE debug exception filter at {this.DebugExceptionFilter.ToInt64():X}");
     }
-    
+
     /// <summary>
     /// Gets the start information for this Dalamud instance.
     /// </summary>
@@ -188,28 +189,30 @@ internal sealed class Dalamud : IServiceType
     /// <summary>
     /// Replace the current exception handler with the default one.
     /// </summary>
-    internal void UseDefaultExceptionHandler() => 
-        this.SetExceptionHandler(this.DefaultExceptionFilter);
+    internal void UseDefaultExceptionHandler() =>
+        SetExceptionHandler(this.DefaultExceptionFilter);
 
     /// <summary>
     /// Replace the current exception handler with a debug one.
     /// </summary>
     internal void UseDebugExceptionHandler() =>
-        this.SetExceptionHandler(this.DebugExceptionFilter);
+        SetExceptionHandler(this.DebugExceptionFilter);
 
     /// <summary>
     /// Disable the current exception handler.
     /// </summary>
     internal void UseNoExceptionHandler() =>
-        this.SetExceptionHandler(nint.Zero);
+        SetExceptionHandler(nint.Zero);
 
     /// <summary>
     /// Helper function to set the exception handler.
     /// </summary>
-    private void SetExceptionHandler(nint newFilter)
+    private static nint SetExceptionHandler(nint newFilter)
     {
-        var oldFilter = NativeFunctions.SetUnhandledExceptionFilter(newFilter);
-        Log.Debug("Set ExceptionFilter to {0}, old: {1}", newFilter, oldFilter);
+        var oldFilter =
+            Windows.Win32.PInvoke.SetUnhandledExceptionFilter((delegate* unmanaged[Stdcall]<global::Windows.Win32.System.Diagnostics.Debug.EXCEPTION_POINTERS*, int>)newFilter);
+        Log.Debug("Set ExceptionFilter to {0}, old: {1}", newFilter, (nint)oldFilter);
+        return (nint)oldFilter;
     }
 
     private void SetupClientStructsResolver(DirectoryInfo cacheDir)

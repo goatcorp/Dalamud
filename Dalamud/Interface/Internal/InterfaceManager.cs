@@ -41,6 +41,8 @@ using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
 
+using DWMWINDOWATTRIBUTE = Windows.Win32.Graphics.Dwm.DWMWINDOWATTRIBUTE;
+
 // general dev notes, here because it's easiest
 
 /*
@@ -487,12 +489,13 @@ internal partial class InterfaceManager : IInternalDisposableService
     {
         if (this.GameWindowHandle == 0)
             throw new InvalidOperationException("Game window is not yet ready.");
+
         var value = enabled ? 1u : 0u;
-        DwmSetWindowAttribute(
-            this.GameWindowHandle,
-            (uint)DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
+        global::Windows.Win32.PInvoke.DwmSetWindowAttribute(
+            new(this.GameWindowHandle.Value),
+            DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
             &value,
-            sizeof(int)).ThrowOnError();
+            sizeof(uint)).ThrowOnFailure();
     }
 
     private static InterfaceManager WhenFontsReady()

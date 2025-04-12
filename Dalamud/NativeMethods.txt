@@ -12,6 +12,11 @@ HWND_TOPMOST
 HWND_NOTOPMOST
 SET_WINDOW_POS_FLAGS
 
+SetEvent
+
+SymInitialize
+SymCleanup
+
 OpenClipboard
 SetClipboardData
 CloseClipboard
@@ -22,14 +27,34 @@ GlobalLock
 GlobalUnlock
 GLOBAL_ALLOC_FLAGS
 
-MEM_ALLOCATION_TYPE
 VirtualAlloc
 VirtualProtect
 VirtualFree
+VirtualQuery
+
+SetUnhandledExceptionFilter
 
 ReadProcessMemory
 WriteProcessMemory
 
+FlashWindowEx
+
+GetProcAddress
+GetModuleHandle
+GetForegroundWindow
 GetCurrentProcess
+GetWindowThreadProcessId
 
 MessageBoxW
+
+SystemParametersInfo
+
+SystemParametersInfo
+
+DwmSetWindowAttribute
+
+setsockopt
+
+RegisterDragDrop
+RevokeDragDrop
+DragQueryFileW

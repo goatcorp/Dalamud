@@ -21,6 +21,7 @@ using Dalamud.Utility;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Dalamud.Configuration.Internal;
 
@@ -595,11 +596,15 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
         {
             // https://source.chromium.org/chromium/chromium/src/+/main:ui/gfx/animation/animation_win.cc;l=29?q=ReducedMotion&ss=chromium
             var winAnimEnabled = 0;
-            var success = NativeFunctions.SystemParametersInfo(
-                (uint)NativeFunctions.AccessibilityParameter.SPI_GETCLIENTAREAANIMATION,
-                0,
-                ref winAnimEnabled,
-                0);
+            var success = false;
+            unsafe
+            {
+                success = Windows.Win32.PInvoke.SystemParametersInfo(
+                    SYSTEM_PARAMETERS_INFO_ACTION.SPI_GETCLIENTAREAANIMATION,
+                    0,
+                    &winAnimEnabled,
+                    0);
+            }
 
             if (!success)
             {

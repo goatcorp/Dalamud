@@ -70,12 +70,12 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
 
     /// <inheritdoc/>
     public virtual string BackendName => throw new NotImplementedException();
-    
+
     /// <summary>
     /// Gets the unique GUID for this hook.
     /// </summary>
     protected Guid HookId { get; } = Guid.NewGuid();
-    
+
     /// <summary>
     /// Remove a hook from the current process.
     /// </summary>
@@ -200,11 +200,11 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         if (EnvironmentConfiguration.DalamudForceMinHook)
             useMinHook = true;
 
-        var moduleHandle = NativeFunctions.GetModuleHandleW(moduleName);
-        if (moduleHandle == IntPtr.Zero)
+        using var moduleHandle = Windows.Win32.PInvoke.GetModuleHandle(moduleName);
+        if (moduleHandle.IsInvalid)
             throw new Exception($"Could not get a handle to module {moduleName}");
 
-        var procAddress = NativeFunctions.GetProcAddress(moduleHandle, exportName);
+        var procAddress = (nint)Windows.Win32.PInvoke.GetProcAddress(moduleHandle, exportName);
         if (procAddress == IntPtr.Zero)
             throw new Exception($"Could not get the address of {moduleName}::{exportName}");
 

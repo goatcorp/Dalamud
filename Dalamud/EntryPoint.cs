@@ -23,8 +23,6 @@ using Serilog.Events;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-using static Dalamud.NativeFunctions;
-
 namespace Dalamud;
 
 /// <summary>
@@ -264,10 +262,12 @@ public sealed class EntryPoint
             var symbolPath = Path.Combine(info.AssetDirectory, "UIRes", "pdb");
             var searchPath = $".;{symbolPath}";
 
-            // Remove any existing Symbol Handler and Init a new one with our search path added
-            SymCleanup(GetCurrentProcess());
+            var currentProcess = Windows.Win32.PInvoke.GetCurrentProcess_SafeHandle();
 
-            if (!SymInitialize(GetCurrentProcess(), searchPath, true))
+            // Remove any existing Symbol Handler and Init a new one with our search path added
+            Windows.Win32.PInvoke.SymCleanup(currentProcess);
+
+            if (!Windows.Win32.PInvoke.SymInitialize(currentProcess, searchPath, true))
                 throw new Win32Exception();
         }
         catch (Exception ex)

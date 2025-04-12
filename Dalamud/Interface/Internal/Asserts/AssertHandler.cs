@@ -29,14 +29,14 @@ internal class AssertHandler : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="AssertHandler"/> class.
     /// </summary>
-    public AssertHandler()
+    public unsafe AssertHandler()
     {
-        this.callback = (expr, file, line) => this.OnImGuiAssert(expr, file, line);
+        this.callback = this.OnImGuiAssert;
     }
 
-    private delegate void AssertCallbackDelegate(
-        [MarshalAs(UnmanagedType.LPStr)] string expr,
-        [MarshalAs(UnmanagedType.LPStr)] string file,
+    private unsafe delegate void AssertCallbackDelegate(
+        void* expr,
+        void* file,
         int line);
 
     /// <summary>
@@ -53,15 +53,15 @@ internal class AssertHandler : IDisposable
     /// <summary>
     /// Register the cimgui assert handler with the native library.
     /// </summary>
-    public void Setup()
+    public unsafe void Setup()
     {
-        CustomNativeFunctions.igCustom_SetAssertCallback(this.callback);
+        CustomNativeFunctions.igCustom_SetAssertCallback(Marshal.GetFunctionPointerForDelegate(this.callback).ToPointer());
     }
 
     /// <summary>
     /// Unregister the cimgui assert handler with the native library.
     /// </summary>
-    public void Shutdown()
+    public unsafe void Shutdown()
     {
         CustomNativeFunctions.igCustom_SetAssertCallback(null);
     }
@@ -72,8 +72,19 @@ internal class AssertHandler : IDisposable
         this.Shutdown();
     }
 
-    private void OnImGuiAssert(string expr, string file, int line)
+    private unsafe void OnImGuiAssert(void* pExpr, void* pFile, int line)
     {
+        var expr = Marshal.PtrToStringAnsi(new IntPtr(pExpr));
+        var file = Marshal.PtrToStringAnsi(new IntPtr(pFile));
+        if (expr == null || file == null)
+        {
+            Log.Warning("ImGui assertion failed: {Expr} at {File}:{Line} (failed to parse)",
+                        expr,
+                        file,
+                        line);
+            return;
+        }
+
         var key = $"{file}:{line}";
         if (this.ignoredAsserts.Contains(key))
             return;
@@ -218,11 +229,11 @@ internal class AssertHandler : IDisposable
         }
     }
 
-    private static class CustomNativeFunctions
+    private static unsafe class CustomNativeFunctions
     {
         [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
 #pragma warning disable SA1300
-        public static extern void igCustom_SetAssertCallback(AssertCallbackDelegate? callback);
+        public static extern void igCustom_SetAssertCallback(void* cb);
 #pragma warning restore SA1300
     }
 }
