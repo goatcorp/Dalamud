@@ -333,19 +333,67 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// Gets the default Dalamud font - supporting all game languages and icons.<br />
     /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr DefaultFont => InterfaceManager.DefaultFont;
+    public static ImFontPtr DefaultFontNew => InterfaceManager.DefaultFont;
 
     /// <summary>
     /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.<br />
     /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr IconFont => InterfaceManager.IconFont;
+    public static ImFontPtr IconFontNew => InterfaceManager.IconFont;
 
     /// <summary>
     /// Gets the default Dalamud monospaced font based on Inconsolata Regular.<br />
     /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
     /// </summary>
-    public static ImFontPtr MonoFont => InterfaceManager.MonoFont;
+    public static ImFontPtr MonoFontNew => InterfaceManager.MonoFont;
+
+    /// <summary>
+    /// Gets the default Dalamud font - supporting all game languages and icons.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    [ImGuiBindingsToDo("Remove, rename New variant.")]
+    public static ImGuiNET.ImFontPtr DefaultFont
+    {
+        get
+        {
+            unsafe
+            {
+                return new ImGuiNET.ImFontPtr((nint)InterfaceManager.DefaultFont.Handle);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the default Dalamud icon font based on FontAwesome 5 Free solid.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    [ImGuiBindingsToDo("Remove, rename New variant.")]
+    public static ImGuiNET.ImFontPtr IconFont
+    {
+        get
+        {
+            unsafe
+            {
+                return new ImGuiNET.ImFontPtr((nint)InterfaceManager.IconFont.Handle);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the default Dalamud monospaced font based on Inconsolata Regular.<br />
+    /// <strong>Accessing this static property outside of <see cref="Draw"/> is dangerous and not supported.</strong>
+    /// </summary>
+    [ImGuiBindingsToDo("Remove, rename New variant.")]
+    public static ImGuiNET.ImFontPtr MonoFont
+    {
+        get
+        {
+            unsafe
+            {
+                return new ImGuiNET.ImFontPtr((nint)InterfaceManager.MonoFont.Handle);
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the default font specifications.

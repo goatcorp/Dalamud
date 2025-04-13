@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -152,7 +153,7 @@ public partial class FileDialog
 
     private void DrawPathComposer()
     {
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
         if (ImGui.Button(this.pathInputActivated ? FontAwesomeIcon.Times.ToIconString() : FontAwesomeIcon.Edit.ToIconString()))
         {
             this.pathInputActivated = !this.pathInputActivated;
@@ -205,7 +206,7 @@ public partial class FileDialog
 
     private void DrawSearchBar()
     {
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
         if (ImGui.Button(FontAwesomeIcon.Home.ToIconString()))
         {
             this.SetPath(".");
@@ -239,7 +240,7 @@ public partial class FileDialog
     {
         if (this.flags.HasFlag(ImGuiFileDialogFlags.DisableCreateDirectoryButton)) return;
 
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
         if (ImGui.Button(FontAwesomeIcon.FolderPlus.ToIconString()) && !this.createDirectoryMode)
         {
             this.createDirectoryMode = true;
@@ -328,7 +329,7 @@ public partial class FileDialog
                     this.selectedSideBar = qa.Text;
                 }
 
-                ImGui.PushFont(UiBuilder.IconFont);
+                ImGui.PushFont(InterfaceManager.IconFont);
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(0);
                 ImGui.TextUnformatted(qa.Icon.ToIconString());
@@ -493,7 +494,7 @@ public partial class FileDialog
     {
         const ImGuiSelectableFlags flags = ImGuiSelectableFlags.AllowDoubleClick | ImGuiSelectableFlags.SpanAllColumns;
 
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
 
         ImGui.TextUnformatted(icon.ToIconString());
         ImGui.PopFont();

@@ -3885,7 +3885,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         var positionOffset = ImGuiHelpers.ScaledVector2(0.0f, 1.0f);
         var cursorStart = ImGui.GetCursorPos() + positionOffset;
-        ImGui.PushFont(UiBuilder.IconFont);
+        ImGui.PushFont(InterfaceManager.IconFont);
 
         ImGui.PushStyleColor(ImGuiCol.Text, outline);
         foreach (var x in Enumerable.Range(-1, 3))

@@ -19,3 +19,6 @@
 [submodule "lib/Hexa.NET.ImGui"]
 	path = lib/Hexa.NET.ImGui
 	url = https://github.com/HexaEngine/Hexa.NET.ImGui.git
+[submodule "lib/ImGui.NET"]
+	path = lib/ImGui.NET
+	url = https://github.com/goatcorp/ImGui.NET.git

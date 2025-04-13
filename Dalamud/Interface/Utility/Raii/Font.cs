@@ -1,4 +1,5 @@
 using Dalamud.Bindings.ImGui;
+using Dalamud.Utility;
 
 namespace Dalamud.Interface.Utility.Raii;
 
@@ -7,6 +8,10 @@ namespace Dalamud.Interface.Utility.Raii;
 public static partial class ImRaii
 {
     public static Font PushFont(ImFontPtr font, bool condition = true)
+        => condition ? new Font().Push(font) : new Font();
+
+    [ImGuiBindingsToDo("Remove.")]
+    public static Font PushFont(ImGuiNET.ImFontPtr font, bool condition = true)
         => condition ? new Font().Push(font) : new Font();
 
     // Push the default font if any other font is currently pushed.
@@ -34,6 +39,12 @@ public static partial class ImRaii
             }
 
             return this;
+        }
+
+        [ImGuiBindingsToDo("Remove.")]
+        public unsafe Font Push(ImGuiNET.ImFontPtr font, bool condition = true)
+        {
+            return this.Push(new ImFontPtr((ImFont*)font.NativePtr), condition);
         }
 
         public void Pop(int num = 1)

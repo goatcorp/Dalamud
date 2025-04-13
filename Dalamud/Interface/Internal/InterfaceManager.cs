@@ -720,7 +720,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             // NOTE (Chiv) Explicitly deactivate on dalamud boot
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
 
-            ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
+            ImGuiHelpers.MainViewportNew = ImGui.GetMainViewport();
 
             Log.Information("[IM] Scene & ImGui setup OK!");
         }

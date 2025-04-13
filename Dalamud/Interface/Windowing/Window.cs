@@ -14,6 +14,8 @@ using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.Logging.Internal;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Client.UI;
 using PInvoke;
 
@@ -54,6 +56,34 @@ public abstract class Window
         this.WindowName = name;
         this.Flags = flags;
         this.ForceMainWindow = forceMainWindow;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Window"/> class.
+    /// </summary>
+    /// <param name="name">The name/ID of this window.
+    /// If you have multiple windows with the same name, you will need to
+    /// append a unique ID to it by specifying it after "###" behind the window title.
+    /// </param>
+    /// <param name="flags">The <see cref="ImGuiWindowFlags"/> of this window.</param>
+    /// <param name="forceMainWindow">Whether this window should be limited to the main game window.</param>
+    [ImGuiBindingsToDo("Remove.")]
+    protected Window(
+        string name, ImGuiNET.ImGuiWindowFlags flags = ImGuiNET.ImGuiWindowFlags.None, bool forceMainWindow = false)
+        : this(name, (ImGuiWindowFlags)flags, forceMainWindow)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Window"/> class.
+    /// </summary>
+    /// <param name="name">The name/ID of this window.
+    /// If you have multiple windows with the same name, you will need to
+    /// append a unique ID to it by specifying it after "###" behind the window title.
+    /// </param>
+    protected Window(string name)
+        : this(name, ImGuiWindowFlags.None)
+    {
     }
 
     /// <summary>
