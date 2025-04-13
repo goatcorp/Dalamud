@@ -492,7 +492,7 @@ public static partial class ImGuiHelpers
     /// <exception cref="OutOfMemoryException">If <see cref="ImGui.MemAlloc(nuint)"/> returns null.</exception>
     public static unsafe void* AllocateMemory(nuint length)
     {
-        var memory = ImGui.MemAlloc((uint)length);
+        var memory = ImGui.MemAlloc(length);
         if (memory is null)
         {
             throw new OutOfMemoryException(
