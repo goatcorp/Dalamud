@@ -440,7 +440,7 @@ namespace Dalamud.Injector
 
             #region Methods
 
-            [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
+            [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
             public static extern void BuildExplicitAccessWithName(
                 ref EXPLICIT_ACCESS pExplicitAccess,
                 string pTrusteeName,
@@ -448,26 +448,26 @@ namespace Dalamud.Injector
                 uint accessMode,
                 uint inheritance);
 
-            [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
+            [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
             public static extern int SetEntriesInAcl(
                 int cCountOfExplicitEntries,
                 ref EXPLICIT_ACCESS pListOfExplicitEntries,
                 IntPtr oldAcl,
                 out IntPtr newAcl);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool InitializeSecurityDescriptor(
                 out SECURITY_DESCRIPTOR pSecurityDescriptor,
                 uint dwRevision);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool SetSecurityDescriptorDacl(
                 ref SECURITY_DESCRIPTOR pSecurityDescriptor,
                 bool bDaclPresent,
                 IntPtr pDacl,
                 bool bDaclDefaulted);
 
-            [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
             public static extern bool CreateProcess(
                string lpApplicationName,
                string lpCommandLine,
@@ -480,39 +480,39 @@ namespace Dalamud.Injector
                [In] ref STARTUPINFO lpStartupInfo,
                out PROCESS_INFORMATION lpProcessInformation);
 
-            [DllImport("kernel32.dll")]
+            [DllImport("kernel32.dll", SetLastError = true)]
             public static extern bool CloseHandle(IntPtr hObject);
 
-            [DllImport("kernel32.dll")]
+            [DllImport("kernel32.dll", SetLastError = true)]
             public static extern uint ResumeThread(IntPtr hThread);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool ImpersonateSelf(
                 SECURITY_IMPERSONATION_LEVEL impersonationLevel);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool OpenProcessToken(
                 IntPtr processHandle,
                 UInt32 desiredAccess,
                 out IntPtr tokenHandle);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool OpenThreadToken(
                 IntPtr threadHandle,
                 uint desiredAccess,
                 bool openAsSelf,
                 out IntPtr tokenHandle);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, ref LUID lpLuid);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool PrivilegeCheck(
                 IntPtr clientToken,
                 ref PRIVILEGE_SET requiredPrivileges,
                 out bool pfResult);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern bool AdjustTokenPrivileges(
                 IntPtr tokenHandle,
                 bool disableAllPrivileges,
@@ -521,7 +521,7 @@ namespace Dalamud.Injector
                 IntPtr previousState,
                 IntPtr cbOutPreviousState);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern uint GetSecurityInfo(
                 IntPtr handle,
                 SE_OBJECT_TYPE objectType,
@@ -532,7 +532,7 @@ namespace Dalamud.Injector
                 IntPtr pSacl,
                 IntPtr pSecurityDescriptor);
 
-            [DllImport("advapi32.dll")]
+            [DllImport("advapi32.dll", SetLastError = true)]
             public static extern uint SetSecurityInfo(
                 IntPtr handle,
                 SE_OBJECT_TYPE objectType,
@@ -542,16 +542,16 @@ namespace Dalamud.Injector
                 IntPtr pDacl,
                 IntPtr pSacl);
 
-            [DllImport("kernel32.dll")]
+            [DllImport("kernel32.dll", SetLastError = true)]
             public static extern IntPtr GetCurrentProcess();
 
-            [DllImport("kernel32.dll")]
+            [DllImport("kernel32.dll", SetLastError = true)]
             public static extern IntPtr GetCurrentThread();
 
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr hWndChildAfter, string className, IntPtr windowTitle);
 
-            [DllImport("user32.dll")]
+            [DllImport("user32.dll", SetLastError = true)]
             public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
             [DllImport("user32.dll")]
