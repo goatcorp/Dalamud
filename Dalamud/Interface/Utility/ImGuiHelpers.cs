@@ -683,15 +683,13 @@ public static partial class ImGuiHelpers
                 throw new InvalidOperationException("ConfigDataCount != 0 but ConfigData is null?");
             if (font->ConfigData is not null)
                 _ = Marshal.ReadIntPtr((nint)font->ConfigData);
-            /*
             if (font->FallbackGlyph is not null
-                && ((nint)font->FallbackGlyph < font->Glyphs.Data || (nint)font->FallbackGlyph >= font->Glyphs.Data))
+                && ((nint)font->FallbackGlyph < (nint)font->Glyphs.Data || (nint)font->FallbackGlyph >= (nint)font->Glyphs.Data))
                 throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
             if (font->FallbackHotData is not null
-                && ((nint)font->FallbackHotData < font->IndexedHotData.Data
-                    || (nint)font->FallbackHotData >= font->IndexedHotData.Data))
+                && ((nint)font->FallbackHotData < (nint)font->IndexedHotData.Data
+                    || (nint)font->FallbackHotData >= (nint)font->IndexedHotData.Data))
                 throw new InvalidOperationException("FallbackGlyph is not in range of Glyphs.Data");
-                */
             if (font->ContainerAtlas is not null)
                 _ = Marshal.ReadIntPtr((nint)font->ContainerAtlas);
         }
