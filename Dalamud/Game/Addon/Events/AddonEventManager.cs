@@ -234,7 +234,7 @@ internal class AddonEventManagerPluginScoped : IInternalDisposableService, IAddo
         Service<Framework>.Get().RunOnFrameworkThread(() =>
         {
             this.eventManagerService.RemovePluginEventController(this.plugin.EffectiveWorkingPluginId);
-        });
+        }).Wait();
     }
     
     /// <inheritdoc/>
