@@ -286,7 +286,7 @@ internal class TexWidget : IDataWindowWidget
                 {
                     if (t.GetTexture(this.textureManager) is { } source)
                     {
-                        var psrv = (ID3D11ShaderResourceView*)source.ImGuiHandle.Handle;
+                        var psrv = (ID3D11ShaderResourceView*)source.Handle.Handle;
                         var rcsrv = psrv->AddRef() - 1;
                         psrv->Release();
 
@@ -314,7 +314,7 @@ internal class TexWidget : IDataWindowWidget
                         if (this.inputTexScale != Vector2.Zero)
                             scale *= this.inputTexScale;
 
-                        ImGui.Image(tex.ImGuiHandle, scale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
+                        ImGui.Image(tex.Handle, scale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
                     }
                     else
                     {
@@ -467,7 +467,7 @@ internal class TexWidget : IDataWindowWidget
                 if (ImGui.IsItemHovered())
                 {
                     ImGui.BeginTooltip();
-                    ImGui.Image(wrap.ImGuiHandle, wrap.Size);
+                    ImGui.Image(wrap.Handle, wrap.Size);
                     ImGui.EndTooltip();
                 }
 
@@ -590,7 +590,7 @@ internal class TexWidget : IDataWindowWidget
                     if (ImGui.IsItemHovered() && texture.GetWrapOrDefault(null) is { } immediate)
                     {
                         ImGui.BeginTooltip();
-                        ImGui.Image(immediate.ImGuiHandle, immediate.Size);
+                        ImGui.Image(immediate.Handle, immediate.Size);
                         ImGui.EndTooltip();
                     }
 

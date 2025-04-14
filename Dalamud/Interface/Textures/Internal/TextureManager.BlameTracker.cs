@@ -253,12 +253,12 @@ internal sealed partial class TextureManager
             0);
 
         /// <inheritdoc/>
-        public ImTextureID ImGuiHandle
+        public ImTextureID Handle
         {
             get
             {
                 if (this.refCount == 0)
-                    return Service<DalamudAssetManager>.Get().Empty4X4.ImGuiHandle;
+                    return Service<DalamudAssetManager>.Get().Empty4X4.Handle;
 
                 this.srvDebugPreviewExpiryTick = Environment.TickCount64 + 1000;
                 if (!this.srvDebugPreview.IsEmpty())
@@ -273,7 +273,7 @@ internal sealed partial class TextureManager
                 using var srv = default(ComPtr<ID3D11ShaderResourceView>);
                 if (device.Get()->CreateShaderResourceView((ID3D11Resource*)this.tex2D, &srvDesc, srv.GetAddressOf())
                     .FAILED)
-                    return Service<DalamudAssetManager>.Get().Empty4X4.ImGuiHandle;
+                    return Service<DalamudAssetManager>.Get().Empty4X4.Handle;
 
                 srv.Swap(ref this.srvDebugPreview);
                 return new ImTextureID(this.srvDebugPreview.Get());

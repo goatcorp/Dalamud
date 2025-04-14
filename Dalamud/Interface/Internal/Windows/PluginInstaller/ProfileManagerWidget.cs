@@ -416,13 +416,13 @@ internal class ProfileManagerWidget
                     pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon, out _);
                     icon ??= pic.DefaultIcon;
 
-                    ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.Image(icon.Handle, new Vector2(pluginLineHeight));
 
                     if (pmPlugin.IsDev)
                     {
                         ImGui.SetCursorPos(cursorBeforeIcon);
                         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.7f);
-                        ImGui.Image(pic.DevPluginIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                        ImGui.Image(pic.DevPluginIcon.Handle, new Vector2(pluginLineHeight));
                         ImGui.PopStyleVar();
                     }
 
@@ -439,7 +439,7 @@ internal class ProfileManagerWidget
                 }
                 else
                 {
-                    ImGui.Image(pic.DefaultIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.Image(pic.DefaultIcon.Handle, new Vector2(pluginLineHeight));
                     ImGui.SameLine();
 
                     var text = Locs.NotInstalled(profileEntry.InternalName);

@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
+using Dalamud.Utility;
 
 using TerraFX.Interop.Windows;
 
@@ -16,7 +17,11 @@ namespace Dalamud.Interface.Textures.TextureWraps;
 public interface IDalamudTextureWrap : IDisposable
 {
     /// <summary>Gets a texture handle suitable for direct use with ImGui functions.</summary>
-    ImTextureID ImGuiHandle { get; }
+    ImTextureID Handle { get; }
+
+    /// <summary>Gets a texture handle suitable for direct use with ImGui functions.</summary>
+    [ImGuiBindingsToDo("Remove.")]
+    IntPtr ImGuiHandle => new((long)this.Handle.Handle);
 
     /// <summary>Gets the width of the texture.</summary>
     int Width { get; }
@@ -46,7 +51,7 @@ public interface IDalamudTextureWrap : IDisposable
     unsafe IDalamudTextureWrap CreateWrapSharingLowLevelResource()
     {
         // Dalamud specific: IDalamudTextureWrap always points to an ID3D11ShaderResourceView.
-        var handle = (IUnknown*)this.ImGuiHandle.Handle;
+        var handle = (IUnknown*)this.Handle.Handle;
         return new UnknownTextureWrap(handle, this.Width, this.Height, true);
     }
 }

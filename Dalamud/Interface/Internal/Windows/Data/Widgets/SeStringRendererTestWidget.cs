@@ -390,7 +390,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                       .GetFromGame(Encoding.UTF8.GetString(state.Span[(byteOffset + 4)..(byteOffset + off)]))
                       .GetWrapOrEmpty();
             state.Draw(
-                tex.ImGuiHandle,
+                tex.Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 tex.Size * (state.FontSize / tex.Size.Y),
                 Vector2.Zero,
@@ -408,7 +408,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                       .GetFromGameIcon(parsed)
                       .GetWrapOrEmpty();
             state.Draw(
-                tex.ImGuiHandle,
+                tex.Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 tex.Size * (state.FontSize / tex.Size.Y),
                 Vector2.Zero,
@@ -417,7 +417,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         static void DrawAsset(scoped in SeStringDrawState state, Vector2 offset, DalamudAsset asset) =>
             state.Draw(
-                Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(asset).ImGuiHandle,
+                Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(asset).Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 new(state.FontSize, state.FontSize),
                 Vector2.Zero,

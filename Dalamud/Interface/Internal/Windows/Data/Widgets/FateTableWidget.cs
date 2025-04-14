@@ -93,7 +93,7 @@ internal class FateTableWidget : IDataWindowWidget
             {
                 if (textureManager.Shared.GetFromGameIcon(fate.IconId).TryGetWrap(out var texture, out _))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new(ImGui.GetTextLineHeight()));
+                    ImGui.Image(texture.Handle, new(ImGui.GetTextLineHeight()));
 
                     if (ImGui.IsItemHovered())
                     {
@@ -101,7 +101,7 @@ internal class FateTableWidget : IDataWindowWidget
                         ImGui.BeginTooltip();
                         ImGui.TextUnformatted("Click to copy IconId");
                         ImGui.TextUnformatted($"ID: {fate.IconId} – Size: {texture.Width}x{texture.Height}");
-                        ImGui.Image(texture.ImGuiHandle, new(texture.Width, texture.Height));
+                        ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();
                     }
 
@@ -118,7 +118,7 @@ internal class FateTableWidget : IDataWindowWidget
             {
                 if (textureManager.Shared.GetFromGameIcon(fate.MapIconId).TryGetWrap(out var texture, out _))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new(ImGui.GetTextLineHeight()));
+                    ImGui.Image(texture.Handle, new(ImGui.GetTextLineHeight()));
 
                     if (ImGui.IsItemHovered())
                     {
@@ -126,7 +126,7 @@ internal class FateTableWidget : IDataWindowWidget
                         ImGui.BeginTooltip();
                         ImGui.TextUnformatted("Click to copy MapIconId");
                         ImGui.TextUnformatted($"ID: {fate.MapIconId} – Size: {texture.Width}x{texture.Height}");
-                        ImGui.Image(texture.ImGuiHandle, new(texture.Width, texture.Height));
+                        ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();
                     }
 

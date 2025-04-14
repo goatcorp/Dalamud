@@ -126,7 +126,7 @@ internal sealed partial class FontAtlasFactory
             if (this.wraps is null)
                 throw new ObjectDisposedException(nameof(FontAtlasBuiltData));
 
-            var handle = wrap.ImGuiHandle;
+            var handle = wrap.Handle;
             var index = this.ImTextures.IndexOf(x => x.TexID == handle);
             if (index == -1)
             {

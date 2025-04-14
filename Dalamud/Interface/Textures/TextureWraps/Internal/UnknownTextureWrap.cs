@@ -34,7 +34,7 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
     ~UnknownTextureWrap() => this.Dispose(false);
 
     /// <inheritdoc/>
-    public ImTextureID ImGuiHandle =>
+    public ImTextureID Handle =>
         this.imGuiHandle == nint.Zero
             ? throw new ObjectDisposedException(nameof(UnknownTextureWrap))
             : new ImTextureID(this.imGuiHandle);

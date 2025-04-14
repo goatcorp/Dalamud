@@ -102,7 +102,7 @@ public static class NotificationUtilities
             return false;
         try
         {
-            var handle = texture.ImGuiHandle;
+            var handle = texture.Handle;
             var size = texture.Size;
             if (size.X > maxCoord.X - minCoord.X)
                 size *= (maxCoord.X - minCoord.X) / size.X;

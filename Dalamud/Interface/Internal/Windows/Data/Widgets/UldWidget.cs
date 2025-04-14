@@ -287,7 +287,7 @@ internal class UldWidget : IDataWindowWidget
             var texturePath = GetStringNullTerminated(textureEntry.Path);
             ImGui.TextUnformatted($"Base path at {texturePath}:");
             if (textureManager.Shared.GetFromGame(texturePath).TryGetWrap(out var wrap, out var e))
-                ImGui.Image(wrap.ImGuiHandle, wrap.Size);
+                ImGui.Image(wrap.Handle, wrap.Size);
             else if (e is not null)
                 ImGui.TextUnformatted(e.ToString());
 
@@ -296,7 +296,7 @@ internal class UldWidget : IDataWindowWidget
                 var texturePathThemed = this.ToThemedPath(texturePath);
                 ImGui.TextUnformatted($"Themed path at {texturePathThemed}:");
                 if (textureManager.Shared.GetFromGame(texturePathThemed).TryGetWrap(out wrap, out e))
-                    ImGui.Image(wrap.ImGuiHandle, wrap.Size);
+                    ImGui.Image(wrap.Handle, wrap.Size);
                 else if (e is not null)
                     ImGui.TextUnformatted(e.ToString());
             }
@@ -533,7 +533,7 @@ internal class UldWidget : IDataWindowWidget
             {
                 var uv0 = new Vector2(partsDataPart.U, partsDataPart.V);
                 var uv1 = uv0 + partSize;
-                ImGui.Image(wrap.ImGuiHandle, partSize * ImGuiHelpers.GlobalScale, uv0 / wrap.Size, uv1 / wrap.Size);
+                ImGui.Image(wrap.Handle, partSize * ImGuiHelpers.GlobalScale, uv0 / wrap.Size, uv1 / wrap.Size);
             }
 
             if (ImGui.IsItemClicked())

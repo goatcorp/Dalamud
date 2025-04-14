@@ -352,7 +352,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, (float)shadeEasing.ValueClamped))
         {
             var texture = this.shadeTexture.Value;
-            ImGui.Image(texture.ImGuiHandle, new Vector2(texture.Width, texture.Height) * scale);
+            ImGui.Image(texture.Handle, new Vector2(texture.Width, texture.Height) * scale);
         }
 
         var isHover = ImGui.IsItemHovered();
@@ -408,7 +408,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
 
         // Wrap should always be valid at this point due to us checking the validity of the image each frame
         var dalamudTextureWrap = entry.Texture.GetWrapOrEmpty();
-        ImGui.Image(dalamudTextureWrap.ImGuiHandle, new Vector2(TitleScreenMenu.TextureSize * scale));
+        ImGui.Image(dalamudTextureWrap.Handle, new Vector2(TitleScreenMenu.TextureSize * scale));
         if (overrideAlpha || isFirst)
         {
             ImGui.PopStyleVar();

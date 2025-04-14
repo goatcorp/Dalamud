@@ -264,7 +264,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
             ImGui.SetCursorPos(new Vector2(logoContainerSize.X / 2 - logoSize.X / 2, logoContainerSize.Y / 2 - logoSize.Y / 2));
 
             using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, Math.Clamp(this.windowFade.EasedPoint.X - 0.5f, 0f, 1f)))
-                ImGui.Image(this.logoTexture.Value.ImGuiHandle, logoSize);
+                ImGui.Image(this.logoTexture.Value.Handle, logoSize);
         }
 
         ImGui.SameLine();
@@ -380,7 +380,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
                         ImGuiHelpers.CenterCursorFor(this.apiBumpExplainerTexture.Value.Width);
                         ImGui.Image(
-                            this.apiBumpExplainerTexture.Value.ImGuiHandle,
+                            this.apiBumpExplainerTexture.Value.Handle,
                             this.apiBumpExplainerTexture.Value.Size);
 
                         if (!this.currentFtueLevels.TryGetValue(FtueLevels.AutoUpdate.Name, out var autoUpdateLevel) || autoUpdateLevel < FtueLevels.AutoUpdate.AutoUpdateInitial)

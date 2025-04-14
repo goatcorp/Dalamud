@@ -153,7 +153,7 @@ public class IconBrowserWidget : IDataWindowWidget
 
         if (texm.Shared.GetFromGameIcon(iconId).TryGetWrap(out var texture, out var exc))
         {
-            ImGui.Image(texture.ImGuiHandle, this.iconSize);
+            ImGui.Image(texture.Handle, this.iconSize);
 
             // If we have the option to show a tooltip image, draw the image, but make sure it's not too big.
             if (ImGui.IsItemHovered() && this.showTooltipImage)
@@ -167,7 +167,7 @@ public class IconBrowserWidget : IDataWindowWidget
                     texture.Size.X * scale / 2.0f - textSize.X / 2.0f + ImGui.GetStyle().FramePadding.X * 2.0f);
                 ImGui.Text(iconId.ToString());
 
-                ImGui.Image(texture.ImGuiHandle, texture.Size * scale);
+                ImGui.Image(texture.Handle, texture.Size * scale);
                 ImGui.EndTooltip();
             }
 

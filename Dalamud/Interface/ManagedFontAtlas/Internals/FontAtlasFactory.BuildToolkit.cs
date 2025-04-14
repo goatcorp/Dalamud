@@ -709,7 +709,7 @@ internal sealed partial class FontAtlasFactory
                             name);
                         this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
-                        texture.TexID = wrap.ImGuiHandle;
+                        texture.TexID = wrap.Handle;
                     }
                     else if (texture.TexPixelsAlpha8 is not null)
                     {
@@ -755,7 +755,7 @@ internal sealed partial class FontAtlasFactory
                             name);
                         this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
-                        texture.TexID = wrap.ImGuiHandle;
+                        texture.TexID = wrap.Handle;
                         continue;
                     }
                     else

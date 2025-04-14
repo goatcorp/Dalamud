@@ -94,7 +94,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                         size *= previewImageWidth / size.X;
                     if (size.Y > previewImageWidth)
                         size *= previewImageWidth / size.Y;
-                    ImGui.Image(textureWrap.ImGuiHandle, size);
+                    ImGui.Image(textureWrap.Handle, size);
 
                     if (tcs.Task.IsCompleted)
                         ImGui.CloseCurrentPopup();

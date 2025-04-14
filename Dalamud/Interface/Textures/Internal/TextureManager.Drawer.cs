@@ -380,7 +380,7 @@ internal sealed partial class TextureManager
             ctx->PSSetShader(this.pixelShader, null, 0);
             var simp = this.sampler.Get();
             ctx->PSSetSamplers(0, 1, &simp);
-            var ppn = (ID3D11ShaderResourceView*)Service<DalamudAssetManager>.Get().White4X4.ImGuiHandle.Handle;
+            var ppn = (ID3D11ShaderResourceView*)Service<DalamudAssetManager>.Get().White4X4.Handle.Handle;
             ctx->PSSetShaderResources(0, 1, &ppn);
 
             ctx->GSSetShader(null, null, 0);

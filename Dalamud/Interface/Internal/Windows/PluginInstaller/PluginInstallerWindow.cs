@@ -1737,19 +1737,19 @@ internal class PluginInstallerWindow : Window, IDisposable
         var iconSize = ImGuiHelpers.ScaledVector2(64, 64);
 
         var cursorBeforeImage = ImGui.GetCursorPos();
-        ImGui.Image(iconTex.ImGuiHandle, iconSize);
+        ImGui.Image(iconTex.Handle, iconSize);
         ImGui.SameLine();
 
         if (this.testerError)
         {
             ImGui.SetCursorPos(cursorBeforeImage);
-            ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
+            ImGui.Image(this.imageCache.TroubleIcon.Handle, iconSize);
             ImGui.SameLine();
         }
         else if (this.testerUpdateAvailable)
         {
             ImGui.SetCursorPos(cursorBeforeImage);
-            ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
+            ImGui.Image(this.imageCache.UpdateIcon.Handle, iconSize);
             ImGui.SameLine();
         }
 
@@ -1850,7 +1850,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                         if (ImGui.BeginPopup(popupId))
                         {
-                            if (ImGui.ImageButton(image.ImGuiHandle, new Vector2(image.Width, image.Height)))
+                            if (ImGui.ImageButton(image.Handle, new Vector2(image.Width, image.Height)))
                                 ImGui.CloseCurrentPopup();
 
                             ImGui.EndPopup();
@@ -1874,7 +1874,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         }
 
                         var size = ImGuiHelpers.ScaledVector2(xAct / thumbFactor, yAct / thumbFactor);
-                        if (ImGui.ImageButton(image.ImGuiHandle, size))
+                        if (ImGui.ImageButton(image.Handle, size))
                             ImGui.OpenPopup(popupId);
 
                         ImGui.PopStyleVar();
@@ -2125,7 +2125,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, iconAlpha);
-            ImGui.Image(iconTex.ImGuiHandle, iconSize);
+            ImGui.Image(iconTex.Handle, iconSize);
             ImGui.PopStyleVar();
 
             ImGui.SameLine();
@@ -2136,13 +2136,13 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, overlayAlpha);
         if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
-            ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
+            ImGui.Image(this.imageCache.UpdateIcon.Handle, iconSize);
         else if ((flags.HasFlag(PluginHeaderFlags.HasTrouble) && !pluginDisabled) || flags.HasFlag(PluginHeaderFlags.IsOrphan))
-            ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
+            ImGui.Image(this.imageCache.TroubleIcon.Handle, iconSize);
         else if (flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
-            ImGui.Image(this.imageCache.OutdatedInstallableIcon.ImGuiHandle, iconSize);
+            ImGui.Image(this.imageCache.OutdatedInstallableIcon.Handle, iconSize);
         else if (pluginDisabled)
-            ImGui.Image(this.imageCache.DisabledIcon.ImGuiHandle, iconSize);
+            ImGui.Image(this.imageCache.DisabledIcon.Handle, iconSize);
         /* NOTE: Replaced by the checkmarks for now, let's see if that is fine
         else if (isLoaded && isThirdParty)
             ImGui.Image(this.imageCache.ThirdInstalledIcon.ImGuiHandle, iconSize);
@@ -2150,7 +2150,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.Image(this.imageCache.ThirdIcon.ImGuiHandle, iconSize);
         */
         else if (isLoaded)
-            ImGui.Image(this.imageCache.InstalledIcon.ImGuiHandle, iconSize);
+            ImGui.Image(this.imageCache.InstalledIcon.Handle, iconSize);
         else
             ImGui.Dummy(iconSize);
         ImGui.PopStyleVar();
@@ -2334,7 +2334,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 icon = this.imageCache.CorePluginIcon;
             }
 
-            ImGui.Image(icon.ImGuiHandle, iconSize);
+            ImGui.Image(icon.Handle, iconSize);
         }
         else
         {
@@ -3637,7 +3637,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 var popupId = $"plugin{index}image{i}";
                 if (ImGui.BeginPopup(popupId))
                 {
-                    if (ImGui.ImageButton(image.ImGuiHandle, new Vector2(image.Width, image.Height)))
+                    if (ImGui.ImageButton(image.Handle, new Vector2(image.Width, image.Height)))
                         ImGui.CloseCurrentPopup();
 
                     ImGui.EndPopup();
@@ -3661,7 +3661,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 }
 
                 var size = ImGuiHelpers.ScaledVector2(xAct / thumbFactor, yAct / thumbFactor);
-                if (ImGui.ImageButton(image.ImGuiHandle, size))
+                if (ImGui.ImageButton(image.Handle, size))
                     ImGui.OpenPopup(popupId);
 
                 ImGui.PopStyleVar();

@@ -281,7 +281,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
             const float imageSize = 190f;
             ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));
             this.logoTexture ??= Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(DalamudAsset.Logo);
-            ImGui.Image(this.logoTexture.ImGuiHandle, ImGuiHelpers.ScaledVector2(imageSize));
+            ImGui.Image(this.logoTexture.Handle, ImGuiHelpers.ScaledVector2(imageSize));
 
             ImGuiHelpers.ScaledDummy(0, 20f);
 

@@ -414,7 +414,7 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
                 false,
                 false,
                 $"Font#{textureIndex}");
-            io.Fonts.SetTexID(textureIndex, tex.ImGuiHandle);
+            io.Fonts.SetTexID(textureIndex, tex.Handle);
             this.fontTextures.Add(tex);
         }
 
