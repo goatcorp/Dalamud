@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 
@@ -222,8 +223,8 @@ internal unsafe partial class Fate : IFate
     public byte Progress => this.Struct->Progress;
 
     /// <inheritdoc/>
-    [Obsolete($"Use {nameof(HasBonus)} instead")]
-    public bool HasExpBonus => this.Struct->IsExpBonus;
+    [Api13ToDo("Remove")]
+    public bool HasExpBonus => this.HasBonus;
 
     /// <inheritdoc/>
     public bool HasBonus => this.Struct->IsBonus;
