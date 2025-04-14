@@ -216,7 +216,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         ImGui.SetNextWindowBgAlpha(Math.Clamp(this.windowFade.EasedPoint.X, 0, 0.9f));
 
         this.Size = new Vector2(900, 400);
-        this.SizeCondition = ImGuiCond.Always;
+        this.SizeConditionNew = ImGuiCond.Always;
 
         // Center the window on the main viewport
         var viewportPos = ImGuiHelpers.MainViewport.Pos;

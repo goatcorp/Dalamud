@@ -78,7 +78,7 @@ internal class DataWindow : Window, IDisposable
         : base("Dalamud Data", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         this.Size = new Vector2(400, 300);
-        this.SizeCondition = ImGuiCond.FirstUseEver;
+        this.SizeConditionNew = ImGuiCond.FirstUseEver;
 
         this.RespectCloseHotkey = false;
         this.orderedModules = this.modules.OrderBy(module => module.DisplayName);

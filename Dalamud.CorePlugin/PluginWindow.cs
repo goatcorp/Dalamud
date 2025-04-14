@@ -20,7 +20,7 @@ namespace Dalamud.CorePlugin
             this.IsOpen = true;
 
             this.Size = new Vector2(810, 520);
-            this.SizeCondition = ImGuiCond.FirstUseEver;
+            this.SizeConditionNew = ImGuiCond.FirstUseEver;
         }
 
         /// <inheritdoc/>

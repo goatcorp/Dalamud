@@ -35,8 +35,8 @@ internal unsafe class NodePopoutWindow : Window, IDisposable
 
         this.Position = pos2;
         this.IsOpen = true;
-        this.PositionCondition = ImGuiCond.Once;
-        this.SizeCondition = ImGuiCond.Once;
+        this.PositionConditionNew = ImGuiCond.Once;
+        this.SizeConditionNew = ImGuiCond.Once;
         this.Size = new(700, 200);
         this.SizeConstraints = new() { MinimumSize = new(100, 100) };
     }

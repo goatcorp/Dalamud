@@ -39,7 +39,7 @@ internal class SettingsWindow : Window
             MaximumSize = new Vector2(1780, 940),
         };
 
-        this.SizeCondition = ImGuiCond.FirstUseEver;
+        this.SizeConditionNew = ImGuiCond.FirstUseEver;
 
         this.tabs =
         [

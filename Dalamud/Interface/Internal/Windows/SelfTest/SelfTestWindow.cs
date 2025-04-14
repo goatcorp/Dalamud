@@ -71,7 +71,7 @@ internal class SelfTestWindow : Window
         : base("Dalamud Self-Test", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         this.Size = new Vector2(800, 800);
-        this.SizeCondition = ImGuiCond.FirstUseEver;
+        this.SizeConditionNew = ImGuiCond.FirstUseEver;
 
         this.RespectCloseHotkey = false;
     }

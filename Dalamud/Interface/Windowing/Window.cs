@@ -158,7 +158,17 @@ public abstract class Window
     /// <summary>
     /// Gets or sets the condition that defines when the position of this window is set.
     /// </summary>
-    public ImGuiCond PositionCondition { get; set; }
+    public ImGuiCond PositionConditionNew
+    {
+        get => (ImGuiCond)this.PositionCondition;
+        set => this.PositionCondition = (ImGuiNET.ImGuiCond)value;
+    }
+
+    /// <summary>
+    /// Gets or sets the condition that defines when the position of this window is set.
+    /// </summary>
+    [ImGuiBindingsToDo("Remove. Rename New.")]
+    public ImGuiNET.ImGuiCond PositionCondition { get; set; }
 
     /// <summary>
     /// Gets or sets the size of the window. The size provided will be scaled by the global scale.
@@ -168,7 +178,17 @@ public abstract class Window
     /// <summary>
     /// Gets or sets the condition that defines when the size of this window is set.
     /// </summary>
-    public ImGuiCond SizeCondition { get; set; }
+    public ImGuiCond SizeConditionNew
+    {
+        get => (ImGuiCond)this.SizeCondition;
+        set => this.SizeCondition = (ImGuiNET.ImGuiCond)value;
+    }
+
+    /// <summary>
+    /// Gets or sets the condition that defines when the size of this window is set.
+    /// </summary>
+    [ImGuiBindingsToDo("Remove. Rename New.")]
+    public ImGuiNET.ImGuiCond SizeCondition { get; set; }
 
     /// <summary>
     /// Gets or sets the size constraints of the window. The size constraints provided will be scaled by the global scale.
@@ -588,12 +608,12 @@ public abstract class Window
             if (this.ForceMainWindow)
                 pos += ImGuiHelpers.MainViewport.Pos;
 
-            ImGui.SetNextWindowPos(pos, this.PositionCondition);
+            ImGui.SetNextWindowPos(pos, this.PositionConditionNew);
         }
 
         if (this.Size.HasValue)
         {
-            ImGui.SetNextWindowSize(this.Size.Value * ImGuiHelpers.GlobalScale, this.SizeCondition);
+            ImGui.SetNextWindowSize(this.Size.Value * ImGuiHelpers.GlobalScale, this.SizeConditionNew);
         }
 
         if (this.Collapsed.HasValue)
