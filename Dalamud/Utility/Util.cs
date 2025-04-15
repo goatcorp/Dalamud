@@ -70,10 +70,17 @@ public static class Util
     private static ulong moduleEndAddr;
 
     /// <summary>
-    /// Gets the assembly version of Dalamud.
+    /// Gets the Dalamud version.
     /// </summary>
+    [Api13ToDo("Remove. Make both versions here internal. Add an API somewhere.")]
     public static string AssemblyVersion { get; } =
-        Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+        Assembly.GetAssembly(typeof(ChatHandlers))!.GetName().Version!.ToString();
+
+    /// <summary>
+    /// Gets the Dalamud version.
+    /// </summary>
+    internal static Version AssemblyVersionParsed { get; } =
+        Assembly.GetAssembly(typeof(ChatHandlers))!.GetName().Version!;
 
     /// <summary>
     /// Gets the SCM Version from the assembly, or null if it cannot be found. This method will generally return

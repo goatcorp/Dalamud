@@ -15,6 +15,7 @@ using Dalamud.Plugin.Internal.Exceptions;
 using Dalamud.Plugin.Internal.Loader;
 using Dalamud.Plugin.Internal.Profiles;
 using Dalamud.Plugin.Internal.Types.Manifest;
+using Dalamud.Utility;
 
 namespace Dalamud.Plugin.Internal.Types;
 
@@ -311,6 +312,9 @@ internal class LocalPlugin : IAsyncDisposable
 
             if (!this.CheckPolicy())
                 throw new PluginPreconditionFailedException($"Unable to load {this.Name} as a load policy forbids it");
+
+            if (this.Manifest.MinimumDalamudVersion != null && this.Manifest.MinimumDalamudVersion > Util.AssemblyVersionParsed)
+                throw new PluginPreconditionFailedException($"Unable to load {this.Name}, Dalamud version is lower than minimum required version {this.Manifest.MinimumDalamudVersion}");
 
             this.State = PluginState.Loading;
             Log.Information($"Loading {this.DllFile.Name}");
