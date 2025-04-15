@@ -501,6 +501,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                 // Plugins category
                 this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
                 break;
+            case PluginInstallerOpenKind.DalamudChangelogs:
+                // Changelog group
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Changelog;
+                // Dalamud category
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.DalamudChangelogs;
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
         }
