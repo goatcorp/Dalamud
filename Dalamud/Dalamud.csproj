@@ -74,10 +74,6 @@
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="MinSharp" Version="1.0.4" />
-        <PackageReference Include="PInvoke.DwmApi" Version="0.7.104" />
-        <PackageReference Include="PInvoke.Kernel32" Version="0.7.104" />
-        <PackageReference Include="PInvoke.User32" Version="0.7.104" />
-        <PackageReference Include="PInvoke.Win32" Version="0.7.104" />
         <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
         <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
         <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />

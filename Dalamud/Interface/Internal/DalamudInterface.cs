@@ -40,13 +40,12 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using PInvoke;
 using Serilog.Events;
 
 namespace Dalamud.Interface.Internal;
 
 /// <summary>
-/// This plugin implements all of the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
+/// This plugin implements all the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
 internal class DalamudInterface : IInternalDisposableService
@@ -575,7 +574,7 @@ internal class DalamudInterface : IInternalDisposableService
 
             // Release focus of any ImGui window if we click into the game.
             var io = ImGui.GetIO();
-            if (!io.WantCaptureMouse && (User32.GetKeyState((int)User32.VirtualKey.VK_LBUTTON) & 0x8000) != 0)
+            if (!io.WantCaptureMouse && (global::Windows.Win32.PInvoke.GetKeyState((int)VirtualKey.LBUTTON) & 0x8000) != 0)
             {
                 unsafe
                 {

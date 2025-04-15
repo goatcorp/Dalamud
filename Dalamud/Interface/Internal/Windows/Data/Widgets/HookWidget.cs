@@ -2,7 +2,6 @@
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Hooking;
-using PInvoke;
 using Serilog;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -81,7 +80,7 @@ internal class HookWidget : IDataWindowWidget
 
         var result = this.messageBoxMinHook!.Original(hwnd, "Cause Access Violation?", caption, MESSAGEBOX_STYLE.MB_YESNO);
 
-        if (result == (int)User32.MessageBoxResult.IDYES)
+        if (result == (int)MESSAGEBOX_RESULT.IDYES)
         {
             Marshal.ReadByte(IntPtr.Zero);
         }

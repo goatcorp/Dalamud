@@ -13,9 +13,9 @@ using Dalamud.Plugin.Internal;
 using Dalamud.Storage;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
-using PInvoke;
 using Serilog;
 using Windows.Win32.Foundation;
+using Windows.Win32.Security;
 
 #if DEBUG
 [assembly: InternalsVisibleTo("Dalamud.CorePlugin")]
@@ -171,8 +171,9 @@ internal sealed unsafe class Dalamud : IServiceType
         if (!reportCrashesSetting && !pmHasDevPlugins)
         {
             // Leaking on purpose for now
-            var attribs = Kernel32.SECURITY_ATTRIBUTES.Create();
-            Kernel32.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
+            var attribs = default(SECURITY_ATTRIBUTES);
+            attribs.nLength = (uint)Unsafe.SizeOf<SECURITY_ATTRIBUTES>();
+            Windows.Win32.PInvoke.CreateMutex(attribs, false, "DALAMUD_CRASHES_NO_MORE");
         }
 
         this.unloadSignal.Set();

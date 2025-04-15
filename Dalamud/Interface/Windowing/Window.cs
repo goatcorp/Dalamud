@@ -17,7 +17,6 @@ using Dalamud.Logging.Internal;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
-using PInvoke;
 
 namespace Dalamud.Interface.Windowing;
 
@@ -732,7 +731,7 @@ public abstract class Window
                     hovered = true;
 
                     // We can't use ImGui native functions here, because they don't work with clickthrough
-                    if ((User32.GetKeyState((int)VirtualKey.LBUTTON) & 0x8000) != 0)
+                    if ((global::Windows.Win32.PInvoke.GetKeyState((int)VirtualKey.LBUTTON) & 0x8000) != 0)
                     {
                         held = true;
                         pressed = true;
