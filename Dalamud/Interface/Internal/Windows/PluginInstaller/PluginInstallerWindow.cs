@@ -285,9 +285,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         _ = pluginManager.ReloadPluginMastersAsync();
         Service<PluginManager>.Get().ScanDevPlugins();
 
-        if (!this.isSearchTextPrefilled) this.searchText = string.Empty;
-        this.sortKind = PluginSortKind.Alphabetical;
-        this.filterText = Locs.SortBy_Alphabetical;
+        if (!this.isSearchTextPrefilled)
+        {
+            this.searchText = string.Empty;
+            this.sortKind = PluginSortKind.Alphabetical;
+            this.filterText = Locs.SortBy_Alphabetical;
+        }
+
         this.adaptiveSort = true;
 
         if (this.updateStatus == OperationStatus.Complete || this.updateStatus == OperationStatus.Idle)
@@ -363,11 +367,20 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             this.isSearchTextPrefilled = false;
             this.searchText = string.Empty;
+            if (this.sortKind == PluginSortKind.SearchScore)
+            {
+                this.sortKind = PluginSortKind.Alphabetical;
+                this.filterText = Locs.SortBy_Alphabetical;
+                this.ResortPlugins();
+            }
         }
         else
         {
             this.isSearchTextPrefilled = true;
             this.searchText = text;
+            this.sortKind = PluginSortKind.SearchScore;
+            this.filterText = Locs.SortBy_SearchScore;
+            this.ResortPlugins();
         }
     }
 
