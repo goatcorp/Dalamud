@@ -34,8 +34,6 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 
-using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
-
 using ImGuiNET;
 
 using ImGuiScene;
@@ -46,6 +44,8 @@ using PInvoke;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
+
+using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 
 // general dev notes, here because it's easiest
 
@@ -524,7 +524,9 @@ internal partial class InterfaceManager : IInternalDisposableService
         // Some graphics drivers seem to consider the game's shader cache as invalid if we hook too early.
         // The game loads shader packages on the file thread and then compiles them. It will show the logo once it is done.
         // This is a workaround, but it fixes an issue where the game would take a very long time to get to the title screen.
-        if (EnvManager.Instance() == null)
+        // NetworkModuleProxy is set up after lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
+        // after the shaders are compiled (if necessary) and loaded. AgentLobby.Update doesn't do much until this condition is met.
+        if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
             return;
 
         this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
