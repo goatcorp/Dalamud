@@ -31,6 +31,32 @@ internal partial class ConsoleManager : IServiceType
     }
 
     /// <summary>
+    /// Possible results when processing a console command.
+    /// </summary>
+    public enum CommandProcessResult
+    {
+        /// <summary>
+        /// The command was processed and executed correctly.
+        /// </summary>
+        Success,
+
+        /// <summary>
+        /// The input failed to parse. onDiagnosticEmitted will be called with further information.
+        /// </summary>
+        ParseFailure,
+
+        /// <summary>
+        /// The command did not indicate success.
+        /// </summary>
+        ExecutionFailure,
+
+        /// <summary>
+        /// The command was not found.
+        /// </summary>
+        NotFound,
+    }
+
+    /// <summary>
     /// Gets a read-only dictionary of console entries.
     /// </summary>
     public IReadOnlyDictionary<string, IConsoleEntry> Entries => this.entries;
@@ -187,25 +213,27 @@ internal partial class ConsoleManager : IServiceType
     /// Process a console command.
     /// </summary>
     /// <param name="command">The command to process.</param>
-    /// <returns>Whether or not the command was successfully processed.</returns>
-    public bool ProcessCommand(string command)
+    /// <param name="onDiagnosticEmitted">Action to be invoked when an error during command parsing occurred.</param>
+    /// <returns>Whether the command was successfully processed.</returns>
+    public CommandProcessResult ProcessCommand(string command, Action<ConsoleDiagnostic> onDiagnosticEmitted)
     {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(onDiagnosticEmitted);
+
         var matches = GetCommandParsingRegex().Matches(command);
         if (matches.Count == 0)
-            return false;
+            return CommandProcessResult.NotFound;
 
         var entryName = matches[0].Value;
         if (string.IsNullOrEmpty(entryName) || entryName.Any(char.IsWhiteSpace))
         {
-            Log.Error("No valid command specified");
-            return false;
+            return CommandProcessResult.NotFound;
         }
 
         var entry = this.FindEntry(entryName);
         if (entry == null)
         {
-            Log.Error("Command {CommandName} not found", entryName);
-            return false;
+            return CommandProcessResult.NotFound;
         }
 
         var parsedArguments = new List<object>();
@@ -216,9 +244,8 @@ internal partial class ConsoleManager : IServiceType
             {
                 if (i - 1 >= entry.ValidArguments.Count)
                 {
-                    Log.Error("Too many arguments for command {CommandName}", entryName);
-                    PrintUsage(entry);
-                    return false;
+                    onDiagnosticEmitted.Invoke(new TooManyArgumentsDiagnostic(entry));
+                    return CommandProcessResult.ParseFailure;
                 }
 
                 var argumentToMatch = entry.ValidArguments[i - 1];
@@ -241,25 +268,22 @@ internal partial class ConsoleManager : IServiceType
                         parsedArguments.Add(intValue);
                         break;
                     case ConsoleArgumentType.Integer:
-                        Log.Error("Argument {Argument} for command {CommandName} is not an integer", value, entryName);
-                        PrintUsage(entry);
-                        return false;
+                        onDiagnosticEmitted.Invoke(new WrongArgumentTypeDiagnostic(i, value, "integer", entry));
+                        return CommandProcessResult.ParseFailure;
 
                     case ConsoleArgumentType.Float when float.TryParse(value, out var floatValue):
                         parsedArguments.Add(floatValue);
                         break;
                     case ConsoleArgumentType.Float:
-                        Log.Error("Argument {Argument} for command {CommandName} is not a float", value, entryName);
-                        PrintUsage(entry);
-                        return false;
+                        onDiagnosticEmitted.Invoke(new WrongArgumentTypeDiagnostic(i, value, "float", entry));
+                        return CommandProcessResult.ParseFailure;
 
                     case ConsoleArgumentType.Bool when bool.TryParse(value, out var boolValue):
                         parsedArguments.Add(boolValue);
                         break;
                     case ConsoleArgumentType.Bool:
-                        Log.Error("Argument {Argument} for command {CommandName} is not a boolean", value, entryName);
-                        PrintUsage(entry);
-                        return false;
+                        onDiagnosticEmitted.Invoke(new WrongArgumentTypeDiagnostic(i, value, "boolean", entry));
+                        return CommandProcessResult.ParseFailure;
 
                     default:
                         throw new Exception("Unhandled argument type.");
@@ -269,7 +293,6 @@ internal partial class ConsoleManager : IServiceType
             if (parsedArguments.Count != entry.ValidArguments.Count)
             {
                 // Either fill in the default values or error out
-
                 for (var i = parsedArguments.Count; i < entry.ValidArguments.Count; i++)
                 {
                     var argument = entry.ValidArguments[i];
@@ -277,9 +300,8 @@ internal partial class ConsoleManager : IServiceType
                     // If the default value is DBNull, we need to error out as that means it was not specified
                     if (argument.DefaultValue == DBNull.Value)
                     {
-                        Log.Error("Not enough arguments for command {CommandName}", entryName);
-                        PrintUsage(entry);
-                        return false;
+                        onDiagnosticEmitted.Invoke(new NotEnoughArgumentsDiagnostic(entry));
+                        return CommandProcessResult.ParseFailure;
                     }
 
                     parsedArguments.Add(argument.DefaultValue);
@@ -287,9 +309,8 @@ internal partial class ConsoleManager : IServiceType
 
                 if (parsedArguments.Count != entry.ValidArguments.Count)
                 {
-                    Log.Error("Too many arguments for command {CommandName}", entryName);
-                    PrintUsage(entry);
-                    return false;
+                    onDiagnosticEmitted.Invoke(new TooManyArgumentsDiagnostic(entry));
+                    return CommandProcessResult.ParseFailure;
                 }
             }
         }
@@ -297,27 +318,16 @@ internal partial class ConsoleManager : IServiceType
         {
             if (matches.Count > 1)
             {
-                Log.Error("Command {CommandName} does not take any arguments", entryName);
-                PrintUsage(entry);
-                return false;
+                onDiagnosticEmitted.Invoke(new DoesNotTakeArgumentsDiagnostic(entry));
+                return CommandProcessResult.ParseFailure;
             }
         }
 
-        return entry.Invoke(parsedArguments);
+        return entry.Invoke(parsedArguments) ? CommandProcessResult.Success : CommandProcessResult.ExecutionFailure;
     }
 
     [GeneratedRegex("""("[^"]+"|[^\s"]+)""", RegexOptions.Compiled)]
     private static partial Regex GetCommandParsingRegex();
-
-    private static void PrintUsage(ConsoleEntry entry, bool error = true)
-    {
-        Log.WriteLog(
-            error ? LogEventLevel.Error : LogEventLevel.Information,
-            "Usage: {CommandName} {Arguments}",
-            null,
-            entry.Name,
-            string.Join(" ", entry.ValidArguments?.Select(x => $"<{x.Type.ToString().ToLowerInvariant()}>") ?? Enumerable.Empty<string>()));
-    }
 
     private ConsoleEntry? FindEntry(string name)
     {
@@ -338,9 +348,89 @@ internal partial class ConsoleManager : IServiceType
     }
 
     /// <summary>
+    /// A diagnostic message emitted when a console command fails to parse.
+    /// </summary>
+    /// <param name="Entry">The relevant console entry.</param>
+    internal abstract record ConsoleDiagnostic(IConsoleEntry Entry)
+    {
+        /// <summary>
+        /// Write a standard message detailing the diagnostic to the log.
+        /// </summary>
+        public abstract void WriteToLog();
+    }
+
+    /// <summary>
+    /// A diagnostic message emitted when an argument of a command is of the wrong type.
+    /// </summary>
+    /// <param name="ArgumentIndex">The index of the argument.</param>
+    /// <param name="Value">The value we tried to parse.</param>
+    /// <param name="TypeToMatch">The type we failed to match.</param>
+    /// <param name="Entry">The relevant console entry.</param>
+    internal record WrongArgumentTypeDiagnostic(int ArgumentIndex, string Value, string TypeToMatch, IConsoleEntry Entry)
+        : ConsoleDiagnostic(Entry)
+    {
+        /// <inheritdoc/>
+        public override void WriteToLog()
+        {
+            Log.Error("Wrong type for argument at index {ArgumentIndex}. Expected {TypeToMatch}", this.ArgumentIndex, this.TypeToMatch);
+        }
+    }
+
+    /// <summary>
+    /// A diagnostic message emitted when too many arguments were provided.
+    /// </summary>
+    /// <param name="Entry">The relevant console entry.</param>
+    internal record TooManyArgumentsDiagnostic(IConsoleEntry Entry)
+        : ConsoleDiagnostic(Entry)
+    {
+        /// <inheritdoc/>
+        public override void WriteToLog()
+        {
+            Log.Error("Too many arguments for command {CommandName}", this.Entry.Name);
+        }
+    }
+
+    /// <summary>
+    /// A diagnostic message emitted when not enough arguments were provided.
+    /// </summary>
+    /// <param name="Entry">The relevant console entry.</param>
+    internal record NotEnoughArgumentsDiagnostic(IConsoleEntry Entry)
+        : ConsoleDiagnostic(Entry)
+    {
+        /// <inheritdoc/>
+        public override void WriteToLog()
+        {
+            Log.Error("Not enough arguments for command {CommandName}", this.Entry.Name);
+        }
+    }
+
+    /// <summary>
+    /// A diagnostic message emitted when a command does not take any arguments.
+    /// </summary>
+    /// <param name="Entry">The relevant console entry.</param>
+    internal record DoesNotTakeArgumentsDiagnostic(IConsoleEntry Entry)
+        : ConsoleDiagnostic(Entry)
+    {
+        /// <inheritdoc/>
+        public override void WriteToLog()
+        {
+            Log.Error("Command {CommandName} does not take any arguments", this.Entry.Name);
+        }
+    }
+
+    private static class Traits
+    {
+        public static void ThrowIfTIsNullableAndNull<T>(T? argument, [CallerArgumentExpression("argument")] string? paramName = null)
+        {
+            if (argument == null && !typeof(T).IsValueType)
+                throw new ArgumentNullException(paramName);
+        }
+    }
+
+    /// <summary>
     /// Class representing an entry in the console.
     /// </summary>
-    internal abstract class ConsoleEntry : IConsoleEntry
+    private abstract class ConsoleEntry : IConsoleEntry
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsoleEntry"/> class.
@@ -368,14 +458,17 @@ internal partial class ConsoleManager : IServiceType
         /// Execute this command.
         /// </summary>
         /// <param name="arguments">Arguments to invoke the entry with.</param>
-        /// <returns>Whether or not execution succeeded.</returns>
+        /// <returns>Whether execution succeeded.</returns>
         public abstract bool Invoke(IEnumerable<object> arguments);
 
-        /// <summary>
-        /// Function to be called when an error during argument parsing occurs.
-        /// </summary>
-        /// <param name="error">The error to report to the user.</param>
-        public abstract void ReportError(string error);
+        /// <inheritdoc/>
+        public string GetUsageString()
+        {
+            var argumentStr = string.Join(
+                " ",
+                this.ValidArguments?.Select(x => $"<{x.Type.ToString().ToLowerInvariant()}>") ?? []);
+            return $"{this.Name} {argumentStr}";
+        }
 
         /// <summary>
         /// Get an instance of <see cref="ArgumentInfo"/> for a given type.
@@ -410,23 +503,9 @@ internal partial class ConsoleManager : IServiceType
     }
 
     /// <summary>
-    /// Class representing a developer console entry that will report errors to the Dalamud console.
-    /// </summary>
-    /// <param name="name">The name of the entry.</param>
-    /// <param name="description">A description of the entry.</param>
-    internal abstract class DeveloperConsoleEntry(string name, string description) : ConsoleEntry(name, description)
-    {
-        /// <inheritdoc/>
-        public override void ReportError(string error)
-        {
-            Log.Error(error);
-        }
-    }
-
-    /// <summary>
     /// Class representing a console command.
     /// </summary>
-    internal class ConsoleCommand : DeveloperConsoleEntry, IConsoleCommand
+    private class ConsoleCommand : ConsoleEntry, IConsoleCommand
     {
         private readonly Delegate func;
 
@@ -461,15 +540,6 @@ internal partial class ConsoleManager : IServiceType
         }
     }
 
-    private static class Traits
-    {
-        public static void ThrowIfTIsNullableAndNull<T>(T? argument, [CallerArgumentExpression("argument")] string? paramName = null)
-        {
-            if (argument == null && !typeof(T).IsValueType)
-                throw new ArgumentNullException(paramName);
-        }
-    }
-
     /// <summary>
     /// Class representing an alias to another console entry.
     /// </summary>
@@ -494,9 +564,6 @@ internal partial class ConsoleManager : IServiceType
         {
             return this.target.Invoke(arguments);
         }
-
-        public override void ReportError(string error)
-            => this.target.ReportError(error);
     }
 
     /// <summary>
@@ -510,7 +577,7 @@ internal partial class ConsoleManager : IServiceType
     /// Class representing a generic console variable.
     /// </summary>
     /// <typeparam name="T">The type of the variable.</typeparam>
-    private class ConsoleVariable<T> : DeveloperConsoleEntry, IConsoleVariable<T>
+    private class ConsoleVariable<T> : ConsoleEntry, IConsoleVariable<T>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsoleVariable{T}"/> class.

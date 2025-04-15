@@ -11,13 +11,19 @@ public interface IConsoleEntry
     /// Gets the name of the entry.
     /// </summary>
     public string Name { get; }
-        
+
     /// <summary>
     /// Gets the description of the entry.
     /// </summary>
     public string Description { get; }
+
+    /// <summary>
+    /// Get a string representation of the usage of this entry, detailing the expected arguments.
+    /// </summary>
+    /// <returns>The usage string.</returns>
+    public string GetUsageString();
 }
-    
+
 /// <summary>
 /// Interface representing a command in the console.
 /// </summary>

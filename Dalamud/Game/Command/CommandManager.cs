@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Dalamud.Console;
-using Dalamud.Game.Gui;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -28,7 +27,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 {
     private static readonly ModuleLog Log = new("Command");
 
-    private readonly ConcurrentDictionary<string, BaseCommand> commandMap = new();
+    private readonly ConcurrentDictionary<string, BaseChatCommand> commandMap = new();
 
     private readonly Hook<ShellCommands.Delegates.TryInvokeDebugCommand>? tryInvokeDebugCommandHook;
 
@@ -52,7 +51,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             return x.Value switch
             {
                 IReadOnlyCommandInfo commandInfo => commandInfo,
-                ConsoleBackedCommand consoleEntry => new CommandInfo(null!)
+                ConsoleBackedChatCommand consoleEntry => new CommandInfo(null!)
                 {
                     HelpMessage = consoleEntry.HelpMessage ?? string.Empty,
                     ShowInHelp = consoleEntry.ShowInHelp,
@@ -66,7 +65,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     /// Gets a read-only dictionary of all registered commands.
     /// </summary>
     [Api13ToDo("Make this sensible. Don't use exposed API for internal structures.")]
-    public ReadOnlyDictionary<string, BaseCommand> CommandsNew => new(this.commandMap);
+    public ReadOnlyDictionary<string, BaseChatCommand> CommandsNew => new(this.commandMap);
 
     /// <inheritdoc/>
     public bool ProcessCommand(string content)
@@ -104,10 +103,11 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
         switch (handler)
         {
-            case ConsoleBackedCommand:
+            case ConsoleBackedChatCommand:
                 try
                 {
-                    this.console.ProcessCommand(content);
+                    // TODO: Localize, print errors to chat
+                    this.console.ProcessCommand(content, diagnostic => diagnostic.WriteToLog());
                 }
                 catch (Exception ex)
                 {
@@ -116,7 +116,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
                 break;
 
-            case LegacyHandlerCommand legacyHandler:
+            case LegacyHandlerChatCommand legacyHandler:
                 this.DispatchCommand(command, argument, legacyHandler);
 
                 break;
@@ -167,7 +167,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             return false;
         }
 
-        var legacyCommandInfo = new LegacyHandlerCommand(info, debugCommand)
+        var legacyCommandInfo = new LegacyHandlerChatCommand(info, debugCommand)
         {
             OwnerPluginGuid = ownerPluginGuid,
         };
@@ -212,7 +212,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     /// </summary>
     /// <param name="ownerPluginGuid">The WorkingPluginId of the plugin.</param>
     /// <returns>A list of commands and their associated activation string.</returns>
-    public List<(string Command, BaseCommand CommandInfo)> GetHandlersByWorkingPluginId(
+    public List<(string Command, BaseChatCommand CommandInfo)> GetHandlersByWorkingPluginId(
         Guid ownerPluginGuid)
     {
         return this.commandMap.Where(c => c.Value.OwnerPluginGuid == ownerPluginGuid)
@@ -239,8 +239,8 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     /// <returns>If adding was successful.</returns>
     internal bool AddCommandInternal(string commandName, string helpMessage, Delegate func, bool showInHelp, int displayOrder, Guid? ownerPluginGuid)
     {
-        var command = new GameConsoleCommand(commandName, helpMessage, func);
-        var commandInfo = new ConsoleBackedCommand(command)
+        var command = this.console.AddCommand(commandName, helpMessage, func);
+        var commandInfo = new ConsoleBackedChatCommand(command)
         {
             HelpMessage = helpMessage,
             ShowInHelp = showInHelp,
@@ -276,14 +276,14 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         return this.ProcessCommand(command->ToString()) ? 0 : result;
     }
 
-    private class ConsoleBackedCommand(GameConsoleCommand consoleEntry) : BaseCommand(consoleEntry)
+    private class ConsoleBackedChatCommand(IConsoleCommand consoleCommand) : BaseChatCommand(consoleCommand)
     {
     }
 
-    private class LegacyHandlerCommand(IReadOnlyCommandInfo.HandlerDelegate handler, IConsoleCommand command)
-        : BaseCommand(command), IReadOnlyCommandInfo
+    private class LegacyHandlerChatCommand(IReadOnlyCommandInfo.HandlerDelegate handler, IConsoleCommand command)
+        : BaseChatCommand(command), IReadOnlyCommandInfo
     {
-        public LegacyHandlerCommand(CommandInfo commandInfo, IConsoleCommand command)
+        public LegacyHandlerChatCommand(CommandInfo commandInfo, IConsoleCommand command)
             : this(commandInfo.Handler, command)
         {
             this.HelpMessage = commandInfo.HelpMessage;
@@ -293,29 +293,6 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 
         /// <inheritdoc/>
         public IReadOnlyCommandInfo.HandlerDelegate Handler { get; set; } = handler;
-    }
-}
-
-/// <summary>
-/// Represents a console command that is used as a game command through chat.
-/// </summary>
-internal class GameConsoleCommand : ConsoleManager.ConsoleCommand
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="GameConsoleCommand"/> class.
-    /// </summary>
-    /// <param name="name">The name of the variable.</param>
-    /// <param name="description">A description of the variable.</param>
-    /// <param name="func">The function to invoke.</param>
-    public GameConsoleCommand(string name, string description, Delegate func)
-        : base(name, description, func)
-    {
-    }
-
-    /// <inheritdoc/>
-    public override void ReportError(string error)
-    {
-        Service<ChatGui>.Get().PrintError(error);
     }
 }
 

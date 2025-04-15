@@ -5,7 +5,7 @@ namespace Dalamud.Game.Command;
 /// <summary>
 /// Interface representing a command.
 /// </summary>
-internal abstract class BaseCommand(IConsoleCommand command)
+internal abstract class BaseChatCommand(IConsoleCommand command)
 {
     /// <summary>
     /// Gets or sets the help message for this command.
