@@ -49,7 +49,6 @@ namespace Dalamud.CorePlugin
 #else
 
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
-        private Localization localization;
 
         private IPluginLog pluginLog;
 
@@ -64,12 +63,11 @@ namespace Dalamud.CorePlugin
         public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log, ICommandManager commandManager, IChatGui chatGui)
         {
             this.chatGui = chatGui;
+            this.Interface = pluginInterface;
+            this.pluginLog = log;
+
             try
             {
-                // this.InitLoc();
-                this.Interface = pluginInterface;
-                this.pluginLog = log;
-
                 this.windowSystem.AddWindow(new PluginWindow());
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
@@ -104,25 +102,6 @@ namespace Dalamud.CorePlugin
             this.Interface.UiBuilder.Draw -= this.OnDraw;
 
             this.windowSystem.RemoveAllWindows();
-        }
-
-        /// <summary>
-        /// CheapLoc needs to be reinitialized here because it tracks the setup by assembly name. New assembly, new setup.
-        /// </summary>
-        public void InitLoc()
-        {
-            var dalamud = Service<Dalamud>.Get();
-            var dalamudConfig = Service<DalamudConfiguration>.Get();
-
-            this.localization = new Localization(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
-            if (!dalamudConfig.LanguageOverride.IsNullOrEmpty())
-            {
-                this.localization.SetupWithLangCode(dalamudConfig.LanguageOverride);
-            }
-            else
-            {
-                this.localization.SetupWithUiCulture();
-            }
         }
 
         /// <summary>
