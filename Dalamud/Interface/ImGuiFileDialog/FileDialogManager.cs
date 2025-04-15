@@ -16,12 +16,15 @@ public class FileDialogManager
     public Action<FileDialog.SortingField>? SetDefaultSortOrder { get; set; }
 
 #pragma warning disable SA1401
-    /// <summary> Additional quick access items for the side bar.</summary>
+#pragma warning disable SA1201
+    /// <summary> Additional quick access items for the sidebar.</summary>
     public readonly List<(string Name, string Path, FontAwesomeIcon Icon, int Position)> CustomSideBarItems = [];
+
 
     /// <summary> Additional flags with which to draw the window. </summary>
     public ImGuiWindowFlags AddedWindowFlags = ImGuiWindowFlags.None;
 #pragma warning restore SA1401
+#pragma warning restore SA1201
 
     private FileDialog? dialog;
     private Action<bool, string>? callback;
