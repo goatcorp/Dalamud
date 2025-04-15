@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 
 using Dalamud.Game.Command;
 
@@ -36,6 +37,19 @@ public interface ICommandManager
     /// <param name="info">A <see cref="CommandInfo"/> object describing the command.</param>
     /// <returns>If adding was successful.</returns>
     public bool AddHandler(string command, CommandInfo info);
+
+    /// <summary>
+    /// Register a chat command. Arguments to the command are parsed for you, based on the arguments to the function
+    /// passed into the <paramref name="func"/> parameter.
+    /// </summary>
+    /// <param name="commandName">The name of the command.</param>
+    /// <param name="helpMessage">The help message shown to users in chat or the installer.</param>
+    /// <param name="func">The function to be called when the chat command is executed. Arguments to the command are derived from the parameters of this function.</param>
+    /// <param name="showInHelp">Whether or not this command should be shown to users.</param>
+    /// <param name="displayOrder">The display order of this command. Defaults to alphabetical ordering.</param>
+    /// <returns>If adding was successful.</returns>
+    [Experimental("Dalamud001")]
+    public bool AddCommand(string commandName, string helpMessage, Delegate func, bool showInHelp = true, int displayOrder = -1);
 
     /// <summary>
     /// Remove a command from the command handlers.

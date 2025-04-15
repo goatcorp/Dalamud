@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using Dalamud.Console;
+using Dalamud.Game.Gui;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
@@ -26,8 +28,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
 {
     private static readonly ModuleLog Log = new("Command");
 
-    private readonly ConcurrentDictionary<string, IReadOnlyCommandInfo> commandMap = new();
-    private readonly ConcurrentDictionary<(string, IReadOnlyCommandInfo), string> commandAssemblyNameMap = new();
+    private readonly ConcurrentDictionary<string, BaseCommand> commandMap = new();
 
     private readonly Hook<ShellCommands.Delegates.TryInvokeDebugCommand>? tryInvokeDebugCommandHook;
 
@@ -41,12 +42,31 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             (nint)ShellCommands.MemberFunctionPointers.TryInvokeDebugCommand,
             this.OnTryInvokeDebugCommand);
         this.tryInvokeDebugCommandHook.Enable();
-
-        this.console.Invoke += this.ConsoleOnInvoke;
     }
 
     /// <inheritdoc/>
-    public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => new(this.commandMap);
+    [Api13ToDo("Make this sensible. Don't use exposed API for internal structures.")]
+    public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => this.commandMap.ToDictionary(x => x.Key,
+        x =>
+        {
+            return x.Value switch
+            {
+                IReadOnlyCommandInfo commandInfo => commandInfo,
+                ConsoleBackedCommand consoleEntry => new CommandInfo(null!)
+                {
+                    HelpMessage = consoleEntry.HelpMessage ?? string.Empty,
+                    ShowInHelp = consoleEntry.ShowInHelp,
+                    DisplayOrder = consoleEntry.DisplayOrder,
+                },
+                _ => throw new Exception("Unknown command type"),
+            };
+        }).AsReadOnly();
+
+    /// <summary>
+    /// Gets a read-only dictionary of all registered commands.
+    /// </summary>
+    [Api13ToDo("Make this sensible. Don't use exposed API for internal structures.")]
+    public ReadOnlyDictionary<string, BaseCommand> CommandsNew => new(this.commandMap);
 
     /// <inheritdoc/>
     public bool ProcessCommand(string content)
@@ -58,15 +78,10 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (separatorPosition == -1 || separatorPosition + 1 >= content.Length)
         {
             // If no space was found or ends with the space. Process them as a no argument
-            if (separatorPosition + 1 >= content.Length)
-            {
-                // Remove the trailing space
-                command = content.Substring(0, separatorPosition);
-            }
-            else
-            {
-                command = content;
-            }
+            // Remove the trailing space
+            command = separatorPosition + 1 >= content.Length ?
+                          content[..separatorPosition] :
+                          content;
 
             argument = string.Empty;
         }
@@ -87,7 +102,29 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (!this.commandMap.TryGetValue(command, out var handler)) // Command was not found.
             return false;
 
-        this.DispatchCommand(command, argument, handler);
+        switch (handler)
+        {
+            case ConsoleBackedCommand:
+                try
+                {
+                    this.console.ProcessCommand(content);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error while dispatching command {CommandName} (Argument: {Argument})", command, argument);
+                }
+
+                break;
+
+            case LegacyHandlerCommand legacyHandler:
+                this.DispatchCommand(command, argument, legacyHandler);
+
+                break;
+            default:
+                Log.Error("Unknown command type for {CommandName}", command);
+                return false;
+        }
+
         return true;
     }
 
@@ -109,23 +146,35 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     /// </summary>
     /// <param name="command">The command to register.</param>
     /// <param name="info">A <see cref="CommandInfo"/> object describing the command.</param>
-    /// <param name="loaderAssemblyName">Assembly name of the plugin that added this command.</param>
+    /// <param name="ownerPluginGuid">WorkingPluginId of the plugin that added this command.</param>
     /// <returns>If adding was successful.</returns>
-    public bool AddHandler(string command, CommandInfo info, string loaderAssemblyName)
+    public bool AddHandler(string command, CommandInfo info, Guid? ownerPluginGuid)
     {
         if (info == null)
             throw new ArgumentNullException(nameof(info), "Command handler is null.");
 
-        if (!this.commandMap.TryAdd(command, info))
+        IConsoleCommand debugCommand;
+        try
         {
-            Log.Error("Command {CommandName} is already registered", command);
+            debugCommand = this.console.AddCommand(
+                command,
+                info.HelpMessage,
+                (string args) => { this.DispatchCommand(command, args, info); });
+        }
+        catch (InvalidOperationException)
+        {
+            Log.Error("Could not register debug command for legacy command {CommandName}", command);
             return false;
         }
 
-        if (!this.commandAssemblyNameMap.TryAdd((command, info), loaderAssemblyName))
+        var legacyCommandInfo = new LegacyHandlerCommand(info, debugCommand)
         {
-            this.commandMap.Remove(command, out _);
-            Log.Error("Command {CommandName} is already registered in the assembly name map", command);
+            OwnerPluginGuid = ownerPluginGuid,
+        };
+
+        if (!this.commandMap.TryAdd(command, legacyCommandInfo))
+        {
+            Log.Error("Command {CommandName} is already registered", command);
             return false;
         }
 
@@ -135,66 +184,88 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     /// <inheritdoc/>
     public bool AddHandler(string command, CommandInfo info)
     {
-        if (info == null)
-            throw new ArgumentNullException(nameof(info), "Command handler is null.");
-
-        if (!this.commandMap.TryAdd(command, info))
-        {
-            Log.Error("Command {CommandName} is already registered.", command);
-            return false;
-        }
-
-        return true;
+        return this.AddHandler(command, info, null);
     }
 
     /// <inheritdoc/>
+    [Experimental("Dalamud001")]
+    public bool AddCommand(string commandName, string helpMessage, Delegate func, bool showInHelp = true, int displayOrder = -1)
+    {
+        return this.AddCommandInternal(commandName, helpMessage, func, showInHelp, displayOrder, null);
+    }
+
+    /// <inheritdoc/>
+    [Api13ToDo("Rename to Remove().")]
     public bool RemoveHandler(string command)
     {
-        if (this.commandAssemblyNameMap.FindFirst(c => c.Key.Item1 == command, out var assemblyKeyValuePair))
+        var removed = this.commandMap.Remove(command, out var commandInfo);
+        if (removed)
         {
-            this.commandAssemblyNameMap.TryRemove(assemblyKeyValuePair.Key, out _);
+            this.console.RemoveEntry(commandInfo.ConsoleEntry);
         }
 
-        return this.commandMap.Remove(command, out _);
+        return removed;
     }
 
     /// <summary>
-    /// Returns the assembly name from which the command was added or blank if added internally.
+    /// Returns a list of commands given a specified WorkingPluginId.
     /// </summary>
-    /// <param name="command">The command.</param>
-    /// <param name="commandInfo">A ICommandInfo object.</param>
-    /// <returns>The name of the assembly.</returns>
-    public string GetHandlerAssemblyName(string command, IReadOnlyCommandInfo commandInfo)
-    {
-        if (this.commandAssemblyNameMap.TryGetValue((command, commandInfo), out var assemblyName))
-        {
-            return assemblyName;
-        }
-
-        return string.Empty;
-    }
-
-    /// <summary>
-    /// Returns a list of commands given a specified assembly name.
-    /// </summary>
-    /// <param name="assemblyName">The name of the assembly.</param>
+    /// <param name="ownerPluginGuid">The WorkingPluginId of the plugin.</param>
     /// <returns>A list of commands and their associated activation string.</returns>
-    public List<KeyValuePair<(string Command, IReadOnlyCommandInfo CommandInfo), string>> GetHandlersByAssemblyName(
-        string assemblyName)
+    public List<(string Command, BaseCommand CommandInfo)> GetHandlersByWorkingPluginId(
+        Guid ownerPluginGuid)
     {
-        return this.commandAssemblyNameMap.Where(c => c.Value == assemblyName).ToList();
+        return this.commandMap.Where(c => c.Value.OwnerPluginGuid == ownerPluginGuid)
+                   .Select(x => (x.Key, x.Value))
+                   .ToList();
     }
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
-        this.console.Invoke -= this.ConsoleOnInvoke;
         this.tryInvokeDebugCommandHook?.Dispose();
     }
 
-    private bool ConsoleOnInvoke(string arg)
+    /// <summary>
+    /// Register a chat command. Arguments to the command are parsed for you, based on the arguments to the function
+    /// passed into the <paramref name="func"/> parameter.
+    /// </summary>
+    /// <param name="commandName">The name of the command.</param>
+    /// <param name="helpMessage">The help message shown to users in chat or the installer.</param>
+    /// <param name="func">The function to be called when the chat command is executed. Arguments to the command are derived from the parameters of this function.</param>
+    /// <param name="showInHelp">Whether this command should be shown to users.</param>
+    /// <param name="displayOrder">The display order of this command. Defaults to alphabetical ordering.</param>
+    /// <param name="ownerPluginGuid">WorkingPluginId of the plugin that added this command.</param>
+    /// <returns>If adding was successful.</returns>
+    internal bool AddCommandInternal(string commandName, string helpMessage, Delegate func, bool showInHelp, int displayOrder, Guid? ownerPluginGuid)
     {
-        return arg.StartsWith('/') && this.ProcessCommand(arg);
+        var command = new GameConsoleCommand(commandName, helpMessage, func);
+        var commandInfo = new ConsoleBackedCommand(command)
+        {
+            HelpMessage = helpMessage,
+            ShowInHelp = showInHelp,
+            DisplayOrder = displayOrder,
+            OwnerPluginGuid = ownerPluginGuid,
+        };
+
+        try
+        {
+            this.console.AddEntry(command);
+        }
+        catch (InvalidOperationException)
+        {
+            Log.Error("Command {CommandName} is already registered.", commandName);
+            return false;
+        }
+
+        if (!this.commandMap.TryAdd(commandName, commandInfo))
+        {
+            this.console.RemoveEntry(command);
+            Log.Error("Command {CommandName} is already registered.", commandName);
+            return false;
+        }
+
+        return true;
     }
 
     private int OnTryInvokeDebugCommand(ShellCommands* self, Utf8String* command, UIModule* uiModule)
@@ -203,6 +274,48 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (result != -1) return result;
 
         return this.ProcessCommand(command->ToString()) ? 0 : result;
+    }
+
+    private class ConsoleBackedCommand(GameConsoleCommand consoleEntry) : BaseCommand(consoleEntry)
+    {
+    }
+
+    private class LegacyHandlerCommand(IReadOnlyCommandInfo.HandlerDelegate handler, IConsoleCommand command)
+        : BaseCommand(command), IReadOnlyCommandInfo
+    {
+        public LegacyHandlerCommand(CommandInfo commandInfo, IConsoleCommand command)
+            : this(commandInfo.Handler, command)
+        {
+            this.HelpMessage = commandInfo.HelpMessage;
+            this.ShowInHelp = commandInfo.ShowInHelp;
+            this.DisplayOrder = commandInfo.DisplayOrder;
+        }
+
+        /// <inheritdoc/>
+        public IReadOnlyCommandInfo.HandlerDelegate Handler { get; set; } = handler;
+    }
+}
+
+/// <summary>
+/// Represents a console command that is used as a game command through chat.
+/// </summary>
+internal class GameConsoleCommand : ConsoleManager.ConsoleCommand
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GameConsoleCommand"/> class.
+    /// </summary>
+    /// <param name="name">The name of the variable.</param>
+    /// <param name="description">A description of the variable.</param>
+    /// <param name="func">The function to invoke.</param>
+    public GameConsoleCommand(string name, string description, Delegate func)
+        : base(name, description, func)
+    {
+    }
+
+    /// <inheritdoc/>
+    public override void ReportError(string error)
+    {
+        Service<ChatGui>.Get().PrintError(error);
     }
 }
 
@@ -260,7 +373,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
     {
         if (!this.pluginRegisteredCommands.Contains(command))
         {
-            if (this.commandManagerService.AddHandler(command, info, this.pluginInfo.InternalName))
+            if (this.commandManagerService.AddHandler(command, info, this.pluginInfo.EffectiveWorkingPluginId))
             {
                 this.pluginRegisteredCommands.Add(command);
                 return true;
@@ -269,6 +382,26 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         else
         {
             Log.Error($"Command {command} is already registered.");
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc/>
+    [Experimental("Dalamud001")]
+    public bool AddCommand(string commandName, string helpMessage, Delegate func, bool showInHelp = true, int displayOrder = -1)
+    {
+        if (!this.pluginRegisteredCommands.Contains(commandName))
+        {
+            if (this.commandManagerService.AddCommandInternal(commandName, helpMessage, func, showInHelp, displayOrder, this.pluginInfo.EffectiveWorkingPluginId))
+            {
+                this.pluginRegisteredCommands.Add(commandName);
+                return true;
+            }
+        }
+        else
+        {
+            Log.Error($"Command {commandName} is already registered.");
         }
 
         return false;

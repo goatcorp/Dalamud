@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 using Dalamud.Configuration.Internal;
@@ -7,6 +8,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.CorePlugin
@@ -28,6 +30,7 @@ namespace Dalamud.CorePlugin
     /// </remarks>
     public sealed class PluginImpl : IDalamudPlugin
     {
+        private readonly IChatGui chatGui;
 #if !DEBUG
 
         /// <summary>
@@ -55,8 +58,12 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log)
+        /// <param name="commandManager">Command manager.</param>
+        /// <param name="chatGui">Chat GUI.</param>
+        [Experimental("Dalamud001")]
+        public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log, ICommandManager commandManager, IChatGui chatGui)
         {
+            this.chatGui = chatGui;
             try
             {
                 // this.InitLoc();
@@ -73,7 +80,8 @@ namespace Dalamud.CorePlugin
                     Log.Information($"CorePlugin : DefaultFontHandle.ImFontChanged called {fc}");
                 };
 
-                Service<CommandManager>.Get().AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
+                commandManager.AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
+                commandManager.AddCommand("/coreplugnew", "Access the plugin.", this.OnCommandNew);
 
                 log.Information("CorePlugin ctor!");
             }
@@ -134,9 +142,15 @@ namespace Dalamud.CorePlugin
 
         private void OnCommand(string command, string args)
         {
-            this.pluginLog.Information("Command called!");
+            this.chatGui.Print("Command called!");
 
             // this.window.IsOpen = true;
+        }
+
+        private bool OnCommandNew(bool var1, int var2, string? var3)
+        {
+            this.chatGui.Print($"CorePlugin: Command called! var1: {var1}, var2: {var2}, var3: {var3}");
+            return true;
         }
 
         private void OnOpenConfigUi()
