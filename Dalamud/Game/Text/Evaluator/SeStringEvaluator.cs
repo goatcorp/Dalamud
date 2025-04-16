@@ -1355,8 +1355,6 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         var group = (uint)(e0Val + 1);
         var rowId = (uint)e1Val;
 
-        using var icons = new SeStringBuilderIconWrap(context.Builder, 54, 55);
-
         if (!this.dataManager.GetExcelSheet<Completion>(context.Language).TryGetFirst(
                 row => row.Group == group && !row.LookupTable.IsEmpty,
                 out var groupRow))
@@ -1380,6 +1378,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
             return true;
         }
+
+        using var icons = new SeStringBuilderIconWrap(context.Builder, 54, 55);
 
         // CategoryDataCache
         if (lookupTable.Equals("#"))
