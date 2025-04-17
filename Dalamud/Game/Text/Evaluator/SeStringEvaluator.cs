@@ -1066,8 +1066,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var placeNameIdInt))
             return false;
 
-        var instance = packedIds >> 0x10;
-        var mapId = packedIds & 0xFF;
+        var instance = packedIds >> 16;
+        var mapId = packedIds & 0xFFFF;
 
         if (this.dataManager.GetExcelSheet<TerritoryType>(context.Language)
                 .TryGetRow(territoryTypeId, out var territoryTypeRow))
