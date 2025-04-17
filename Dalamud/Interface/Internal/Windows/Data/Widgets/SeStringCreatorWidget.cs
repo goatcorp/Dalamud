@@ -135,8 +135,8 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         new TextEntry(TextEntryType.Macro, "<colortype(17)>"),
         new TextEntry(TextEntryType.Macro, "<edgecolortype(19)>"),
         new TextEntry(TextEntryType.String, "Dalamud"),
-        new TextEntry(TextEntryType.Macro, "<edgecolor(0)>"),
-        new TextEntry(TextEntryType.Macro, "<colortype(0)>"),
+        new TextEntry(TextEntryType.Macro, "<edgecolor(stackcolor)>"),
+        new TextEntry(TextEntryType.Macro, "<color(stackcolor)>"),
         new TextEntry(TextEntryType.Macro, " <string(lstr1)>"),
     ];
 
