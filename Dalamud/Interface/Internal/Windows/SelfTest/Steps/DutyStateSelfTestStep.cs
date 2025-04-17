@@ -2,12 +2,12 @@
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for the DutyState service class.
 /// </summary>
-internal class DutyStateAgingStep : IAgingStep
+internal class DutyStateSelfTestStep : ISelfTestStep
 {
     private bool subscribed = false;
     private bool hasPassed = false;

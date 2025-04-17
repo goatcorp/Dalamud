@@ -2,12 +2,12 @@ using Dalamud.Game.ClientState.Keys;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for the Key State.
 /// </summary>
-internal class KeyStateAgingStep : IAgingStep
+internal class KeyStateSelfTestStep : ISelfTestStep
 {
     /// <inheritdoc/>
     public string Name => "Test KeyState";

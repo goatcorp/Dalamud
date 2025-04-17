@@ -2,12 +2,12 @@ using Dalamud.Game.ClientState;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for Territory Change.
 /// </summary>
-internal class EnterTerritoryAgingStep : IAgingStep
+internal class EnterTerritorySelfTestStep : ISelfTestStep
 {
     private readonly ushort territory;
     private readonly string terriName;
@@ -15,11 +15,11 @@ internal class EnterTerritoryAgingStep : IAgingStep
     private bool hasPassed = false;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EnterTerritoryAgingStep"/> class.
+    /// Initializes a new instance of the <see cref="EnterTerritorySelfTestStep"/> class.
     /// </summary>
     /// <param name="terri">The territory to check for.</param>
     /// <param name="name">Name to show.</param>
-    public EnterTerritoryAgingStep(ushort terri, string name)
+    public EnterTerritorySelfTestStep(ushort terri, string name)
     {
         this.terriName = name;
         this.territory = terri;

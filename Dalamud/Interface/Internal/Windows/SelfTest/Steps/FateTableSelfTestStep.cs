@@ -2,12 +2,12 @@ using Dalamud.Game.ClientState.Fates;
 using Dalamud.Utility;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for the Fate Table.
 /// </summary>
-internal class FateTableAgingStep : IAgingStep
+internal class FateTableSelfTestStep : ISelfTestStep
 {
     private byte index = 0;
 

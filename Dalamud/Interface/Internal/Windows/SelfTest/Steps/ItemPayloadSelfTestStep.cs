@@ -4,12 +4,12 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for item payloads.
 /// </summary>
-internal class ItemPayloadAgingStep : IAgingStep
+internal class ItemPayloadSelfTestStep : ISelfTestStep
 {
     private SubStep currentSubStep;
 

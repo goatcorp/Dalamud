@@ -1,6 +1,7 @@
 using Dalamud.Game.ClientState.Objects;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Gui.NamePlate;
@@ -124,7 +125,7 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     /// <summary>
     /// Gets a pointer to the NamePlate addon's number array entries as a struct.
     /// </summary>
-    internal AddonNamePlate.AddonNamePlateNumberArray* NumberStruct { get; private set; }
+    internal NamePlateNumberArray* NumberStruct { get; private set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether any handler in the current context has instantiated a part builder.
@@ -141,7 +142,7 @@ internal unsafe class NamePlateUpdateContext : INamePlateUpdateContext
     {
         this.Addon = (AddonNamePlate*)addon;
         this.NumberData = AtkStage.Instance()->GetNumberArrayData(NumberArrayType.NamePlate);
-        this.NumberStruct = (AddonNamePlate.AddonNamePlateNumberArray*)this.NumberData->IntArray;
+        this.NumberStruct = (NamePlateNumberArray*)this.NumberData->IntArray;
         this.StringData = AtkStage.Instance()->GetStringArrayData(StringArrayType.NamePlate);
         this.HasParts = false;
 

@@ -1,10 +1,11 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 namespace Dalamud.Game.DutyState;
 
@@ -81,33 +82,33 @@ internal unsafe class DutyState : IInternalDisposableService, IDutyState
                 // Duty Commenced
                 case 0x4000_0001:
                     this.IsDutyStarted = true;
-                    this.DutyStarted?.Invoke(this, this.clientState.TerritoryType);
+                    this.DutyStarted?.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
 
                 // Party Wipe
                 case 0x4000_0005:
                     this.IsDutyStarted = false;
-                    this.DutyWiped?.Invoke(this, this.clientState.TerritoryType);
+                    this.DutyWiped?.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
 
                 // Duty Recommence
                 case 0x4000_0006:
                     this.IsDutyStarted = true;
-                    this.DutyRecommenced?.Invoke(this, this.clientState.TerritoryType);
+                    this.DutyRecommenced?.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
 
                 // Duty Completed Flytext Shown
                 case 0x4000_0002 when !this.CompletedThisTerritory:
                     this.IsDutyStarted = false;
                     this.CompletedThisTerritory = true;
-                    this.DutyCompleted?.Invoke(this, this.clientState.TerritoryType);
+                    this.DutyCompleted?.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
 
                 // Duty Completed
                 case 0x4000_0003 when !this.CompletedThisTerritory:
                     this.IsDutyStarted = false;
                     this.CompletedThisTerritory = true;
-                    this.DutyCompleted?.Invoke(this, this.clientState.TerritoryType);
+                    this.DutyCompleted?.InvokeSafely(this, this.clientState.TerritoryType);
                     break;
             }
         }

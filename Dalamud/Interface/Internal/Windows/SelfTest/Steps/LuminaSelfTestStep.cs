@@ -2,14 +2,14 @@ using Dalamud.Data;
 using Dalamud.Utility;
 using Lumina.Excel;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for Lumina.
 /// </summary>
 /// <typeparam name="T">ExcelRow to run test on.</typeparam>
 /// <param name="isLargeSheet">Whether or not the sheet is large. If it is large, the self test will iterate through the full sheet in one frame and benchmark the time taken.</param>
-internal class LuminaAgingStep<T>(bool isLargeSheet) : IAgingStep
+internal class LuminaSelfTestStep<T>(bool isLargeSheet) : ISelfTestStep
     where T : struct, IExcelRow<T>
 {
     private int step = 0;

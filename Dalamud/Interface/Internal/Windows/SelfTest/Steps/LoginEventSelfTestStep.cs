@@ -2,12 +2,12 @@ using Dalamud.Game.ClientState;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for the login events.
 /// </summary>
-internal class LoginEventAgingStep : IAgingStep
+internal class LoginEventSelfTestStep : ISelfTestStep
 {
     private bool subscribed = false;
     private bool hasPassed = false;

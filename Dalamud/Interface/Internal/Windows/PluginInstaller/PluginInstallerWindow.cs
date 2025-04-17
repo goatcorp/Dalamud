@@ -285,9 +285,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         _ = pluginManager.ReloadPluginMastersAsync();
         Service<PluginManager>.Get().ScanDevPlugins();
 
-        if (!this.isSearchTextPrefilled) this.searchText = string.Empty;
-        this.sortKind = PluginSortKind.Alphabetical;
-        this.filterText = Locs.SortBy_Alphabetical;
+        if (!this.isSearchTextPrefilled)
+        {
+            this.searchText = string.Empty;
+            this.sortKind = PluginSortKind.Alphabetical;
+            this.filterText = Locs.SortBy_Alphabetical;
+        }
+
         this.adaptiveSort = true;
 
         if (this.updateStatus == OperationStatus.Complete || this.updateStatus == OperationStatus.Idle)
@@ -363,11 +367,20 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             this.isSearchTextPrefilled = false;
             this.searchText = string.Empty;
+            if (this.sortKind == PluginSortKind.SearchScore)
+            {
+                this.sortKind = PluginSortKind.Alphabetical;
+                this.filterText = Locs.SortBy_Alphabetical;
+                this.ResortPlugins();
+            }
         }
         else
         {
             this.isSearchTextPrefilled = true;
             this.searchText = text;
+            this.sortKind = PluginSortKind.SearchScore;
+            this.filterText = Locs.SortBy_SearchScore;
+            this.ResortPlugins();
         }
     }
 
@@ -487,6 +500,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Changelog;
                 // Plugins category
                 this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
+                break;
+            case PluginInstallerOpenKind.DalamudChangelogs:
+                // Changelog group
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Changelog;
+                // Dalamud category
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.DalamudChangelogs;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
@@ -1255,7 +1274,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (filteredAvailableManifests.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey2, Locs.TabBody_SearchNoMatching);
             return proxies;
         }
 
@@ -1307,6 +1325,23 @@ internal class PluginInstallerWindow : Window, IDisposable
     }
 #pragma warning restore SA1201
 
+#pragma warning disable SA1204
+    private static void DrawMutedBodyText(string text, float paddingBefore, float paddingAfter)
+#pragma warning restore SA1204
+    {
+        ImGuiHelpers.ScaledDummy(paddingBefore);
+
+        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+        {
+            foreach (var line in text.Split('\n'))
+            {
+                ImGuiHelpers.CenteredText(line);
+            }
+        }
+
+        ImGuiHelpers.ScaledDummy(paddingAfter);
+    }
+
     private void DrawAvailablePluginList()
     {
         var i = 0;
@@ -1337,6 +1372,24 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
         }
+
+        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey))
+        {
+            var hasSearch = !this.searchText.IsNullOrEmpty();
+
+            if (i == 0 && !hasSearch)
+            {
+                DrawMutedBodyText(Locs.TabBody_NoPluginsAvailable, 60, 20);
+            }
+            else if (i == 0 && hasSearch)
+            {
+                DrawMutedBodyText(Locs.TabBody_SearchNoMatching, 60, 20);
+            }
+            else if (hasSearch)
+            {
+                DrawMutedBodyText(Locs.TabBody_NoMoreResultsFor(this.searchText), 20, 20);
+            }
+        }
     }
 
     private void DrawInstalledPluginList(InstalledPluginListFilter filter)
@@ -1346,7 +1399,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (pluginList.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoInstalled);
+            DrawMutedBodyText(Locs.TabBody_SearchNoInstalled, 60, 20);
             return;
         }
 
@@ -1356,7 +1409,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (filteredList.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey2, Locs.TabBody_SearchNoMatching);
+            DrawMutedBodyText(Locs.TabBody_SearchNoMatching, 60, 20);
             return;
         }
 
@@ -1411,6 +1464,11 @@ internal class PluginInstallerWindow : Window, IDisposable
                     ImGuiHelpers.CenteredText(line);
                 }
             }
+        }
+        else if (!this.searchText.IsNullOrEmpty())
+        {
+            DrawMutedBodyText(Locs.TabBody_NoMoreResultsFor(this.searchText), 20, 20);
+            ImGuiHelpers.ScaledDummy(20);
         }
     }
 
@@ -1486,6 +1544,9 @@ internal class PluginInstallerWindow : Window, IDisposable
                 if (!isCurrent)
                 {
                     this.categoryManager.CurrentGroupKind = groupInfo.GroupKind;
+
+                    // Reset search text when switching groups
+                    this.searchText = string.Empty;
                 }
 
                 ImGui.Indent();
@@ -2673,7 +2734,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
 
-        var applicableChangelog = plugin.IsTesting ? remoteManifest?.Changelog : remoteManifest?.TestingChangelog;
+        var applicableChangelog = plugin.IsTesting ? remoteManifest?.TestingChangelog : remoteManifest?.Changelog;
         var hasChangelog = !applicableChangelog.IsNullOrWhitespace();
         var didDrawApplicableChangelogInsideCollapsible = false;
 
@@ -3963,6 +4024,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string TabBody_NoPluginsInstalled =>
             string.Format(Loc.Localize("InstallerNoPluginsInstalled", "You don't have any plugins installed yet!\nYou can install them from the \"{0}\" tab."), PluginCategoryManager.Locs.Category_All);
 
+        public static string TabBody_NoPluginsAvailable => Loc.Localize("InstallerNoPluginsAvailable", "No plugins are available at the moment.");
+
         public static string TabBody_NoPluginsUpdateable => Loc.Localize("InstallerNoPluginsUpdate", "No plugins have updates available at the moment.");
 
         public static string TabBody_NoPluginsDev => Loc.Localize("InstallerNoPluginsDev", "You don't have any dev plugins. Add them from the settings.");
@@ -3976,6 +4039,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string TabBody_SearchNoCompatible => Loc.Localize("InstallerNoCompatible", "No compatible plugins were found :( Please restart your game and try again.");
 
         public static string TabBody_SearchNoInstalled => Loc.Localize("InstallerNoInstalled", "No plugins are currently installed. You can install them from the \"All Plugins\" tab.");
+
+        public static string TabBody_NoMoreResultsFor(string query) => Loc.Localize("InstallerNoMoreResultsForQuery", "No more search results for \"{0}\".").Format(query);
 
         public static string TabBody_ChangelogNone => Loc.Localize("InstallerNoChangelog", "None of your installed plugins have a changelog.");
 

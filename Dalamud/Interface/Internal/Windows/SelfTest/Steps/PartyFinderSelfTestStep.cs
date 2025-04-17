@@ -3,12 +3,12 @@ using Dalamud.Game.Gui.PartyFinder.Types;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for Party Finder events.
 /// </summary>
-internal class PartyFinderAgingStep : IAgingStep
+internal class PartyFinderSelfTestStep : ISelfTestStep
 {
     private bool subscribed = false;
     private bool hasPassed = false;

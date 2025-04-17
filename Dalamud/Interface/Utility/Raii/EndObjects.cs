@@ -65,6 +65,15 @@ public static partial class ImRaii
     public static IEndObject Combo(string label, string previewValue, ImGuiComboFlags flags)
         => new EndConditionally(ImGui.EndCombo, ImGui.BeginCombo(label, previewValue, flags));
 
+    public static IEndObject Menu(string label)
+        => new EndConditionally(ImGui.EndMenu, ImGui.BeginMenu(label));
+
+    public static IEndObject MenuBar()
+        => new EndConditionally(ImGui.EndMenuBar, ImGui.BeginMenuBar());
+
+    public static IEndObject MainMenuBar()
+        => new EndConditionally(ImGui.EndMainMenuBar, ImGui.BeginMainMenuBar());
+
     public static IEndObject Group()
     {
         ImGui.BeginGroup();

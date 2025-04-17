@@ -53,7 +53,7 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             return;
 
         var sb = new SeStringBuilder();
-        if (this.OuterWrap is { Item1: var outerLeft })
+        if (this.OuterWrap is { Item1: { } outerLeft })
         {
             sb.Append(outerLeft);
         }
@@ -67,7 +67,7 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             sb.Append(isFreeCompany ? " «" : "《");
         }
 
-        if (this.TextWrap is { Item1: var left, Item2: var right })
+        if (this.TextWrap is { Item1: { } left, Item2: { } right })
         {
             sb.Append(left);
             sb.Append(this.Text ?? this.GetStrippedField(handler));
@@ -87,7 +87,7 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             sb.Append(isFreeCompany ? "»" : "》");
         }
 
-        if (this.OuterWrap is { Item2: var outerRight })
+        if (this.OuterWrap is { Item2: { } outerRight })
         {
             sb.Append(outerRight);
         }

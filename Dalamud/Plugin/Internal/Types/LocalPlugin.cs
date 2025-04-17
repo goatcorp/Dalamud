@@ -605,6 +605,10 @@ internal class LocalPlugin : IAsyncDisposable
         if (this.loader != null)
             return;
 
+        this.DllFile.Refresh();
+        if (!this.DllFile.Exists)
+            throw new Exception($"Plugin DLL file at '{this.DllFile.FullName}' did not exist, cannot load.");
+
         try
         {
             this.loader = PluginLoader.CreateFromAssemblyFile(this.DllFile.FullName, SetupLoaderConfig);

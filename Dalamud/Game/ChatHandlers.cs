@@ -8,6 +8,8 @@ using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal;
@@ -100,8 +102,6 @@ internal partial class ChatHandlers : IServiceType
         if (chatGui == null || pluginManager == null || dalamudInterface == null)
             return;
 
-        var assemblyVersion = Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
-
         if (this.configuration.PrintDalamudWelcomeMsg)
         {
             chatGui.Print(string.Format(Loc.Localize("DalamudWelcome", "Dalamud {0} loaded."), Util.GetScmVersion())
@@ -116,15 +116,30 @@ internal partial class ChatHandlers : IServiceType
             }
         }
 
-        if (string.IsNullOrEmpty(this.configuration.LastVersion) || !assemblyVersion.StartsWith(this.configuration.LastVersion))
+        if (string.IsNullOrEmpty(this.configuration.LastVersion) || !Util.AssemblyVersion.StartsWith(this.configuration.LastVersion))
         {
+            var linkPayload = chatGui.AddChatLinkHandler(
+                "dalamud",
+                8459324,
+                (_, _) => dalamudInterface.OpenPluginInstallerTo(PluginInstallerOpenKind.Changelogs));
+
+            var updateMessage = new SeStringBuilder()
+                .AddText(Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully!"))
+                .AddUiForeground(500)
+                .AddText("  [")
+                .Add(linkPayload)
+                .AddText(Loc.Localize("DalamudClickToViewChangelogs", " Click here to view the changelog."))
+                .Add(RawPayload.LinkTerminator)
+                .AddText("]")
+                .AddUiForegroundOff();
+
             chatGui.Print(new XivChatEntry
             {
-                Message = Loc.Localize("DalamudUpdated", "Dalamud has been updated successfully! Please check the discord for a full changelog."),
+                Message = updateMessage.Build(),
                 Type = XivChatType.Notice,
             });
 
-            this.configuration.LastVersion = assemblyVersion;
+            this.configuration.LastVersion = Util.AssemblyVersion;
             this.configuration.QueueSave();
         }
 

@@ -6,12 +6,12 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Tests for nameplates.
 /// </summary>
-internal class NamePlateAgingStep : IAgingStep
+internal class NamePlateSelfTestStep : ISelfTestStep
 {
     private SubStep currentSubStep;
     private Dictionary<ulong, int>? updateCount;

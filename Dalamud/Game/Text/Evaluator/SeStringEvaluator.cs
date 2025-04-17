@@ -24,6 +24,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
+using FFXIVClientStructs.Interop;
 
 using Lumina.Data.Structs.Excel;
 using Lumina.Excel;
@@ -445,7 +446,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (this.gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) &&
                     logCrossWorldName == 1)
-                    context.Builder.Append((ReadOnlySeStringSpan)world.Name);
+                    context.Builder.Append(new ReadOnlySeStringSpan(world.Name.GetPointer(0)));
             }
 
             return true;
@@ -635,7 +636,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             {
                 case false when digit == 0:
                     continue;
-                case true when i % 3 == 0:
+                case true when MathF.Log10(i) % 3 == 2:
                     this.ResolveStringExpression(in context, eSep);
                     break;
             }
@@ -938,9 +939,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (p.Type == ReadOnlySePayloadType.Text)
                 {
-                    context.Builder.Append(
-                        context.CultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.Span)));
-
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).ToUpper(true, true, false, context.Language));
                     continue;
                 }
 
