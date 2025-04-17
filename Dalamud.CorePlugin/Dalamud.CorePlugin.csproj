@@ -6,6 +6,7 @@
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <NoWarn>IDE0003</NoWarn>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <PropertyGroup Label="Documentation">

@@ -12,7 +12,7 @@ namespace Dalamud.Plugin.Internal;
 internal static class PluginValidator
 {
     private static readonly char[] LineSeparator = new[] { ' ', '\n', '\r' };
-    
+
     /// <summary>
     /// Represents the severity of a validation problem.
     /// </summary>
@@ -22,18 +22,18 @@ internal static class PluginValidator
         /// The problem is informational.
         /// </summary>
         Information,
-        
+
         /// <summary>
         /// The problem is a warning.
         /// </summary>
         Warning,
-        
+
         /// <summary>
         /// The problem is fatal.
         /// </summary>
         Fatal,
     }
-    
+
     /// <summary>
     /// Represents a validation problem.
     /// </summary>
@@ -60,42 +60,43 @@ internal static class PluginValidator
     public static IReadOnlyList<IValidationProblem> CheckForProblems(LocalDevPlugin plugin)
     {
         var problems = new List<IValidationProblem>();
-        
+
         if (!plugin.IsLoaded)
             throw new InvalidOperationException("Plugin must be loaded to validate.");
-        
+
         if (!plugin.DalamudInterface!.LocalUiBuilder.HasConfigUi)
             problems.Add(new NoConfigUiProblem());
-        
+
         if (!plugin.DalamudInterface.LocalUiBuilder.HasMainUi)
             problems.Add(new NoMainUiProblem());
 
         var cmdManager = Service<CommandManager>.Get();
-        
-        foreach (var cmd in cmdManager.GetHandlersByAssemblyName(plugin.InternalName).Where(c => c.Key.CommandInfo.ShowInHelp))
+
+        foreach (var cmd in cmdManager.GetHandlersByWorkingPluginId(plugin.EffectiveWorkingPluginId)
+                                      .Where(c => c.CommandInfo.ShowInHelp))
         {
-            if (string.IsNullOrEmpty(cmd.Key.CommandInfo.HelpMessage))
-                problems.Add(new CommandWithoutHelpTextProblem(cmd.Value));
+            if (string.IsNullOrEmpty(cmd.CommandInfo.HelpMessage))
+                problems.Add(new CommandWithoutHelpTextProblem(cmd.Command));
         }
-        
+
         if (plugin.Manifest.Tags == null || plugin.Manifest.Tags.Count == 0)
             problems.Add(new NoTagsProblem());
-        
+
         if (string.IsNullOrEmpty(plugin.Manifest.Description) || plugin.Manifest.Description.Split(LineSeparator, StringSplitOptions.RemoveEmptyEntries).Length <= 1)
             problems.Add(new NoDescriptionProblem());
-        
+
         if (string.IsNullOrEmpty(plugin.Manifest.Punchline))
             problems.Add(new NoPunchlineProblem());
-        
+
         if (string.IsNullOrEmpty(plugin.Manifest.Name))
             problems.Add(new NoNameProblem());
-        
+
         if (string.IsNullOrEmpty(plugin.Manifest.Author))
             problems.Add(new NoAuthorProblem());
-        
+
         if (plugin.IsOutdated)
             problems.Add(new WrongApiLevelProblem());
-            
+
         return problems;
     }
 
@@ -106,11 +107,11 @@ internal static class PluginValidator
     {
         /// <inheritdoc/>
         public ValidationSeverity Severity => ValidationSeverity.Warning;
-        
+
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "The plugin does not register a config UI callback. If you have a settings window or section, please consider registering UiBuilder.OpenConfigUi to open it.";
     }
-    
+
     /// <summary>
     /// Representing a problem where the plugin does not have a main UI callback.
     /// </summary>
@@ -122,7 +123,7 @@ internal static class PluginValidator
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "The plugin does not register a main UI callback. If your plugin has a window that could be considered the main entrypoint to its features, please consider registering UiBuilder.OpenMainUi to open the plugin's main window.";
     }
-    
+
     /// <summary>
     /// Representing a problem where a command does not have a help text.
     /// </summary>
@@ -147,7 +148,7 @@ internal static class PluginValidator
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "Your plugin does not have any tags in its manifest. Please consider adding some to make it easier for users to find your plugin in the installer.";
     }
-    
+
     /// <summary>
     /// Representing a problem where a plugin does not have a description in its manifest.
     /// </summary>
@@ -159,7 +160,7 @@ internal static class PluginValidator
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "Your plugin does not have a description in its manifest, or it is very terse. Please consider adding one to give users more information about your plugin.";
     }
-    
+
     /// <summary>
     /// Representing a problem where a plugin has no punchline in its manifest.
     /// </summary>
@@ -171,7 +172,7 @@ internal static class PluginValidator
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "Your plugin does not have a punchline in its manifest. Please consider adding one to give users a quick overview of what your plugin does.";
     }
-    
+
     /// <summary>
     /// Representing a problem where a plugin has no name in its manifest.
     /// </summary>
@@ -183,7 +184,7 @@ internal static class PluginValidator
         /// <inheritdoc/>
         public string GetLocalizedDescription() => "Your plugin does not have a name in its manifest.";
     }
-    
+
     /// <summary>
     /// Representing a problem where a plugin has no author in its manifest.
     /// </summary>
