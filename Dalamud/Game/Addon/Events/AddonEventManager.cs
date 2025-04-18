@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
@@ -230,8 +230,11 @@ internal class AddonEventManagerPluginScoped : IInternalDisposableService, IAddo
         {
             this.eventManagerService.ResetCursor();
         }
-        
-        this.eventManagerService.RemovePluginEventController(this.plugin.EffectiveWorkingPluginId);
+
+        Service<Framework>.Get().RunOnFrameworkThread(() =>
+        {
+            this.eventManagerService.RemovePluginEventController(this.plugin.EffectiveWorkingPluginId);
+        }).Wait();
     }
     
     /// <inheritdoc/>
