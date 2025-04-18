@@ -285,9 +285,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         _ = pluginManager.ReloadPluginMastersAsync();
         Service<PluginManager>.Get().ScanDevPlugins();
 
-        if (!this.isSearchTextPrefilled) this.searchText = string.Empty;
-        this.sortKind = PluginSortKind.Alphabetical;
-        this.filterText = Locs.SortBy_Alphabetical;
+        if (!this.isSearchTextPrefilled)
+        {
+            this.searchText = string.Empty;
+            this.sortKind = PluginSortKind.Alphabetical;
+            this.filterText = Locs.SortBy_Alphabetical;
+        }
+
         this.adaptiveSort = true;
 
         if (this.updateStatus == OperationStatus.Complete || this.updateStatus == OperationStatus.Idle)
@@ -363,11 +367,20 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             this.isSearchTextPrefilled = false;
             this.searchText = string.Empty;
+            if (this.sortKind == PluginSortKind.SearchScore)
+            {
+                this.sortKind = PluginSortKind.Alphabetical;
+                this.filterText = Locs.SortBy_Alphabetical;
+                this.ResortPlugins();
+            }
         }
         else
         {
             this.isSearchTextPrefilled = true;
             this.searchText = text;
+            this.sortKind = PluginSortKind.SearchScore;
+            this.filterText = Locs.SortBy_SearchScore;
+            this.ResortPlugins();
         }
     }
 
@@ -487,6 +500,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                 this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Changelog;
                 // Plugins category
                 this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.All;
+                break;
+            case PluginInstallerOpenKind.DalamudChangelogs:
+                // Changelog group
+                this.categoryManager.CurrentGroupKind = PluginCategoryManager.GroupKind.Changelog;
+                // Dalamud category
+                this.categoryManager.CurrentCategoryKind = PluginCategoryManager.CategoryKind.DalamudChangelogs;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
@@ -2715,7 +2734,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushID($"installed{index}{plugin.Manifest.InternalName}");
 
-        var applicableChangelog = plugin.IsTesting ? remoteManifest?.Changelog : remoteManifest?.TestingChangelog;
+        var applicableChangelog = plugin.IsTesting ? remoteManifest?.TestingChangelog : remoteManifest?.Changelog;
         var hasChangelog = !applicableChangelog.IsNullOrWhitespace();
         var didDrawApplicableChangelogInsideCollapsible = false;
 

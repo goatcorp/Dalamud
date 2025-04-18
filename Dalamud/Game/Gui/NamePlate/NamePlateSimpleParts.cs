@@ -35,7 +35,7 @@ public class NamePlateSimpleParts(NamePlateStringField field)
         if ((nint)handler.GetFieldAsPointer(field) == NamePlateGui.EmptyStringPointer)
             return;
 
-        if (this.TextWrap is { Item1: var left, Item2: var right })
+        if (this.TextWrap is { Item1: { } left, Item2: { } right })
         {
             var sb = new SeStringBuilder();
             sb.Append(left);
