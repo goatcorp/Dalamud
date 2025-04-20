@@ -474,6 +474,8 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 
     private unsafe bool HandleFrameworkDestroy(CSFramework* thisPtr)
     {
+        ThreadSafety.MarkMainThread();
+
         this.frameworkDestroy.Cancel();
         this.DispatchUpdateEvents = false;
         foreach (var k in this.tickDelayedTaskCompletionSources.Keys)
