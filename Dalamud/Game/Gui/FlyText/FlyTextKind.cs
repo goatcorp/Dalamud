@@ -94,9 +94,14 @@ public enum FlyTextKind : int
 
     /// <summary>
     /// Val1 in serif font next to all caps condensed font Text1 with Text2 in sans-serif as subtitle.
-    /// Added in 7.2, usage currently unknown.
     /// </summary>
+    [Obsolete("Use Dataset instead", true)]
     Unknown16 = 16,
+
+    /// <summary>
+    /// Val1 in serif font next to all caps condensed font Text1 with Text2 in sans-serif as subtitle.
+    /// </summary>
+    Dataset = 16,
 
     /// <summary>
     /// Val1 in serif font, Text2 in sans-serif as subtitle.
