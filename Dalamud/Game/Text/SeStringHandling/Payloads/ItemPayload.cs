@@ -75,7 +75,7 @@ public class ItemPayload : Payload
     /// <summary>
     /// Kinds of items that can be fetched from this payload.
     /// </summary>
-    [Api12ToDo("Move this out of ItemPayload. It's used in other classes too.")]
+    [Api13ToDo("Move this out of ItemPayload. It's used in other classes too.")]
     public enum ItemKind : uint
     {
         /// <summary>

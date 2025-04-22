@@ -29,7 +29,7 @@ internal class ReliableFileStorage : IInternalDisposableService
     private readonly object syncRoot = new();
 
     private SQLiteConnection? db;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ReliableFileStorage"/> class.
     /// </summary>
@@ -37,7 +37,7 @@ internal class ReliableFileStorage : IInternalDisposableService
     public ReliableFileStorage(string vfsDbPath)
     {
         var databasePath = Path.Combine(vfsDbPath, "dalamudVfs.db");
-        
+
         Log.Verbose("Initializing VFS database at {Path}", databasePath);
 
         try
@@ -52,7 +52,7 @@ internal class ReliableFileStorage : IInternalDisposableService
             {
                 if (File.Exists(databasePath))
                     File.Delete(databasePath);
-                
+
                 this.SetupDb(databasePath);
             }
             catch (Exception)
@@ -79,13 +79,13 @@ internal class ReliableFileStorage : IInternalDisposableService
 
         if (this.db == null)
             return false;
-        
+
         // If the file doesn't actually exist on the FS, but it does in the DB, we can say YES and read operations will read from the DB instead
         var normalizedPath = NormalizePath(path);
         var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
         return file != null;
     }
-    
+
     /// <summary>
     /// Write all text to a file.
     /// </summary>
@@ -94,7 +94,7 @@ internal class ReliableFileStorage : IInternalDisposableService
     /// <param name="containerId">Container to write to.</param>
     public void WriteAllText(string path, string? contents, Guid containerId = default)
         => this.WriteAllText(path, contents, Encoding.UTF8, containerId);
-    
+
     /// <summary>
     /// Write all text to a file.
     /// </summary>
@@ -107,7 +107,7 @@ internal class ReliableFileStorage : IInternalDisposableService
         var bytes = encoding.GetBytes(contents ?? string.Empty);
         this.WriteAllBytes(path, bytes, containerId);
     }
-    
+
     /// <summary>
     /// Write all bytes to a file.
     /// </summary>
@@ -122,10 +122,10 @@ internal class ReliableFileStorage : IInternalDisposableService
         {
             if (this.db == null)
             {
-                Util.WriteAllBytesSafe(path, bytes);
+                FilesystemUtil.WriteAllBytesSafe(path, bytes);
                 return;
             }
-        
+
             this.db.RunInTransaction(() =>
             {
                 var normalizedPath = NormalizePath(path);
@@ -145,8 +145,8 @@ internal class ReliableFileStorage : IInternalDisposableService
                     file.Data = bytes;
                     this.db.Update(file);
                 }
-        
-                Util.WriteAllBytesSafe(path, bytes);
+
+                FilesystemUtil.WriteAllBytesSafe(path, bytes);
             });
         }
     }
@@ -180,7 +180,7 @@ internal class ReliableFileStorage : IInternalDisposableService
         var bytes = this.ReadAllBytes(path, forceBackup, containerId);
         return encoding.GetString(bytes);
     }
-    
+
     /// <summary>
     /// Read all text from a file, and automatically try again with the backup if the file does not exist or
     /// the <paramref name="reader"/> function throws an exception. If the backup read also throws an exception,
@@ -208,11 +208,11 @@ internal class ReliableFileStorage : IInternalDisposableService
     public void ReadAllText(string path, Encoding encoding, Action<string> reader, Guid containerId = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
-        
+
         // TODO: We are technically reading one time too many here, if the file does not exist on the FS, ReadAllText
         // fails over to the backup, and then the backup fails to read in the lambda. We should do something about that,
         // but it's not a big deal. Would be nice if ReadAllText could indicate if it did fail over.
-        
+
         // 1.) Try without using the backup
         try
         {
@@ -229,7 +229,7 @@ internal class ReliableFileStorage : IInternalDisposableService
         {
             Log.Verbose(ex, "First chance read from {Path} failed, trying backup", path);
         }
-        
+
         // 2.) Try using the backup
         try
         {
@@ -256,13 +256,13 @@ internal class ReliableFileStorage : IInternalDisposableService
     public byte[] ReadAllBytes(string path, bool forceBackup = false, Guid containerId = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
-        
+
         if (forceBackup)
         {
             // If the db failed to load, act as if the file does not exist
             if (this.db == null)
                 throw new FileNotFoundException("Backup database was not available");
-                
+
             var normalizedPath = NormalizePath(path);
             var file = this.db.Table<DbFile>().FirstOrDefault(f => f.Path == normalizedPath && f.ContainerId == containerId);
             if (file == null)
@@ -274,7 +274,7 @@ internal class ReliableFileStorage : IInternalDisposableService
         // If the file doesn't exist, immediately check the backup db
         if (!File.Exists(path))
             return this.ReadAllBytes(path, true, containerId);
-        
+
         try
         {
             return File.ReadAllBytes(path);
@@ -302,10 +302,10 @@ internal class ReliableFileStorage : IInternalDisposableService
         // Replace users folder
         var usersFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         path = path.Replace(usersFolder, "%USERPROFILE%");
-        
+
         return path;
     }
-    
+
     private void SetupDb(string path)
     {
         this.db = new SQLiteConnection(path,
@@ -320,9 +320,9 @@ internal class ReliableFileStorage : IInternalDisposableService
         [PrimaryKey]
         [AutoIncrement]
         public int Id { get; set; }
-        
+
         public Guid ContainerId { get; set; }
-        
+
         public string Path { get; set; } = null!;
 
         public byte[] Data { get; set; } = null!;

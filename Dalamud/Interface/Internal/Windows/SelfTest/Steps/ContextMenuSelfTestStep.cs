@@ -12,12 +12,12 @@ using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Serilog;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Tests for context menu.
 /// </summary>
-internal class ContextMenuAgingStep : IAgingStep
+internal class ContextMenuSelfTestStep : ISelfTestStep
 {
     private SubStep currentSubStep;
 
@@ -282,11 +282,6 @@ internal class ContextMenuAgingStep : IAgingStep
                         b.AppendLine($"  Stain {i + 1}: None");
                     }
                 }
-
-                if (item.Stains[0] != 0)
-                    b.AppendLine($"{this.stainSheet.GetRowOrDefault(item.Stains[0])?.Name.ExtractText() ?? "Unknown"} ({item.Stains[0]})");
-                else
-                    b.AppendLine("None");
 
                 b.Append("Glamoured Item: ");
                 if (item.GlamourId != 0)

@@ -48,6 +48,8 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     public const int PluginWaitBeforeFreeDefault = 1000; // upped from 500ms, seems more stable
 
+    private const string BrokenMarkerFileName = ".broken";
+
     private static readonly ModuleLog Log = ModuleLog.Create<PluginManager>();
 
     private readonly object pluginListLock = new();
@@ -874,7 +876,7 @@ internal class PluginManager : IInternalDisposableService
     }
 
     /// <summary>
-    /// Cleanup disabled plugins. Does not target devPlugins.
+    /// Cleanup disabled and broken plugins. Does not target devPlugins.
     /// </summary>
     public void CleanupPlugins()
     {
@@ -882,6 +884,13 @@ internal class PluginManager : IInternalDisposableService
         {
             try
             {
+                if (File.Exists(Path.Combine(pluginDir.FullName, BrokenMarkerFileName)))
+                {
+                    Log.Warning("Cleaning up broken plugin {Name}", pluginDir.Name);
+                    pluginDir.Delete(true);
+                    continue;
+                }
+
                 var versionDirs = pluginDir.GetDirectories();
 
                 versionDirs = versionDirs
@@ -1423,7 +1432,8 @@ internal class PluginManager : IInternalDisposableService
         else
         {
             // If we are doing anything other than a fresh install, not having a workingPluginId is an error that must be fixed
-            Debug.Assert(inheritedWorkingPluginId != null, "inheritedWorkingPluginId != null");
+            if (inheritedWorkingPluginId == null)
+                throw new ArgumentNullException(nameof(inheritedWorkingPluginId), "Inherited WorkingPluginId must not be null when updating");
         }
 
         // Ensure that we have a testing opt-in for this plugin if we are installing a testing version
@@ -1434,31 +1444,28 @@ internal class PluginManager : IInternalDisposableService
             this.configuration.QueueSave();
         }
 
-        var outputDir = new DirectoryInfo(Path.Combine(this.pluginDirectory.FullName, repoManifest.InternalName, version?.ToString() ?? string.Empty));
+        var pluginVersionsDir = new DirectoryInfo(Path.Combine(this.pluginDirectory.FullName, repoManifest.InternalName));
+        var tempOutputDir = new DirectoryInfo(FilesystemUtil.GetTempFileName());
+        var outputDir = new DirectoryInfo(Path.Combine(pluginVersionsDir.FullName, version?.ToString() ?? string.Empty));
+
+        FilesystemUtil.DeleteAndRecreateDirectory(tempOutputDir);
+        FilesystemUtil.DeleteAndRecreateDirectory(outputDir);
+
+        Log.Debug("Extracting plugin to {TempOutputDir}", tempOutputDir);
 
         try
         {
-            if (outputDir.Exists)
-                outputDir.Delete(true);
+            using var archive = new ZipArchive(zipStream);
 
-            outputDir.Create();
-        }
-        catch
-        {
-            // ignored, since the plugin may be loaded already
-        }
-
-        Log.Debug("Extracting to {OutputDir}", outputDir);
-
-        using (var archive = new ZipArchive(zipStream))
-        {
             foreach (var zipFile in archive.Entries)
             {
-                var outputFile = new FileInfo(Path.GetFullPath(Path.Combine(outputDir.FullName, zipFile.FullName)));
+                var outputFile = new FileInfo(
+                    Path.GetFullPath(Path.Combine(tempOutputDir.FullName, zipFile.FullName)));
 
-                if (!outputFile.FullName.StartsWith(outputDir.FullName, StringComparison.OrdinalIgnoreCase))
+                if (!outputFile.FullName.StartsWith(tempOutputDir.FullName, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new IOException("Trying to extract file outside of destination directory. See this link for more info: https://snyk.io/research/zip-slip-vulnerability");
+                    throw new IOException(
+                        "Trying to extract file outside of destination directory. See this link for more info: https://snyk.io/research/zip-slip-vulnerability");
                 }
 
                 if (outputFile.Directory == null)
@@ -1469,70 +1476,88 @@ internal class PluginManager : IInternalDisposableService
                 if (zipFile.Name.IsNullOrEmpty())
                 {
                     // Assuming Empty for Directory
-                    Log.Verbose($"ZipFile name is null or empty, treating as a directory: {outputFile.Directory.FullName}");
+                    Log.Verbose(
+                        "ZipFile name is null or empty, treating as a directory: {Path}", outputFile.Directory.FullName);
                     Directory.CreateDirectory(outputFile.Directory.FullName);
                     continue;
                 }
 
                 // Ensure directory is created
                 Directory.CreateDirectory(outputFile.Directory.FullName);
-
-                try
-                {
-                    zipFile.ExtractToFile(outputFile.FullName, true);
-                }
-                catch (Exception ex)
-                {
-                    if (outputFile.Extension.EndsWith("dll"))
-                    {
-                        throw new IOException($"Could not overwrite {zipFile.Name}: {ex.Message}");
-                    }
-
-                    Log.Error($"Could not overwrite {zipFile.Name}: {ex.Message}");
-                }
+                zipFile.ExtractToFile(outputFile.FullName, true);
             }
+
+            var tempDllFile = LocalPluginManifest.GetPluginFile(tempOutputDir, repoManifest);
+            var tempManifestFile = LocalPluginManifest.GetManifestFile(tempDllFile);
+
+            // We need to save the repoManifest due to how the repo fills in some fields that authors are not expected to use.
+            FilesystemUtil.WriteAllTextSafe(
+                tempManifestFile.FullName,
+                JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
+
+            // Reload as a local manifest, add some attributes, and save again.
+            var tempManifest = LocalPluginManifest.Load(tempManifestFile);
+
+            if (tempManifest == null)
+                throw new Exception("Plugin had no valid manifest");
+
+            if (tempManifest.InternalName != repoManifest.InternalName)
+            {
+                throw new Exception(
+                    $"Distributed internal name does not match repo internal name: {tempManifest.InternalName} - {repoManifest.InternalName}");
+            }
+
+            if (tempManifest.WorkingPluginId != Guid.Empty)
+                throw new Exception("Plugin shall not specify a WorkingPluginId");
+
+            tempManifest.WorkingPluginId = inheritedWorkingPluginId ?? Guid.NewGuid();
+
+            if (useTesting)
+            {
+                tempManifest.Testing = true;
+            }
+
+            // Document the url the plugin was installed from
+            tempManifest.InstalledFromUrl = repoManifest.SourceRepo.IsThirdParty
+                                                ? repoManifest.SourceRepo.PluginMasterUrl
+                                                : SpecialPluginSource.MainRepo;
+
+            tempManifest.Save(tempManifestFile, "installation");
+
+            // Copy the directory to the final location
+            Log.Debug("Copying plugin from {TempOutputDir} to {OutputDir}", tempOutputDir, outputDir);
+            FilesystemUtil.CopyFilesRecursively(tempOutputDir, outputDir);
+
+            var finalDllFile = LocalPluginManifest.GetPluginFile(outputDir, repoManifest);
+            var finalManifestFile = LocalPluginManifest.GetManifestFile(finalDllFile);
+            var finalManifest = LocalPluginManifest.Load(finalManifestFile) ??
+                           throw new Exception("Plugin had no valid manifest after copy");
+
+            Log.Information("Installed plugin {InternalName} (testing={UseTesting})", tempManifest.Name, useTesting);
+            var plugin = await this.LoadPluginAsync(finalDllFile, finalManifest, reason);
+
+            this.NotifyinstalledPluginsListChanged();
+            return plugin;
         }
-
-        var dllFile = LocalPluginManifest.GetPluginFile(outputDir, repoManifest);
-        var manifestFile = LocalPluginManifest.GetManifestFile(dllFile);
-
-        // We need to save the repoManifest due to how the repo fills in some fields that authors are not expected to use.
-        Util.WriteAllTextSafe(manifestFile.FullName, JsonConvert.SerializeObject(repoManifest, Formatting.Indented));
-
-        // Reload as a local manifest, add some attributes, and save again.
-        var manifest = LocalPluginManifest.Load(manifestFile);
-
-        if (manifest == null)
-            throw new Exception("Plugin had no valid manifest");
-
-        if (manifest.InternalName != repoManifest.InternalName)
+        catch
         {
-            Directory.Delete(outputDir.FullName, true);
-            throw new Exception(
-                $"Distributed internal name does not match repo internal name: {manifest.InternalName} - {repoManifest.InternalName}");
+            // Attempt to clean up if we can
+            try
+            {
+                outputDir.Delete(true);
+            }
+            catch
+            {
+                // Write marker file if we can't, we'll try to do it at the next start
+                File.WriteAllText(Path.Combine(pluginVersionsDir.FullName, BrokenMarkerFileName), string.Empty);
+            }
+
+            throw;
         }
-
-        if (manifest.WorkingPluginId != Guid.Empty)
-            throw new Exception("Plugin shall not specify a WorkingPluginId");
-
-        manifest.WorkingPluginId = inheritedWorkingPluginId ?? Guid.NewGuid();
-
-        if (useTesting)
+        finally
         {
-            manifest.Testing = true;
+            tempOutputDir.Delete(true);
         }
-
-        // Document the url the plugin was installed from
-        manifest.InstalledFromUrl = repoManifest.SourceRepo.IsThirdParty ? repoManifest.SourceRepo.PluginMasterUrl : SpecialPluginSource.MainRepo;
-
-        manifest.Save(manifestFile, "installation");
-
-        Log.Information($"Installed plugin {manifest.Name} (testing={useTesting})");
-
-        var plugin = await this.LoadPluginAsync(dllFile, manifest, reason);
-
-        this.NotifyinstalledPluginsListChanged();
-        return plugin;
     }
 
     /// <summary>
@@ -1547,7 +1572,6 @@ internal class PluginManager : IInternalDisposableService
     /// <returns>The loaded plugin.</returns>
     private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
     {
-        var name = manifest?.Name ?? dllFile.Name;
         var loadPlugin = !doNotLoad;
 
         LocalPlugin? plugin;
@@ -1560,7 +1584,7 @@ internal class PluginManager : IInternalDisposableService
 
         if (isDev)
         {
-            Log.Information($"Loading dev plugin {name}");
+            Log.Information("Loading dev plugin {Name}", manifest.InternalName);
             plugin = new LocalDevPlugin(dllFile, manifest);
 
             // This is a dev plugin - turn ImGui asserts on by default if we haven't chosen yet
@@ -1569,7 +1593,7 @@ internal class PluginManager : IInternalDisposableService
         }
         else
         {
-            Log.Information($"Loading plugin {name}");
+            Log.Information("Loading plugin {Name}", manifest.InternalName);
             plugin = new LocalPlugin(dllFile, manifest);
         }
 
@@ -1663,7 +1687,7 @@ internal class PluginManager : IInternalDisposableService
                 }
                 else
                 {
-                    Log.Verbose($"{name} not loaded, wantToLoad:{wantedByAnyProfile} orphaned:{plugin.IsOrphaned}");
+                    Log.Verbose("{Name} not loaded, wantToLoad:{WantedByAnyProfile} orphaned:{IsOrphaned}", manifest.InternalName, wantedByAnyProfile, plugin.IsOrphaned);
                 }
             }
             catch (InvalidPluginException)

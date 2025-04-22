@@ -1,11 +1,11 @@
 using System.Runtime.InteropServices;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test dedicated to handling of Access Violations.
 /// </summary>
-internal class HandledExceptionAgingStep : IAgingStep
+internal class HandledExceptionSelfTestStep : ISelfTestStep
 {
     /// <inheritdoc/>
     public string Name => "Test Handled Exception";

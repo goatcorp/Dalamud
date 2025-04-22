@@ -5,23 +5,23 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup AddonLifecycle Service.
 /// </summary>
-internal class AddonLifecycleAgingStep : IAgingStep
+internal class AddonLifecycleSelfTestStep : ISelfTestStep
 {
     private readonly List<AddonLifecycleEventListener> listeners;
-    
+
     private AddonLifecycle? service;
     private TestStep currentStep = TestStep.CharacterRefresh;
     private bool listenersRegistered;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AddonLifecycleAgingStep"/> class.
+    /// Initializes a new instance of the <see cref="AddonLifecycleSelfTestStep"/> class.
     /// </summary>
-    public AddonLifecycleAgingStep()
+    public AddonLifecycleSelfTestStep()
     {
         this.listeners = new List<AddonLifecycleEventListener>
         {
@@ -33,7 +33,7 @@ internal class AddonLifecycleAgingStep : IAgingStep
             new(AddonEvent.PreFinalize, "Character", this.PreFinalize),
         };
     }
-    
+
     private enum TestStep
     {
         CharacterRefresh,
@@ -44,10 +44,10 @@ internal class AddonLifecycleAgingStep : IAgingStep
         CharacterFinalize,
         Complete,
     }
-    
+
     /// <inheritdoc/>
     public string Name => "Test AddonLifecycle";
-    
+
     /// <inheritdoc/>
     public SelfTestStepResult RunStep()
     {
@@ -60,7 +60,7 @@ internal class AddonLifecycleAgingStep : IAgingStep
             {
                 this.service.RegisterListener(listener);
             }
-            
+
             this.listenersRegistered = true;
         }
 
@@ -89,7 +89,7 @@ internal class AddonLifecycleAgingStep : IAgingStep
                 // Nothing to report to tester.
                 break;
         }
-        
+
         return this.currentStep is TestStep.Complete ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
     }
 
@@ -101,32 +101,32 @@ internal class AddonLifecycleAgingStep : IAgingStep
             this.service?.UnregisterListener(listener);
         }
     }
-    
+
     private void PostSetup(AddonEvent eventType, AddonArgs addonInfo)
-    {        
+    {
         if (this.currentStep is TestStep.CharacterSetup) this.currentStep++;
     }
-    
+
     private void PostUpdate(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterUpdate) this.currentStep++;
     }
-    
+
     private void PostDraw(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterDraw) this.currentStep++;
     }
-    
+
     private void PostRefresh(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterRefresh) this.currentStep++;
     }
-    
+
     private void PostRequestedUpdate(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterRequestedUpdate) this.currentStep++;
     }
-    
+
     private void PreFinalize(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (this.currentStep is TestStep.CharacterFinalize) this.currentStep++;

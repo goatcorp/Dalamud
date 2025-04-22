@@ -5,12 +5,12 @@ using Dalamud.Game.MarketBoard;
 using Dalamud.Game.Network.Structures;
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Tests the various market board events.
 /// </summary>
-internal class MarketBoardAgingStep : IAgingStep
+internal class MarketBoardSelfTestStep : ISelfTestStep
 {
     private SubStep currentSubStep;
     private bool eventsSubscribed;

@@ -132,11 +132,6 @@ public record DalamudStartInfo
     public bool BootEnableEtw { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to enable legacy corrupted state exceptions.
-    /// </summary>
-    public bool BootDisableLegacyCorruptedStateExceptions { get; set; }
-
-    /// <summary>
     /// Gets or sets a value choosing the OpenProcess hookmode.
     /// </summary>
     public int BootDotnetOpenProcessHookMode { get; set; }

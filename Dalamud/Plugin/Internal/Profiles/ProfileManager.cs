@@ -57,7 +57,7 @@ internal class ProfileManager : IServiceType
     /// Gets a value indicating whether or not the profile manager is busy enabling/disabling plugins.
     /// </summary>
     public bool IsBusy => this.isBusy;
-    
+
     /// <summary>
     /// Get a disposable that will lock the profile list while it is not disposed.
     /// You must NEVER use this in async code.
@@ -77,7 +77,7 @@ internal class ProfileManager : IServiceType
     {
         var want = false;
         var wasInAnyProfile = false;
-        
+
         lock (this.profiles)
         {
             foreach (var profile in this.profiles)
@@ -93,7 +93,7 @@ internal class ProfileManager : IServiceType
 
         if (!wasInAnyProfile && addIfNotDeclared)
         {
-            Log.Warning("'{Guid}'('{InternalName}') was not in any profile, adding to default with {Default}", workingPluginId, internalName, defaultState);
+            Log.Warning("{Guid}({InternalName}) was not in any profile, adding to default with {Default}", workingPluginId, internalName, defaultState);
             await this.DefaultProfile.AddOrUpdateAsync(workingPluginId, internalName, defaultState, false);
 
             return defaultState;
@@ -175,7 +175,7 @@ internal class ProfileManager : IServiceType
         {
             // Disable it
             modelV1.IsEnabled = false;
-            
+
             // Try to find matching plugins for all plugins in the profile
             var pm = Service<PluginManager>.Get();
             foreach (var plugin in modelV1.Plugins)
@@ -313,7 +313,7 @@ internal class ProfileManager : IServiceType
                 profile.MigrateProfilesToGuidsForPlugin(internalName, newGuid);
         }
     }
-    
+
     /// <summary>
     /// Validate profiles for errors.
     /// </summary>
@@ -328,7 +328,7 @@ internal class ProfileManager : IServiceType
             {
                 if (seenIds.Contains(pluginEntry.WorkingPluginId))
                     throw new Exception($"Plugin '{pluginEntry.WorkingPluginId}'('{pluginEntry.InternalName}') is twice in profile '{profile.Guid}'('{profile.Name}')");
-                
+
                 seenIds.Add(pluginEntry.WorkingPluginId);
             }
         }

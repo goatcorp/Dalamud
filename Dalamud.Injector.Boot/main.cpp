@@ -27,7 +27,6 @@ int wmain(int argc, wchar_t** argv)
     const auto result = InitializeClrAndGetEntryPoint(
         GetModuleHandleW(nullptr),
         false,
-        false,
         runtimeconfig_path,
         module_path,
         L"Dalamud.Injector.EntryPoint, Dalamud.Injector",

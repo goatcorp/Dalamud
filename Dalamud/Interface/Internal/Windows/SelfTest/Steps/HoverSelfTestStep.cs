@@ -2,12 +2,12 @@ using Dalamud.Game.Gui;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for the Hover events.
 /// </summary>
-internal class HoverAgingStep : IAgingStep
+internal class HoverSelfTestStep : ISelfTestStep
 {
     private bool clearedItem = false;
     private bool clearedAction = false;

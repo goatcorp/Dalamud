@@ -8,12 +8,12 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 
 using ImGuiNET;
 
-namespace Dalamud.Interface.Internal.Windows.SelfTest.AgingSteps;
+namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
 /// <summary>
 /// Test setup for SheetRedirectResolver.
 /// </summary>
-internal class SheetRedirectResolverAgingStep : IAgingStep
+internal class SheetRedirectResolverSelfTestStep : ISelfTestStep
 {
     private RedirectEntry[] redirects =
     [

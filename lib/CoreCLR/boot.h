@@ -4,7 +4,6 @@ void ConsoleTeardown();
 HRESULT InitializeClrAndGetEntryPoint(
     void* calling_module,
     bool enable_etw,
-    bool enable_legacy_corrupted_state_exception_policy,
     std::wstring runtimeconfig_path,
     std::wstring module_path,
     std::wstring entrypoint_assembly_name,
