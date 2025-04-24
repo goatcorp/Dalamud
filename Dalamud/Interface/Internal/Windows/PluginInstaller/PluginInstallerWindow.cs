@@ -283,7 +283,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var pluginManager = Service<PluginManager>.Get();
 
         _ = pluginManager.ReloadPluginMastersAsync();
-        Service<PluginManager>.Get().ScanDevPlugins();
+        _ = pluginManager.ScanDevPluginsAsync();
 
         if (!this.isSearchTextPrefilled)
         {
@@ -782,7 +782,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.SameLine();
             if (ImGui.Button(Locs.FooterButton_ScanDevPlugins))
             {
-                pluginManager.ScanDevPlugins();
+                _ = pluginManager.ScanDevPluginsAsync();
             }
         }
 

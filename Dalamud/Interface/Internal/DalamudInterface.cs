@@ -46,6 +46,8 @@ using ImPlotNET;
 using PInvoke;
 using Serilog.Events;
 
+using Task = System.Threading.Tasks.Task;
+
 namespace Dalamud.Interface.Internal;
 
 /// <summary>
@@ -1013,7 +1015,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                     if (ImGui.MenuItem("Scan dev plugins"))
                     {
-                        pluginManager.ScanDevPlugins();
+                        Task.Run(pluginManager.ScanDevPluginsAsync);
                     }
 
                     ImGui.Separator();
