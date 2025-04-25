@@ -269,7 +269,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
     /// Check whether an entry with the specified title exists.
     /// </summary>
     /// <param name="title">The title to check for.</param>
-    /// <returns>Whether or not an entry with that title is registered.</returns>
+    /// <returns>Whether an entry with that title is registered.</returns>
     internal bool HasEntry(string title)
     {
         var found = false;

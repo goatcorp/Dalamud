@@ -308,7 +308,7 @@ public static class Util
     /// </summary>
     /// <param name="obj">The structure to show.</param>
     /// <param name="addr">The address to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
     public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null)
         => ShowStructInternal(obj, addr, autoExpand, path);
@@ -318,7 +318,7 @@ public static class Util
     /// </summary>
     /// <typeparam name="T">The type of the structure.</typeparam>
     /// <param name="obj">The pointer to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     public static unsafe void ShowStruct<T>(T* obj, bool autoExpand = false) where T : unmanaged
     {
         ShowStruct(*obj, (ulong)&obj, autoExpand);
@@ -328,7 +328,7 @@ public static class Util
     /// Show a GameObject's internal data in an ImGui-context.
     /// </summary>
     /// <param name="go">The GameObject to show.</param>
-    /// <param name="autoExpand">Whether or not the struct should start as expanded.</param>
+    /// <param name="autoExpand">Whether the struct should start as expanded.</param>
     public static unsafe void ShowGameObjectStruct(IGameObject go, bool autoExpand = true)
     {
         switch (go)
@@ -1031,7 +1031,7 @@ public static class Util
     /// </summary>
     /// <param name="obj">The structure to show.</param>
     /// <param name="addr">The address to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
     /// <param name="hideAddress">Do not print addresses. Use when displaying a copied value.</param>
     private static void ShowStructInternal(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null, bool hideAddress = false)

@@ -150,7 +150,7 @@ public abstract class Window
     public WindowSizeConstraints? SizeConstraints { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this window is collapsed.
+    /// Gets or sets a value indicating whether this window is collapsed.
     /// </summary>
     public bool? Collapsed { get; set; }
 
@@ -165,7 +165,7 @@ public abstract class Window
     public ImGuiWindowFlags Flags { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this ImGui window will be forced to stay inside the main game window.
+    /// Gets or sets a value indicating whether this ImGui window will be forced to stay inside the main game window.
     /// </summary>
     public bool ForceMainWindow { get; set; }
 
@@ -175,17 +175,17 @@ public abstract class Window
     public float? BgAlpha { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this ImGui window should display a close button in the title bar.
+    /// Gets or sets a value indicating whether this ImGui window should display a close button in the title bar.
     /// </summary>
     public bool ShowCloseButton { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this window should offer to be pinned via the window's titlebar context menu.
+    /// Gets or sets a value indicating whether this window should offer to be pinned via the window's titlebar context menu.
     /// </summary>
     public bool AllowPinning { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this window should offer to be made click-through via the window's titlebar context menu.
+    /// Gets or sets a value indicating whether this window should offer to be made click-through via the window's titlebar context menu.
     /// </summary>
     public bool AllowClickthrough { get; set; } = true;
 
@@ -199,7 +199,7 @@ public abstract class Window
     public List<TitleBarButton> TitleBarButtons { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this window will stay open.
+    /// Gets or sets a value indicating whether this window will stay open.
     /// </summary>
     public bool IsOpen
     {
@@ -804,7 +804,7 @@ public abstract class Window
         public int Priority { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the button shall be clickable
+        /// Gets or sets a value indicating whether the button shall be clickable
         /// when the respective window is set to clickthrough.
         /// </summary>
         public bool AvailableClickthrough { get; set; }

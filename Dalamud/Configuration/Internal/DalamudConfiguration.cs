@@ -66,12 +66,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public List<string>? BadWords { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the taskbar should flash once a duty is found.
+    /// Gets or sets a value indicating whether the taskbar should flash once a duty is found.
     /// </summary>
     public bool DutyFinderTaskbarFlash { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not a message should be sent in chat once a duty is found.
+    /// Gets or sets a value indicating whether a message should be sent in chat once a duty is found.
     /// </summary>
     public bool DutyFinderChatMessage { get; set; } = true;
 
@@ -101,7 +101,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public XivChatType GeneralChatType { get; set; } = XivChatType.Debug;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin testing builds should be shown.
+    /// Gets or sets a value indicating whether plugin testing builds should be shown.
     /// </summary>
     public bool DoPluginTest { get; set; } = false;
 
@@ -116,7 +116,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public List<ThirdPartyRepoSettings> ThirdRepoList { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not a disclaimer regarding third-party repos has been dismissed.
+    /// Gets or sets a value indicating whether a disclaimer regarding third-party repos has been dismissed.
     /// </summary>
     public bool? ThirdRepoSpeedbumpDismissed { get; set; } = null;
 
@@ -174,38 +174,38 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public float ImeStateIndicatorOpacity { get; set; } = 1f;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin UI should be hidden.
+    /// Gets or sets a value indicating whether plugin UI should be hidden.
     /// </summary>
     public bool ToggleUiHide { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin UI should be hidden during cutscenes.
+    /// Gets or sets a value indicating whether plugin UI should be hidden during cutscenes.
     /// </summary>
     public bool ToggleUiHideDuringCutscenes { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin UI should be hidden during GPose.
+    /// Gets or sets a value indicating whether plugin UI should be hidden during GPose.
     /// </summary>
     public bool ToggleUiHideDuringGpose { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not a message containing Dalamud's current version and the number of loaded plugins should be sent at login.
+    /// Gets or sets a value indicating whether a message containing Dalamud's current version and the number of loaded plugins should be sent at login.
     /// </summary>
     public bool PrintDalamudWelcomeMsg { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not a message containing detailed plugin information should be sent at login.
+    /// Gets or sets a value indicating whether a message containing detailed plugin information should be sent at login.
     /// </summary>
     public bool PrintPluginsWelcomeMsg { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugins should be auto-updated.
+    /// Gets or sets a value indicating whether plugins should be auto-updated.
     /// </summary>
     [Obsolete("Use AutoUpdateBehavior instead.")]
     public bool AutoUpdatePlugins { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not Dalamud should add buttons to the system menu.
+    /// Gets or sets a value indicating whether Dalamud should add buttons to the system menu.
     /// </summary>
     public bool DoButtonsSystemMenu { get; set; } = true;
 
@@ -220,12 +220,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool LogSynchronously { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the debug log should scroll automatically.
+    /// Gets or sets a value indicating whether the debug log should scroll automatically.
     /// </summary>
     public bool LogAutoScroll { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the debug log should open at startup.
+    /// Gets or sets a value indicating whether the debug log should open at startup.
     /// </summary>
     public bool LogOpenAtStartup { get; set; }
 
@@ -240,29 +240,29 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public List<string> LogCommandHistory { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the dev bar should open at startup.
+    /// Gets or sets a value indicating whether the dev bar should open at startup.
     /// </summary>
     public bool DevBarOpenAtStartup { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not ImGui asserts should be enabled at startup.
+    /// Gets or sets a value indicating whether ImGui asserts should be enabled at startup.
     /// </summary>
     public bool? ImGuiAssertsEnabledAtStartup { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not docking should be globally enabled in ImGui.
+    /// Gets or sets a value indicating whether docking should be globally enabled in ImGui.
     /// </summary>
     public bool IsDocking { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not plugin user interfaces should trigger sound effects.
+    /// Gets or sets a value indicating whether plugin user interfaces should trigger sound effects.
     /// This setting is effected by the in-game "System Sounds" option and volume.
     /// </summary>
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "ABI")]
     public bool EnablePluginUISoundEffects { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not an additional button allowing pinning and clickthrough options should be shown
+    /// Gets or sets a value indicating whether an additional button allowing pinning and clickthrough options should be shown
     /// on plugin title bars when using the Window System.
     /// </summary>
     public bool EnablePluginUiAdditionalOptions { get; set; } = true;
@@ -273,17 +273,17 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool IsDisableViewport { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not navigation via a gamepad should be globally enabled in ImGui.
+    /// Gets or sets a value indicating whether navigation via a gamepad should be globally enabled in ImGui.
     /// </summary>
     public bool IsGamepadNavigationEnabled { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not focus management is enabled.
+    /// Gets or sets a value indicating whether focus management is enabled.
     /// </summary>
     public bool IsFocusManagementEnabled { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the anti-anti-debug check is enabled on startup.
+    /// Gets or sets a value indicating whether the anti-anti-debug check is enabled on startup.
     /// </summary>
     public bool IsAntiAntiDebugEnabled { get; set; } = false;
 
@@ -298,7 +298,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public string? DalamudBetaKind { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not any plugin should be loaded when the game is started.
+    /// Gets or sets a value indicating whether any plugin should be loaded when the game is started.
     /// It is reset immediately when read.
     /// </summary>
     public bool PluginSafeMode { get; set; }
@@ -310,7 +310,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public int? PluginWaitBeforeFree { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not crashes during shutdown should be reported.
+    /// Gets or sets a value indicating whether crashes during shutdown should be reported.
     /// </summary>
     public bool ReportShutdownCrashes { get; set; }
 
@@ -342,12 +342,12 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public ProfileModel? DefaultProfile { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not profiles are enabled.
+    /// Gets or sets a value indicating whether profiles are enabled.
     /// </summary>
     public bool ProfilesEnabled { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the user has seen the profiles tutorial.
+    /// Gets or sets a value indicating whether the user has seen the profiles tutorial.
     /// </summary>
     public bool ProfilesHasSeenTutorial { get; set; } = false;
 
@@ -391,7 +391,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool? ReduceMotions { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not market board data should be uploaded.
+    /// Gets or sets a value indicating whether market board data should be uploaded.
     /// </summary>
     public bool IsMbCollect { get; set; } = true;
 
@@ -427,7 +427,7 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to show info on dev bar.
+    /// Gets or sets a value indicating whether to show info on dev bar.
     /// </summary>
     public bool ShowDevBarInfo { get; set; } = true;
 

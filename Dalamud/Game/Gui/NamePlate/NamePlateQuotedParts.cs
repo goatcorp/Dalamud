@@ -6,7 +6,7 @@ namespace Dalamud.Game.Gui.NamePlate;
 /// A part builder for constructing and setting quoted nameplate fields (i.e. free company tag and title).
 /// </summary>
 /// <param name="field">The field type which should be set.</param>
-/// <param name="isFreeCompany">Whether or not this is a Free Company part.</param>
+/// <param name="isFreeCompany">Whether this is a Free Company part.</param>
 /// <remarks>
 /// This class works as a lazy writer initialized with empty parts, where an empty part signifies no change should be
 /// performed. Only after all handler processing is complete does it write out any parts which were set to the

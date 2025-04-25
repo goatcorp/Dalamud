@@ -34,12 +34,12 @@ public interface IExposedPlugin
     bool IsTesting { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this plugin is orphaned(belongs to a repo) or not.
+    /// Gets a value indicating whether this plugin is orphaned(belongs to a repo) or not.
     /// </summary>
     bool IsOrphaned { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this plugin is serviced(repo still exists, but plugin no longer does).
+    /// Gets a value indicating whether this plugin is serviced(repo still exists, but plugin no longer does).
     /// </summary>
     bool IsDecommissioned { get; }
 

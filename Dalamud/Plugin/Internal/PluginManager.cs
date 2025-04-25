@@ -284,7 +284,7 @@ internal class PluginManager : IInternalDisposableService
     /// Check if a manifest even has an available testing version.
     /// </summary>
     /// <param name="manifest">The manifest to test.</param>
-    /// <returns>Whether or not a testing version is available.</returns>
+    /// <returns>Whether a testing version is available.</returns>
     public static bool HasTestingVersion(IPluginManifest manifest)
     {
         var av = manifest.AssemblyVersion;
@@ -1037,7 +1037,7 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     /// <param name="metadata">The available plugin update.</param>
     /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
-    /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
+    /// <param name="dryRun">Whether to actually perform the update, or just indicate success.</param>
     /// <returns>The status of the update.</returns>
     public async Task<PluginUpdateStatus> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
     {

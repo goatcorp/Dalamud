@@ -212,7 +212,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     public IntPtr WindowHandlePtr => this.scene?.WindowHandlePtr ?? IntPtr.Zero;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+    /// Gets or sets a value indicating whether the game's cursor should be overridden with the ImGui cursor.
     /// </summary>
     public bool OverrideGameCursor
     {
@@ -231,7 +231,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     public bool IsReady => this.scene != null;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not Draw events should be dispatched.
+    /// Gets or sets a value indicating whether Draw events should be dispatched.
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
 

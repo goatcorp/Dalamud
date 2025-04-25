@@ -35,7 +35,7 @@ public interface IDalamudPluginInterface
     /// <param name="kind">What action caused this event to be fired.</param>
     /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
     public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
-    
+
     /// <summary>
     /// Event that gets fired when loc is changed
     /// </summary>
@@ -52,7 +52,7 @@ public interface IDalamudPluginInterface
     PluginLoadReason Reason { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
     bool IsAutoUpdateComplete { get; }
 

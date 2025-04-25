@@ -79,7 +79,7 @@ public interface IClientState
     /// Gets the current Territory the player resides in.
     /// </summary>
     public ushort TerritoryType { get; }
-    
+
     /// <summary>
     /// Gets the current Map the player resides in.
     /// </summary>
@@ -101,17 +101,17 @@ public interface IClientState
     public bool IsLoggedIn { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the user is playing PvP.
+    /// Gets a value indicating whether the user is playing PvP.
     /// </summary>
     public bool IsPvP { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the user is playing PvP, excluding the Wolves' Den.
+    /// Gets a value indicating whether the user is playing PvP, excluding the Wolves' Den.
     /// </summary>
     public bool IsPvPExcludingDen { get; }
-    
+
     /// <summary>
-    /// Gets a value indicating whether the client is currently in Group Pose (GPose) mode. 
+    /// Gets a value indicating whether the client is currently in Group Pose (GPose) mode.
     /// </summary>
     public bool IsGPosing { get; }
 

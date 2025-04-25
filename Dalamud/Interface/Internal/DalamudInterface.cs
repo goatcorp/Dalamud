@@ -521,7 +521,7 @@ internal class DalamudInterface : IInternalDisposableService
     /// <summary>
     /// Toggle the screen darkening effect used for the credits.
     /// </summary>
-    /// <param name="status">Whether or not to turn the effect on.</param>
+    /// <param name="status">Whether to turn the effect on.</param>
     public void SetCreditsDarkeningAnimation(bool status)
     {
         this.isCreditsDarkening = status;

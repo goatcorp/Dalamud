@@ -67,7 +67,7 @@ public sealed class TimingHandle : TimingEvent, IDisposable, IComparable<TimingH
     public TimingHandle? Parent { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this timing was started on the main thread.
+    /// Gets a value indicating whether this timing was started on the main thread.
     /// </summary>
     public bool IsMainThread { get; private set; }
 

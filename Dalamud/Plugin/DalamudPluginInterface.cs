@@ -100,7 +100,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public PluginLoadReason Reason { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
     public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.Get().IsAutoUpdateComplete;
 

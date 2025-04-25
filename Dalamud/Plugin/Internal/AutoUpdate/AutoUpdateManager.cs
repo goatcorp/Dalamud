@@ -131,7 +131,7 @@ internal class AutoUpdateManager : IServiceType
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
 

@@ -24,8 +24,8 @@ internal class Profile
     /// </summary>
     /// <param name="manager">The manager this profile belongs to.</param>
     /// <param name="model">The model this profile is tied to.</param>
-    /// <param name="isDefaultProfile">Whether or not this profile is the default profile.</param>
-    /// <param name="isBoot">Whether or not this profile was initialized during bootup.</param>
+    /// <param name="isDefaultProfile">Whether this profile is the default profile.</param>
+    /// <param name="isBoot">Whether this profile was initialized during bootup.</param>
     public Profile(ProfileManager manager, ProfileModel model, bool isDefaultProfile, bool isBoot)
     {
         this.manager = manager;
@@ -108,12 +108,12 @@ internal class Profile
     public Guid Guid => this.modelV1.Guid;
 
     /// <summary>
-    /// Gets a value indicating whether or not this profile is currently enabled.
+    /// Gets a value indicating whether this profile is currently enabled.
     /// </summary>
     public bool IsEnabled { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this profile is the default profile.
+    /// Gets a value indicating whether this profile is the default profile.
     /// </summary>
     public bool IsDefaultProfile { get; }
 
@@ -139,8 +139,8 @@ internal class Profile
     /// Set this profile's state. This cannot be called for the default profile.
     /// This will block until all states have been applied.
     /// </summary>
-    /// <param name="enabled">Whether or not the profile is enabled.</param>
-    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <param name="enabled">Whether the profile is enabled.</param>
+    /// <param name="apply">Whether the current state should immediately be applied.</param>
     /// <exception cref="InvalidOperationException">Thrown when an untoggleable profile is toggled.</exception>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task SetStateAsync(bool enabled, bool apply = true)
@@ -178,8 +178,8 @@ internal class Profile
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="internalName">The internal name of the plugin, if available.</param>
-    /// <param name="state">Whether or not the plugin should be enabled.</param>
-    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <param name="state">Whether the plugin should be enabled.</param>
+    /// <param name="apply">Whether the current state should immediately be applied.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task AddOrUpdateAsync(Guid workingPluginId, string? internalName, bool state, bool apply = true)
     {
@@ -223,9 +223,9 @@ internal class Profile
     /// This will block until all states have been applied.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
-    /// <param name="apply">Whether or not the current state should immediately be applied.</param>
+    /// <param name="apply">Whether the current state should immediately be applied.</param>
     /// <param name="checkDefault">
-    /// Whether or not to throw when a plugin is removed from the default profile, without being in another profile.
+    /// Whether to throw when a plugin is removed from the default profile, without being in another profile.
     /// Used to prevent orphan plugins, but can be ignored when cleaning up old entries.
     /// </param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>

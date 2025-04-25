@@ -36,7 +36,7 @@ public class ProfileModelV1 : ProfileModel
     public static string SerializedPrefix => "DP1";
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this profile should always be enabled at boot.
+    /// Gets or sets a value indicating whether this profile should always be enabled at boot.
     /// </summary>
     [JsonProperty("b")]
     [Obsolete("Superseded by StartupPolicy")]
@@ -49,7 +49,7 @@ public class ProfileModelV1 : ProfileModel
     public ProfileStartupPolicy? StartupPolicy { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this profile is currently enabled.
+    /// Gets or sets a value indicating whether this profile is currently enabled.
     /// </summary>
     [JsonProperty("e")]
     public bool IsEnabled { get; set; } = false;
@@ -81,7 +81,7 @@ public class ProfileModelV1 : ProfileModel
         public Guid WorkingPluginId { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not this entry is enabled.
+        /// Gets or sets a value indicating whether this entry is enabled.
         /// </summary>
         public bool IsEnabled { get; set; }
     }

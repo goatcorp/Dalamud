@@ -8,7 +8,7 @@ namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 /// Test setup for Lumina.
 /// </summary>
 /// <typeparam name="T">ExcelRow to run test on.</typeparam>
-/// <param name="isLargeSheet">Whether or not the sheet is large. If it is large, the self test will iterate through the full sheet in one frame and benchmark the time taken.</param>
+/// <param name="isLargeSheet">Whether the sheet is large. If it is large, the self test will iterate through the full sheet in one frame and benchmark the time taken.</param>
 internal class LuminaSelfTestStep<T>(bool isLargeSheet) : ISelfTestStep
     where T : struct, IExcelRow<T>
 {

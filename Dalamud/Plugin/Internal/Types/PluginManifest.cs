@@ -42,7 +42,7 @@ internal record PluginManifest : IPluginManifest
     public List<string>? CategoryTags { get; init; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the plugin is hidden in the plugin installer.
+    /// Gets or sets a value indicating whether the plugin is hidden in the plugin installer.
     /// This value comes from the plugin master and is in addition to the list of hidden names kept by Dalamud.
     /// </summary>
     [JsonProperty]

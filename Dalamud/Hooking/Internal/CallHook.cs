@@ -53,7 +53,7 @@ internal class CallHook<T> : IDalamudHook where T : Delegate
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook is enabled.
+    /// Gets a value indicating whether the hook is enabled.
     /// </summary>
     public bool IsEnabled => this.asmHook.IsEnabled;
 

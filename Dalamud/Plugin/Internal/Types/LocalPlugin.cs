@@ -178,13 +178,13 @@ internal class LocalPlugin : IAsyncDisposable
     public bool IsTesting => this.manifest.IsTestingExclusive || this.manifest.Testing;
 
     /// <summary>
-    /// Gets a value indicating whether or not this plugin is orphaned(belongs to a repo) or not.
+    /// Gets a value indicating whether this plugin is orphaned(belongs to a repo) or not.
     /// </summary>
     public bool IsOrphaned => !this.IsDev &&
                               this.GetSourceRepository() == null;
 
     /// <summary>
-    /// Gets a value indicating whether or not this plugin is serviced(repo still exists, but plugin no longer does).
+    /// Gets a value indicating whether this plugin is serviced(repo still exists, but plugin no longer does).
     /// </summary>
     public bool IsDecommissioned => !this.IsDev &&
                                     this.GetSourceRepository()?.State == PluginRepositoryState.Success &&
@@ -499,7 +499,7 @@ internal class LocalPlugin : IAsyncDisposable
     /// <summary>
     /// Check if anything forbids this plugin from loading.
     /// </summary>
-    /// <returns>Whether or not this plugin shouldn't load.</returns>
+    /// <returns>Whether this plugin shouldn't load.</returns>
     public bool CheckPolicy()
     {
         var startInfo = Service<Dalamud>.Get().StartInfo;

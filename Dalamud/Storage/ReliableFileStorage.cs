@@ -157,7 +157,7 @@ internal class ReliableFileStorage : IInternalDisposableService
     /// automatically written back to disk, however.
     /// </summary>
     /// <param name="path">The path to read from.</param>
-    /// <param name="forceBackup">Whether or not the backup of the file should take priority.</param>
+    /// <param name="forceBackup">Whether the backup of the file should take priority.</param>
     /// <param name="containerId">The container to read from.</param>
     /// <returns>All text stored in this file.</returns>
     /// <exception cref="FileNotFoundException">Thrown if the file does not exist on the filesystem or in the backup.</exception>
@@ -171,7 +171,7 @@ internal class ReliableFileStorage : IInternalDisposableService
     /// </summary>
     /// <param name="path">The path to read from.</param>
     /// <param name="encoding">The encoding to read with.</param>
-    /// <param name="forceBackup">Whether or not the backup of the file should take priority.</param>
+    /// <param name="forceBackup">Whether the backup of the file should take priority.</param>
     /// <param name="containerId">The container to read from.</param>
     /// <returns>All text stored in this file.</returns>
     /// <exception cref="FileNotFoundException">Thrown if the file does not exist on the filesystem or in the backup.</exception>
@@ -249,7 +249,7 @@ internal class ReliableFileStorage : IInternalDisposableService
     /// automatically written back to disk, however.
     /// </summary>
     /// <param name="path">The path to read from.</param>
-    /// <param name="forceBackup">Whether or not the backup of the file should take priority.</param>
+    /// <param name="forceBackup">Whether the backup of the file should take priority.</param>
     /// <param name="containerId">The container to read from.</param>
     /// <returns>All bytes stored in this file.</returns>
     /// <exception cref="FileNotFoundException">Thrown if the file does not exist on the filesystem or in the backup.</exception>

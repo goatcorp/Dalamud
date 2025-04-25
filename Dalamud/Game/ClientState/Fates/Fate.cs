@@ -70,13 +70,13 @@ public interface IFate : IEquatable<IFate>
     byte Progress { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this <see cref="Fate"/> has a EXP bonus.
+    /// Gets a value indicating whether this <see cref="Fate"/> has a EXP bonus.
     /// </summary>
     [Obsolete($"Use {nameof(HasBonus)} instead")]
     bool HasExpBonus { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this <see cref="Fate"/> has a bonus.
+    /// Gets a value indicating whether this <see cref="Fate"/> has a bonus.
     /// </summary>
     bool HasBonus { get; }
 

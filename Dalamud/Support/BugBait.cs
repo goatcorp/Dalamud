@@ -20,10 +20,10 @@ internal static class BugBait
     /// Send feedback to Discord.
     /// </summary>
     /// <param name="plugin">The plugin to send feedback about.</param>
-    /// <param name="isTesting">Whether or not the plugin is a testing plugin.</param>
+    /// <param name="isTesting">Whether the plugin is a testing plugin.</param>
     /// <param name="content">The content of the feedback.</param>
     /// <param name="reporter">The reporter name.</param>
-    /// <param name="includeException">Whether or not the most recent exception to occur should be included in the report.</param>
+    /// <param name="includeException">Whether the most recent exception to occur should be included in the report.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public static async Task SendFeedback(IPluginManifest plugin, bool isTesting, string content, string reporter, bool includeException)
     {
@@ -43,7 +43,7 @@ internal static class BugBait
         {
             model.Exception = Troubleshooting.LastException == null ? "Was included, but none happened" : Troubleshooting.LastException?.ToString();
         }
-        
+
         var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
 
         var postContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");

@@ -39,7 +39,7 @@ public interface IReadOnlyDtrBarEntry
     public bool Shown { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the user has hidden this entry from view through the Dalamud settings.
+    /// Gets a value indicating whether the user has hidden this entry from view through the Dalamud settings.
     /// </summary>
     public bool UserHidden { get; }
 

@@ -11,12 +11,12 @@ public interface IDalamudHook : IDisposable
     public IntPtr Address { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook is enabled.
+    /// Gets a value indicating whether the hook is enabled.
     /// </summary>
     public bool IsEnabled { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook is disposed.
+    /// Gets a value indicating whether the hook is disposed.
     /// </summary>
     public bool IsDisposed { get; }
 

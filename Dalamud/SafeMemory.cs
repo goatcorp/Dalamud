@@ -25,7 +25,7 @@ public static class SafeMemory
     /// <param name="address">The address to read from.</param>
     /// <param name="count">The amount of bytes to read.</param>
     /// <param name="buffer">The result buffer.</param>
-    /// <returns>Whether or not the read succeeded.</returns>
+    /// <returns>Whether the read succeeded.</returns>
     public static bool ReadBytes(IntPtr address, int count, out byte[] buffer)
     {
         buffer = new byte[count <= 0 ? 0 : count];
@@ -37,7 +37,7 @@ public static class SafeMemory
     /// </summary>
     /// <param name="address">The address to write to.</param>
     /// <param name="buffer">The buffer to write.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool WriteBytes(IntPtr address, byte[] buffer)
     {
         return Imports.WriteProcessMemory(Handle, address, buffer, buffer.Length, out _);
@@ -49,7 +49,7 @@ public static class SafeMemory
     /// <typeparam name="T">The type of the struct.</typeparam>
     /// <param name="address">The address to read from.</param>
     /// <param name="result">The resulting object.</param>
-    /// <returns>Whether or not the read succeeded.</returns>
+    /// <returns>Whether the read succeeded.</returns>
     public static bool Read<T>(IntPtr address, out T result) where T : struct
     {
         if (!ReadBytes(address, SizeCache<T>.Size, out var buffer))
@@ -91,7 +91,7 @@ public static class SafeMemory
     /// <typeparam name="T">The type of the struct.</typeparam>
     /// <param name="address">The address to write to.</param>
     /// <param name="obj">The object to write.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool Write<T>(IntPtr address, T obj) where T : struct
     {
         using var mem = new LocalMemory(SizeCache<T>.Size);
@@ -105,7 +105,7 @@ public static class SafeMemory
     /// <typeparam name="T">The type of the structs.</typeparam>
     /// <param name="address">The address to write to.</param>
     /// <param name="objArray">The array to write.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool Write<T>(IntPtr address, T[] objArray) where T : struct
     {
         if (objArray == null || objArray.Length == 0)
@@ -164,7 +164,7 @@ public static class SafeMemory
     /// </remarks>
     /// <param name="address">The address to write to.</param>
     /// <param name="str">The string to write.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool WriteString(IntPtr address, string str)
     {
         return WriteString(address, str, Encoding.UTF8);
@@ -181,7 +181,7 @@ public static class SafeMemory
     /// <param name="address">The address to write to.</param>
     /// <param name="str">The string to write.</param>
     /// <param name="encoding">The encoding to use.</param>
-    /// <returns>Whether or not the write succeeded.</returns>
+    /// <returns>Whether the write succeeded.</returns>
     public static bool WriteString(IntPtr address, string str, Encoding encoding)
     {
         if (string.IsNullOrEmpty(str))
