@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 
 using Dalamud.Game.Gui.FlyText;
 
@@ -39,13 +40,15 @@ internal class FlyTextWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        if (ImGui.BeginCombo("Kind", this.flyKind.ToString()))
+        if (ImGui.BeginCombo("Kind", $"{this.flyKind} ({(int)this.flyKind})"))
         {
-            var names = Enum.GetNames(typeof(FlyTextKind));
-            for (var i = 0; i < names.Length; i++)
+            var values = Enum.GetValues<FlyTextKind>().Distinct();
+            foreach (var value in values)
             {
-                if (ImGui.Selectable($"{names[i]} ({i})"))
-                    this.flyKind = (FlyTextKind)i;
+                if (ImGui.Selectable($"{value} ({(int)value})"))
+                {
+                    this.flyKind = value;
+                }
             }
 
             ImGui.EndCombo();
