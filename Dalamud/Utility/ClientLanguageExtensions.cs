@@ -1,4 +1,5 @@
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 
 namespace Dalamud.Utility;
 
@@ -46,8 +47,7 @@ public static class ClientLanguageExtensions
     /// Gets the ClientLanguage from a language code.
     /// </summary>
     /// <param name="value">The language code to convert (ja, en, de, fr).</param>
-    /// <returns>The ClientLanguage.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">An exception that is thrown when no valid language code was given.</exception>
+    /// <returns>The ClientLanguage for the given language code, if not found the games ClientLanguage is used as fallback.</returns>
     public static ClientLanguage ToClientLanguage(this string value)
     {
         return value switch
@@ -56,7 +56,7 @@ public static class ClientLanguageExtensions
             "en" => ClientLanguage.English,
             "de" => ClientLanguage.German,
             "fr" => ClientLanguage.French,
-            _ => throw new ArgumentOutOfRangeException(nameof(value)),
+            _ => Service<ClientState>.Get().ClientLanguage,
         };
     }
 }
