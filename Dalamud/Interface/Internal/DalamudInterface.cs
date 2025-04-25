@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using CheapLoc;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
-using Dalamud.Data;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
@@ -49,7 +48,7 @@ using Serilog.Events;
 namespace Dalamud.Interface.Internal;
 
 /// <summary>
-/// This plugin implements all of the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
+/// This plugin implements all the Dalamud interface separately, to allow for reloading of the interface and rapid prototyping.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
 internal class DalamudInterface : IInternalDisposableService
@@ -1013,7 +1012,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                     if (ImGui.MenuItem("Scan dev plugins"))
                     {
-                        pluginManager.ScanDevPlugins();
+                        _ = pluginManager.ScanDevPluginsAsync();
                     }
 
                     ImGui.Separator();

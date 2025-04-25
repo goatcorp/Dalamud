@@ -6,6 +6,7 @@ using System.Text;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Game.Text.SeStringHandling;
@@ -168,7 +169,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
-        this.language = Service<DalamudConfiguration>.Get().EffectiveLanguage.ToClientLanguage();
+        this.language = Service<ClientState>.Get().ClientLanguage;
         this.UpdateInputString(false);
         this.Ready = true;
     }
