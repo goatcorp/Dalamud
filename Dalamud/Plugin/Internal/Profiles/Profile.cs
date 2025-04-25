@@ -33,6 +33,18 @@ internal class Profile
         this.modelV1 = model as ProfileModelV1 ??
                        throw new ArgumentException("Model was null or unhandled version");
 
+        // Migrate "policy"
+        if (this.modelV1.StartupPolicy == null)
+        {
+#pragma warning disable CS0618
+            this.modelV1.StartupPolicy = this.modelV1.AlwaysEnableOnBoot
+                                             ? ProfileModelV1.ProfileStartupPolicy.AlwaysEnable
+                                             : ProfileModelV1.ProfileStartupPolicy.RememberState;
+#pragma warning restore CS0618
+
+            Service<DalamudConfiguration>.Get().QueueSave();
+        }
+
         // We don't actually enable plugins here, PM will do it on bootup
         if (isDefaultProfile)
         {
@@ -40,10 +52,18 @@ internal class Profile
             this.IsEnabled = this.modelV1.IsEnabled = true;
             this.Name = this.modelV1.Name = "DEFAULT";
         }
-        else if (this.modelV1.AlwaysEnableOnBoot && isBoot)
+        else if (isBoot)
         {
-            this.IsEnabled = true;
-            Log.Verbose("{Guid} set enabled because bootup", this.modelV1.Guid);
+            if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysEnable)
+            {
+                this.IsEnabled = true;
+                Log.Verbose("{Guid} set enabled because always enable", this.modelV1.Guid);
+            }
+            else if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.AlwaysDisable)
+            {
+                this.IsEnabled = false;
+                Log.Verbose("{Guid} set disabled because always disable", this.modelV1.Guid);
+            }
         }
         else if (this.modelV1.IsEnabled)
         {
@@ -72,12 +92,12 @@ internal class Profile
     /// <summary>
     /// Gets or sets a value indicating whether this profile shall always be enabled at boot.
     /// </summary>
-    public bool AlwaysEnableAtBoot
+    public ProfileModelV1.ProfileStartupPolicy StartupPolicy
     {
-        get => this.modelV1.AlwaysEnableOnBoot;
+        get => this.modelV1.StartupPolicy ?? ProfileModelV1.ProfileStartupPolicy.RememberState;
         set
         {
-            this.modelV1.AlwaysEnableOnBoot = value;
+            this.modelV1.StartupPolicy = value;
             Service<DalamudConfiguration>.Get().QueueSave();
         }
     }
@@ -164,7 +184,7 @@ internal class Profile
     public async Task AddOrUpdateAsync(Guid workingPluginId, string? internalName, bool state, bool apply = true)
     {
         Debug.Assert(workingPluginId != Guid.Empty, "Trying to add plugin with empty guid");
-        
+
         lock (this)
         {
             var existing = this.modelV1.Plugins.FirstOrDefault(x => x.WorkingPluginId == workingPluginId);
@@ -182,9 +202,9 @@ internal class Profile
                 });
             }
         }
-        
+
         Log.Information("Adding plugin {Plugin}({Guid}) to profile {Profile} with state {State}", internalName, workingPluginId, this.Guid, state);
-        
+
         // We need to remove this plugin from the default profile, if it declares it.
         if (!this.IsDefaultProfile && this.manager.DefaultProfile.WantsPlugin(workingPluginId) != null)
         {
@@ -221,7 +241,7 @@ internal class Profile
             if (!this.modelV1.Plugins.Remove(entry))
                 throw new Exception("Couldn't remove plugin from model collection");
         }
-        
+
         Log.Information("Removing plugin {Plugin}({Guid}) from profile {Profile}", entry.InternalName, entry.WorkingPluginId, this.Guid);
 
         // We need to add this plugin back to the default profile, if we were the last profile to have it.
@@ -260,7 +280,7 @@ internal class Profile
                 // TODO: What should happen if a profile has a GUID locked in, but the plugin
                 // is not installed anymore? That probably means that the user uninstalled the plugin
                 // and is now reinstalling it. We should still satisfy that and update the ID.
-                
+
                 if (plugin.InternalName == internalName && plugin.WorkingPluginId == Guid.Empty)
                 {
                     plugin.WorkingPluginId = newGuid;
@@ -268,7 +288,7 @@ internal class Profile
                 }
             }
         }
-        
+
         Service<DalamudConfiguration>.Get().QueueSave();
     }
 
@@ -319,7 +339,7 @@ internal sealed class PluginNotFoundException : ProfileOperationException
         : base($"The plugin '{internalName}' was not found in the profile")
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginNotFoundException"/> class.
     /// </summary>

@@ -56,11 +56,11 @@ internal class ProfileManagerWidget
             this.DrawChoice();
             return;
         }
-        
+
         var tutorialTitle = Locs.TutorialTitle + "###collectionsTutorWindow";
         var tutorialId = ImGui.GetID(tutorialTitle);
         this.DrawTutorial(tutorialTitle);
-        
+
         switch (this.mode)
         {
             case Mode.Overview:
@@ -120,22 +120,22 @@ internal class ProfileManagerWidget
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphFour);
                     ImGuiHelpers.ScaledDummy(5);
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommands);
-                    
+
                     ImGui.Bullet();
                     ImGui.SameLine();
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsEnable);
-                    
+
                     ImGui.Bullet();
                     ImGui.SameLine();
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsDisable);
-                    
+
                     ImGui.Bullet();
                     ImGui.SameLine();
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsToggle);
 
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialCommandsEnd);
                     ImGuiHelpers.ScaledDummy(5);
-            
+
                     var buttonWidth = 120f;
                     ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
                     if (ImGui.Button("OK", new Vector2(buttonWidth, 40)))
@@ -186,14 +186,14 @@ internal class ProfileManagerWidget
 
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(Locs.ImportProfileHint);
-        
+
         ImGui.SameLine();
         ImGuiHelpers.ScaledDummy(5);
         ImGui.SameLine();
-        
+
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Question))
             ImGui.OpenPopup(tutorialId);
-        
+
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(Locs.TutorialHint);
 
@@ -386,10 +386,19 @@ internal class ProfileManagerWidget
 
         ImGuiHelpers.ScaledDummy(5);
 
-        var enableAtBoot = profile.AlwaysEnableAtBoot;
-        if (ImGui.Checkbox(Locs.AlwaysEnableAtBoot, ref enableAtBoot))
+        ImGui.TextUnformatted(Locs.StartupBehavior);
+        if (ImGui.BeginCombo("##startupBehaviorPicker", Locs.PolicyToLocalisedName(profile.StartupPolicy)))
         {
-            profile.AlwaysEnableAtBoot = enableAtBoot;
+            foreach (var policy in Enum.GetValues(typeof(ProfileModelV1.ProfileStartupPolicy)).Cast<ProfileModelV1.ProfileStartupPolicy>())
+            {
+                var name = Locs.PolicyToLocalisedName(policy);
+                if (ImGui.Selectable(name, profile.StartupPolicy == policy))
+                {
+                    profile.StartupPolicy = policy;
+                }
+            }
+
+            ImGui.EndCombo();
         }
 
         ImGuiHelpers.ScaledDummy(5);
@@ -425,7 +434,7 @@ internal class ProfileManagerWidget
                         ImGui.Image(pic.DevPluginIcon.ImGuiHandle, new Vector2(pluginLineHeight));
                         ImGui.PopStyleVar();
                     }
-                    
+
                     ImGui.SameLine();
 
                     var text = $"{pmPlugin.Name}{(pmPlugin.IsDev ? " (dev plugin" : string.Empty)}";
@@ -448,12 +457,12 @@ internal class ProfileManagerWidget
 
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (pluginLineHeight / 2) - (textHeight.Y / 2));
                     ImGui.TextUnformatted(text);
-                    
+
                     var firstAvailableInstalled = pm.InstalledPlugins.FirstOrDefault(x => x.InternalName == profileEntry.InternalName);
                     var installable =
                         pm.AvailablePlugins.FirstOrDefault(
                             x => x.InternalName == profileEntry.InternalName && !x.SourceRepo.IsThirdParty);
-                    
+
                     if (firstAvailableInstalled != null)
                     {
                         ImGui.Text($"Match to plugin '{firstAvailableInstalled.Name}'?");
@@ -488,7 +497,7 @@ internal class ProfileManagerWidget
                         if (ImGui.IsItemHovered())
                             ImGui.SetTooltip(Locs.InstallPlugin);
                     }
-                    
+
                     ImGui.SetCursorPos(before);
                 }
 
@@ -554,6 +563,9 @@ internal class ProfileManagerWidget
 
     private static class Locs
     {
+        public static string StartupBehavior =>
+            Loc.Localize("ProfileManagerStartupBehavior", "Startup behavior");
+
         public static string TooltipEnableDisable =>
             Loc.Localize("ProfileManagerEnableDisableHint", "Enable/Disable this collection");
 
@@ -566,9 +578,6 @@ internal class ProfileManagerWidget
 
         public static string NoPluginsInProfile =>
             Loc.Localize("ProfileManagerNoPluginsInProfile", "Collection has no plugins!");
-
-        public static string AlwaysEnableAtBoot =>
-            Loc.Localize("ProfileManagerAlwaysEnableAtBoot", "Always enable when game starts");
 
         public static string DeleteProfileHint => Loc.Localize("ProfileManagerDeleteProfile", "Delete this collection");
 
@@ -608,13 +617,13 @@ internal class ProfileManagerWidget
 
         public static string TutorialTitle =>
             Loc.Localize("ProfileManagerTutorial", "About Collections");
-        
+
         public static string TutorialParagraphOne =>
             Loc.Localize("ProfileManagerTutorialParagraphOne", "Collections are shareable lists of plugins that can be enabled or disabled in the plugin installer or via chat commands.\nWhen a plugin is part of a collection, it will be enabled if the collection is enabled. If a plugin is part of multiple collections, it will be enabled if one or more collections it is a part of are enabled.");
-        
+
         public static string TutorialParagraphTwo =>
             Loc.Localize("ProfileManagerTutorialParagraphTwo", "You can add plugins to collections by clicking the plus button when editing a collection on this screen, or by using the button with the toolbox icon on the \"Installed Plugins\" screen.");
-        
+
         public static string TutorialParagraphThree =>
             Loc.Localize("ProfileManagerTutorialParagraphThree", "If a collection's \"Start on boot\" checkbox is ticked, the collection and the plugins within will be enabled every time the game starts up, even if it has been manually disabled in a prior session.");
 
@@ -623,29 +632,46 @@ internal class ProfileManagerWidget
 
         public static string TutorialCommands =>
             Loc.Localize("ProfileManagerTutorialCommands", "You can use the following commands in chat or in macros to manage active collections:");
-        
+
         public static string TutorialCommandsEnable =>
             Loc.Localize("ProfileManagerTutorialCommandsEnable", "{0} \"Collection Name\" - Enable a collection").Format(PluginManagementCommandHandler.CommandEnableProfile);
 
         public static string TutorialCommandsDisable =>
             Loc.Localize("ProfileManagerTutorialCommandsDisable", "{0} \"Collection Name\" - Disable a collection").Format(PluginManagementCommandHandler.CommandDisableProfile);
-        
+
         public static string TutorialCommandsToggle =>
             Loc.Localize("ProfileManagerTutorialCommandsToggle", "{0} \"Collection Name\" - Toggle a collection's state").Format(PluginManagementCommandHandler.CommandToggleProfile);
-        
+
         public static string TutorialCommandsEnd =>
             Loc.Localize("ProfileManagerTutorialCommandsEnd", "If you run multiple of these commands, they will be executed in order.");
 
         public static string Choice1 =>
             Loc.Localize("ProfileManagerChoice1", "Plugin collections are a new feature that allow you to group plugins into collections which can be toggled and shared.");
-        
+
         public static string Choice2 =>
             Loc.Localize("ProfileManagerChoice2", "They are experimental and may still contain bugs. Do you want to enable them now?");
-       
+
         public static string ChoiceConfirmation =>
             Loc.Localize("ProfileManagerChoiceConfirmation", "Yes, enable Plugin Collections");
 
         public static string NotInstalled(string name) =>
             Loc.Localize("ProfileManagerNotInstalled", "{0} (Not Installed)").Format(name);
+
+        public static string PolicyToLocalisedName(ProfileModelV1.ProfileStartupPolicy policy)
+        {
+            return policy switch
+            {
+                ProfileModelV1.ProfileStartupPolicy.RememberState => Loc.Localize(
+                    "ProfileManagerRememberState",
+                    "Remember state"),
+                ProfileModelV1.ProfileStartupPolicy.AlwaysEnable => Loc.Localize(
+                    "ProfileManagerAlwaysEnableAtBoot",
+                    "Always enable at boot"),
+                ProfileModelV1.ProfileStartupPolicy.AlwaysDisable => Loc.Localize(
+                    "ProfileManagerAlwaysDisableAtBoot",
+                    "Always disable at boot"),
+                _ => throw new ArgumentOutOfRangeException(nameof(policy), policy, null),
+            };
+        }
     }
 }
