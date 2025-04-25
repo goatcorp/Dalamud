@@ -639,11 +639,27 @@ internal class PluginInstallerWindow : Window, IDisposable
                     throw new ArgumentOutOfRangeException();
             }
 
-            if (DateTime.Now - this.timeLoaded > TimeSpan.FromSeconds(90) && !pluginManager.PluginsReady)
+            if (DateTime.Now - this.timeLoaded > TimeSpan.FromSeconds(30) && !pluginManager.PluginsReady)
             {
+                ImGuiHelpers.ScaledDummy(10);
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                 ImGuiHelpers.CenteredText("One of your plugins may be blocking the installer.");
+                ImGuiHelpers.CenteredText("You can try restarting in safe mode, and deleting the plugin.");
                 ImGui.PopStyleColor();
+
+                ImGuiHelpers.BeginHorizontalButtonGroup()
+                            .Add(
+                                "Restart in Safe Mode",
+                                () =>
+                                {
+                                    var config = Service<DalamudConfiguration>.Get();
+                                    config.PluginSafeMode = true;
+                                    config.ForceSave();
+                                    Dalamud.RestartGame();
+                                })
+                            .SetCentered(true)
+                            .WithHeight(30)
+                            .Draw();
             }
         }
     }
@@ -3136,11 +3152,13 @@ internal class PluginInstallerWindow : Window, IDisposable
         {
             ImGuiComponents.DisabledToggleButton(toggleId, this.loadingIndicatorKind == LoadingIndicatorKind.EnablingSingle);
         }
-        else if (disabled || inMultipleProfiles || inSingleNonDefaultProfileWhichIsDisabled)
+        else if (disabled || inMultipleProfiles || inSingleNonDefaultProfileWhichIsDisabled || pluginManager.SafeMode)
         {
             ImGuiComponents.DisabledToggleButton(toggleId, isLoadedAndUnloadable);
 
-            if (inMultipleProfiles && ImGui.IsItemHovered())
+            if (pluginManager.SafeMode && ImGui.IsItemHovered())
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_SafeMode);
+            else if (inMultipleProfiles && ImGui.IsItemHovered())
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_NeedsToBeInSingleProfile);
             else if (inSingleNonDefaultProfileWhichIsDisabled && ImGui.IsItemHovered())
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_SingleProfileDisabled(profilesThatWantThisPlugin.First().Name));
@@ -4219,6 +4237,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginButtonToolTip_NeedsToBeInDefault => Loc.Localize("InstallerUnloadNeedsToBeInDefault", "This plugin is in one or more collections. If you want to enable or disable it, please do so by enabling or disabling the collections it is in.\nIf you want to manage it manually, remove it from all collections.");
 
         public static string PluginButtonToolTip_NeedsToBeInSingleProfile => Loc.Localize("InstallerUnloadNeedsToBeInSingleProfile", "This plugin is in more than one collection. If you want to enable or disable it, please do so by enabling or disabling the collections it is in.\nIf you want to manage it here, make sure it is only in a single collection.");
+
+        public static string PluginButtonToolTip_SafeMode => Loc.Localize("InstallerButtonSafeModeTooltip", "Cannot enable plugins in safe mode.");
 
         public static string PluginButtonToolTip_SingleProfileDisabled(string name) => Loc.Localize("InstallerSingleProfileDisabled", "The collection '{0}' which contains this plugin is disabled.\nPlease enable it in the collections manager to toggle the plugin individually.").Format(name);
 
