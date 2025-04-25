@@ -561,6 +561,8 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public void ForceSave()
     {
         this.Save();
+        this.isSaveQueued = false;
+        this.writeTask?.GetAwaiter().GetResult();
     }
 
     /// <inheritdoc/>
