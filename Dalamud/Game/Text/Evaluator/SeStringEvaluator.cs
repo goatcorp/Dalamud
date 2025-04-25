@@ -52,6 +52,9 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     private static readonly ModuleLog Log = new("SeStringEvaluator");
 
     [ServiceManager.ServiceDependency]
+    private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
+
+    [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
 
     [ServiceManager.ServiceDependency]
@@ -92,7 +95,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (str.IsTextOnly())
             return new(str);
 
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+        var lang = language ?? this.GetEffectiveClientLanguage();
 
         // TODO: remove culture info toggling after supporting CultureInfo for SeStringBuilder.Append,
         //       and then remove try...finally block (discard builder from the pool on exception)
@@ -116,7 +119,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         Span<SeStringParameter> localParameters = default,
         ClientLanguage? language = null)
     {
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+        var lang = language ?? this.GetEffectiveClientLanguage();
 
         if (!this.dataManager.GetExcelSheet<AddonSheet>(lang).TryGetRow(addonId, out var addonRow))
             return default;
@@ -130,7 +133,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         Span<SeStringParameter> localParameters = default,
         ClientLanguage? language = null)
     {
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+        var lang = language ?? this.GetEffectiveClientLanguage();
 
         if (!this.dataManager.GetExcelSheet<Lobby>(lang).TryGetRow(lobbyId, out var lobbyRow))
             return default;
@@ -144,7 +147,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         Span<SeStringParameter> localParameters = default,
         ClientLanguage? language = null)
     {
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+        var lang = language ?? this.GetEffectiveClientLanguage();
 
         if (!this.dataManager.GetExcelSheet<LogMessage>(lang).TryGetRow(logMessageId, out var logMessageRow))
             return default;
@@ -155,7 +158,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     /// <inheritdoc/>
     public string EvaluateActStr(ActionKind actionKind, uint id, ClientLanguage? language = null) =>
         this.actStrCache.GetOrAdd(
-            new(actionKind, id, language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage()),
+            new(actionKind, id, language ?? this.GetEffectiveClientLanguage()),
             static (key, t) => t.EvaluateFromAddon(2026, [key.Kind.GetActStrId(key.Id)], key.Language)
                                 .ExtractText()
                                 .StripSoftHyphen(),
@@ -164,7 +167,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     /// <inheritdoc/>
     public string EvaluateObjStr(ObjectKind objectKind, uint id, ClientLanguage? language = null) =>
         this.objStrCache.GetOrAdd(
-            new(objectKind, id, language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage()),
+            new(objectKind, id, language ?? this.GetEffectiveClientLanguage()),
             static (key, t) => t.EvaluateFromAddon(2025, [key.Kind.GetObjStrId(key.Id)], key.Language)
                                 .ExtractText()
                                 .StripSoftHyphen(),
@@ -182,6 +185,18 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private static uint ConvertRawToMapPosY(Lumina.Excel.Sheets.Map map, float y)
         => ConvertRawToMapPos(map, map.OffsetY, y);
+
+    private ClientLanguage GetEffectiveClientLanguage()
+    {
+        return this.dalamudConfiguration.EffectiveLanguage switch
+        {
+            "ja" => ClientLanguage.Japanese,
+            "en" => ClientLanguage.English,
+            "de" => ClientLanguage.German,
+            "fr" => ClientLanguage.French,
+            _ => this.clientState.ClientLanguage,
+        };
+    }
 
     private SeStringBuilder EvaluateAndAppendTo(
         SeStringBuilder builder,
