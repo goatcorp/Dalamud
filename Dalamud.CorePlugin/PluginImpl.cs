@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 using Dalamud.Configuration.Internal;
@@ -7,6 +8,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
 using Serilog;
 
 namespace Dalamud.CorePlugin
@@ -28,6 +30,7 @@ namespace Dalamud.CorePlugin
     /// </remarks>
     public sealed class PluginImpl : IDalamudPlugin
     {
+        private readonly IChatGui chatGui;
 #if !DEBUG
 
         /// <summary>
@@ -46,7 +49,6 @@ namespace Dalamud.CorePlugin
 #else
 
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
-        private Localization localization;
 
         private IPluginLog pluginLog;
 
@@ -55,14 +57,17 @@ namespace Dalamud.CorePlugin
         /// </summary>
         /// <param name="pluginInterface">Dalamud plugin interface.</param>
         /// <param name="log">Logging service.</param>
-        public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log)
+        /// <param name="commandManager">Command manager.</param>
+        /// <param name="chatGui">Chat GUI.</param>
+        [Experimental("Dalamud001")]
+        public PluginImpl(IDalamudPluginInterface pluginInterface, IPluginLog log, ICommandManager commandManager, IChatGui chatGui)
         {
+            this.chatGui = chatGui;
+            this.Interface = pluginInterface;
+            this.pluginLog = log;
+
             try
             {
-                // this.InitLoc();
-                this.Interface = pluginInterface;
-                this.pluginLog = log;
-
                 this.windowSystem.AddWindow(new PluginWindow());
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
@@ -73,7 +78,8 @@ namespace Dalamud.CorePlugin
                     Log.Information($"CorePlugin : DefaultFontHandle.ImFontChanged called {fc}");
                 };
 
-                Service<CommandManager>.Get().AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
+                commandManager.AddHandler("/coreplug", new CommandInfo(this.OnCommand) { HelpMessage = "Access the plugin." });
+                commandManager.AddCommand("/coreplugnew", "Access the plugin.", this.OnCommandNew);
 
                 log.Information("CorePlugin ctor!");
             }
@@ -99,25 +105,6 @@ namespace Dalamud.CorePlugin
         }
 
         /// <summary>
-        /// CheapLoc needs to be reinitialized here because it tracks the setup by assembly name. New assembly, new setup.
-        /// </summary>
-        public void InitLoc()
-        {
-            var dalamud = Service<Dalamud>.Get();
-            var dalamudConfig = Service<DalamudConfiguration>.Get();
-
-            this.localization = new Localization(Path.Combine(dalamud.AssetDirectory.FullName, "UIRes", "loc", "dalamud"), "dalamud_");
-            if (!dalamudConfig.LanguageOverride.IsNullOrEmpty())
-            {
-                this.localization.SetupWithLangCode(dalamudConfig.LanguageOverride);
-            }
-            else
-            {
-                this.localization.SetupWithUiCulture();
-            }
-        }
-
-        /// <summary>
         /// Draw the window system.
         /// </summary>
         private void OnDraw()
@@ -134,9 +121,15 @@ namespace Dalamud.CorePlugin
 
         private void OnCommand(string command, string args)
         {
-            this.pluginLog.Information("Command called!");
+            this.chatGui.Print("Command called!");
 
             // this.window.IsOpen = true;
+        }
+
+        private bool OnCommandNew(bool var1, int var2, string? var3)
+        {
+            this.chatGui.Print($"CorePlugin: Command called! var1: {var1}, var2: {var2}, var3: {var3}");
+            return true;
         }
 
         private void OnOpenConfigUi()

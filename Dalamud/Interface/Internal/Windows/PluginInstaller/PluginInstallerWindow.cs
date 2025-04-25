@@ -2852,19 +2852,18 @@ internal class PluginInstallerWindow : Window, IDisposable
             // Available commands (if loaded)
             if (plugin.IsLoaded)
             {
-                var commands = commandManager.Commands
-                                             .Where(cInfo =>
-                                                        cInfo.Value is { ShowInHelp: true } &&
-                                                        commandManager.GetHandlerAssemblyName(cInfo.Key, cInfo.Value) == plugin.Manifest.InternalName);
+                var commands = commandManager.GetHandlersByWorkingPluginId(plugin.EffectiveWorkingPluginId)
+                                             .Where(x => x.CommandInfo.ShowInHelp)
+                                             .ToList();
 
-                if (commands.Any())
+                if (commands.Count != 0)
                 {
                     ImGui.Dummy(ImGuiHelpers.ScaledVector2(10f, 10f));
                     foreach (var command in commands
-                        .OrderBy(cInfo => cInfo.Value.DisplayOrder)
-                        .ThenBy(cInfo => cInfo.Key))
+                        .OrderBy(cInfo => cInfo.CommandInfo.DisplayOrder)
+                        .ThenBy(cInfo => cInfo.Command))
                     {
-                        ImGuiHelpers.SafeTextWrapped($"{command.Key} → {command.Value.HelpMessage}");
+                        ImGuiHelpers.SafeTextWrapped($"{command.Command} → {command.CommandInfo.HelpMessage}");
                     }
 
                     ImGuiHelpers.ScaledDummy(3);
