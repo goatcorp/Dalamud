@@ -224,6 +224,9 @@ internal class ProfileManagerWidget
                 ImGuiHelpers.ScaledDummy(3);
                 ImGui.SameLine();
 
+                // Center text in frame height
+                var textHeight = ImGui.CalcTextSize(profile.Name);
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() / 2) - (textHeight.Y / 2));
                 ImGui.Text(profile.Name);
 
                 ImGui.SameLine();
@@ -263,6 +266,17 @@ internal class ProfileManagerWidget
                 didAny = true;
 
                 ImGuiHelpers.ScaledDummy(2);
+
+                // Separator if not the last item
+                if (profile != profman.Profiles.Last())
+                {
+                    // Very light grey
+                    ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
+                    ImGui.Separator();
+                    ImGui.PopStyleColor();
+
+                    ImGuiHelpers.ScaledDummy(2);
+                }
             }
 
             if (toCloneGuid != null)
@@ -523,6 +537,15 @@ internal class ProfileManagerWidget
 
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(Locs.RemovePlugin);
+
+                // Separator if not the last item
+                if (profileEntry != profile.Plugins.Last())
+                {
+                    // Very light grey
+                    ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
+                    ImGui.Separator();
+                    ImGui.PopStyleColor();
+                }
             }
 
             if (wantRemovePluginGuid != null)
