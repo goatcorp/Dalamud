@@ -473,6 +473,36 @@ internal class PluginInstallerWindow : Window, IDisposable
         configuration.QueueSave();
     }
 
+    private static void DrawProgressBar<T>(IEnumerable<T> items, Func<T, bool> pendingFunc, Func<T, bool> totalFunc, Action<T> renderPending)
+    {
+        var windowSize = ImGui.GetWindowSize();
+
+        var numLoaded = 0;
+        var total = 0;
+
+        var itemsArray = items as T[] ?? items.ToArray();
+        var allPending = itemsArray.Where(pendingFunc)
+                                   .ToArray();
+        var allLoadedOrLoading = itemsArray.Count(totalFunc);
+
+        // Cap number of items we show to avoid clutter
+        const int maxShown = 3;
+        foreach (var repo in allPending.Take(maxShown))
+        {
+            renderPending(repo);
+        }
+
+        ImGuiHelpers.ScaledDummy(10);
+
+        numLoaded += allLoadedOrLoading - allPending.Length;
+        total += allLoadedOrLoading;
+        if (numLoaded != total)
+        {
+            ImGui.SetCursorPosX(windowSize.X / 3);
+            ImGui.ProgressBar(numLoaded / (float)total, new Vector2(windowSize.X / 3, 50), $"{numLoaded}/{total}");
+        }
+    }
+
     private void SetOpenPage(PluginInstallerOpenKind kind)
     {
         switch (kind)
@@ -576,39 +606,28 @@ internal class PluginInstallerWindow : Window, IDisposable
                         if (pluginManager.PluginsReady && !pluginManager.ReposReady)
                         {
                             ImGuiHelpers.CenteredText("Loading repositories...");
+                            ImGuiHelpers.ScaledDummy(10);
+
+                            DrawProgressBar(pluginManager.Repos, x => x.State != PluginRepositoryState.Success &&
+                                                                      x.State != PluginRepositoryState.Fail &&
+                                                                      x.IsEnabled,
+                                            x => x.IsEnabled,
+                                            x => ImGuiHelpers.CenteredText($"Loading {x.PluginMasterUrl}"));
                         }
                         else if (!pluginManager.PluginsReady && pluginManager.ReposReady)
                         {
                             ImGuiHelpers.CenteredText("Loading installed plugins...");
+                            ImGuiHelpers.ScaledDummy(10);
+
+                            DrawProgressBar(pluginManager.InstalledPlugins, x => x.State == PluginState.Loading,
+                                            x => x.State is PluginState.Loaded or
+                                                     PluginState.LoadError or
+                                                     PluginState.Loading,
+                                            x => ImGuiHelpers.CenteredText($"Loading {x.Name}"));
                         }
                         else
                         {
                             ImGuiHelpers.CenteredText("Loading repositories and plugins...");
-                        }
-
-                        var currentProgress = 0;
-                        var total = 0;
-
-                        var pendingRepos = pluginManager.Repos.ToArray()
-                                                        .Where(x => (x.State != PluginRepositoryState.Success &&
-                                                                     x.State != PluginRepositoryState.Fail) &&
-                                                                    x.IsEnabled)
-                                                        .ToArray();
-                        var allRepoCount =
-                            pluginManager.Repos.Count(x => x.State != PluginRepositoryState.Fail && x.IsEnabled);
-
-                        foreach (var repo in pendingRepos)
-                        {
-                            ImGuiHelpers.CenteredText($"{repo.PluginMasterUrl}: {repo.State}");
-                        }
-
-                        currentProgress += allRepoCount - pendingRepos.Length;
-                        total += allRepoCount;
-
-                        if (currentProgress != total)
-                        {
-                            ImGui.SetCursorPosX(windowSize.X / 3);
-                            ImGui.ProgressBar(currentProgress / (float)total, new Vector2(windowSize.X / 3, 50));
                         }
                     }
 
