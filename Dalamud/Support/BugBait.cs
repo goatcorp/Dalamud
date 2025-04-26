@@ -14,7 +14,7 @@ namespace Dalamud.Support;
 /// </summary>
 internal static class BugBait
 {
-    private const string BugBaitUrl = "https://kiko.goats.dev/feedback";
+    private const string BugBaitUrl = "https://api.dalamud.dev/feedback";
 
     /// <summary>
     /// Send feedback to Discord.
@@ -25,7 +25,7 @@ internal static class BugBait
     /// <param name="reporter">The reporter name.</param>
     /// <param name="includeException">Whether the most recent exception to occur should be included in the report.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public static async Task SendFeedback(IPluginManifest plugin, bool isTesting, string content, string reporter, bool includeException)
+    public static async Task SendFeedback(IPluginManifest plugin, bool isTesting, bool isCustomRepo, string content, string reporter, bool includeException)
     {
         if (content.IsNullOrWhitespace())
             return;
@@ -46,8 +46,10 @@ internal static class BugBait
 
         var httpClient = Service<HappyHttpClient>.Get().SharedHttpClient;
 
+        var feedbackUrl = !isCustomRepo ? BugBaitUrl : plugin.FeedbackWebhook ?? BugBaitUrl;
+
         var postContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-        var response = await httpClient.PostAsync(BugBaitUrl, postContent);
+        var response = await httpClient.PostAsync(feedbackUrl, postContent);
 
         response.EnsureSuccessStatusCode();
     }
