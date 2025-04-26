@@ -26,7 +26,7 @@ internal class InventoryWidget : IDataWindowWidget
 {
     private DataManager dataManager;
     private TextureManager textureManager;
-    private InventoryType? selectedInventoryType = InventoryType.Inventory1;
+    private GameInventoryType? selectedInventoryType = GameInventoryType.Inventory1;
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = ["inv", "inventory"];
@@ -56,7 +56,7 @@ internal class InventoryWidget : IDataWindowWidget
 
         ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
 
-        this.DrawInventoryType((InventoryType)this.selectedInventoryType);
+        this.DrawInventoryType(this.selectedInventoryType.Value);
     }
 
     private static string StripSoftHypen(string input)
@@ -74,9 +74,9 @@ internal class InventoryWidget : IDataWindowWidget
         ImGui.TableSetupScrollFreeze(2, 1);
         ImGui.TableHeadersRow();
 
-        foreach (var inventoryType in Enum.GetValues<InventoryType>())
+        foreach (var inventoryType in Enum.GetValues<GameInventoryType>())
         {
-            var items = GameInventoryItem.GetReadOnlySpanOfInventory((GameInventoryType)inventoryType);
+            var items = GameInventoryItem.GetReadOnlySpanOfInventory(inventoryType);
 
             using var itemDisabled = ImRaii.Disabled(items.IsEmpty);
 
@@ -98,7 +98,7 @@ internal class InventoryWidget : IDataWindowWidget
 
                     if (ImGui.MenuItem("Copy Address"))
                     {
-                        var container = InventoryManager.Instance()->GetInventoryContainer(inventoryType);
+                        var container = InventoryManager.Instance()->GetInventoryContainer((InventoryType)inventoryType);
                         ImGui.SetClipboardText($"0x{(nint)container:X}");
                     }
                 }
@@ -109,9 +109,9 @@ internal class InventoryWidget : IDataWindowWidget
         }
     }
 
-    private unsafe void DrawInventoryType(InventoryType inventoryType)
+    private unsafe void DrawInventoryType(GameInventoryType inventoryType)
     {
-        var items = GameInventoryItem.GetReadOnlySpanOfInventory((GameInventoryType)inventoryType);
+        var items = GameInventoryItem.GetReadOnlySpanOfInventory(inventoryType);
         if (items.IsEmpty)
         {
             ImGui.TextUnformatted($"{inventoryType} is empty.");
