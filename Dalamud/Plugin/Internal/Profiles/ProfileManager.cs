@@ -193,6 +193,10 @@ internal class ProfileManager : IServiceType
                 }
             }
         }
+        else
+        {
+            throw new InvalidOperationException("Unsupported profile model version");
+        }
 
         this.config.SavedProfiles!.Add(newModel);
         this.config.QueueSave();

@@ -64,16 +64,28 @@ internal class Profile
                 this.IsEnabled = false;
                 Log.Verbose("{Guid} set disabled because always disable", this.modelV1.Guid);
             }
-        }
-        else if (this.modelV1.IsEnabled)
-        {
-            this.IsEnabled = true;
-            Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);
+            else if (this.modelV1.StartupPolicy == ProfileModelV1.ProfileStartupPolicy.RememberState)
+            {
+                this.IsEnabled = this.modelV1.IsEnabled;
+                Log.Verbose("{Guid} set enabled because remember", this.modelV1.Guid);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.modelV1.StartupPolicy));
+            }
         }
         else
         {
             Log.Verbose("{Guid} not enabled", this.modelV1.Guid);
         }
+
+        Log.Verbose("Init profile {Guid} ({Name}) enabled:{Enabled} policy:{Policy} plugins:{NumPlugins} will be enabled:{Status}",
+                    this.modelV1.Guid,
+                    this.modelV1.Name,
+                    this.modelV1.IsEnabled,
+                    this.modelV1.StartupPolicy,
+                    this.modelV1.Plugins.Count,
+                    this.IsEnabled);
     }
 
     /// <summary>
