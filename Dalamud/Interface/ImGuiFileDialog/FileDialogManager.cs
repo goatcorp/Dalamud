@@ -20,7 +20,6 @@ public class FileDialogManager
     /// <summary> Additional quick access items for the sidebar.</summary>
     public readonly List<(string Name, string Path, FontAwesomeIcon Icon, int Position)> CustomSideBarItems = [];
 
-
     /// <summary> Additional flags with which to draw the window. </summary>
     public ImGuiWindowFlags AddedWindowFlags = ImGuiWindowFlags.None;
 #pragma warning restore SA1401

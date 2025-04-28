@@ -228,6 +228,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         IsInstallableOutdated = 1 << 5,
         IsOrphan = 1 << 6,
         IsTesting = 1 << 7,
+        IsIncompatible = 1 << 8,
     }
 
     private enum InstalledPluginListFilter
@@ -2193,7 +2194,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, overlayAlpha);
         if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
             ImGui.Image(this.imageCache.UpdateIcon.ImGuiHandle, iconSize);
-        else if ((flags.HasFlag(PluginHeaderFlags.HasTrouble) && !pluginDisabled) || flags.HasFlag(PluginHeaderFlags.IsOrphan))
+        else if ((flags.HasFlag(PluginHeaderFlags.HasTrouble) && !pluginDisabled) || flags.HasFlag(PluginHeaderFlags.IsOrphan) || flags.HasFlag(PluginHeaderFlags.IsIncompatible))
             ImGui.Image(this.imageCache.TroubleIcon.ImGuiHandle, iconSize);
         else if (flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
             ImGui.Image(this.imageCache.OutdatedInstallableIcon.ImGuiHandle, iconSize);
@@ -2269,9 +2270,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.SetCursorPos(cursor);
 
         // Outdated warning
-        if (plugin is { IsOutdated: true, IsBanned: false } || flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
+        if (flags.HasFlag(PluginHeaderFlags.IsIncompatible))
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
+            ImGui.TextWrapped(Locs.PluginBody_Incompatible);
+        }
+        else if (plugin is { IsOutdated: true, IsBanned: false } || flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
+        {
+            using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
 
             var bodyText = Locs.PluginBody_Outdated + " ";
             if (flags.HasFlag(PluginHeaderFlags.UpdateAvailable))
@@ -2280,7 +2286,6 @@ internal class PluginInstallerWindow : Window, IDisposable
                 bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
 
             ImGui.TextWrapped(bodyText);
-            ImGui.PopStyleColor();
         }
         else if (plugin is { IsBanned: true })
         {
@@ -2449,6 +2454,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         var effectiveApiLevel = useTesting && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
         var isOutdated = effectiveApiLevel < PluginManager.DalamudApiLevel;
 
+        var isIncompatible = manifest.MinimumDalamudVersion != null &&
+                             manifest.MinimumDalamudVersion > Util.AssemblyVersionParsed;
+
+        var enableInstallButton = this.updateStatus != OperationStatus.InProgress &&
+                                  this.installStatus != OperationStatus.InProgress &&
+                                  !isOutdated &&
+                                  !isIncompatible;
+
         // Check for valid versions
         if ((useTesting && manifest.TestingAssemblyVersion == null) || manifest.AssemblyVersion == null)
         {
@@ -2473,6 +2486,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             label += Locs.PluginTitleMod_TestingAvailable;
         }
 
+        if (isIncompatible)
+        {
+            label += Locs.PluginTitleMod_Incompatible;
+        }
+
         var isThirdParty = manifest.SourceRepo.IsThirdParty;
 
         ImGui.PushID($"available{index}{manifest.InternalName}");
@@ -2486,6 +2504,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             flags |= PluginHeaderFlags.IsInstallableOutdated;
         if (useTesting || manifest.IsTestingExclusive)
             flags |= PluginHeaderFlags.IsTesting;
+        if (isIncompatible)
+            flags |= PluginHeaderFlags.IsIncompatible;
 
         if (this.DrawPluginCollapsingHeader(label, null, manifest, flags, () => this.DrawAvailablePluginContextMenu(manifest), index))
         {
@@ -2513,9 +2533,6 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             ImGuiHelpers.ScaledDummy(5);
 
-            // Controls
-            var disabled = this.updateStatus == OperationStatus.InProgress || this.installStatus == OperationStatus.InProgress || isOutdated;
-
             var versionString = useTesting
                                     ? $"{manifest.TestingAssemblyVersion}"
                                     : $"{manifest.AssemblyVersion}";
@@ -2524,7 +2541,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 ImGuiComponents.DisabledButton(Locs.PluginButton_SafeMode);
             }
-            else if (disabled)
+            else if (!enableInstallButton)
             {
                 ImGuiComponents.DisabledButton(Locs.PluginButton_InstallVersion(versionString));
             }
@@ -4105,6 +4122,8 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         public static string PluginTitleMod_TestingAvailable => Loc.Localize("InstallerTestingAvailable", " (has testing version)");
 
+        public static string PluginTitleMod_Incompatible => Loc.Localize("InstallerTitleModIncompatible", " (incompatible)");
+
         public static string PluginTitleMod_DevPlugin => Loc.Localize("InstallerDevPlugin", " (dev plugin)");
 
         public static string PluginTitleMod_UpdateFailed => Loc.Localize("InstallerUpdateFailed", " (update failed)");
@@ -4160,6 +4179,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginBody_Plugin3rdPartyRepo(string url) => Loc.Localize("InstallerPlugin3rdPartyRepo", "From custom plugin repository {0}").Format(url);
 
         public static string PluginBody_Outdated => Loc.Localize("InstallerOutdatedPluginBody ", "This plugin is outdated and incompatible.");
+
+        public static string PluginBody_Incompatible => Loc.Localize("InstallerIncompatiblePluginBody ", "This plugin is incompatible with your version of Dalamud. Please attempt to restart your game.");
 
         public static string PluginBody_Outdated_WaitForUpdate => Loc.Localize("InstallerOutdatedWaitForUpdate", "Please wait for it to be updated by its author.");
 

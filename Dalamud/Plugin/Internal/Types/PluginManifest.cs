@@ -77,6 +77,10 @@ internal record PluginManifest : IPluginManifest
 
     /// <inheritdoc/>
     [JsonProperty]
+    public Version? MinimumDalamudVersion { get; init; }
+
+    /// <inheritdoc/>
+    [JsonProperty]
     public int DalamudApiLevel { get; init; } = PluginManager.DalamudApiLevel;
 
     /// <inheritdoc/>
