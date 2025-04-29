@@ -90,6 +90,7 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
     /// <summary>
     /// Starts intercepting a call to the function.
     /// </summary>
+    /// <exception cref="ObjectDisposedException">Hook is already disposed.</exception>
     public virtual void Enable() => throw new NotImplementedException();
 
     /// <summary>
