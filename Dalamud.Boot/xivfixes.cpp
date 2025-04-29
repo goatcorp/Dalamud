@@ -655,6 +655,11 @@ void xivfixes::disable_game_debugging_protection(bool bApply) {
     if (!bApply)
         return;
 
+    if (!g_startInfo.BootEnabledGameFixes.contains("disable_game_debugging_protection")) {
+        logging::I("{} Turned off via environment variable.", LogTag);
+        return;
+    }
+
     const char* matchPtr = utils::signature_finder()
         .look_in(utils::loaded_module(g_hGameInstance), ".text")
         .look_for_hex("FF 15 ?? ?? ?? ?? 85 C0 74 13 41")
