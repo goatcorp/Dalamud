@@ -648,6 +648,36 @@ void xivfixes::symbol_load_patches(bool bApply) {
     }
 }
 
+void xivfixes::disable_game_debugging_protection(bool bApply) {
+    static const char* LogTag = "[xivfixes:disable_game_debugging_protection]";
+    static const std::vector<uint8_t> patchBytes = { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
+
+    if (!bApply)
+        return;
+
+    const char* matchPtr = utils::signature_finder()
+        .look_in(utils::loaded_module(g_hGameInstance), ".text")
+        .look_for_hex("FF 15 ?? ?? ?? ?? 85 C0 74 13 41")
+        .find_one()
+        .Match.data();
+
+    if (!matchPtr) {
+        logging::E("{} Failed to find signature.", LogTag);
+        return;
+    }
+
+    void* address = const_cast<void*>(static_cast<const void*>(matchPtr));
+
+    DWORD oldProtect;
+    if (VirtualProtect(address, patchBytes.size(), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+        memcpy(address, patchBytes.data(), patchBytes.size());
+        VirtualProtect(address, patchBytes.size(), oldProtect, &oldProtect);
+        logging::I("{} Patch applied at address 0x{:X}.", LogTag, reinterpret_cast<uintptr_t>(address));
+    } else {
+        logging::E("{} Failed to change memory protection.", LogTag);
+    }
+}
+
 void xivfixes::apply_all(bool bApply) {
     for (const auto& [taskName, taskFunction] : std::initializer_list<std::pair<const char*, void(*)(bool)>>
         {
@@ -658,6 +688,7 @@ void xivfixes::apply_all(bool bApply) {
             { "backup_userdata_save", &backup_userdata_save },
             { "prevent_icmphandle_crashes", &prevent_icmphandle_crashes },
             { "symbol_load_patches", &symbol_load_patches },
+            { "disable_game_debugging_protection", &disable_game_debugging_protection },
         }
         ) {
         try {

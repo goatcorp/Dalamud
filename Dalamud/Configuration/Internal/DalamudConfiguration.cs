@@ -283,11 +283,6 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public bool IsFocusManagementEnabled { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether the anti-anti-debug check is enabled on startup.
-    /// </summary>
-    public bool IsAntiAntiDebugEnabled { get; set; } = false;
-
-    /// <summary>
     /// Gets or sets a value indicating whether to resume game main thread after plugins load.
     /// </summary>
     public bool IsResumeGameAfterPluginLoad { get; set; } = false;

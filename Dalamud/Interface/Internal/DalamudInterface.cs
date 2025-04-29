@@ -14,7 +14,6 @@ using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Internal;
 using Dalamud.Hooking;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
@@ -711,19 +710,6 @@ internal class DalamudInterface : IInternalDisposableService
                             this.dalamud.StartInfo.BootShowConsole,
                             this.configuration.LogSynchronously,
                             this.dalamud.StartInfo.LogName);
-                    }
-
-                    var antiDebug = Service<AntiDebug>.Get();
-                    if (ImGui.MenuItem("Disable Debugging Protections", null, antiDebug.IsEnabled))
-                    {
-                        var newEnabled = !antiDebug.IsEnabled;
-                        if (newEnabled)
-                            antiDebug.Enable();
-                        else
-                            antiDebug.Disable();
-
-                        this.configuration.IsAntiAntiDebugEnabled = newEnabled;
-                        this.configuration.QueueSave();
                     }
 
                     ImGui.Separator();
