@@ -650,7 +650,13 @@ void xivfixes::symbol_load_patches(bool bApply) {
 
 void xivfixes::disable_game_debugging_protection(bool bApply) {
     static const char* LogTag = "[xivfixes:disable_game_debugging_protection]";
-    static const std::vector<uint8_t> patchBytes = { 0x31, 0xC0, 0x90, 0x90, 0x90, 0x90 };
+    static const std::vector<uint8_t> patchBytes = { 
+        0x31, 0xC0, // XOR EAX, EAX
+        0x90,       // NOP
+        0x90,       // NOP
+        0x90,       // NOP
+        0x90        // NOP
+    };
 
     if (!bApply)
         return;
@@ -660,6 +666,7 @@ void xivfixes::disable_game_debugging_protection(bool bApply) {
         return;
     }
 
+    // Find IsDebuggerPresent in Framework.Tick()
     const char* matchPtr = utils::signature_finder()
         .look_in(utils::loaded_module(g_hGameInstance), ".text")
         .look_for_hex("FF 15 ?? ?? ?? ?? 85 C0 74 13 41")
