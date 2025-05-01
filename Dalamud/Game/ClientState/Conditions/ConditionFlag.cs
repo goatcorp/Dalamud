@@ -178,11 +178,20 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while occupied.
     /// </summary>
+    /// <remarks>
+    /// Observed during Materialize (Desynthesis, Materia Extraction, Aetherial Reduction) and Repair.
+    /// </remarks>
     Occupied39 = 39,
 
     /// <summary>
     /// Unable to execute command while crafting.
     /// </summary>
+    ExecutingCraftingAction = 40,
+
+    /// <summary>
+    /// Unable to execute command while crafting.
+    /// </summary>
+    [Obsolete("Renamed to ExecutingCraftingAction.")]
     Crafting40 = 40,
 
     /// <summary>
@@ -193,6 +202,13 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while gathering.
     /// </summary>
+    /// <remarks> Includes fishing. </remarks>
+    ExecutingGatheringAction = 42,
+
+    /// <summary>
+    /// Unable to execute command while gathering.
+    /// </summary>
+    [Obsolete("Renamed to ExecutingGatheringAction.")]
     Gathering42 = 42,
 
     /// <summary>
@@ -345,6 +361,9 @@ public enum ConditionFlag
     /// <summary>
     /// Unable to execute command while mounting.
     /// </summary>
+    /// <remarks>
+    /// Observed in Cosmic Exploration while using the actions Astrodrill (only briefly) and Solar Flarethrower.
+    /// </remarks>
     Mounting71 = 71,
 
     /// <summary>
@@ -412,7 +431,10 @@ public enum ConditionFlag
     /// </summary>
     ParticipatingInCrossWorldPartyOrAlliance = 84,
 
-    // Unknown85 = 85,
+    /// <remarks>
+    /// Observed in Cosmic Exploration while gathering during a stellar mission.
+    /// </remarks>
+    Unknown85 = 85,
 
     /// <summary>
     /// Unable to execute command while playing duty record.
@@ -480,6 +502,9 @@ public enum ConditionFlag
     /// <summary>
     /// Cannot execute at this time.
     /// </summary>
+    /// <remarks>
+    /// Observed in Cosmic Exploration while participating in MechaEvent.
+    /// </remarks>
     Unknown96 = 96,
 
     /// <summary>
@@ -502,7 +527,21 @@ public enum ConditionFlag
     /// </summary>
     EditingPortrait = 100,
 
-    // Unknown101 = 101,
-    // Unknown102 = 102,
+    /// <summary>
+    /// Cannot execute at this time.
+    /// </summary>
+    /// <remarks>
+    /// Observed in Cosmic Exploration, in mech flying to FATE or during Cosmoliner use. Maybe ClientPath related.
+    /// </remarks>
+    Unknown101 = 101,
+
+    /// <summary>
+    /// Unable to execute command while undertaking a duty.
+    /// </summary>
+    /// <remarks>
+    /// Used in Cosmic Exploration.
+    /// </remarks>
+    PilotingMech = 102,
+
     // Unknown103 = 103,
 }
