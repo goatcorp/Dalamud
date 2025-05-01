@@ -26,9 +26,9 @@ internal class ServicesWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "services" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Service Container"; 
+    public string DisplayName { get; init; } = "Service Container";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -48,7 +48,7 @@ internal class ServicesWidget : IDataWindowWidget
         {
             if (ImGui.Button("Clear selection"))
                 this.selectedNodes.Clear();
-            
+
             ImGui.SameLine();
             switch (this.includeUnloadDependencies)
             {
@@ -90,12 +90,12 @@ internal class ServicesWidget : IDataWindowWidget
                 var dl = ImGui.GetWindowDrawList();
                 var mouse = ImGui.GetMousePos();
                 var maxRowWidth = 0f;
-                
+
                 // 1. Layout
                 for (var level = 0; level < this.dependencyNodes.Count; level++)
                 {
                     var levelNodes = this.dependencyNodes[level];
-                    
+
                     var rowWidth = 0f;
                     foreach (var node in levelNodes)
                         rowWidth += node.DisplayedNameSize.X + cellPad.X + margin.X;
@@ -139,7 +139,7 @@ internal class ServicesWidget : IDataWindowWidget
                     {
                         var rect = this.nodeRects[node];
                         var point1 = new Vector2((rect.X + rect.Z) / 2, rect.Y);
-                        
+
                         foreach (var parent in node.InvalidParents)
                         {
                             rect = this.nodeRects[parent];
@@ -149,7 +149,7 @@ internal class ServicesWidget : IDataWindowWidget
 
                             dl.AddLine(point1, point2, lineInvalidColor, 2f * ImGuiHelpers.GlobalScale);
                         }
-                        
+
                         foreach (var parent in node.Parents)
                         {
                             rect = this.nodeRects[parent];
@@ -170,7 +170,7 @@ internal class ServicesWidget : IDataWindowWidget
                         }
                     }
                 }
-                
+
                 // 3. Draw boxes
                 foreach (var levelNodes in this.dependencyNodes)
                 {
@@ -231,34 +231,47 @@ internal class ServicesWidget : IDataWindowWidget
                         }
                     }
                 }
-                
+
                 ImGui.SetCursorPos(default);
                 ImGui.Dummy(new(maxRowWidth, this.dependencyNodes.Count * rowHeight));
                 ImGui.EndChild();
             }
         }
 
-        if (ImGui.CollapsingHeader("Plugin-facing Services"))
+        if (ImGui.CollapsingHeader("Singleton Services"))
         {
             foreach (var instance in container.Instances)
             {
-                var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
                 var isPublic = instance.Key.IsPublic;
 
                 ImGui.BulletText($"{instance.Key.FullName} ({instance.Key.GetServiceKind()})");
-
-                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed, !hasInterface))
-                {
-                    ImGui.Text(
-                        hasInterface
-                            ? $"\t => Provided via interface: {container.InterfaceToTypeMap.First(x => x.Value == instance.Key).Key.FullName}"
-                            : "\t => NO INTERFACE!!!");
-                }
 
                 if (isPublic)
                 {
                     using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                     ImGui.Text("\t => PUBLIC!!!");
+                }
+
+                switch (instance.Value.Visibility)
+                {
+                    case ObjectInstanceVisibility.Internal:
+                        ImGui.Text("\t => Internally resolved");
+                        break;
+
+                    case ObjectInstanceVisibility.ExposedToPlugins:
+                        var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
+                        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed, !hasInterface))
+                        {
+                            ImGui.Text("\t => Exposed to plugins!");
+                            ImGui.Text(
+                                hasInterface
+                                    ? $"\t => Provided via interface: {container.InterfaceToTypeMap.First(x => x.Value == instance.Key).Key.FullName}"
+                                    : "\t => NO INTERFACE!!!");
+                        }
+
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
 
                 ImGuiHelpers.ScaledDummy(2);
@@ -301,7 +314,7 @@ internal class ServicesWidget : IDataWindowWidget
         public string DisplayedName { get; }
 
         public string TypeSuffix { get; }
-        
+
         public uint TypeSuffixColor { get; }
 
         public Vector2 DisplayedNameSize =>
@@ -319,7 +332,7 @@ internal class ServicesWidget : IDataWindowWidget
 
         public IEnumerable<ServiceDependencyNode> Relatives =>
             this.parents.Concat(this.children).Concat(this.invalidParents);
-        
+
         public int Level { get; private set; }
 
         public static List<ServiceDependencyNode> CreateTree(bool includeUnloadDependencies)

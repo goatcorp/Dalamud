@@ -577,7 +577,7 @@ internal class LocalPlugin : IAsyncDisposable
         var newInstanceTask = forceFrameworkThread ? framework.RunOnFrameworkThread(Create) : Create();
         return await newInstanceTask.ConfigureAwait(false);
 
-        async Task<IDalamudPlugin> Create() => (IDalamudPlugin)await scope.CreateAsync(type, dalamudInterface);
+        async Task<IDalamudPlugin> Create() => (IDalamudPlugin)await scope.CreateAsync(type, ObjectInstanceVisibility.ExposedToPlugins, dalamudInterface);
     }
 
     private static void SetupLoaderConfig(LoaderConfig config)

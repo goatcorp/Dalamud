@@ -72,7 +72,7 @@ internal static class ServiceManager
     /// <param name="justification">The justification for using this feature.</param>
     [InjectableType]
     public delegate void RegisterUnloadAfterDelegate(IEnumerable<Type> unloadAfter, string justification);
-    
+
     /// <summary>
     /// Kinds of services.
     /// </summary>
@@ -83,27 +83,27 @@ internal static class ServiceManager
         /// Not a service.
         /// </summary>
         None = 0,
-        
+
         /// <summary>
         /// Service that is loaded manually.
         /// </summary>
         ProvidedService = 1 << 0,
-        
+
         /// <summary>
         /// Service that is loaded asynchronously while the game starts.
         /// </summary>
         EarlyLoadedService = 1 << 1,
-        
+
         /// <summary>
         /// Service that is loaded before the game starts.
         /// </summary>
         BlockingEarlyLoadedService = 1 << 2,
-        
+
         /// <summary>
         /// Service that is only instantiable via scopes.
         /// </summary>
         ScopedService = 1 << 3,
-        
+
         /// <summary>
         /// Service that is loaded automatically when the game starts, synchronously or asynchronously.
         /// </summary>
@@ -114,7 +114,7 @@ internal static class ServiceManager
     /// Gets task that gets completed when all blocking early loading services are done loading.
     /// </summary>
     public static Task BlockingResolved { get; } = BlockingServicesLoadedTaskCompletionSource.Task;
-    
+
     /// <summary>
     /// Gets a cancellation token that will be cancelled once Dalamud needs to unload, be it due to a failure state
     /// during initialization or during regular operation.
@@ -139,10 +139,13 @@ internal static class ServiceManager
 #if DEBUG
         lock (LoadedServices)
         {
+            // ServiceContainer MUST be first. The static ctor of Service<T> will call Service<ServiceContainer>.Get()
+            // which causes a deadlock otherwise.
+            ProvideService(new ServiceContainer());
+
             ProvideService(dalamud);
             ProvideService(fs);
             ProvideService(configuration);
-            ProvideService(new ServiceContainer());
             ProvideService(scanner);
             ProvideService(localization);
         }
@@ -193,7 +196,7 @@ internal static class ServiceManager
         var getAsyncTaskMap = new Dictionary<Type, Task>();
 
         var serviceContainer = Service<ServiceContainer>.Get();
-        
+
         foreach (var serviceType in GetConcreteServiceTypes())
         {
             var serviceKind = serviceType.GetServiceKind();
@@ -202,13 +205,13 @@ internal static class ServiceManager
 
             // Let IoC know about the interfaces this service implements
             serviceContainer.RegisterInterfaces(serviceType);
-            
+
             // Scoped service do not go through Service<T> and are never early loaded
             if (serviceKind.HasFlag(ServiceKind.ScopedService))
                 continue;
 
             var genericWrappedServiceType = typeof(Service<>).MakeGenericType(serviceType);
-            
+
             var getTask = (Task)genericWrappedServiceType
                                 .InvokeMember(
                                     nameof(Service<IServiceType>.GetAsync),
@@ -290,7 +293,7 @@ internal static class ServiceManager
                 var tasks = tasksEnumerable.AsReadOnlyCollection();
                 if (tasks.Count == 0)
                     return;
-                
+
                 // Time we wait until showing the loading dialog
                 const int loadingDialogTimeout = 10000;
 
@@ -330,7 +333,7 @@ internal static class ServiceManager
                             hasDeps = false;
                         }
                     }
-                    
+
                     if (!hasDeps)
                         continue;
 
@@ -437,7 +440,7 @@ internal static class ServiceManager
     public static void UnloadAllServices()
     {
         UnloadCancellationTokenSource.Cancel();
-        
+
         var framework = Service<Framework>.GetNullable(Service<Framework>.ExceptionPropagationMode.None);
         if (framework is { IsInFrameworkUpdateThread: false, IsFrameworkUnloading: false })
         {
@@ -450,14 +453,14 @@ internal static class ServiceManager
         var dependencyServicesMap = new Dictionary<Type, IReadOnlyCollection<Type>>();
         var allToUnload = new HashSet<Type>();
         var unloadOrder = new List<Type>();
-        
+
         Log.Information("==== COLLECTING SERVICES TO UNLOAD ====");
-        
+
         foreach (var serviceType in GetConcreteServiceTypes())
         {
             if (!serviceType.IsAssignableTo(typeof(IServiceType)))
                 continue;
-            
+
             // Scoped services shall never be unloaded here.
             // Their lifetime must be managed by the IServiceScope that owns them. If it leaks, it's their fault.
             if (serviceType.GetServiceKind() == ServiceKind.ScopedService)
@@ -485,12 +488,12 @@ internal static class ServiceManager
             unloadOrder.Add(serviceType);
             Log.Information("Queue for unload {Type}", serviceType.FullName!);
         }
-        
+
         foreach (var serviceType in allToUnload)
         {
             UnloadService(serviceType);
         }
-        
+
         Log.Information("==== UNLOADING ALL SERVICES ====");
 
         unloadOrder.Reverse();
@@ -507,7 +510,7 @@ internal static class ServiceManager
                         null,
                         null);
         }
-        
+
 #if DEBUG
         lock (LoadedServices)
         {
@@ -536,17 +539,17 @@ internal static class ServiceManager
         var attr = type.GetCustomAttribute<ServiceAttribute>(true)?.GetType();
         if (attr == null)
             return ServiceKind.None;
-        
+
         Debug.Assert(
             type.IsAssignableTo(typeof(IServiceType)),
             "Service did not inherit from IServiceType");
 
         if (attr.IsAssignableTo(typeof(BlockingEarlyLoadedServiceAttribute)))
             return ServiceKind.BlockingEarlyLoadedService;
-        
+
         if (attr.IsAssignableTo(typeof(EarlyLoadedServiceAttribute)))
             return ServiceKind.EarlyLoadedService;
-        
+
         if (attr.IsAssignableTo(typeof(ScopedServiceAttribute)))
             return ServiceKind.ScopedService;
 
@@ -572,7 +575,7 @@ internal static class ServiceManager
             var isAnyDisposable =
                 isServiceDisposable
                 || serviceType.IsAssignableTo(typeof(IDisposable))
-                || serviceType.IsAssignableTo(typeof(IAsyncDisposable)); 
+                || serviceType.IsAssignableTo(typeof(IAsyncDisposable));
             if (isAnyDisposable && !isServiceDisposable)
             {
                 throw new InvalidOperationException(

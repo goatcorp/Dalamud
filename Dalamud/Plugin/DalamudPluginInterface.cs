@@ -19,6 +19,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings;
+using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
@@ -482,7 +483,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public async Task<T> CreateAsync<T>(params object[] scopedObjects) where T : class =>
-        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), this.GetPublicIocScopes(scopedObjects));
+        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), ObjectInstanceVisibility.ExposedToPlugins, this.GetPublicIocScopes(scopedObjects));
 
     /// <inheritdoc/>
     public bool Inject(object instance, params object[] scopedObjects)

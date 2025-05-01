@@ -25,9 +25,10 @@ internal interface IServiceScope : IAsyncDisposable
     /// Create an object.
     /// </summary>
     /// <param name="objectType">The type of object to create.</param>
+    /// <param name="allowedVisibility">Defines which services are allowed to be directly resolved into this type.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <returns>The created object.</returns>
-    Task<object> CreateAsync(Type objectType, params object[] scopedObjects);
+    Task<object> CreateAsync(Type objectType, ObjectInstanceVisibility allowedVisibility, params object[] scopedObjects);
 
     /// <summary>
     /// Inject <see cref="PluginInterfaceAttribute" /> interfaces into public or static properties on the provided object.
@@ -72,13 +73,13 @@ internal class ServiceScopeImpl : IServiceScope
     }
 
     /// <inheritdoc />
-    public Task<object> CreateAsync(Type objectType, params object[] scopedObjects)
+    public Task<object> CreateAsync(Type objectType, ObjectInstanceVisibility allowedVisibility, params object[] scopedObjects)
     {
         this.disposeLock.EnterReadLock();
         try
         {
             ObjectDisposedException.ThrowIf(this.disposed, this);
-            return this.container.CreateAsync(objectType, scopedObjects, this);
+            return this.container.CreateAsync(objectType, allowedVisibility, scopedObjects, this);
         }
         finally
         {
@@ -117,7 +118,9 @@ internal class ServiceScopeImpl : IServiceScope
                 objectType,
                 static (objectType, p) => p.Scope.container.CreateAsync(
                     objectType,
-                    p.Objects.Concat(p.Scope.privateScopedObjects).ToArray()),
+                    ObjectInstanceVisibility.Internal, // We are allowed to resolve internal services here since this is a private scoped object.
+                    p.Objects.Concat(p.Scope.privateScopedObjects).ToArray(),
+                    p.Scope),
                 (Scope: this, Objects: scopedObjects));
         }
         finally

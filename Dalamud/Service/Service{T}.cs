@@ -42,8 +42,13 @@ internal static class Service<T> where T : IServiceType
         else
             ServiceManager.Log.Debug("Service<{0}>: Static ctor called", type.Name);
 
-        if (exposeToPlugins)
-            Service<ServiceContainer>.Get().RegisterSingleton(instanceTcs.Task);
+        // We can't use the service container to register itself. It does so in its constructor.
+        if (typeof(T) != typeof(ServiceContainer))
+        {
+            Service<ServiceContainer>.Get().RegisterSingleton(
+                instanceTcs.Task,
+                exposeToPlugins ? ObjectInstanceVisibility.ExposedToPlugins : ObjectInstanceVisibility.Internal);
+        }
     }
 
     /// <summary>
@@ -163,7 +168,7 @@ internal static class Service<T> where T : IServiceType
             return dependencyServices;
 
         var res = new List<Type>();
-        
+
         ServiceManager.Log.Verbose("Service<{0}>: Getting dependencies", typeof(T).Name);
 
         var ctor = GetServiceConstructor();
@@ -174,12 +179,12 @@ internal static class Service<T> where T : IServiceType
                .Select(x => x.ParameterType)
                .Where(x => x.GetServiceKind() != ServiceManager.ServiceKind.None));
         }
-        
+
         res.AddRange(typeof(T)
                          .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                          .Where(x => x.GetCustomAttribute<ServiceManager.ServiceDependency>(true) != null)
                          .Select(x => x.FieldType));
-        
+
         res.AddRange(typeof(T)
                      .GetCustomAttributes()
                      .OfType<InherentDependencyAttribute>()
@@ -351,7 +356,7 @@ internal static class Service<T> where T : IServiceType
         var ctor = GetServiceConstructor();
         if (ctor == null)
             throw new Exception($"Service \"{typeof(T).FullName}\" had no applicable constructor");
-        
+
         var args = await ResolveInjectedParameters(ctor.GetParameters(), additionalProvidedTypedObjects)
                        .ConfigureAwait(false);
         using (Timings.Start($"{typeof(T).Name} Construct"))
@@ -387,7 +392,7 @@ internal static class Service<T> where T : IServiceType
                 argTask = Task.FromResult(additionalProvidedTypedObjects.Single(x => x.GetType() == argType));
                 continue;
             }
-            
+
             argTask = (Task<object>)typeof(Service<>)
                              .MakeGenericType(argType)
                              .InvokeMember(
