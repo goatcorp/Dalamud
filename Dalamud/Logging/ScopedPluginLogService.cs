@@ -1,5 +1,6 @@
 ﻿using Dalamud.IoC;
 using Dalamud.IoC.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 
@@ -20,6 +21,7 @@ namespace Dalamud.Logging;
 internal class ScopedPluginLogService : IServiceType, IPluginLog
 {
     private readonly LocalPlugin localPlugin;
+    private readonly PluginErrorHandler errorHandler;
 
     private readonly LoggingLevelSwitch levelSwitch;
 
@@ -27,10 +29,12 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     /// Initializes a new instance of the <see cref="ScopedPluginLogService"/> class.
     /// </summary>
     /// <param name="localPlugin">The plugin that owns this service.</param>
-    internal ScopedPluginLogService(LocalPlugin localPlugin)
+    /// <param name="errorHandler">Error notifier service.</param>
+    internal ScopedPluginLogService(LocalPlugin localPlugin, PluginErrorHandler errorHandler)
     {
         this.localPlugin = localPlugin;
-        
+        this.errorHandler = errorHandler;
+
         this.levelSwitch = new LoggingLevelSwitch(this.GetDefaultLevel());
 
         var loggerConfiguration = new LoggerConfiguration()
@@ -40,7 +44,7 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
 
         this.Logger = loggerConfiguration.CreateLogger();
     }
-    
+
     /// <inheritdoc />
     public ILogger Logger { get; }
 
@@ -50,7 +54,7 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
         get => this.levelSwitch.MinimumLevel;
         set => this.levelSwitch.MinimumLevel = value;
     }
-    
+
     /// <inheritdoc />
     public void Fatal(string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Fatal, null, messageTemplate, values);
@@ -82,11 +86,11 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     /// <inheritdoc />
     public void Information(Exception? exception, string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Information, exception, messageTemplate, values);
-    
+
     /// <inheritdoc/>
     public void Info(string messageTemplate, params object[] values) =>
         this.Information(messageTemplate, values);
-    
+
     /// <inheritdoc/>
     public void Info(Exception? exception, string messageTemplate, params object[] values) =>
         this.Information(exception, messageTemplate, values);
@@ -106,10 +110,13 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     /// <inheritdoc />
     public void Verbose(Exception? exception, string messageTemplate, params object[] values) =>
         this.Write(LogEventLevel.Verbose, exception, messageTemplate, values);
-    
+
     /// <inheritdoc />
     public void Write(LogEventLevel level, Exception? exception, string messageTemplate, params object[] values)
     {
+        if (level == LogEventLevel.Error)
+            this.errorHandler.NotifyError();
+
         this.Logger.Write(
             level,
             exception: exception,
@@ -124,7 +131,7 @@ internal class ScopedPluginLogService : IServiceType, IPluginLog
     private LogEventLevel GetDefaultLevel()
     {
         // TODO: Add some way to save log levels to a config. Or let plugins handle it?
-        
+
         return this.localPlugin.IsDev ? LogEventLevel.Verbose : LogEventLevel.Debug;
     }
 }

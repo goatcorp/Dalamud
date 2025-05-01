@@ -23,6 +23,9 @@ namespace Dalamud;
 [SuppressMessage("ReSharper", "StaticMemberInGenericType", Justification = "Service container static type")]
 internal static class Service<T> where T : IServiceType
 {
+    // TODO: Service<T> should only work with singleton services. Trying to call Service<T>.Get() on a scoped service should
+    // be a compile-time error.
+
     private static readonly ServiceManager.ServiceAttribute ServiceAttribute;
     private static TaskCompletionSource<T> instanceTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private static List<Type>? dependencyServices;

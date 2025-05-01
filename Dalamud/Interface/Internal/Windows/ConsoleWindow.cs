@@ -41,9 +41,9 @@ internal class ConsoleWindow : Window, IDisposable
     // Fields below should be touched only from the main thread.
     private readonly RollingList<LogEntry> logText;
     private readonly RollingList<LogEntry> filteredLogEntries;
-    
+
     private readonly List<PluginFilterEntry> pluginFilters = new();
-    
+
     private readonly DalamudConfiguration configuration;
 
     private int newRolledLines;
@@ -87,14 +87,14 @@ internal class ConsoleWindow : Window, IDisposable
         : base("Dalamud Console", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
         this.configuration = configuration;
-        
+
         this.autoScroll = configuration.LogAutoScroll;
         this.autoOpen = configuration.LogOpenAtStartup;
 
         Service<Framework>.GetAsync().ContinueWith(r => r.Result.Update += this.FrameworkOnUpdate);
-            
+
         var cm = Service<ConsoleManager>.Get();
-        cm.AddCommand("clear", "Clear the console log", () => 
+        cm.AddCommand("clear", "Clear the console log", () =>
         {
             this.QueueClear();
             return true;
@@ -122,6 +122,19 @@ internal class ConsoleWindow : Window, IDisposable
 
     /// <summary>Gets the queue where log entries that are not processed yet are stored.</summary>
     public static ConcurrentQueue<(string Line, LogEvent LogEvent)> NewLogEntries { get; } = new();
+
+    /// <summary>
+    /// Gets or sets the current text filter.
+    /// </summary>
+    public string TextFilter
+    {
+        get => this.textFilter;
+        set
+        {
+            this.textFilter = value;
+            this.RecompileLogFilter();
+        }
+    }
 
     /// <inheritdoc/>
     public override void OnOpen()
@@ -578,7 +591,7 @@ internal class ConsoleWindow : Window, IDisposable
             inputWidth = ImGui.GetWindowWidth() - (ImGui.GetStyle().WindowPadding.X * 2);
 
             if (!breakInputLines)
-                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2; 
+                inputWidth = (inputWidth - ImGui.GetStyle().ItemSpacing.X) / 2;
         }
         else
         {
@@ -622,22 +635,27 @@ internal class ConsoleWindow : Window, IDisposable
                 ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll)
             || ImGui.IsItemDeactivatedAfterEdit())
         {
-            this.compiledLogFilter = null;
-            this.exceptionLogFilter = null;
-            try
-            {
-                this.compiledLogFilter = new(this.textFilter, RegexOptions.IgnoreCase);
-
-                this.QueueRefilter();
-            }
-            catch (Exception e)
-            {
-                this.exceptionLogFilter = e;
-            }
-
-            foreach (var log in this.logText)
-                log.HighlightMatches = null;
+            this.RecompileLogFilter();
         }
+    }
+
+    private void RecompileLogFilter()
+    {
+        this.compiledLogFilter = null;
+        this.exceptionLogFilter = null;
+        try
+        {
+            this.compiledLogFilter = new(this.textFilter, RegexOptions.IgnoreCase);
+
+            this.QueueRefilter();
+        }
+        catch (Exception e)
+        {
+            this.exceptionLogFilter = e;
+        }
+
+        foreach (var log in this.logText)
+            log.HighlightMatches = null;
     }
 
     private void DrawSettingsPopup()
@@ -799,15 +817,15 @@ internal class ConsoleWindow : Window, IDisposable
         {
             if (string.IsNullOrEmpty(this.commandText))
                 return;
-            
+
             this.historyPos = -1;
-            
+
             if (this.commandText != this.configuration.LogCommandHistory.LastOrDefault())
                 this.configuration.LogCommandHistory.Add(this.commandText);
-            
+
             if (this.configuration.LogCommandHistory.Count > HistorySize)
                 this.configuration.LogCommandHistory.RemoveAt(0);
-            
+
             this.configuration.QueueSave();
 
             this.lastCmdSuccess = Service<ConsoleManager>.Get().ProcessCommand(this.commandText);
@@ -832,7 +850,7 @@ internal class ConsoleWindow : Window, IDisposable
                 this.completionZipText = null;
                 this.completionTabIdx = 0;
                 break;
-            
+
             case ImGuiInputTextFlags.CallbackCompletion:
                 var textBytes = new byte[data->BufTextLen];
                 Marshal.Copy((IntPtr)data->Buf, textBytes, 0, data->BufTextLen);
@@ -843,11 +861,11 @@ internal class ConsoleWindow : Window, IDisposable
                 // We can't do any completion for parameters at the moment since it just calls into CommandHandler
                 if (words.Length > 1)
                     return 0;
-                
+
                 var wordToComplete = words[0];
                 if (wordToComplete.IsNullOrWhitespace())
                     return 0;
-                
+
                 if (this.completionZipText is not null)
                     wordToComplete = this.completionZipText;
 
@@ -878,7 +896,7 @@ internal class ConsoleWindow : Window, IDisposable
                         toComplete = candidates.ElementAt(this.completionTabIdx);
                         this.completionTabIdx = (this.completionTabIdx + 1) % candidates.Count();
                     }
-                
+
                     if (toComplete != null)
                     {
                         ptr.DeleteChars(0, ptr.BufTextLen);

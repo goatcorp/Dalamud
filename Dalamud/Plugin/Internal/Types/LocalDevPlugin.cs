@@ -87,6 +87,16 @@ internal sealed class LocalDevPlugin : LocalPlugin
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether users should be notified when this plugin
+    /// is causing errors.
+    /// </summary>
+    public bool NotifyForErrors
+    {
+        get => this.devSettings.NotifyForErrors;
+        set => this.devSettings.NotifyForErrors = value;
+    }
+
+    /// <summary>
     /// Gets an ID uniquely identifying this specific instance of a devPlugin.
     /// </summary>
     public Guid DevImposedWorkingPluginId => this.devSettings.WorkingPluginId;

@@ -12,6 +12,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -47,7 +48,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private readonly ConcurrentDictionary<TaskCompletionSource, (ulong Expire, CancellationToken CancellationToken)>
         tickDelayedTaskCompletionSources = new();
 
-    private ulong tickCounter; 
+    private ulong tickCounter;
 
     [ServiceManager.ServiceConstructor]
     private unsafe Framework()
@@ -504,14 +505,18 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 #pragma warning restore SA1015
 internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 {
+    private readonly PluginErrorHandler pluginErrorHandler;
+
     [ServiceManager.ServiceDependency]
     private readonly Framework frameworkService = Service<Framework>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FrameworkPluginScoped"/> class.
     /// </summary>
-    internal FrameworkPluginScoped()
+    /// <param name="pluginErrorHandler">Error handler instance.</param>
+    internal FrameworkPluginScoped(PluginErrorHandler pluginErrorHandler)
     {
+        this.pluginErrorHandler = pluginErrorHandler;
         this.frameworkService.Update += this.OnUpdateForward;
     }
 
@@ -604,7 +609,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
         }
         else
         {
-            this.Update?.Invoke(framework);
+            this.pluginErrorHandler.InvokeAndCatch(this.Update, $"{nameof(IFramework)}::{nameof(IFramework.Update)}", framework);
         }
     }
 }

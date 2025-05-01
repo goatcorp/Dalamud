@@ -308,8 +308,14 @@ internal class DalamudInterface : IInternalDisposableService
     /// <summary>
     /// Opens the <see cref="ConsoleWindow"/>.
     /// </summary>
-    public void OpenLogWindow()
+    /// <param name="textFilter">The filter to set, if not null.</param>
+    public void OpenLogWindow(string? textFilter = "")
     {
+        if (textFilter != null)
+        {
+            this.consoleWindow.TextFilter = textFilter;
+        }
+
         this.consoleWindow.IsOpen = true;
         this.consoleWindow.BringToFront();
     }

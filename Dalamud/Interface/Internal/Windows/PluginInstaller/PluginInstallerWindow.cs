@@ -3569,6 +3569,24 @@ internal class PluginInstallerWindow : Window, IDisposable
             {
                 ImGui.SetTooltip(Locs.PluginButtonToolTip_AutomaticReloading);
             }
+
+            // Error Notifications
+            ImGui.PushStyleColor(ImGuiCol.Button, plugin.NotifyForErrors ? greenColor : redColor);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, plugin.NotifyForErrors ? greenColor : redColor);
+
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Bolt))
+            {
+                plugin.NotifyForErrors ^= true;
+                configuration.QueueSave();
+            }
+
+            ImGui.PopStyleColor(2);
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip(Locs.PluginButtonToolTip_NotifyForErrors);
+            }
         }
     }
 
@@ -4238,6 +4256,8 @@ internal class PluginInstallerWindow : Window, IDisposable
         public static string PluginButtonToolTip_StartOnBoot => Loc.Localize("InstallerStartOnBoot", "Start on boot");
 
         public static string PluginButtonToolTip_AutomaticReloading => Loc.Localize("InstallerAutomaticReloading", "Automatic reloading");
+
+        public static string PluginButtonToolTip_NotifyForErrors => Loc.Localize("InstallerNotifyForErrors", "Show Dalamud notifications when this plugin is creating errors");
 
         public static string PluginButtonToolTip_DeletePlugin => Loc.Localize("InstallerDeletePlugin ", "Delete plugin");
 

@@ -152,7 +152,7 @@ internal static class ServiceManager
 #if DEBUG
         lock (LoadedServices)
         {
-            ProvideAllServices()
+            ProvideAllServices();
         }
 
         return;
