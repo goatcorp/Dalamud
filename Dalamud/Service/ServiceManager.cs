@@ -136,8 +136,7 @@ internal static class ServiceManager
         TargetSigScanner scanner,
         Localization localization)
     {
-#if DEBUG
-        lock (LoadedServices)
+        void ProvideAllServices()
         {
             // ServiceContainer MUST be first. The static ctor of Service<T> will call Service<ServiceContainer>.Get()
             // which causes a deadlock otherwise.
@@ -150,6 +149,12 @@ internal static class ServiceManager
             ProvideService(localization);
         }
 
+#if DEBUG
+        lock (LoadedServices)
+        {
+            ProvideAllServices()
+        }
+
         return;
 
         void ProvideService<T>(T service) where T : IServiceType
@@ -159,12 +164,8 @@ internal static class ServiceManager
             LoadedServices.Add(typeof(T));
         }
 #else
-        ProvideService(dalamud);
-        ProvideService(fs);
-        ProvideService(configuration);
-        ProvideService(new ServiceContainer());
-        ProvideService(scanner);
-        ProvideService(localization);
+
+        ProvideAllServices();
         return;
 
         void ProvideService<T>(T service) where T : IServiceType => Service<T>.Provide(service);
