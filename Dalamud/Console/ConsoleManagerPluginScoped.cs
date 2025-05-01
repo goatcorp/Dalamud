@@ -19,11 +19,11 @@ namespace Dalamud.Console;
 #pragma warning disable SA1015
 [ResolveVia<IConsole>]
 #pragma warning restore SA1015
-public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
+internal class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
 {
     [ServiceManager.ServiceDependency]
     private readonly ConsoleManager console = Service<ConsoleManager>.Get();
-    
+
     private readonly List<IConsoleEntry> trackedEntries = new();
 
     /// <summary>
@@ -38,7 +38,7 @@ public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
 
     /// <inheritdoc/>
     public string Prefix { get; private set; }
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -46,7 +46,7 @@ public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
         {
             this.console.RemoveEntry(trackedEntry);
         }
-        
+
         this.trackedEntries.Clear();
     }
 
@@ -108,21 +108,21 @@ public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
         this.console.RemoveEntry(entry);
         this.trackedEntries.Remove(entry);
     }
-    
+
     private string GetPrefixedName(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
-        
+
         // If the name is empty, return the prefix to allow for a single command or variable to be top-level.
         if (name.Length == 0)
             return this.Prefix;
-        
+
         if (name.Any(char.IsWhiteSpace))
             throw new ArgumentException("Name cannot contain whitespace.", nameof(name));
-        
+
         return $"{this.Prefix}.{name}";
     }
-    
+
     private IConsoleCommand InternalAddCommand(string name, string description, Delegate func)
     {
         var command = this.console.AddCommand(this.GetPrefixedName(name), description, func);
@@ -137,7 +137,7 @@ public class ConsoleManagerPluginScoped : IConsole, IInternalDisposableService
 internal static partial class ConsoleManagerPluginUtil
 {
     private static readonly string[] ReservedNamespaces = ["dalamud", "xl", "plugin"];
-    
+
     /// <summary>
     /// Get a sanitized namespace name from a plugin's internal name.
     /// </summary>
@@ -147,10 +147,10 @@ internal static partial class ConsoleManagerPluginUtil
     {
         // Must be lowercase
         pluginInternalName = pluginInternalName.ToLowerInvariant();
-        
+
         // Remove all non-alphabetic characters
         pluginInternalName = NonAlphaRegex().Replace(pluginInternalName, string.Empty);
-        
+
         // Remove reserved namespaces from the start or end
         foreach (var reservedNamespace in ReservedNamespaces)
         {
@@ -158,13 +158,13 @@ internal static partial class ConsoleManagerPluginUtil
             {
                 pluginInternalName = pluginInternalName[reservedNamespace.Length..];
             }
-            
+
             if (pluginInternalName.EndsWith(reservedNamespace))
             {
                 pluginInternalName = pluginInternalName[..^reservedNamespace.Length];
             }
         }
-        
+
         return pluginInternalName;
     }
 
