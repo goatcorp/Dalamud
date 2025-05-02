@@ -60,7 +60,8 @@ public class SettingsTabExperimental : SettingsTab
                 "Enable ImGui asserts"),
             Loc.Localize(
                 "DalamudSettingEnableImGuiAssertsHint",
-                "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins."),
+                "If this setting is enabled, a window containing further details will be shown when an internal assertion in ImGui fails.\nWe recommend enabling this when developing plugins. " +
+                "This setting does not persist and will reset when the game restarts.\nUse the setting below to enable it at startup."),
             c => Service<InterfaceManager>.Get().ShowAsserts,
             (v, _) => Service<InterfaceManager>.Get().ShowAsserts = v),
 

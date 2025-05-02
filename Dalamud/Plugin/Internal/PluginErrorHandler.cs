@@ -105,7 +105,8 @@ internal class PluginErrorHandler : IServiceType
             Type = NotificationType.Error,
             InitialDuration = TimeSpan.FromSeconds(15),
             MinimizedText = creatingErrorsText,
-            Content = $"The plugin '{devPlugin.Name}' is creating errors. Click 'Show console' to learn more.",
+            Content = $"The plugin '{devPlugin.Name}' is creating errors. Click 'Show console' to learn more.\n\n" +
+                      $"You are seeing this because '{devPlugin.Name}' is a Dev Plugin.",
             RespectUiHidden = false,
         };
 
