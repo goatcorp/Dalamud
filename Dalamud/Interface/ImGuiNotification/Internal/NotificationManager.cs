@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Numerics;
 
+using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -22,8 +24,13 @@ internal class NotificationManager : INotificationManager, IInternalDisposableSe
     [ServiceManager.ServiceDependency]
     private readonly GameGui gameGui = Service<GameGui>.Get();
 
+    [ServiceManager.ServiceDependency]
+    private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
+
     private readonly List<ActiveNotification> notifications = new();
     private readonly ConcurrentBag<ActiveNotification> pendingNotifications = new();
+
+    private NotificationPositionChooser? positionChooser;
 
     [ServiceManager.ServiceConstructor]
     private NotificationManager(FontAtlasFactory fontAtlasFactory)
@@ -47,6 +54,48 @@ internal class NotificationManager : INotificationManager, IInternalDisposableSe
 
     /// <summary>Gets the private atlas for use with notification windows.</summary>
     private IFontAtlas PrivateAtlas { get; }
+
+    /// <summary>
+    /// Calculate the width to be used to draw notifications.
+    /// </summary>
+    /// <returns>The width.</returns>
+    public static float CalculateNotificationWidth()
+    {
+        var viewportSize = ImGuiHelpers.MainViewport.WorkSize;
+        var width = ImGui.CalcTextSize(NotificationConstants.NotificationWidthMeasurementString).X;
+        width += NotificationConstants.ScaledWindowPadding * 3;
+        width += NotificationConstants.ScaledIconSize;
+        return Math.Min(width, viewportSize.X * NotificationConstants.MaxNotificationWindowWidthWrtMainViewportWidth);
+    }
+
+    /// <summary>
+    /// Check if notifications should scroll downwards on the screen, based on the anchor position.
+    /// </summary>
+    /// <param name="anchorPosition">Where notifications are anchored to.</param>
+    /// <returns>A value indicating wether notifications should scroll downwards.</returns>
+    public static bool ShouldScrollDownwards(Vector2 anchorPosition)
+    {
+        return anchorPosition.Y < 0.5f;
+    }
+
+    /// <summary>
+    /// Choose the snap position for a notification based on the anchor position.
+    /// </summary>
+    /// <param name="anchorPosition">Where notifications are anchored to.</param>
+    /// <returns>The snap position.</returns>
+    public static NotificationSnapDirection ChooseSnapDirection(Vector2 anchorPosition)
+    {
+        if (anchorPosition.Y <= NotificationConstants.NotificationTopBottomSnapMargin)
+            return NotificationSnapDirection.Top;
+
+        if (anchorPosition.Y >= 1f - NotificationConstants.NotificationTopBottomSnapMargin)
+            return NotificationSnapDirection.Bottom;
+
+        if (anchorPosition.X <= 0.5f)
+            return NotificationSnapDirection.Left;
+
+        return NotificationSnapDirection.Right;
+    }
 
     /// <inheritdoc/>
     public void DisposeService()
@@ -98,25 +147,38 @@ internal class NotificationManager : INotificationManager, IInternalDisposableSe
     /// <summary>Draw all currently queued notifications.</summary>
     public void Draw()
     {
-        var viewportSize = ImGuiHelpers.MainViewport.WorkSize;
         var height = 0f;
         var uiHidden = this.gameGui.GameUiHidden;
 
         while (this.pendingNotifications.TryTake(out var newNotification))
             this.notifications.Add(newNotification);
 
-        var width = ImGui.CalcTextSize(NotificationConstants.NotificationWidthMeasurementString).X;
-        width += NotificationConstants.ScaledWindowPadding * 3;
-        width += NotificationConstants.ScaledIconSize;
-        width = Math.Min(width, viewportSize.X * NotificationConstants.MaxNotificationWindowWidthWrtMainViewportWidth);
+        var width = CalculateNotificationWidth();
 
         this.notifications.RemoveAll(static x => x.UpdateOrDisposeInternal());
+
+        var scrollsDownwards = ShouldScrollDownwards(this.configuration.NotificationAnchorPosition);
+        var snapDirection = ChooseSnapDirection(this.configuration.NotificationAnchorPosition);
+
         foreach (var tn in this.notifications)
         {
             if (uiHidden && tn.RespectUiHidden)
                 continue;
-            height += tn.Draw(width, height) + NotificationConstants.ScaledWindowGap;
+
+            height += tn.Draw(width, height, this.configuration.NotificationAnchorPosition, snapDirection);
+            height += scrollsDownwards ? -NotificationConstants.ScaledWindowGap : NotificationConstants.ScaledWindowGap;
         }
+
+        this.positionChooser?.Draw();
+    }
+
+    /// <summary>
+    /// Starts the position chooser for notifications. Will block the UI until the user makes a selection.
+    /// </summary>
+    public void StartPositionChooser()
+    {
+        this.positionChooser = new NotificationPositionChooser(this.configuration);
+        this.positionChooser.SelectionMade += () => { this.positionChooser = null; };
     }
 }
 

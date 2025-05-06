@@ -3,12 +3,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.FontIdentifier;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.Style;
@@ -500,6 +502,11 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     /// Gets or sets a value indicating whether users should be notified about updates in chat.
     /// </summary>
     public bool SendUpdateNotificationToChat { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets a value indicating where notifications are anchored to on the screen.
+    /// </summary>
+    public Vector2 NotificationAnchorPosition { get; set; } = new(1f, 1f);
 
     /// <summary>
     /// Load a configuration from the provided path.
