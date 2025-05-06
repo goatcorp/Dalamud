@@ -152,6 +152,10 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+
+        if (this.state == State.Show)
+            ImGui.SetNextWindowFocus();
+
         base.PreDraw();
     }
 
