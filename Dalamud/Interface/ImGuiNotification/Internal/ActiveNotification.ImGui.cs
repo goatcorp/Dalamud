@@ -16,6 +16,7 @@ internal sealed partial class ActiveNotification
     /// <param name="width">The maximum width of the notification window.</param>
     /// <param name="offsetY">The offset from the bottom.</param>
     /// <param name="anchorPosition">Where notifications are anchored to on the screen.</param>
+    /// <param name="snapDirection">Direction of the screen which we are snapping to.</param>
     /// <returns>The height of the notification.</returns>
     public float Draw(float width, float offsetY, Vector2 anchorPosition, NotificationSnapDirection snapDirection)
     {
