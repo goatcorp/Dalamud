@@ -663,6 +663,8 @@ internal class PluginManager : IInternalDisposableService
         _ = Task.Run(
             async () =>
             {
+                Log.Verbose("Starting async boot load");
+
                 // Load plugins that want to be loaded during Framework.Tick
                 var framework = await Service<Framework>.GetAsync().ConfigureAwait(false);
                 await framework.RunOnTick(
@@ -671,10 +673,13 @@ internal class PluginManager : IInternalDisposableService
                         syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1),
                         tokenSource.Token),
                     cancellationToken: tokenSource.Token).ConfigureAwait(false);
+                Log.Verbose("Loaded FrameworkTickSync plugins (LoadRequiredState == 1)");
+
                 loadTasks.Add(LoadPluginsAsync(
                                   "FrameworkTickAsync",
                                   asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1),
                                   tokenSource.Token));
+                Log.Verbose("Kicked off FrameworkTickAsync plugins (LoadRequiredState == 1)");
 
                 // Load plugins that want to be loaded during Framework.Tick, when drawing facilities are available
                 _ = await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ConfigureAwait(false);
@@ -684,14 +689,18 @@ internal class PluginManager : IInternalDisposableService
                         syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
                         tokenSource.Token),
                     cancellationToken: tokenSource.Token);
+                Log.Verbose("Loaded DrawAvailableSync plugins (LoadRequiredState == 0 or null)");
+
                 loadTasks.Add(LoadPluginsAsync(
                                   "DrawAvailableAsync",
                                   asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
                                   tokenSource.Token));
+                Log.Verbose("Kicked off DrawAvailableAsync plugins (LoadRequiredState == 0 or null)");
 
                 // Save signatures when all plugins are done loading, successful or not.
                 try
                 {
+                    Log.Verbose("Now waiting for {NumTasks} async load tasks", loadTasks.Count);
                     await Task.WhenAll(loadTasks).ConfigureAwait(false);
                     Log.Information("Loaded plugins on boot");
                 }
@@ -715,8 +724,13 @@ internal class PluginManager : IInternalDisposableService
                 }
 
                 this.StartupLoadTracking = null;
-            },
-            tokenSource.Token);
+            }, tokenSource.Token).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Log.Error(t.Exception, "Failed to load FrameworkTickAsync/DrawAvailableAsync plugins");
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
     /// <summary>
@@ -1831,18 +1845,27 @@ internal class PluginManager : IInternalDisposableService
                 _ = this.SetPluginReposFromConfigAsync(false);
                 this.OnInstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
 
-                Log.Information("[T3] PM repos OK!");
+                Log.Information("Repos loaded!");
             }
 
             using (Timings.Start("PM Cleanup Plugins"))
             {
                 this.CleanupPlugins();
-                Log.Information("[T3] PMC OK!");
+                Log.Information("Plugin cleanup OK!");
             }
 
             using (Timings.Start("PM Load Sync Plugins"))
             {
-                var loadAllPlugins = Task.Run(this.LoadAllPlugins);
+                var loadAllPlugins = Task.Run(this.LoadAllPlugins)
+                                         .ContinueWith(t =>
+                                         {
+                                             if (t.IsFaulted)
+                                             {
+                                                 Log.Error(t.Exception, "Error in LoadAllPlugins()");
+                                             }
+
+                                             _ = Task.Run(Troubleshooting.LogTroubleshooting);
+                                         });
 
                 // We wait for all blocking services and tasks to finish before kicking off the main thread in any mode.
                 // This means that we don't want to block here if this stupid thing isn't enabled.
@@ -1852,10 +1875,8 @@ internal class PluginManager : IInternalDisposableService
                     loadAllPlugins.Wait();
                 }
 
-                Log.Information("[T3] PML OK!");
+                Log.Information("Boot load started");
             }
-
-            _ = Task.Run(Troubleshooting.LogTroubleshooting);
         }
         catch (Exception ex)
         {
