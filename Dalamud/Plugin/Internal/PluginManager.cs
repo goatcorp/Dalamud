@@ -683,6 +683,7 @@ internal class PluginManager : IInternalDisposableService
 
                 // Load plugins that want to be loaded during Framework.Tick, when drawing facilities are available
                 _ = await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ConfigureAwait(false);
+                Log.Verbose(" InterfaceManager is ready, starting to load DrawAvailableSync plugins");
                 await framework.RunOnTick(
                     () => LoadPluginsSync(
                         "DrawAvailableSync",
