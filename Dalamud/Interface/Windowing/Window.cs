@@ -32,6 +32,9 @@ namespace Dalamud.Interface.Windowing;
 /// </summary>
 public abstract class Window
 {
+    private const float FadeInOutTime = 1f;
+    private const float FadeInOutStep = 0.09f;
+
     private static readonly ModuleLog Log = new("WindowSystem");
 
     private static bool wasEscPressedLastFrame = false;
@@ -47,6 +50,12 @@ public abstract class Window
     private bool hasInitializedFromPreset = false;
     private PresetModel.PresetWindow? presetWindow;
     private bool presetDirty = false;
+
+    private float fadeInTimer = 1f;
+    private float fadeOutTimer = 0f;
+    private IDrawListTextureWrap? fadeOutTexture = null;
+    private Vector2 fadeOutSize = Vector2.Zero;
+    private Vector2 fadeOutOrigin = Vector2.Zero;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -89,6 +98,11 @@ public abstract class Window
         /// Enable the built-in "additional options" menu on the title bar.
         /// </summary>
         UseAdditionalOptions = 1 << 2,
+
+        /// <summary>
+        /// Do not draw non-critical animations.
+        /// </summary>
+        IsReducedMotion = 1 << 3,
     }
 
     /// <summary>
@@ -316,6 +330,7 @@ public abstract class Window
     internal void DrawInternal(WindowDrawFlags internalDrawFlags, WindowSystemPersistence? persistence)
     {
         this.PreOpenCheck();
+        var isReducedMotion = internalDrawFlags.HasFlag(WindowDrawFlags.IsReducedMotion);
 
         if (!this.IsOpen)
         {
@@ -330,8 +345,34 @@ public abstract class Window
                     UIGlobals.PlaySoundEffect(this.OnCloseSfxId);
             }
 
+            if (this.fadeOutTexture != null)
+            {
+                this.fadeOutTimer -= FadeInOutStep;
+                if (this.fadeOutTimer <= 0f)
+                {
+                    this.fadeOutTexture.Dispose();
+                    this.fadeOutTexture = null;
+                }
+                else
+                {
+                    var dl = ImGui.GetBackgroundDrawList();
+                    dl.AddImage(
+                        this.fadeOutTexture.ImGuiHandle,
+                        this.fadeOutOrigin,
+                        this.fadeOutOrigin + this.fadeOutSize,
+                        Vector2.Zero,
+                        Vector2.One,
+                        ImGui.ColorConvertFloat4ToU32(new(1f, 1f, 1f, Math.Clamp(this.fadeOutTimer / FadeInOutTime, 0f, 1f))));
+                }
+            }
+
+            this.fadeInTimer = !isReducedMotion ? 0f : FadeInOutTime;
             return;
         }
+
+        this.fadeInTimer += FadeInOutStep;
+        if (this.fadeInTimer > FadeInOutTime)
+            this.fadeInTimer = FadeInOutTime;
 
         this.Update();
         if (!this.DrawConditions())
@@ -546,7 +587,18 @@ public abstract class Window
             }
         }
 
+        this.fadeOutSize = ImGui.GetWindowSize();
+        this.fadeOutOrigin = ImGui.GetWindowPos();
+
         ImGui.End();
+
+        if (!this.internalIsOpen && this.fadeOutTexture == null && !isReducedMotion)
+        {
+            this.fadeOutTexture = Service<TextureManager>.Get().CreateDrawListTexture(
+                "WindowFadeOutTexture");
+            this.fadeOutTexture.ResizeAndDrawWindow(this.WindowName, Vector2.One);
+            this.fadeOutTimer = FadeInOutTime;
+        }
 
         if (printWindow)
         {
@@ -567,7 +619,7 @@ public abstract class Window
             ImGui.PopID();
     }
 
-    private void ApplyConditionals()
+    private unsafe void ApplyConditionals()
     {
         if (this.Position.HasValue)
         {
@@ -594,15 +646,18 @@ public abstract class Window
             ImGui.SetNextWindowSizeConstraints(this.SizeConstraints.Value.MinimumSize * ImGuiHelpers.GlobalScale, this.SizeConstraints.Value.MaximumSize * ImGuiHelpers.GlobalScale);
         }
 
-        if (this.BgAlpha.HasValue)
+        var maxBgAlpha = this.internalAlpha ?? this.BgAlpha;
+        var fadeInAlpha = this.fadeInTimer / FadeInOutTime;
+        if (fadeInAlpha < 1f)
         {
-            ImGui.SetNextWindowBgAlpha(this.BgAlpha.Value);
+            maxBgAlpha = maxBgAlpha.HasValue ?
+                             Math.Clamp(maxBgAlpha.Value * fadeInAlpha, 0f, 1f) :
+                             (*ImGui.GetStyleColorVec4(ImGuiCol.WindowBg)).W * fadeInAlpha;
         }
 
-        // Manually set alpha takes precedence, if devs don't want that, they should turn it off
-        if (this.internalAlpha.HasValue)
+        if (maxBgAlpha.HasValue)
         {
-            ImGui.SetNextWindowBgAlpha(this.internalAlpha.Value);
+            ImGui.SetNextWindowBgAlpha(maxBgAlpha.Value);
         }
     }
 
