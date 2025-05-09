@@ -22,6 +22,7 @@ namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 public class SettingsTabAutoUpdates : SettingsTab
 {
     private AutoUpdateBehavior behavior;
+    private bool updateDisabledPlugins;
     private bool checkPeriodically;
     private bool chatNotification;
     private string pickerSearch = string.Empty;
@@ -66,6 +67,7 @@ public class SettingsTabAutoUpdates : SettingsTab
 
         ImGuiHelpers.ScaledDummy(8);
 
+        ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateDisabledPlugins", "Auto-Update plugins that are currently disabled"), ref this.updateDisabledPlugins);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdateChatMessage", "Show notification about updates available in chat"), ref this.chatNotification);
         ImGui.Checkbox(Loc.Localize("DalamudSettingsAutoUpdatePeriodically", "Periodically check for new updates while playing"), ref this.checkPeriodically);
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsAutoUpdatePeriodicallyHint",
@@ -237,6 +239,7 @@ public class SettingsTabAutoUpdates : SettingsTab
         var configuration = Service<DalamudConfiguration>.Get();
 
         this.behavior = configuration.AutoUpdateBehavior ?? AutoUpdateBehavior.None;
+        this.updateDisabledPlugins = configuration.UpdateDisabledPlugins;
         this.chatNotification = configuration.SendUpdateNotificationToChat;
         this.checkPeriodically = configuration.CheckPeriodicallyForUpdates;
         this.autoUpdatePreferences = configuration.PluginAutoUpdatePreferences;
@@ -249,6 +252,7 @@ public class SettingsTabAutoUpdates : SettingsTab
         var configuration = Service<DalamudConfiguration>.Get();
 
         configuration.AutoUpdateBehavior = this.behavior;
+        configuration.UpdateDisabledPlugins = this.updateDisabledPlugins;
         configuration.SendUpdateNotificationToChat = this.chatNotification;
         configuration.CheckPeriodicallyForUpdates = this.checkPeriodically;
         configuration.PluginAutoUpdatePreferences = this.autoUpdatePreferences;
