@@ -105,25 +105,18 @@ internal sealed unsafe partial class DrawListTextureWrap
         [FieldOffset(0x2C0)]
         public ImDrawListPtr DrawList;
 
-        private static nint pfnImGuiFindWindowByName;
+        [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+#pragma warning disable SA1300
+        public static extern ImGuiWindow* igCustom_FindWindowByName(byte* inherit);
+#pragma warning restore SA1300
 
         public static ref ImGuiWindow FindWindowByName(ReadOnlySpan<char> name)
         {
             var nb = Encoding.UTF8.GetByteCount(name);
             var buf = stackalloc byte[nb + 1];
             buf[Encoding.UTF8.GetBytes(name, new(buf, nb))] = 0;
-            if (pfnImGuiFindWindowByName == 0)
-            {
-                pfnImGuiFindWindowByName =
-                    Process
-                        .GetCurrentProcess()
-                        .Modules
-                        .Cast<ProcessModule>()
-                        .First(x => x.ModuleName == "cimgui.dll")
-                        .BaseAddress + 0x357F0;
-            }
 
-            return ref *((delegate* unmanaged<byte*, ImGuiWindow*>)pfnImGuiFindWindowByName)(buf);
+            return ref *igCustom_FindWindowByName(buf);
         }
 
         [StructLayout(LayoutKind.Explicit, Size = 0xF0)]
