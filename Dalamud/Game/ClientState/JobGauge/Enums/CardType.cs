@@ -8,45 +8,45 @@ public enum CardType : byte
     /// <summary>
     /// No card.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// The Balance card.
     /// </summary>
-    BALANCE = 1,
+    Balance = 1,
 
     /// <summary>
     /// The Bole card.
     /// </summary>
-    BOLE = 2,
+    Bole = 2,
 
     /// <summary>
     /// The Arrow card.
     /// </summary>
-    ARROW = 3,
+    Arrow = 3,
 
     /// <summary>
     /// The Spear card.
     /// </summary>
-    SPEAR = 4,
+    Spear = 4,
 
     /// <summary>
     /// The Ewer card.
     /// </summary>
-    EWER = 5,
+    Ewer = 5,
 
     /// <summary>
     /// The Spire card.
     /// </summary>
-    SPIRE = 6,
+    Spire = 6,
 
     /// <summary>
     /// The Lord of Crowns card.
     /// </summary>
-    LORD = 7,
+    Lord = 7,
 
     /// <summary>
     /// The Lady of Crowns card.
     /// </summary>
-    LADY = 8,
+    Lady = 8,
 }

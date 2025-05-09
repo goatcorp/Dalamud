@@ -1,5 +1,8 @@
-using Dalamud.Game.ClientState.Resolvers;
+using Dalamud.Data;
+
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+
+using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Aetherytes;
 
@@ -56,7 +59,7 @@ public interface IAetheryteEntry
     /// <summary>
     /// Gets the Aetheryte data related to this aetheryte.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.Aetheryte> AetheryteData { get; }
+    RowRef<Lumina.Excel.Sheets.Aetheryte> AetheryteData { get; }
 }
 
 /// <summary>
@@ -103,5 +106,5 @@ internal sealed class AetheryteEntry : IAetheryteEntry
     public bool IsApartment => this.data.IsApartment;
 
     /// <inheritdoc />
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.Aetheryte> AetheryteData => new(this.AetheryteId);
+    public RowRef<Lumina.Excel.Sheets.Aetheryte> AetheryteData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Aetheryte>(this.AetheryteId);
 }

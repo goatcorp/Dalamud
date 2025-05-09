@@ -179,16 +179,17 @@ public sealed class EntryPoint
 
             Reloaded.Hooks.Tools.Utilities.FasmBasePath = new DirectoryInfo(info.WorkingDirectory);
 
-            // This is due to GitHub not supporting TLS 1.0, so we enable all TLS versions globally
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls;
+            // Apply common fixes for culture issues
+            CultureFixes.Apply();
 
-            if (!Util.IsWine())
+            // Currently VEH is not fully functional on WINE
+            if (info.Platform != OSPlatform.Windows)
                 InitSymbolHandler(info);
 
             var dalamud = new Dalamud(info, fs, configuration, mainThreadContinueEvent);
-            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]", 
-                            Util.GetScmVersion(), 
-                            Util.GetGitHashClientStructs(), 
+            Log.Information("This is Dalamud - Core: {GitHash}, CS: {CsGitHash} [{CsVersion}]",
+                            Util.GetScmVersion(),
+                            Util.GetGitHashClientStructs(),
                             FFXIVClientStructs.ThisAssembly.Git.Commits);
 
             dalamud.WaitForUnload();
@@ -315,7 +316,7 @@ public sealed class EntryPoint
                     Log.Information("User chose to disable plugins on next launch...");
                     var config = Service<DalamudConfiguration>.Get();
                     config.PluginSafeMode = true;
-                    config.QueueSave();
+                    config.ForceSave();
                 }
 
                 Log.CloseAndFlush();

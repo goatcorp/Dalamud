@@ -1,9 +1,11 @@
 using System.Numerics;
 
 using Dalamud.Data;
-using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+using Dalamud.Utility;
+
+using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Fates;
 
@@ -20,7 +22,7 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets game data linked to this Fate.
     /// </summary>
-    Lumina.Excel.GeneratedSheets.Fate GameData { get; }
+    RowRef<Lumina.Excel.Sheets.Fate> GameData { get; }
 
     /// <summary>
     /// Gets the time this <see cref="Fate"/> started.
@@ -68,9 +70,15 @@ public interface IFate : IEquatable<IFate>
     byte Progress { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this <see cref="Fate"/> has a EXP bonus.
+    /// Gets a value indicating whether this <see cref="Fate"/> has a EXP bonus.
     /// </summary>
+    [Obsolete($"Use {nameof(HasBonus)} instead")]
     bool HasExpBonus { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this <see cref="Fate"/> has a bonus.
+    /// </summary>
+    bool HasBonus { get; }
 
     /// <summary>
     /// Gets the icon id of this <see cref="Fate"/>.
@@ -105,7 +113,7 @@ public interface IFate : IEquatable<IFate>
     /// <summary>
     /// Gets the territory this <see cref="Fate"/> is located in.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType { get; }
+    RowRef<Lumina.Excel.Sheets.TerritoryType> TerritoryType { get; }
 
     /// <summary>
     /// Gets the address of this Fate in memory.
@@ -185,7 +193,7 @@ internal unsafe partial class Fate : IFate
     public ushort FateId => this.Struct->FateId;
 
     /// <inheritdoc/>
-    public Lumina.Excel.GeneratedSheets.Fate GameData => Service<DataManager>.Get().GetExcelSheet<Lumina.Excel.GeneratedSheets.Fate>().GetRow(this.FateId);
+    public RowRef<Lumina.Excel.Sheets.Fate> GameData => LuminaUtils.CreateRef<Lumina.Excel.Sheets.Fate>(this.FateId);
 
     /// <inheritdoc/>
     public int StartTimeEpoch => this.Struct->StartTimeEpoch;
@@ -215,7 +223,11 @@ internal unsafe partial class Fate : IFate
     public byte Progress => this.Struct->Progress;
 
     /// <inheritdoc/>
-    public bool HasExpBonus => this.Struct->IsExpBonus;
+    [Api13ToDo("Remove")]
+    public bool HasExpBonus => this.HasBonus;
+
+    /// <inheritdoc/>
+    public bool HasBonus => this.Struct->IsBonus;
 
     /// <inheritdoc/>
     public uint IconId => this.Struct->IconId;
@@ -238,5 +250,5 @@ internal unsafe partial class Fate : IFate
     /// <summary>
     /// Gets the territory this <see cref="Fate"/> is located in.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> TerritoryType => new(this.Struct->TerritoryId);
+    public RowRef<Lumina.Excel.Sheets.TerritoryType> TerritoryType => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->MapMarkers[0].MapMarkerData.TerritoryTypeId);
 }

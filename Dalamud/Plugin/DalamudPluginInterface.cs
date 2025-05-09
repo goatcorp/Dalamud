@@ -19,6 +19,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings;
+using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
@@ -100,7 +101,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     public PluginLoadReason Reason { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
     public bool IsAutoUpdateComplete => Service<AutoUpdateManager>.Get().IsAutoUpdateComplete;
 
@@ -482,7 +483,7 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     /// <inheritdoc/>
     public async Task<T> CreateAsync<T>(params object[] scopedObjects) where T : class =>
-        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), this.GetPublicIocScopes(scopedObjects));
+        (T)await this.plugin.ServiceScope!.CreateAsync(typeof(T), ObjectInstanceVisibility.ExposedToPlugins, this.GetPublicIocScopes(scopedObjects));
 
     /// <inheritdoc/>
     public bool Inject(object instance, params object[] scopedObjects)
@@ -526,13 +527,40 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
     internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
     {
-        this.ActivePluginsChanged?.Invoke(kind, affectedThisPlugin);
+        if (this.ActivePluginsChanged is { } callback)
+        {
+            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.ActivePluginsChangedDelegate>())
+            {
+                try
+                {
+                    action(kind, affectedThisPlugin);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                }
+            }
+        }
     }
 
     private void OnLocalizationChanged(string langCode)
     {
         this.UiLanguage = langCode;
-        this.LanguageChanged?.Invoke(langCode);
+
+        if (this.LanguageChanged is { } callback)
+        {
+            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.LanguageChangedDelegate>())
+            {
+                try
+                {
+                    action(langCode);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                }
+            }
+        }
     }
 
     private void OnDalamudConfigurationSaved(DalamudConfiguration dalamudConfiguration)

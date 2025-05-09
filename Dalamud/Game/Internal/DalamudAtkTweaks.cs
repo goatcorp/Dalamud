@@ -6,9 +6,11 @@ using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging.Internal;
 
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Serilog;
 
 using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
@@ -20,12 +22,14 @@ namespace Dalamud.Game.Internal;
 [ServiceManager.EarlyLoadedService]
 internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
 {
-    private readonly Hook<AgentHudOpenSystemMenuPrototype> hookAgentHudOpenSystemMenu;
+    private static readonly ModuleLog Log = new("DalamudAtkTweaks");
+
+    private readonly Hook<AgentHUD.Delegates.OpenSystemMenu> hookAgentHudOpenSystemMenu;
 
     // TODO: Make this into events in Framework.Gui
-    private readonly Hook<UiModuleRequestMainCommand> hookUiModuleRequestMainCommand;
+    private readonly Hook<UIModule.Delegates.ExecuteMainCommand> hookUiModuleExecuteMainCommand;
 
-    private readonly Hook<AtkUnitBaseReceiveGlobalEvent> hookAtkUnitBaseReceiveGlobalEvent;
+    private readonly Hook<AtkUnitBase.Delegates.ReceiveGlobalEvent> hookAtkUnitBaseReceiveGlobalEvent;
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
@@ -41,34 +45,24 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private DalamudAtkTweaks(TargetSigScanner sigScanner)
     {
-        var openSystemMenuAddress = sigScanner.ScanText("E8 ?? ?? ?? ?? E9 ?? ?? ?? ?? 48 8B CF 4C 89 B4 24 B8 08 00 00");
-
-        this.hookAgentHudOpenSystemMenu = Hook<AgentHudOpenSystemMenuPrototype>.FromAddress(openSystemMenuAddress, this.AgentHudOpenSystemMenuDetour);
-
-        var uiModuleRequestMainCommandAddress = sigScanner.ScanText("40 53 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B 01 8B DA 48 8B F1 FF 90 ?? ?? ?? ??");
-        this.hookUiModuleRequestMainCommand = Hook<UiModuleRequestMainCommand>.FromAddress(uiModuleRequestMainCommandAddress, this.UiModuleRequestMainCommandDetour);
-
-        var atkUnitBaseReceiveGlobalEventAddress = sigScanner.ScanText("48 89 5C 24 ?? 48 89 7C 24 ?? 55 41 54 41 57");
-        this.hookAtkUnitBaseReceiveGlobalEvent = Hook<AtkUnitBaseReceiveGlobalEvent>.FromAddress(atkUnitBaseReceiveGlobalEventAddress, this.AtkUnitBaseReceiveGlobalEventDetour);
+        this.hookAgentHudOpenSystemMenu = Hook<AgentHUD.Delegates.OpenSystemMenu>.FromAddress(AgentHUD.Addresses.OpenSystemMenu.Value, this.AgentHudOpenSystemMenuDetour);
+        this.hookUiModuleExecuteMainCommand = Hook<UIModule.Delegates.ExecuteMainCommand>.FromAddress((nint)UIModule.StaticVirtualTablePointer->ExecuteMainCommand, this.UiModuleExecuteMainCommandDetour);
+        this.hookAtkUnitBaseReceiveGlobalEvent = Hook<AtkUnitBase.Delegates.ReceiveGlobalEvent>.FromAddress((nint)AtkUnitBase.StaticVirtualTablePointer->ReceiveGlobalEvent, this.AtkUnitBaseReceiveGlobalEventDetour);
 
         this.locDalamudPlugins = Loc.Localize("SystemMenuPlugins", "Dalamud Plugins");
         this.locDalamudSettings = Loc.Localize("SystemMenuSettings", "Dalamud Settings");
 
         // this.contextMenu.ContextMenuOpened += this.ContextMenuOnContextMenuOpened;
-        
+
         this.hookAgentHudOpenSystemMenu.Enable();
-        this.hookUiModuleRequestMainCommand.Enable();
+        this.hookUiModuleExecuteMainCommand.Enable();
         this.hookAtkUnitBaseReceiveGlobalEvent.Enable();
     }
 
     /// <summary>Finalizes an instance of the <see cref="DalamudAtkTweaks"/> class.</summary>
     ~DalamudAtkTweaks() => this.Dispose(false);
 
-    private delegate void AgentHudOpenSystemMenuPrototype(void* thisPtr, AtkValue* atkValueArgs, uint menuSize);
-
-    private delegate void UiModuleRequestMainCommand(void* thisPtr, int commandId);
-
-    private delegate IntPtr AtkUnitBaseReceiveGlobalEvent(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* a5);
+    private delegate void AgentHudOpenSystemMenuPrototype(AgentHUD* thisPtr, AtkValue* atkValueArgs, uint menuSize);
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.Dispose(true);
@@ -81,7 +75,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         if (disposing)
         {
             this.hookAgentHudOpenSystemMenu.Dispose();
-            this.hookUiModuleRequestMainCommand.Dispose();
+            this.hookUiModuleExecuteMainCommand.Dispose();
             this.hookAtkUnitBaseReceiveGlobalEvent.Dispose();
 
             // this.contextMenu.ContextMenuOpened -= this.ContextMenuOnContextMenuOpened;
@@ -116,22 +110,19 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
     }
     */
 
-    private IntPtr AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, ushort cmd, uint a3, IntPtr a4, uint* arg)
+    private void AtkUnitBaseReceiveGlobalEventDetour(AtkUnitBase* thisPtr, AtkEventType eventType, int eventParam, AtkEvent* atkEvent, AtkEventData* atkEventData)
     {
-        // Log.Information("{0}: cmd#{1} a3#{2} - HasAnyFocus:{3}", MemoryHelper.ReadSeStringAsString(out _, new IntPtr(thisPtr->Name)), cmd, a3, WindowSystem.HasAnyWindowSystemFocus);
-
-        // "SendHotkey"
         // 3 == Close
-        if (cmd == 12 && WindowSystem.HasAnyWindowSystemFocus && *arg == 3 && this.configuration.IsFocusManagementEnabled)
+        if (eventType == AtkEventType.InputReceived && WindowSystem.HasAnyWindowSystemFocus && atkEventData != null && *(int*)atkEventData == 3 && this.configuration.IsFocusManagementEnabled)
         {
             Log.Verbose($"Cancelling global event SendHotkey command due to WindowSystem {WindowSystem.FocusedWindowSystemNamespace}");
-            return IntPtr.Zero;
+            return;
         }
 
-        return this.hookAtkUnitBaseReceiveGlobalEvent.Original(thisPtr, cmd, a3, a4, arg);
+        this.hookAtkUnitBaseReceiveGlobalEvent.Original(thisPtr, eventType, eventParam, atkEvent, atkEventData);
     }
 
-    private void AgentHudOpenSystemMenuDetour(void* thisPtr, AtkValue* atkValueArgs, uint menuSize)
+    private void AgentHudOpenSystemMenuDetour(AgentHUD* thisPtr, AtkValue* atkValueArgs, uint menuSize)
     {
         if (WindowSystem.HasAnyWindowSystemFocus && this.configuration.IsFocusManagementEnabled)
         {
@@ -189,7 +180,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         // about hooking the exd reader, thank god
         var firstStringEntry = &atkValueArgs[5 + 18];
         firstStringEntry->ChangeType(ValueType.String);
-        
+
         var secondStringEntry = &atkValueArgs[6 + 18];
         secondStringEntry->ChangeType(ValueType.String);
 
@@ -202,7 +193,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
                                         .Append($"{SeIconChar.BoxedLetterD.ToIconString()} ")
                                         .Append(new UIForegroundPayload(0))
                                         .Append(this.locDalamudSettings).Encode();
-        
+
         firstStringEntry->SetManagedString(strPlugins);
         secondStringEntry->SetManagedString(strSettings);
 
@@ -213,7 +204,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
         this.hookAgentHudOpenSystemMenu.Original(thisPtr, atkValueArgs, menuSize + 2);
     }
 
-    private void UiModuleRequestMainCommandDetour(void* thisPtr, int commandId)
+    private unsafe void UiModuleExecuteMainCommandDetour(UIModule* thisPtr, uint commandId)
     {
         var dalamudInterface = Service<DalamudInterface>.GetNullable();
 
@@ -226,7 +217,7 @@ internal sealed unsafe class DalamudAtkTweaks : IInternalDisposableService
                 dalamudInterface?.OpenSettings();
                 break;
             default:
-                this.hookUiModuleRequestMainCommand.Original(thisPtr, commandId);
+                this.hookUiModuleExecuteMainCommand.Original(thisPtr, commandId);
                 break;
         }
     }

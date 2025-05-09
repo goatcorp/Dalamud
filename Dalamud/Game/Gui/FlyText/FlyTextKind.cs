@@ -93,213 +93,236 @@ public enum FlyTextKind : int
     IslandExp = 15,
 
     /// <summary>
+    /// Val1 in serif font next to all caps condensed font Text1 with Text2 in sans-serif as subtitle.
+    /// </summary>
+    [Obsolete("Use Dataset instead", true)]
+    Unknown16 = 16,
+
+    /// <summary>
+    /// Val1 in serif font next to all caps condensed font Text1 with Text2 in sans-serif as subtitle.
+    /// </summary>
+    Dataset = 16,
+
+    /// <summary>
+    /// Val1 in serif font, Text2 in sans-serif as subtitle.
+    /// Added in 7.2, usage currently unknown.
+    /// </summary>
+    Unknown17 = 17,
+
+    /// <summary>
+    /// Val1 in serif font, Text2 in sans-serif as subtitle.
+    /// Added in 7.2, usage currently unknown.
+    /// </summary>
+    Unknown18 = 18,
+
+    /// <summary>
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle.
     /// </summary>
-    MpDrain = 16,
+    MpDrain = 19,
 
     /// <summary>
     /// Currently not used by the game.
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font TP with Text2 in sans-serif as subtitle.
     /// </summary>
-    NamedTp = 17,
+    NamedTp = 20,
 
     /// <summary>
     /// Val1 in serif font, Text2 in sans-serif as subtitle with sans-serif Text1 to the left of the Val1.
     /// </summary>
-    Healing = 18,
+    Healing = 21,
 
     /// <summary>
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle.
     /// </summary>
-    MpRegen = 19,
+    MpRegen = 22,
 
     /// <summary>
     /// Currently not used by the game.
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font TP with Text2 in sans-serif as subtitle.
     /// </summary>
-    NamedTp2 = 20,
+    NamedTp2 = 23,
 
     /// <summary>
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font EP with Text2 in sans-serif as subtitle.
     /// </summary>
-    EpRegen = 21,
+    EpRegen = 24,
 
     /// <summary>
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font CP with Text2 in sans-serif as subtitle.
     /// </summary>
-    CpRegen = 22,
+    CpRegen = 25,
 
     /// <summary>
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font GP with Text2 in sans-serif as subtitle.
     /// </summary>
-    GpRegen = 23,
+    GpRegen = 26,
 
     /// <summary>
     /// Displays nothing.
     /// </summary>
-    None = 24,
+    None = 27,
 
     /// <summary>
     /// All caps serif INVULNERABLE.
     /// </summary>
-    Invulnerable = 25,
+    Invulnerable = 28,
 
     /// <summary>
     /// All caps sans-serif condensed font INTERRUPTED!
     /// Does a large bounce effect on appearance.
     /// Does not scroll up or down the screen.
     /// </summary>
-    Interrupted = 26,
+    Interrupted = 29,
 
     /// <summary>
     /// Val1 in serif font.
     /// </summary>
-    CraftingProgress = 27,
+    CraftingProgress = 30,
 
     /// <summary>
     /// Val1 in serif font.
     /// </summary>
-    CraftingQuality = 28,
+    CraftingQuality = 31,
 
     /// <summary>
     /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle. Does a bigger bounce effect on appearance.
     /// </summary>
-    CraftingQualityCrit = 29,
+    CraftingQualityCrit = 32,
 
     /// <summary>
     /// Currently not used by the game.
     /// Val1 in serif font.
     /// </summary>
-    AutoAttackNoText3 = 30,
+    AutoAttackNoText3 = 33,
 
     /// <summary>
     /// CriticalHit with sans-serif Text1 to the left of the Val1 (2).
     /// </summary>
-    HealingCrit = 31,
+    HealingCrit = 34,
 
     /// <summary>
     /// Currently not used by the game.
     /// Same as DamageCrit with a MP in condensed font to the right of Val1.
     /// Does a jiggle effect to the right on appearance.
     /// </summary>
-    NamedCriticalHitWithMp = 32,
+    NamedCriticalHitWithMp = 35,
 
     /// <summary>
     /// Currently not used by the game.
     /// Same as DamageCrit with a TP in condensed font to the right of Val1.
     /// Does a jiggle effect to the right on appearance.
     /// </summary>
-    NamedCriticalHitWithTp = 33,
+    NamedCriticalHitWithTp = 36,
 
     /// <summary>
     /// Icon next to sans-serif Text1 with sans-serif "has no effect!" to the right.
     /// </summary>
-    DebuffNoEffect = 34,
+    DebuffNoEffect = 37,
 
     /// <summary>
     /// Icon next to sans-serif slightly faded Text1.
     /// </summary>
-    BuffFading = 35,
+    BuffFading = 38,
 
     /// <summary>
     /// Icon next to sans-serif slightly faded Text1.
     /// </summary>
-    DebuffFading = 36,
+    DebuffFading = 39,
 
     /// <summary>
     /// Text1 in sans-serif font.
     /// </summary>
-    Named = 37,
+    Named = 40,
 
     /// <summary>
     /// Icon next to sans-serif Text1 with sans-serif "(fully resisted)" to the right.
     /// </summary>
-    DebuffResisted = 38,
+    DebuffResisted = 41,
 
     /// <summary>
     /// All caps serif 'INCAPACITATED!'.
     /// </summary>
-    Incapacitated = 39,
+    Incapacitated = 42,
 
     /// <summary>
     /// Text1 with sans-serif "(fully resisted)" to the right.
     /// </summary>
-    FullyResisted = 40,
+    FullyResisted = 43,
 
     /// <summary>
     /// Text1 with sans-serif "has no effect!" to the right.
     /// </summary>
-    HasNoEffect = 41,
+    HasNoEffect = 44,
 
     /// <summary>
     /// Val1 in serif font, Text2 in sans-serif as subtitle with sans-serif Text1 to the left of the Val1.
     /// </summary>
-    HpDrain = 42,
+    HpDrain = 45,
 
     /// <summary>
     /// Currently not used by the game.
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle.
     /// </summary>
-    NamedMp3 = 43,
+    NamedMp3 = 46,
 
     /// <summary>
     /// Currently not used by the game.
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font TP with Text2 in sans-serif as subtitle.
     /// </summary>
-    NamedTp3 = 44,
+    NamedTp3 = 47,
 
     /// <summary>
     /// Icon next to sans-serif Text1 with serif "INVULNERABLE!" beneath the Text1.
     /// </summary>
-    DebuffInvulnerable = 45,
+    DebuffInvulnerable = 48,
 
     /// <summary>
     /// All caps serif RESIST.
     /// </summary>
-    Resist = 46,
+    Resist = 49,
 
     /// <summary>
     /// Icon with an item icon outline next to sans-serif Text1.
     /// </summary>
-    LootedItem = 47,
+    LootedItem = 50,
 
     /// <summary>
     /// Val1 in serif font.
     /// </summary>
-    Collectability = 48,
+    Collectability = 51,
 
     /// <summary>
     /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle.
     /// Does a bigger bounce effect on appearance.
     /// </summary>
-    CollectabilityCrit = 49,
+    CollectabilityCrit = 52,
 
     /// <summary>
     /// All caps serif REFLECT.
     /// </summary>
-    Reflect = 50,
+    Reflect = 53,
 
     /// <summary>
     /// All caps serif REFLECTED.
     /// </summary>
-    Reflected = 51,
+    Reflected = 54,
 
     /// <summary>
     /// Val1 in serif font, Text2 in sans-serif as subtitle.
     /// Does a bounce effect on appearance.
     /// </summary>
-    CraftingQualityDh = 52,
+    CraftingQualityDh = 55,
 
     /// <summary>
     /// Currently not used by the game.
     /// Val1 in larger serif font with exclamation, with Text2 in sans-serif as subtitle.
     /// Does a bigger bounce effect on appearance.
     /// </summary>
-    CriticalHit4 = 53,
+    CriticalHit4 = 56,
 
     /// <summary>
     /// Val1 in even larger serif font with 2 exclamations, Text2 in sans-serif as subtitle.
     /// Does a large bounce effect on appearance. Does not scroll up or down the screen.
     /// </summary>
-    CraftingQualityCritDh = 54,
+    CraftingQualityCritDh = 57,
 }

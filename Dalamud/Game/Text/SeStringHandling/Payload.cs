@@ -39,13 +39,6 @@ public abstract partial class Payload
     public bool Dirty { get; protected set; } = true;
 
     /// <summary>
-    /// Gets the Lumina instance to use for any necessary data lookups.
-    /// </summary>
-    [JsonIgnore]
-    // TODO: We should refactor this. It should not be possible to get IDataManager through here.
-    protected IDataManager DataResolver => Service<DataManager>.Get();
-
-    /// <summary>
     /// Decodes a binary representation of a payload into its corresponding nice object payload.
     /// </summary>
     /// <param name="reader">A reader positioned at the start of the payload, and containing at least one entire payload.</param>
@@ -208,7 +201,7 @@ public abstract partial class Payload
             case SeStringChunkType.Icon:
                 payload = new IconPayload();
                 break;
-            
+
             default:
                 // Log.Verbose("Unhandled SeStringChunkType: {0}", chunkType);
                 break;
@@ -313,7 +306,7 @@ public abstract partial class Payload
         /// See the <see cref="NewLinePayload"/>.
         /// </summary>
         NewLine = 0x10,
-        
+
         /// <summary>
         /// See the <see cref="IconPayload"/> class.
         /// </summary>

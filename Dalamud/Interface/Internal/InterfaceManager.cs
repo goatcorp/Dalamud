@@ -19,15 +19,18 @@ using Dalamud.Hooking.Internal;
 using Dalamud.Hooking.WndProcHook;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Internal.Asserts;
 using Dalamud.Interface.Internal.DesignSystem;
-using Dalamud.Interface.Internal.ManagedAsserts;
 using Dalamud.Interface.Internal.ReShadeHandling;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Interface.Windowing.Persistence;
+using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.Timing;
 
@@ -41,6 +44,8 @@ using PInvoke;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
+
+using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 
 // general dev notes, here because it's easiest
 
@@ -60,6 +65,7 @@ namespace Dalamud.Interface.Internal;
 /// This class manages interaction with the ImGui interface.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
+[InherentDependency<WindowSystemPersistence>] // Used by window system windows to restore state from the configuration
 internal partial class InterfaceManager : IInternalDisposableService
 {
     /// <summary>
@@ -73,7 +79,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     public const float DefaultFontSizePx = (DefaultFontSizePt * 4.0f) / 3.0f;
 
     private static readonly ModuleLog Log = new("INTERFACE");
-    
+
     private readonly ConcurrentBag<IDeferredDisposable> deferredDisposeTextures = new();
     private readonly ConcurrentBag<IDisposable> deferredDisposeDisposables = new();
 
@@ -93,6 +99,8 @@ internal partial class InterfaceManager : IInternalDisposableService
 
     private readonly ConcurrentQueue<Action> runBeforeImGuiRender = new();
     private readonly ConcurrentQueue<Action> runAfterImGuiRender = new();
+
+    private readonly AssertHandler assertHandler = new();
 
     private RawDX11Scene? scene;
 
@@ -114,6 +122,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     [ServiceManager.ServiceConstructor]
     private InterfaceManager()
     {
+        this.framework.Update += this.FrameworkOnUpdate;
     }
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -203,7 +212,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     public IntPtr WindowHandlePtr => this.scene?.WindowHandlePtr ?? IntPtr.Zero;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+    /// Gets or sets a value indicating whether the game's cursor should be overridden with the ImGui cursor.
     /// </summary>
     public bool OverrideGameCursor
     {
@@ -222,7 +231,7 @@ internal partial class InterfaceManager : IInternalDisposableService
     public bool IsReady => this.scene != null;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not Draw events should be dispatched.
+    /// Gets or sets a value indicating whether Draw events should be dispatched.
     /// </summary>
     public bool IsDispatchingEvents { get; set; } = true;
 
@@ -267,11 +276,27 @@ internal partial class InterfaceManager : IInternalDisposableService
     /// </remarks>
     public long CumulativePresentCalls { get; private set; }
 
+    /// <inheritdoc cref="AssertHandler.ShowAsserts"/>
+    public bool ShowAsserts
+    {
+        get => this.assertHandler.ShowAsserts;
+        set => this.assertHandler.ShowAsserts = value;
+    }
+
+    /// <inheritdoc cref="AssertHandler.EnableVerboseLogging"/>
+    public bool EnableVerboseAssertLogging
+    {
+        get => this.assertHandler.EnableVerboseLogging;
+        set => this.assertHandler.EnableVerboseLogging = value;
+    }
+
     /// <summary>
     /// Dispose of managed and unmanaged resources.
     /// </summary>
     void IInternalDisposableService.DisposeService()
     {
+        this.assertHandler.Dispose();
+
         // Unload hooks from the framework thread if possible.
         // We're currently off the framework thread, as this function can only be called from
         // ServiceManager.UnloadAllServices, which is called from EntryPoint.RunThread.
@@ -486,11 +511,26 @@ internal partial class InterfaceManager : IInternalDisposableService
     {
         var im = Service<InterfaceManager>.GetNullable();
         if (im?.dalamudAtlas is not { } atlas)
-            throw new InvalidOperationException($"Tried to access fonts before {nameof(ContinueConstruction)} call.");
+            throw new InvalidOperationException($"Tried to access fonts before {nameof(SetupHooks)} call.");
 
         if (!atlas.HasBuiltAtlas)
             atlas.BuildTask.GetAwaiter().GetResult();
         return im;
+    }
+
+    private unsafe void FrameworkOnUpdate(IFramework framework1)
+    {
+        // We now delay hooking until Framework is set up and has fired its first update.
+        // Some graphics drivers seem to consider the game's shader cache as invalid if we hook too early.
+        // The game loads shader packages on the file thread and then compiles them. It will show the logo once it is done.
+        // This is a workaround, but it fixes an issue where the game would take a very long time to get to the title screen.
+        // NetworkModuleProxy is set up after lua scripts are loaded (EventFramework.LoadState >= 5), which can only happen
+        // after the shaders are compiled (if necessary) and loaded. AgentLobby.Update doesn't do much until this condition is met.
+        if (CSFramework.Instance()->GetNetworkModuleProxy() == null)
+            return;
+
+        this.SetupHooks(Service<TargetSigScanner>.Get(), Service<FontAtlasFactory>.Get());
+        this.framework.Update -= this.FrameworkOnUpdate;
     }
 
     /// <summary>Checks if the provided swap chain is the target that Dalamud should draw its interface onto,
@@ -565,6 +605,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         {
             try
             {
+                this.assertHandler.Setup();
                 newScene = new RawDX11Scene((nint)swapChain);
             }
             catch (DllNotFoundException ex)
@@ -604,9 +645,16 @@ internal partial class InterfaceManager : IInternalDisposableService
                 if (iniFileInfo.Length > 1200000)
                 {
                     Log.Warning("dalamudUI.ini was over 1mb, deleting");
-                    iniFileInfo.CopyTo(Path.Combine(iniFileInfo.DirectoryName!, $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
+                    iniFileInfo.CopyTo(
+                        Path.Combine(
+                            iniFileInfo.DirectoryName!,
+                            $"dalamudUI-{DateTimeOffset.Now.ToUnixTimeSeconds()}.ini"));
                     iniFileInfo.Delete();
                 }
+            }
+            catch (FileNotFoundException)
+            {
+                Log.Warning("dalamudUI.ini did not exist, ImGUI will create a new one.");
             }
             catch (Exception ex)
             {
@@ -719,9 +767,7 @@ internal partial class InterfaceManager : IInternalDisposableService
         }
     }
 
-    [ServiceManager.CallWhenServicesReady(
-        "InterfaceManager accepts event registration and stuff even when the game window is not ready.")]
-    private unsafe void ContinueConstruction(
+    private unsafe void SetupHooks(
         TargetSigScanner sigScanner,
         FontAtlasFactory fontAtlasFactory)
     {
@@ -790,14 +836,14 @@ internal partial class InterfaceManager : IInternalDisposableService
                     });
             };
         }
-        
+
         // This will wait for scene on its own. We just wait for this.dalamudAtlas.BuildTask in this.InitScene.
         _ = this.dalamudAtlas.BuildFontsAsync();
 
         SwapChainHelper.BusyWaitForGameDeviceSwapChain();
         var swapChainDesc = default(DXGI_SWAP_CHAIN_DESC);
         if (SwapChainHelper.GameDeviceSwapChain->GetDesc(&swapChainDesc).SUCCEEDED)
-            this.gameWindowHandle = swapChainDesc.OutputWindow; 
+            this.gameWindowHandle = swapChainDesc.OutputWindow;
 
         try
         {
@@ -940,7 +986,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         switch (this.dalamudConfiguration.SwapChainHookMode)
         {
-            case SwapChainHelper.HookMode.ByteCode: 
+            case SwapChainHelper.HookMode.ByteCode:
             default:
             {
                 Log.Information("Hooking using bytecode...");
@@ -1121,15 +1167,22 @@ internal partial class InterfaceManager : IInternalDisposableService
         WindowSystem.HasAnyWindowSystemFocus = false;
         WindowSystem.FocusedWindowSystemNamespace = string.Empty;
 
-        var snap = ImGuiManagedAsserts.GetSnapshot();
-
         if (this.IsDispatchingEvents)
         {
-            this.Draw?.Invoke();
+            try
+            {
+                this.Draw?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error when invoking global Draw");
+
+                // We should always handle this in the callbacks.
+                Util.Fatal("An internal error occurred while drawing the Dalamud UI and the game must close.\nPlease report this error.", "Dalamud");
+            }
+
             Service<NotificationManager>.GetNullable()?.Draw();
         }
-
-        ImGuiManagedAsserts.ReportProblems("Dalamud Core", snap);
     }
 
     /// <summary>

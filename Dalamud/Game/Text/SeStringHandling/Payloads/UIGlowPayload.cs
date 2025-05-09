@@ -1,18 +1,20 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Data;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
 /// <summary>
-/// An SeString Payload representing a UI glow color applied to following text payloads.
+/// An SeString Payload that allows text to have a specific edge glow. The color selected will be determined by the
+/// <see cref="Lumina.Excel.Sheets.UIColor.Light"/> theme's coloring, regardless of the active theme.
 /// </summary>
 public class UIGlowPayload : Payload
 {
-    private UIColor color;
-
     [JsonProperty]
     private ushort colorKey;
 
@@ -57,13 +59,12 @@ public class UIGlowPayload : Payload
         set
         {
             this.colorKey = value;
-            this.color = null;
             this.Dirty = true;
         }
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not this payload represents applying a glow color, or disabling one.
+    /// Gets a value indicating whether this payload represents applying a glow color, or disabling one.
     /// </summary>
     public bool IsEnabled => this.ColorKey != 0;
 
@@ -71,22 +72,19 @@ public class UIGlowPayload : Payload
     /// Gets the Red/Green/Blue/Alpha values for this glow color, encoded as a typical hex color.
     /// </summary>
     [JsonIgnore]
-    public uint RGBA => this.UIColor.UIGlow;
+    public uint RGBA => this.UIColor.Value.Light;
 
     /// <summary>
     /// Gets the ABGR value for this glow color, as ImGui requires it in PushColor.
     /// </summary>
     [JsonIgnore]
-    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.UIGlow);
+    public uint ABGR => Interface.ColorHelpers.SwapEndianness(this.UIColor.Value.Light);
 
     /// <summary>
     /// Gets a Lumina UIColor object representing this payload.  The actual color data is at UIColor.UIGlow.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public UIColor UIColor => this.color ??= this.DataResolver.GetExcelSheet<UIColor>().GetRow(this.colorKey);
+    public RowRef<UIColor> UIColor => LuminaUtils.CreateRef<UIColor>(this.colorKey);
 
     /// <inheritdoc/>
     public override string ToString()

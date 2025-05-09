@@ -11,7 +11,7 @@ namespace Dalamud.Game.Addon.Lifecycle;
 internal class AddonSetupHook<T> : IDisposable where T : Delegate
 {
     private readonly Reloaded.Hooks.AsmHook asmHook;
-    
+
     private T? detour;
     private bool activated;
 
@@ -30,22 +30,22 @@ internal class AddonSetupHook<T> : IDisposable where T : Delegate
             "use64",
             $"mov r9, 0x{detourPtr:X8}",
         };
-        
+
         var opt = new AsmHookOptions
         {
             PreferRelativeJump = true,
             Behaviour = Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour.DoNotExecuteOriginal,
             MaxOpcodeSize = 5,
         };
-        
+
         this.asmHook = new Reloaded.Hooks.AsmHook(code, (nuint)address, opt);
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook is enabled.
+    /// Gets a value indicating whether the hook is enabled.
     /// </summary>
     public bool IsEnabled => this.asmHook.IsEnabled;
-    
+
     /// <summary>
     /// Starts intercepting a call to the function.
     /// </summary>
@@ -57,7 +57,7 @@ internal class AddonSetupHook<T> : IDisposable where T : Delegate
             this.asmHook.Activate();
             return;
         }
-        
+
         this.asmHook.Enable();
     }
 

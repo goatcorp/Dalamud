@@ -8,35 +8,35 @@ public enum SerpentCombo : byte
     /// <summary>
     /// No Serpent combo is active.
     /// </summary>
-    NONE = 0,
+    None = 0,
 
     /// <summary>
     /// Death Rattle action.
     /// </summary>
-    DEATHRATTLE = 1,
+    DeathRattle = 1,
 
     /// <summary>
     /// Last Lash action.
     /// </summary>
-    LASTLASH = 2,
+    LastLash = 2,
 
     /// <summary>
     /// First Legacy action.
     /// </summary>
-    FIRSTLEGACY = 3,
+    FirstLegacy = 3,
 
     /// <summary>
     /// Second Legacy action.
     /// </summary>
-    SECONDLEGACY = 4,
+    SecondLegacy = 4,
 
     /// <summary>
     /// Third Legacy action.
     /// </summary>
-    THIRDLEGACY = 5,
+    ThirdLegacy = 5,
 
     /// <summary>
     /// Fourth Legacy action.
     /// </summary>
-    FOURTHLEGACY = 6,
+    FourthLegacy = 6,
 }

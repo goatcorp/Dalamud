@@ -90,7 +90,7 @@ internal sealed partial class TextureManager
                 throw new NullReferenceException($"{nameof(path)} cannot be null.");
 
             using var wrapAux = new WrapAux(wrap, true);
-            var pathTemp = Util.GetTempFileNameForFileReplacement(path);
+            var pathTemp = Util.GetReplaceableFileName(path);
             var trashfire = new List<Exception>();
             try
             {

@@ -15,10 +15,10 @@ namespace Dalamud.Hooking.Internal;
 /// Only the specific callsite hooked is modified, if the game calls the virtual function from other locations this hook will not be triggered.
 /// </summary>
 /// <typeparam name="T">Delegate signature for this hook.</typeparam>
-internal class CallHook<T> : IDisposable where T : Delegate
+internal class CallHook<T> : IDalamudHook where T : Delegate
 {
     private readonly Reloaded.Hooks.AsmHook asmHook;
-    
+
     private T? detour;
     private bool activated;
 
@@ -29,7 +29,10 @@ internal class CallHook<T> : IDisposable where T : Delegate
     /// <param name="detour">Delegate to invoke.</param>
     internal CallHook(nint address, T detour)
     {
+        ArgumentNullException.ThrowIfNull(detour);
+
         this.detour = detour;
+        this.Address = address;
 
         var detourPtr = Marshal.GetFunctionPointerForDelegate(this.detour);
         var code = new[]
@@ -38,22 +41,31 @@ internal class CallHook<T> : IDisposable where T : Delegate
             $"mov rax, 0x{detourPtr:X8}",
             "call rax",
         };
-        
+
         var opt = new AsmHookOptions
         {
             PreferRelativeJump = true,
             Behaviour = Reloaded.Hooks.Definitions.Enums.AsmHookBehaviour.DoNotExecuteOriginal,
             MaxOpcodeSize = 5,
         };
-        
+
         this.asmHook = new Reloaded.Hooks.AsmHook(code, (nuint)address, opt);
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook is enabled.
+    /// Gets a value indicating whether the hook is enabled.
     /// </summary>
     public bool IsEnabled => this.asmHook.IsEnabled;
-    
+
+    /// <inheritdoc/>
+    public IntPtr Address { get; }
+
+    /// <inheritdoc/>
+    public string BackendName => "Reloaded AsmHook";
+
+    /// <inheritdoc/>
+    public bool IsDisposed => this.detour == null;
+
     /// <summary>
     /// Starts intercepting a call to the function.
     /// </summary>
@@ -65,7 +77,7 @@ internal class CallHook<T> : IDisposable where T : Delegate
             this.asmHook.Activate();
             return;
         }
-        
+
         this.asmHook.Enable();
     }
 

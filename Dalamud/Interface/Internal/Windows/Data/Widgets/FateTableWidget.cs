@@ -69,10 +69,10 @@ internal class FateTableWidget : IDataWindowWidget
             ImGui.TextUnformatted($"#{i}");
 
             ImGui.TableNextColumn(); // Address
-            DrawCopyableText($"0x{fate.Address:X}", "Click to copy Address");
+            WidgetUtil.DrawCopyableText($"0x{fate.Address:X}", "Click to copy Address");
 
             ImGui.TableNextColumn(); // FateId
-            DrawCopyableText(fate.FateId.ToString(), "Click to copy FateId (RowId of Fate sheet)");
+            WidgetUtil.DrawCopyableText(fate.FateId.ToString(), "Click to copy FateId (RowId of Fate sheet)");
 
             ImGui.TableNextColumn(); // State
             ImGui.TextUnformatted(fate.State.ToString());
@@ -140,7 +140,7 @@ internal class FateTableWidget : IDataWindowWidget
 
             ImGui.TableNextColumn(); // Name
 
-            DrawCopyableText(fate.Name.ToString(), "Click to copy Name");
+            WidgetUtil.DrawCopyableText(fate.Name.ToString(), "Click to copy Name");
 
             ImGui.TableNextColumn(); // Progress
             ImGui.TextUnformatted($"{fate.Progress}%");
@@ -153,31 +153,13 @@ internal class FateTableWidget : IDataWindowWidget
             }
 
             ImGui.TableNextColumn(); // HasExpBonus
-            ImGui.TextUnformatted(fate.HasExpBonus.ToString());
+            ImGui.TextUnformatted(fate.HasBonus.ToString());
 
             ImGui.TableNextColumn(); // Position
-            DrawCopyableText(fate.Position.ToString(), "Click to copy Position");
+            WidgetUtil.DrawCopyableText(fate.Position.ToString(), "Click to copy Position");
 
             ImGui.TableNextColumn(); // Radius
-            DrawCopyableText(fate.Radius.ToString(), "Click to copy Radius");
-        }
-    }
-
-    private static void DrawCopyableText(string text, string tooltipText)
-    {
-        ImGuiHelpers.SafeTextWrapped(text);
-
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            ImGui.BeginTooltip();
-            ImGui.TextUnformatted(tooltipText);
-            ImGui.EndTooltip();
-        }
-
-        if (ImGui.IsItemClicked())
-        {
-            ImGui.SetClipboardText(text);
+            WidgetUtil.DrawCopyableText(fate.Radius.ToString(), "Click to copy Radius");
         }
     }
 }

@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,8 +12,11 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
+using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+
+using CSFramework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 
 namespace Dalamud.Game;
 
@@ -31,11 +33,9 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private readonly Stopwatch updateStopwatch = new();
     private readonly HitchDetector hitchDetector;
 
-    private readonly Hook<OnUpdateDetour> updateHook;
-    private readonly Hook<OnRealDestroyDelegate> destroyHook;
+    private readonly Hook<CSFramework.Delegates.Tick> updateHook;
+    private readonly Hook<CSFramework.Delegates.Destroy> destroyHook;
 
-    private readonly FrameworkAddressResolver addressResolver;
-    
     [ServiceManager.ServiceDependency]
     private readonly GameLifecycle lifecycle = Service<GameLifecycle>.Get();
 
@@ -48,15 +48,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     private readonly ConcurrentDictionary<TaskCompletionSource, (ulong Expire, CancellationToken CancellationToken)>
         tickDelayedTaskCompletionSources = new();
 
-    private ulong tickCounter; 
+    private ulong tickCounter;
 
     [ServiceManager.ServiceConstructor]
-    private Framework(TargetSigScanner sigScanner)
+    private unsafe Framework()
     {
         this.hitchDetector = new HitchDetector("FrameworkUpdate", this.configuration.FrameworkUpdateHitch);
-
-        this.addressResolver = new FrameworkAddressResolver();
-        this.addressResolver.Setup(sigScanner);
 
         this.frameworkDestroy = new();
         this.frameworkThreadTaskScheduler = new();
@@ -66,22 +63,12 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             TaskContinuationOptions.None,
             this.frameworkThreadTaskScheduler);
 
-        this.updateHook = Hook<OnUpdateDetour>.FromAddress(this.addressResolver.TickAddress, this.HandleFrameworkUpdate);
-        this.destroyHook = Hook<OnRealDestroyDelegate>.FromAddress(this.addressResolver.DestroyAddress, this.HandleFrameworkDestroy);
+        this.updateHook = Hook<CSFramework.Delegates.Tick>.FromAddress((nint)CSFramework.StaticVirtualTablePointer->Tick, this.HandleFrameworkUpdate);
+        this.destroyHook = Hook<CSFramework.Delegates.Destroy>.FromAddress((nint)CSFramework.StaticVirtualTablePointer->Destroy, this.HandleFrameworkDestroy);
 
         this.updateHook.Enable();
         this.destroyHook.Enable();
     }
-
-    /// <summary>
-    /// A delegate type used during the native Framework::destroy.
-    /// </summary>
-    /// <param name="framework">The native Framework address.</param>
-    /// <returns>A value indicating if the call was successful.</returns>
-    public delegate bool OnRealDestroyDelegate(IntPtr framework);
-
-    [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
-    private delegate bool OnUpdateDetour(IntPtr framework);
 
     /// <inheritdoc/>
     public event IFramework.OnUpdateDelegate? Update;
@@ -390,7 +377,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         }
     }
 
-    private bool HandleFrameworkUpdate(IntPtr framework)
+    private unsafe bool HandleFrameworkUpdate(CSFramework* thisPtr)
     {
         this.frameworkThreadTaskScheduler.BoundThread ??= Thread.CurrentThread;
 
@@ -483,10 +470,10 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         this.hitchDetector.Stop();
 
     original:
-        return this.updateHook.OriginalDisposeSafe(framework);
+        return this.updateHook.OriginalDisposeSafe(thisPtr);
     }
 
-    private bool HandleFrameworkDestroy(IntPtr framework)
+    private unsafe bool HandleFrameworkDestroy(CSFramework* thisPtr)
     {
         this.frameworkDestroy.Cancel();
         this.DispatchUpdateEvents = false;
@@ -504,7 +491,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
         ServiceManager.WaitForServiceUnload();
         Log.Information("Framework::Destroy OK!");
 
-        return this.destroyHook.OriginalDisposeSafe(framework);
+        return this.destroyHook.OriginalDisposeSafe(thisPtr);
     }
 }
 
@@ -518,14 +505,18 @@ internal sealed class Framework : IInternalDisposableService, IFramework
 #pragma warning restore SA1015
 internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
 {
+    private readonly PluginErrorHandler pluginErrorHandler;
+
     [ServiceManager.ServiceDependency]
     private readonly Framework frameworkService = Service<Framework>.Get();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FrameworkPluginScoped"/> class.
     /// </summary>
-    internal FrameworkPluginScoped()
+    /// <param name="pluginErrorHandler">Error handler instance.</param>
+    internal FrameworkPluginScoped(PluginErrorHandler pluginErrorHandler)
     {
+        this.pluginErrorHandler = pluginErrorHandler;
         this.frameworkService.Update += this.OnUpdateForward;
     }
 
@@ -618,7 +609,7 @@ internal class FrameworkPluginScoped : IInternalDisposableService, IFramework
         }
         else
         {
-            this.Update?.Invoke(framework);
+            this.pluginErrorHandler.InvokeAndCatch(this.Update, $"{nameof(IFramework)}::{nameof(IFramework.Update)}", framework);
         }
     }
 }

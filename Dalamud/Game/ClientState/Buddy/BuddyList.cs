@@ -1,14 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 
-using Serilog;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 
 namespace Dalamud.Game.ClientState.Buddy;
 
@@ -28,14 +26,9 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
     [ServiceManager.ServiceDependency]
     private readonly ClientState clientState = Service<ClientState>.Get();
 
-    private readonly ClientStateAddressResolver address;
-
     [ServiceManager.ServiceConstructor]
     private BuddyList()
     {
-        this.address = this.clientState.AddressResolver;
-
-        Log.Verbose($"Buddy list address {Util.DescribeAddress(this.address.BuddyList)}");
     }
 
     /// <inheritdoc/>
@@ -76,14 +69,7 @@ internal sealed partial class BuddyList : IServiceType, IBuddyList
         }
     }
 
-    /// <summary>
-    /// Gets the address of the buddy list.
-    /// </summary>
-    internal IntPtr BuddyListAddress => this.address.BuddyList;
-
-    private static int BuddyMemberSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy.BuddyMember>();
-
-    private unsafe FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy* BuddyListStruct => (FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy*)this.BuddyListAddress;
+    private unsafe FFXIVClientStructs.FFXIV.Client.Game.UI.Buddy* BuddyListStruct => &UIState.Instance()->Buddy;
 
     /// <inheritdoc/>
     public IBuddyMember? this[int index]

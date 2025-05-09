@@ -1,4 +1,5 @@
-﻿using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Internal.Types;
+using Dalamud.Plugin.Internal.Types.Manifest;
 
 namespace Dalamud.Plugin;
 
@@ -21,6 +22,47 @@ public interface IExposedPlugin
     /// Gets a value indicating whether the plugin is loaded.
     /// </summary>
     bool IsLoaded { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin's API level is out of date.
+    /// </summary>
+    bool IsOutdated { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the plugin is for testing use only.
+    /// </summary>
+    bool IsTesting { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is orphaned(belongs to a repo) or not.
+    /// </summary>
+    bool IsOrphaned { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is serviced(repo still exists, but plugin no longer does).
+    /// </summary>
+    bool IsDecommissioned { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin has been banned.
+    /// </summary>
+    bool IsBanned { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this plugin is dev plugin.
+    /// </summary>
+    bool IsDev { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this manifest is associated with a plugin that was installed from a third party
+    /// repo.
+    /// </summary>
+    bool IsThirdParty { get; }
+
+    /// <summary>
+    /// Gets the plugin manifest.
+    /// </summary>
+    ILocalPluginManifest Manifest { get; }
 
     /// <summary>
     /// Gets the version of the plugin.
@@ -73,6 +115,30 @@ internal sealed class ExposedPlugin(LocalPlugin plugin) : IExposedPlugin
 
     /// <inheritdoc/>
     public bool HasConfigUi => plugin.DalamudInterface?.LocalUiBuilder.HasConfigUi ?? false;
+
+    /// <inheritdoc/>
+    public bool IsOutdated => plugin.IsOutdated;
+
+    /// <inheritdoc/>
+    public bool IsTesting => plugin.IsTesting;
+
+    /// <inheritdoc/>
+    public bool IsOrphaned => plugin.IsOrphaned;
+
+    /// <inheritdoc/>
+    public bool IsDecommissioned => plugin.IsDecommissioned;
+
+    /// <inheritdoc/>
+    public bool IsBanned => plugin.IsBanned;
+
+    /// <inheritdoc/>
+    public bool IsDev => plugin.IsDev;
+
+    /// <inheritdoc/>
+    public bool IsThirdParty => plugin.IsThirdParty;
+
+    /// <inheritdoc/>
+    public ILocalPluginManifest Manifest => plugin.Manifest;
 
     /// <inheritdoc/>
     public void OpenMainUi()

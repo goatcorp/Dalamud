@@ -1,7 +1,9 @@
 using System.Numerics;
 
+using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 
@@ -223,7 +225,7 @@ internal unsafe class UiDebug
 
                     ImGui.SameLine();
                     if (ImGui.Button($"Decode##{(ulong)textNode:X}"))
-                        textNode->NodeText.SetString(new ReadOnlySeStringSpan(textNode->NodeText.StringPtr).ToString());
+                        textNode->NodeText.SetString(textNode->NodeText.StringPtr.AsReadOnlySeStringSpan().ToString());
 
                     ImGui.Text($"AlignmentType: {(AlignmentType)textNode->AlignmentFontType}  FontSize: {textNode->FontSize}");
                     int b = textNode->AlignmentFontType;
@@ -300,7 +302,7 @@ internal unsafe class UiDebug
                         {
                             ImGui.Image(
                                 new IntPtr(kernelTexture->D3D11ShaderResourceView),
-                                new Vector2(kernelTexture->Width, kernelTexture->Height));
+                                new Vector2(kernelTexture->ActualWidth, kernelTexture->ActualHeight));
                             ImGui.TreePop();
                         }
                     }
@@ -312,10 +314,36 @@ internal unsafe class UiDebug
                             ImGui.Image(
                                 new IntPtr(textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView),
                                 new Vector2(
-                                    textureInfo->AtkTexture.KernelTexture->Width,
-                                    textureInfo->AtkTexture.KernelTexture->Height));
+                                    textureInfo->AtkTexture.KernelTexture->ActualWidth,
+                                    textureInfo->AtkTexture.KernelTexture->ActualHeight));
                             ImGui.TreePop();
                         }
+                    }
+
+                    if (ImGui.Button($"Replace with a random image##{(ulong)textureInfo:X}"))
+                    {
+                        var texm = Service<TextureManager>.Get();
+                        texm.Shared
+                            .GetFromGame(
+                                Random.Shared.Next(0, 1) == 0
+                                    ? $"ui/loadingimage/-nowloading_base{Random.Shared.Next(1, 33)}.tex"
+                                    : $"ui/loadingimage/-nowloading_base{Random.Shared.Next(1, 33)}_hr1.tex")
+                            .RentAsync()
+                            .ContinueWith(
+                                r => Service<Framework>.Get().RunOnFrameworkThread(
+                                    () =>
+                                    {
+                                        if (!r.IsCompletedSuccessfully)
+                                            return;
+
+                                        using (r.Result)
+                                        {
+                                            textureInfo->AtkTexture.ReleaseTexture();
+                                            textureInfo->AtkTexture.KernelTexture =
+                                                texm.ConvertToKernelTexture(r.Result);
+                                            textureInfo->AtkTexture.TextureType = TextureType.KernelTexture;
+                                        }
+                                    }));
                     }
                 }
             }
@@ -390,27 +418,27 @@ internal unsafe class UiDebug
                     ImGui.Text("InputBase Text1: ");
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText1);
-                    
+
                     ImGui.Text("InputBase Text2: ");
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText2);
-                    
+
                     ImGui.Text("Text1: ");
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText01);
-                    
+
                     ImGui.Text("Text2: ");
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
-                    
+
                     ImGui.Text("Text3: ");
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText03);
-                    
+
                     ImGui.Text("Text4: ");
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText04);
-                    
+
                     ImGui.Text("Text5: ");
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText05);

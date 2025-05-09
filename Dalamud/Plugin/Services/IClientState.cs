@@ -23,6 +23,13 @@ public interface IClientState
     public delegate void LevelChangeDelegate(uint classJobId, uint level);
 
     /// <summary>
+    /// A delegate type used for the <see cref="Logout"/> event.
+    /// </summary>
+    /// <param name="type">The type of logout.</param>
+    /// <param name="code">The success/failure code.</param>
+    public delegate void LogoutDelegate(int type, int code);
+
+    /// <summary>
     /// Event that gets fired when the current Territory changes.
     /// </summary>
     public event Action<ushort> TerritoryChanged;
@@ -46,7 +53,7 @@ public interface IClientState
     /// <summary>
     /// Event that fires when a character is logging out.
     /// </summary>
-    public event Action Logout;
+    public event LogoutDelegate Logout;
 
     /// <summary>
     /// Event that fires when a character is entering PvP.
@@ -61,7 +68,7 @@ public interface IClientState
     /// <summary>
     /// Event that gets fired when a duty is ready.
     /// </summary>
-    public event Action<Lumina.Excel.GeneratedSheets.ContentFinderCondition> CfPop;
+    public event Action<Lumina.Excel.Sheets.ContentFinderCondition> CfPop;
 
     /// <summary>
     /// Gets the language of the client.
@@ -72,7 +79,7 @@ public interface IClientState
     /// Gets the current Territory the player resides in.
     /// </summary>
     public ushort TerritoryType { get; }
-    
+
     /// <summary>
     /// Gets the current Map the player resides in.
     /// </summary>
@@ -94,17 +101,17 @@ public interface IClientState
     public bool IsLoggedIn { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the user is playing PvP.
+    /// Gets a value indicating whether the user is playing PvP.
     /// </summary>
     public bool IsPvP { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the user is playing PvP, excluding the Wolves' Den.
+    /// Gets a value indicating whether the user is playing PvP, excluding the Wolves' Den.
     /// </summary>
     public bool IsPvPExcludingDen { get; }
-    
+
     /// <summary>
-    /// Gets a value indicating whether the client is currently in Group Pose (GPose) mode. 
+    /// Gets a value indicating whether the client is currently in Group Pose (GPose) mode.
     /// </summary>
     public bool IsGPosing { get; }
 

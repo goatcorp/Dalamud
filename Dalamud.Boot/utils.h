@@ -121,7 +121,7 @@ namespace utils {
         memory_tenderizer(const void* pAddress, size_t length, DWORD dwNewProtect);
 
         template<typename T, typename = std::enable_if_t<std::is_trivial_v<T>&& std::is_standard_layout_v<T>>>
-        memory_tenderizer(const T& object, DWORD dwNewProtect) : memory_tenderizer(&object, sizeof T, dwNewProtect) {}
+        memory_tenderizer(const T& object, DWORD dwNewProtect) : memory_tenderizer(&object, sizeof(T), dwNewProtect) {}
 
         template<typename T>
         memory_tenderizer(std::span<const T> s, DWORD dwNewProtect) : memory_tenderizer(&s[0], s.size(), dwNewProtect) {}
@@ -266,6 +266,8 @@ namespace utils {
     std::vector<T> get_env_list(const char* pcszName) {
         return get_env_list<T>(unicode::convert<std::wstring>(pcszName).c_str());
     }
+
+    bool is_running_on_wine();
 
     std::filesystem::path get_module_path(HMODULE hModule);
 

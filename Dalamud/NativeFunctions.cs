@@ -835,7 +835,7 @@ internal static partial class NativeFunctions
         SPI_GETCLIENTAREAANIMATION = 0x1042,
 #pragma warning restore SA1602
     }
-    
+
     /// <summary>
     /// Retrieves or sets the value of one of the system-wide parameters. This function can also update the user profile while setting a parameter.
     /// </summary>
@@ -1428,18 +1428,18 @@ internal static partial class NativeFunctions
         /// created with this option cannot be locked.
         /// </summary>
         NoSerialize = 0x00000001,
-        
+
         /// <summary>
         /// The system raises an exception to indicate failure (for example, an out-of-memory condition) for calls to
         /// HeapAlloc and HeapReAlloc instead of returning NULL.
         /// </summary>
         GenerateExceptions = 0x00000004,
-        
+
         /// <summary>
         /// The allocated memory will be initialized to zero. Otherwise, the memory is not initialized to zero.
         /// </summary>
         ZeroMemory = 0x00000008,
-    
+
         /// <summary>
         /// All memory blocks that are allocated from this heap allow code execution, if the hardware enforces data
         /// execution prevention. Use this flag heap in applications that run code from the heap. If
@@ -1701,7 +1701,7 @@ internal static partial class NativeFunctions
     ///
     /// This value determines the initial amount of memory that is committed for the heap.
     /// The value is rounded up to a multiple of the system page size. The value must be smaller than dwMaximumSize.
-    /// 
+    ///
     /// If this parameter is 0, the function commits one page. To determine the size of a page on the host computer,
     /// use the GetSystemInfo function.
     /// </param>
@@ -1710,12 +1710,12 @@ internal static partial class NativeFunctions
     /// system page size and then reserves a block of that size in the process's virtual address space for the heap.
     /// If allocation requests made by the HeapAlloc or HeapReAlloc functions exceed the size specified by
     /// dwInitialSize, the system commits additional pages of memory for the heap, up to the heap's maximum size.
-    /// 
+    ///
     /// If dwMaximumSize is not zero, the heap size is fixed and cannot grow beyond the maximum size. Also, the largest
     /// memory block that can be allocated from the heap is slightly less than 512 KB for a 32-bit process and slightly
     /// less than 1,024 KB for a 64-bit process. Requests to allocate larger blocks fail, even if the maximum size of
     /// the heap is large enough to contain the block.
-    /// 
+    ///
     /// If dwMaximumSize is 0, the heap can grow in size. The heap's size is limited only by the available memory.
     /// Requests to allocate memory blocks larger than the limit for a fixed-size heap do not automatically fail;
     /// instead, the system calls the VirtualAlloc function to obtain the memory that is needed for large blocks.
@@ -1723,12 +1723,12 @@ internal static partial class NativeFunctions
     /// </param>
     /// <returns>
     /// If the function succeeds, the return value is a handle to the newly created heap.
-    /// 
+    ///
     /// If the function fails, the return value is NULL. To get extended error information, call GetLastError.
     /// </returns>
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern nint HeapCreate(HeapOptions flOptions, nuint dwInitialSize, nuint dwMaximumSize);
-    
+
     /// <summary>
     /// Allocates a block of memory from a heap. The allocated memory is not movable.
     /// </summary>
@@ -1756,7 +1756,7 @@ internal static partial class NativeFunctions
     /// </returns>
     [DllImport("kernel32.dll", SetLastError=false)]
     public static extern nint HeapAlloc(nint hHeap, HeapOptions dwFlags, nuint dwBytes);
-    
+
     /// <summary>
     /// See https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc.
     /// Reserves, commits, or changes the state of a region of pages in the virtual address space of the calling process.
@@ -1987,7 +1987,7 @@ internal static partial class NativeFunctions
     /// <param name="fInvadeProcess">
     /// If this value is <see langword="true"/>, enumerates the loaded modules for the process and effectively calls the SymLoadModule64 function for each module.
     /// </param>
-    /// <returns>Whether or not the function succeeded.</returns>
+    /// <returns>Whether the function succeeded.</returns>
     [DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern bool SymInitialize(IntPtr hProcess, string userSearchPath, bool fInvadeProcess);
 
@@ -1995,7 +1995,7 @@ internal static partial class NativeFunctions
     /// Deallocates all resources associated with the process handle.
     /// </summary>
     /// <param name="hProcess">A handle to the process that was originally passed to the <seealso cref="SymInitialize"/> function.</param>
-    /// <returns>Whether or not the function succeeded.</returns>
+    /// <returns>Whether the function succeeded.</returns>
     [DllImport("dbghelp.dll", SetLastError = true, CharSet = CharSet.Auto)]
     public static extern bool SymCleanup(IntPtr hProcess);
 
@@ -2009,7 +2009,7 @@ internal static partial class NativeFunctions
     /// <param name="exceptionInfo">Exception information.</param>
     /// <param name="userStreamParam">User information.</param>
     /// <param name="callback">Callback.</param>
-    /// <returns>Whether or not the minidump succeeded.</returns>
+    /// <returns>Whether the minidump succeeded.</returns>
     [DllImport("dbghelp.dll")]
     public static extern bool MiniDumpWriteDump(IntPtr hProcess, uint processId, IntPtr hFile, int dumpType, ref MinidumpExceptionInformation exceptionInfo, IntPtr userStreamParam, IntPtr callback);
 

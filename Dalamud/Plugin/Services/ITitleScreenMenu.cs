@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Dalamud.Interface;
-using Dalamud.Interface.Internal;
-using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Textures;
 
 namespace Dalamud.Plugin.Services;
 
@@ -20,22 +19,22 @@ public interface ITitleScreenMenu
     /// Adds a new entry to the title screen menu.
     /// </summary>
     /// <param name="text">The text to show.</param>
-    /// <param name="texture">The texture to show.</param>
+    /// <param name="texture">The texture to show. The texture must be 64x64 or the entry will be removed and an error will be logged.</param>
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="IReadOnlyTitleScreenMenuEntry"/> object that can be reference the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    public IReadOnlyTitleScreenMenuEntry AddEntry(string text, IDalamudTextureWrap texture, Action onTriggered);
+    public IReadOnlyTitleScreenMenuEntry AddEntry(string text, ISharedImmediateTexture texture, Action onTriggered);
 
     /// <summary>
     /// Adds a new entry to the title screen menu.
     /// </summary>
     /// <param name="priority">Priority of the entry.</param>
     /// <param name="text">The text to show.</param>
-    /// <param name="texture">The texture to show.</param>
+    /// <param name="texture">The texture to show. The texture must be 64x64 or the entry will be removed and an error will be logged.</param>
     /// <param name="onTriggered">The action to execute when the option is selected.</param>
     /// <returns>A <see cref="IReadOnlyTitleScreenMenuEntry"/> object that can be used to reference the entry.</returns>
     /// <exception cref="ArgumentException">Thrown when the texture provided does not match the required resolution(64x64).</exception>
-    public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, IDalamudTextureWrap texture, Action onTriggered);
+    public IReadOnlyTitleScreenMenuEntry AddEntry(ulong priority, string text, ISharedImmediateTexture texture, Action onTriggered);
 
     /// <summary>
     /// Remove an entry from the title screen menu.

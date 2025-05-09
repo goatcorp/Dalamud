@@ -1,4 +1,3 @@
-﻿using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -16,14 +15,12 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 using ImGuiNET;
 
-using Lumina.Excel.GeneratedSheets2;
+using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
-
-#pragma warning disable SeStringRenderer
 
 /// <summary>
 /// Widget for displaying Addon Data.
@@ -33,7 +30,6 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     private static readonly string[] ThemeNames = ["Dark", "Light", "Classic FF", "Clear Blue"];
     private ImVectorWrapper<byte> testStringBuffer;
     private string testString = string.Empty;
-    private Addon[]? addons;
     private ReadOnlySeString? logkind;
     private SeStringDrawParams style;
     private bool interactable;
@@ -53,7 +49,6 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
     public void Load()
     {
         this.style = new() { GetEntity = this.GetEntity };
-        this.addons = null;
         this.logkind = null;
         this.testString = string.Empty;
         this.interactable = this.useEntity = true;
@@ -155,9 +150,9 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             if (this.logkind is null)
             {
                 var tt = new SeStringBuilder();
-                foreach (var uc in Service<DataManager>.Get().GetExcelSheet<LogKind>()!)
+                foreach (var uc in Service<DataManager>.Get().GetExcelSheet<LogKind>())
                 {
-                    var ucsp = uc.Format.AsReadOnly().AsSpan();
+                    var ucsp = uc.Format.AsSpan();
                     if (ucsp.IsEmpty)
                         continue;
 
@@ -184,7 +179,6 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         if (ImGui.CollapsingHeader("Addon Table"))
         {
-            this.addons ??= Service<DataManager>.Get().GetExcelSheet<Addon>()!.ToArray();
             if (ImGui.BeginTable("Addon Sheet", 3))
             {
                 ImGui.TableSetupScrollFreeze(0, 1);
@@ -196,26 +190,31 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                     ImGui.CalcTextSize("AAAAAAAAAAAAAAAAA").X);
                 ImGui.TableHeadersRow();
 
+                var addon = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>() ??
+                            throw new InvalidOperationException("Addon sheet not loaded.");
+
                 var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-                clipper.Begin(this.addons.Length);
+                clipper.Begin(addon.Count);
                 while (clipper.Step())
                 {
                     for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                     {
+                        var row = addon.GetRowAt(i);
+
                         ImGui.TableNextRow();
                         ImGui.PushID(i);
 
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
-                        ImGui.TextUnformatted($"{this.addons[i].RowId}");
+                        ImGui.TextUnformatted($"{row.RowId}");
 
                         ImGui.TableNextColumn();
                         ImGui.AlignTextToFramePadding();
-                        ImGuiHelpers.SeStringWrapped(this.addons[i].Text.AsReadOnly(), this.style);
+                        ImGuiHelpers.SeStringWrapped(row.Text, this.style);
 
                         ImGui.TableNextColumn();
                         if (ImGui.Button("Print to Chat"))
-                            Service<ChatGui>.Get().Print(this.addons[i].Text.ToDalamudString());
+                            Service<ChatGui>.Get().Print(row.Text.ToDalamudString());
 
                         ImGui.PopID();
                     }
@@ -239,8 +238,9 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         if (ImGui.Button("Print to Chat Log"))
         {
-            fixed (byte* p = Service<SeStringRenderer>.Get().CompileAndCache(this.testString).Data.Span)
-                Service<ChatGui>.Get().Print(Game.Text.SeStringHandling.SeString.Parse(p));
+            Service<ChatGui>.Get().Print(
+                Game.Text.SeStringHandling.SeString.Parse(
+                    Service<SeStringRenderer>.Get().CompileAndCache(this.testString).Data.Span));
         }
 
         ImGuiHelpers.ScaledDummy(3);

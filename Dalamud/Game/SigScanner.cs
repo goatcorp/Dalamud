@@ -31,7 +31,7 @@ public class SigScanner : IDisposable, ISigScanner
     /// <summary>
     /// Initializes a new instance of the <see cref="SigScanner"/> class using the main module of the current process.
     /// </summary>
-    /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
+    /// <param name="doCopy">Whether to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
     /// <param name="cacheFile">File used to cached signatures.</param>
     public SigScanner(bool doCopy = false, FileInfo? cacheFile = null)
         : this(Process.GetCurrentProcess().MainModule!, doCopy, cacheFile)
@@ -42,7 +42,7 @@ public class SigScanner : IDisposable, ISigScanner
     /// Initializes a new instance of the <see cref="SigScanner"/> class.
     /// </summary>
     /// <param name="module">The ProcessModule to be used for scanning.</param>
-    /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
+    /// <param name="doCopy">Whether to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
     /// <param name="cacheFile">File used to cached signatures.</param>
     public SigScanner(ProcessModule module, bool doCopy = false, FileInfo? cacheFile = null)
     {

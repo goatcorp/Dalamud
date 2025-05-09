@@ -152,6 +152,11 @@ internal class DalamudCommands : IServiceType
                 "DalamudCopyLogHelp",
                 "Copy the dalamud.log file to your clipboard."),
         });
+        // Add the new command handler for toggling multi-monitor option
+        commandManager.AddHandler("/xltogglemultimonitor", new CommandInfo(this.OnToggleMultiMonitorCommand)
+        {
+            HelpMessage = Loc.Localize("DalamudToggleMultiMonitorHelp", "Toggle multi-monitor windows."),
+        });
     }
 
     private void OnUnloadCommand(string command, string arguments)
@@ -178,7 +183,7 @@ internal class DalamudCommands : IServiceType
         if (arguments.IsNullOrWhitespace())
         {
             chatGui.Print(Loc.Localize("DalamudCmdHelpAvailable", "Available commands:"));
-            foreach (var cmd in commandManager.Commands)
+            foreach (var cmd in commandManager.Commands.OrderBy(cInfo => cInfo.Key))
             {
                 if (!cmd.Value.ShowInHelp)
                     continue;
@@ -266,7 +271,7 @@ internal class DalamudCommands : IServiceType
         else
         {
             // Revert to the original BGM by specifying an invalid one
-            gameGui.SetBgm(9999);
+            gameGui.ResetBgm();
         }
     }
 
@@ -414,6 +419,21 @@ internal class DalamudCommands : IServiceType
         var message = Util.CopyFilesToClipboard([logPath])
                           ? Loc.Localize("DalamudLogCopySuccess", "Log file copied to clipboard.")
                           : Loc.Localize("DalamudLogCopyFailure", "Could not copy log file to clipboard.");
+        chatGui.Print(message);
+    }
+
+    private void OnToggleMultiMonitorCommand(string command, string arguments)
+    {
+        var configuration = Service<DalamudConfiguration>.Get();
+        var chatGui = Service<ChatGui>.Get();
+
+        configuration.IsDisableViewport = !configuration.IsDisableViewport;
+        configuration.QueueSave();
+
+        var message = configuration.IsDisableViewport
+            ? Loc.Localize("DalamudMultiMonitorDisabled", "Multi-monitor windows disabled.")
+            : Loc.Localize("DalamudMultiMonitorEnabled", "Multi-monitor windows enabled.");
+
         chatGui.Print(message);
     }
 }

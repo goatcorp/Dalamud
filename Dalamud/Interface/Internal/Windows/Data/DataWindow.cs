@@ -21,6 +21,7 @@ internal class DataWindow : Window, IDisposable
     private readonly IDataWindowWidget[] modules =
     {
         new AddonInspectorWidget(),
+        new AddonInspectorWidget2(),
         new AddonLifecycleWidget(),
         new AddonWidget(),
         new AddressesWidget(),
@@ -42,14 +43,17 @@ internal class DataWindow : Window, IDisposable
         new HookWidget(),
         new IconBrowserWidget(),
         new ImGuiWidget(),
+        new InventoryWidget(),
         new KeyStateWidget(),
         new MarketBoardWidget(),
         new NetworkMonitorWidget(),
+        new NounProcessorWidget(),
         new ObjectTableWidget(),
         new PartyListWidget(),
         new PluginIpcWidget(),
         new SeFontTestWidget(),
         new ServicesWidget(),
+        new SeStringCreatorWidget(),
         new SeStringRendererTestWidget(),
         new StartInfoWidget(),
         new TargetWidget(),
@@ -58,6 +62,7 @@ internal class DataWindow : Window, IDisposable
         new ToastWidget(),
         new UiColorWidget(),
         new UldWidget(),
+        new VfsWidget(),
     };
 
     private readonly IOrderedEnumerable<IDataWindowWidget> orderedModules;
@@ -65,6 +70,7 @@ internal class DataWindow : Window, IDisposable
     private bool isExcept;
     private bool selectionCollapsed;
     private IDataWindowWidget currentWidget;
+    private bool isLoaded;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataWindow"/> class.
@@ -78,8 +84,6 @@ internal class DataWindow : Window, IDisposable
         this.RespectCloseHotkey = false;
         this.orderedModules = this.modules.OrderBy(module => module.DisplayName);
         this.currentWidget = this.orderedModules.First();
-
-        this.Load();
     }
 
     /// <inheritdoc/>
@@ -88,6 +92,7 @@ internal class DataWindow : Window, IDisposable
     /// <inheritdoc/>
     public override void OnOpen()
     {
+        this.Load();
     }
 
     /// <inheritdoc/>
@@ -180,6 +185,7 @@ internal class DataWindow : Window, IDisposable
 
             if (ImGuiComponents.IconButton("forceReload", FontAwesomeIcon.Sync))
             {
+                this.isLoaded = false;
                 this.Load();
             }
 
@@ -233,6 +239,11 @@ internal class DataWindow : Window, IDisposable
 
     private void Load()
     {
+        if (this.isLoaded)
+            return;
+
+        this.isLoaded = true;
+
         foreach (var widget in this.modules)
         {
             widget.Load();

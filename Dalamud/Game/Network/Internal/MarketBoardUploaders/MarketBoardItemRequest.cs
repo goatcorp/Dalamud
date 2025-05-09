@@ -21,7 +21,7 @@ internal class MarketBoardItemRequest
     public uint Status { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this request was successful.
+    /// Gets a value indicating whether this request was successful.
     /// </summary>
     public bool Ok => this.Status == 0;
 
@@ -29,6 +29,11 @@ internal class MarketBoardItemRequest
     /// Gets the amount to arrive.
     /// </summary>
     public uint AmountToArrive { get; private set; }
+
+    /// <summary>
+    /// Gets or sets the offered catalog id used in this listing.
+    /// </summary>
+    public uint CatalogId { get; internal set; }
 
     /// <summary>
     /// Gets the offered item listings.

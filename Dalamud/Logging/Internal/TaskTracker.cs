@@ -200,22 +200,22 @@ internal class TaskTracker : IInternalDisposableService
         public StackTrace? StackTrace { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the task was completed.
+        /// Gets or sets a value indicating whether the task was completed.
         /// </summary>
         public bool IsCompleted { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the task faulted.
+        /// Gets or sets a value indicating whether the task faulted.
         /// </summary>
         public bool IsFaulted { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the task was canceled.
+        /// Gets or sets a value indicating whether the task was canceled.
         /// </summary>
         public bool IsCanceled { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the task was completed successfully.
+        /// Gets or sets a value indicating whether the task was completed successfully.
         /// </summary>
         public bool IsCompletedSuccessfully { get; set; }
 

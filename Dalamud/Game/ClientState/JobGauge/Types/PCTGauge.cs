@@ -14,7 +14,7 @@ public unsafe class PCTGauge : JobGaugeBase<PictomancerGauge>
     /// Initializes a new instance of the <see cref="PCTGauge"/> class.
     /// </summary>
     /// <param name="address">Address of the job gauge.</param>
-    internal PCTGauge(IntPtr address) 
+    internal PCTGauge(IntPtr address)
         : base(address)
     {
     }
@@ -28,29 +28,29 @@ public unsafe class PCTGauge : JobGaugeBase<PictomancerGauge>
     /// Gets the amount of paint the player has.
     /// </summary>
     public byte Paint => Struct->Paint;
-    
+
     /// <summary>
-    /// Gets a value indicating whether or not a creature motif is drawn.
+    /// Gets a value indicating whether a creature motif is drawn.
     /// </summary>
     public bool CreatureMotifDrawn => Struct->CreatureMotifDrawn;
 
     /// <summary>
-    /// Gets a value indicating whether or not a weapon motif is drawn.
+    /// Gets a value indicating whether a weapon motif is drawn.
     /// </summary>
     public bool WeaponMotifDrawn => Struct->WeaponMotifDrawn;
 
     /// <summary>
-    /// Gets a value indicating whether or not a landscape motif is drawn.
+    /// Gets a value indicating whether a landscape motif is drawn.
     /// </summary>
     public bool LandscapeMotifDrawn => Struct->LandscapeMotifDrawn;
 
     /// <summary>
-    /// Gets a value indicating whether or not a moogle portrait is ready.
+    /// Gets a value indicating whether a moogle portrait is ready.
     /// </summary>
     public bool MooglePortraitReady => Struct->MooglePortraitReady;
-    
+
     /// <summary>
-    /// Gets a value indicating whether or not a madeen portrait is ready.
+    /// Gets a value indicating whether a madeen portrait is ready.
     /// </summary>
     public bool MadeenPortraitReady => Struct->MadeenPortraitReady;
 

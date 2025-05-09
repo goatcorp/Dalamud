@@ -18,13 +18,14 @@ public static class ThreadSafety
     /// <summary>
     /// Throws an exception when the current thread is not the main thread.
     /// </summary>
+    /// <param name="message">The message to be passed into the exception, if one is to be thrown.</param>
     /// <exception cref="InvalidOperationException">Thrown when the current thread is not the main thread.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void AssertMainThread()
+    public static void AssertMainThread(string? message = null)
     {
         if (!threadStaticIsMainThread)
         {
-            throw new InvalidOperationException("Not on main thread!");
+            throw new InvalidOperationException(message ?? "Not on main thread!");
         }
     }
 

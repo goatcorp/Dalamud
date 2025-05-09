@@ -3,9 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Data;
+using Dalamud.Utility;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 
@@ -14,8 +17,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class ItemPayload : Payload
 {
-    private Item? item;
-
     // mainly to allow overriding the name (for things like owo)
     // TODO: even though this is present in some item links, it may not really have a use at all
     //   For things like owo, changing the text payload is probably correct, whereas changing the
@@ -30,7 +31,7 @@ public class ItemPayload : Payload
     /// Creates a payload representing an interactable item link for the specified item.
     /// </summary>
     /// <param name="itemId">The id of the item.</param>
-    /// <param name="isHq">Whether or not the link should be for the high-quality variant of the item.</param>
+    /// <param name="isHq">Whether the link should be for the high-quality variant of the item.</param>
     /// <param name="displayNameOverride">An optional name to include in the item link.  Typically this should
     /// be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
     /// TextPayload that is a part of a full item link in chat.</param>
@@ -74,6 +75,7 @@ public class ItemPayload : Payload
     /// <summary>
     /// Kinds of items that can be fetched from this payload.
     /// </summary>
+    [Api13ToDo("Move this out of ItemPayload. It's used in other classes too.")]
     public enum ItemKind : uint
     {
         /// <summary>
@@ -122,7 +124,7 @@ public class ItemPayload : Payload
     /// Gets the actual item ID of this payload.
     /// </summary>
     [JsonIgnore]
-    public uint ItemId => GetAdjustedId(this.rawItemId).ItemId;
+    public uint ItemId => ItemUtil.GetBaseId(this.rawItemId).ItemId;
 
     /// <summary>
     /// Gets the raw, unadjusted item ID of this payload.
@@ -131,30 +133,16 @@ public class ItemPayload : Payload
     public uint RawItemId => this.rawItemId;
 
     /// <summary>
-    /// Gets the underlying Lumina Item represented by this payload.
+    /// Gets the underlying Lumina data represented by this payload. This is either a Item or EventItem <see cref="RowRef{T}"/>.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public Item? Item
-    {
-        get
-        {
-            // TODO(goat): This should be revamped/removed on an API level change.
-            if (this.Kind == ItemKind.EventItem)
-            {
-                Log.Warning("Event items cannot be fetched from the ItemPayload");
-                return null;
-            }
-
-            this.item ??= this.DataResolver.GetExcelSheet<Item>()!.GetRow(this.ItemId);
-            return this.item;
-        }
-    }
+    public RowRef Item =>
+        this.Kind == ItemKind.EventItem
+            ? (RowRef)LuminaUtils.CreateRef<EventItem>(this.ItemId)
+            : (RowRef)LuminaUtils.CreateRef<Item>(this.ItemId);
 
     /// <summary>
-    /// Gets a value indicating whether or not this item link is for a high-quality version of the item.
+    /// Gets a value indicating whether this item link is for a high-quality version of the item.
     /// </summary>
     [JsonProperty]
     public bool IsHQ => this.Kind == ItemKind.Hq;
@@ -176,14 +164,15 @@ public class ItemPayload : Payload
     /// <returns>The created item payload.</returns>
     public static ItemPayload FromRaw(uint rawItemId, string? displayNameOverride = null)
     {
-        var (id, kind) = GetAdjustedId(rawItemId);
+        var (id, kind) = ItemUtil.GetBaseId(rawItemId);
         return new ItemPayload(id, kind, displayNameOverride);
     }
 
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{this.Type} - ItemId: {this.ItemId}, Kind: {this.Kind}, Name: {this.displayName ?? this.Item?.Name}";
+        var name = this.displayName ?? (this.Item.GetValueOrDefault<Item>()?.Name ?? this.Item.GetValueOrDefault<EventItem>()?.Name)?.ExtractText();
+        return $"{this.Type} - ItemId: {this.ItemId}, Kind: {this.Kind}, Name: {name}";
     }
 
     /// <inheritdoc/>
@@ -244,7 +233,7 @@ public class ItemPayload : Payload
     protected override void DecodeImpl(BinaryReader reader, long endOfStream)
     {
         this.rawItemId = GetInteger(reader);
-        this.Kind = GetAdjustedId(this.rawItemId).Kind;
+        this.Kind = ItemUtil.GetBaseId(this.rawItemId).Kind;
 
         if (reader.BaseStream.Position + 3 < endOfStream)
         {
@@ -268,16 +257,5 @@ public class ItemPayload : Payload
 
             this.displayName = Encoding.UTF8.GetString(itemNameBytes);
         }
-    }
-
-    private static (uint ItemId, ItemKind Kind) GetAdjustedId(uint rawItemId)
-    {
-        return rawItemId switch
-        {
-            > 500_000 and < 1_000_000 => (rawItemId - 500_000, ItemKind.Collectible),
-            > 1_000_000 and < 2_000_000 => (rawItemId - 1_000_000, ItemKind.Hq),
-            > 2_000_000 => (rawItemId, ItemKind.EventItem), // EventItem IDs are NOT adjusted
-            _ => (rawItemId, ItemKind.Normal),
-        };
     }
 }

@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Lumina.Excel.GeneratedSheets;
+using Dalamud.Data;
+
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 
 namespace Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -11,8 +14,6 @@ namespace Dalamud.Game.Text.SeStringHandling.Payloads;
 /// </summary>
 public class QuestPayload : Payload
 {
-    private Quest quest;
-
     [JsonProperty]
     private uint questId;
 
@@ -40,16 +41,13 @@ public class QuestPayload : Payload
     /// <summary>
     /// Gets the underlying Lumina Quest represented by this payload.
     /// </summary>
-    /// <remarks>
-    /// The value is evaluated lazily and cached.
-    /// </remarks>
     [JsonIgnore]
-    public Quest Quest => this.quest ??= this.DataResolver.GetExcelSheet<Quest>().GetRow(this.questId);
+    public RowRef<Quest> Quest => LuminaUtils.CreateRef<Quest>(this.questId);
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"{this.Type} - QuestId: {this.questId}, Name: {this.Quest?.Name ?? "QUEST NOT FOUND"}";
+        return $"{this.Type} - QuestId: {this.questId}, Name: {this.Quest.ValueNullable?.Name.ExtractText() ?? "QUEST NOT FOUND"}";
     }
 
     /// <inheritdoc/>

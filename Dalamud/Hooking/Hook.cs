@@ -59,18 +59,23 @@ public abstract class Hook<T> : IDalamudHook where T : Delegate
         => this.IsDisposed ? Marshal.GetDelegateForFunctionPointer<T>(this.address) : this.Original;
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook is enabled.
+    /// Gets a value indicating whether the hook is enabled.
     /// </summary>
     public virtual bool IsEnabled => throw new NotImplementedException();
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook has been disposed.
+    /// Gets a value indicating whether the hook has been disposed.
     /// </summary>
     public bool IsDisposed { get; private set; }
 
     /// <inheritdoc/>
     public virtual string BackendName => throw new NotImplementedException();
-    
+
+    /// <summary>
+    /// Gets the unique GUID for this hook.
+    /// </summary>
+    protected Guid HookId { get; } = Guid.NewGuid();
+
     /// <summary>
     /// Remove a hook from the current process.
     /// </summary>

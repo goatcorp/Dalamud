@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -139,17 +138,19 @@ internal unsafe class PluginEventController : IDisposable
         // Is our stored addon pointer the same as the active addon pointer?
         if (currentAddonPointer != eventEntry.Addon) return;
 
-        // Does this addon contain the node this event is for? (by address)
+        // Make sure the addon is not unloaded
         var atkUnitBase = (AtkUnitBase*)currentAddonPointer;
+        if (atkUnitBase->UldManager.LoadedState == AtkLoadState.Unloaded) return;
+
+        // Does this addon contain the node this event is for? (by address)
         var nodeFound = false;
-        foreach (var index in Enumerable.Range(0, atkUnitBase->UldManager.NodeListCount))
+        foreach (var node in atkUnitBase->UldManager.Nodes)
         {
-            var node = atkUnitBase->UldManager.NodeList[index];
-            
             // If this node matches our node, then we know our node is still valid.
-            if (node is not null && (nint)node == eventEntry.Node)
+            if ((nint)node.Value == eventEntry.Node)
             {
                 nodeFound = true;
+                break;
             }
         }
         
@@ -165,7 +166,7 @@ internal unsafe class PluginEventController : IDisposable
         {
             var paramKeyMatches = currentEvent->Param == eventEntry.ParamKey;
             var eventListenerAddressMatches = (nint)currentEvent->Listener == this.EventListener.Address;
-            var eventTypeMatches = currentEvent->Type == eventType;
+            var eventTypeMatches = currentEvent->State.EventType == eventType;
             
             if (paramKeyMatches && eventListenerAddressMatches && eventTypeMatches)
             {

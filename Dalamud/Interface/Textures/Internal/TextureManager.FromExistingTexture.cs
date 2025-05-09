@@ -2,13 +2,14 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Textures.TextureWraps.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using Dalamud.Utility.TerraFxCom;
+
+using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -18,6 +19,69 @@ namespace Dalamud.Interface.Textures.Internal;
 /// <summary>Service responsible for loading and disposing ImGui texture wraps.</summary>
 internal sealed partial class TextureManager
 {
+    /// <inheritdoc/>
+    unsafe nint ITextureProvider.ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen) =>
+        (nint)this.ConvertToKernelTexture(wrap, leaveWrapOpen);
+
+    /// <inheritdoc cref="ITextureProvider.ConvertToKernelTexture"/>
+    public unsafe Texture* ConvertToKernelTexture(IDalamudTextureWrap wrap, bool leaveWrapOpen = false)
+    {
+        using var wrapAux = new WrapAux(wrap, leaveWrapOpen);
+
+        var flags = TextureFlags.TextureType2D;
+        if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_IMMUTABLE)
+            flags |= TextureFlags.Immutable;
+        if (wrapAux.Desc.Usage == D3D11_USAGE.D3D11_USAGE_DYNAMIC)
+            flags |= TextureFlags.ReadWrite;
+        if ((wrapAux.Desc.CPUAccessFlags & (uint)D3D11_CPU_ACCESS_FLAG.D3D11_CPU_ACCESS_READ) != 0)
+            flags |= TextureFlags.CpuRead;
+        if ((wrapAux.Desc.BindFlags & (uint)D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET) != 0)
+            flags |= TextureFlags.TextureRenderTarget;
+        if ((wrapAux.Desc.BindFlags & (uint)D3D11_BIND_FLAG.D3D11_BIND_DEPTH_STENCIL) != 0)
+            flags |= TextureFlags.TextureDepthStencil;
+        if (wrapAux.Desc.ArraySize != 1)
+            throw new NotSupportedException("TextureArray2D is currently not supported.");
+
+        var gtex = Texture.CreateTexture2D(
+            (int)wrapAux.Desc.Width,
+            (int)wrapAux.Desc.Height,
+            (byte)wrapAux.Desc.MipLevels,
+            0, // instructs the game to skip preprocessing it seems
+            flags,
+            0);
+
+        // Kernel::Texture owns these resources. We're passing the ownership to them.
+        wrapAux.TexPtr->AddRef();
+        wrapAux.SrvPtr->AddRef();
+
+        // Not sure this is needed
+        gtex->TextureFormat = wrapAux.Desc.Format switch
+        {
+            DXGI_FORMAT.DXGI_FORMAT_R32G32B32A32_FLOAT => TextureFormat.R32G32B32A32_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_FLOAT => TextureFormat.R16G16B16A16_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R32G32_FLOAT => TextureFormat.R32G32_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R16G16_FLOAT => TextureFormat.R16G16_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R32_FLOAT => TextureFormat.R32_FLOAT,
+            DXGI_FORMAT.DXGI_FORMAT_R24G8_TYPELESS => TextureFormat.D24_UNORM_S8_UINT,
+            DXGI_FORMAT.DXGI_FORMAT_R16_TYPELESS => TextureFormat.D16_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_A8_UNORM => TextureFormat.A8_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM => TextureFormat.BC1_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC2_UNORM => TextureFormat.BC2_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM => TextureFormat.BC3_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC5_UNORM => TextureFormat.BC5_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_B4G4R4A4_UNORM => TextureFormat.B4G4R4A4_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_B5G5R5A1_UNORM => TextureFormat.B5G5R5A1_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM => TextureFormat.B8G8R8A8_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM => TextureFormat.B8G8R8X8_UNORM,
+            DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM => TextureFormat.BC7_UNORM,
+            _ => 0,
+        };
+
+        gtex->D3D11Texture2D = wrapAux.TexPtr;
+        gtex->D3D11ShaderResourceView = wrapAux.SrvPtr;
+        return gtex;
+    }
+
     /// <inheritdoc/>
     bool ITextureProvider.IsDxgiFormatSupportedForCreateFromExistingTextureAsync(int dxgiFormat) =>
         this.IsDxgiFormatSupportedForCreateFromExistingTextureAsync((DXGI_FORMAT)dxgiFormat);

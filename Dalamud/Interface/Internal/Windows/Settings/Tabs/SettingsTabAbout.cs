@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -140,7 +140,7 @@ Dale
 Arcane Disgea
 Risu
 Tom
-Blyoom
+Blooym
 Valk
 
 
@@ -194,6 +194,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
     private readonly IFontAtlas privateAtlas;
 
     private string creditsText;
+    private bool isBgmSet;
 
     private bool resetNow = false;
     private IDalamudTextureWrap? logoTexture;
@@ -222,10 +223,13 @@ Contribute at: https://github.com/goatcorp/Dalamud
 
         this.creditsText = string.Format(CreditsTextTempl, typeof(Dalamud).Assembly.GetName().Version, pluginCredits, Util.GetGitHashClientStructs());
 
-        var gg = Service<GameGui>.Get();
-        if (!gg.IsOnTitleScreen() && UIState.Instance() != null)
+        var gameGui = Service<GameGui>.Get();
+        var playerState = PlayerState.Instance();
+
+        if (!gameGui.IsInLobby() && playerState != null)
         {
-            gg.SetBgm((ushort)(UIState.Instance()->PlayerState.MaxExpansion > 3 ? 833 : 132));
+            gameGui.SetBgm((ushort)(playerState->MaxExpansion > 3 ? 833 : 132));
+            this.isBgmSet = true;
         }
 
         this.creditsThrottler.Restart();
@@ -242,9 +246,15 @@ Contribute at: https://github.com/goatcorp/Dalamud
     {
         this.creditsThrottler.Reset();
 
-        var gg = Service<GameGui>.Get();
-        if (!gg.IsOnTitleScreen())
-            gg.SetBgm(9999);
+        if (this.isBgmSet)
+        {
+            var gameGui = Service<GameGui>.Get();
+
+            if (!gameGui.IsInLobby())
+                gameGui.ResetBgm();
+
+            this.isBgmSet = false;
+        }
 
         Service<DalamudInterface>.Get().SetCreditsDarkeningAnimation(false);
     }

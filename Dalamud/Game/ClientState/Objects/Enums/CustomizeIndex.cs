@@ -42,7 +42,7 @@ public enum CustomizeIndex
     HairStyle = 0x06,
 
     /// <summary>
-    /// Whether or not the character has hair highlights.
+    /// Whether the character has hair highlights.
     /// </summary>
     HasHighlights = 0x07, // negative to enable, positive to disable
 

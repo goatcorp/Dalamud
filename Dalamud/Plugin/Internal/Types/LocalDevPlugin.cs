@@ -15,7 +15,7 @@ namespace Dalamud.Plugin.Internal.Types;
 /// This class represents a dev plugin and all facets of its lifecycle.
 /// The DLL on disk, dependencies, loaded assembly, etc.
 /// </summary>
-internal class LocalDevPlugin : LocalPlugin
+internal sealed class LocalDevPlugin : LocalPlugin
 {
     private static readonly ModuleLog Log = new("PLUGIN");
 
@@ -41,7 +41,7 @@ internal class LocalDevPlugin : LocalPlugin
             configuration.DevPluginSettings[dllFile.FullName] = this.devSettings = new DevPluginSettings();
             configuration.QueueSave();
         }
-        
+
         // Legacy dev plugins might not have this!
         if (this.devSettings.WorkingPluginId == Guid.Empty)
         {
@@ -85,7 +85,17 @@ internal class LocalDevPlugin : LocalPlugin
             }
         }
     }
-    
+
+    /// <summary>
+    /// Gets or sets a value indicating whether users should be notified when this plugin
+    /// is causing errors.
+    /// </summary>
+    public bool NotifyForErrors
+    {
+        get => this.devSettings.NotifyForErrors;
+        set => this.devSettings.NotifyForErrors = value;
+    }
+
     /// <summary>
     /// Gets an ID uniquely identifying this specific instance of a devPlugin.
     /// </summary>
@@ -152,7 +162,7 @@ internal class LocalDevPlugin : LocalPlugin
         if (manifestPath.Exists)
             this.manifest = LocalPluginManifest.Load(manifestPath) ?? throw new Exception("Could not reload manifest.");
     }
-    
+
     /// <inheritdoc/>
     protected override void OnPreReload()
     {

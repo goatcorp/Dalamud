@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
 
 using Dalamud.Interface.ImGuiNotification.Internal;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
+using Serilog;
 
 namespace Dalamud.Interface.ImGuiNotification;
-
 /// <summary>Represents a blueprint for a notification.</summary>
 public sealed record Notification : INotification
 {
@@ -30,14 +30,7 @@ public sealed record Notification : INotification
     public INotificationIcon? Icon { get; set; }
 
     /// <inheritdoc/>
-    public IDalamudTextureWrap? IconTexture
-    {
-        get => this.IconTextureTask?.IsCompletedSuccessfully is true ? this.IconTextureTask.Result : null;
-        set => this.IconTextureTask = value is null ? null : Task.FromResult(value);
-    }
-
-    /// <inheritdoc/>
-    public Task<IDalamudTextureWrap?>? IconTextureTask { get; set; }
+    public ISharedImmediateTexture? IconTexture { get; set; }
 
     /// <inheritdoc/>
     public DateTime HardExpiry { get; set; } = DateTime.MaxValue;

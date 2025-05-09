@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -12,7 +13,7 @@ namespace Dalamud.IoC.Internal;
 
 /// <summary>
 /// A simple singleton-only IOC container that provides (optional) version-based dependency resolution.
-/// 
+///
 /// This is only used to resolve dependencies for plugins.
 /// Dalamud services are constructed via Service{T}.ConstructObject at the moment.
 /// </summary>
@@ -29,13 +30,18 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// </summary>
     public ServiceContainer()
     {
+        // Register the service container itself as a singleton.
+        // For all other services, this is done through the static constructor of Service{T}.
+        this.instances.Add(
+            typeof(IServiceContainer),
+            new(new Task<WeakReference>(() => new WeakReference(this), TaskCreationOptions.RunContinuationsAsynchronously), typeof(ServiceContainer), ObjectInstanceVisibility.Internal));
     }
-    
+
     /// <summary>
     /// Gets a dictionary of all registered instances.
     /// </summary>
     public IReadOnlyDictionary<Type, ObjectInstance> Instances => this.instances;
-    
+
     /// <summary>
     /// Gets a dictionary mapping interfaces to their implementations.
     /// </summary>
@@ -45,15 +51,13 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// Register a singleton object of any type into the current IOC container.
     /// </summary>
     /// <param name="instance">The existing instance to register in the container.</param>
+    /// <param name="visibility">The visibility of this singleton.</param>
     /// <typeparam name="T">The type to register.</typeparam>
-    public void RegisterSingleton<T>(Task<T> instance)
+    public void RegisterSingleton<T>(Task<T> instance, ObjectInstanceVisibility visibility)
     {
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
-        this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T));
+        this.instances[typeof(T)] = new(instance.ContinueWith(x => new WeakReference(x.Result)), typeof(T), visibility);
     }
 
     /// <summary>
@@ -69,7 +73,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         foreach (var resolvableType in resolveViaTypes)
         {
             Log.Verbose("=> {InterfaceName} provides for {TName}", resolvableType.FullName ?? "???", type.FullName ?? "???");
-            
+
             Debug.Assert(!this.interfaceToTypeMap.ContainsKey(resolvableType), "A service already implements this interface, this is not allowed");
             Debug.Assert(type.IsAssignableTo(resolvableType), "Service does not inherit from indicated ResolveVia type");
 
@@ -81,10 +85,11 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     /// Create an object.
     /// </summary>
     /// <param name="objectType">The type of object to create.</param>
+    /// <param name="allowedVisibility">Defines which services are allowed to be directly resolved into this type.</param>
     /// <param name="scopedObjects">Scoped objects to be included in the constructor.</param>
     /// <param name="scope">The scope to be used to create scoped services.</param>
     /// <returns>The created object.</returns>
-    public async Task<object> CreateAsync(Type objectType, object[] scopedObjects, IServiceScope? scope = null)
+    public async Task<object> CreateAsync(Type objectType, ObjectInstanceVisibility allowedVisibility, object[] scopedObjects, IServiceScope? scope = null)
     {
         var errorStep = "constructor lookup";
 
@@ -174,7 +179,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     {
         if (this.interfaceToTypeMap.TryGetValue(serviceType, out var implementingType))
             serviceType = implementingType;
-        
+
         if (serviceType.GetCustomAttribute<ServiceManager.ScopedServiceAttribute>() != null)
         {
             if (scope == null)
@@ -211,7 +216,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
     private ConstructorInfo? FindApplicableCtor(Type type, object[] scopedObjects)
     {
         // get a list of all the available types: scoped and singleton
-        var types = scopedObjects
+        var allValidServiceTypes = scopedObjects
                     .Select(o => o.GetType())
                     .Union(this.instances.Keys)
                     .ToArray();
@@ -224,7 +229,7 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         var ctors = type.GetConstructors(ctorFlags);
         foreach (var ctor in ctors)
         {
-            if (this.ValidateCtor(ctor, types))
+            if (this.ValidateCtor(ctor, allValidServiceTypes))
             {
                 return ctor;
             }
@@ -233,28 +238,30 @@ internal class ServiceContainer : IServiceProvider, IServiceType
         return null;
     }
 
-    private bool ValidateCtor(ConstructorInfo ctor, Type[] types)
+    private bool ValidateCtor(ConstructorInfo ctor, Type[] validTypes)
     {
         bool IsTypeValid(Type type)
         {
-            var contains = types.Any(x => x.IsAssignableTo(type));
+            var contains = validTypes.Any(x => x.IsAssignableTo(type));
 
             // Scoped services are created on-demand
             return contains || type.GetCustomAttribute<ServiceManager.ScopedServiceAttribute>() != null;
         }
-        
+
         var parameters = ctor.GetParameters();
         foreach (var parameter in parameters)
         {
             var valid = IsTypeValid(parameter.ParameterType);
-            
+
             // If this service is provided by an interface
             if (!valid && this.interfaceToTypeMap.TryGetValue(parameter.ParameterType, out var implementationType))
                 valid = IsTypeValid(implementationType);
 
             if (!valid)
             {
-                Log.Error("Failed to validate {TypeName}, unable to find any services that satisfy the type", parameter.ParameterType.FullName!);
+                Log.Error("Ctor from {DeclaringType}: Failed to validate {TypeName}, unable to find any services that satisfy the type",
+                          ctor.DeclaringType?.FullName ?? ctor.DeclaringType?.Name ?? "null",
+                          parameter.ParameterType.FullName!);
                 return false;
             }
         }

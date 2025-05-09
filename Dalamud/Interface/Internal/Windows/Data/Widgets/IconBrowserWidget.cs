@@ -17,6 +17,8 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 /// </summary>
 public class IconBrowserWidget : IDataWindowWidget
 {
+    private const int MaxIconId = 250_000;
+
     private Vector2 iconSize = new(64.0f, 64.0f);
     private Vector2 editIconSize = new(64.0f, 64.0f);
 
@@ -24,7 +26,7 @@ public class IconBrowserWidget : IDataWindowWidget
     private Task<List<(int ItemId, string Path)>>? iconIdsTask;
 
     private int startRange;
-    private int stopRange = 200000;
+    private int stopRange = MaxIconId;
     private bool showTooltipImage;
 
     private Vector2 mouseDragStart;
@@ -53,8 +55,8 @@ public class IconBrowserWidget : IDataWindowWidget
             {
                 var texm = Service<TextureManager>.Get();
 
-                var result = new List<(int ItemId, string Path)>(200000);
-                for (var iconId = 0; iconId < 200000; iconId++)
+                var result = new List<(int ItemId, string Path)>(MaxIconId);
+                for (var iconId = 0; iconId < MaxIconId; iconId++)
                 {
                     // // Remove range 170,000 -> 180,000 by default, this specific range causes exceptions.
                     // if (iconId is >= 170000 and < 180000)
@@ -119,12 +121,18 @@ public class IconBrowserWidget : IDataWindowWidget
 
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
         if (ImGui.InputInt("##StartRange", ref this.startRange, 0, 0))
+        {
+            this.startRange = Math.Clamp(this.startRange, 0, MaxIconId);
             this.valueRange = null;
+        }
 
         ImGui.NextColumn();
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
         if (ImGui.InputInt("##StopRange", ref this.stopRange, 0, 0))
+        {
+            this.stopRange = Math.Clamp(this.stopRange, 0, MaxIconId);
             this.valueRange = null;
+        }
 
         ImGui.NextColumn();
         ImGui.Checkbox("Show Image in Tooltip", ref this.showTooltipImage);
@@ -195,7 +203,7 @@ public class IconBrowserWidget : IDataWindowWidget
                     ImGui.GetColorU32(ImGuiColors.DalamudRed),
                     iconText);
             }
-            
+
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip($"{iconId}\n{exc}".Replace("%", "%%"));
 
@@ -215,7 +223,7 @@ public class IconBrowserWidget : IDataWindowWidget
                     cursor + ((this.iconSize - textSize) / 2),
                     color,
                     text);
-            
+
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(iconId.ToString());
 

@@ -739,4 +739,49 @@ public enum BitmapFontIcon : uint
     /// The Venture Delivery Moogle icon.
     /// </summary>
     VentureDeliveryMoogle = 172,
+
+    /// <summary>
+    /// The Watching Cutscene icon.
+    /// </summary>
+    WatchingCutscene = 173,
+
+    /// <summary>
+    /// The Away from Keyboard icon.
+    /// </summary>
+    Away = 174,
+
+    /// <summary>
+    /// The Camera Mode icon.
+    /// </summary>
+    CameraMode = 175,
+
+    /// <summary>
+    /// The Looking For Party icon.
+    /// </summary>
+    LookingForParty = 176,
+
+    /// <summary>
+    /// The Group Finder icon.
+    /// </summary>
+    GroupFinder = 177,
+
+    /// <summary>
+    /// The Party Leader icon.
+    /// </summary>
+    PartyLeader = 178,
+
+    /// <summary>
+    /// The Party Member icon.
+    /// </summary>
+    PartyMember = 179,
+
+    /// <summary>
+    /// The Cross-World Party Leader icon.
+    /// </summary>
+    CrossWorldPartyLeader = 180,
+
+    /// <summary>
+    /// The Cross-World Party Member icon.
+    /// </summary>
+    CrossWorldPartyMember = 181,
 }

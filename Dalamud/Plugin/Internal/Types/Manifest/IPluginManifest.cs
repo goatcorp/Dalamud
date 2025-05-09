@@ -16,7 +16,7 @@ public interface IPluginManifest
     /// Gets the public name of the plugin.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets a punchline of the plugins functions.
     /// </summary>
@@ -26,7 +26,7 @@ public interface IPluginManifest
     /// Gets the author/s of the plugin.
     /// </summary>
     public string Author { get; }
-    
+
     /// <summary>
     /// Gets a value indicating whether the plugin can be unloaded asynchronously.
     /// </summary>
@@ -41,17 +41,22 @@ public interface IPluginManifest
     /// Gets the assembly version of the plugin's testing variant.
     /// </summary>
     public Version? TestingAssemblyVersion { get; }
-    
+
+    /// <summary>
+    /// Gets the minimum Dalamud assembly version this plugin requires.
+    /// </summary>
+    public Version? MinimumDalamudVersion { get; }
+
     /// <summary>
     /// Gets the DIP17 channel name.
     /// </summary>
     public string? Dip17Channel { get; }
-    
+
     /// <summary>
     /// Gets the last time this plugin was updated.
     /// </summary>
     public long LastUpdate { get; }
-    
+
     /// <summary>
     /// Gets a changelog, null if none exists.
     /// </summary>
@@ -88,7 +93,7 @@ public interface IPluginManifest
     /// Gets an URL to the website or source code of the plugin.
     /// </summary>
     public string? RepoUrl { get; }
-    
+
     /// <summary>
     /// Gets a description of the plugins functions.
     /// </summary>

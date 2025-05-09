@@ -11,7 +11,6 @@ namespace Dalamud.Interface.Textures;
 /// <summary>A texture with a backing instance of <see cref="IDalamudTextureWrap"/> that is shared across multiple
 /// requesters.</summary>
 /// <remarks>
-/// <para>Calling <see cref="IDisposable.Dispose"/> on this interface is a no-op.</para>
 /// <para><see cref="GetWrapOrEmpty"/> and <see cref="TryGetWrap"/> may stop returning the intended texture at any point.
 /// Use <see cref="RentAsync"/> to lock the texture for use in any thread for any duration.</para>
 /// </remarks>
@@ -25,7 +24,8 @@ public interface ISharedImmediateTexture
     /// <see cref="ISharedImmediateTexture"/>s may be cached, but the performance benefit will be minimal.</para>
     /// <para>Calling outside the main thread will fail.</para>
     /// <para>This function does not throw.</para>
-    /// <para><see cref="IDisposable.Dispose"/> will be ignored.</para>
+    /// <para><see cref="IDisposable.Dispose"/> will be ignored, including the cases when the returned texture wrap
+    /// is passed to a function with <c>leaveWrapOpen</c> parameter.</para>
     /// <para>If the texture is unavailable for any reason, then the returned instance of
     /// <see cref="IDalamudTextureWrap"/> will point to an empty texture instead.</para>
     /// </remarks>
@@ -42,7 +42,8 @@ public interface ISharedImmediateTexture
     /// <see cref="ISharedImmediateTexture"/>s may be cached, but the performance benefit will be minimal.</para>
     /// <para>Calling outside the main thread will fail.</para>
     /// <para>This function does not throw.</para>
-    /// <para><see cref="IDisposable.Dispose"/> will be ignored.</para>
+    /// <para><see cref="IDisposable.Dispose"/> will be ignored, including the cases when the returned texture wrap
+    /// is passed to a function with <c>leaveWrapOpen</c> parameter.</para>
     /// <para>If the texture is unavailable for any reason, then <paramref name="defaultWrap"/> will be returned.</para>
     /// </remarks>
     [return: NotNullIfNotNull(nameof(defaultWrap))]
@@ -59,7 +60,8 @@ public interface ISharedImmediateTexture
     /// <see cref="ISharedImmediateTexture"/>s may be cached, but the performance benefit will be minimal.</para>
     /// <para>Calling outside the main thread will fail.</para>
     /// <para>This function does not throw.</para>
-    /// <para><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored.</para>
+    /// <para><see cref="IDisposable.Dispose"/> on the returned <paramref name="texture"/> will be ignored, including
+    /// the cases when the returned texture wrap is passed to a function with <c>leaveWrapOpen</c> parameter.</para>
     /// </remarks>
     /// <exception cref="InvalidOperationException">Thrown when called outside the UI thread.</exception>
     bool TryGetWrap([NotNullWhen(true)] out IDalamudTextureWrap? texture, out Exception? exception);

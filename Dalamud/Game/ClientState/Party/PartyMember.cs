@@ -1,12 +1,14 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Resolvers;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+
+using Lumina.Excel;
 
 namespace Dalamud.Game.ClientState.Party;
 
@@ -71,12 +73,12 @@ public interface IPartyMember
     /// <summary>
     /// Gets the territory this party member is located in.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> Territory { get; }
+    RowRef<Lumina.Excel.Sheets.TerritoryType> Territory { get; }
 
     /// <summary>
     /// Gets the World this party member resides in.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.World> World { get; }
+    RowRef<Lumina.Excel.Sheets.World> World { get; }
 
     /// <summary>
     /// Gets the displayname of this party member.
@@ -91,7 +93,7 @@ public interface IPartyMember
     /// <summary>
     /// Gets the classjob of this party member.
     /// </summary>
-    ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob { get; }
+    RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob { get; }
 
     /// <summary>
     /// Gets the level of this party member.
@@ -169,17 +171,17 @@ internal unsafe class PartyMember : IPartyMember
     /// <summary>
     /// Gets the territory this party member is located in.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.TerritoryType> Territory => new(this.Struct->TerritoryType);
+    public RowRef<Lumina.Excel.Sheets.TerritoryType> Territory => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->TerritoryType);
 
     /// <summary>
     /// Gets the World this party member resides in.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.World> World => new(this.Struct->HomeWorld);
+    public RowRef<Lumina.Excel.Sheets.World> World => LuminaUtils.CreateRef<Lumina.Excel.Sheets.World>(this.Struct->HomeWorld);
 
     /// <summary>
     /// Gets the displayname of this party member.
     /// </summary>
-    public SeString Name => MemoryHelper.ReadSeString((nint)Unsafe.AsPointer(ref Struct->Name[0]), 0x40);
+    public SeString Name => SeString.Parse(this.Struct->Name);
 
     /// <summary>
     /// Gets the sex of this party member.
@@ -189,7 +191,7 @@ internal unsafe class PartyMember : IPartyMember
     /// <summary>
     /// Gets the classjob of this party member.
     /// </summary>
-    public ExcelResolver<Lumina.Excel.GeneratedSheets.ClassJob> ClassJob => new(this.Struct->ClassJob);
+    public RowRef<Lumina.Excel.Sheets.ClassJob> ClassJob => LuminaUtils.CreateRef<Lumina.Excel.Sheets.ClassJob>(this.Struct->ClassJob);
 
     /// <summary>
     /// Gets the level of this party member.

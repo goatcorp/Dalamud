@@ -21,6 +21,8 @@ public sealed class AsmHook : IDisposable, IDalamudHook
 
     private DynamicMethod statsMethod;
 
+    private Guid hookId = Guid.NewGuid();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AsmHook"/> class.
     /// This is an assembly hook and should not be used for except under unique circumstances.
@@ -44,7 +46,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
         this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
         var dele = this.statsMethod.CreateDelegate(typeof(Action));
 
-        HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly()));
+        HookManager.TrackedHooks.TryAdd(this.hookId, new HookInfo(this, dele, Assembly.GetCallingAssembly()));
     }
 
     /// <summary>
@@ -70,7 +72,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
         this.statsMethod.GetILGenerator().Emit(OpCodes.Ret);
         var dele = this.statsMethod.CreateDelegate(typeof(Action));
 
-        HookManager.TrackedHooks.TryAdd(Guid.NewGuid(), new HookInfo(this, dele, Assembly.GetCallingAssembly()));
+        HookManager.TrackedHooks.TryAdd(this.hookId, new HookInfo(this, dele, Assembly.GetCallingAssembly()));
     }
 
     /// <summary>
@@ -87,7 +89,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook is enabled.
+    /// Gets a value indicating whether the hook is enabled.
     /// </summary>
     public bool IsEnabled
     {
@@ -99,7 +101,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook has been disposed.
+    /// Gets a value indicating whether the hook has been disposed.
     /// </summary>
     public bool IsDisposed { get; private set; }
 
@@ -115,6 +117,8 @@ public sealed class AsmHook : IDisposable, IDalamudHook
             return;
 
         this.IsDisposed = true;
+
+        HookManager.TrackedHooks.TryRemove(this.hookId, out _);
 
         if (this.isEnabled)
         {

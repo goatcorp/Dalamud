@@ -11,12 +11,12 @@ public abstract class SettingsEntry
     public string? Name { get; protected set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this entry is valid.
+    /// Gets or sets a value indicating whether this entry is valid.
     /// </summary>
     public virtual bool IsValid { get; protected set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this entry is visible.
+    /// Gets or sets a value indicating whether this entry is visible.
     /// </summary>
     public virtual bool IsVisible { get; protected set; } = true;
 
@@ -41,13 +41,20 @@ public abstract class SettingsEntry
     public abstract void Draw();
 
     /// <summary>
+    /// Called after the draw function and when the style overrides are removed.
+    /// </summary>
+    public virtual void PostDraw()
+    {
+    }
+
+    /// <summary>
     /// Function to be called when the tab is opened.
     /// </summary>
     public virtual void OnOpen()
     {
         // ignored
     }
-    
+
     /// <summary>
     /// Function to be called when the tab is closed.
     /// </summary>

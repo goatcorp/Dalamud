@@ -54,10 +54,10 @@ internal class ProfileManager : IServiceType
     public IEnumerable<Profile> Profiles => this.profiles;
 
     /// <summary>
-    /// Gets a value indicating whether or not the profile manager is busy enabling/disabling plugins.
+    /// Gets a value indicating whether the profile manager is busy enabling/disabling plugins.
     /// </summary>
     public bool IsBusy => this.isBusy;
-    
+
     /// <summary>
     /// Get a disposable that will lock the profile list while it is not disposed.
     /// You must NEVER use this in async code.
@@ -71,13 +71,13 @@ internal class ProfileManager : IServiceType
     /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="internalName">The internal name of the plugin, if available.</param>
     /// <param name="defaultState">The state the plugin shall be in, if it needs to be added.</param>
-    /// <param name="addIfNotDeclared">Whether or not the plugin should be added to the default preset, if it's not present in any preset.</param>
-    /// <returns>Whether or not the plugin shall be enabled.</returns>
+    /// <param name="addIfNotDeclared">Whether the plugin should be added to the default preset, if it's not present in any preset.</param>
+    /// <returns>Whether the plugin shall be enabled.</returns>
     public async Task<bool> GetWantStateAsync(Guid workingPluginId, string? internalName, bool defaultState, bool addIfNotDeclared = true)
     {
         var want = false;
         var wasInAnyProfile = false;
-        
+
         lock (this.profiles)
         {
             foreach (var profile in this.profiles)
@@ -93,7 +93,7 @@ internal class ProfileManager : IServiceType
 
         if (!wasInAnyProfile && addIfNotDeclared)
         {
-            Log.Warning("'{Guid}'('{InternalName}') was not in any profile, adding to default with {Default}", workingPluginId, internalName, defaultState);
+            Log.Warning("{Guid}({InternalName}) was not in any profile, adding to default with {Default}", workingPluginId, internalName, defaultState);
             await this.DefaultProfile.AddOrUpdateAsync(workingPluginId, internalName, defaultState, false);
 
             return defaultState;
@@ -106,7 +106,7 @@ internal class ProfileManager : IServiceType
     /// Check whether a plugin is declared in any profile.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
-    /// <returns>Whether or not the plugin is in any profile.</returns>
+    /// <returns>Whether the plugin is in any profile.</returns>
     public bool IsInAnyProfile(Guid workingPluginId)
     {
         lock (this.profiles)
@@ -118,7 +118,7 @@ internal class ProfileManager : IServiceType
     /// A plugin can never be in the default profile if it is in any other profile.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
-    /// <returns>Whether or not the plugin is in the default profile.</returns>
+    /// <returns>Whether the plugin is in the default profile.</returns>
     public bool IsInDefaultProfile(Guid workingPluginId)
         => this.DefaultProfile.WantsPlugin(workingPluginId) != null;
 
@@ -175,7 +175,7 @@ internal class ProfileManager : IServiceType
         {
             // Disable it
             modelV1.IsEnabled = false;
-            
+
             // Try to find matching plugins for all plugins in the profile
             var pm = Service<PluginManager>.Get();
             foreach (var plugin in modelV1.Plugins)
@@ -192,6 +192,10 @@ internal class ProfileManager : IServiceType
                     plugin.WorkingPluginId = Guid.Empty;
                 }
             }
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported profile model version");
         }
 
         this.config.SavedProfiles!.Add(newModel);
@@ -313,7 +317,7 @@ internal class ProfileManager : IServiceType
                 profile.MigrateProfilesToGuidsForPlugin(internalName, newGuid);
         }
     }
-    
+
     /// <summary>
     /// Validate profiles for errors.
     /// </summary>
@@ -328,7 +332,7 @@ internal class ProfileManager : IServiceType
             {
                 if (seenIds.Contains(pluginEntry.WorkingPluginId))
                     throw new Exception($"Plugin '{pluginEntry.WorkingPluginId}'('{pluginEntry.InternalName}') is twice in profile '{profile.Guid}'('{profile.Name}')");
-                
+
                 seenIds.Add(pluginEntry.WorkingPluginId);
             }
         }
