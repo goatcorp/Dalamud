@@ -152,6 +152,10 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public IDrawListTextureWrap CreateDrawListTexture(string? debugName = null) =>
+        this.ManagerOrThrow.CreateDrawListTexture(this.plugin, debugName);
+
+    /// <inheritdoc/>
     public async Task<IDalamudTextureWrap> CreateFromExistingTextureAsync(
         IDalamudTextureWrap wrap,
         TextureModificationArgs args = default,
@@ -268,6 +272,17 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public async Task<IDalamudTextureWrap> CreateFromClipboardAsync(
+        string? debugName = null,
+        CancellationToken cancellationToken = default)
+    {
+        var manager = await this.ManagerTask;
+        var textureWrap = await manager.CreateFromClipboardAsync(debugName, cancellationToken);
+        manager.Blame(textureWrap, this.plugin);
+        return textureWrap;
+    }
+
+    /// <inheritdoc/>
     public IEnumerable<IBitmapCodecInfo> GetSupportedImageDecoderInfos() =>
         this.ManagerOrThrow.Wic.GetSupportedDecoderInfos();
 
@@ -278,6 +293,9 @@ internal sealed class TextureManagerPluginScoped
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }
+
+    /// <inheritdoc/>
+    public bool HasClipboardImage() => this.ManagerOrThrow.HasClipboardImage();
 
     /// <inheritdoc/>
     public bool TryGetFromGameIcon(in GameIconLookup lookup, [NotNullWhen(true)] out ISharedImmediateTexture? texture)
@@ -409,6 +427,17 @@ internal sealed class TextureManagerPluginScoped
             props,
             leaveWrapOpen,
             cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task CopyToClipboardAsync(
+        IDalamudTextureWrap wrap,
+        string? preferredFileNameWithoutExtension = null,
+        bool leaveWrapOpen = false,
+        CancellationToken cancellationToken = default)
+    {
+        var manager = await this.ManagerTask;
+        await manager.CopyToClipboardAsync(wrap, preferredFileNameWithoutExtension, leaveWrapOpen, cancellationToken);
     }
 
     private void ResultOnInterceptTexDataLoad(string path, ref string? replacementPath) =>

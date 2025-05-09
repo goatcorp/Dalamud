@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 using CheapLoc;
 
@@ -11,7 +12,10 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Internal;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.Logging.Internal;
 
@@ -408,6 +412,7 @@ public abstract class Window
         var showAdditions = (this.AllowPinning || this.AllowClickthrough) &&
                             internalDrawFlags.HasFlag(WindowDrawFlags.UseAdditionalOptions) &&
                             flagsApplicableForTitleBarIcons;
+        var printWindow = false;
         if (showAdditions)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
@@ -482,6 +487,9 @@ public abstract class Window
                 if (!isAvailable)
                     ImGui.EndDisabled();
 
+                if (ImGui.Button(Loc.Localize("WindowSystemContextActionPrintWindow", "Print window")))
+                    printWindow = true;
+
                 ImGui.EndPopup();
             }
 
@@ -539,6 +547,17 @@ public abstract class Window
         }
 
         ImGui.End();
+
+        if (printWindow)
+        {
+            var tex = Service<TextureManager>.Get().CreateDrawListTexture(
+                Loc.Localize("WindowSystemContextActionPrintWindow", "Print window"));
+            tex.ResizeAndDrawWindow(this.WindowName, Vector2.One);
+            _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
+                this.WindowName,
+                this.WindowName,
+                Task.FromResult<IDalamudTextureWrap>(tex));
+        }
 
         this.PostDraw();
 
