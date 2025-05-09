@@ -38,6 +38,7 @@ internal sealed partial class ActiveNotification
 
         var viewport = ImGuiHelpers.MainViewport;
         var viewportSize = viewport.WorkSize;
+        var viewportPos = viewport.Pos;
 
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
@@ -122,7 +123,7 @@ internal sealed partial class ActiveNotification
 
         ImGuiHelpers.ForceNextWindowMainViewport();
         ImGui.SetNextWindowPos(
-            topLeft,
+            topLeft + viewportPos,
             ImGuiCond.Always,
             pivot);
         ImGui.SetNextWindowSizeConstraints(

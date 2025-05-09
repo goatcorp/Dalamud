@@ -42,9 +42,13 @@ internal class NotificationPositionChooser
         using var style2 = ImRaii.PushStyle(ImGuiStyleVar.WindowBorderSize, 0f);
         using var color = ImRaii.PushColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0));
 
+        var viewport = ImGuiHelpers.MainViewport;
+        var viewportSize = viewport.Size;
+        var viewportPos = viewport.Pos;
+
         ImGui.SetNextWindowFocus();
-        ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos);
-        ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
+        ImGui.SetNextWindowPos(viewportPos);
+        ImGui.SetNextWindowSize(viewportSize);
         ImGuiHelpers.ForceNextWindowMainViewport();
 
         ImGui.SetNextWindowBgAlpha(0.6f);
@@ -54,7 +58,8 @@ internal class NotificationPositionChooser
             ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav);
 
-        var mousePosUnit = ImGui.GetMousePos() / ImGuiHelpers.MainViewport.Size;
+        var adjustedMousePos = ImGui.GetMousePos() - viewportPos;
+        var mousePosUnit = adjustedMousePos / viewportSize;
 
         // Store the offset as a Vector2
         this.currentAnchorPosition = mousePosUnit;
@@ -87,6 +92,7 @@ internal class NotificationPositionChooser
             var instructionPos = new Vector2(
                 ImGuiHelpers.MainViewport.Size.X / 2 - instructionSize.X / 2,
                 ImGuiHelpers.MainViewport.Size.Y / 2 - instructionSize.Y / 2 + i * instructionSize.Y);
+            instructionPos += viewportPos;
             dl.AddText(instructionPos, 0xFFFFFFFF, instruction);
         }
 
@@ -102,7 +108,9 @@ internal class NotificationPositionChooser
         var edgeMargin = NotificationConstants.ScaledViewportEdgeMargin;
         var spacing = 10f * ImGuiHelpers.GlobalScale;
 
-        var viewportSize = ImGuiHelpers.MainViewport.Size;
+        var viewport = ImGuiHelpers.MainViewport;
+        var viewportSize = viewport.Size;
+        var viewportPos = viewport.Pos;
         var borderColor = ImGui.ColorConvertFloat4ToU32(new(1f, 1f, 1f, borderAlpha));
         var borderThickness = 4.0f * ImGuiHelpers.GlobalScale;
         var borderRounding = 4.0f * ImGuiHelpers.GlobalScale;
@@ -201,6 +209,11 @@ internal class NotificationPositionChooser
                 }
             }
         }
+
+        topLeft += viewportPos;
+        bottomRight += viewportPos;
+        smallTopLeft += viewportPos;
+        smallBottomRight += viewportPos;
 
         // Draw the big box
         dl.AddRectFilled(topLeft, bottomRight, ImGui.ColorConvertFloat4ToU32(backgroundColor), borderRounding, ImDrawFlags.RoundCornersAll);
