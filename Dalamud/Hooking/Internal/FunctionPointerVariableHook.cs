@@ -115,14 +115,7 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
     }
 
     /// <inheritdoc/>
-    public override bool IsEnabled
-    {
-        get
-        {
-            this.CheckDisposed();
-            return this.enabled;
-        }
-    }
+    public override bool IsEnabled => !this.IsDisposed && this.enabled;
 
     /// <inheritdoc/>
     public override string BackendName => "MinHook";
@@ -131,9 +124,7 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
     public override void Dispose()
     {
         if (this.IsDisposed)
-        {
             return;
-        }
 
         this.Disable();
 
@@ -148,15 +139,13 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
     /// <inheritdoc/>
     public override void Enable()
     {
-        this.CheckDisposed();
-
-        if (this.enabled)
-        {
-            return;
-        }
-
         lock (HookManager.HookEnableSyncRoot)
         {
+            this.CheckDisposed();
+
+            if (this.enabled)
+                return;
+
             Marshal.WriteIntPtr(this.ppfnThunkJumpTarget, this.pfnDetour);
             this.enabled = true;
         }
@@ -165,15 +154,14 @@ internal class FunctionPointerVariableHook<T> : Hook<T>
     /// <inheritdoc/>
     public override void Disable()
     {
-        this.CheckDisposed();
-
-        if (!this.enabled)
-        {
-            return;
-        }
-
         lock (HookManager.HookEnableSyncRoot)
         {
+            if (this.IsDisposed)
+                return;
+
+            if (!this.enabled)
+                return;
+
             Marshal.WriteIntPtr(this.ppfnThunkJumpTarget, this.pfnOriginal);
             this.enabled = false;
         }
