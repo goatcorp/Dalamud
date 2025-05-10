@@ -16,6 +16,7 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Internal;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.Logging.Internal;
 
@@ -32,8 +33,7 @@ namespace Dalamud.Interface.Windowing;
 /// </summary>
 public abstract class Window
 {
-    private const float FadeInOutTime = 1f;
-    private const float FadeInOutStep = 0.09f;
+    private const float FadeInOutTime = 0.08f;
 
     private static readonly ModuleLog Log = new("WindowSystem");
 
@@ -51,6 +51,7 @@ public abstract class Window
     private PresetModel.PresetWindow? presetWindow;
     private bool presetDirty = false;
 
+    private bool pushedFadeInAlpha = false;
     private float fadeInTimer = 1f;
     private float fadeOutTimer = 0f;
     private IDrawListTextureWrap? fadeOutTexture = null;
@@ -347,7 +348,7 @@ public abstract class Window
 
             if (this.fadeOutTexture != null)
             {
-                this.fadeOutTimer -= FadeInOutStep;
+                this.fadeOutTimer -= ImGui.GetIO().DeltaTime;
                 if (this.fadeOutTimer <= 0f)
                 {
                     this.fadeOutTexture.Dispose();
@@ -355,14 +356,7 @@ public abstract class Window
                 }
                 else
                 {
-                    var dl = ImGui.GetBackgroundDrawList();
-                    dl.AddImage(
-                        this.fadeOutTexture.ImGuiHandle,
-                        this.fadeOutOrigin,
-                        this.fadeOutOrigin + this.fadeOutSize,
-                        Vector2.Zero,
-                        Vector2.One,
-                        ImGui.ColorConvertFloat4ToU32(new(1f, 1f, 1f, Math.Clamp(this.fadeOutTimer / FadeInOutTime, 0f, 1f))));
+                    this.DrawFakeFadeOutWindow();
                 }
             }
 
@@ -370,7 +364,7 @@ public abstract class Window
             return;
         }
 
-        this.fadeInTimer += FadeInOutStep;
+        this.fadeInTimer += ImGui.GetIO().DeltaTime;
         if (this.fadeInTimer > FadeInOutTime)
             this.fadeInTimer = FadeInOutTime;
 
@@ -592,6 +586,12 @@ public abstract class Window
 
         ImGui.End();
 
+        if (this.pushedFadeInAlpha)
+        {
+            ImGui.PopStyleVar();
+            this.pushedFadeInAlpha = false;
+        }
+
         if (!this.internalIsOpen && this.fadeOutTexture == null && !isReducedMotion)
         {
             this.fadeOutTexture = Service<TextureManager>.Get().CreateDrawListTexture(
@@ -653,6 +653,8 @@ public abstract class Window
             maxBgAlpha = maxBgAlpha.HasValue ?
                              Math.Clamp(maxBgAlpha.Value * fadeInAlpha, 0f, 1f) :
                              (*ImGui.GetStyleColorVec4(ImGuiCol.WindowBg)).W * fadeInAlpha;
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * fadeInAlpha);
+            this.pushedFadeInAlpha = true;
         }
 
         if (maxBgAlpha.HasValue)
@@ -803,6 +805,34 @@ public abstract class Window
         }
 
         ImGui.PopClipRect();
+    }
+
+    private void DrawFakeFadeOutWindow()
+    {
+        // Draw a fake window to fade out, so that the fade out texture stays in the right place in the
+        // focus order
+        ImGui.SetNextWindowPos(this.fadeOutOrigin);
+        ImGui.SetNextWindowSize(this.fadeOutSize);
+
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        style.Push(ImGuiStyleVar.WindowBorderSize, 0);
+        style.Push(ImGuiStyleVar.FrameBorderSize, 0);
+
+        var fakeFlags = ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs |
+                        ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
+        if (ImGui.Begin(this.WindowName, fakeFlags))
+        {
+            var dl = ImGui.GetWindowDrawList();
+            dl.AddImage(
+                this.fadeOutTexture!.ImGuiHandle,
+                this.fadeOutOrigin,
+                this.fadeOutOrigin + this.fadeOutSize,
+                Vector2.Zero,
+                Vector2.One,
+                ImGui.ColorConvertFloat4ToU32(new(1f, 1f, 1f, Math.Clamp(this.fadeOutTimer / FadeInOutTime, 0f, 1f))));
+        }
+
+        ImGui.End();
     }
 
     /// <summary>
