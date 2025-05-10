@@ -41,10 +41,6 @@ public abstract class Window
 
     private bool internalLastIsOpen = false;
     private bool internalIsOpen = false;
-    private bool internalWantsToClose = false;
-    private bool internalLastDrawConditions = true;
-    private bool internalDrawConditions = true;
-
     private bool internalIsPinned = false;
     private bool internalIsClickthrough = false;
     private bool didPushInternalAlpha = false;
@@ -233,18 +229,7 @@ public abstract class Window
     public bool IsOpen
     {
         get => this.internalIsOpen;
-        set
-        {
-            if (!value && this.internalIsOpen)
-            {
-                this.internalWantsToClose = true;
-            }
-            else if (value && !this.internalIsOpen)
-            {
-                this.internalWantsToClose = false;
-                this.internalIsOpen = true;
-            }
-        }
+        set => this.internalIsOpen = value;
     }
 
     private bool CanShowCloseButton => this.ShowCloseButton && !this.internalIsClickthrough;
@@ -375,7 +360,22 @@ public abstract class Window
                     UIGlobals.PlaySoundEffect(this.OnCloseSfxId);
             }
 
-            DrawFadeOut();
+            if (this.fadeOutTexture != null)
+            {
+                this.fadeOutTimer -= ImGui.GetIO().DeltaTime;
+                if (this.fadeOutTimer <= 0f)
+                {
+                    this.fadeOutTexture.Dispose();
+                    this.fadeOutTexture = null;
+                    this.OnSafeToRemove();
+                }
+                else
+                {
+                    this.DrawFakeFadeOutWindow();
+                }
+            }
+
+            this.fadeInTimer = doFades ? 0f : FadeInOutTime;
             return;
         }
 
@@ -384,15 +384,8 @@ public abstract class Window
             this.fadeInTimer = FadeInOutTime;
 
         this.Update();
-        this.internalDrawConditions = this.DrawConditions();
-        if (this.internalDrawConditions == this.internalLastDrawConditions && !this.internalDrawConditions)
-        {
-            DrawFadeOut();
+        if (!this.DrawConditions())
             return;
-        }
-
-        if (this.internalDrawConditions)
-            this.internalLastDrawConditions = this.internalDrawConditions;
 
         var hasNamespace = !string.IsNullOrEmpty(this.Namespace);
 
@@ -614,21 +607,12 @@ public abstract class Window
             this.pushedFadeInAlpha = false;
         }
 
-        if (this.internalDrawConditions != this.internalLastDrawConditions && !this.internalDrawConditions)
+        if (!this.internalIsOpen && this.fadeOutTexture == null && doFades)
         {
-            this.internalLastDrawConditions = this.internalDrawConditions;
-            SetupFadeOut();
-        }
-
-        if (this.internalWantsToClose)
-        {
-            this.internalIsOpen = false;
-            this.internalWantsToClose = false;
-        }
-
-        if (!this.internalIsOpen)
-        {
-            SetupFadeOut();
+            this.fadeOutTexture = Service<TextureManager>.Get().CreateDrawListTexture(
+                "WindowFadeOutTexture");
+            this.fadeOutTexture.ResizeAndDrawWindow(this.WindowName, Vector2.One);
+            this.fadeOutTimer = FadeInOutTime;
         }
 
         if (printWindow)
@@ -648,38 +632,6 @@ public abstract class Window
 
         if (hasNamespace)
             ImGui.PopID();
-        return;
-
-        void SetupFadeOut()
-        {
-            if (this.fadeOutTexture == null && doFades)
-            {
-                this.fadeOutTexture = Service<TextureManager>.Get().CreateDrawListTexture(
-                    "WindowFadeOutTexture");
-                this.fadeOutTexture.ResizeAndDrawWindow(this.WindowName, Vector2.One);
-                this.fadeOutTimer = FadeInOutTime;
-            }
-        }
-
-        void DrawFadeOut()
-        {
-            if (this.fadeOutTexture != null)
-            {
-                this.fadeOutTimer -= ImGui.GetIO().DeltaTime;
-                if (this.fadeOutTimer <= 0f)
-                {
-                    this.fadeOutTexture.Dispose();
-                    this.fadeOutTexture = null;
-                    this.OnSafeToRemove();
-                }
-                else
-                {
-                    this.DrawFakeFadeOutWindow();
-                }
-            }
-
-            this.fadeInTimer = doFades ? 0f : FadeInOutTime;
-        }
     }
 
     private unsafe void ApplyConditionals()
