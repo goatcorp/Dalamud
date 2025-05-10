@@ -575,7 +575,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.GetWindowDrawList().AddRectFilled(
                 ImGui.GetWindowPos() + new Vector2(0, titleHeight),
                 ImGui.GetWindowPos() + windowSize,
-                0xCC000000,
+                ImGui.ColorConvertFloat4ToU32(new(0f, 0f, 0f, 0.8f * ImGui.GetStyle().Alpha)),
                 ImGui.GetStyle().WindowRounding,
                 ImDrawFlags.RoundCornersBottom);
             ImGui.PopClipRect();
