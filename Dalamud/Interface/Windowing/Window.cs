@@ -144,6 +144,12 @@ public abstract class Window
     public uint OnCloseSfxId { get; set; } = 24u;
 
     /// <summary>
+    /// Gets or sets a value indicating whether this window should not fade in and out, regardless of the users'
+    /// preference.
+    /// </summary>
+    public bool DisableFadeInFadeOut { get; set; } = false;
+
+    /// <summary>
     /// Gets or sets the position of this window.
     /// </summary>
     public Vector2? Position { get; set; }
@@ -331,7 +337,7 @@ public abstract class Window
     internal void DrawInternal(WindowDrawFlags internalDrawFlags, WindowSystemPersistence? persistence)
     {
         this.PreOpenCheck();
-        var isReducedMotion = internalDrawFlags.HasFlag(WindowDrawFlags.IsReducedMotion);
+        var doFades = !internalDrawFlags.HasFlag(WindowDrawFlags.IsReducedMotion) && !this.DisableFadeInFadeOut;
 
         if (!this.IsOpen)
         {
@@ -360,7 +366,7 @@ public abstract class Window
                 }
             }
 
-            this.fadeInTimer = !isReducedMotion ? 0f : FadeInOutTime;
+            this.fadeInTimer = doFades ? 0f : FadeInOutTime;
             return;
         }
 
@@ -592,7 +598,7 @@ public abstract class Window
             this.pushedFadeInAlpha = false;
         }
 
-        if (!this.internalIsOpen && this.fadeOutTexture == null && !isReducedMotion)
+        if (!this.internalIsOpen && this.fadeOutTexture == null && doFades)
         {
             this.fadeOutTexture = Service<TextureManager>.Get().CreateDrawListTexture(
                 "WindowFadeOutTexture");
@@ -818,9 +824,10 @@ public abstract class Window
         style.Push(ImGuiStyleVar.WindowBorderSize, 0);
         style.Push(ImGuiStyleVar.FrameBorderSize, 0);
 
-        var fakeFlags = ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs |
-                        ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
-        if (ImGui.Begin(this.WindowName, fakeFlags))
+        const ImGuiWindowFlags flags = ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse |
+                                           ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs |
+                                           ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
+        if (ImGui.Begin(this.WindowName, flags))
         {
             var dl = ImGui.GetWindowDrawList();
             dl.AddImage(
