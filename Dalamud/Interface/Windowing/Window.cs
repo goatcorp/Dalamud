@@ -33,7 +33,7 @@ namespace Dalamud.Interface.Windowing;
 /// </summary>
 public abstract class Window
 {
-    private const float FadeInOutTime = 0.08f;
+    private const float FadeInOutTime = 0.072f;
 
     private static readonly ModuleLog Log = new("WindowSystem");
 
@@ -52,7 +52,7 @@ public abstract class Window
     private bool presetDirty = false;
 
     private bool pushedFadeInAlpha = false;
-    private float fadeInTimer = 1f;
+    private float fadeInTimer = 0f;
     private float fadeOutTimer = 0f;
     private IDrawListTextureWrap? fadeOutTexture = null;
     private Vector2 fadeOutSize = Vector2.Zero;
@@ -323,6 +323,14 @@ public abstract class Window
     }
 
     /// <summary>
+    /// Code to be executed when the window is safe to be disposed or removed from the window system.
+    /// Doing so in <see cref="OnClose"/> may result in animations not playing correctly.
+    /// </summary>
+    public virtual void OnSafeToRemove()
+    {
+    }
+
+    /// <summary>
     /// Code to be executed every frame, even when the window is collapsed.
     /// </summary>
     public virtual void Update()
@@ -359,6 +367,7 @@ public abstract class Window
                 {
                     this.fadeOutTexture.Dispose();
                     this.fadeOutTexture = null;
+                    this.OnSafeToRemove();
                 }
                 else
                 {
