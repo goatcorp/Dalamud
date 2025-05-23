@@ -2111,3 +2111,16 @@ internal static partial class NativeFunctions
     [DllImport("dwmapi.dll", PreserveSig = true)]
     public static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attr, ref int attrValue, int attrSize);
 }
+
+/// <summary>
+/// shell32 native functions
+/// </summary>
+internal static partial class NativeFunctions
+{
+    /// <summary>
+    /// Sets the value of the AppUserModelID for the current process.
+    /// </summary>
+    /// <param name="appId">The AppID to set.</param>
+    [DllImport("shell32.dll", SetLastError=true)]
+    public static extern void SetCurrentProcessExplicitAppUserModelID([MarshalAs(UnmanagedType.LPWStr)] string appId);
+}
