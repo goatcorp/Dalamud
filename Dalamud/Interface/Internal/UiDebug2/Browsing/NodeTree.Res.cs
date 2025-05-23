@@ -86,7 +86,7 @@ internal unsafe partial class ResNodeTree : IDisposable
     /// <returns>An existing or newly-created instance of <see cref="ResNodeTree"/>.</returns>
     internal static ResNodeTree GetOrCreate(AtkResNode* node, AddonTree addonTree) =>
         addonTree.NodeTrees.TryGetValue((nint)node, out var nodeTree) ? nodeTree
-            : (int)node->Type > 1000
+            : (int)node->Type >= 1000
                 ? new ComponentNodeTree(node, addonTree)
                 : node->Type switch
                 {
