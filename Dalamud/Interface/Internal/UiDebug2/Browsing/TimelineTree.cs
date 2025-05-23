@@ -78,7 +78,7 @@ public readonly unsafe partial struct TimelineTree
                 {
                     var animation = this.Resource->Animations[a];
                     var isActive = this.ActiveAnimation != null && &animation == this.ActiveAnimation;
-                    this.PrintAnimation(animation, a, isActive, (nint)(this.NodeTimeline->Resource->Animations + (a * sizeof(AtkTimelineAnimation))));
+                    this.PrintAnimation(animation, a, isActive, (nint)(this.NodeTimeline->Resource->Animations + a));
                 }
             }
         }
