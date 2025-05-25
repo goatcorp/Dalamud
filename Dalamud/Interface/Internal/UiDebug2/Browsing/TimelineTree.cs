@@ -55,7 +55,7 @@ public readonly unsafe partial struct TimelineTree
         var animationCount = this.Resource->AnimationCount;
         var labelSetCount = this.Resource->LabelSetCount;
 
-        if (animationCount > 0 || labelSetCount > 0)
+        if (animationCount > 0)
         {
             using var tree = ImRaii.TreeNode($"Timeline##{(nint)this.node:X}timeline", SpanFullWidth);
 
@@ -84,11 +84,16 @@ public readonly unsafe partial struct TimelineTree
                         this.PrintAnimation(animation, a, isActive, (nint)(this.NodeTimeline->Resource->Animations + a));
                     }
                 }
+            }
+        }
 
-                if (this.Resource->LabelSets is not null)
-                {
-                    this.DrawLabelSets();
-                }
+        if (labelSetCount > 0 && this.Resource->LabelSets is not null)
+        {
+            using var tree = ImRaii.TreeNode($"Timeline Label Sets##{(nint)this.node:X}LabelSets", SpanFullWidth);
+
+            if (tree.Success)
+            {
+                this.DrawLabelSets();
             }
         }
     }
@@ -393,8 +398,6 @@ public readonly unsafe partial struct TimelineTree
 
     private void DrawLabelSets()
     {
-        ImGui.TextColored(new(0.6f, 0.6f, 0.6f, 1), "LabelSet List");
-
         PrintFieldValuePair("LabelSet", $"{(nint)this.NodeTimeline->Resource->LabelSets:X}");
 
         ImGui.SameLine();
@@ -403,9 +406,9 @@ public readonly unsafe partial struct TimelineTree
 
         PrintFieldValuePairs(
             ("StartFrameIdx", $"{this.NodeTimeline->Resource->LabelSets->StartFrameIdx}"),
-            ("EndFrameIdx Time", $"{this.NodeTimeline->Resource->LabelSets->EndFrameIdx}"));
+            ("EndFrameIdx", $"{this.NodeTimeline->Resource->LabelSets->EndFrameIdx}"));
 
-        using var labelSetTable = ImRaii.TreeNode("Label Set Table");
+        using var labelSetTable = ImRaii.TreeNode("Entries");
         if (labelSetTable.Success)
         {
             var keyFrameGroup = this.Resource->LabelSets->LabelKeyGroup;
@@ -419,7 +422,7 @@ public readonly unsafe partial struct TimelineTree
                 ImGui.TableSetupColumn("Interpolation", WidthFixed);
                 ImGui.TableSetupColumn("Label ID", WidthFixed);
                 ImGui.TableSetupColumn("Jump Behavior", WidthFixed);
-                ImGui.TableSetupColumn("Target ID", WidthFixed);
+                ImGui.TableSetupColumn("Target Label ID", WidthFixed);
 
                 ImGui.TableHeadersRow();
 
