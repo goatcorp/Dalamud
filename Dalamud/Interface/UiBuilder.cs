@@ -11,6 +11,7 @@ using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
 
@@ -60,6 +61,15 @@ public interface IUiBuilder
     /// These may be fired consecutively.
     /// </summary>
     event Action? HideUi;
+
+    /// <inheritdoc cref="UiBuilder.DefaultGlobalScaleChanged"/>
+    event Action? DefaultGlobalScaleChanged;
+
+    /// <inheritdoc cref="UiBuilder.DefaultFontChanged"/>
+    event Action? DefaultFontChanged;
+
+    /// <inheritdoc cref="UiBuilder.DefaultStyleChanged"/>
+    event Action? DefaultStyleChanged;
 
     /// <summary>
     /// Gets the handle to the default Dalamud font - supporting all game languages and icons.
@@ -296,11 +306,13 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// <summary>
     /// Invoked when the default global scale used by ImGui has been changed through Dalamud.
     /// </summary>
+    /// <remarks> Fonts will generally not have finished rebuilding when this is invoked, so if you need to access the font you should subscribe to <seealso cref="DefaultFontHandle"/>.ImFontChanged instead.</remarks>
     public static event Action? DefaultGlobalScaleChanged;
 
     /// <summary>
     /// Invoked when the default font used by ImGui has been changed through Dalamud.
     /// </summary>
+    /// <remarks> Fonts will generally not have finished rebuilding when this is invoked, so if you need to access the font you should subscribe to <seealso cref="DefaultFontHandle"/>.ImFontChanged instead.</remarks>
     public static event Action? DefaultFontChanged;
 
     /// <summary>
@@ -325,6 +337,27 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
 
     /// <inheritdoc/>
     public event Action? HideUi;
+
+    /// <inheritdoc/>
+    event Action? IUiBuilder.DefaultGlobalScaleChanged
+    {
+        add => DefaultGlobalScaleChanged += value;
+        remove => DefaultGlobalScaleChanged -= value;
+    }
+
+    /// <inheritdoc/>
+    event Action? IUiBuilder.DefaultFontChanged
+    {
+        add => DefaultFontChanged += value;
+        remove => DefaultFontChanged -= value;
+    }
+
+    /// <inheritdoc/>
+    event Action? IUiBuilder.DefaultStyleChanged
+    {
+        add => DefaultStyleChanged += value;
+        remove => DefaultStyleChanged -= value;
+    }
 
     /// <summary>
     /// Gets the default Dalamud font size in points.
