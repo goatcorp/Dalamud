@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Addon.Events;
+namespace Dalamud.Game.Addon.Events;
 
 /// <summary>
 /// Reimplementation of AtkEventType.
@@ -49,6 +49,17 @@ public enum AddonEventType : byte
     /// Input Received.
     /// </summary>
     InputReceived = 12,
+
+    /// <summary>
+    /// Input Navigation (LEFT, RIGHT, UP, DOWN, TAB_NEXT, TAB_PREV, TAB_BOTH_NEXT, TAB_BOTH_PREV, PAGEUP, PAGEDOWN).
+    /// </summary>
+    InputNavigation = 13,
+
+    /// <summary>
+    /// InputBase Input Received (AtkComponentTextInput and AtkComponentNumericInput).<br/>
+    /// For example, this is fired for moving the text cursor, deletion of a character and inserting a new line.
+    /// </summary>
+    InputBaseInputReceived = 15,
 
     /// <summary>
     /// Focus Start.
