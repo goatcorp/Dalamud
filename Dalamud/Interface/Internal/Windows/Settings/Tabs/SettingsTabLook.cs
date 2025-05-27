@@ -198,6 +198,7 @@ public class SettingsTabLook : SettingsTab
             {
                 ImGui.GetIO().FontGlobalScale = this.globalUiScale = scale;
                 interfaceManager.RebuildFonts();
+                UiBuilder.InvokeGlobalScaleChanged();
             }
         }
 
@@ -220,6 +221,7 @@ public class SettingsTabLook : SettingsTab
             this.globalUiScale = globalUiScaleInPct / 100f;
             ImGui.GetIO().FontGlobalScale = this.globalUiScale;
             interfaceManager.RebuildFonts();
+            UiBuilder.InvokeGlobalScaleChanged();
         }
 
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsGlobalUiScaleHint", "Scale text in all XIVLauncher UI elements - this is useful for 4K displays."));
@@ -260,6 +262,7 @@ public class SettingsTabLook : SettingsTab
 
                         faf.DefaultFontSpecOverride = this.defaultFontSpec = r.Result;
                         interfaceManager.RebuildFonts();
+                        UiBuilder.InvokeFontChanged();
                     }));
         }
 
@@ -274,6 +277,7 @@ public class SettingsTabLook : SettingsTab
                     this.defaultFontSpec =
                         new SingleFontSpec { FontId = new GameFontAndFamilyId(GameFontFamily.Axis) };
                 interfaceManager.RebuildFonts();
+                UiBuilder.InvokeFontChanged();
             }
         }
 

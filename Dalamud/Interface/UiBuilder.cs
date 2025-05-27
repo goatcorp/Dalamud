@@ -293,6 +293,21 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         }
     }
 
+    /// <summary>
+    /// Invoked when the default global scale used by ImGui has been changed through Dalamud.
+    /// </summary>
+    public static event Action? DefaultGlobalScaleChanged;
+
+    /// <summary>
+    /// Invoked when the default font used by ImGui has been changed through Dalamud.
+    /// </summary>
+    public static event Action? DefaultFontChanged;
+
+    /// <summary>
+    /// Invoked when either the currently chosen style in Dalamud or a style or color variable within the currently chosen style has been changed through Dalamud.
+    /// </summary>
+    public static event Action? DefaultStyleChanged;
+
     /// <inheritdoc/>
     public event Action? Draw;
 
@@ -493,6 +508,18 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// intrusive animations, or disable them entirely.
     /// </summary>
     public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
+
+    /// <summary> Safely invoke <seealso cref="DefaultGlobalScaleChanged"/>. </summary>
+    internal static void InvokeGlobalScaleChanged()
+        => DefaultGlobalScaleChanged.InvokeSafely();
+
+    /// <summary> Safely invoke <seealso cref="DefaultFontChanged"/>. </summary>
+    internal static void InvokeFontChanged()
+        => DefaultFontChanged.InvokeSafely();
+
+    /// <summary> Safely invoke <seealso cref="DefaultStyleChanged"/>. </summary>
+    internal static void InvokeStyleChanged()
+        => DefaultStyleChanged.InvokeSafely();
 
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
