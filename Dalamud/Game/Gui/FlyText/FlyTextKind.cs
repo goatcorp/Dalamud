@@ -105,15 +105,25 @@ public enum FlyTextKind : int
 
     /// <summary>
     /// Val1 in serif font, Text2 in sans-serif as subtitle.
-    /// Added in 7.2, usage currently unknown.
     /// </summary>
+    [Obsolete("Use Knowledge instead", true)]
     Unknown17 = 17,
 
     /// <summary>
     /// Val1 in serif font, Text2 in sans-serif as subtitle.
-    /// Added in 7.2, usage currently unknown.
     /// </summary>
+    Knowledge = 17,
+
+    /// <summary>
+    /// Val1 in serif font, Text2 in sans-serif as subtitle.
+    /// </summary>
+    [Obsolete("Use PhantomExp instead", true)]
     Unknown18 = 18,
+
+    /// <summary>
+    /// Val1 in serif font, Text2 in sans-serif as subtitle.
+    /// </summary>
+    PhantomExp = 18,
 
     /// <summary>
     /// Sans-serif Text1 next to serif Val1 with all caps condensed font MP with Text2 in sans-serif as subtitle.
