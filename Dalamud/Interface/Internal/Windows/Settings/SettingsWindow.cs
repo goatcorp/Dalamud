@@ -109,7 +109,7 @@ internal class SettingsWindow : Window
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
         if (scaleChanged)
         {
-            UiBuilder.InvokeGlobalScaleChanged();
+            Service<InterfaceManager>.Get().InvokeGlobalScaleChanged();
         }
 
         fontAtlasFactory.DefaultFontSpecOverride = null;
@@ -117,7 +117,7 @@ internal class SettingsWindow : Window
         if (rebuildFont)
         {
             interfaceManager.RebuildFonts();
-            UiBuilder.InvokeFontChanged();
+            Service<InterfaceManager>.Get().InvokeFontChanged();
         }
 
         foreach (var settingsTab in this.tabs)

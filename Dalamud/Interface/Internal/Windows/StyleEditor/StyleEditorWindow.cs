@@ -69,7 +69,7 @@ public class StyleEditorWindow : Window
             newStyle?.Apply();
             if (this.anyChanges)
             {
-                UiBuilder.InvokeStyleChanged();
+                Service<InterfaceManager>.Get().InvokeStyleChanged();
             }
         }
 
@@ -419,6 +419,6 @@ public class StyleEditorWindow : Window
     private void Change()
     {
         this.anyChanges = true;
-        UiBuilder.InvokeStyleChanged();
+        Service<InterfaceManager>.Get().InvokeStyleChanged();
     }
 }

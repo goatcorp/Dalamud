@@ -62,13 +62,13 @@ public interface IUiBuilder
     /// </summary>
     event Action? HideUi;
 
-    /// <inheritdoc cref="UiBuilder.DefaultGlobalScaleChanged"/>
+    /// <inheritdoc cref="InterfaceManager.DefaultGlobalScaleChanged"/>
     event Action? DefaultGlobalScaleChanged;
 
-    /// <inheritdoc cref="UiBuilder.DefaultFontChanged"/>
+    /// <inheritdoc cref="InterfaceManager.DefaultFontChanged"/>
     event Action? DefaultFontChanged;
 
-    /// <inheritdoc cref="UiBuilder.DefaultStyleChanged"/>
+    /// <inheritdoc cref="InterfaceManager.DefaultStyleChanged"/>
     event Action? DefaultStyleChanged;
 
     /// <summary>
@@ -289,6 +289,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.interfaceManager.ResizeBuffers += this.OnResizeBuffers;
             this.scopedFinalizer.Add(() => this.interfaceManager.ResizeBuffers -= this.OnResizeBuffers);
 
+            this.interfaceManager.DefaultStyleChanged += this.OnDefaultStyleChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultStyleChanged -= this.OnDefaultStyleChanged);
+
+            this.interfaceManager.DefaultGlobalScaleChanged += this.OnDefaultGlobalScaleChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultGlobalScaleChanged -= this.OnDefaultGlobalScaleChanged);
+
+            this.interfaceManager.DefaultFontChanged += this.OnDefaultFontChanged;
+            this.scopedFinalizer.Add(() => this.interfaceManager.DefaultFontChanged -= this.OnDefaultFontChanged);
+
             this.FontAtlas =
                 this.scopedFinalizer
                     .Add(
@@ -302,23 +311,6 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             throw;
         }
     }
-
-    /// <summary>
-    /// Invoked when the default global scale used by ImGui has been changed through Dalamud.
-    /// </summary>
-    /// <remarks> Fonts will generally not have finished rebuilding when this is invoked, so if you need to access the font you should subscribe to <seealso cref="DefaultFontHandle"/>.ImFontChanged instead.</remarks>
-    public static event Action? DefaultGlobalScaleChanged;
-
-    /// <summary>
-    /// Invoked when the default font used by ImGui has been changed through Dalamud.
-    /// </summary>
-    /// <remarks> Fonts will generally not have finished rebuilding when this is invoked, so if you need to access the font you should subscribe to <seealso cref="DefaultFontHandle"/>.ImFontChanged instead.</remarks>
-    public static event Action? DefaultFontChanged;
-
-    /// <summary>
-    /// Invoked when either the currently chosen style in Dalamud or a style or color variable within the currently chosen style has been changed through Dalamud.
-    /// </summary>
-    public static event Action? DefaultStyleChanged;
 
     /// <inheritdoc/>
     public event Action? Draw;
@@ -339,25 +331,13 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     public event Action? HideUi;
 
     /// <inheritdoc/>
-    event Action? IUiBuilder.DefaultGlobalScaleChanged
-    {
-        add => DefaultGlobalScaleChanged += value;
-        remove => DefaultGlobalScaleChanged -= value;
-    }
+    public event Action? DefaultGlobalScaleChanged;
 
     /// <inheritdoc/>
-    event Action? IUiBuilder.DefaultFontChanged
-    {
-        add => DefaultFontChanged += value;
-        remove => DefaultFontChanged -= value;
-    }
+    public event Action? DefaultFontChanged;
 
     /// <inheritdoc/>
-    event Action? IUiBuilder.DefaultStyleChanged
-    {
-        add => DefaultStyleChanged += value;
-        remove => DefaultStyleChanged -= value;
-    }
+    public event Action? DefaultStyleChanged;
 
     /// <summary>
     /// Gets the default Dalamud font size in points.
@@ -542,17 +522,14 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     /// </summary>
     public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;
 
-    /// <summary> Safely invoke <seealso cref="DefaultGlobalScaleChanged"/>. </summary>
-    internal static void InvokeGlobalScaleChanged()
-        => DefaultGlobalScaleChanged.InvokeSafely();
+    private void OnDefaultStyleChanged()
+        => this.DefaultStyleChanged.InvokeSafely();
 
-    /// <summary> Safely invoke <seealso cref="DefaultFontChanged"/>. </summary>
-    internal static void InvokeFontChanged()
-        => DefaultFontChanged.InvokeSafely();
+    private void OnDefaultGlobalScaleChanged()
+        => this.DefaultGlobalScaleChanged.InvokeSafely();
 
-    /// <summary> Safely invoke <seealso cref="DefaultStyleChanged"/>. </summary>
-    internal static void InvokeStyleChanged()
-        => DefaultStyleChanged.InvokeSafely();
+    private void OnDefaultFontChanged()
+        => this.DefaultFontChanged.InvokeSafely();
 
     /// <summary>
     /// Gets or sets a value indicating whether statistics about UI draw time should be collected.
