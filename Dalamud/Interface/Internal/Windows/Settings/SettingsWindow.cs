@@ -102,19 +102,30 @@ internal class SettingsWindow : Window
         var interfaceManager = Service<InterfaceManager>.Get();
         var fontAtlasFactory = Service<FontAtlasFactory>.Get();
 
+        var scaleChanged = !Equals(ImGui.GetIO().FontGlobalScale, configuration.GlobalUiScale);
         var rebuildFont = !Equals(fontAtlasFactory.DefaultFontSpec, configuration.DefaultFontSpec);
-        rebuildFont |= !Equals(ImGui.GetIO().FontGlobalScale, configuration.GlobalUiScale);
+        rebuildFont |= scaleChanged;
 
         ImGui.GetIO().FontGlobalScale = configuration.GlobalUiScale;
+        if (scaleChanged)
+        {
+            UiBuilder.InvokeGlobalScaleChanged();
+        }
+
         fontAtlasFactory.DefaultFontSpecOverride = null;
 
         if (rebuildFont)
+        {
             interfaceManager.RebuildFonts();
+            UiBuilder.InvokeFontChanged();
+        }
 
         foreach (var settingsTab in this.tabs)
         {
             if (settingsTab.IsOpen)
+            {
                 settingsTab.OnClose();
+            }
 
             settingsTab.IsOpen = false;
         }

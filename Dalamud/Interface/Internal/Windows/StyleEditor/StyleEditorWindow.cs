@@ -27,6 +27,7 @@ public class StyleEditorWindow : Window
     private int currentSel = 0;
     private string initialStyle = string.Empty;
     private bool didSave = false;
+    private bool anyChanges = false;
 
     private string renameText = string.Empty;
     private bool renameModalDrawing = false;
@@ -66,6 +67,10 @@ public class StyleEditorWindow : Window
             var config = Service<DalamudConfiguration>.Get();
             var newStyle = config.SavedStyles.FirstOrDefault(x => x.Name == this.initialStyle);
             newStyle?.Apply();
+            if (this.anyChanges)
+            {
+                UiBuilder.InvokeStyleChanged();
+            }
         }
 
         base.OnClose();
@@ -89,7 +94,7 @@ public class StyleEditorWindow : Window
         {
             var newStyle = config.SavedStyles[this.currentSel];
             newStyle.Apply();
-            UiBuilder.InvokeStyleChanged();
+            this.Change();
             appliedThisFrame = true;
         }
 
@@ -104,7 +109,7 @@ public class StyleEditorWindow : Window
             this.currentSel = config.SavedStyles.Count - 1;
 
             newStyle.Apply();
-            UiBuilder.InvokeStyleChanged();
+            this.Change();
             appliedThisFrame = true;
 
             config.QueueSave();
@@ -120,7 +125,7 @@ public class StyleEditorWindow : Window
             this.currentSel--;
             var newStyle = config.SavedStyles[this.currentSel];
             newStyle.Apply();
-            UiBuilder.InvokeStyleChanged();
+            this.Change();
             appliedThisFrame = true;
 
             config.SavedStyles.RemoveAt(this.currentSel + 1);
@@ -185,7 +190,7 @@ public class StyleEditorWindow : Window
 
                 config.SavedStyles.Add(newStyle);
                 newStyle.Apply();
-                UiBuilder.InvokeStyleChanged();
+                this.Change();
                 appliedThisFrame = true;
 
                 this.currentSel = config.SavedStyles.Count - 1;
@@ -345,7 +350,7 @@ public class StyleEditorWindow : Window
 
             if (changes)
             {
-                UiBuilder.InvokeStyleChanged();
+                this.Change();
             }
 
             ImGui.EndTabBar();
@@ -409,5 +414,11 @@ public class StyleEditorWindow : Window
         newStyle.Apply();
 
         config.QueueSave();
+    }
+
+    private void Change()
+    {
+        this.anyChanges = true;
+        UiBuilder.InvokeStyleChanged();
     }
 }
