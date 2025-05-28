@@ -37,6 +37,9 @@ internal sealed unsafe class Completion : IInternalDisposableService
 
     private Hook<CompletionModule.Delegates.GetSelection>? getSelection;
 
+    // This is marked volatile since we set and check it from different threads. Instead of using a synchronization
+    // primitive, a volatile is sufficient since the absolute worst case is that we delay one extra frame to reset
+    // the list, which is fine
     private volatile bool needsClear;
     private bool disposed;
     private nint wantedVtblPtr;
@@ -86,6 +89,12 @@ internal sealed unsafe class Completion : IInternalDisposableService
         var basePtr = mod->TextInput.TargetTextInputEventInterface;
         if (basePtr == null) return null;
 
+        // Once CS has an implementation for multiple inheritance, we can remove this sig from dalamud
+        // as well as the nasty pointer arithmetic below. But for now, we need to do this manually.
+        // The AtkTextInputEventInterface* is the secondary base class for AtkComponentTextInput*
+        // so the pointer is sizeof(AtkComponentInputBase) into the object. We verify that we're looking
+        // at the object we think we are by confirming the pointed-to vtbl matches the known secondary vtbl for
+        // AtkComponentTextInput, and if it does, we can shift the pointer back to get the start of our text input
         if (this.wantedVtblPtr == 0)
         {
             this.wantedVtblPtr =
