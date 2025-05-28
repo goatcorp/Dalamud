@@ -94,6 +94,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         { MacroCode.LowerHead, ["String"] },
         { MacroCode.ColorType, ["ColorType"] },
         { MacroCode.EdgeColorType, ["ColorType"] },
+        { MacroCode.Ruby, ["StandardText", "RubyText"] },
         { MacroCode.Digit, ["Value", "TargetLength"] },
         { MacroCode.Ordinal, ["Value"] },
         { MacroCode.Sound, ["IsJingle", "SoundId"] },
@@ -477,7 +478,12 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 }
             }
 
-            RaptureLogModule.Instance()->PrintString(Service<SeStringEvaluator>.Get().Evaluate(sb.ToReadOnlySeString()));
+            var evaluated = Service<SeStringEvaluator>.Get().Evaluate(
+                sb.ToReadOnlySeString(),
+                this.localParameters,
+                this.language);
+
+            RaptureLogModule.Instance()->PrintString(evaluated);
         }
 
         if (this.entries.Count != 0)
