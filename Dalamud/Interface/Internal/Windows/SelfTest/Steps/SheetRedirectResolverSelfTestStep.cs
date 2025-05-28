@@ -63,6 +63,10 @@ internal class SheetRedirectResolverSelfTestStep : ISelfTestStep
         new("WeatherPlaceName", 40),
         new("WeatherPlaceName", 52),
         new("WeatherPlaceName", 2300),
+        new("InstanceContent", 1),
+        new("PartyContent", 2),
+        new("PublicContent", 1),
+        new("AkatsukiNote", 1),
     ];
 
     private unsafe delegate SheetRedirectFlags ResolveSheetRedirect(RaptureTextModule* thisPtr, Utf8String* sheetName, uint* rowId, uint* flags);
