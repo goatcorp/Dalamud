@@ -1,4 +1,4 @@
-#include "DrawListTexture.Renderer.Common.hlsl"
+#include "Renderer.Common.hlsl"
 
 struct ImDrawVert {
     float2 position : POSITION;
@@ -18,7 +18,6 @@ struct PsData {
 
 Texture2D s_texture : register(t0);
 SamplerState s_sampler : register(s0);
-RWTexture2D<float4> s_output : register(u1);
 
 VsData vs_main(const ImDrawVert idv) {
     VsData result;
@@ -34,7 +33,7 @@ float4 ps_main(const VsData vd) : SV_TARGET {
 
 /*
 
-fxc /Zi /T vs_5_0 /E vs_main /Fo DrawListTexture.Renderer.DrawToPremul.vs.bin DrawListTexture.Renderer.DrawToPremul.hlsl
-fxc /Zi /T ps_5_0 /E ps_main /Fo DrawListTexture.Renderer.DrawToPremul.ps.bin DrawListTexture.Renderer.DrawToPremul.hlsl
+fxc /Zi /T vs_5_0 /E vs_main /Fo Renderer.DrawToPremul.vs.bin Renderer.DrawToPremul.hlsl
+fxc /Zi /T ps_5_0 /E ps_main /Fo Renderer.DrawToPremul.ps.bin Renderer.DrawToPremul.hlsl
 
 */

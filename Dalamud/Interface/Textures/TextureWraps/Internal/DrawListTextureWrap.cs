@@ -26,7 +26,10 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
     private ComPtr<ID3D11Texture2D> tex;
     private ComPtr<ID3D11ShaderResourceView> srv;
     private ComPtr<ID3D11RenderTargetView> rtv;
-    private ComPtr<ID3D11UnorderedAccessView> uav;
+
+    private ComPtr<ID3D11Texture2D> texPremultiplied;
+    private ComPtr<ID3D11ShaderResourceView> srvPremultiplied;
+    private ComPtr<ID3D11RenderTargetView> rtvPremultiplied;
 
     private int width;
     private int height;
@@ -138,7 +141,9 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         this.srv.Reset();
         this.tex.Reset();
         this.rtv.Reset();
-        this.uav.Reset();
+        this.srvPremultiplied.Reset();
+        this.texPremultiplied.Reset();
+        this.rtvPremultiplied.Reset();
         this.device.Reset();
         this.deviceContext.Reset();
 
@@ -180,7 +185,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
 
         // Clear the texture first, as the texture exists.
         var clearColor = this.ClearColor;
-        this.deviceContext.Get()->ClearRenderTargetView(this.rtv.Get(), (float*)&clearColor);
+        this.deviceContext.Get()->ClearRenderTargetView(this.rtvPremultiplied.Get(), (float*)&clearColor);
 
         // If there is nothing to draw, then stop.
         if (!drawData.Valid
@@ -196,8 +201,8 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
 
         using (new DeviceContextStateBackup(this.device.Get()->GetFeatureLevel(), this.deviceContext))
         {
-            Service<Renderer>.Get().RenderDrawData(this.rtv.Get(), drawData);
-            Service<Renderer>.Get().MakeStraight(this.uav.Get());
+            Service<Renderer>.Get().RenderDrawData(this.rtvPremultiplied.Get(), drawData);
+            Service<Renderer>.Get().MakeStraight(this.srvPremultiplied.Get(), this.rtv.Get());
         }
     }
 
@@ -217,7 +222,9 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             this.tex.Reset();
             this.srv.Reset();
             this.rtv.Reset();
-            this.uav.Reset();
+            this.texPremultiplied.Reset();
+            this.srvPremultiplied.Reset();
+            this.rtvPremultiplied.Reset();
             this.width = newWidth;
             this.Height = newHeight;
             this.srv = new((ID3D11ShaderResourceView*)this.emptyTexture.ImGuiHandle);
@@ -231,7 +238,9 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         using var tmptex = default(ComPtr<ID3D11Texture2D>);
         using var tmpsrv = default(ComPtr<ID3D11ShaderResourceView>);
         using var tmprtv = default(ComPtr<ID3D11RenderTargetView>);
-        using var tmpuav = default(ComPtr<ID3D11UnorderedAccessView>);
+        using var tmptexPremultiplied = default(ComPtr<ID3D11Texture2D>);
+        using var tmpsrvPremultiplied = default(ComPtr<ID3D11ShaderResourceView>);
+        using var tmprtvPremultiplied = default(ComPtr<ID3D11RenderTargetView>);
 
         var tmpTexDesc = new D3D11_TEXTURE2D_DESC
         {
@@ -243,8 +252,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             SampleDesc = new(1, 0),
             Usage = D3D11_USAGE.D3D11_USAGE_DEFAULT,
             BindFlags = (uint)(D3D11_BIND_FLAG.D3D11_BIND_SHADER_RESOURCE |
-                               D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET |
-                               D3D11_BIND_FLAG.D3D11_BIND_UNORDERED_ACCESS),
+                               D3D11_BIND_FLAG.D3D11_BIND_RENDER_TARGET),
             CPUAccessFlags = 0u,
             MiscFlags = 0u,
         };
@@ -263,15 +271,27 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
         if (hr.FAILED)
             return hr;
 
-        var uavDesc = new D3D11_UNORDERED_ACCESS_VIEW_DESC(tmptex, D3D11_UAV_DIMENSION.D3D11_UAV_DIMENSION_TEXTURE2D);
-        hr = this.device.Get()->CreateUnorderedAccessView(tmpres, &uavDesc, tmpuav.GetAddressOf());
+        hr = this.device.Get()->CreateTexture2D(&tmpTexDesc, null, tmptexPremultiplied.GetAddressOf());
+        if (hr.FAILED)
+            return hr;
+
+        tmpres = (ID3D11Resource*)tmptexPremultiplied.Get();
+        srvDesc = new(tmptexPremultiplied, D3D_SRV_DIMENSION.D3D11_SRV_DIMENSION_TEXTURE2D);
+        hr = this.device.Get()->CreateShaderResourceView(tmpres, &srvDesc, tmpsrvPremultiplied.GetAddressOf());
+        if (hr.FAILED)
+            return hr;
+
+        rtvDesc = new(tmptexPremultiplied, D3D11_RTV_DIMENSION.D3D11_RTV_DIMENSION_TEXTURE2D);
+        hr = this.device.Get()->CreateRenderTargetView(tmpres, &rtvDesc, tmprtvPremultiplied.GetAddressOf());
         if (hr.FAILED)
             return hr;
 
         tmptex.Swap(ref this.tex);
         tmpsrv.Swap(ref this.srv);
         tmprtv.Swap(ref this.rtv);
-        tmpuav.Swap(ref this.uav);
+        tmptexPremultiplied.Swap(ref this.texPremultiplied);
+        tmpsrvPremultiplied.Swap(ref this.srvPremultiplied);
+        tmprtvPremultiplied.Swap(ref this.rtvPremultiplied);
         this.width = newWidth;
         this.height = newHeight;
         this.format = newFormat;
