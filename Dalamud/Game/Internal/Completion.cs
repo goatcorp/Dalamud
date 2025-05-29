@@ -31,9 +31,10 @@ internal sealed unsafe class Completion : IInternalDisposableService
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
 
-    private readonly EntryStrings dalamudCategory = new("【Dalamud】");
     private readonly Dictionary<string, EntryStrings> cachedCommands = [];
     private readonly ConcurrentQueue<string> addedCommands = [];
+
+    private EntryStrings? dalamudCategory;
 
     private Hook<CompletionModule.Delegates.GetSelection>? getSelection;
 
@@ -148,6 +149,9 @@ internal sealed unsafe class Completion : IInternalDisposableService
             this.framework.Update -= this.OnUpdate;
             this.commandManager.CommandAdded -= this.OnCommandAdded;
             this.commandManager.CommandRemoved -= this.OnCommandRemoved;
+
+            this.dalamudCategory?.Dispose();
+            this.ClearCachedCommands();
         }
 
         this.disposed = true;
@@ -176,6 +180,11 @@ internal sealed unsafe class Completion : IInternalDisposableService
         // but that's the same as making a typo, really
         if (textInput->CompletionDepth > 0) return;
 
+        // Create the category for Dalamud commands.
+        // This needs to be done here, since we cannot create Utf8Strings before the game
+        // has initialized (no allocator set up yet).
+        this.dalamudCategory ??= new EntryStrings("【Dalamud】");
+
         this.LoadCommands(textInput->CompletionModule);
     }
 
@@ -202,10 +211,23 @@ internal sealed unsafe class Completion : IInternalDisposableService
         // Create the category since we don't have one
         var categoryData = (CategoryData*)Memory.MemoryHelper.GameAllocateDefault((ulong)sizeof(CategoryData));
         categoryData->Ctor(GroupNumber, 0xFF);
-        module->AddCategoryData(GroupNumber, this.dalamudCategory.Display->StringPtr,
+        module->AddCategoryData(GroupNumber, this.dalamudCategory!.Display->StringPtr,
                                  this.dalamudCategory.Match->StringPtr, categoryData);
 
         return categoryData;
+    }
+
+    private void ClearCachedCommands()
+    {
+        if (this.cachedCommands.Count == 0)
+            return;
+
+        foreach (var entry in this.cachedCommands.Values)
+        {
+            entry.Dispose();
+        }
+
+        this.cachedCommands.Clear();
     }
 
     private void LoadCommands(CompletionModule* completionModule)
@@ -217,7 +239,7 @@ internal sealed unsafe class Completion : IInternalDisposableService
         {
             this.needsClear = false;
             completionModule->ClearCompletionData();
-            this.cachedCommands.Clear();
+            this.ClearCachedCommands();
             return;
         }
 
@@ -277,17 +299,17 @@ internal sealed unsafe class Completion : IInternalDisposableService
         return ret;
     }
 
-    private class EntryStrings(string command)
+    private class EntryStrings(string command) : IDisposable
     {
-        ~EntryStrings()
-        {
-            this.Display->Dtor(true);
-            this.Match->Dtor(true);
-        }
-
         public Utf8String* Display { get; } =
             Utf8String.FromSequence(new SeStringBuilder().AddUiForeground(command, 539).Encode());
 
         public Utf8String* Match { get; } = Utf8String.FromString(command);
+
+        public void Dispose()
+        {
+            this.Display->Dtor(true);
+            this.Match->Dtor(true);
+        }
     }
 }

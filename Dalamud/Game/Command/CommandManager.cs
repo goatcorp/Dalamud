@@ -241,12 +241,12 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
     public class CommandEventArgs : EventArgs
     {
         /// <summary>
-        ///  Gets the command string
+        ///  Gets the command string.
         /// </summary>
         public string Command { get; init; }
 
         /// <summary>
-        ///  Gets the command info
+        ///  Gets the command info.
         /// </summary>
         public IReadOnlyCommandInfo CommandInfo { get; init; }
     }
