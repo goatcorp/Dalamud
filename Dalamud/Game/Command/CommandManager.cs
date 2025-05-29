@@ -45,6 +45,16 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         this.console.Invoke += this.ConsoleOnInvoke;
     }
 
+    /// <summary>
+    /// Published whenever a command is registered
+    /// </summary>
+    public event EventHandler<CommandEventArgs>? CommandAdded;
+
+    /// <summary>
+    /// Published whenever a command is unregistered
+    /// </summary>
+    public event EventHandler<CommandEventArgs>? CommandRemoved;
+
     /// <inheritdoc/>
     public ReadOnlyDictionary<string, IReadOnlyCommandInfo> Commands => new(this.commandMap);
 
@@ -122,6 +132,12 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             return false;
         }
 
+        this.CommandAdded?.Invoke(this, new CommandEventArgs
+        {
+            Command = command,
+            CommandInfo = info,
+        });
+
         if (!this.commandAssemblyNameMap.TryAdd((command, info), loaderAssemblyName))
         {
             this.commandMap.Remove(command, out _);
@@ -144,6 +160,12 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             return false;
         }
 
+        this.CommandAdded?.Invoke(this, new CommandEventArgs
+        {
+            Command = command,
+            CommandInfo = info,
+        });
+
         return true;
     }
 
@@ -155,7 +177,17 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             this.commandAssemblyNameMap.TryRemove(assemblyKeyValuePair.Key, out _);
         }
 
-        return this.commandMap.Remove(command, out _);
+        var removed = this.commandMap.Remove(command, out var info);
+        if (removed)
+        {
+            this.CommandRemoved?.Invoke(this, new CommandEventArgs
+            {
+                Command = command,
+                CommandInfo = info,
+            });
+        }
+
+        return removed;
     }
 
     /// <summary>
@@ -203,6 +235,20 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         if (result != -1) return result;
 
         return this.ProcessCommand(command->ToString()) ? 0 : result;
+    }
+
+    /// <inheritdoc />
+    public class CommandEventArgs : EventArgs
+    {
+        /// <summary>
+        ///  Gets the command string
+        /// </summary>
+        public string Command { get; init; }
+
+        /// <summary>
+        ///  Gets the command info
+        /// </summary>
+        public IReadOnlyCommandInfo CommandInfo { get; init; }
     }
 }
 
@@ -268,7 +314,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         }
         else
         {
-            Log.Error($"Command {command} is already registered.");
+            Log.Error("Command {Command} is already registered.", command);
         }
 
         return false;
@@ -287,7 +333,7 @@ internal class CommandManagerPluginScoped : IInternalDisposableService, ICommand
         }
         else
         {
-            Log.Error($"Command {command} not found.");
+            Log.Error("Command {Command} not found.", command);
         }
 
         return false;

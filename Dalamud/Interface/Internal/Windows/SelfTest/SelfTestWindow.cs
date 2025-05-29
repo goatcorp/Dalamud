@@ -57,7 +57,8 @@ internal class SelfTestWindow : Window
         new SheetRedirectResolverSelfTestStep(),
         new NounProcessorSelfTestStep(),
         new SeStringEvaluatorSelfTestStep(),
-        new LogoutEventSelfTestStep()
+        new LogoutEventSelfTestStep(),
+        new CompletionSelfTestStep()
     ];
 
     private readonly Dictionary<int, (SelfTestStepResult Result, TimeSpan? Duration)> testIndexToResult = new();
