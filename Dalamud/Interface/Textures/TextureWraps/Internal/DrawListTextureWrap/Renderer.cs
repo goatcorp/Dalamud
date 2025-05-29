@@ -259,15 +259,16 @@ internal sealed unsafe partial class DrawListTextureWrap
         }
 
         /// <summary>Renders draw data.</summary>
-        /// <param name="puav">The pointer to a Texture2D UAV to make straight.</param>
-        public void MakeStraight(ID3D11UnorderedAccessView* puav)
+        /// <param name="psrv">The pointer to a Texture2D SRV to read premultiplied data from.</param>
+        /// <param name="prtv">The pointer to a Texture2D RTV to write straightened data.</param>
+        public void MakeStraight(ID3D11ShaderResourceView* psrv, ID3D11RenderTargetView* prtv)
         {
             ThreadSafety.AssertMainThread();
 
             D3D11_TEXTURE2D_DESC texDesc;
             using (var texRes = default(ComPtr<ID3D11Resource>))
             {
-                puav->GetResource(texRes.GetAddressOf());
+                prtv->GetResource(texRes.GetAddressOf());
 
                 using var tex = default(ComPtr<ID3D11Texture2D>);
                 texRes.As(&tex).ThrowOnError();
@@ -292,10 +293,9 @@ internal sealed unsafe partial class DrawListTextureWrap
             var viewport = new D3D11_VIEWPORT(0, 0, texDesc.Width, texDesc.Height);
             this.deviceContext.Get()->RSSetViewports(1, &viewport);
 
-            this.deviceContext.Get()->OMSetBlendState(null, null, 0xFFFFFFFF);
+            this.deviceContext.Get()->OMSetBlendState(null, null, 0xffffffff);
             this.deviceContext.Get()->OMSetDepthStencilState(this.depthStencilState, 0);
-            var nullrtv = default(ID3D11RenderTargetView*);
-            this.deviceContext.Get()->OMSetRenderTargetsAndUnorderedAccessViews(1, &nullrtv, null, 1, 1, &puav, null);
+            this.deviceContext.Get()->OMSetRenderTargets(1, &prtv, null);
 
             this.deviceContext.Get()->VSSetShader(this.makeStraightVertexShader.Get(), null, 0);
             this.deviceContext.Get()->PSSetShader(this.makeStraightPixelShader.Get(), null, 0);
@@ -304,6 +304,7 @@ internal sealed unsafe partial class DrawListTextureWrap
             this.deviceContext.Get()->DSSetShader(null, null, 0);
             this.deviceContext.Get()->CSSetShader(null, null, 0);
 
+            this.deviceContext.Get()->PSSetShaderResources(0, 1, &psrv);
             this.deviceContext.Get()->DrawIndexed(6, 0, 0);
         }
 
