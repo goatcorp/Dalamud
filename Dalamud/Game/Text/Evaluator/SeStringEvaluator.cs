@@ -115,6 +115,15 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     }
 
     /// <inheritdoc/>
+    public ReadOnlySeString EvaluateMacroString(
+        string macroString,
+        Span<SeStringParameter> localParameters = default,
+        ClientLanguage? language = null)
+    {
+        return this.Evaluate(ReadOnlySeString.FromMacroString(macroString).AsSpan(), localParameters, language);
+    }
+
+    /// <inheritdoc/>
     public ReadOnlySeString EvaluateFromAddon(
         uint addonId,
         Span<SeStringParameter> localParameters = default,
