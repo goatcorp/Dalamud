@@ -11,7 +11,7 @@
     <!-- Dependency versions -->
     <PropertyGroup Label="Dependency Versions">
         <LuminaVersion>5.7.0</LuminaVersion>
-        <LuminaExcelVersion>7.2.2</LuminaExcelVersion>
+        <LuminaExcelVersion>7.2.3</LuminaExcelVersion>
         <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     </PropertyGroup>
 
