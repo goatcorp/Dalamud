@@ -42,7 +42,7 @@ public sealed unsafe partial class StatusList
     /// Gets the amount of status effects the actor has valid. 
     /// This might not be correct with Occult Crescent for some statuses.
     /// </summary>
-    public int Length => Struct->NumStatusAvailable
+    public int Length => Struct->NumValidStatuses;
 
     private static int StatusSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Status>();
 
