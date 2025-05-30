@@ -35,12 +35,12 @@ public sealed unsafe partial class StatusList
 
     /// <summary>
     /// Gets the amount of status effect slots the actor has.
+    /// This is always the full accessible length and will retrun the higher parts of the list that might not be in use.
     /// </summary>
     public int SpanLength => Struct->Status.Length;
 
     /// <summary>
     /// Gets the amount of status effects the actor has valid. 
-    /// This might not be correct with Occult Crescent for some statuses.
     /// </summary>
     public int Length => Struct->NumValidStatuses;
 
