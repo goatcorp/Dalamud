@@ -36,7 +36,13 @@ public sealed unsafe partial class StatusList
     /// <summary>
     /// Gets the amount of status effect slots the actor has.
     /// </summary>
-    public int Length => Struct->NumValidStatuses;
+    public int SpanLength => Struct->Status.Length;
+
+    /// <summary>
+    /// Gets the amount of status effects the actor has valid. 
+    /// This might not be correct with Occult Crescent for some statuses.
+    /// </summary>
+    public int Length => Struct->NumStatusAvailable
 
     private static int StatusSize { get; } = Marshal.SizeOf<FFXIVClientStructs.FFXIV.Client.Game.Status>();
 
@@ -51,7 +57,7 @@ public sealed unsafe partial class StatusList
     {
         get
         {
-            if (index < 0 || index > this.Length)
+            if (index < 0 || index > this.Struct->Status.Length)
                 return null;
 
             var addr = this.GetStatusAddress(index);
@@ -105,7 +111,7 @@ public sealed unsafe partial class StatusList
     /// <returns>The memory address of the status.</returns>
     public IntPtr GetStatusAddress(int index)
     {
-        if (index < 0 || index >= this.Length)
+        if (index < 0 || index >= this.Struct->Status.Length)
             return IntPtr.Zero;
 
         return (IntPtr)Unsafe.AsPointer(ref this.Struct->Status[index]);
