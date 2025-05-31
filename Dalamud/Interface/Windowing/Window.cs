@@ -598,6 +598,8 @@ public abstract class Window
 
         this.fadeOutSize = ImGui.GetWindowSize();
         this.fadeOutOrigin = ImGui.GetWindowPos();
+        var isCollapsed = ImGui.IsWindowCollapsed();
+        var isDocked = ImGui.IsWindowDocked();
 
         ImGui.End();
 
@@ -607,7 +609,12 @@ public abstract class Window
             this.pushedFadeInAlpha = false;
         }
 
-        if (!this.internalIsOpen && this.fadeOutTexture == null && doFades)
+        // TODO: No fade-out if the window is collapsed. We could do this if we knew the "FullSize" of the window
+        // from the internal ImGuiWindow, but I don't want to mess with that here for now. We can do this a lot
+        // easier with the new bindings.
+        // TODO: No fade-out if docking is enabled and the window is docked, since this makes them "unsnap".
+        // Ideally we should get rid of this "fake window" thing and just insert a new drawlist at the correct spot.
+        if (!this.internalIsOpen && this.fadeOutTexture == null && doFades && !isCollapsed && !isDocked)
         {
             this.fadeOutTexture = Service<TextureManager>.Get().CreateDrawListTexture(
                 "WindowFadeOutTexture");
@@ -833,7 +840,7 @@ public abstract class Window
         style.Push(ImGuiStyleVar.WindowBorderSize, 0);
         style.Push(ImGuiStyleVar.FrameBorderSize, 0);
 
-        const ImGuiWindowFlags flags = ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoCollapse |
+        const ImGuiWindowFlags flags = ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav |
                                            ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs |
                                            ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
         if (ImGui.Begin(this.WindowName, flags))
