@@ -431,17 +431,17 @@ internal unsafe class UiDebug
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
 
-                    ImGui.Text("Text3: ");
+                    ImGui.Text("AvailableLines: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText03);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AvailableLines);
 
-                    ImGui.Text("Text4: ");
+                    ImGui.Text("HighlightedAutoTranslateOptionColorPrefix: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText04);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->HighlightedAutoTranslateOptionColorPrefix);
 
-                    ImGui.Text("Text5: ");
+                    ImGui.Text("HighlightedAutoTranslateOptionColorSuffix: ");
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText05);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->HighlightedAutoTranslateOptionColorSuffix);
                     break;
             }
 

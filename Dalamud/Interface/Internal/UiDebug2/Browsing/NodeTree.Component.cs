@@ -92,11 +92,11 @@ internal unsafe class ComponentNodeTree : ResNodeTree
                 ImGui.TextUnformatted(
                     $"Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText02.StringPtr))}");
                 ImGui.TextUnformatted(
-                    $"Text3: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText03.StringPtr))}");
+                    $"AvailableLines: {Marshal.PtrToStringAnsi(new(textInputComponent->AvailableLines.StringPtr))}");
                 ImGui.TextUnformatted(
-                    $"Text4: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText04.StringPtr))}");
+                    $"HighlightedAutoTranslateOptionColorPrefix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorPrefix.StringPtr))}");
                 ImGui.TextUnformatted(
-                    $"Text5: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText05.StringPtr))}");
+                    $"HighlightedAutoTranslateOptionColorSuffix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorSuffix.StringPtr))}");
                 break;
             case List:
             case TreeList:
