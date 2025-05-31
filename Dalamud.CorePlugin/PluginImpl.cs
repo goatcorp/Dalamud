@@ -46,6 +46,8 @@ namespace Dalamud.CorePlugin
 #else
 
         private readonly WindowSystem windowSystem = new("Dalamud.CorePlugin");
+        private readonly PluginWindow window;
+
         private Localization localization;
 
         private IPluginLog pluginLog;
@@ -63,7 +65,8 @@ namespace Dalamud.CorePlugin
                 this.Interface = pluginInterface;
                 this.pluginLog = log;
 
-                this.windowSystem.AddWindow(new PluginWindow());
+                this.window = new PluginWindow();
+                this.windowSystem.AddWindow(this.window);
 
                 this.Interface.UiBuilder.Draw += this.OnDraw;
                 this.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
@@ -136,12 +139,12 @@ namespace Dalamud.CorePlugin
         {
             this.pluginLog.Information("Command called!");
 
-            // this.window.IsOpen = true;
+            this.window.IsOpen ^= true;
         }
 
         private void OnOpenConfigUi()
         {
-            // this.window.IsOpen = true;
+            this.window.IsOpen = true;
         }
 
         private void OnOpenMainUi()
