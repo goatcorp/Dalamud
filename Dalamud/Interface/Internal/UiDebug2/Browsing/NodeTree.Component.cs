@@ -58,7 +58,13 @@ internal unsafe class ComponentNodeTree : ResNodeTree
     /// <inheritdoc/>
     private protected override void PrintChildNodes()
     {
-        base.PrintChildNodes();
+        var prevNode = this.CompNode->Component->UldManager.RootNode;
+        while (prevNode != null)
+        {
+            GetOrCreate(prevNode, this.AddonTree).Print(null);
+            prevNode = prevNode->PrevSiblingNode;
+        }
+
         var count = this.UldManager->NodeListCount;
         PrintNodeListAsTree(this.UldManager->NodeList, count, $"Node List [{count}]:", this.AddonTree, new(0f, 0.5f, 0.8f, 1f));
     }
