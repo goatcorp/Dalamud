@@ -37,7 +37,7 @@ internal unsafe class AddonEventEntry
     /// <summary>
     /// Gets the handler that gets called when this event is triggered.
     /// </summary>
-    [Obsolete("Use Addon instead")]
+    [Obsolete("Use AddonEventDelegate Delegate instead")]
     public IAddonEventManager.AddonEventHandler Handler { get; init; }
 
     /// <summary>
