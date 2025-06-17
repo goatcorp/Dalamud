@@ -4,6 +4,7 @@ using System.Linq;
 using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -25,7 +26,7 @@ internal unsafe class PluginEventController : IDisposable
     }
 
     private AddonEventListener EventListener { get; init; }
-    
+
     private List<AddonEventEntry> Events { get; } = new();
 
     /// <summary>
@@ -36,6 +37,7 @@ internal unsafe class PluginEventController : IDisposable
     /// <param name="atkEventType">The Event Type.</param>
     /// <param name="handler">The delegate to call when invoking this event.</param>
     /// <returns>IAddonEventHandle used to remove the event.</returns>
+    [Obsolete("Use AddEvent that uses AddonEventDelegate instead of AddonEventHandler")]
     public IAddonEventHandle AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType atkEventType, IAddonEventManager.AddonEventHandler handler)
     {
         var node = (AtkResNode*)atkResNode;
@@ -43,7 +45,7 @@ internal unsafe class PluginEventController : IDisposable
         var eventType = (AtkEventType)atkEventType;
         var eventId = this.GetNextParamKey();
         var eventGuid = Guid.NewGuid();
-        
+
         var eventHandle = new AddonEventHandle
         {
             AddonName = addon->NameString,
@@ -51,11 +53,54 @@ internal unsafe class PluginEventController : IDisposable
             EventType = atkEventType,
             EventGuid = eventGuid,
         };
-        
+
         var eventEntry = new AddonEventEntry
         {
             Addon = atkUnitBase,
             Handler = handler,
+            Delegate = null,
+            Node = atkResNode,
+            EventType = atkEventType,
+            ParamKey = eventId,
+            Handle = eventHandle,
+        };
+
+        Log.Verbose($"Adding Event. {eventEntry.LogString}");
+        this.EventListener.RegisterEvent(addon, node, eventType, eventId);
+        this.Events.Add(eventEntry);
+
+        return eventHandle;
+    }
+
+    /// <summary>
+    /// Adds a tracked event.
+    /// </summary>
+    /// <param name="atkUnitBase">The Parent addon for the event.</param>
+    /// <param name="atkResNode">The Node for the event.</param>
+    /// <param name="atkEventType">The Event Type.</param>
+    /// <param name="eventDelegate">The delegate to call when invoking this event.</param>
+    /// <returns>IAddonEventHandle used to remove the event.</returns>
+    public IAddonEventHandle AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType atkEventType, IAddonEventManager.AddonEventDelegate eventDelegate)
+    {
+        var node = (AtkResNode*)atkResNode;
+        var addon = (AtkUnitBase*)atkUnitBase;
+        var eventType = (AtkEventType)atkEventType;
+        var eventId = this.GetNextParamKey();
+        var eventGuid = Guid.NewGuid();
+
+        var eventHandle = new AddonEventHandle
+        {
+            AddonName = addon->NameString,
+            ParamKey = eventId,
+            EventType = atkEventType,
+            EventGuid = eventGuid,
+        };
+
+        var eventEntry = new AddonEventEntry
+        {
+            Addon = atkUnitBase,
+            Delegate = eventDelegate,
+            Handler = null,
             Node = atkResNode,
             EventType = atkEventType,
             ParamKey = eventId,
@@ -91,14 +136,14 @@ internal unsafe class PluginEventController : IDisposable
         if (this.Events.Where(entry => entry.AddonName == addonName).ToList() is { Count: not 0 } events)
         {
             Log.Verbose($"Addon: {addonName} is Finalizing, removing {events.Count} events.");
-        
+
             foreach (var registeredEvent in events)
             {
                 this.RemoveEvent(registeredEvent.Handle);
             }
         }
     }
-    
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -106,7 +151,7 @@ internal unsafe class PluginEventController : IDisposable
         {
             this.RemoveEvent(registeredEvent.Handle);
         }
-        
+
         this.EventListener.Dispose();
     }
 
@@ -119,7 +164,7 @@ internal unsafe class PluginEventController : IDisposable
 
         throw new OverflowException($"uint.MaxValue number of ParamKeys used for this event controller.");
     }
-    
+
     /// <summary>
     /// Attempts to remove a tracked event from native UI.
     /// This method performs several safety checks to only remove events from a still active addon.
@@ -153,7 +198,7 @@ internal unsafe class PluginEventController : IDisposable
                 break;
             }
         }
-        
+
         // If we didn't find the node, we can't remove the event.
         if (!nodeFound) return;
 
@@ -167,33 +212,45 @@ internal unsafe class PluginEventController : IDisposable
             var paramKeyMatches = currentEvent->Param == eventEntry.ParamKey;
             var eventListenerAddressMatches = (nint)currentEvent->Listener == this.EventListener.Address;
             var eventTypeMatches = currentEvent->State.EventType == eventType;
-            
+
             if (paramKeyMatches && eventListenerAddressMatches && eventTypeMatches)
             {
                 eventFound = true;
                 break;
             }
-            
+
             // Move to the next event.
             currentEvent = currentEvent->NextEvent;
         }
-        
+
         // If we didn't find the event, we can't remove the event.
         if (!eventFound) return;
 
         // We have a valid addon, valid node, valid event, and valid key.
         this.EventListener.UnregisterEvent(atkResNode, eventType, eventEntry.ParamKey);
     }
-    
+
+    [Api13ToDo("Remove invoke from eventInfo.Handler, and remove nullability from eventInfo.Delegate?.Invoke")]
     private void PluginEventListHandler(AtkEventListener* self, AtkEventType eventType, uint eventParam, AtkEvent* eventPtr, AtkEventData* eventDataPtr)
     {
         try
         {
             if (eventPtr is null) return;
             if (this.Events.FirstOrDefault(handler => handler.ParamKey == eventParam) is not { } eventInfo) return;
-            
+
             // We stored the AtkUnitBase* in EventData->Node, and EventData->Target contains the node that triggered the event.
-            eventInfo.Handler.Invoke((AddonEventType)eventType, (nint)eventPtr->Node, (nint)eventPtr->Target);
+            eventInfo.Handler?.Invoke((AddonEventType)eventType, (nint)eventPtr->Node, (nint)eventPtr->Target);
+
+            eventInfo.Delegate?.Invoke((AddonEventType)eventType, new AddonEventData
+            {
+                AddonPointer = (nint)eventPtr->Node,
+                NodeTargetPointer = (nint)eventPtr->Target,
+                AtkEventDataPointer = (nint)eventDataPtr,
+                AtkEventListener = (nint)self,
+                AtkEventType = (AddonEventType)eventType,
+                Param = eventParam,
+                AtkEventPointer = (nint)eventPtr,
+            });
         }
         catch (Exception exception)
         {
