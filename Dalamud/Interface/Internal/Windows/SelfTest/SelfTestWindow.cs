@@ -57,8 +57,8 @@ internal class SelfTestWindow : Window
         new SheetRedirectResolverSelfTestStep(),
         new NounProcessorSelfTestStep(),
         new SeStringEvaluatorSelfTestStep(),
-        new LogoutEventSelfTestStep(),
-        new CompletionSelfTestStep()
+        new CompletionSelfTestStep(),
+        new LogoutEventSelfTestStep()
     ];
 
     private readonly Dictionary<int, (SelfTestStepResult Result, TimeSpan? Duration)> testIndexToResult = new();
@@ -152,6 +152,9 @@ internal class SelfTestWindow : Window
             return;
         }
 
+        using var resultChild = ImRaii.Child("SelfTestResultChild", ImGui.GetContentRegionAvail());
+        if (!resultChild) return;
+
         var step = this.steps[this.currentStep];
         ImGui.TextUnformatted($"Current: {step.Name}");
 
@@ -184,7 +187,7 @@ internal class SelfTestWindow : Window
         var tableSize = ImGui.GetContentRegionAvail();
 
         if (this.selfTestRunning)
-            tableSize -= new Vector2(0, 150);
+            tableSize -= new Vector2(0, 200);
 
         tableSize.Y = Math.Min(tableSize.Y, ImGui.GetWindowViewport().Size.Y * 0.5f);
 
