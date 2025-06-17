@@ -1,5 +1,7 @@
 ﻿using Dalamud.Memory;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Events;
@@ -14,9 +16,9 @@ internal unsafe class AddonEventEntry
     /// Name of an invalid addon.
     /// </summary>
     public const string InvalidAddonName = "NullAddon";
-    
+
     private string? addonName;
-    
+
     /// <summary>
     /// Gets the pointer to the addons AtkUnitBase.
     /// </summary>
@@ -35,18 +37,25 @@ internal unsafe class AddonEventEntry
     /// <summary>
     /// Gets the handler that gets called when this event is triggered.
     /// </summary>
-    public required IAddonEventManager.AddonEventHandler Handler { get; init; }
-    
+    [Obsolete("Use Addon instead")]
+    public IAddonEventManager.AddonEventHandler Handler { get; init; }
+
+    /// <summary>
+    /// Gets the delegate that gets called when this event is triggered.
+    /// </summary>
+    [Api13ToDo("Make this field required")]
+    public IAddonEventManager.AddonEventDelegate Delegate { get; init; }
+
     /// <summary>
     /// Gets the unique id for this event.
     /// </summary>
     public required uint ParamKey { get; init; }
-    
+
     /// <summary>
     /// Gets the event type for this event.
     /// </summary>
     public required AddonEventType EventType { get; init; }
-    
+
     /// <summary>
     /// Gets the event handle for this event.
     /// </summary>
