@@ -145,7 +145,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                             var targetItem = (a.Target as MenuTargetInventory)!.TargetItem;
                             if (targetItem is { } item)
                             {
-                                name = (this.itemSheet.GetRowOrDefault(item.ItemId)?.Name.ExtractText() ?? $"Unknown ({item.ItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
+                                name = (this.itemSheet.GetRowOrDefault(item.BaseItemId)?.Name.ExtractText() ?? $"Unknown ({item.BaseItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
                                 count = item.Quantity;
                             }
                             else
