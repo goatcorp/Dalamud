@@ -151,7 +151,7 @@ internal class GamePrebakedFontHandle : FontHandle
             }
 
             if (suggestRebuild)
-                this.RebuildRecommend?.Invoke();
+                this.RebuildRecommend.InvokeSafely();
 
             return handle;
         }
@@ -641,7 +641,7 @@ internal class GamePrebakedFontHandle : FontHandle
                         glyphIndex = (ushort)glyphs.Length;
                         glyphs.Add(default);
                     }
-                    
+
                     ref var g = ref glyphs[glyphIndex];
                     g = sourceGlyph;
                     if (fontScaleMode == FontScaleMode.SkipHandling)
@@ -807,7 +807,7 @@ internal class GamePrebakedFontHandle : FontHandle
                                          .GetCustomRectByIndex(rectId)
                                          .NativePtr;
                     var widthAdjustment = this.BaseStyle.CalculateBaseWidthAdjustment(fdtFontHeader, fdtGlyph);
-                    
+
                     // Glyph is scaled at this point; undo that.
                     ref var glyph = ref glyphs[lookups[rc.GlyphId]];
                     glyph.X0 = this.BaseAttr.HorizontalOffset;
@@ -822,7 +822,7 @@ internal class GamePrebakedFontHandle : FontHandle
                         this.gftp.GetTexFile(this.BaseAttr.TexPathFormat, fdtGlyph.TextureFileIndex);
                     var sourceBuffer = texFiles[fdtGlyph.TextureFileIndex].ImageData;
                     var sourceBufferDelta = fdtGlyph.TextureChannelByteIndex;
-                    
+
                     for (var y = 0; y < fdtGlyph.BoundingHeight; y++)
                     {
                         var sourcePixelIndex =
@@ -830,11 +830,11 @@ internal class GamePrebakedFontHandle : FontHandle
                         sourcePixelIndex *= 4;
                         sourcePixelIndex += sourceBufferDelta;
                         var blend1 = horzBlend[fdtGlyph.CurrentOffsetY + y];
-                        
+
                         var targetOffset = ((rc.Y + y) * width) + rc.X;
                         for (var x = 0; x < rc.Width; x++)
                             pixels8[targetOffset + x] = 0;
-                        
+
                         targetOffset += horzShift[fdtGlyph.CurrentOffsetY + y];
                         if (blend1 == 0)
                         {

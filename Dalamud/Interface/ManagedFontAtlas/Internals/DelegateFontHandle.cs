@@ -66,7 +66,7 @@ internal sealed class DelegateFontHandle : FontHandle
             var key = new DelegateFontHandle(this, buildStepDelegate);
             lock (this.syncRoot)
                 this.handles.Add(key);
-            this.RebuildRecommend?.Invoke();
+            this.RebuildRecommend.InvokeSafely();
             return key;
         }
 
@@ -259,7 +259,7 @@ internal sealed class DelegateFontHandle : FontHandle
             }
         }
 
-        /// <inheritdoc/>        
+        /// <inheritdoc/>
         public void OnPreBuildCleanup(IFontAtlasBuildToolkitPreBuild toolkitPreBuild)
         {
             // irrelevant

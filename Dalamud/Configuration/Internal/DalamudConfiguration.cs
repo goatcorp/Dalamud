@@ -650,6 +650,16 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
             }
         });
 
-        this.DalamudConfigurationSaved?.Invoke(this);
+        foreach (var action in Delegate.EnumerateInvocationList(this.DalamudConfigurationSaved))
+        {
+            try
+            {
+                action(this);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+            }
+        }
     }
 }

@@ -132,7 +132,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             return false;
         }
 
-        this.CommandAdded?.Invoke(this, new CommandEventArgs
+        this.CommandAdded?.InvokeSafely(this, new CommandEventArgs
         {
             Command = command,
             CommandInfo = info,
@@ -160,7 +160,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
             return false;
         }
 
-        this.CommandAdded?.Invoke(this, new CommandEventArgs
+        this.CommandAdded?.InvokeSafely(this, new CommandEventArgs
         {
             Command = command,
             CommandInfo = info,
@@ -180,7 +180,7 @@ internal sealed unsafe class CommandManager : IInternalDisposableService, IComma
         var removed = this.commandMap.Remove(command, out var info);
         if (removed)
         {
-            this.CommandRemoved?.Invoke(this, new CommandEventArgs
+            this.CommandRemoved?.InvokeSafely(this, new CommandEventArgs
             {
                 Command = command,
                 CommandInfo = info,

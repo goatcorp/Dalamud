@@ -346,24 +346,21 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             // Call events
             var isHandled = false;
 
-            if (this.CheckMessageHandled is { } handledCallback)
+            foreach (var action in Delegate.EnumerateInvocationList(this.CheckMessageHandled))
             {
-                foreach (var action in handledCallback.GetInvocationList().Cast<IChatGui.OnCheckMessageHandledDelegate>())
+                try
                 {
-                    try
-                    {
-                        action(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "Could not invoke registered OnCheckMessageHandledDelegate for {Name}", action.Method);
-                    }
+                    action(chatType, timestamp, ref parsedSender, ref parsedMessage, ref isHandled);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Could not invoke registered OnCheckMessageHandledDelegate for {Name}", action.Method);
                 }
             }
 
-            if (!isHandled && this.ChatMessage is { } callback)
+            if (!isHandled)
             {
-                foreach (var action in callback.GetInvocationList().Cast<IChatGui.OnMessageDelegate>())
+                foreach (var action in Delegate.EnumerateInvocationList(this.ChatMessage))
                 {
                     try
                     {
@@ -394,12 +391,14 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
             // Print the original chat if it's handled.
             if (isHandled)
             {
-                this.ChatMessageHandled?.Invoke(chatType, timestamp, parsedSender, parsedMessage);
+                foreach (var d in Delegate.EnumerateInvocationList(this.ChatMessageHandled))
+                    d(chatType, timestamp, parsedSender, parsedMessage);
             }
             else
             {
                 messageId = this.printMessageHook.Original(manager, chatType, sender, message, timestamp, silent);
-                this.ChatMessageUnhandled?.Invoke(chatType, timestamp, parsedSender, parsedMessage);
+                foreach (var d in Delegate.EnumerateInvocationList(this.ChatMessageUnhandled))
+                    d(chatType, timestamp, parsedSender, parsedMessage);
             }
         }
         catch (Exception ex)

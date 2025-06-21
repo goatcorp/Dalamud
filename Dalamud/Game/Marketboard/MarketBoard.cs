@@ -150,9 +150,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnHistoryReceived(IMarketBoardHistory history)
     {
-        if (this.HistoryReceived == null) return;
-
-        foreach (var action in this.HistoryReceived.GetInvocationList().Cast<HistoryReceivedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.HistoryReceived))
         {
             try
             {
@@ -167,9 +165,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnItemPurchased(IMarketBoardPurchase purchase)
     {
-        if (this.ItemPurchased == null) return;
-
-        foreach (var action in this.ItemPurchased.GetInvocationList().Cast<ItemPurchasedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.ItemPurchased))
         {
             try
             {
@@ -184,10 +180,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnOfferingsReceived(IMarketBoardCurrentOfferings currentOfferings)
     {
-        if (this.OfferingsReceived == null) return;
-
-        foreach (var action in this.OfferingsReceived.GetInvocationList()
-                                   .Cast<OfferingsReceivedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.OfferingsReceived))
         {
             try
             {
@@ -202,9 +195,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnPurchaseRequested(IMarketBoardPurchaseHandler purchaseHandler)
     {
-        if (this.PurchaseRequested == null) return;
-
-        foreach (var action in this.PurchaseRequested.GetInvocationList().Cast<PurchaseRequestedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.PurchaseRequested))
         {
             try
             {
@@ -219,9 +210,7 @@ internal class MarketBoardPluginScoped : IInternalDisposableService, IMarketBoar
 
     private void OnTaxRatesReceived(IMarketTaxRates taxRates)
     {
-        if (this.TaxRatesReceived == null) return;
-
-        foreach (var action in this.TaxRatesReceived.GetInvocationList().Cast<TaxRatesReceivedDelegate>())
+        foreach (var action in Delegate.EnumerateInvocationList(this.TaxRatesReceived))
         {
             try
             {

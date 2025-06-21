@@ -832,7 +832,7 @@ internal partial class InterfaceManager : IInternalDisposableService
                         this.defaultFontResourceLock = fontLocked;
 
                         // Broadcast to auto-rebuilding instances.
-                        this.AfterBuildFonts?.Invoke();
+                        this.AfterBuildFonts.InvokeSafely();
                     });
             };
         }
