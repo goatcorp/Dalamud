@@ -337,11 +337,12 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
         try
         {
-            var parsedSender = SeString.Parse(sender->AsSpan());
-            var parsedMessage = SeString.Parse(message->AsSpan());
+            // `->AsSpan()` does not include the null terminator at the end, but `BufUsed` contains the full length
+            var terminatedSender = new ReadOnlySpan<byte>(sender->StringPtr, (int)sender->BufUsed);
+            var terminatedMessage = new ReadOnlySpan<byte>(message->StringPtr, (int)message->BufUsed);
 
-            var terminatedSender = parsedSender.EncodeWithNullTerminator();
-            var terminatedMessage = parsedMessage.EncodeWithNullTerminator();
+            var parsedSender = SeString.Parse(terminatedSender);
+            var parsedMessage = SeString.Parse(terminatedMessage);
 
             // Call events
             var isHandled = false;
