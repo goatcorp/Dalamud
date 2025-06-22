@@ -153,7 +153,7 @@ public interface IUiBuilder
     bool DisableGposeUiHide { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+    /// Gets or sets a value indicating whether the game's cursor should be overridden with the ImGui cursor.
     /// </summary>
     bool OverrideGameCursor { get; set; }
 
@@ -163,7 +163,7 @@ public interface IUiBuilder
     ulong FrameCount { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not a cutscene is playing.
+    /// Gets a value indicating whether a cutscene is playing.
     /// </summary>
     bool CutsceneActive { get; }
 
@@ -183,7 +183,7 @@ public interface IUiBuilder
     IFontAtlas FontAtlas { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not to use "reduced motion". This usually means that you should use less
+    /// Gets a value indicating whether to use "reduced motion". This usually means that you should use less
     /// intrusive animations, or disable them entirely.
     /// </summary>
     bool ShouldUseReducedMotion { get; }
@@ -503,7 +503,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     public bool DisableGposeUiHide { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the game's cursor should be overridden with the ImGui cursor.
+    /// Gets or sets a value indicating whether the game's cursor should be overridden with the ImGui cursor.
     /// </summary>
     public bool OverrideGameCursor
     {
@@ -517,7 +517,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     public ulong FrameCount { get; private set; } = 0;
 
     /// <summary>
-    /// Gets a value indicating whether or not a cutscene is playing.
+    /// Gets a value indicating whether a cutscene is playing.
     /// </summary>
     public bool CutsceneActive
     {
@@ -547,7 +547,7 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     public IFontAtlas FontAtlas { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not to use "reduced motion". This usually means that you should use less
+    /// Gets a value indicating whether to use "reduced motion". This usually means that you should use less
     /// intrusive animations, or disable them entirely.
     /// </summary>
     public bool ShouldUseReducedMotion => Service<DalamudConfiguration>.Get().ReduceMotions ?? false;

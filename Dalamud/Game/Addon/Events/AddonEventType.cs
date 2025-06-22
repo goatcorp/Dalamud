@@ -1,4 +1,4 @@
-﻿namespace Dalamud.Game.Addon.Events;
+namespace Dalamud.Game.Addon.Events;
 
 /// <summary>
 /// Reimplementation of AtkEventType.
@@ -9,150 +9,262 @@ public enum AddonEventType : byte
     /// Mouse Down.
     /// </summary>
     MouseDown = 3,
-    
+
     /// <summary>
     /// Mouse Up.
     /// </summary>
     MouseUp = 4,
-    
+
     /// <summary>
     /// Mouse Move.
     /// </summary>
     MouseMove = 5,
-    
+
     /// <summary>
     /// Mouse Over.
     /// </summary>
     MouseOver = 6,
-    
+
     /// <summary>
     /// Mouse Out.
     /// </summary>
     MouseOut = 7,
-    
+
+    /// <summary>
+    /// Mouse Wheel.
+    /// </summary>
+    MouseWheel = 8,
+
     /// <summary>
     /// Mouse Click.
     /// </summary>
     MouseClick = 9,
-    
+
+    /// <summary>
+    /// Mouse Double Click.
+    /// </summary>
+    MouseDoubleClick = 10,
+
     /// <summary>
     /// Input Received.
     /// </summary>
     InputReceived = 12,
-    
+
+    /// <summary>
+    /// Input Navigation (LEFT, RIGHT, UP, DOWN, TAB_NEXT, TAB_PREV, TAB_BOTH_NEXT, TAB_BOTH_PREV, PAGEUP, PAGEDOWN).
+    /// </summary>
+    InputNavigation = 13,
+
+    /// <summary>
+    /// InputBase Input Received (AtkComponentTextInput and AtkComponentNumericInput).<br/>
+    /// For example, this is fired for moving the text cursor, deletion of a character and inserting a new line.
+    /// </summary>
+    InputBaseInputReceived = 15,
+
     /// <summary>
     /// Focus Start.
     /// </summary>
     FocusStart = 18,
-    
+
     /// <summary>
     /// Focus Stop.
     /// </summary>
     FocusStop = 19,
-    
+
     /// <summary>
-    /// Button Press, sent on MouseDown on Button.
+    /// Resize (ChatLogPanel).
+    /// </summary>
+    Resize = 19,
+
+    /// <summary>
+    /// AtkComponentButton Press, sent on MouseDown on Button.
     /// </summary>
     ButtonPress = 23,
-    
+
     /// <summary>
-    /// Button Release, sent on MouseUp and MouseOut.
+    /// AtkComponentButton Release, sent on MouseUp and MouseOut.
     /// </summary>
     ButtonRelease = 24,
-    
+
     /// <summary>
-    /// Button Click, sent on MouseUp and MouseClick on button.
+    /// AtkComponentButton Click, sent on MouseUp and MouseClick on button.
     /// </summary>
     ButtonClick = 25,
-    
+
     /// <summary>
-    /// List Item RollOver.
+    /// Value Update (NumericInput, ScrollBar, etc.)
+    /// </summary>
+    ValueUpdate = 27,
+
+    /// <summary>
+    /// AtkComponentSlider Value Update.
+    /// </summary>
+    SliderValueUpdate = 29,
+
+    /// <summary>
+    /// AtkComponentSlider Released.
+    /// </summary>
+    SliderReleased = 30,
+
+    /// <summary>
+    /// AtkComponentList RollOver.
     /// </summary>
     ListItemRollOver = 33,
-    
+
     /// <summary>
-    /// List Item Roll Out.
+    /// AtkComponentList Roll Out.
     /// </summary>
     ListItemRollOut = 34,
-    
+
     /// <summary>
-    /// List Item Toggle.
+    /// AtkComponentList Click.
     /// </summary>
-    ListItemToggle = 35,
-    
+    ListItemClick = 35,
+
     /// <summary>
-    /// Drag Drop Begin.
+    /// AtkComponentList Toggle.
+    /// </summary>
+    [Obsolete("Use ListItemClick")]
+    ListItemToggle = 35,
+
+    /// <summary>
+    /// AtkComponentList Double Click.
+    /// </summary>
+    ListItemDoubleClick = 36,
+
+    /// <summary>
+    /// AtkComponentList Select.
+    /// </summary>
+    ListItemSelect = 38,
+
+    /// <summary>
+    /// AtkComponentDragDrop Begin.
     /// Sent on MouseDown over a draggable icon (will NOT send for a locked icon).
     /// </summary>
-    DragDropBegin = 47,
-    
+    DragDropBegin = 50,
+
     /// <summary>
-    /// Drag Drop Insert.
+    /// AtkComponentDragDrop End.
+    /// </summary>
+    DragDropEnd = 51,
+
+    /// <summary>
+    /// AtkComponentDragDrop Insert.
     /// Sent when dropping an icon into a hotbar/inventory slot or similar.
     /// </summary>
-    DragDropInsert = 50,
-    
+    DragDropInsert = 53,
+
     /// <summary>
-    /// Drag Drop Roll Over.
+    /// AtkComponentDragDrop Roll Over.
     /// </summary>
-    DragDropRollOver = 52,
-    
+    DragDropRollOver = 55,
+
     /// <summary>
-    /// Drag Drop Roll Out.
+    /// AtkComponentDragDrop Roll Out.
     /// </summary>
-    DragDropRollOut = 53,
-    
+    DragDropRollOut = 56,
+
     /// <summary>
-    /// Drag Drop Discard.
+    /// AtkComponentDragDrop Discard.
     /// Sent when dropping an icon into empty screenspace, eg to remove an action from a hotBar.
     /// </summary>
-    DragDropDiscard = 54,
-    
+    DragDropDiscard = 57,
+
     /// <summary>
     /// Drag Drop Unknown.
     /// </summary>
-    [Obsolete("Use DragDropDiscard")]
+    [Obsolete("Use DragDropDiscard", true)]
     DragDropUnk54 = 54,
-    
+
     /// <summary>
-    /// Drag Drop Cancel.
+    /// AtkComponentDragDrop Cancel.
     /// Sent on MouseUp if the cursor has not moved since DragDropBegin, OR on MouseDown over a locked icon.
     /// </summary>
-    DragDropCancel = 55,
-    
+    DragDropCancel = 58,
+
     /// <summary>
     /// Drag Drop Unknown.
     /// </summary>
-    [Obsolete("Use DragDropCancel")]
+    [Obsolete("Use DragDropCancel", true)]
     DragDropUnk55 = 55,
-    
+
     /// <summary>
-    /// Icon Text Roll Over.
+    /// AtkComponentIconText Roll Over.
     /// </summary>
-    IconTextRollOver = 56,
-    
+    IconTextRollOver = 59,
+
     /// <summary>
-    /// Icon Text Roll Out.
+    /// AtkComponentIconText Roll Out.
     /// </summary>
-    IconTextRollOut = 57,
-    
+    IconTextRollOut = 60,
+
     /// <summary>
-    /// Icon Text Click.
+    /// AtkComponentIconText Click.
     /// </summary>
-    IconTextClick = 58,
-    
+    IconTextClick = 61,
+
     /// <summary>
-    /// Window Roll Over.
+    /// AtkDialogue Close.
     /// </summary>
-    WindowRollOver = 67,
-    
+    DialogueClose = 62,
+
     /// <summary>
-    /// Window Roll Out.
+    /// AtkDialogue Submit.
     /// </summary>
-    WindowRollOut = 68,
-    
+    DialogueSubmit = 63,
+
     /// <summary>
-    /// Window Change Scale.
+    /// AtkTimer Tick.
     /// </summary>
-    WindowChangeScale = 69,
+    TimerTick = 64,
+
+    /// <summary>
+    /// AtkTimer End.
+    /// </summary>
+    TimerEnd = 65,
+
+    /// <summary>
+    /// AtkSimpleTween Progress.
+    /// </summary>
+    TweenProgress = 67,
+
+    /// <summary>
+    /// AtkSimpleTween Complete.
+    /// </summary>
+    TweenComplete = 68,
+
+    /// <summary>
+    /// AtkAddonControl Child Addon Attached.
+    /// </summary>
+    ChildAddonAttached = 69,
+
+    /// <summary>
+    /// AtkComponentWindow Roll Over.
+    /// </summary>
+    WindowRollOver = 70,
+
+    /// <summary>
+    /// AtkComponentWindow Roll Out.
+    /// </summary>
+    WindowRollOut = 71,
+
+    /// <summary>
+    /// AtkComponentWindow Change Scale.
+    /// </summary>
+    WindowChangeScale = 72,
+
+    /// <summary>
+    /// AtkTextNode Link Mouse Click.
+    /// </summary>
+    LinkMouseClick = 75,
+
+    /// <summary>
+    /// AtkTextNode Link Mouse Over.
+    /// </summary>
+    LinkMouseOver = 76,
+
+    /// <summary>
+    /// AtkTextNode Link Mouse Out.
+    /// </summary>
+    LinkMouseOut = 77,
 }

@@ -237,27 +237,40 @@ internal class ServicesWidget : IDataWindowWidget
             }
         }
 
-        if (ImGui.CollapsingHeader("Plugin-facing Services"))
+        if (ImGui.CollapsingHeader("Singleton Services"))
         {
             foreach (var instance in container.Instances)
             {
-                var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
                 var isPublic = instance.Key.IsPublic;
 
                 ImGui.BulletText($"{instance.Key.FullName} ({instance.Key.GetServiceKind()})");
-
-                using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed, !hasInterface))
-                {
-                    ImGui.Text(
-                        hasInterface
-                            ? $"\t => Provided via interface: {container.InterfaceToTypeMap.First(x => x.Value == instance.Key).Key.FullName}"
-                            : "\t => NO INTERFACE!!!");
-                }
 
                 if (isPublic)
                 {
                     using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
                     ImGui.Text("\t => PUBLIC!!!");
+                }
+
+                switch (instance.Value.Visibility)
+                {
+                    case ObjectInstanceVisibility.Internal:
+                        ImGui.Text("\t => Internally resolved");
+                        break;
+
+                    case ObjectInstanceVisibility.ExposedToPlugins:
+                        var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
+                        using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed, !hasInterface))
+                        {
+                            ImGui.Text("\t => Exposed to plugins!");
+                            ImGui.Text(
+                                hasInterface
+                                    ? $"\t => Provided via interface: {container.InterfaceToTypeMap.First(x => x.Value == instance.Key).Key.FullName}"
+                                    : "\t => NO INTERFACE!!!");
+                        }
+
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
 
                 ImGuiHelpers.ScaledDummy(2);

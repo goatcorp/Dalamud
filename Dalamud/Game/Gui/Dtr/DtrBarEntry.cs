@@ -17,32 +17,32 @@ public interface IReadOnlyDtrBarEntry
     /// Gets the title of this entry.
     /// </summary>
     public string Title { get; }
-    
+
     /// <summary>
     /// Gets a value indicating whether this entry has a click action.
     /// </summary>
     public bool HasClickAction { get; }
-    
+
     /// <summary>
     /// Gets the text of this entry.
     /// </summary>
     public SeString? Text { get; }
-    
+
     /// <summary>
     /// Gets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
     public SeString? Tooltip { get; }
-    
+
     /// <summary>
     /// Gets a value indicating whether this entry should be shown.
     /// </summary>
     public bool Shown { get; }
-    
+
     /// <summary>
-    /// Gets a value indicating whether or not the user has hidden this entry from view through the Dalamud settings.
+    /// Gets a value indicating whether the user has hidden this entry from view through the Dalamud settings.
     /// </summary>
     public bool UserHidden { get; }
-    
+
     /// <summary>
     /// Triggers the click action of this entry.
     /// </summary>
@@ -59,22 +59,22 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     /// Gets or sets the text of this entry.
     /// </summary>
     public new SeString? Text { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a tooltip to be shown when the user mouses over the dtr entry.
     /// </summary>
     public new SeString? Tooltip { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a value indicating whether this entry is visible.
     /// </summary>
     public new bool Shown { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
     /// </summary>
     public Action? OnClick { get; set; }
-    
+
     /// <summary>
     /// Remove this entry from the bar.
     /// You will need to re-acquire it from DtrBar to reuse it.
@@ -121,7 +121,7 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
 
     /// <inheritdoc cref="IDtrBarEntry.Tooltip" />
     public SeString? Tooltip { get; set; }
-    
+
     /// <summary>
     /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
     /// </summary>
@@ -145,14 +145,14 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     }
 
     /// <inheritdoc/>
-    [Api12ToDo("Maybe make this config scoped to internalname?")]
+    [Api13ToDo("Maybe make this config scoped to internalname?")]
     public bool UserHidden => this.configuration.DtrIgnore?.Contains(this.Title) ?? false;
 
     /// <summary>
     /// Gets or sets the internal text node of this entry.
     /// </summary>
     internal AtkTextNode* TextNode { get; set; }
-    
+
     /// <summary>
     /// Gets or sets the storage for the text of this entry.
     /// </summary>
@@ -171,7 +171,7 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// <summary>
     /// Gets or sets a value indicating whether this entry has just been added.
     /// </summary>
-    internal bool Added { get; set; } 
+    internal bool Added { get; set; }
 
     /// <summary>
     /// Gets or sets the plugin that owns this entry.
@@ -183,7 +183,7 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     {
         if (this.OnClick == null)
             return false;
-        
+
         this.OnClick.Invoke();
         return true;
     }

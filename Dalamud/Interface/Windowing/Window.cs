@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 using CheapLoc;
 using Dalamud.Bindings.ImGui;
@@ -11,7 +12,11 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures.Internal;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Internal;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing.Persistence;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
@@ -25,6 +30,8 @@ namespace Dalamud.Interface.Windowing;
 /// </summary>
 public abstract class Window
 {
+    private const float FadeInOutTime = 0.072f;
+
     private static readonly ModuleLog Log = new("WindowSystem");
 
     private static bool wasEscPressedLastFrame = false;
@@ -40,6 +47,13 @@ public abstract class Window
     private bool hasInitializedFromPreset = false;
     private PresetModel.PresetWindow? presetWindow;
     private bool presetDirty = false;
+
+    private bool pushedFadeInAlpha = false;
+    private float fadeInTimer = 0f;
+    private float fadeOutTimer = 0f;
+    private IDrawListTextureWrap? fadeOutTexture = null;
+    private Vector2 fadeOutSize = Vector2.Zero;
+    private Vector2 fadeOutOrigin = Vector2.Zero;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Window"/> class.
@@ -110,6 +124,11 @@ public abstract class Window
         /// Enable the built-in "additional options" menu on the title bar.
         /// </summary>
         UseAdditionalOptions = 1 << 2,
+
+        /// <summary>
+        /// Do not draw non-critical animations.
+        /// </summary>
+        IsReducedMotion = 1 << 3,
     }
 
     /// <summary>
@@ -148,6 +167,12 @@ public abstract class Window
     /// Gets or sets a value representing the sound effect id to be played when the window is closed.
     /// </summary>
     public uint OnCloseSfxId { get; set; } = 24u;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this window should not fade in and out, regardless of the users'
+    /// preference.
+    /// </summary>
+    public bool DisableFadeInFadeOut { get; set; } = false;
 
     /// <summary>
     /// Gets or sets the position of this window.
@@ -195,7 +220,7 @@ public abstract class Window
     public WindowSizeConstraints? SizeConstraints { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this window is collapsed.
+    /// Gets or sets a value indicating whether this window is collapsed.
     /// </summary>
     public bool? Collapsed { get; set; }
 
@@ -210,7 +235,7 @@ public abstract class Window
     public ImGuiWindowFlags Flags { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this ImGui window will be forced to stay inside the main game window.
+    /// Gets or sets a value indicating whether this ImGui window will be forced to stay inside the main game window.
     /// </summary>
     public bool ForceMainWindow { get; set; }
 
@@ -220,17 +245,17 @@ public abstract class Window
     public float? BgAlpha { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this ImGui window should display a close button in the title bar.
+    /// Gets or sets a value indicating whether this ImGui window should display a close button in the title bar.
     /// </summary>
     public bool ShowCloseButton { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this window should offer to be pinned via the window's titlebar context menu.
+    /// Gets or sets a value indicating whether this window should offer to be pinned via the window's titlebar context menu.
     /// </summary>
     public bool AllowPinning { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this window should offer to be made click-through via the window's titlebar context menu.
+    /// Gets or sets a value indicating whether this window should offer to be made click-through via the window's titlebar context menu.
     /// </summary>
     public bool AllowClickthrough { get; set; } = true;
 
@@ -244,7 +269,7 @@ public abstract class Window
     public List<TitleBarButton> TitleBarButtons { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not this window will stay open.
+    /// Gets or sets a value indicating whether this window will stay open.
     /// </summary>
     public bool IsOpen
     {
@@ -343,6 +368,14 @@ public abstract class Window
     }
 
     /// <summary>
+    /// Code to be executed when the window is safe to be disposed or removed from the window system.
+    /// Doing so in <see cref="OnClose"/> may result in animations not playing correctly.
+    /// </summary>
+    public virtual void OnSafeToRemove()
+    {
+    }
+
+    /// <summary>
     /// Code to be executed every frame, even when the window is collapsed.
     /// </summary>
     public virtual void Update()
@@ -357,6 +390,7 @@ public abstract class Window
     internal void DrawInternal(WindowDrawFlags internalDrawFlags, WindowSystemPersistence? persistence)
     {
         this.PreOpenCheck();
+        var doFades = !internalDrawFlags.HasFlag(WindowDrawFlags.IsReducedMotion) && !this.DisableFadeInFadeOut;
 
         if (!this.IsOpen)
         {
@@ -371,8 +405,28 @@ public abstract class Window
                     UIGlobals.PlaySoundEffect(this.OnCloseSfxId);
             }
 
+            if (this.fadeOutTexture != null)
+            {
+                this.fadeOutTimer -= ImGui.GetIO().DeltaTime;
+                if (this.fadeOutTimer <= 0f)
+                {
+                    this.fadeOutTexture.Dispose();
+                    this.fadeOutTexture = null;
+                    this.OnSafeToRemove();
+                }
+                else
+                {
+                    this.DrawFakeFadeOutWindow();
+                }
+            }
+
+            this.fadeInTimer = doFades ? 0f : FadeInOutTime;
             return;
         }
+
+        this.fadeInTimer += ImGui.GetIO().DeltaTime;
+        if (this.fadeInTimer > FadeInOutTime)
+            this.fadeInTimer = FadeInOutTime;
 
         this.Update();
         if (!this.DrawConditions())
@@ -457,6 +511,7 @@ public abstract class Window
         var showAdditions = (this.AllowPinning || this.AllowClickthrough) &&
                             internalDrawFlags.HasFlag(WindowDrawFlags.UseAdditionalOptions) &&
                             flagsApplicableForTitleBarIcons;
+        var printWindow = false;
         if (showAdditions)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 1f);
@@ -531,6 +586,9 @@ public abstract class Window
                 if (!isAvailable)
                     ImGui.EndDisabled();
 
+                if (ImGui.Button(Loc.Localize("WindowSystemContextActionPrintWindow", "Print window")))
+                    printWindow = true;
+
                 ImGui.EndPopup();
             }
 
@@ -588,7 +646,42 @@ public abstract class Window
             }
         }
 
+        this.fadeOutSize = ImGui.GetWindowSize();
+        this.fadeOutOrigin = ImGui.GetWindowPos();
+        var isCollapsed = ImGui.IsWindowCollapsed();
+        var isDocked = ImGui.IsWindowDocked();
+
         ImGui.End();
+
+        if (this.pushedFadeInAlpha)
+        {
+            ImGui.PopStyleVar();
+            this.pushedFadeInAlpha = false;
+        }
+
+        // TODO: No fade-out if the window is collapsed. We could do this if we knew the "FullSize" of the window
+        // from the internal ImGuiWindow, but I don't want to mess with that here for now. We can do this a lot
+        // easier with the new bindings.
+        // TODO: No fade-out if docking is enabled and the window is docked, since this makes them "unsnap".
+        // Ideally we should get rid of this "fake window" thing and just insert a new drawlist at the correct spot.
+        if (!this.internalIsOpen && this.fadeOutTexture == null && doFades && !isCollapsed && !isDocked)
+        {
+            this.fadeOutTexture = Service<TextureManager>.Get().CreateDrawListTexture(
+                "WindowFadeOutTexture");
+            this.fadeOutTexture.ResizeAndDrawWindow(this.WindowName, Vector2.One);
+            this.fadeOutTimer = FadeInOutTime;
+        }
+
+        if (printWindow)
+        {
+            var tex = Service<TextureManager>.Get().CreateDrawListTexture(
+                Loc.Localize("WindowSystemContextActionPrintWindow", "Print window"));
+            tex.ResizeAndDrawWindow(this.WindowName, Vector2.One);
+            _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
+                this.WindowName,
+                this.WindowName,
+                Task.FromResult<IDalamudTextureWrap>(tex));
+        }
 
         this.PostDraw();
 
@@ -598,7 +691,7 @@ public abstract class Window
             ImGui.PopID();
     }
 
-    private void ApplyConditionals()
+    private unsafe void ApplyConditionals()
     {
         if (this.Position.HasValue)
         {
@@ -625,15 +718,20 @@ public abstract class Window
             ImGui.SetNextWindowSizeConstraints(this.SizeConstraints.Value.MinimumSize * ImGuiHelpers.GlobalScale, this.SizeConstraints.Value.MaximumSize * ImGuiHelpers.GlobalScale);
         }
 
-        if (this.BgAlpha.HasValue)
+        var maxBgAlpha = this.internalAlpha ?? this.BgAlpha;
+        var fadeInAlpha = this.fadeInTimer / FadeInOutTime;
+        if (fadeInAlpha < 1f)
         {
-            ImGui.SetNextWindowBgAlpha(this.BgAlpha.Value);
+            maxBgAlpha = maxBgAlpha.HasValue ?
+                             Math.Clamp(maxBgAlpha.Value * fadeInAlpha, 0f, 1f) :
+                             (*ImGui.GetStyleColorVec4(ImGuiCol.WindowBg)).W * fadeInAlpha;
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * fadeInAlpha);
+            this.pushedFadeInAlpha = true;
         }
 
-        // Manually set alpha takes precedence, if devs don't want that, they should turn it off
-        if (this.internalAlpha.HasValue)
+        if (maxBgAlpha.HasValue)
         {
-            ImGui.SetNextWindowBgAlpha(this.internalAlpha.Value);
+            ImGui.SetNextWindowBgAlpha(maxBgAlpha.Value);
         }
     }
 
@@ -780,6 +878,35 @@ public abstract class Window
         ImGui.PopClipRect();
     }
 
+    private void DrawFakeFadeOutWindow()
+    {
+        // Draw a fake window to fade out, so that the fade out texture stays in the right place in the
+        // focus order
+        ImGui.SetNextWindowPos(this.fadeOutOrigin);
+        ImGui.SetNextWindowSize(this.fadeOutSize);
+
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        style.Push(ImGuiStyleVar.WindowBorderSize, 0);
+        style.Push(ImGuiStyleVar.FrameBorderSize, 0);
+
+        const ImGuiWindowFlags flags = ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav |
+                                           ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoMouseInputs |
+                                           ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBackground;
+        if (ImGui.Begin(this.WindowName, flags))
+        {
+            var dl = ImGui.GetWindowDrawList();
+            dl.AddImage(
+                this.fadeOutTexture!.Handle,
+                this.fadeOutOrigin,
+                this.fadeOutOrigin + this.fadeOutSize,
+                Vector2.Zero,
+                Vector2.One,
+                ImGui.ColorConvertFloat4ToU32(new(1f, 1f, 1f, Math.Clamp(this.fadeOutTimer / FadeInOutTime, 0f, 1f))));
+        }
+
+        ImGui.End();
+    }
+
     /// <summary>
     /// Structure detailing the size constraints of a window.
     /// </summary>
@@ -853,7 +980,7 @@ public abstract class Window
         public int Priority { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the button shall be clickable
+        /// Gets or sets a value indicating whether the button shall be clickable
         /// when the respective window is set to clickthrough.
         /// </summary>
         public bool AvailableClickthrough { get; set; }

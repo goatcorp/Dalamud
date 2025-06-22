@@ -248,7 +248,7 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
     /// <summary>
     /// Disposes of managed and unmanaged resources.
     /// </summary>
-    /// <param name="shouldDispose">Whether or not to execute the disposal.</param>
+    /// <param name="shouldDispose">Whether to execute the disposal.</param>
     protected void Dispose(bool shouldDispose)
     {
         if (!shouldDispose)

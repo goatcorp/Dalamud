@@ -58,7 +58,13 @@ internal unsafe class ComponentNodeTree : ResNodeTree
     /// <inheritdoc/>
     private protected override void PrintChildNodes()
     {
-        base.PrintChildNodes();
+        var prevNode = this.CompNode->Component->UldManager.RootNode;
+        while (prevNode != null)
+        {
+            GetOrCreate(prevNode, this.AddonTree).Print(null);
+            prevNode = prevNode->PrevSiblingNode;
+        }
+
         var count = this.UldManager->NodeListCount;
         PrintNodeListAsTree(this.UldManager->NodeList, count, $"Node List [{count}]:", this.AddonTree, new(0f, 0.5f, 0.8f, 1f));
     }
@@ -92,11 +98,11 @@ internal unsafe class ComponentNodeTree : ResNodeTree
                 ImGui.TextUnformatted(
                     $"Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText02.StringPtr))}");
                 ImGui.TextUnformatted(
-                    $"Text3: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText03.StringPtr))}");
+                    $"AvailableLines: {Marshal.PtrToStringAnsi(new(textInputComponent->AvailableLines.StringPtr))}");
                 ImGui.TextUnformatted(
-                    $"Text4: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText04.StringPtr))}");
+                    $"HighlightedAutoTranslateOptionColorPrefix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorPrefix.StringPtr))}");
                 ImGui.TextUnformatted(
-                    $"Text5: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText05.StringPtr))}");
+                    $"HighlightedAutoTranslateOptionColorSuffix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorSuffix.StringPtr))}");
                 break;
             case List:
             case TreeList:

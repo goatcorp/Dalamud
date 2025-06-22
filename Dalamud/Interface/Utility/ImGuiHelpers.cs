@@ -470,7 +470,7 @@ public static partial class ImGuiHelpers
 
     /// <summary>
     /// Center the ImGui cursor for a certain text.
-    /// </summary>
+     /// </summary>
     /// <param name="text">The text to center for.</param>
     public static void CenterCursorForText(string text) => CenterCursorFor(ImGui.CalcTextSize(text).X);
 
@@ -480,6 +480,12 @@ public static partial class ImGuiHelpers
     /// <param name="itemWidth">The width to center for.</param>
     public static void CenterCursorFor(float itemWidth) =>
         ImGui.SetCursorPosX((int)((ImGui.GetWindowWidth() - itemWidth) / 2));
+
+    /// <summary>
+    /// Starts a new horizontal button group.
+    /// </summary>
+    /// <returns>The group.</returns>
+    public static HorizontalButtonGroup BeginHorizontalButtonGroup() => new();
 
     /// <summary>
     /// Allocates memory on the heap using <see cref="ImGui.MemAlloc(nuint)"/><br />
@@ -904,5 +910,163 @@ public static partial class ImGuiHelpers
             get => (int)(this.TextureIndexAndGlyphId & GlyphIdMask) >> GlyphIdShift;
             set => this.TextureIndexAndGlyphId = (this.TextureIndexAndGlyphId & ~GlyphIdMask) | ((uint)value << GlyphIdShift);
         }
+    }
+
+    /// <summary>
+    /// Class helper for creating a horizontal button group.
+    /// </summary>
+    public class HorizontalButtonGroup
+    {
+        private readonly List<ButtonDef> buttons = [];
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the buttons should be centered horizontally.
+        /// </summary>
+        public bool IsCentered { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets the height of the buttons. If null, the default frame height is used.
+        /// </summary>
+        public float? Height { get; set; }
+
+        /// <summary>
+        /// Gets or sets the extra margin to add to the inside of each button, before and after the text.
+        /// If null, the default margin is used.
+        /// </summary>
+        public float? ExtraMargin { get; set; }
+
+        /// <summary>
+        /// Gets or sets the padding between buttons. If null, the default item spacing is used.
+        /// </summary>
+        public float? PaddingBetweenButtons { get; set; }
+
+        /// <summary>
+        /// Add a button to the group.
+        /// </summary>
+        /// <param name="text">The text of the button.</param>
+        /// <param name="action">The action to perform when the button is pressed.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup Add(string text, Action action)
+        {
+            this.buttons.Add(new ButtonDef(text, action));
+            return this;
+        }
+
+        /// <summary>
+        /// Sets whether the buttons should be centered horizontally.
+        /// </summary>
+        /// <param name="centered">The value.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup SetCentered(bool centered)
+        {
+            this.IsCentered = centered;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the height of the buttons.
+        /// </summary>
+        /// <param name="height">The height.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup WithHeight(float height)
+        {
+            this.Height = height;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the extra margin to add to the inside of each button, before and after the text.
+        /// </summary>
+        /// <param name="extraMargin">The margin.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup WithExtraMargin(float extraMargin)
+        {
+            this.ExtraMargin = extraMargin;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the padding between buttons.
+        /// </summary>
+        /// <param name="padding">The padding.</param>
+        /// <returns>The group.</returns>
+        public HorizontalButtonGroup WithPaddingBetweenButtons(float padding)
+        {
+            this.PaddingBetweenButtons = padding;
+            return this;
+        }
+
+        /// <summary>
+        /// Draw the button group at the current location.
+        /// </summary>
+        public void Draw()
+        {
+            var buttonHeight = this.Height * GlobalScale ?? ImGui.GetFrameHeight();
+            var buttonCount = this.buttons.Count;
+
+            if (buttonCount == 0)
+                return;
+
+            var buttonWidths = new float[buttonCount];
+            var totalContentWidth = 0f;
+            var extraMargin = this.ExtraMargin ?? 0f;
+
+            for (var i = 0; i < buttonCount; i++)
+            {
+                var buttonText = this.buttons[i].Text;
+                buttonWidths[i] = ImGui.CalcTextSize(buttonText).X + (2 * extraMargin) + (2 * ImGui.GetStyle().FramePadding.X);
+                totalContentWidth += buttonWidths[i];
+            }
+
+            var buttonPadding = this.PaddingBetweenButtons ?? ImGui.GetStyle().ItemSpacing.X;
+            if (buttonCount > 1)
+                totalContentWidth += buttonPadding * (buttonCount - 1);
+
+            var startX = ImGui.GetCursorPosX();
+            if (this.IsCentered)
+            {
+                var availWidth = ImGui.GetContentRegionAvail().X;
+                startX += (availWidth - totalContentWidth) * 0.5f;
+                ImGui.SetCursorPosX(startX);
+            }
+
+            var originalSpacing = ImGui.GetStyle().ItemSpacing;
+            if (this.PaddingBetweenButtons.HasValue)
+            {
+                var spacing = originalSpacing;
+                spacing.X = this.PaddingBetweenButtons.Value;
+                ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, spacing);
+            }
+
+            for (var i = 0; i < buttonCount; i++)
+            {
+                var buttonDef = this.buttons[i];
+
+                if (this.ExtraMargin.HasValue)
+                    ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(ImGui.GetStyle().FramePadding.X + extraMargin, ImGui.GetStyle().FramePadding.Y));
+
+                if (this.Height.HasValue)
+                {
+                    if (ImGui.Button(buttonDef.Text, new Vector2(buttonWidths[i], buttonHeight)))
+                        buttonDef.Action?.Invoke();
+                }
+                else
+                {
+                    if (ImGui.Button(buttonDef.Text, new Vector2(buttonWidths[i], -1)))
+                        buttonDef.Action?.Invoke();
+                }
+
+                if (this.ExtraMargin.HasValue)
+                    ImGui.PopStyleVar();
+
+                if (i < buttonCount - 1)
+                    ImGui.SameLine();
+            }
+
+            if (this.PaddingBetweenButtons.HasValue)
+                ImGui.PopStyleVar();
+        }
+
+        private record ButtonDef(string Text, Action Action);
     }
 }

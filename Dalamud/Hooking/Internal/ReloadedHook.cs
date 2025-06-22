@@ -45,14 +45,7 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     }
 
     /// <inheritdoc/>
-    public override bool IsEnabled
-    {
-        get
-        {
-            this.CheckDisposed();
-            return this.hookImpl.IsHookEnabled;
-        }
-    }
+    public override bool IsEnabled => !this.IsDisposed && this.hookImpl.IsHookEnabled;
 
     /// <inheritdoc/>
     public override string BackendName => "Reloaded";
@@ -73,10 +66,10 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     /// <inheritdoc/>
     public override void Enable()
     {
-        this.CheckDisposed();
-
         lock (HookManager.HookEnableSyncRoot)
         {
+            this.CheckDisposed();
+
             if (!this.hookImpl.IsHookEnabled)
                 this.hookImpl.Enable();
         }
@@ -85,10 +78,11 @@ internal class ReloadedHook<T> : Hook<T> where T : Delegate
     /// <inheritdoc/>
     public override void Disable()
     {
-        this.CheckDisposed();
-
         lock (HookManager.HookEnableSyncRoot)
         {
+            if (this.IsDisposed)
+                return;
+
             if (!this.hookImpl.IsHookActivated)
                 return;
 

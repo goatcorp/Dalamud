@@ -113,7 +113,7 @@ public class SeStringBuilder
     /// Add an item link to the builder.
     /// </summary>
     /// <param name="itemId">The item ID.</param>
-    /// <param name="isHq">Whether or not the item is high quality.</param>
+    /// <param name="isHq">Whether the item is high quality.</param>
     /// <param name="itemNameOverride">Override for the item's name.</param>
     /// <returns>The current builder.</returns>
     public SeStringBuilder AddItemLink(uint itemId, bool isHq, string? itemNameOverride = null) =>

@@ -23,7 +23,7 @@ internal class DriveListLoader
     public IReadOnlyList<DriveInfo> Drives { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the loader is loading.
+    /// Gets a value indicating whether the loader is loading.
     /// </summary>
     public bool Loading { get; private set; }
 

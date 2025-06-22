@@ -45,19 +45,19 @@ public unsafe class BLMGauge : JobGaugeBase<FFXIVClientStructs.FFXIV.Client.Game
     public int AstralSoulStacks => this.Struct->AstralSoulStacks;
 
     /// <summary>
-    /// Gets a value indicating whether or not the player is in Umbral Ice.
+    /// Gets a value indicating whether the player is in Umbral Ice.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
     public bool InUmbralIce => this.Struct->ElementStance < 0;
 
     /// <summary>
-    /// Gets a value indicating whether or not the player is in Astral fire.
+    /// Gets a value indicating whether the player is in Astral fire.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
     public bool InAstralFire => this.Struct->ElementStance > 0;
 
     /// <summary>
-    /// Gets a value indicating whether or not Enochian is active.
+    /// Gets a value indicating whether Enochian is active.
     /// </summary>
     /// <returns><c>true</c> or <c>false</c>.</returns>
     public bool IsEnochianActive => this.Struct->EnochianActive;

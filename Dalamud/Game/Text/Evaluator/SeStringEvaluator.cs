@@ -18,12 +18,12 @@ using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
+using FFXIVClientStructs.Interop;
 
 using Lumina.Data.Structs.Excel;
 using Lumina.Excel;
@@ -35,6 +35,8 @@ using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
 using AddonSheet = Lumina.Excel.Sheets.Addon;
+using PlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
+using StatusSheet = Lumina.Excel.Sheets.Status;
 
 namespace Dalamud.Game.Text.Evaluator;
 
@@ -49,6 +51,9 @@ namespace Dalamud.Game.Text.Evaluator;
 internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 {
     private static readonly ModuleLog Log = new("SeStringEvaluator");
+
+    [ServiceManager.ServiceDependency]
+    private readonly ClientState.ClientState clientState = Service<ClientState.ClientState>.Get();
 
     [ServiceManager.ServiceDependency]
     private readonly DataManager dataManager = Service<DataManager>.Get();
@@ -91,7 +96,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (str.IsTextOnly())
             return new(str);
 
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+        var lang = language ?? this.GetEffectiveClientLanguage();
 
         // TODO: remove culture info toggling after supporting CultureInfo for SeStringBuilder.Append,
         //       and then remove try...finally block (discard builder from the pool on exception)
@@ -110,12 +115,21 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     }
 
     /// <inheritdoc/>
+    public ReadOnlySeString EvaluateMacroString(
+        string macroString,
+        Span<SeStringParameter> localParameters = default,
+        ClientLanguage? language = null)
+    {
+        return this.Evaluate(ReadOnlySeString.FromMacroString(macroString).AsSpan(), localParameters, language);
+    }
+
+    /// <inheritdoc/>
     public ReadOnlySeString EvaluateFromAddon(
         uint addonId,
         Span<SeStringParameter> localParameters = default,
         ClientLanguage? language = null)
     {
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+        var lang = language ?? this.GetEffectiveClientLanguage();
 
         if (!this.dataManager.GetExcelSheet<AddonSheet>(lang).TryGetRow(addonId, out var addonRow))
             return default;
@@ -129,7 +143,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         Span<SeStringParameter> localParameters = default,
         ClientLanguage? language = null)
     {
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+        var lang = language ?? this.GetEffectiveClientLanguage();
 
         if (!this.dataManager.GetExcelSheet<Lobby>(lang).TryGetRow(lobbyId, out var lobbyRow))
             return default;
@@ -143,7 +157,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         Span<SeStringParameter> localParameters = default,
         ClientLanguage? language = null)
     {
-        var lang = language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage();
+        var lang = language ?? this.GetEffectiveClientLanguage();
 
         if (!this.dataManager.GetExcelSheet<LogMessage>(lang).TryGetRow(logMessageId, out var logMessageRow))
             return default;
@@ -154,7 +168,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     /// <inheritdoc/>
     public string EvaluateActStr(ActionKind actionKind, uint id, ClientLanguage? language = null) =>
         this.actStrCache.GetOrAdd(
-            new(actionKind, id, language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage()),
+            new(actionKind, id, language ?? this.GetEffectiveClientLanguage()),
             static (key, t) => t.EvaluateFromAddon(2026, [key.Kind.GetActStrId(key.Id)], key.Language)
                                 .ExtractText()
                                 .StripSoftHyphen(),
@@ -163,7 +177,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
     /// <inheritdoc/>
     public string EvaluateObjStr(ObjectKind objectKind, uint id, ClientLanguage? language = null) =>
         this.objStrCache.GetOrAdd(
-            new(objectKind, id, language ?? this.dalamudConfiguration.EffectiveLanguage.ToClientLanguage()),
+            new(objectKind, id, language ?? this.GetEffectiveClientLanguage()),
             static (key, t) => t.EvaluateFromAddon(2025, [key.Kind.GetObjStrId(key.Id)], key.Language)
                                 .ExtractText()
                                 .StripSoftHyphen(),
@@ -181,6 +195,18 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
     private static uint ConvertRawToMapPosY(Lumina.Excel.Sheets.Map map, float y)
         => ConvertRawToMapPos(map, map.OffsetY, y);
+
+    private ClientLanguage GetEffectiveClientLanguage()
+    {
+        return this.dalamudConfiguration.EffectiveLanguage switch
+        {
+            "ja" => ClientLanguage.Japanese,
+            "en" => ClientLanguage.English,
+            "de" => ClientLanguage.German,
+            "fr" => ClientLanguage.French,
+            _ => this.clientState.ClientLanguage,
+        };
+    }
 
     private SeStringBuilder EvaluateAndAppendTo(
         SeStringBuilder builder,
@@ -445,7 +471,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (this.gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) &&
                     logCrossWorldName == 1)
-                    context.Builder.Append((ReadOnlySeStringSpan)world.Name);
+                    context.Builder.Append(new ReadOnlySeStringSpan(world.Name.GetPointer(0)));
             }
 
             return true;
@@ -635,7 +661,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             {
                 case false when digit == 0:
                     continue;
-                case true when i % 3 == 0:
+                case true when MathF.Log10(i) % 3 == 2:
                     this.ResolveStringExpression(in context, eSep);
                     break;
             }
@@ -711,84 +737,186 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
             this.TryResolveUInt(in context, enu.Current, out eColParamValue);
 
         var resolvedSheetName = this.Evaluate(eSheetNameStr, context.LocalParameters, context.Language).ExtractText();
-
-        this.sheetRedirectResolver.Resolve(ref resolvedSheetName, ref eRowIdValue, ref eColIndexValue);
+        var originalRowIdValue = eRowIdValue;
+        var flags = this.sheetRedirectResolver.Resolve(ref resolvedSheetName, ref eRowIdValue, ref eColIndexValue);
 
         if (string.IsNullOrEmpty(resolvedSheetName))
             return false;
 
-        if (!this.dataManager.Excel.SheetNames.Contains(resolvedSheetName))
+        var text = this.FormatSheetValue(context.Language, resolvedSheetName, eRowIdValue, eColIndexValue, eColParamValue);
+        if (text.IsEmpty)
             return false;
 
-        if (!this.dataManager.GetExcelSheet<RawRow>(context.Language, resolvedSheetName)
-                 .TryGetRow(eRowIdValue, out var row))
-            return false;
+        this.AddSheetRedirectItemDecoration(context, ref text, flags, eRowIdValue);
 
-        if (eColIndexValue >= row.Columns.Count)
-            return false;
+        if (resolvedSheetName != "DescriptionString")
+            eColParamValue = originalRowIdValue;
 
-        var column = row.Columns[(int)eColIndexValue];
-        switch (column.Type)
+        // Note: The link marker symbol is added by RaptureLogMessage, probably somewhere in it's Update function.
+        // It is not part of this generated link.
+        this.CreateSheetLink(context, resolvedSheetName, text, eRowIdValue, eColParamValue);
+
+        return true;
+    }
+
+    private ReadOnlySeString FormatSheetValue(ClientLanguage language, string sheetName, uint rowId, uint colIndex, uint colParam)
+    {
+        if (!this.dataManager.Excel.SheetNames.Contains(sheetName))
+            return default;
+
+        if (!this.dataManager.GetExcelSheet<RawRow>(language, sheetName)
+                 .TryGetRow(rowId, out var row))
+            return default;
+
+        if (colIndex >= row.Columns.Count)
+            return default;
+
+        var column = row.Columns[(int)colIndex];
+        return column.Type switch
         {
-            case ExcelColumnDataType.String:
-                context.Builder.Append(this.Evaluate(row.ReadString(column.Offset), [eColParamValue], context.Language));
-                return true;
-            case ExcelColumnDataType.Bool:
-                context.Builder.Append((row.ReadBool(column.Offset) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.Int8:
-                context.Builder.Append(row.ReadInt8(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.UInt8:
-                context.Builder.Append(row.ReadUInt8(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.Int16:
-                context.Builder.Append(row.ReadInt16(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.UInt16:
-                context.Builder.Append(row.ReadUInt16(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.Int32:
-                context.Builder.Append(row.ReadInt32(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.UInt32:
-                context.Builder.Append(row.ReadUInt32(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.Float32:
-                context.Builder.Append(row.ReadFloat32(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.Int64:
-                context.Builder.Append(row.ReadInt64(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.UInt64:
-                context.Builder.Append(row.ReadUInt64(column.Offset).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.PackedBool0:
-                context.Builder.Append((row.ReadPackedBool(column.Offset, 0) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.PackedBool1:
-                context.Builder.Append((row.ReadPackedBool(column.Offset, 1) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.PackedBool2:
-                context.Builder.Append((row.ReadPackedBool(column.Offset, 2) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.PackedBool3:
-                context.Builder.Append((row.ReadPackedBool(column.Offset, 3) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.PackedBool4:
-                context.Builder.Append((row.ReadPackedBool(column.Offset, 4) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.PackedBool5:
-                context.Builder.Append((row.ReadPackedBool(column.Offset, 5) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.PackedBool6:
-                context.Builder.Append((row.ReadPackedBool(column.Offset, 6) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
-            case ExcelColumnDataType.PackedBool7:
-                context.Builder.Append((row.ReadPackedBool(column.Offset, 7) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                return true;
+            ExcelColumnDataType.String => this.Evaluate(row.ReadString(column.Offset), [colParam], language),
+            ExcelColumnDataType.Bool => (row.ReadBool(column.Offset) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.Int8 => row.ReadInt8(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.UInt8 => row.ReadUInt8(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.Int16 => row.ReadInt16(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.UInt16 => row.ReadUInt16(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.Int32 => row.ReadInt32(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.UInt32 => row.ReadUInt32(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.Float32 => row.ReadFloat32(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.Int64 => row.ReadInt64(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.UInt64 => row.ReadUInt64(column.Offset).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.PackedBool0 => (row.ReadPackedBool(column.Offset, 0) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.PackedBool1 => (row.ReadPackedBool(column.Offset, 1) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.PackedBool2 => (row.ReadPackedBool(column.Offset, 2) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.PackedBool3 => (row.ReadPackedBool(column.Offset, 3) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.PackedBool4 => (row.ReadPackedBool(column.Offset, 4) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.PackedBool5 => (row.ReadPackedBool(column.Offset, 5) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.PackedBool6 => (row.ReadPackedBool(column.Offset, 6) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            ExcelColumnDataType.PackedBool7 => (row.ReadPackedBool(column.Offset, 7) ? 1u : 0).ToString("D", CultureInfo.InvariantCulture),
+            _ => default,
+        };
+    }
+
+    private void AddSheetRedirectItemDecoration(in SeStringContext context, ref ReadOnlySeString text, SheetRedirectFlags flags, uint eRowIdValue)
+    {
+        if (!flags.HasFlag(SheetRedirectFlags.Item))
+            return;
+
+        var rarity = 1u;
+        var skipLink = false;
+
+        if (flags.HasFlag(SheetRedirectFlags.EventItem))
+        {
+            rarity = 8;
+            skipLink = true;
+        }
+
+        var itemId = eRowIdValue;
+
+        if (this.dataManager.GetExcelSheet<Item>(context.Language).TryGetRow(itemId, out var itemRow))
+        {
+            rarity = itemRow.Rarity;
+            if (rarity == 0)
+                rarity = 1;
+
+            if (itemRow.FilterGroup is 38 or 50)
+                skipLink = true;
+        }
+
+        if (flags.HasFlag(SheetRedirectFlags.Collectible))
+        {
+            itemId += 500000;
+        }
+        else if (flags.HasFlag(SheetRedirectFlags.HighQuality))
+        {
+            itemId += 1000000;
+        }
+
+        var sb = SeStringBuilder.SharedPool.Get();
+
+        sb.Append(this.EvaluateFromAddon(6, [rarity], context.Language));
+
+        if (!skipLink)
+            sb.PushLink(LinkMacroPayloadType.Item, itemId, rarity, 0u); // arg3 = some LogMessage flag based on LogKind RowId? => "89 5C 24 20 E8 ?? ?? ?? ?? 48 8B 1F"
+
+        // there is code here for handling noun link markers (//), but i don't know why
+
+        sb.Append(text);
+
+        if (flags.HasFlag(SheetRedirectFlags.HighQuality)
+            && this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(9, out var hqSymbol))
+        {
+            sb.Append(hqSymbol.Text);
+        }
+        else if (flags.HasFlag(SheetRedirectFlags.Collectible)
+            && this.dataManager.GetExcelSheet<AddonSheet>(context.Language).TryGetRow(150, out var collectibleSymbol))
+        {
+            sb.Append(collectibleSymbol.Text);
+        }
+
+        if (!skipLink)
+            sb.PopLink();
+
+        text = sb.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(sb);
+    }
+
+    private void CreateSheetLink(in SeStringContext context, string resolvedSheetName, ReadOnlySeString text, uint eRowIdValue, uint eColParamValue)
+    {
+        switch (resolvedSheetName)
+        {
+            case "Achievement":
+                context.Builder.PushLink(LinkMacroPayloadType.Achievement, eRowIdValue, 0u, 0u, text.AsSpan());
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
+            case "HowTo":
+                context.Builder.PushLink(LinkMacroPayloadType.HowTo, eRowIdValue, 0u, 0u, text.AsSpan());
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
+            case "Status" when this.dataManager.GetExcelSheet<StatusSheet>(context.Language).TryGetRow(eRowIdValue, out var statusRow):
+                context.Builder.PushLink(LinkMacroPayloadType.Status, eRowIdValue, 0u, 0u, []);
+
+                switch (statusRow.StatusCategory)
+                {
+                    case 1: context.Builder.Append(this.EvaluateFromAddon(376)); break; // buff symbol
+                    case 2: context.Builder.Append(this.EvaluateFromAddon(377)); break; // debuff symbol
+                }
+
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
+            case "AkatsukiNoteString":
+                context.Builder.PushLink(LinkMacroPayloadType.AkatsukiNote, eColParamValue, 0u, 0u, text.AsSpan());
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
+            case "DescriptionString" when eColParamValue > 0:
+                context.Builder.PushLink((LinkMacroPayloadType)11, eRowIdValue, eColParamValue, 0u, text.AsSpan());
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
+            case "WKSPioneeringTrailString":
+                context.Builder.PushLink((LinkMacroPayloadType)12, eRowIdValue, eColParamValue, 0u, text.AsSpan());
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
+            case "MKDLore":
+                context.Builder.PushLink((LinkMacroPayloadType)13, eRowIdValue, 0u, 0u, text.AsSpan());
+                context.Builder.Append(text);
+                context.Builder.PopLink();
+                return;
+
             default:
-                return false;
+                context.Builder.Append(text);
+                return;
         }
     }
 
@@ -938,9 +1066,7 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
                 if (p.Type == ReadOnlySePayloadType.Text)
                 {
-                    context.Builder.Append(
-                        context.CultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.Span)));
-
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.Span).ToUpper(true, true, false, context.Language));
                     continue;
                 }
 
@@ -1067,8 +1193,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         if (!enu.MoveNext() || !this.TryResolveUInt(in context, enu.Current, out var placeNameIdInt))
             return false;
 
-        var instance = packedIds >> 0x10;
-        var mapId = packedIds & 0xFF;
+        var instance = packedIds >> 16;
+        var mapId = packedIds & 0xFFFF;
 
         if (this.dataManager.GetExcelSheet<TerritoryType>(context.Language)
                 .TryGetRow(territoryTypeId, out var territoryTypeRow))
@@ -1356,8 +1482,6 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
         var group = (uint)(e0Val + 1);
         var rowId = (uint)e1Val;
 
-        using var icons = new SeStringBuilderIconWrap(context.Builder, 54, 55);
-
         if (!this.dataManager.GetExcelSheet<Completion>(context.Language).TryGetFirst(
                 row => row.Group == group && !row.LookupTable.IsEmpty,
                 out var groupRow))
@@ -1381,6 +1505,8 @@ internal class SeStringEvaluator : IServiceType, ISeStringEvaluator
 
             return true;
         }
+
+        using var icons = new SeStringBuilderIconWrap(context.Builder, 54, 55);
 
         // CategoryDataCache
         if (lookupTable.Equals("#"))

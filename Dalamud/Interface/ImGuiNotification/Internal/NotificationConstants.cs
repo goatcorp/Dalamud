@@ -54,6 +54,11 @@ internal static class NotificationConstants
     /// </summary>
     public const float ProgressWaveLoopMaxColorTimeRatio = 0.7f;
 
+    /// <summary>
+    /// The ratio of the screen at which the notification window will snap to the top or bottom of the screen.
+    /// </summary>
+    public const float NotificationTopBottomSnapMargin = 0.08f;
+
     /// <summary>Default duration of the notification.</summary>
     public static readonly TimeSpan DefaultDuration = TimeSpan.FromSeconds(7);
 

@@ -64,7 +64,7 @@ public class UIGlowPayload : Payload
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not this payload represents applying a glow color, or disabling one.
+    /// Gets a value indicating whether this payload represents applying a glow color, or disabling one.
     /// </summary>
     public bool IsEnabled => this.ColorKey != 0;
 

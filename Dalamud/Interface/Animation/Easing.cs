@@ -85,12 +85,12 @@ public abstract class Easing
     public TimeSpan Duration { get; set; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the animation is running.
+    /// Gets a value indicating whether the animation is running.
     /// </summary>
     public bool IsRunning => this.animationTimer.IsRunning;
 
     /// <summary>
-    /// Gets a value indicating whether or not the animation is done.
+    /// Gets a value indicating whether the animation is done.
     /// </summary>
     public bool IsDone => this.animationTimer.ElapsedMilliseconds > this.Duration.TotalMilliseconds;
 

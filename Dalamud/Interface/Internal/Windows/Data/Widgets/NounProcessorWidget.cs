@@ -20,7 +20,7 @@ namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 internal class NounProcessorWidget : IDataWindowWidget
 {
     /// <summary>A list of German grammatical cases.</summary>
-    internal static readonly string[] GermanCases = ["Nominative", "Genitive", "Dative", "Accusative"];
+    internal static readonly string[] GermanCases = [string.Empty, "Nominative", "Genitive", "Dative", "Accusative"];
 
     private static readonly Type[] NounSheets = [
         typeof(Aetheryte),
@@ -155,7 +155,7 @@ internal class NounProcessorWidget : IDataWindowWidget
                         GrammaticalCase = grammaticalCase,
                     };
                     var output = nounProcessor.ProcessNoun(nounParams).ExtractText().Replace("\"", "\\\"");
-                    var caseParam = language == ClientLanguage.German ? $"(int)GermanCases.{GermanCases[grammaticalCase]}" : "1";
+                    var caseParam = language == ClientLanguage.German ? $"(int)GermanCases.{GermanCases[grammaticalCase + 1]}" : "1";
                     sb.AppendLine($"new(nameof(LSheets.{sheetType.Name}), {this.rowId}, ClientLanguage.{language}, {this.amount}, (int){articleTypeEnumType.Name}.{Enum.GetName(articleTypeEnumType, articleType)}, {caseParam}, \"{output}\"),");
                 }
             }

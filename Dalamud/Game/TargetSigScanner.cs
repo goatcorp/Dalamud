@@ -19,7 +19,7 @@ internal class TargetSigScanner : SigScanner, IPublicDisposableService
     /// <summary>
     /// Initializes a new instance of the <see cref="TargetSigScanner"/> class.
     /// </summary>
-    /// <param name="doCopy">Whether or not to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
+    /// <param name="doCopy">Whether to copy the module upon initialization for search operations to use, as to not get disturbed by possible hooks.</param>
     /// <param name="cacheFile">File used to cached signatures.</param>
     public TargetSigScanner(bool doCopy = false, FileInfo? cacheFile = null)
         : base(Process.GetCurrentProcess().MainModule!, doCopy, cacheFile)

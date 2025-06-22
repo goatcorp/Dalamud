@@ -14,7 +14,7 @@ namespace Dalamud.Interface;
 public interface ITitleScreenMenuEntry : IReadOnlyTitleScreenMenuEntry, IComparable<TitleScreenMenuEntry>
 {
     /// <summary>
-    /// Gets or sets a value indicating whether or not this entry is internal.
+    /// Gets or sets a value indicating whether this entry is internal.
     /// </summary>
     bool IsInternal { get; set; }
 

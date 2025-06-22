@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Linq;
 
 using Dalamud.Bindings.ImGui;
@@ -109,7 +109,7 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
                 }
                 else
                 {
-                    ImGui.Text("Does this information match the purchase you made? This is testing the request to the server.");
+                    ImGui.TextWrapped("Does this information match the purchase you made? This is testing the request to the server.");
                     ImGui.Separator();
                     ImGui.Text($"Quantity: {this.marketBoardPurchaseRequest.ItemQuantity.ToString()}");
                     ImGui.Text($"Item ID: {this.marketBoardPurchaseRequest.CatalogId}");
@@ -135,7 +135,7 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
                 }
                 else
                 {
-                    ImGui.Text("Does this information match the purchase you made? This is testing the response from the server.");
+                    ImGui.TextWrapped("Does this information match the purchase you made? This is testing the response from the server.");
                     ImGui.Separator();
                     ImGui.Text($"Quantity: {this.marketBoardPurchase.ItemQuantity.ToString()}");
                     ImGui.Text($"Item ID: {this.marketBoardPurchase.CatalogId}");
@@ -156,7 +156,7 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
             case SubStep.Taxes:
                 if (this.marketTaxRate == null)
                 {
-                    ImGui.Text("Goto a Retainer Vocate and talk to then. Click the 'View market tax rates' menu item.");
+                    ImGui.TextWrapped("Goto a Retainer Vocate and talk to then. Click the 'View market tax rates' menu item.");
                 }
                 else
                 {

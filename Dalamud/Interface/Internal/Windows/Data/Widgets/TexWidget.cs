@@ -180,6 +180,15 @@ internal class TexWidget : IDataWindowWidget
 
         ImGui.Dummy(new(ImGui.GetTextLineHeightWithSpacing()));
 
+        if (!this.textureManager.HasClipboardImage())
+        {
+            ImGuiComponents.DisabledButton("Paste from Clipboard");
+        }
+        else if (ImGui.Button("Paste from Clipboard"))
+        {
+            this.addedTextures.Add(new(Api10: this.textureManager.CreateFromClipboardAsync()));
+        }
+
         if (ImGui.CollapsingHeader(nameof(ITextureProvider.GetFromGameIcon)))
         {
             ImGui.PushID(nameof(this.DrawGetFromGameIcon));

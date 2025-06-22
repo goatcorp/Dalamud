@@ -50,14 +50,7 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
     }
 
     /// <inheritdoc/>
-    public override bool IsEnabled
-    {
-        get
-        {
-            this.CheckDisposed();
-            return this.minHookImpl.Enabled;
-        }
-    }
+    public override bool IsEnabled => !this.IsDisposed && this.minHookImpl.Enabled;
 
     /// <inheritdoc/>
     public override string BackendName => "MinHook";
@@ -84,28 +77,29 @@ internal class MinHookHook<T> : Hook<T> where T : Delegate
     /// <inheritdoc/>
     public override void Enable()
     {
-        this.CheckDisposed();
-
-        if (!this.minHookImpl.Enabled)
+        lock (HookManager.HookEnableSyncRoot)
         {
-            lock (HookManager.HookEnableSyncRoot)
-            {
-                this.minHookImpl.Enable();
-            }
+            this.CheckDisposed();
+
+            if (!this.minHookImpl.Enabled)
+                return;
+
+            this.minHookImpl.Enable();
         }
     }
 
     /// <inheritdoc/>
     public override void Disable()
     {
-        this.CheckDisposed();
-
-        if (this.minHookImpl.Enabled)
+        lock (HookManager.HookEnableSyncRoot)
         {
-            lock (HookManager.HookEnableSyncRoot)
-            {
-                this.minHookImpl.Disable();
-            }
+            if (this.IsDisposed)
+                return;
+
+            if (!this.minHookImpl.Enabled)
+                return;
+
+            this.minHookImpl.Disable();
         }
     }
 }

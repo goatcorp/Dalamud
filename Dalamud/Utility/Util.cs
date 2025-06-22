@@ -70,10 +70,17 @@ public static class Util
     private static ulong moduleEndAddr;
 
     /// <summary>
-    /// Gets the assembly version of Dalamud.
+    /// Gets the Dalamud version.
     /// </summary>
+    [Api13ToDo("Remove. Make both versions here internal. Add an API somewhere.")]
     public static string AssemblyVersion { get; } =
-        Assembly.GetAssembly(typeof(ChatHandlers)).GetName().Version.ToString();
+        Assembly.GetAssembly(typeof(ChatHandlers))!.GetName().Version!.ToString();
+
+    /// <summary>
+    /// Gets the Dalamud version.
+    /// </summary>
+    internal static Version AssemblyVersionParsed { get; } =
+        Assembly.GetAssembly(typeof(ChatHandlers))!.GetName().Version!;
 
     /// <summary>
     /// Gets the SCM Version from the assembly, or null if it cannot be found. This method will generally return
@@ -308,7 +315,7 @@ public static class Util
     /// </summary>
     /// <param name="obj">The structure to show.</param>
     /// <param name="addr">The address to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
     public static void ShowStruct(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null)
         => ShowStructInternal(obj, addr, autoExpand, path);
@@ -318,7 +325,7 @@ public static class Util
     /// </summary>
     /// <typeparam name="T">The type of the structure.</typeparam>
     /// <param name="obj">The pointer to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     public static unsafe void ShowStruct<T>(T* obj, bool autoExpand = false) where T : unmanaged
     {
         ShowStruct(*obj, (ulong)&obj, autoExpand);
@@ -328,7 +335,7 @@ public static class Util
     /// Show a GameObject's internal data in an ImGui-context.
     /// </summary>
     /// <param name="go">The GameObject to show.</param>
-    /// <param name="autoExpand">Whether or not the struct should start as expanded.</param>
+    /// <param name="autoExpand">Whether the struct should start as expanded.</param>
     public static unsafe void ShowGameObjectStruct(IGameObject go, bool autoExpand = true)
     {
         switch (go)
@@ -612,7 +619,7 @@ public static class Util
             uCount = uint.MaxValue,
             dwTimeout = 0,
             dwFlags = FLASHWINFO_FLAGS.FLASHW_ALL | FLASHWINFO_FLAGS.FLASHW_TIMERNOFG,
-            hwnd = new HWND(Process.GetCurrentProcess().MainWindowHandle.ToPointer()),
+            hwnd = new HWND(Process.GetCurrentProcess().MainWindowHandle),
         };
         Win32_PInvoke.FlashWindowEx(flashInfo);
     }
@@ -1050,7 +1057,7 @@ public static class Util
     /// </summary>
     /// <param name="obj">The structure to show.</param>
     /// <param name="addr">The address to the structure.</param>
-    /// <param name="autoExpand">Whether or not this structure should start out expanded.</param>
+    /// <param name="autoExpand">Whether this structure should start out expanded.</param>
     /// <param name="path">The already followed path.</param>
     /// <param name="hideAddress">Do not print addresses. Use when displaying a copied value.</param>
     private static void ShowStructInternal(object obj, ulong addr, bool autoExpand = false, IEnumerable<string>? path = null, bool hideAddress = false)

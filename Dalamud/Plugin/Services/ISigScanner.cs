@@ -10,12 +10,12 @@ namespace Dalamud.Game;
 public interface ISigScanner
 {
     /// <summary>
-    /// Gets a value indicating whether or not the search on this module is performed on a copy.
+    /// Gets a value indicating whether the search on this module is performed on a copy.
     /// </summary>
     public bool IsCopy { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not the ProcessModule is 32-bit.
+    /// Gets a value indicating whether the ProcessModule is 32-bit.
     /// </summary>
     public bool Is32BitProcess { get; }
 
@@ -84,7 +84,7 @@ public interface ISigScanner
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
     /// <returns>An IntPtr to the static memory location.</returns>
     public nint GetStaticAddressFromSig(string signature, int offset = 0);
-    
+
     /// <summary>
     /// Try scanning for a .data address using a .text function.
     /// This is intended to be used with IDA sigs.
@@ -95,14 +95,14 @@ public interface ISigScanner
     /// <param name="offset">The offset from function start of the instruction using the data.</param>
     /// <returns>true if the signature was found.</returns>
     public bool TryGetStaticAddressFromSig(string signature, out nint result, int offset = 0);
-    
+
     /// <summary>
     /// Scan for a byte signature in the .data section.
     /// </summary>
     /// <param name="signature">The signature.</param>
     /// <returns>The real offset of the found signature.</returns>
     public nint ScanData(string signature);
-    
+
     /// <summary>
     /// Try scanning for a byte signature in the .data section.
     /// </summary>
@@ -110,14 +110,14 @@ public interface ISigScanner
     /// <param name="result">The real offset of the signature, if found.</param>
     /// <returns>true if the signature was found.</returns>
     public bool TryScanData(string signature, out nint result);
-    
+
     /// <summary>
     /// Scan for a byte signature in the whole module search area.
     /// </summary>
     /// <param name="signature">The signature.</param>
     /// <returns>The real offset of the found signature.</returns>
     public nint ScanModule(string signature);
-    
+
     /// <summary>
     /// Try scanning for a byte signature in the whole module search area.
     /// </summary>
@@ -125,7 +125,7 @@ public interface ISigScanner
     /// <param name="result">The real offset of the signature, if found.</param>
     /// <returns>true if the signature was found.</returns>
     public bool TryScanModule(string signature, out nint result);
-    
+
     /// <summary>
     /// Resolve a RVA address.
     /// </summary>
@@ -133,14 +133,14 @@ public interface ISigScanner
     /// <param name="relOffset">The relative offset.</param>
     /// <returns>The calculated offset.</returns>
     public nint ResolveRelativeAddress(nint nextInstAddr, int relOffset);
-    
+
     /// <summary>
     /// Scan for a byte signature in the .text section.
     /// </summary>
     /// <param name="signature">The signature.</param>
     /// <returns>The real offset of the found signature.</returns>
     public nint ScanText(string signature);
-    
+
     /// <summary>
     /// Try scanning for a byte signature in the .text section.
     /// </summary>

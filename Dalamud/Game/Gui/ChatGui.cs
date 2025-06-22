@@ -220,6 +220,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// <param name="commandId">The ID of the command to run.</param>
     /// <param name="commandAction">The command action itself.</param>
     /// <returns>A payload for handling.</returns>
+    [Api13ToDo("Plugins should not specify their own command IDs here. We should assign them ourselves.")]
     internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
     {
         var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };

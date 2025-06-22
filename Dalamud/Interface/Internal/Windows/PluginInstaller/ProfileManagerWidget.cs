@@ -224,6 +224,9 @@ internal class ProfileManagerWidget
                 ImGuiHelpers.ScaledDummy(3);
                 ImGui.SameLine();
 
+                // Center text in frame height
+                var textHeight = ImGui.CalcTextSize(profile.Name);
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() / 2) - (textHeight.Y / 2));
                 ImGui.Text(profile.Name);
 
                 ImGui.SameLine();
@@ -263,6 +266,17 @@ internal class ProfileManagerWidget
                 didAny = true;
 
                 ImGuiHelpers.ScaledDummy(2);
+
+                // Separator if not the last item
+                if (profile != profman.Profiles.Last())
+                {
+                    // Very light grey
+                    ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
+                    ImGui.Separator();
+                    ImGui.PopStyleColor();
+
+                    ImGuiHelpers.ScaledDummy(2);
+                }
             }
 
             if (toCloneGuid != null)
@@ -386,10 +400,19 @@ internal class ProfileManagerWidget
 
         ImGuiHelpers.ScaledDummy(5);
 
-        var enableAtBoot = profile.AlwaysEnableAtBoot;
-        if (ImGui.Checkbox(Locs.AlwaysEnableAtBoot, ref enableAtBoot))
+        ImGui.TextUnformatted(Locs.StartupBehavior);
+        if (ImGui.BeginCombo("##startupBehaviorPicker", Locs.PolicyToLocalisedName(profile.StartupPolicy)))
         {
-            profile.AlwaysEnableAtBoot = enableAtBoot;
+            foreach (var policy in Enum.GetValues(typeof(ProfileModelV1.ProfileStartupPolicy)).Cast<ProfileModelV1.ProfileStartupPolicy>())
+            {
+                var name = Locs.PolicyToLocalisedName(policy);
+                if (ImGui.Selectable(name, profile.StartupPolicy == policy))
+                {
+                    profile.StartupPolicy = policy;
+                }
+            }
+
+            ImGui.EndCombo();
         }
 
         ImGuiHelpers.ScaledDummy(5);
@@ -514,6 +537,15 @@ internal class ProfileManagerWidget
 
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(Locs.RemovePlugin);
+
+                // Separator if not the last item
+                if (profileEntry != profile.Plugins.Last())
+                {
+                    // Very light grey
+                    ImGui.PushStyleColor(ImGuiCol.Border, ImGuiColors.DalamudGrey.WithAlpha(0.2f));
+                    ImGui.Separator();
+                    ImGui.PopStyleColor();
+                }
             }
 
             if (wantRemovePluginGuid != null)
@@ -554,6 +586,9 @@ internal class ProfileManagerWidget
 
     private static class Locs
     {
+        public static string StartupBehavior =>
+            Loc.Localize("ProfileManagerStartupBehavior", "Startup behavior");
+
         public static string TooltipEnableDisable =>
             Loc.Localize("ProfileManagerEnableDisableHint", "Enable/Disable this collection");
 
@@ -566,9 +601,6 @@ internal class ProfileManagerWidget
 
         public static string NoPluginsInProfile =>
             Loc.Localize("ProfileManagerNoPluginsInProfile", "Collection has no plugins!");
-
-        public static string AlwaysEnableAtBoot =>
-            Loc.Localize("ProfileManagerAlwaysEnableAtBoot", "Always enable when game starts");
 
         public static string DeleteProfileHint => Loc.Localize("ProfileManagerDeleteProfile", "Delete this collection");
 
@@ -647,5 +679,22 @@ internal class ProfileManagerWidget
 
         public static string NotInstalled(string name) =>
             Loc.Localize("ProfileManagerNotInstalled", "{0} (Not Installed)").Format(name);
+
+        public static string PolicyToLocalisedName(ProfileModelV1.ProfileStartupPolicy policy)
+        {
+            return policy switch
+            {
+                ProfileModelV1.ProfileStartupPolicy.RememberState => Loc.Localize(
+                    "ProfileManagerRememberState",
+                    "Remember state"),
+                ProfileModelV1.ProfileStartupPolicy.AlwaysEnable => Loc.Localize(
+                    "ProfileManagerAlwaysEnableAtBoot",
+                    "Always enable at boot"),
+                ProfileModelV1.ProfileStartupPolicy.AlwaysDisable => Loc.Localize(
+                    "ProfileManagerAlwaysDisableAtBoot",
+                    "Always disable at boot"),
+                _ => throw new ArgumentOutOfRangeException(nameof(policy), policy, null),
+            };
+        }
     }
 }

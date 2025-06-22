@@ -129,7 +129,7 @@ internal class AutoUpdateManager : IServiceType
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not auto-updates have already completed this session.
+    /// Gets a value indicating whether auto-updates have already completed this session.
     /// </summary>
     public bool IsAutoUpdateComplete { get; private set; }
 
@@ -458,7 +458,7 @@ internal class AutoUpdateManager : IServiceType
                                     .Where(
                                         p =>
                                             !p.InstalledPlugin.IsDev && // Never update dev-plugins
-                                            p.InstalledPlugin.IsWantedByAnyProfile && // Never update plugins that are not wanted by any profile(not enabled)
+                                            (p.InstalledPlugin.IsWantedByAnyProfile || this.config.UpdateDisabledPlugins) && // Never update plugins that are not wanted by any profile(not enabled)
                                             !p.InstalledPlugin.Manifest.ScheduledForDeletion); // Never update plugins that we want to get rid of
 
         return updateablePlugins.Where(FilterPlugin).ToList();
@@ -499,7 +499,7 @@ internal class AutoUpdateManager : IServiceType
             condition.OnlyAny(ConditionFlag.NormalConditions,
                               ConditionFlag.Jumping,
                               ConditionFlag.Mounted,
-                              ConditionFlag.UsingParasol);
+                              ConditionFlag.UsingFashionAccessory);
     }
 
     private bool IsPluginManagerReady()

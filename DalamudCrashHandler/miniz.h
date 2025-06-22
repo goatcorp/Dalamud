@@ -115,7 +115,7 @@
 
 
 
-/* Defines to completely disable specific portions of miniz.c: 
+/* Defines to completely disable specific portions of miniz.c:
    If all macros here are defined the only functionality remaining will be CRC-32, adler-32, tinfl, and tdefl. */
 
 /* Define MINIZ_NO_STDIO to disable all usage and any functions which rely on stdio for file I/O. */
@@ -138,7 +138,7 @@
 /* Define MINIZ_NO_ZLIB_COMPATIBLE_NAME to disable zlib names, to prevent conflicts against stock zlib. */
 /*#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES */
 
-/* Define MINIZ_NO_MALLOC to disable all calls to malloc, free, and realloc. 
+/* Define MINIZ_NO_MALLOC to disable all calls to malloc, free, and realloc.
    Note if MINIZ_NO_MALLOC is defined then the user must always provide custom user alloc/free/realloc
    callbacks to the zlib and archive API's, and a few stand-alone helper API's which don't provide custom user
    functions (such as tdefl_compress_mem_to_heap() and tinfl_decompress_mem_to_heap()) won't work. */
@@ -360,7 +360,7 @@ MINIZ_EXPORT mz_ulong mz_compressBound(mz_ulong source_len);
 /* Initializes a decompressor. */
 MINIZ_EXPORT int mz_inflateInit(mz_streamp pStream);
 
-/* mz_inflateInit2() is like mz_inflateInit() with an additional option that controls the window size and whether or not the stream has been wrapped with a zlib header/footer: */
+/* mz_inflateInit2() is like mz_inflateInit() with an additional option that controls the window size and whether the stream has been wrapped with a zlib header/footer: */
 /* window_bits must be MZ_DEFAULT_WINDOW_BITS (to parse zlib header/footer) or -MZ_DEFAULT_WINDOW_BITS (raw deflate). */
 MINIZ_EXPORT int mz_inflateInit2(mz_streamp pStream, int window_bits);
 
@@ -908,7 +908,7 @@ struct tinfl_decompressor_tag
 #ifdef __cplusplus
 }
 #endif
- 
+
 #pragma once
 
 

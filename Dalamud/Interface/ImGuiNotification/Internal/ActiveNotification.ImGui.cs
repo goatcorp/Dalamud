@@ -14,8 +14,10 @@ internal sealed partial class ActiveNotification
     /// <summary>Draws this notification.</summary>
     /// <param name="width">The maximum width of the notification window.</param>
     /// <param name="offsetY">The offset from the bottom.</param>
+    /// <param name="anchorPosition">Where notifications are anchored to on the screen.</param>
+    /// <param name="snapDirection">Direction of the screen which we are snapping to.</param>
     /// <returns>The height of the notification.</returns>
-    public float Draw(float width, float offsetY)
+    public float Draw(float width, float offsetY, Vector2 anchorPosition, NotificationSnapDirection snapDirection)
     {
         var opacity =
             Math.Clamp(
@@ -34,8 +36,8 @@ internal sealed partial class ActiveNotification
             (NotificationConstants.ScaledWindowPadding * 2);
 
         var viewport = ImGuiHelpers.MainViewport;
-        var viewportPos = viewport.WorkPos;
         var viewportSize = viewport.WorkSize;
+        var viewportPos = viewport.Pos;
 
         ImGui.PushStyleVar(ImGuiStyleVar.Alpha, opacity);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0f);
@@ -51,13 +53,78 @@ internal sealed partial class ActiveNotification
                     NotificationConstants.BackgroundOpacity));
         }
 
+        Vector2 topLeft;
+        Vector2 pivot;
+        if (snapDirection is NotificationSnapDirection.Top or NotificationSnapDirection.Bottom)
+        {
+            // Top or bottom
+            var xPos = (viewportSize.X - width) * anchorPosition.X;
+            xPos = Math.Max(NotificationConstants.ScaledViewportEdgeMargin, Math.Min(viewportSize.X - width - NotificationConstants.ScaledViewportEdgeMargin, xPos));
+
+            if (snapDirection == NotificationSnapDirection.Top)
+            {
+                // Top
+                var yPos = NotificationConstants.ScaledViewportEdgeMargin - offsetY;
+                topLeft = new Vector2(xPos, yPos);
+                pivot = new(0, 0);
+            }
+            else
+            {
+                // Bottom
+                var yPos = viewportSize.Y - offsetY - NotificationConstants.ScaledViewportEdgeMargin;
+                topLeft = new Vector2(xPos, yPos);
+                pivot = new(0, 1);
+            }
+        }
+        else
+        {
+            // Left or Right
+            var yPos = (viewportSize.Y * anchorPosition.Y) - offsetY;
+            yPos = Math.Max(
+                NotificationConstants.ScaledViewportEdgeMargin,
+                Math.Min(viewportSize.Y - offsetY - NotificationConstants.ScaledViewportEdgeMargin, yPos));
+
+            if (snapDirection == NotificationSnapDirection.Left)
+            {
+                // Left
+                var xPos = NotificationConstants.ScaledViewportEdgeMargin;
+
+                if (anchorPosition.Y > 0.5f)
+                {
+                    // Bottom
+                    topLeft = new Vector2(xPos, yPos);
+                    pivot = new(0, 1);
+                }
+                else
+                {
+                    // Top
+                    topLeft = new Vector2(xPos, yPos);
+                    pivot = new(0, 0);
+                }
+            }
+            else
+            {
+                // Right
+                var xPos = viewportSize.X - width - NotificationConstants.ScaledViewportEdgeMargin;
+
+                if (anchorPosition.Y > 0.5f)
+                {
+                    topLeft = new Vector2(xPos, yPos);
+                    pivot = new(0, 1);
+                }
+                else
+                {
+                    topLeft = new Vector2(xPos, yPos);
+                    pivot = new(0, 0);
+                }
+            }
+        }
+
         ImGuiHelpers.ForceNextWindowMainViewport();
         ImGui.SetNextWindowPos(
-            (viewportPos + viewportSize) -
-            new Vector2(NotificationConstants.ScaledViewportEdgeMargin) -
-            new Vector2(0, offsetY),
+            topLeft + viewportPos,
             ImGuiCond.Always,
-            Vector2.One);
+            pivot);
         ImGui.SetNextWindowSizeConstraints(
             new(width, actionWindowHeight),
             new(
@@ -145,7 +212,7 @@ internal sealed partial class ActiveNotification
         ImGui.PopStyleColor();
         ImGui.PopStyleVar(3);
 
-        return windowSize.Y;
+        return NotificationManager.ShouldScrollDownwards(anchorPosition) ? -windowSize.Y : windowSize.Y;
     }
 
     /// <summary>Calculates the effective expiry, taking ImGui window state into account.</summary>

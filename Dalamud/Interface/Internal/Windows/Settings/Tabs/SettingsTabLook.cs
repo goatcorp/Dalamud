@@ -12,6 +12,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ImGuiFontChooserDialog;
+using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
 using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -38,13 +39,18 @@ public class SettingsTabLook : SettingsTab
     private IFontSpec defaultFontSpec = null!;
 
     public override SettingsEntry[] Entries { get; } =
-    {
+    [
         new GapSettingsEntry(5, true),
 
         new ButtonSettingsEntry(
             Loc.Localize("DalamudSettingsOpenStyleEditor", "Open Style Editor"),
             Loc.Localize("DalamudSettingsStyleEditorHint", "Modify the look & feel of Dalamud windows."),
             () => Service<DalamudInterface>.Get().OpenStyleEditor()),
+
+        new ButtonSettingsEntry(
+            Loc.Localize("DalamudSettingsOpenNotificationEditor", "Modify Notification Position"),
+            Loc.Localize("DalamudSettingsNotificationEditorHint", "Choose where Dalamud notifications appear on the screen."),
+            () => Service<NotificationManager>.Get().StartPositionChooser()),
 
         new SettingsEntry<bool>(
             Loc.Localize("DalamudSettingsUseDarkMode", "Use Windows immersive/dark mode"),
@@ -167,8 +173,8 @@ public class SettingsTabLook : SettingsTab
                 ImGui.TextUnformatted("\uE020\uE021\uE022\uE023\uE024\uE025\uE026\uE027");
                 ImGui.PopStyleVar(1);
             },
-        },
-    };
+        }
+    ];
 
     public override string Title => Loc.Localize("DalamudSettingsVisual", "Look & Feel");
 

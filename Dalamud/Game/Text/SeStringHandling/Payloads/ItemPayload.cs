@@ -31,7 +31,7 @@ public class ItemPayload : Payload
     /// Creates a payload representing an interactable item link for the specified item.
     /// </summary>
     /// <param name="itemId">The id of the item.</param>
-    /// <param name="isHq">Whether or not the link should be for the high-quality variant of the item.</param>
+    /// <param name="isHq">Whether the link should be for the high-quality variant of the item.</param>
     /// <param name="displayNameOverride">An optional name to include in the item link.  Typically this should
     /// be left as null, or set to the normal item name.  Actual overrides are better done with the subsequent
     /// TextPayload that is a part of a full item link in chat.</param>
@@ -75,7 +75,7 @@ public class ItemPayload : Payload
     /// <summary>
     /// Kinds of items that can be fetched from this payload.
     /// </summary>
-    [Api12ToDo("Move this out of ItemPayload. It's used in other classes too.")]
+    [Api13ToDo("Move this out of ItemPayload. It's used in other classes too.")]
     public enum ItemKind : uint
     {
         /// <summary>
@@ -142,7 +142,7 @@ public class ItemPayload : Payload
             : (RowRef)LuminaUtils.CreateRef<Item>(this.ItemId);
 
     /// <summary>
-    /// Gets a value indicating whether or not this item link is for a high-quality version of the item.
+    /// Gets a value indicating whether this item link is for a high-quality version of the item.
     /// </summary>
     [JsonProperty]
     public bool IsHQ => this.Kind == ItemKind.Hq;

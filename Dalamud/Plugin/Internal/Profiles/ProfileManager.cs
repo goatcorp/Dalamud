@@ -54,7 +54,7 @@ internal class ProfileManager : IServiceType
     public IEnumerable<Profile> Profiles => this.profiles;
 
     /// <summary>
-    /// Gets a value indicating whether or not the profile manager is busy enabling/disabling plugins.
+    /// Gets a value indicating whether the profile manager is busy enabling/disabling plugins.
     /// </summary>
     public bool IsBusy => this.isBusy;
 
@@ -71,8 +71,8 @@ internal class ProfileManager : IServiceType
     /// <param name="workingPluginId">The ID of the plugin.</param>
     /// <param name="internalName">The internal name of the plugin, if available.</param>
     /// <param name="defaultState">The state the plugin shall be in, if it needs to be added.</param>
-    /// <param name="addIfNotDeclared">Whether or not the plugin should be added to the default preset, if it's not present in any preset.</param>
-    /// <returns>Whether or not the plugin shall be enabled.</returns>
+    /// <param name="addIfNotDeclared">Whether the plugin should be added to the default preset, if it's not present in any preset.</param>
+    /// <returns>Whether the plugin shall be enabled.</returns>
     public async Task<bool> GetWantStateAsync(Guid workingPluginId, string? internalName, bool defaultState, bool addIfNotDeclared = true)
     {
         var want = false;
@@ -106,7 +106,7 @@ internal class ProfileManager : IServiceType
     /// Check whether a plugin is declared in any profile.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
-    /// <returns>Whether or not the plugin is in any profile.</returns>
+    /// <returns>Whether the plugin is in any profile.</returns>
     public bool IsInAnyProfile(Guid workingPluginId)
     {
         lock (this.profiles)
@@ -118,7 +118,7 @@ internal class ProfileManager : IServiceType
     /// A plugin can never be in the default profile if it is in any other profile.
     /// </summary>
     /// <param name="workingPluginId">The ID of the plugin.</param>
-    /// <returns>Whether or not the plugin is in the default profile.</returns>
+    /// <returns>Whether the plugin is in the default profile.</returns>
     public bool IsInDefaultProfile(Guid workingPluginId)
         => this.DefaultProfile.WantsPlugin(workingPluginId) != null;
 
@@ -192,6 +192,10 @@ internal class ProfileManager : IServiceType
                     plugin.WorkingPluginId = Guid.Empty;
                 }
             }
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported profile model version");
         }
 
         this.config.SavedProfiles!.Add(newModel);

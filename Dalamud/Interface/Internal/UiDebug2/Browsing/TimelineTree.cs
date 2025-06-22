@@ -51,9 +51,10 @@ public readonly unsafe partial struct TimelineTree
             return;
         }
 
-        var count = this.Resource->AnimationCount;
+        var animationCount = this.Resource->AnimationCount;
+        var labelSetCount = this.Resource->LabelSetCount;
 
-        if (count > 0)
+        if (animationCount > 0)
         {
             using var tree = ImRaii.TreeNode($"Timeline##{(nint)this.node:X}timeline", SpanFullWidth);
 
@@ -65,20 +66,33 @@ public readonly unsafe partial struct TimelineTree
 
                 ShowStruct(this.NodeTimeline);
 
-                PrintFieldValuePairs(
-                    ("Id", $"{this.NodeTimeline->Resource->Id}"),
-                    ("Parent Time", $"{this.NodeTimeline->ParentFrameTime:F2} ({this.NodeTimeline->ParentFrameTime * 30:F0})"),
-                    ("Frame Time", $"{this.NodeTimeline->FrameTime:F2} ({this.NodeTimeline->FrameTime * 30:F0})"));
-
-                PrintFieldValuePairs(("Active Label Id", $"{this.NodeTimeline->ActiveLabelId}"), ("Duration", $"{this.NodeTimeline->LabelFrameIdxDuration}"), ("End Frame", $"{this.NodeTimeline->LabelEndFrameIdx}"));
-                ImGui.TextColored(new(0.6f, 0.6f, 0.6f, 1), "Animation List");
-
-                for (var a = 0; a < count; a++)
+                if (this.Resource->Animations is not null)
                 {
-                    var animation = this.Resource->Animations[a];
-                    var isActive = this.ActiveAnimation != null && &animation == this.ActiveAnimation;
-                    this.PrintAnimation(animation, a, isActive, (nint)(this.NodeTimeline->Resource->Animations + (a * sizeof(AtkTimelineAnimation))));
+                    PrintFieldValuePairs(
+                        ("Id", $"{this.NodeTimeline->Resource->Id}"),
+                        ("Parent Time", $"{this.NodeTimeline->ParentFrameTime:F2} ({this.NodeTimeline->ParentFrameTime * 30:F0})"),
+                        ("Frame Time", $"{this.NodeTimeline->FrameTime:F2} ({this.NodeTimeline->FrameTime * 30:F0})"));
+
+                    PrintFieldValuePairs(("Active Label Id", $"{this.NodeTimeline->ActiveLabelId}"), ("Duration", $"{this.NodeTimeline->LabelFrameIdxDuration}"), ("End Frame", $"{this.NodeTimeline->LabelEndFrameIdx}"));
+                    ImGui.TextColored(new(0.6f, 0.6f, 0.6f, 1), "Animation List");
+
+                    for (var a = 0; a < animationCount; a++)
+                    {
+                        var animation = this.Resource->Animations[a];
+                        var isActive = this.ActiveAnimation != null && &animation == this.ActiveAnimation;
+                        this.PrintAnimation(animation, a, isActive, (nint)(this.NodeTimeline->Resource->Animations + a));
+                    }
                 }
+            }
+        }
+
+        if (labelSetCount > 0 && this.Resource->LabelSets is not null)
+        {
+            using var tree = ImRaii.TreeNode($"Timeline Label Sets##{(nint)this.node:X}LabelSets", SpanFullWidth);
+
+            if (tree.Success)
+            {
+                this.DrawLabelSets();
             }
         }
     }
@@ -379,5 +393,64 @@ public readonly unsafe partial struct TimelineTree
         GetLabelColumn(keyGroups[7], columns);
 
         return columns;
+    }
+
+    private void DrawLabelSets()
+    {
+        PrintFieldValuePair("LabelSet", $"{(nint)this.NodeTimeline->Resource->LabelSets:X}");
+
+        ImGui.SameLine();
+
+        ShowStruct(this.NodeTimeline->Resource->LabelSets);
+
+        PrintFieldValuePairs(
+            ("StartFrameIdx", $"{this.NodeTimeline->Resource->LabelSets->StartFrameIdx}"),
+            ("EndFrameIdx", $"{this.NodeTimeline->Resource->LabelSets->EndFrameIdx}"));
+
+        using var labelSetTable = ImRaii.TreeNode("Entries");
+        if (labelSetTable.Success)
+        {
+            var keyFrameGroup = this.Resource->LabelSets->LabelKeyGroup;
+
+            using var table = ImRaii.Table($"##{(nint)this.node}labelSetKeyFrameTable", 7, Borders | SizingFixedFit | RowBg | NoHostExtendX);
+            if (table.Success)
+            {
+                ImGui.TableSetupColumn("Frame ID", WidthFixed);
+                ImGui.TableSetupColumn("Speed Start", WidthFixed);
+                ImGui.TableSetupColumn("Speed End", WidthFixed);
+                ImGui.TableSetupColumn("Interpolation", WidthFixed);
+                ImGui.TableSetupColumn("Label ID", WidthFixed);
+                ImGui.TableSetupColumn("Jump Behavior", WidthFixed);
+                ImGui.TableSetupColumn("Target Label ID", WidthFixed);
+
+                ImGui.TableHeadersRow();
+
+                for (var l = 0; l < keyFrameGroup.KeyFrameCount; l++)
+                {
+                    var keyFrame = keyFrameGroup.KeyFrames[l];
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted($"{keyFrame.FrameIdx}");
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted($"{keyFrame.SpeedCoefficient1:F2}");
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted($"{keyFrame.SpeedCoefficient2:F2}");
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted($"{keyFrame.Interpolation}");
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted($"{keyFrame.Value.Label.LabelId}");
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted($"{keyFrame.Value.Label.JumpBehavior}");
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted($"{keyFrame.Value.Label.JumpLabelId}");
+                }
+            }
+        }
     }
 }

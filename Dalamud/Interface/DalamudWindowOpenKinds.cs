@@ -14,16 +14,21 @@ public enum PluginInstallerOpenKind
     /// Open to the "Installed Plugins" page.
     /// </summary>
     InstalledPlugins,
-    
+
     /// <summary>
     /// Open to the "Can be updated" page.
     /// </summary>
     UpdateablePlugins,
 
     /// <summary>
-    /// Open to the "Changelogs" page.
+    /// Open to the "Plugin Changelogs" page.
     /// </summary>
     Changelogs,
+
+    /// <summary>
+    /// Open to the "Dalamud Changelogs" page.
+    /// </summary>
+    DalamudChangelogs,
 }
 
 /// <summary>
@@ -35,12 +40,12 @@ public enum SettingsOpenKind
     /// Open to the "General" page.
     /// </summary>
     General,
-    
+
     /// <summary>
     /// Open to the "Look &#038; Feel" page.
     /// </summary>
     LookAndFeel,
-    
+
     /// <summary>
     /// Open to the "Auto Updates" page.
     /// </summary>

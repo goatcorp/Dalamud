@@ -121,6 +121,19 @@ internal class ConsoleWindow : Window, IDisposable
     /// <summary>Gets the queue where log entries that are not processed yet are stored.</summary>
     public static ConcurrentQueue<(string Line, LogEvent LogEvent)> NewLogEntries { get; } = new();
 
+    /// <summary>
+    /// Gets or sets the current text filter.
+    /// </summary>
+    public string TextFilter
+    {
+        get => this.textFilter;
+        set
+        {
+            this.textFilter = value;
+            this.RecompileLogFilter();
+        }
+    }
+
     /// <inheritdoc/>
     public override void OnOpen()
     {
@@ -620,22 +633,27 @@ internal class ConsoleWindow : Window, IDisposable
                 ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll)
             || ImGui.IsItemDeactivatedAfterEdit())
         {
-            this.compiledLogFilter = null;
-            this.exceptionLogFilter = null;
-            try
-            {
-                this.compiledLogFilter = new(this.textFilter, RegexOptions.IgnoreCase);
-
-                this.QueueRefilter();
-            }
-            catch (Exception e)
-            {
-                this.exceptionLogFilter = e;
-            }
-
-            foreach (var log in this.logText)
-                log.HighlightMatches = null;
+            this.RecompileLogFilter();
         }
+    }
+
+    private void RecompileLogFilter()
+    {
+        this.compiledLogFilter = null;
+        this.exceptionLogFilter = null;
+        try
+        {
+            this.compiledLogFilter = new(this.textFilter, RegexOptions.IgnoreCase);
+
+            this.QueueRefilter();
+        }
+        catch (Exception e)
+        {
+            this.exceptionLogFilter = e;
+        }
+
+        foreach (var log in this.logText)
+            log.HighlightMatches = null;
     }
 
     private void DrawSettingsPopup()

@@ -7,6 +7,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Game.Text.Noun.Enums;
 using Dalamud.Game.Text.SeStringHandling;
@@ -90,6 +91,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         { MacroCode.LowerHead, ["String"] },
         { MacroCode.ColorType, ["ColorType"] },
         { MacroCode.EdgeColorType, ["ColorType"] },
+        { MacroCode.Ruby, ["StandardText", "RubyText"] },
         { MacroCode.Digit, ["Value", "TargetLength"] },
         { MacroCode.Ordinal, ["Value"] },
         { MacroCode.Sound, ["IsJingle", "SoundId"] },
@@ -132,8 +134,8 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         new TextEntry(TextEntryType.Macro, "<colortype(17)>"),
         new TextEntry(TextEntryType.Macro, "<edgecolortype(19)>"),
         new TextEntry(TextEntryType.String, "Dalamud"),
-        new TextEntry(TextEntryType.Macro, "<edgecolor(0)>"),
-        new TextEntry(TextEntryType.Macro, "<colortype(0)>"),
+        new TextEntry(TextEntryType.Macro, "<edgecolor(stackcolor)>"),
+        new TextEntry(TextEntryType.Macro, "<color(stackcolor)>"),
         new TextEntry(TextEntryType.Macro, " <string(lstr1)>"),
     ];
 
@@ -165,7 +167,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Load()
     {
-        this.language = Service<DalamudConfiguration>.Get().EffectiveLanguage.ToClientLanguage();
+        this.language = Service<ClientState>.Get().ClientLanguage;
         this.UpdateInputString(false);
         this.Ready = true;
     }
@@ -473,7 +475,12 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 }
             }
 
-            RaptureLogModule.Instance()->PrintString(Service<SeStringEvaluator>.Get().Evaluate(sb.ToReadOnlySeString()));
+            var evaluated = Service<SeStringEvaluator>.Get().Evaluate(
+                sb.ToReadOnlySeString(),
+                this.localParameters,
+                this.language);
+
+            RaptureLogModule.Instance()->PrintString(evaluated);
         }
 
         if (this.entries.Count != 0)
@@ -1011,7 +1018,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                 ImGui.TextUnformatted(Enum.GetName(articleTypeEnumType, u32));
             }
 
-            if (macroCode is MacroCode.DeNoun && exprIdx == 4 && u32 is >= 0 and <= 3)
+            if (macroCode is MacroCode.DeNoun && exprIdx == 4 && u32 is >= 0 and <= 4)
             {
                 ImGui.SameLine();
                 ImGui.TextUnformatted(NounProcessorWidget.GermanCases[u32]);

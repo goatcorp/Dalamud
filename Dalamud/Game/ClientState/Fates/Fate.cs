@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
+using Dalamud.Utility;
 
 using Lumina.Excel;
 
@@ -69,13 +70,13 @@ public interface IFate : IEquatable<IFate>
     byte Progress { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this <see cref="Fate"/> has a EXP bonus.
+    /// Gets a value indicating whether this <see cref="Fate"/> has a EXP bonus.
     /// </summary>
     [Obsolete($"Use {nameof(HasBonus)} instead")]
     bool HasExpBonus { get; }
 
     /// <summary>
-    /// Gets a value indicating whether or not this <see cref="Fate"/> has a bonus.
+    /// Gets a value indicating whether this <see cref="Fate"/> has a bonus.
     /// </summary>
     bool HasBonus { get; }
 
@@ -222,8 +223,8 @@ internal unsafe partial class Fate : IFate
     public byte Progress => this.Struct->Progress;
 
     /// <inheritdoc/>
-    [Obsolete($"Use {nameof(HasBonus)} instead")]
-    public bool HasExpBonus => this.Struct->IsExpBonus;
+    [Api13ToDo("Remove")]
+    public bool HasExpBonus => this.HasBonus;
 
     /// <inheritdoc/>
     public bool HasBonus => this.Struct->IsBonus;
@@ -249,5 +250,5 @@ internal unsafe partial class Fate : IFate
     /// <summary>
     /// Gets the territory this <see cref="Fate"/> is located in.
     /// </summary>
-    public RowRef<Lumina.Excel.Sheets.TerritoryType> TerritoryType => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->MapMarkers[0].TerritoryId);
+    public RowRef<Lumina.Excel.Sheets.TerritoryType> TerritoryType => LuminaUtils.CreateRef<Lumina.Excel.Sheets.TerritoryType>(this.Struct->MapMarkers[0].MapMarkerData.TerritoryTypeId);
 }

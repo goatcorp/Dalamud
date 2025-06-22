@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using Dalamud.Bindings.ImGui;
@@ -45,6 +46,19 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
         string name,
         Task<IDalamudTextureWrap> texture)
     {
+        name = new StringBuilder(name)
+               .Replace('<', '_')
+               .Replace('>', '_')
+               .Replace(':', '_')
+               .Replace('"', '_')
+               .Replace('/', '_')
+               .Replace('\\', '_')
+               .Replace('|', '_')
+               .Replace('?', '_')
+               .Replace('*', '_')
+               .ToString();
+
+        var isCopy = false;
         try
         {
             var initiatorScreenOffset = ImGui.GetMousePos();
@@ -52,11 +66,12 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
             var textureManager = await Service<TextureManager>.GetAsync();
             var popupName = $"{nameof(this.ShowTextureSaveMenuAsync)}_{textureWrap.ImGuiHandle:X}";
 
-            BitmapCodecInfo encoder;
+            BitmapCodecInfo? encoder;
             {
                 var first = true;
                 var encoders = textureManager.Wic.GetSupportedEncoderInfos().ToList();
-                var tcs = new TaskCompletionSource<BitmapCodecInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var tcs = new TaskCompletionSource<BitmapCodecInfo?>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
                 Service<InterfaceManager>.Get().Draw += DrawChoices;
 
                 encoder = await tcs.Task;
@@ -82,6 +97,8 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                         return;
                     }
 
+                    if (ImGui.Selectable("Copy"))
+                        tcs.TrySetResult(null);
                     foreach (var encoder2 in encoders)
                     {
                         if (ImGui.Selectable(encoder2.Name))
@@ -103,8 +120,21 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                 }
             }
 
-            string path;
+            if (encoder is null)
             {
+                isCopy = true;
+                await textureManager.CopyToClipboardAsync(textureWrap, name, true);
+            }
+            else
+            {
+                var props = new Dictionary<string, object>();
+                if (encoder.ContainerGuid == GUID.GUID_ContainerFormatTiff)
+                    props["CompressionQuality"] = 1.0f;
+                else if (encoder.ContainerGuid == GUID.GUID_ContainerFormatJpeg ||
+                         encoder.ContainerGuid == GUID.GUID_ContainerFormatHeif ||
+                         encoder.ContainerGuid == GUID.GUID_ContainerFormatWmp)
+                    props["ImageQuality"] = 1.0f;
+
                 var tcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
                 this.fileDialogManager.SaveFileDialog(
                     "Save texture...",
@@ -118,30 +148,23 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                         else
                             tcs.SetResult(path2);
                     });
-                path = await tcs.Task.ConfigureAwait(false);
-            }
+                var path = await tcs.Task.ConfigureAwait(false);
 
-            var props = new Dictionary<string, object>();
-            if (encoder.ContainerGuid == GUID.GUID_ContainerFormatTiff)
-                props["CompressionQuality"] = 1.0f;
-            else if (encoder.ContainerGuid == GUID.GUID_ContainerFormatJpeg ||
-                     encoder.ContainerGuid == GUID.GUID_ContainerFormatHeif ||
-                     encoder.ContainerGuid == GUID.GUID_ContainerFormatWmp)
-                props["ImageQuality"] = 1.0f;
-            await textureManager.SaveToFileAsync(textureWrap, encoder.ContainerGuid, path, props: props);
+                await textureManager.SaveToFileAsync(textureWrap, encoder.ContainerGuid, path, props: props);
 
-            var notif = Service<NotificationManager>.Get().AddNotification(
-                new()
+                var notif = Service<NotificationManager>.Get().AddNotification(
+                    new()
+                    {
+                        Content = $"File saved to: {path}",
+                        Title = initiatorName,
+                        Type = NotificationType.Success,
+                    });
+                notif.Click += n =>
                 {
-                    Content = $"File saved to: {path}",
-                    Title = initiatorName,
-                    Type = NotificationType.Success,
-                });
-            notif.Click += n =>
-            {
-                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
-                n.Notification.DismissNow();
-            };
+                    Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+                    n.Notification.DismissNow();
+                };
+            }
         }
         catch (Exception e)
         {
@@ -152,7 +175,9 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                 e,
                 $"{nameof(DalamudInterface)}.{nameof(this.ShowTextureSaveMenuAsync)}({initiatorName}, {name})");
             Service<NotificationManager>.Get().AddNotification(
-                $"Failed to save file: {e}",
+                isCopy
+                    ? $"Failed to copy file: {e}"
+                    : $"Failed to save file: {e}",
                 initiatorName,
                 NotificationType.Error);
         }

@@ -51,7 +51,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
         if (this.devPluginLocationsChanged)
         {
-            Service<PluginManager>.Get().ScanDevPlugins();
+            _ = Service<PluginManager>.Get().ScanDevPluginsAsync();
             this.devPluginLocationsChanged = false;
         }
     }

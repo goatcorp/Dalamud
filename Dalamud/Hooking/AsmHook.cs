@@ -20,7 +20,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     private bool isEnabled = false;
 
     private DynamicMethod statsMethod;
-    
+
     private Guid hookId = Guid.NewGuid();
 
     /// <summary>
@@ -89,7 +89,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook is enabled.
+    /// Gets a value indicating whether the hook is enabled.
     /// </summary>
     public bool IsEnabled
     {
@@ -101,7 +101,7 @@ public sealed class AsmHook : IDisposable, IDalamudHook
     }
 
     /// <summary>
-    /// Gets a value indicating whether or not the hook has been disposed.
+    /// Gets a value indicating whether the hook has been disposed.
     /// </summary>
     public bool IsDisposed { get; private set; }
 

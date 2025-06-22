@@ -6,7 +6,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>12.0.0.7</DalamudVersion>
+        <DalamudVersion>12.0.1.4</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -64,8 +64,8 @@
         <PackageReference Include="BitFaster.Caching" Version="2.4.1" />
         <PackageReference Include="CheapLoc" Version="1.1.8" />
         <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4" PrivateAssets="all" />
-        <PackageReference Include="goaaats.Reloaded.Hooks" Version="4.2.0-goat.4" />
-        <PackageReference Include="goaaats.Reloaded.Assembler" Version="1.0.14-goat.2" />
+        <PackageReference Include="goatcorp.Reloaded.Hooks" Version="4.2.0-goatcorp5" />
+        <PackageReference Include="goatcorp.Reloaded.Assembler" Version="1.0.14-goatcorp3" />
         <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
         <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
         <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
@@ -128,6 +128,13 @@
       <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\EastAsianWidth.txt" LogicalName="EastAsianWidth.txt" />
       <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\emoji-data.txt" LogicalName="emoji-data.txt" />
       <EmbeddedResource Include="Interface\ImGuiSeStringRenderer\Internal\TextProcessing\LineBreak.txt" LogicalName="LineBreak.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.DrawToPremul.ps.bin" />
+      <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.DrawToPremul.vs.bin" />
+      <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.MakeStraight.ps.bin" />
+      <EmbeddedResource WithCulture="false" Include="Interface\Textures\TextureWraps\Internal\DrawListTextureWrap\Renderer.MakeStraight.vs.bin" />
     </ItemGroup>
 
     <Target Name="AddRuntimeDependenciesToContent" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="GenerateBuildDependencyFile;GenerateBuildRuntimeConfigurationFiles">

@@ -11,13 +11,11 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImPlot;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
-using Dalamud.Data;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Gui;
-using Dalamud.Game.Internal;
 using Dalamud.Hooking;
 using Dalamud.Interface.Animation.EasingFunctions;
 using Dalamud.Interface.Colors;
@@ -305,8 +303,14 @@ internal class DalamudInterface : IInternalDisposableService
     /// <summary>
     /// Opens the <see cref="ConsoleWindow"/>.
     /// </summary>
-    public void OpenLogWindow()
+    /// <param name="textFilter">The filter to set, if not null.</param>
+    public void OpenLogWindow(string? textFilter = "")
     {
+        if (textFilter != null)
+        {
+            this.consoleWindow.TextFilter = textFilter;
+        }
+
         this.consoleWindow.IsOpen = true;
         this.consoleWindow.BringToFront();
     }
@@ -518,7 +522,7 @@ internal class DalamudInterface : IInternalDisposableService
     /// <summary>
     /// Toggle the screen darkening effect used for the credits.
     /// </summary>
-    /// <param name="status">Whether or not to turn the effect on.</param>
+    /// <param name="status">Whether to turn the effect on.</param>
     public void SetCreditsDarkeningAnimation(bool status)
     {
         this.isCreditsDarkening = status;
@@ -711,19 +715,6 @@ internal class DalamudInterface : IInternalDisposableService
                             this.dalamud.StartInfo.BootShowConsole,
                             this.configuration.LogSynchronously,
                             this.dalamud.StartInfo.LogName);
-                    }
-
-                    var antiDebug = Service<AntiDebug>.Get();
-                    if (ImGui.MenuItem("Disable Debugging Protections", (byte*)null, antiDebug.IsEnabled))
-                    {
-                        var newEnabled = !antiDebug.IsEnabled;
-                        if (newEnabled)
-                            antiDebug.Enable();
-                        else
-                            antiDebug.Disable();
-
-                        this.configuration.IsAntiAntiDebugEnabled = newEnabled;
-                        this.configuration.QueueSave();
                     }
 
                     ImGui.Separator();
@@ -1012,7 +1003,7 @@ internal class DalamudInterface : IInternalDisposableService
 
                     if (ImGui.MenuItem("Scan dev plugins"))
                     {
-                        pluginManager.ScanDevPlugins();
+                        _ = pluginManager.ScanDevPluginsAsync();
                     }
 
                     ImGui.Separator();

@@ -284,7 +284,7 @@ internal class PluginManager : IInternalDisposableService
     /// Check if a manifest even has an available testing version.
     /// </summary>
     /// <param name="manifest">The manifest to test.</param>
-    /// <returns>Whether or not a testing version is available.</returns>
+    /// <returns>Whether a testing version is available.</returns>
     public static bool HasTestingVersion(IPluginManifest manifest)
     {
         var av = manifest.AssemblyVersion;
@@ -663,6 +663,8 @@ internal class PluginManager : IInternalDisposableService
         _ = Task.Run(
             async () =>
             {
+                Log.Verbose("Starting async boot load");
+
                 // Load plugins that want to be loaded during Framework.Tick
                 var framework = await Service<Framework>.GetAsync().ConfigureAwait(false);
                 await framework.RunOnTick(
@@ -671,27 +673,35 @@ internal class PluginManager : IInternalDisposableService
                         syncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1),
                         tokenSource.Token),
                     cancellationToken: tokenSource.Token).ConfigureAwait(false);
+                Log.Verbose("Loaded FrameworkTickSync plugins (LoadRequiredState == 1)");
+
                 loadTasks.Add(LoadPluginsAsync(
                                   "FrameworkTickAsync",
                                   asyncPlugins.Where(def => def.Manifest?.LoadRequiredState == 1),
                                   tokenSource.Token));
+                Log.Verbose("Kicked off FrameworkTickAsync plugins (LoadRequiredState == 1)");
 
                 // Load plugins that want to be loaded during Framework.Tick, when drawing facilities are available
                 _ = await Service<InterfaceManager.InterfaceManagerWithScene>.GetAsync().ConfigureAwait(false);
+                Log.Verbose(" InterfaceManager is ready, starting to load DrawAvailableSync plugins");
                 await framework.RunOnTick(
                     () => LoadPluginsSync(
                         "DrawAvailableSync",
                         syncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
                         tokenSource.Token),
                     cancellationToken: tokenSource.Token);
+                Log.Verbose("Loaded DrawAvailableSync plugins (LoadRequiredState == 0 or null)");
+
                 loadTasks.Add(LoadPluginsAsync(
                                   "DrawAvailableAsync",
                                   asyncPlugins.Where(def => def.Manifest?.LoadRequiredState is 0 or null),
                                   tokenSource.Token));
+                Log.Verbose("Kicked off DrawAvailableAsync plugins (LoadRequiredState == 0 or null)");
 
                 // Save signatures when all plugins are done loading, successful or not.
                 try
                 {
+                    Log.Verbose("Now waiting for {NumTasks} async load tasks", loadTasks.Count);
                     await Task.WhenAll(loadTasks).ConfigureAwait(false);
                     Log.Information("Loaded plugins on boot");
                 }
@@ -715,8 +725,13 @@ internal class PluginManager : IInternalDisposableService
                 }
 
                 this.StartupLoadTracking = null;
-            },
-            tokenSource.Token);
+            }, tokenSource.Token).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Log.Error(t.Exception, "Failed to load FrameworkTickAsync/DrawAvailableAsync plugins");
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
     }
 
     /// <summary>
@@ -776,7 +791,8 @@ internal class PluginManager : IInternalDisposableService
     /// only shown as disabled in the installed plugins window. This is a modified version of LoadAllPlugins that works
     /// a little differently.
     /// </summary>
-    public void ScanDevPlugins()
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation. This function generally will not block as new plugins aren't loaded.</returns>
+    public async Task ScanDevPluginsAsync()
     {
         // devPlugins are more freeform. Look for any dll and hope to get lucky.
         var devDllFiles = new List<FileInfo>();
@@ -823,8 +839,7 @@ internal class PluginManager : IInternalDisposableService
             try
             {
                 // Add them to the list and let the user decide, nothing is auto-loaded.
-                this.LoadPluginAsync(dllFile, manifest, PluginLoadReason.Installer, isDev: true, doNotLoad: true)
-                    .Wait();
+                await this.LoadPluginAsync(dllFile, manifest, PluginLoadReason.Installer, isDev: true, doNotLoad: true);
                 listChanged = true;
             }
             catch (InvalidPluginException)
@@ -1037,7 +1052,7 @@ internal class PluginManager : IInternalDisposableService
     /// </summary>
     /// <param name="metadata">The available plugin update.</param>
     /// <param name="notify">Whether to notify that installed plugins have changed afterwards.</param>
-    /// <param name="dryRun">Whether or not to actually perform the update, or just indicate success.</param>
+    /// <param name="dryRun">Whether to actually perform the update, or just indicate success.</param>
     /// <returns>The status of the update.</returns>
     public async Task<PluginUpdateStatus> UpdateSinglePluginAsync(AvailablePluginUpdate metadata, bool notify, bool dryRun)
     {
@@ -1188,32 +1203,20 @@ internal class PluginManager : IInternalDisposableService
     {
         // Testing exclusive
         if (manifest.IsTestingExclusive && !this.configuration.DoPluginTest)
-        {
-            Log.Verbose($"Testing exclusivity: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
-        }
 
         // Applicable version
         if (manifest.ApplicableVersion < this.dalamud.StartInfo.GameVersion)
-        {
-            Log.Verbose($"Game version: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
-        }
 
         // API level - we keep the API before this in the installer to show as "outdated"
         var effectiveApiLevel = this.UseTesting(manifest) && manifest.TestingDalamudApiLevel != null ? manifest.TestingDalamudApiLevel.Value : manifest.DalamudApiLevel;
         if (effectiveApiLevel < DalamudApiLevel - 1 && !this.LoadAllApiLevels)
-        {
-            Log.Verbose($"API Level: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
-        }
 
         // Banned
         if (this.IsManifestBanned(manifest))
-        {
-            Log.Verbose($"Banned: {manifest.InternalName} - {manifest.AssemblyVersion} - {manifest.TestingAssemblyVersion}");
             return false;
-        }
 
         return true;
     }
@@ -1572,6 +1575,8 @@ internal class PluginManager : IInternalDisposableService
     /// <returns>The loaded plugin.</returns>
     private async Task<LocalPlugin> LoadPluginAsync(FileInfo dllFile, LocalPluginManifest manifest, PluginLoadReason reason, bool isDev = false, bool isBoot = false, bool doNotLoad = false)
     {
+        // TODO: Split this function - it should only take care of adding the plugin to the list, not loading itself, that should be done through the plugin instance
+
         var loadPlugin = !doNotLoad;
 
         LocalPlugin? plugin;
@@ -1582,20 +1587,33 @@ internal class PluginManager : IInternalDisposableService
             throw new Exception("No internal name");
         }
 
-        if (isDev)
+        // Track the plugin as soon as it is instantiated to prevent it from being loaded twice,
+        // if the installer or DevPlugin scanner is attempting to add plugins while we are still loading boot plugins
+        lock (this.pluginListLock)
         {
-            Log.Information("Loading dev plugin {Name}", manifest.InternalName);
-            plugin = new LocalDevPlugin(dllFile, manifest);
+            // Check if this plugin is already loaded
+            if (this.installedPluginsList.Any(lp => lp.DllFile.FullName == dllFile.FullName))
+                throw new InvalidOperationException("Plugin at the provided path is already loaded");
 
-            // This is a dev plugin - turn ImGui asserts on by default if we haven't chosen yet
-            // TODO(goat): Re-enable this when we have better tracing for what was rendering when
-            // this.configuration.ImGuiAssertsEnabledAtStartup ??= true;
+            if (isDev)
+            {
+                Log.Information("Loading dev plugin {Name}", manifest.InternalName);
+                plugin = new LocalDevPlugin(dllFile, manifest);
+
+                // This is a dev plugin - turn ImGui asserts on by default if we haven't chosen yet
+                // TODO(goat): Re-enable this when we have better tracing for what was rendering when
+                // this.configuration.ImGuiAssertsEnabledAtStartup ??= true;
+            }
+            else
+            {
+                Log.Information("Loading plugin {Name}", manifest.InternalName);
+                plugin = new LocalPlugin(dllFile, manifest);
+            }
+
+            this.installedPluginsList.Add(plugin);
         }
-        else
-        {
-            Log.Information("Loading plugin {Name}", manifest.InternalName);
-            plugin = new LocalPlugin(dllFile, manifest);
-        }
+
+        Log.Verbose("Starting to load plugin {Name} at {FileLocation}", manifest.InternalName, dllFile.FullName);
 
         // Perform a migration from InternalName to GUIDs. The plugin should definitely have a GUID here.
         // This will also happen if you are installing a plugin with the installer, and that's intended!
@@ -1697,57 +1715,40 @@ internal class PluginManager : IInternalDisposableService
             catch (BannedPluginException)
             {
                 // Out of date plugins get added so they can be updated.
-                Log.Information($"Plugin was banned, adding anyways: {dllFile.Name}");
+                Log.Information("{InternalName}: Plugin was banned, adding anyways", plugin.Manifest.InternalName);
             }
             catch (Exception ex)
             {
                 if (plugin.IsDev)
                 {
                     // Dev plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Dev plugin failed to load, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                    Log.Information(ex, "{InternalName}: Dev plugin failed to load", plugin.Manifest.InternalName);
                 }
                 else if (plugin.IsOutdated)
                 {
                     // Out of date plugins get added, so they can be updated.
-                    Log.Information(ex, $"Plugin was outdated, adding anyways: {dllFile.Name}");
+                    Log.Information(ex, "{InternalName}: Plugin was outdated", plugin.Manifest.InternalName);
                 }
                 else if (plugin.IsOrphaned)
                 {
                     // Orphaned plugins get added, so that users aren't confused.
-                    Log.Information(ex, $"Plugin was orphaned, adding anyways: {dllFile.Name}");
+                    Log.Information(ex, "{InternalName}: Plugin was orphaned", plugin.Manifest.InternalName);
                 }
                 else if (isBoot)
                 {
                     // During boot load, plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Regular plugin failed to load, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                    Log.Information(ex, "{InternalName}: Regular plugin failed to load", plugin.Manifest.InternalName);
                 }
                 else if (!plugin.CheckPolicy())
                 {
                     // During boot load, plugins always get added to the list so they can be fiddled with in the UI
-                    Log.Information(ex, $"Plugin not loaded due to policy, adding anyways: {dllFile.Name}");
-
-                    // NOTE(goat): This can't work - plugins don't "unload" if they fail to load.
-                    // plugin.Disable(); // Disable here, otherwise you can't enable+load later
+                    Log.Information(ex, "{InternalName}: Plugin not loaded due to policy", plugin.Manifest.InternalName);
                 }
                 else
                 {
                     throw;
                 }
             }
-        }
-
-        if (plugin == null)
-            throw new Exception("Plugin was null when adding to list");
-
-        lock (this.pluginListLock)
-        {
-            this.installedPluginsList.Add(plugin);
         }
 
         // Mark as finished loading
@@ -1774,6 +1775,7 @@ internal class PluginManager : IInternalDisposableService
                 var updates = this.AvailablePlugins
                                   .Where(remoteManifest => plugin.Manifest.InternalName == remoteManifest.InternalName)
                                   .Where(remoteManifest => plugin.Manifest.InstalledFromUrl == remoteManifest.SourceRepo.PluginMasterUrl || !remoteManifest.SourceRepo.IsThirdParty)
+                                  .Where(remoteManifest => remoteManifest.MinimumDalamudVersion == null || Util.AssemblyVersionParsed >= remoteManifest.MinimumDalamudVersion)
                                   .Where(remoteManifest =>
                                   {
                                       var useTesting = this.UseTesting(remoteManifest);
@@ -1844,18 +1846,27 @@ internal class PluginManager : IInternalDisposableService
                 _ = this.SetPluginReposFromConfigAsync(false);
                 this.OnInstalledPluginsChanged += () => Task.Run(Troubleshooting.LogTroubleshooting);
 
-                Log.Information("[T3] PM repos OK!");
+                Log.Information("Repos loaded!");
             }
 
             using (Timings.Start("PM Cleanup Plugins"))
             {
                 this.CleanupPlugins();
-                Log.Information("[T3] PMC OK!");
+                Log.Information("Plugin cleanup OK!");
             }
 
             using (Timings.Start("PM Load Sync Plugins"))
             {
-                var loadAllPlugins = Task.Run(this.LoadAllPlugins);
+                var loadAllPlugins = Task.Run(this.LoadAllPlugins)
+                                         .ContinueWith(t =>
+                                         {
+                                             if (t.IsFaulted)
+                                             {
+                                                 Log.Error(t.Exception, "Error in LoadAllPlugins()");
+                                             }
+
+                                             _ = Task.Run(Troubleshooting.LogTroubleshooting);
+                                         });
 
                 // We wait for all blocking services and tasks to finish before kicking off the main thread in any mode.
                 // This means that we don't want to block here if this stupid thing isn't enabled.
@@ -1865,10 +1876,8 @@ internal class PluginManager : IInternalDisposableService
                     loadAllPlugins.Wait();
                 }
 
-                Log.Information("[T3] PML OK!");
+                Log.Information("Boot load started");
             }
-
-            _ = Task.Run(Troubleshooting.LogTroubleshooting);
         }
         catch (Exception ex)
         {

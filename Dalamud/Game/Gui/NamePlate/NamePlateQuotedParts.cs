@@ -6,7 +6,7 @@ namespace Dalamud.Game.Gui.NamePlate;
 /// A part builder for constructing and setting quoted nameplate fields (i.e. free company tag and title).
 /// </summary>
 /// <param name="field">The field type which should be set.</param>
-/// <param name="isFreeCompany">Whether or not this is a Free Company part.</param>
+/// <param name="isFreeCompany">Whether this is a Free Company part.</param>
 /// <remarks>
 /// This class works as a lazy writer initialized with empty parts, where an empty part signifies no change should be
 /// performed. Only after all handler processing is complete does it write out any parts which were set to the
@@ -53,7 +53,7 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             return;
 
         var sb = new SeStringBuilder();
-        if (this.OuterWrap is { Item1: var outerLeft })
+        if (this.OuterWrap is { Item1: { } outerLeft })
         {
             sb.Append(outerLeft);
         }
@@ -67,7 +67,7 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             sb.Append(isFreeCompany ? " «" : "《");
         }
 
-        if (this.TextWrap is { Item1: var left, Item2: var right })
+        if (this.TextWrap is { Item1: { } left, Item2: { } right })
         {
             sb.Append(left);
             sb.Append(this.Text ?? this.GetStrippedField(handler));
@@ -87,7 +87,7 @@ public class NamePlateQuotedParts(NamePlateStringField field, bool isFreeCompany
             sb.Append(isFreeCompany ? "»" : "》");
         }
 
-        if (this.OuterWrap is { Item2: var outerRight })
+        if (this.OuterWrap is { Item2: { } outerRight })
         {
             sb.Append(outerRight);
         }
