@@ -78,22 +78,6 @@ public abstract class Window
     /// If you have multiple windows with the same name, you will need to
     /// append a unique ID to it by specifying it after "###" behind the window title.
     /// </param>
-    /// <param name="flags">The <see cref="ImGuiWindowFlags"/> of this window.</param>
-    /// <param name="forceMainWindow">Whether this window should be limited to the main game window.</param>
-    [ImGuiBindingsToDo("Remove.")]
-    protected Window(
-        string name, ImGuiNET.ImGuiWindowFlags flags = ImGuiNET.ImGuiWindowFlags.None, bool forceMainWindow = false)
-        : this(name, (ImGuiWindowFlags)flags, forceMainWindow)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Window"/> class.
-    /// </summary>
-    /// <param name="name">The name/ID of this window.
-    /// If you have multiple windows with the same name, you will need to
-    /// append a unique ID to it by specifying it after "###" behind the window title.
-    /// </param>
     protected Window(string name)
         : this(name, ImGuiWindowFlags.None)
     {
@@ -182,17 +166,7 @@ public abstract class Window
     /// <summary>
     /// Gets or sets the condition that defines when the position of this window is set.
     /// </summary>
-    public ImGuiCond PositionConditionNew
-    {
-        get => (ImGuiCond)this.PositionCondition;
-        set => this.PositionCondition = (ImGuiNET.ImGuiCond)value;
-    }
-
-    /// <summary>
-    /// Gets or sets the condition that defines when the position of this window is set.
-    /// </summary>
-    [ImGuiBindingsToDo("Remove. Rename New.")]
-    public ImGuiNET.ImGuiCond PositionCondition { get; set; }
+    public ImGuiCond PositionCondition { get; set; }
 
     /// <summary>
     /// Gets or sets the size of the window. The size provided will be scaled by the global scale.
@@ -202,17 +176,7 @@ public abstract class Window
     /// <summary>
     /// Gets or sets the condition that defines when the size of this window is set.
     /// </summary>
-    public ImGuiCond SizeConditionNew
-    {
-        get => (ImGuiCond)this.SizeCondition;
-        set => this.SizeCondition = (ImGuiNET.ImGuiCond)value;
-    }
-
-    /// <summary>
-    /// Gets or sets the condition that defines when the size of this window is set.
-    /// </summary>
-    [ImGuiBindingsToDo("Remove. Rename New.")]
-    public ImGuiNET.ImGuiCond SizeCondition { get; set; }
+    public ImGuiCond SizeCondition { get; set; }
 
     /// <summary>
     /// Gets or sets the size constraints of the window. The size constraints provided will be scaled by the global scale.
@@ -700,12 +664,12 @@ public abstract class Window
             if (this.ForceMainWindow)
                 pos += ImGuiHelpers.MainViewport.Pos;
 
-            ImGui.SetNextWindowPos(pos, this.PositionConditionNew);
+            ImGui.SetNextWindowPos(pos, this.PositionCondition);
         }
 
         if (this.Size.HasValue)
         {
-            ImGui.SetNextWindowSize(this.Size.Value * ImGuiHelpers.GlobalScale, this.SizeConditionNew);
+            ImGui.SetNextWindowSize(this.Size.Value * ImGuiHelpers.GlobalScale, this.SizeCondition);
         }
 
         if (this.Collapsed.HasValue)

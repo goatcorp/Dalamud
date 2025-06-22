@@ -38,7 +38,7 @@ internal sealed class ComponentDemoWindow : Window
         : base("Dalamud Components Demo")
     {
         this.Size = new Vector2(600, 500);
-        this.SizeConditionNew = ImGuiCond.FirstUseEver;
+        this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.RespectCloseHotkey = false;
 

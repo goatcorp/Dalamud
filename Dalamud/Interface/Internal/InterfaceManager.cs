@@ -493,7 +493,7 @@ internal partial class InterfaceManager : IInternalDisposableService
 
         var value = enabled ? 1u : 0u;
         global::Windows.Win32.PInvoke.DwmSetWindowAttribute(
-            new(this.GameWindowHandle.Value),
+            new(new IntPtr(this.GameWindowHandle.Value)),
             DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE,
             &value,
             sizeof(uint)).ThrowOnFailure();
@@ -723,7 +723,7 @@ internal partial class InterfaceManager : IInternalDisposableService
             // NOTE (Chiv) Explicitly deactivate on dalamud boot
             ImGui.GetIO().ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
 
-            ImGuiHelpers.MainViewportNew = ImGui.GetMainViewport();
+            ImGuiHelpers.MainViewport = ImGui.GetMainViewport();
 
             Log.Information("[IM] Scene & ImGui setup OK!");
         }

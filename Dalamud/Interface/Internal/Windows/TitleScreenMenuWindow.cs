@@ -100,7 +100,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
         this.ForceMainWindow = true;
 
         this.Position = new Vector2(0, 200);
-        this.PositionConditionNew = ImGuiCond.Always;
+        this.PositionCondition = ImGuiCond.Always;
         this.RespectCloseHotkey = false;
 
         this.shadeTexture = new(() => dalamudAssetManager.GetDalamudTextureWrap(DalamudAsset.TitleScreenMenuShade));

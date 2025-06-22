@@ -37,7 +37,7 @@ internal class PluginStatWindow : Window
         this.RespectCloseHotkey = false;
 
         this.Size = new Vector2(810, 520);
-        this.SizeConditionNew = ImGuiCond.FirstUseEver;
+        this.SizeCondition = ImGuiCond.FirstUseEver;
     }
 
     /// <inheritdoc/>

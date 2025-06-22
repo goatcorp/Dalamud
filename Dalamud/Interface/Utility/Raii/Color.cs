@@ -17,14 +17,6 @@ public static partial class ImRaii
     public static Color PushColor(ImGuiCol idx, Vector4 color, bool condition = true)
         => new Color().Push(idx, color, condition);
 
-    [ImGuiBindingsToDo("Remove.")]
-    public static Color PushColor(ImGuiNET.ImGuiCol idx, uint color, bool condition = true)
-        => new Color().Push(idx, color, condition);
-
-    [ImGuiBindingsToDo("Remove.")]
-    public static Color PushColor(ImGuiNET.ImGuiCol idx, Vector4 color, bool condition = true)
-        => new Color().Push(idx, color, condition);
-
     // Push colors that revert all current color changes made temporarily.
     public static Color DefaultColors()
     {
@@ -40,7 +32,6 @@ public static partial class ImRaii
         internal static readonly List<(ImGuiCol, uint)> Stack = new();
         private                  int                    count;
 
-        [ImGuiBindingsToDo("Remove.")]
         public Color Push(ImGuiCol idx, uint color, bool condition = true)
         {
             if (condition)
@@ -53,7 +44,6 @@ public static partial class ImRaii
             return this;
         }
 
-        [ImGuiBindingsToDo("Remove.")]
         public Color Push(ImGuiCol idx, Vector4 color, bool condition = true)
         {
             if (condition)
@@ -65,12 +55,6 @@ public static partial class ImRaii
 
             return this;
         }
-
-        public Color Push(ImGuiNET.ImGuiCol idx, uint color, bool condition = true)
-            => this.Push((ImGuiCol)idx, color, condition);
-
-        public Color Push(ImGuiNET.ImGuiCol idx, Vector4 color, bool condition = true)
-            => this.Push((ImGuiCol)idx, color, condition);
 
         public void Pop(int num = 1)
         {

@@ -152,7 +152,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         this.imageCache = imageCache;
 
         this.Size = new Vector2(830, 570);
-        this.SizeConditionNew = ImGuiCond.FirstUseEver;
+        this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.SizeConstraints = new WindowSizeConstraints
         {

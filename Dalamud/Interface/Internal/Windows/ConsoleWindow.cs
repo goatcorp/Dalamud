@@ -100,7 +100,7 @@ internal class ConsoleWindow : Window, IDisposable
         cm.AddAlias("clear", "cls");
 
         this.Size = new Vector2(500, 400);
-        this.SizeConditionNew = ImGuiCond.FirstUseEver;
+        this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.RespectCloseHotkey = false;
 

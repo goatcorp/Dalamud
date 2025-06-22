@@ -109,7 +109,6 @@
         <ProjectReference Include="..\imgui\ImGuiScene\ImGuiScene.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
-        <ProjectReference Include="..\lib\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
     </ItemGroup>
 
     <ItemGroup>

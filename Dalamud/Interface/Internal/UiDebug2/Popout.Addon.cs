@@ -23,14 +23,14 @@ internal class AddonPopoutWindow : Window, IDisposable
         : base(name)
     {
         this.addonTree = tree;
-        this.PositionConditionNew = ImGuiCond.Once;
+        this.PositionCondition = ImGuiCond.Once;
 
         var pos = ImGui.GetMousePos() + new Vector2(50, -50);
         var workSize = ImGui.GetMainViewport().WorkSize;
         var pos2 = new Vector2(Math.Min(workSize.X - 750, pos.X), Math.Min(workSize.Y - 250, pos.Y));
 
         this.Position = pos2;
-        this.SizeConditionNew = ImGuiCond.Once;
+        this.SizeCondition = ImGuiCond.Once;
         this.Size = new(700, 200);
         this.IsOpen = true;
         this.SizeConstraints = new() { MinimumSize = new(100, 100) };

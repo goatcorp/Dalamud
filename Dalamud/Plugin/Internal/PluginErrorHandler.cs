@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal.Types;
-
-using ImGuiNET;
 
 using Serilog;
 

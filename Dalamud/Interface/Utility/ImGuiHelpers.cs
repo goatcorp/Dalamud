@@ -10,7 +10,6 @@ using System.Text.Unicode;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
-using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiBackend.InputHandler;
 using Dalamud.Interface.ImGuiSeStringRenderer;
@@ -18,9 +17,7 @@ using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Utility;
 
-using ImGuiViewport = ImGuiNET.ImGuiViewport;
 using VirtualKey = Dalamud.Game.ClientState.Keys.VirtualKey;
 
 namespace Dalamud.Interface.Utility;
@@ -33,22 +30,7 @@ public static partial class ImGuiHelpers
     /// <summary>
     /// Gets the main viewport.
     /// </summary>
-    public static ImGuiViewportPtr MainViewportNew { get; internal set; }
-
-    /// <summary>
-    /// Gets the main viewport.
-    /// </summary>
-    [ImGuiBindingsToDo("Remove and rename MainViewportNew to MainViewport")]
-    public static ImGuiNET.ImGuiViewportPtr MainViewport
-    {
-        get
-        {
-            unsafe
-            {
-                return new ImGuiNET.ImGuiViewportPtr((nint)MainViewportNew.Handle);
-            }
-        }
-    }
+    public static ImGuiViewportPtr MainViewport { get; internal set; }
 
     /// <summary>
     /// Gets the global Dalamud scale.

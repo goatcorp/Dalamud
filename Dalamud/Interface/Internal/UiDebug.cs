@@ -672,6 +672,6 @@ internal unsafe class UiDebug
 
         position += ImGuiHelpers.MainViewport.Pos;
 
-        ImGui.GetForegroundDrawList(ImGuiHelpers.MainViewportNew).AddRect(position, position + size, nodeVisible ? 0xFF00FF00 : 0xFF0000FF);
+        ImGui.GetForegroundDrawList(ImGuiHelpers.MainViewport).AddRect(position, position + size, nodeVisible ? 0xFF00FF00 : 0xFF0000FF);
     }
 }

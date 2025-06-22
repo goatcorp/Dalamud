@@ -23,7 +23,7 @@ internal sealed class ColorDemoWindow : Window
         : base("Dalamud Colors Demo")
     {
         this.Size = new Vector2(600, 500);
-        this.SizeConditionNew = ImGuiCond.FirstUseEver;
+        this.SizeCondition = ImGuiCond.FirstUseEver;
 
         this.colors = new List<(string Name, Vector4 Color)>()
         {
