@@ -278,7 +278,7 @@ internal sealed partial class ActiveNotification : IActiveNotification
             if (@delegate is null)
                 return null;
 
-            foreach (var il in @delegate.GetInvocationList())
+            foreach (var il in Delegate.EnumerateInvocationList(@delegate))
             {
                 if (il.Target is { } target && !IsOwnedByDalamud(target.GetType()))
                     @delegate = (T)Delegate.Remove(@delegate, il);

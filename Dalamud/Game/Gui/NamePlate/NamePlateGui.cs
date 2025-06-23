@@ -6,6 +6,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -169,8 +170,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                     handler.ResetState();
                 }
 
-                this.OnDataUpdate?.Invoke(this.context, activeHandlers);
-                this.OnNamePlateUpdate?.Invoke(this.context, activeHandlers);
+                this.OnDataUpdate?.InvokeSafely(this.context, activeHandlers);
+                this.OnNamePlateUpdate?.InvokeSafely(this.context, activeHandlers);
 
                 if (this.context.HasParts)
                     this.ApplyBuilders(activeHandlers);
@@ -185,8 +186,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                     Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
                 }
 
-                this.OnPostNamePlateUpdate?.Invoke(this.context, activeHandlers);
-                this.OnPostDataUpdate?.Invoke(this.context, activeHandlers);
+                this.OnPostNamePlateUpdate?.InvokeSafely(this.context, activeHandlers);
+                this.OnPostDataUpdate?.InvokeSafely(this.context, activeHandlers);
             }
             else
             {
@@ -200,8 +201,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
 
                 if (this.OnDataUpdate is not null)
                 {
-                    this.OnDataUpdate?.Invoke(this.context, activeHandlers);
-                    this.OnNamePlateUpdate?.Invoke(this.context, updatedHandlers);
+                    this.OnDataUpdate?.InvokeSafely(this.context, activeHandlers);
+                    this.OnNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
 
                     if (this.context.HasParts)
                         this.ApplyBuilders(activeHandlers);
@@ -216,12 +217,12 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                         Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
                     }
 
-                    this.OnPostNamePlateUpdate?.Invoke(this.context, updatedHandlers);
-                    this.OnPostDataUpdate?.Invoke(this.context, activeHandlers);
+                    this.OnPostNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
+                    this.OnPostDataUpdate?.InvokeSafely(this.context, activeHandlers);
                 }
                 else if (updatedHandlers.Count != 0)
                 {
-                    this.OnNamePlateUpdate?.Invoke(this.context, updatedHandlers);
+                    this.OnNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
 
                     if (this.context.HasParts)
                         this.ApplyBuilders(updatedHandlers);
@@ -236,8 +237,8 @@ internal sealed class NamePlateGui : IInternalDisposableService, INamePlateGui
                         Log.Error(e, "Caught exception when calling original AddonNamePlate OnRequestedUpdate.");
                     }
 
-                    this.OnPostNamePlateUpdate?.Invoke(this.context, updatedHandlers);
-                    this.OnPostDataUpdate?.Invoke(this.context, activeHandlers);
+                    this.OnPostNamePlateUpdate?.InvokeSafely(this.context, updatedHandlers);
+                    this.OnPostDataUpdate?.InvokeSafely(this.context, activeHandlers);
                 }
             }
         }
