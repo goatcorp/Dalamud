@@ -116,8 +116,10 @@ internal sealed unsafe class Completion : IInternalDisposableService
         this.ResetCompletionData();
         this.ClearCachedCommands();
 
+        var currentText = component->UnkText1.StringPtr.ExtractText();
+
         var commands = this.commandManager.Commands
-            .Where(kv => kv.Value.ShowInHelp && kv.Key.StartsWith(component->UnkText1.StringPtr.ExtractText()))
+            .Where(kv => kv.Value.ShowInHelp && (currentText.Length == 0 || kv.Key.StartsWith(currentText)))
             .OrderBy(kv => kv.Key);
 
         if (!commands.Any())
