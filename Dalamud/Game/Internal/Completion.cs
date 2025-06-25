@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Game.Command;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
+using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.Completion;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
+using Lumina.Text;
 
 namespace Dalamud.Game.Internal;
 
@@ -36,14 +38,12 @@ internal sealed unsafe class Completion : IInternalDisposableService
 
     private EntryStrings? dalamudCategory;
 
-    private Hook<CompletionModule.Delegates.GetSelection>? getSelection;
+    private Hook<CompletionModule.Delegates.GetSelection>? getSelectionHook;
 
     // This is marked volatile since we set and check it from different threads. Instead of using a synchronization
     // primitive, a volatile is sufficient since the absolute worst case is that we delay one extra frame to reset
     // the list, which is fine
     private volatile bool needsClear;
-    private bool disposed;
-    private nint wantedVtblPtr;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Completion"/> class.
@@ -54,107 +54,74 @@ internal sealed unsafe class Completion : IInternalDisposableService
         this.commandManager.CommandAdded += this.OnCommandAdded;
         this.commandManager.CommandRemoved += this.OnCommandRemoved;
 
-        this.framework.Update += this.OnUpdate;
+        this.framework.Update += this.OnFrameworkUpdate;
     }
-
-    /// <summary>Finalizes an instance of the <see cref="Completion"/> class.</summary>
-    ~Completion() => this.Dispose(false);
 
     /// <inheritdoc/>
-    void IInternalDisposableService.DisposeService() => this.Dispose(true);
-
-    private static AtkUnitBase* FindOwningAddon(AtkComponentTextInput* component)
+    void IInternalDisposableService.DisposeService()
     {
-        if (component == null) return null;
+        this.getSelectionHook?.Disable();
+        this.getSelectionHook?.Dispose();
 
-        var node = (AtkResNode*)component->OwnerNode;
-        if (node == null) return null;
+        this.framework.Update -= this.OnFrameworkUpdate;
+        this.commandManager.CommandAdded -= this.OnCommandAdded;
+        this.commandManager.CommandRemoved -= this.OnCommandRemoved;
 
-        while (node->ParentNode != null)
-            node = node->ParentNode;
-
-        foreach (var addon in RaptureAtkUnitManager.Instance()->AllLoadedUnitsList.Entries)
-        {
-            if (addon.Value->RootNode == node)
-                return addon;
-        }
-
-        return null;
+        this.dalamudCategory?.Dispose();
+        this.ClearCachedCommands();
     }
 
-    private AtkComponentTextInput* GetActiveTextInput()
+    private static AtkComponentTextInput* GetActiveTextInput()
     {
-        var mod = RaptureAtkModule.Instance();
-        if (mod == null) return null;
+        var raptureAtkModule = RaptureAtkModule.Instance();
+        if (raptureAtkModule == null)
+            return null;
 
-        var basePtr = mod->TextInput.TargetTextInputEventInterface;
-        if (basePtr == null) return null;
+        var textInputEventInterface = raptureAtkModule->TextInput.TargetTextInputEventInterface;
+        if (textInputEventInterface == null)
+            return null;
 
-        // Once CS has an implementation for multiple inheritance, we can remove this sig from dalamud
-        // as well as the nasty pointer arithmetic below. But for now, we need to do this manually.
-        // The AtkTextInputEventInterface* is the secondary base class for AtkComponentTextInput*
-        // so the pointer is sizeof(AtkComponentInputBase) into the object. We verify that we're looking
-        // at the object we think we are by confirming the pointed-to vtbl matches the known secondary vtbl for
-        // AtkComponentTextInput, and if it does, we can shift the pointer back to get the start of our text input
-        if (this.wantedVtblPtr == 0)
-        {
-            this.wantedVtblPtr =
-                Service<TargetSigScanner>.Get().GetStaticAddressFromSig(
-                    "48 89 01 48 8D 05 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 8D 05 ?? ?? ?? ?? 48 89 81 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 8B 48 68",
-                    4);
-        }
+        var ownerNode = textInputEventInterface->GetOwnerNode();
+        if (ownerNode == null || ownerNode->GetNodeType() != NodeType.Component)
+            return null;
 
-        var vtblPtr = *(nint*)basePtr;
-        if (vtblPtr != this.wantedVtblPtr) return null;
+        var componentNode = (AtkComponentNode*)ownerNode;
+        var component = componentNode->Component;
+        if (component == null || component->GetComponentType() != ComponentType.TextInput)
+            return null;
 
-        // This needs to be updated if the layout/base order of AtkComponentTextInput changes
-        return (AtkComponentTextInput*)((AtkComponentInputBase*)basePtr - 1);
+        return (AtkComponentTextInput*)component;
     }
 
-    private bool AllowCompletion(string cmd)
+    private static bool AllowCompletion(string cmd)
     {
-        // this is one of our commands, let's see if we should allow this to be completed
-        var component = this.GetActiveTextInput();
+        // This is one of our commands, let's see if we should allow this to be completed
+        var component = GetActiveTextInput();
+        if (component == null) return false;
 
         // ContainingAddon or ContainingAddon2 aren't always populated, but they
-        // seem to be in any case where this is actually a completable AtkComponentTextInput
-        // In the worst case, we can walk the AtkNode tree- but let's try the easy pointers first
+        // seem to be in any case where this is actually a completable AtkComponentTextInput.
+        // In the worst case, we can walk the AtkNode tree, but let's try the easy pointers first.
         var addon = component->ContainingAddon;
-        if (addon == null) addon = component->ContainingAddon2;
-        if (addon == null) addon = FindOwningAddon(component);
+
+        if (addon == null)
+            addon = component->ContainingAddon2;
+
+        if (addon == null)
+            addon = RaptureAtkUnitManager.Instance()->GetAddonByNode((AtkResNode*)component->OwnerNode);
 
         if (addon == null || addon->NameString != "ChatLog")
         {
-            // we don't know what addon is completing, or we know it isn't ChatLog
-            // either way, we should just reject this completion
+            // We don't know what addon is completing or we know it isn't ChatLog.
+            // Either way, we should just reject this completion.
             return false;
         }
 
-        // We're in ChatLog, so check if this is the start of the text input
-        // AtkComponentTextInput->UnkText1 is the evaluated version of the current text
-        // so if the command starts with that, then either it's empty or a prefix completion.
+        // We're in ChatLog, so check if this is the start of the text input.
+        // AtkComponentTextInput->UnkText1 is the evaluated version of the current text.
+        // If the command starts with that, then either it's empty or a prefix completion.
         // In either case, we're happy to allow completion.
         return cmd.StartsWith(component->UnkText1.StringPtr.ExtractText());
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (this.disposed)
-            return;
-
-        if (disposing)
-        {
-            this.getSelection?.Disable();
-            this.getSelection?.Dispose();
-            this.framework.Update -= this.OnUpdate;
-            this.commandManager.CommandAdded -= this.OnCommandAdded;
-            this.commandManager.CommandRemoved -= this.OnCommandRemoved;
-
-            this.dalamudCategory?.Dispose();
-            this.ClearCachedCommands();
-        }
-
-        this.disposed = true;
     }
 
     private void OnCommandAdded(object? sender, CommandManager.CommandEventArgs e)
@@ -163,41 +130,52 @@ internal sealed unsafe class Completion : IInternalDisposableService
             this.addedCommands.Enqueue(e.Command);
     }
 
-    private void OnCommandRemoved(object? sender, CommandManager.CommandEventArgs e) => this.needsClear = true;
+    private void OnCommandRemoved(object? sender, CommandManager.CommandEventArgs e)
+    {
+        this.needsClear = true;
+    }
 
-    private void OnUpdate(IFramework fw)
+    private void OnFrameworkUpdate(IFramework framework)
     {
         var atkModule = RaptureAtkModule.Instance();
-        if (atkModule == null) return;
+        if (atkModule == null)
+            return;
 
-        var textInput = &atkModule->TextInput;
+        ref var textInput = ref atkModule->TextInput;
+        if (textInput.CompletionModule == null)
+            return;
 
-        if (textInput->CompletionModule == null) return;
+        // If CategoryData isn't loaded yet, which should happen in CompletionModule.Update(), bail out.
+        if (textInput.CompletionModule->CategoryData.RepresentativePointer == null)
+            return;
 
-        // Before we change _anything_ we need to check the state of the UI- if the completion list is open
-        // changes to the underlying data are extremely unsafe, so we'll just wait until the next frame
-        // worst case, someone tries to complete a command that _just_ got unloaded so it won't do anything
-        // but that's the same as making a typo, really
-        if (textInput->CompletionDepth > 0) return;
+        // Before we change _anything_ we need to check the state of the UI (if the completion list is open).
+        // Changes to the underlying data are extremely unsafe, so we'll just wait until the next frame.
+        // Worst case, someone tries to complete a command that _just_ got unloaded so it won't do anything,
+        // but that's the same as making a typo, really.
+        if (textInput.CompletionDepth > 0)
+            return;
 
         // Create the category for Dalamud commands.
         // This needs to be done here, since we cannot create Utf8Strings before the game
         // has initialized (no allocator set up yet).
         this.dalamudCategory ??= new EntryStrings("【Dalamud】");
 
-        this.LoadCommands(textInput->CompletionModule);
+        this.LoadCommands(textInput.CompletionModule);
     }
 
     private CategoryData* EnsureCategoryData(CompletionModule* module)
     {
-        if (module == null) return null;
+        if (module == null)
+            return null;
 
-        if (this.getSelection == null)
+        if (this.getSelectionHook == null)
         {
-            this.getSelection = Hook<CompletionModule.Delegates.GetSelection>.FromAddress(
-                (IntPtr)module->VirtualTable->GetSelection,
+            this.getSelectionHook = Hook<CompletionModule.Delegates.GetSelection>.FromAddress(
+                (nint)module->VirtualTable->GetSelection,
                 this.GetSelectionDetour);
-            this.getSelection.Enable();
+
+            this.getSelectionHook.Enable();
         }
 
         for (var i = 0; i < module->CategoryNames.Count; i++)
@@ -209,10 +187,13 @@ internal sealed unsafe class Completion : IInternalDisposableService
         }
 
         // Create the category since we don't have one
-        var categoryData = (CategoryData*)Memory.MemoryHelper.GameAllocateDefault((ulong)sizeof(CategoryData));
+        var categoryData = (CategoryData*)IMemorySpace.GetDefaultSpace()->Malloc((ulong)sizeof(CategoryData), 0x08);
         categoryData->Ctor(GroupNumber, 0xFF);
-        module->AddCategoryData(GroupNumber, this.dalamudCategory!.Display->StringPtr,
-                                 this.dalamudCategory.Match->StringPtr, categoryData);
+
+        module->AddCategoryData(
+            GroupNumber,
+            this.dalamudCategory!.Display->StringPtr,
+            this.dalamudCategory.Match->StringPtr, categoryData);
 
         return categoryData;
     }
@@ -232,8 +213,12 @@ internal sealed unsafe class Completion : IInternalDisposableService
 
     private void LoadCommands(CompletionModule* completionModule)
     {
-        if (completionModule == null) return;
-        if (completionModule->CategoryNames.Count == 0) return; // We want this data populated first
+        if (completionModule == null)
+            return;
+
+        // We want this data populated first
+        if (completionModule->CategoryNames.Count == 0)
+            return;
 
         if (this.needsClear && this.cachedCommands.Count > 0)
         {
@@ -249,8 +234,10 @@ internal sealed unsafe class Completion : IInternalDisposableService
         if (catData->CompletionData.Count == 0)
         {
             var inputCommands = this.commandManager.Commands.Where(pair => pair.Value.ShowInHelp);
+
             foreach (var (cmd, _) in inputCommands)
                 AddEntry(cmd);
+
             catData->SortEntries();
 
             return;
@@ -285,20 +272,25 @@ internal sealed unsafe class Completion : IInternalDisposableService
 
     private int GetSelectionDetour(CompletionModule* thisPtr, CategoryData.CompletionDataStruct* dataStructs, int index, Utf8String* outputString, Utf8String* outputDisplayString)
     {
-        var ret = this.getSelection!.Original.Invoke(thisPtr, dataStructs, index, outputString, outputDisplayString);
-        if (ret != -2 || outputString == null) return ret;
+        var ret = this.getSelectionHook!.Original.Invoke(thisPtr, dataStructs, index, outputString, outputDisplayString);
+        if (ret != -2 || outputString == null)
+            return ret;
 
-        // -2 means it was a plain text final selection, so it might be ours
+        // -2 means it was a plain text final selection, so it might be ours.
         // Unfortunately, the code that uses this string mangles the color macro for some reason...
-        // We'll just strip those out since we don't need the color in the chatbox
+        // We'll just strip those out since we don't need the color in the chatbox.
         var txt = outputString->StringPtr.ExtractText();
+
         if (!this.cachedCommands.ContainsKey(txt))
             return ret;
 
-        if (!this.AllowCompletion(txt))
+        if (!AllowCompletion(txt))
         {
             outputString->Clear();
-            if (outputDisplayString != null) outputDisplayString->Clear();
+
+            if (outputDisplayString != null)
+                outputDisplayString->Clear();
+
             return ret;
         }
 
@@ -306,12 +298,26 @@ internal sealed unsafe class Completion : IInternalDisposableService
         return ret;
     }
 
-    private class EntryStrings(string command) : IDisposable
+    private class EntryStrings : IDisposable
     {
-        public Utf8String* Display { get; } =
-            Utf8String.FromSequence(new SeStringBuilder().AddUiForeground(command, 539).BuiltString.EncodeWithNullTerminator());
+        public EntryStrings(string command)
+        {
+            var rssb = SeStringBuilder.SharedPool.Get();
 
-        public Utf8String* Match { get; } = Utf8String.FromString(command);
+            this.Display = Utf8String.FromSequence(rssb
+                .PushColorType(539)
+                .Append(command)
+                .PopColorType()
+                .GetViewAsSpan());
+
+            SeStringBuilder.SharedPool.Return(rssb);
+
+            this.Match = Utf8String.FromString(command);
+        }
+
+        public Utf8String* Display { get; }
+
+        public Utf8String* Match { get; }
 
         public void Dispose()
         {
