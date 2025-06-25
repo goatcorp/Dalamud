@@ -116,6 +116,13 @@ internal sealed unsafe class Completion : IInternalDisposableService
         this.ResetCompletionData();
         this.ClearCachedCommands();
 
+        var commands = this.commandManager.Commands
+            .Where(kv => kv.Value.ShowInHelp && kv.Key.StartsWith(component->UnkText1.StringPtr.ExtractText()))
+            .OrderBy(kv => kv.Key);
+
+        if (!commands.Any())
+            return;
+
         var categoryData = (CategoryData*)IMemorySpace.GetDefaultSpace()->Malloc((ulong)sizeof(CategoryData), 0x08);
         categoryData->Ctor(GroupNumber, 0xFF);
 
@@ -124,14 +131,8 @@ internal sealed unsafe class Completion : IInternalDisposableService
             this.dalamudCategory!.Display->StringPtr,
             this.dalamudCategory.Match->StringPtr, categoryData);
 
-        foreach (var (cmd, info) in this.commandManager.Commands.OrderBy(kv => kv.Key))
+        foreach (var (cmd, info) in commands)
         {
-            if (!info.ShowInHelp)
-                continue;
-
-            if (!cmd.StartsWith(component->UnkText1.StringPtr.ExtractText()))
-                continue;
-
             if (!this.cachedCommands.TryGetValue(cmd, out var entryString))
                 this.cachedCommands.Add(cmd, entryString = new EntryStrings(cmd));
 
