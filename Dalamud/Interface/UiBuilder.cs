@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Configuration.Internal;
@@ -610,13 +611,14 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         FontAtlasAutoRebuildMode autoRebuildMode,
         bool isGlobalScaled = true,
         string? debugName = null) =>
-        this.scopedFinalizer.Add(Service<FontAtlasFactory>
-                                 .Get()
-                                 .CreateFontAtlas(
-                                     this.namespaceName + ":" + (debugName ?? "custom"),
-                                     autoRebuildMode,
-                                     isGlobalScaled,
-                                     this.plugin));
+        this.scopedFinalizer.Add(
+            Service<FontAtlasFactory>
+                .Get()
+                .CreateFontAtlas(
+                    this.namespaceName + ":" + (debugName ?? "custom"),
+                    autoRebuildMode,
+                    isGlobalScaled,
+                    this.plugin));
 
     /// <summary>
     /// Unregister the UiBuilder. Do not call this in plugin code.
@@ -699,9 +701,13 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.stopwatch.Restart();
         }
 
-        if (this.hasErrorWindow && ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
+        if (this.hasErrorWindow && ImGui.Begin(
+                $"{this.namespaceName} Error",
+                ref this.hasErrorWindow,
+                ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
         {
-            ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
+            ImGui.Text(
+                $"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
             ImGui.Spacing();
 
             if (ImGui.Button("OK"))
@@ -775,6 +781,15 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             // Note: do not dispose w; we do not own it
         }
 
+        public ILockedImFont? TryLock(out string? errorMessage)
+        {
+            if (this.wrapped is { } w)
+                return w.TryLock(out errorMessage);
+
+            errorMessage = nameof(ObjectDisposedException);
+            return null;
+        }
+
         public ILockedImFont Lock() =>
             this.wrapped?.Lock() ?? throw new ObjectDisposedException(nameof(FontHandleWrapper));
 
@@ -783,7 +798,13 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
         public void Pop() => this.WrappedNotDisposed.Pop();
 
         public Task<IFontHandle> WaitAsync() =>
-            this.WrappedNotDisposed.WaitAsync().ContinueWith(_ => (IFontHandle)this);
+            this.wrapped?.WaitAsync().ContinueWith(_ => (IFontHandle)this)
+            ?? Task.FromException<IFontHandle>(new ObjectDisposedException(nameof(FontHandleWrapper)));
+
+        public Task<IFontHandle> WaitAsync(CancellationToken cancellationToken) =>
+            this.wrapped?.WaitAsync(cancellationToken)
+                .ContinueWith(_ => (IFontHandle)this, cancellationToken)
+            ?? Task.FromException<IFontHandle>(new ObjectDisposedException(nameof(FontHandleWrapper)));
 
         public override string ToString() =>
             $"{nameof(FontHandleWrapper)}({this.wrapped?.ToString() ?? "disposed"})";

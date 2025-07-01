@@ -1,9 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 
+using Dalamud.Interface.Components;
+using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Internal;
+
 using ImGuiNET;
+
+using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -19,12 +26,12 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
     private string iconSearchInput = string.Empty;
     private bool iconSearchChanged = true;
     private bool useFixedWidth = false;
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "fa", "fatest", "fontawesome" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Font Awesome Test"; 
+    public string DisplayName { get; init; } = "Font Awesome Test";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -81,22 +88,40 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
         {
             this.iconSearchChanged = true;
         }
-        
+
         ImGui.Checkbox("Use fixed width font", ref this.useFixedWidth);
 
         ImGuiHelpers.ScaledDummy(10f);
         for (var i = 0; i < this.icons?.Count; i++)
         {
+            if (this.icons[i] == FontAwesomeIcon.None)
+                continue;
+
+            ImGui.AlignTextToFramePadding();
             ImGui.Text($"0x{(int)this.icons[i].ToIconChar():X}");
             ImGuiHelpers.ScaledRelativeSameLine(50f);
             ImGui.Text($"{this.iconNames?[i]}");
             ImGuiHelpers.ScaledRelativeSameLine(280f);
             ImGui.PushFont(this.useFixedWidth ? InterfaceManager.IconFontFixedWidth : InterfaceManager.IconFont);
             ImGui.Text(this.icons[i].ToIconString());
+            ImGuiHelpers.ScaledRelativeSameLine(320f);
+            if (this.useFixedWidth
+                    ? ImGui.Button($"{(char)this.icons[i]}##FontAwesomeIconButton{i}")
+                    : ImGuiComponents.IconButton($"##FontAwesomeIconButton{i}", this.icons[i]))
+            {
+                _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
+                    this.DisplayName,
+                    this.icons[i].ToString(),
+                    Task.FromResult(
+                        Service<TextureManager>.Get().CreateTextureFromSeString(
+                            ReadOnlySeString.FromText(this.icons[i].ToIconString()),
+                            new() { Font = ImGui.GetFont(), FontSize = ImGui.GetFontSize() })));
+            }
+
             ImGui.PopFont();
             ImGuiHelpers.ScaledDummy(2f);
         }
-        
+
         ImGui.PopStyleVar();
     }
 }

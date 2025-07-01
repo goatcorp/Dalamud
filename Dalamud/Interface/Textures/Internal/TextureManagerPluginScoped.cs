@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.IoC;
@@ -283,6 +284,18 @@ internal sealed class TextureManagerPluginScoped
     }
 
     /// <inheritdoc/>
+    public IDalamudTextureWrap CreateTextureFromSeString(
+        ReadOnlySpan<byte> text,
+        scoped in SeStringDrawParams drawParams = default,
+        string? debugName = null)
+    {
+        var manager = this.ManagerOrThrow;
+        var textureWrap = manager.CreateTextureFromSeString(text, drawParams, debugName);
+        manager.Blame(textureWrap, this.plugin);
+        return textureWrap;
+    }
+
+    /// <inheritdoc/>
     public IEnumerable<IBitmapCodecInfo> GetSupportedImageDecoderInfos() =>
         this.ManagerOrThrow.Wic.GetSupportedDecoderInfos();
 
@@ -310,7 +323,7 @@ internal sealed class TextureManagerPluginScoped
         texture = null;
         return false;
     }
-    
+
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromGame(string path)
     {
@@ -326,7 +339,7 @@ internal sealed class TextureManagerPluginScoped
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }
-    
+
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromFile(FileInfo file)
     {

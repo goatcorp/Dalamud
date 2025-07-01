@@ -308,12 +308,12 @@ internal class TexWidget : IDataWindowWidget
                         pres->Release();
 
                         ImGui.TextUnformatted($"RC: Resource({rcres})/View({rcsrv})");
-                        ImGui.TextUnformatted(source.ToString());
+                        ImGui.TextUnformatted($"{source.Width} x {source.Height} | {source}");
                     }
                     else
                     {
                         ImGui.TextUnformatted("RC: -");
-                        ImGui.TextUnformatted(" ");
+                        ImGui.TextUnformatted(string.Empty);
                     }
                 }
 
@@ -343,6 +343,10 @@ internal class TexWidget : IDataWindowWidget
 
         runLater?.Invoke();
     }
+
+    /// <summary>Adds a texture wrap for debug display purposes.</summary>
+    /// <param name="textureTask">Task returning a texture.</param>
+    public void AddTexture(Task<IDalamudTextureWrap> textureTask) => this.addedTextures.Add(new(Api10: textureTask));
 
     private unsafe void DrawBlame(List<TextureManager.IBlameableDalamudTextureWrap> allBlames)
     {
