@@ -68,7 +68,7 @@ internal class DataWindow : Window, IDisposable
 
     private bool isExcept;
     private bool selectionCollapsed;
-    private IDataWindowWidget currentWidget;
+
     private bool isLoaded;
 
     /// <summary>
@@ -82,8 +82,11 @@ internal class DataWindow : Window, IDisposable
 
         this.RespectCloseHotkey = false;
         this.orderedModules = this.modules.OrderBy(module => module.DisplayName);
-        this.currentWidget = this.orderedModules.First();
+        this.CurrentWidget = this.orderedModules.First();
     }
+
+    /// <summary>Gets or sets the current widget.</summary>
+    public IDataWindowWidget CurrentWidget { get; set; }
 
     /// <inheritdoc/>
     public void Dispose() => this.modules.OfType<IDisposable>().AggregateToDisposable().Dispose();
@@ -99,6 +102,20 @@ internal class DataWindow : Window, IDisposable
     {
     }
 
+    /// <summary>Gets the data window widget of the specified type.</summary>
+    /// <typeparam name="T">Type of the data window widget to find.</typeparam>
+    /// <returns>Found widget.</returns>
+    public T GetWidget<T>() where T : IDataWindowWidget
+    {
+        foreach (var m in this.modules)
+        {
+            if (m is T w)
+                return w;
+        }
+
+        throw new ArgumentException($"No widget of type {typeof(T).FullName} found.");
+    }
+
     /// <summary>
     /// Set the DataKind dropdown menu.
     /// </summary>
@@ -110,7 +127,7 @@ internal class DataWindow : Window, IDisposable
 
         if (this.modules.FirstOrDefault(module => module.IsWidgetCommand(dataKind)) is { } targetModule)
         {
-            this.currentWidget = targetModule;
+            this.CurrentWidget = targetModule;
         }
         else
         {
@@ -153,9 +170,9 @@ internal class DataWindow : Window, IDisposable
             {
                 foreach (var widget in this.orderedModules)
                 {
-                    if (ImGui.Selectable(widget.DisplayName, this.currentWidget == widget))
+                    if (ImGui.Selectable(widget.DisplayName, this.CurrentWidget == widget))
                     {
-                        this.currentWidget = widget;
+                        this.CurrentWidget = widget;
                     }
                 }
 
@@ -206,9 +223,9 @@ internal class DataWindow : Window, IDisposable
 
                 try
                 {
-                    if (this.currentWidget is { Ready: true })
+                    if (this.CurrentWidget is { Ready: true })
                     {
-                        this.currentWidget.Draw();
+                        this.CurrentWidget.Draw();
                     }
                     else
                     {

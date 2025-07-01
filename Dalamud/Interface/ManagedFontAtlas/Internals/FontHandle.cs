@@ -238,12 +238,17 @@ internal abstract class FontHandle : IFontHandle
     }
 
     /// <inheritdoc/>
-    public Task<IFontHandle> WaitAsync()
+    public Task<IFontHandle> WaitAsync() => this.WaitAsync(CancellationToken.None);
+
+    /// <inheritdoc/>
+    public Task<IFontHandle> WaitAsync(CancellationToken cancellationToken)
     {
         if (this.Available)
             return Task.FromResult<IFontHandle>(this);
 
         var tcs = new TaskCompletionSource<IFontHandle>(TaskCreationOptions.RunContinuationsAsynchronously);
+        cancellationToken.Register(() => tcs.TrySetCanceled());
+
         this.ImFontChanged += OnImFontChanged;
         this.Disposed += OnDisposed;
         if (this.Available)
