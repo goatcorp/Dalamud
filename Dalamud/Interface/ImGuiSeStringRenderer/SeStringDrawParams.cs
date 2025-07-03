@@ -103,12 +103,6 @@ public record struct SeStringDrawParams
     /// <summary>Gets or sets a value indicating whether the text is rendered with shadow.</summary>
     public bool Shadow { get; set; }
 
-    /// <summary>Gets the effective font.</summary>
-    internal readonly unsafe ImFont* EffectiveFont =>
-        (this.Font ?? ImGui.GetFont()) is var f && f.NativePtr is not null
-            ? f.NativePtr
-            : throw new ArgumentException("Specified font is empty.");
-
     /// <summary>Gets the effective line height in pixels.</summary>
     internal readonly float EffectiveLineHeight => (this.FontSize ?? ImGui.GetFontSize()) * (this.LineHeight ?? 1f);
 
