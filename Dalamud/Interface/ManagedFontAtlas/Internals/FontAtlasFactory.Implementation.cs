@@ -384,7 +384,7 @@ internal sealed partial class FontAtlasFactory
             if (this.disposed)
                 return;
 
-            this.BeforeDispose?.InvokeSafely(this);
+            this.BeforeDispose.InvokeSafely(this);
 
             try
             {
@@ -398,25 +398,11 @@ internal sealed partial class FontAtlasFactory
                     this.disposables.Dispose();
                 }
 
-                try
-                {
-                    this.AfterDispose?.Invoke(this, null);
-                }
-                catch
-                {
-                    // ignore
-                }
+                this.AfterDispose.InvokeSafely(this, null);
             }
             catch (Exception e)
             {
-                try
-                {
-                    this.AfterDispose?.Invoke(this, e);
-                }
-                catch
-                {
-                    // ignore
-                }
+                this.AfterDispose.InvokeSafely(this, e);
             }
 
             GC.SuppressFinalize(this);
@@ -826,7 +812,7 @@ internal sealed partial class FontAtlasFactory
             this.factory.Framework.RunOnFrameworkThread(
                 () =>
                 {
-                    this.RebuildRecommend?.InvokeSafely();
+                    this.RebuildRecommend.InvokeSafely();
 
                     switch (this.AutoRebuildMode)
                     {

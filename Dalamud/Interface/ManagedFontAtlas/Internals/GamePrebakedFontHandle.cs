@@ -149,7 +149,7 @@ internal class GamePrebakedFontHandle : FontHandle
             }
 
             if (suggestRebuild)
-                this.RebuildRecommend?.Invoke();
+                this.RebuildRecommend.InvokeSafely();
 
             return handle;
         }

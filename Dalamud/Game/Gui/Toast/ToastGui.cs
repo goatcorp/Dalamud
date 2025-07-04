@@ -10,6 +10,8 @@ using Dalamud.Plugin.Services;
 
 using FFXIVClientStructs.FFXIV.Client.UI;
 
+using Serilog;
+
 namespace Dalamud.Game.Gui.Toast;
 
 /// <summary>
@@ -112,7 +114,7 @@ internal sealed partial class ToastGui
         options ??= new ToastOptions();
         this.normalQueue.Enqueue((Encoding.UTF8.GetBytes(message), options));
     }
-    
+
     /// <inheritdoc/>
     public void ShowNormal(SeString message, ToastOptions? options = null)
     {
@@ -150,7 +152,17 @@ internal sealed partial class ToastGui
             Speed = (ToastSpeed)isFast,
         };
 
-        this.Toast?.Invoke(ref str, ref options, ref isHandled);
+        foreach (var d in Delegate.EnumerateInvocationList(this.Toast))
+        {
+            try
+            {
+                d.Invoke(ref str, ref options, ref isHandled);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", d.Method);
+            }
+        }
 
         // do nothing if handled
         if (isHandled)
@@ -180,7 +192,7 @@ internal sealed partial class ToastGui
         options ??= new QuestToastOptions();
         this.questQueue.Enqueue((Encoding.UTF8.GetBytes(message), options));
     }
-    
+
     /// <inheritdoc/>
     public void ShowQuest(SeString message, QuestToastOptions? options = null)
     {
@@ -223,7 +235,17 @@ internal sealed partial class ToastGui
             PlaySound = playSound == 1,
         };
 
-        this.QuestToast?.Invoke(ref str, ref options, ref isHandled);
+        foreach (var d in Delegate.EnumerateInvocationList(this.QuestToast))
+        {
+            try
+            {
+                d.Invoke(ref str, ref options, ref isHandled);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", d.Method);
+            }
+        }
 
         // do nothing if handled
         if (isHandled)
@@ -286,7 +308,17 @@ internal sealed partial class ToastGui
         var isHandled = false;
         var str = SeString.Parse(text);
 
-        this.ErrorToast?.Invoke(ref str, ref isHandled);
+        foreach (var d in Delegate.EnumerateInvocationList(this.ErrorToast))
+        {
+            try
+            {
+                d.Invoke(ref str, ref isHandled);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", d.Method);
+            }
+        }
 
         // do nothing if handled
         if (isHandled)
@@ -321,16 +353,16 @@ internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
         this.toastGuiService.QuestToast += this.QuestToastForward;
         this.toastGuiService.ErrorToast += this.ErrorToastForward;
     }
-    
+
     /// <inheritdoc/>
     public event IToastGui.OnNormalToastDelegate? Toast;
-    
+
     /// <inheritdoc/>
     public event IToastGui.OnQuestToastDelegate? QuestToast;
-    
+
     /// <inheritdoc/>
     public event IToastGui.OnErrorToastDelegate? ErrorToast;
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -342,7 +374,7 @@ internal class ToastGuiPluginScoped : IInternalDisposableService, IToastGui
         this.QuestToast = null;
         this.ErrorToast = null;
     }
-    
+
     /// <inheritdoc/>
     public void ShowNormal(string message, ToastOptions? options = null) => this.toastGuiService.ShowNormal(message, options);
 

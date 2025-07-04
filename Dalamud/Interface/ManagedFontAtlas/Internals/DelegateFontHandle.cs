@@ -65,7 +65,7 @@ internal sealed class DelegateFontHandle : FontHandle
             var key = new DelegateFontHandle(this, buildStepDelegate);
             lock (this.syncRoot)
                 this.handles.Add(key);
-            this.RebuildRecommend?.Invoke();
+            this.RebuildRecommend.InvokeSafely();
             return key;
         }
 

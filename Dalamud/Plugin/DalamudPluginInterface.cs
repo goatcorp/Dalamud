@@ -527,18 +527,15 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
     internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
     {
-        if (this.ActivePluginsChanged is { } callback)
+        foreach (var action in Delegate.EnumerateInvocationList(this.ActivePluginsChanged))
         {
-            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.ActivePluginsChangedDelegate>())
+            try
             {
-                try
-                {
-                    action(kind, affectedThisPlugin);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                }
+                action(kind, affectedThisPlugin);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
             }
         }
     }
@@ -547,18 +544,15 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     {
         this.UiLanguage = langCode;
 
-        if (this.LanguageChanged is { } callback)
+        foreach (var action in Delegate.EnumerateInvocationList(this.LanguageChanged))
         {
-            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.LanguageChangedDelegate>())
+            try
             {
-                try
-                {
-                    action(langCode);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                }
+                action(langCode);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
             }
         }
     }

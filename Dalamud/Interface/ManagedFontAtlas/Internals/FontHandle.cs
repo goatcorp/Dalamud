@@ -77,13 +77,16 @@ internal abstract class FontHandle : IFontHandle
     /// <param name="font">The font, locked during the call of <see cref="ImFontChanged"/>.</param>
     public void InvokeImFontChanged(ILockedImFont font)
     {
-        try
+        foreach (var d in Delegate.EnumerateInvocationList(this.ImFontChanged))
         {
-            this.ImFontChanged?.Invoke(this, font);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, $"{nameof(this.InvokeImFontChanged)}: error");
+            try
+            {
+                d(this, font);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"{nameof(this.InvokeImFontChanged)}: error calling {d.Method.Name}");
+            }
         }
     }
 

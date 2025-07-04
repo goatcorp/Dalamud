@@ -42,10 +42,10 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
-    
+
     [ServiceManager.ServiceDependency]
     private readonly NetworkHandlers networkHandlers = Service<NetworkHandlers>.Get();
-    
+
     private bool lastConditionNone = true;
 
     [ServiceManager.ServiceConstructor]
@@ -176,7 +176,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.uiModuleHandlePacketHook.Dispose();
         this.onLogoutHook.Dispose();
 
-        this.framework.Update -= this.FrameworkOnOnUpdateEvent; 
+        this.framework.Update -= this.FrameworkOnOnUpdateEvent;
         this.networkHandlers.CfPop -= this.NetworkHandlersOnCfPop;
     }
 
@@ -211,50 +211,51 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         this.setupTerritoryTypeHook.Original(eventFramework, territoryType);
     }
 
-    private unsafe void UIModuleHandlePacketDetour(UIModule* thisPtr, UIModulePacketType type, uint uintParam, void* packet)
+    private unsafe void UIModuleHandlePacketDetour(
+        UIModule* thisPtr, UIModulePacketType type, uint uintParam, void* packet)
     {
         this.uiModuleHandlePacketHook.Original(thisPtr, type, uintParam, packet);
 
         switch (type)
         {
-            case UIModulePacketType.ClassJobChange when this.ClassJobChanged is { } callback:
+            case UIModulePacketType.ClassJobChange:
+            {
+                var classJobId = uintParam;
+
+                foreach (var action in Delegate.EnumerateInvocationList(this.ClassJobChanged))
                 {
-                    var classJobId = uintParam;
-
-                    foreach (var action in callback.GetInvocationList().Cast<IClientState.ClassJobChangeDelegate>())
+                    try
                     {
-                        try
-                        {
-                            action(classJobId);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                        }
+                        action(classJobId);
                     }
-
-                    break;
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                    }
                 }
 
-            case UIModulePacketType.LevelChange when this.LevelChanged is { } callback:
+                break;
+            }
+
+            case UIModulePacketType.LevelChange:
+            {
+                var classJobId = *(uint*)packet;
+                var level = *(ushort*)((nint)packet + 4);
+
+                foreach (var action in Delegate.EnumerateInvocationList(this.LevelChanged))
                 {
-                    var classJobId = *(uint*)packet;
-                    var level = *(ushort*)((nint)packet + 4);
-
-                    foreach (var action in callback.GetInvocationList().Cast<IClientState.LevelChangeDelegate>())
+                    try
                     {
-                        try
-                        {
-                            action(classJobId, level);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                        }
+                        action(classJobId, level);
                     }
-
-                    break;
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Exception during raise of {handler}", action.Method);
+                    }
                 }
+
+                break;
+            }
         }
     }
 
@@ -291,18 +292,15 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
 
                 Log.Debug("Logout: Type {type}, Code {code}", type, code);
 
-                if (this.Logout is { } callback)
+                foreach (var action in Delegate.EnumerateInvocationList(this.Logout))
                 {
-                    foreach (var action in callback.GetInvocationList().Cast<IClientState.LogoutDelegate>())
+                    try
                     {
-                        try
-                        {
-                            action(type, code);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                        }
+                        action(type, code);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Exception during raise of {handler}", action.Method);
                     }
                 }
 
