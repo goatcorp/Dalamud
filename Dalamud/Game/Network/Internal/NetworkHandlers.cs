@@ -18,12 +18,13 @@ using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Network;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Lumina.Excel.Sheets;
 using Serilog;
+
+using CSPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 
 namespace Dalamud.Game.Network.Internal;
 
@@ -269,12 +270,14 @@ internal unsafe class NetworkHandlers : IInternalDisposableService
 
     private static (ulong UploaderId, uint WorldId) GetUploaderInfo()
     {
+        // TODO: switch to use Dalamuds PlayerState service
+
         var agentLobby = AgentLobby.Instance();
 
         var uploaderId = agentLobby->LobbyData.ContentId;
         if (uploaderId == 0)
         {
-            var playerState = PlayerState.Instance();
+            var playerState = CSPlayerState.Instance();
             if (playerState->IsLoaded == 1)
             {
                 uploaderId = playerState->ContentId;

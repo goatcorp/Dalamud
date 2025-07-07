@@ -10,19 +10,6 @@ namespace Dalamud.Plugin.Services;
 public interface IClientState
 {
     /// <summary>
-    /// A delegate type used for the <see cref="ClassJobChanged"/> event.
-    /// </summary>
-    /// <param name="classJobId">The new ClassJob id.</param>
-    public delegate void ClassJobChangeDelegate(uint classJobId);
-
-    /// <summary>
-    /// A delegate type used for the <see cref="LevelChanged"/> event.
-    /// </summary>
-    /// <param name="classJobId">The ClassJob id.</param>
-    /// <param name="level">The level of the corresponding ClassJob.</param>
-    public delegate void LevelChangeDelegate(uint classJobId, uint level);
-
-    /// <summary>
     /// A delegate type used for the <see cref="Logout"/> event.
     /// </summary>
     /// <param name="type">The type of logout.</param>
@@ -37,31 +24,33 @@ public interface IClientState
     /// <summary>
     /// Event that fires when a characters ClassJob changed.
     /// </summary>
-    public event ClassJobChangeDelegate? ClassJobChanged;
+    [Obsolete("Use IPlayerState.ClassJobChange", true)]
+    public event IPlayerState.ClassJobChangeDelegate? ClassJobChanged;
 
     /// <summary>
     /// Event that fires when <em>any</em> character level changes, including levels
     /// for a not-currently-active ClassJob (e.g. PvP matches, DoH/DoL).
     /// </summary>
-    public event LevelChangeDelegate? LevelChanged;
+    [Obsolete("Use IPlayerState.LevelChange", true)]
+    public event IPlayerState.LevelChangeDelegate? LevelChanged;
 
     /// <summary>
-    /// Event that fires when a character is logging in, and the local character object is available.
+    /// Event that fires when the local player is logged in, and the local character object is available.
     /// </summary>
     public event Action Login;
 
     /// <summary>
-    /// Event that fires when a character is logging out.
+    /// Event that fires when the local player is logging out.
     /// </summary>
     public event LogoutDelegate Logout;
 
     /// <summary>
-    /// Event that fires when a character is entering PvP.
+    /// Event that fires when the local player is entering a PvP zone.
     /// </summary>
     public event Action EnterPvP;
 
     /// <summary>
-    /// Event that fires when a character is leaving PvP.
+    /// Event that fires when the local player is leaving a PvP zone.
     /// </summary>
     public event Action LeavePvP;
 
@@ -93,6 +82,7 @@ public interface IClientState
     /// <summary>
     /// Gets the content ID of the local character.
     /// </summary>
+    [Obsolete("Use IPlayerState.ContentId", true)]
     public ulong LocalContentId { get; }
 
     /// <summary>
@@ -101,12 +91,12 @@ public interface IClientState
     public bool IsLoggedIn { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the user is playing PvP.
+    /// Gets a value indicating whether the user is in a PvP zone.
     /// </summary>
     public bool IsPvP { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the user is playing PvP, excluding the Wolves' Den.
+    /// Gets a value indicating whether the user is in a PvP zone, excluding the Wolves' Den.
     /// </summary>
     public bool IsPvPExcludingDen { get; }
 
