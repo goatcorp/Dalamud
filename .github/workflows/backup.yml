@@ -1,0 +1,26 @@
+name: Back up code to GitLab and other sources
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run every day at 2 AM
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  push-to-gitlab:
+    runs-on: ubuntu-latest
+    if: github.repository == 'goatcorp/Dalamud'
+    
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.GITLAB_SYNC_KEY }}
+
+      - name: Add remote & push
+        run: |
+          git remote add gitlab git@gitlab.com:goatcorp/Dalamud.git
+          git push gitlab --all --force
