@@ -116,7 +116,7 @@ internal sealed partial class FontAtlasFactory
             foreach (var s in this.data.Substances)
             {
                 var f = s.GetFontPtr(fontHandle);
-                if (!f.IsNull())
+                if (!f.IsNull)
                     return f;
             }
 
@@ -215,7 +215,7 @@ internal sealed partial class FontAtlasFactory
             }
             catch
             {
-                if (!font.IsNull())
+                if (!font.IsNull)
                 {
                     // Note that for both RemoveAt calls, corresponding destructors will be called.
 
@@ -331,14 +331,14 @@ internal sealed partial class FontAtlasFactory
                 }
             }
 
-            if (font.IsNull())
+            if (font.IsNull)
             {
                 // fall back to AXIS fonts
                 font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
             }
 
             this.AttachExtraGlyphsForDalamudLanguage(new() { SizePx = sizePx, MergeFont = font });
-            if (this.Font.IsNull())
+            if (this.Font.IsNull)
                 this.Font = font;
             return font;
         }
@@ -413,9 +413,9 @@ internal sealed partial class FontAtlasFactory
             int style = (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL)
         {
             var targetFont = fontConfig.MergeFont;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 targetFont = this.Font;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 return;
 
             // https://learn.microsoft.com/en-us/windows/apps/design/globalizing/loc-international-fonts
@@ -556,9 +556,9 @@ internal sealed partial class FontAtlasFactory
         public void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig)
         {
             var targetFont = fontConfig.MergeFont;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 targetFont = this.Font;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 return;
 
             var dalamudConfiguration = Service<DalamudConfiguration>.Get();

@@ -556,25 +556,11 @@ public static partial class ImGuiHelpers
             .ToArray();
 
     /// <summary>
-    /// Determines whether <paramref name="ptr"/> is empty.
+    /// Determines whether <paramref name="ptr"/> is not empty and loaded.
     /// </summary>
     /// <param name="ptr">The pointer.</param>
-    /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNull(this ImFontPtr ptr) => ptr.Handle == null;
-
-    /// <summary>
-    /// Determines whether <paramref name="ptr"/> is empty.
-    /// </summary>
-    /// <param name="ptr">The pointer.</param>
-    /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNotNullAndLoaded(this ImFontPtr ptr) => ptr.Handle != null && ptr.IsLoaded();
-
-    /// <summary>
-    /// Determines whether <paramref name="ptr"/> is empty.
-    /// </summary>
-    /// <param name="ptr">The pointer.</param>
-    /// <returns>Whether it is empty.</returns>
-    public static unsafe bool IsNull(this ImFontAtlasPtr ptr) => ptr.Handle == null;
+    /// <returns>Whether it is not null and loaded.</returns>
+    public static unsafe bool IsNotNullAndLoaded(this ImFontPtr ptr) => !ptr.IsNull && ptr.IsLoaded();
 
     /// <summary>
     /// If <paramref name="self"/> is default, then returns <paramref name="other"/>.
@@ -583,7 +569,7 @@ public static partial class ImGuiHelpers
     /// <param name="other">The other.</param>
     /// <returns><paramref name="self"/> if it is not default; otherwise, <paramref name="other"/>.</returns>
     public static unsafe ImFontPtr OrElse(this ImFontPtr self, ImFontPtr other) =>
-        self.Handle is null ? other : self;
+        self.IsNull ? other : self;
 
     /// <summary>
     /// Mark 4K page as used, after adding a codepoint to a font.
