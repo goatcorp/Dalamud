@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Text;
 
 using Dalamud.Bindings.ImGui;
 
@@ -50,38 +49,6 @@ public static class ImGuiExtensions
         else
         {
             drawListPtr.AddText(ImGui.GetFont(), ImGui.GetFontSize(), pos, ImGui.GetColorU32(ImGuiCol.Text), text);
-        }
-    }
-
-    /// <summary>
-    /// Add text to a draw list.
-    /// </summary>
-    /// <param name="drawListPtr">Pointer to the draw list.</param>
-    /// <param name="font">Font to use.</param>
-    /// <param name="fontSize">Font size.</param>
-    /// <param name="pos">Position to draw at.</param>
-    /// <param name="col">Color to use.</param>
-    /// <param name="textBegin">Text to draw.</param>
-    /// <param name="cpuFineClipRect">Clip rect to use.</param>
-    // TODO: This should go into ImDrawList.Manual.cs in ImGui.NET...
-    public static unsafe void AddText(this ImDrawListPtr drawListPtr, ImFontPtr font, float fontSize, Vector2 pos, uint col, string textBegin, ref Vector4 cpuFineClipRect)
-    {
-        var nativeFont = font.Handle;
-        var textBeginByteCount = Encoding.UTF8.GetByteCount(textBegin);
-        var nativeTextBegin = stackalloc byte[textBeginByteCount + 1];
-
-        fixed (char* textBeginPtr = textBegin)
-        {
-            var nativeTextBeginOffset = Encoding.UTF8.GetBytes(textBeginPtr, textBegin.Length, nativeTextBegin, textBeginByteCount);
-            nativeTextBegin[nativeTextBeginOffset] = 0;
-        }
-
-        byte* nativeTextEnd = null;
-        var wrapWidth = 0.0f;
-
-        fixed (Vector4* nativeCpuFineClipRect = &cpuFineClipRect)
-        {
-            drawListPtr.AddText(nativeFont, fontSize, pos, col, nativeTextBegin, nativeTextEnd, wrapWidth, nativeCpuFineClipRect);
         }
     }
 }
