@@ -449,7 +449,7 @@ internal class TexWidget : IDataWindowWidget
             sortSpecs.SpecsDirty = false;
         }
 
-        var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
+        var clipper = ImGui.ImGuiListClipper();
         clipper.Begin(allBlames.Count);
 
         while (clipper.Step())
@@ -538,7 +538,7 @@ internal class TexWidget : IDataWindowWidget
             (ImGui.GetStyle().ItemSpacing.X * 1 * numIcons));
         ImGui.TableHeadersRow();
 
-        var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
+        var clipper = ImGui.ImGuiListClipper();
         clipper.Begin(textures.Count);
 
         using (var enu = textures.GetEnumerator())

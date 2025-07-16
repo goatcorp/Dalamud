@@ -34,11 +34,7 @@ public static class ImGuiClip
     // Uses ImGuiListClipper and thus handles start- and end-dummies itself.
     public static void ClippedDraw<T>(IReadOnlyList<T> data, Action<T> draw, float lineHeight)
     {
-        ImGuiListClipperPtr clipper;
-        unsafe
-        {
-            clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
-        }
+        var clipper = ImGui.ImGuiListClipper();
 
         clipper.Begin(data.Count, lineHeight);
         while (clipper.Step())
@@ -69,11 +65,7 @@ public static class ImGuiClip
     /// <typeparam name="T">The type of data to draw.</typeparam>
     public static void ClippedDraw<T>(IReadOnlyList<T> data, Action<T> draw, int itemsPerLine, float lineHeight)
     {
-        ImGuiListClipperPtr clipper;
-        unsafe
-        {
-            clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
-        }
+        var clipper = ImGui.ImGuiListClipper();
 
         var maxRows = (int)MathF.Ceiling((float)data.Count / itemsPerLine);
 
@@ -113,11 +105,7 @@ public static class ImGuiClip
     // Uses ImGuiListClipper and thus handles start- and end-dummies itself, but acts on type and index.
     public static void ClippedDraw<T>(IReadOnlyList<T> data, Action<T, int> draw, float lineHeight)
     {
-        ImGuiListClipperPtr clipper;
-        unsafe
-        {
-            clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
-        }
+        var clipper = ImGui.ImGuiListClipper();
 
         clipper.Begin(data.Count, lineHeight);
         while (clipper.Step())

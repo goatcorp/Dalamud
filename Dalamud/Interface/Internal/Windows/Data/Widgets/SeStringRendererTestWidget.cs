@@ -190,7 +190,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 var addon = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>() ??
                             throw new InvalidOperationException("Addon sheet not loaded.");
 
-                var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
+                var clipper = ImGui.ImGuiListClipper();
                 clipper.Begin(addon.Count);
                 while (clipper.Step())
                 {
