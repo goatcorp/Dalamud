@@ -9,6 +9,9 @@ public static partial class ImRaii
     public static Id PushId(string id, bool enabled = true)
         => enabled ? new Id().Push(id) : new Id();
 
+    public static Id PushId(ReadOnlySpan<byte> id, bool enabled = true)
+        => enabled ? new Id().Push(id) : new Id();
+
     public static Id PushId(int id, bool enabled = true)
         => enabled ? new Id().Push(id) : new Id();
 
@@ -20,6 +23,17 @@ public static partial class ImRaii
         private int count;
 
         public Id Push(string id, bool condition = true)
+        {
+            if (condition)
+            {
+                ImGui.PushID(id);
+                ++this.count;
+            }
+
+            return this;
+        }
+
+        public Id Push(ReadOnlySpan<byte> id, bool condition = true)
         {
             if (condition)
             {
