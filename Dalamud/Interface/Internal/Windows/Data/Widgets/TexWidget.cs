@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -469,7 +469,7 @@ internal class TexWidget : IDataWindowWidget
                 {
                     _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
                         this.DisplayName,
-                        $"{wrap.ImGuiHandle:X16}",
+                        $"{wrap.Handle.Handle:X16}",
                         Task.FromResult(wrap.CreateWrapSharingLowLevelResource()));
                 }
 
