@@ -640,9 +640,9 @@ internal class DalamudInterface : IInternalDisposableService
                 ImGui.SetNextItemWidth(40);
                 if (ImGui.Button("###devMenuOpener", new Vector2(20, 20)))
                     this.isImGuiDrawDevMenu = true;
-
-                ImGui.End();
             }
+
+            ImGui.End();
 
             if (EnvironmentConfiguration.DalamudForceMinHook)
             {
