@@ -182,7 +182,7 @@ internal abstract class FontHandle : IFontHandle
             }
 
             var fontPtr = substance.GetFontPtr(this);
-            if (fontPtr.IsNull())
+            if (fontPtr.IsNull)
             {
                 // The font for the requested handle is unavailable. Release the reference and try again.
                 substance.DataRoot.Release();

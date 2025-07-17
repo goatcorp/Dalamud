@@ -66,7 +66,7 @@ internal sealed partial class TextureManager
 
         try
         {
-            if (textureWrap.ImGuiHandle == nint.Zero)
+            if (textureWrap.Handle.IsNull)
                 return textureWrap;
         }
         catch (ObjectDisposedException)
@@ -103,7 +103,7 @@ internal sealed partial class TextureManager
 
         try
         {
-            if (textureWrap.ImGuiHandle == nint.Zero)
+            if (textureWrap.Handle.IsNull)
                 return textureWrap;
         }
         catch (ObjectDisposedException)

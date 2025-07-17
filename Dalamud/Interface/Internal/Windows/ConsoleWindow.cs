@@ -112,10 +112,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
 
-        unsafe
-        {
-            this.clipperPtr = new(ImGui.ImGuiListClipper());
-        }
+        this.clipperPtr = ImGui.ImGuiListClipper();
     }
 
     /// <summary>Gets the queue where log entries that are not processed yet are stored.</summary>

@@ -381,11 +381,7 @@ public partial class FileDialog
 
             if (this.filteredFiles.Count > 0)
             {
-                ImGuiListClipperPtr clipper;
-                unsafe
-                {
-                    clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
-                }
+                var clipper = ImGui.ImGuiListClipper();
 
                 lock (this.filesLock)
                 {

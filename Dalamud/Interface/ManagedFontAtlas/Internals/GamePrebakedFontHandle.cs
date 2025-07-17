@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -250,7 +250,7 @@ internal class GamePrebakedFontHandle : FontHandle
             GameFontStyle style,
             ushort[]? glyphRanges = null)
         {
-            if (font.IsNull())
+            if (font.IsNull)
                 font = this.CreateTemplateFont(toolkitPreBuild, style.SizePx);
             this.attachments.Add((font, style, glyphRanges));
             return font;

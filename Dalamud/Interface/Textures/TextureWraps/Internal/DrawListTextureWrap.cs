@@ -60,7 +60,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             this.device.Get()->GetImmediateContext(pdc);
 
         this.emptyTexture = emptyTexture;
-        this.srv = new((ID3D11ShaderResourceView*)emptyTexture.ImGuiHandle);
+        this.srv = new((ID3D11ShaderResourceView*)emptyTexture.Handle.Handle);
     }
 
     /// <summary>Finalizes an instance of the <see cref="DrawListTextureWrap"/> class.</summary>
@@ -226,7 +226,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             this.rtvPremultiplied.Reset();
             this.width = newWidth;
             this.Height = newHeight;
-            this.srv = new((ID3D11ShaderResourceView*)this.emptyTexture.ImGuiHandle);
+            this.srv = new((ID3D11ShaderResourceView*)this.emptyTexture.Handle.Handle);
             return S.S_FALSE;
         }
 

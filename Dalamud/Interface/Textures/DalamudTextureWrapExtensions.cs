@@ -1,4 +1,3 @@
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 
 namespace Dalamud.Interface.Textures;
@@ -17,6 +16,6 @@ public static class DalamudTextureWrapExtensions
             return false;
         if (a is null)
             return false;
-        return a.ImGuiHandle == b.ImGuiHandle;
+        return a.Handle == b.Handle;
     }
 }

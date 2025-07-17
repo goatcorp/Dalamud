@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 using Dalamud.Bindings.ImGui;
@@ -158,7 +158,7 @@ internal sealed class DelegateFontHandle : FontHandle
                 {
                     toolkitPreBuild.Font = default;
                     k.CallOnBuildStepChange(toolkitPreBuild);
-                    if (toolkitPreBuild.Font.IsNull())
+                    if (toolkitPreBuild.Font.IsNull)
                     {
                         if (fontCountPrevious == fontsVector.Length)
                         {

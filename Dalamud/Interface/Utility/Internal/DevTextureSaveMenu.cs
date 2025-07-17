@@ -64,7 +64,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
             var initiatorScreenOffset = ImGui.GetMousePos();
             using var textureWrap = await texture;
             var textureManager = await Service<TextureManager>.GetAsync();
-            var popupName = $"{nameof(this.ShowTextureSaveMenuAsync)}_{textureWrap.ImGuiHandle:X}";
+            var popupName = $"{nameof(this.ShowTextureSaveMenuAsync)}_{textureWrap.Handle.Handle:X}";
 
             BitmapCodecInfo? encoder;
             {

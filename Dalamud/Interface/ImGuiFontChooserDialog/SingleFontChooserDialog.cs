@@ -689,7 +689,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##familyList", ImGui.GetContentRegionAvail()))
         {
-            var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
+            var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if ((changed || this.firstDrawAfterRefresh) && this.selectedFamilyIndex != -1)
@@ -856,7 +856,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##fontList"))
         {
-            var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
+            var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if ((changed || this.firstDrawAfterRefresh) && this.selectedFontIndex != -1)
@@ -960,7 +960,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##fontSizeList"))
         {
-            var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
+            var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if (changed && this.selectedFontIndex != -1)

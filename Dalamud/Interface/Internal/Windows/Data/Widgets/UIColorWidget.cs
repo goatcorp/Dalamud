@@ -64,7 +64,7 @@ internal class UiColorWidget : IDataWindowWidget
         ImGui.TableSetupColumn("Clear Blue", ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableHeadersRow();
 
-        var clipper = new ImGuiListClipperPtr(ImGui.ImGuiListClipper());
+        var clipper = ImGui.ImGuiListClipper();
         clipper.Begin(colors.Count, ImGui.GetFrameHeightWithSpacing());
         while (clipper.Step())
         {
