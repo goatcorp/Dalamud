@@ -709,14 +709,17 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.stopwatch.Restart();
         }
 
-        if (this.hasErrorWindow && ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
+        if (this.hasErrorWindow)
         {
-            ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
-            ImGui.Spacing();
-
-            if (ImGui.Button("OK"))
+            if (ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
             {
-                this.hasErrorWindow = false;
+                ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
+                ImGui.Spacing();
+
+                if (ImGui.Button("OK"))
+                {
+                    this.hasErrorWindow = false;
+                }
             }
 
             ImGui.End();

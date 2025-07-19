@@ -241,6 +241,7 @@ internal sealed unsafe class Dx11Win32Backend : IWin32Backend
         this.imguiRenderer?.Dispose();
         this.imguiInput?.Dispose();
 
+        ImPlot.DestroyContext();
         ImGui.DestroyContext();
 
         this.swapChain.Dispose();
