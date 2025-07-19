@@ -21,141 +21,6 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static Vector2 CalcTextSize(ReadOnlySpan<byte> text, byte* textEnd, bool hideTextAfterDoubleHash, float wrapWidth)
-		{
-			fixed (byte* ptext = text)
-			{
-				Vector2 ret;
-				CalcTextSizeNative(&ret, (byte*)ptext, textEnd, hideTextAfterDoubleHash ? (byte)1 : (byte)0, wrapWidth);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 CalcTextSize(string text)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			Vector2 ret;
-			CalcTextSizeNative(&ret, pStr0, (byte*)(default), (byte)(0), (float)(-1.0f));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 CalcTextSize(string text, byte* textEnd)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			Vector2 ret;
-			CalcTextSizeNative(&ret, pStr0, textEnd, (byte)(0), (float)(-1.0f));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void CalcTextSize(Vector2* pOut, string text)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			CalcTextSizeNative(pOut, pStr0, (byte*)(default), (byte)(0), (float)(-1.0f));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static Vector2 CalcTextSize(string text, bool hideTextAfterDoubleHash)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (text != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(text);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			Vector2 ret;
-			CalcTextSizeNative(&ret, pStr0, (byte*)(default), hideTextAfterDoubleHash ? (byte)1 : (byte)0, (float)(-1.0f));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public static Vector2 CalcTextSize(string text, byte* textEnd, bool hideTextAfterDoubleHash)
 		{
 			byte* pStr0 = null;
@@ -5027,6 +4892,134 @@ namespace Dalamud.Bindings.ImGui
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte IsKeyDownNative(ImGuiKey key)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImGuiKey, byte>)funcTable[354])(key);
+			#else
+			return (byte)((delegate* unmanaged[Cdecl]<ImGuiKey, byte>)funcTable[354])(key);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool IsKeyDown(ImGuiKey key)
+		{
+			byte ret = IsKeyDownNative(key);
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte IsKeyPressedNative(ImGuiKey key, byte repeat)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImGuiKey, byte, byte>)funcTable[355])(key, repeat);
+			#else
+			return (byte)((delegate* unmanaged[Cdecl]<ImGuiKey, byte, byte>)funcTable[355])(key, repeat);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool IsKeyPressed(ImGuiKey key, bool repeat)
+		{
+			byte ret = IsKeyPressedNative(key, repeat ? (byte)1 : (byte)0);
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool IsKeyPressed(ImGuiKey key)
+		{
+			byte ret = IsKeyPressedNative(key, (byte)(1));
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte IsKeyReleasedNative(ImGuiKey key)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImGuiKey, byte>)funcTable[356])(key);
+			#else
+			return (byte)((delegate* unmanaged[Cdecl]<ImGuiKey, byte>)funcTable[356])(key);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool IsKeyReleased(ImGuiKey key)
+		{
+			byte ret = IsKeyReleasedNative(key);
+			return ret != 0;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static int GetKeyPressedAmountNative(ImGuiKey key, float repeatDelay, float rate)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImGuiKey, float, float, int>)funcTable[357])(key, repeatDelay, rate);
+			#else
+			return (int)((delegate* unmanaged[Cdecl]<ImGuiKey, float, float, int>)funcTable[357])(key, repeatDelay, rate);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static int GetKeyPressedAmount(ImGuiKey key, float repeatDelay, float rate)
+		{
+			int ret = GetKeyPressedAmountNative(key, repeatDelay, rate);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte* GetKeyNameNative(ImGuiKey key)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImGuiKey, byte*>)funcTable[358])(key);
+			#else
+			return (byte*)((delegate* unmanaged[Cdecl]<ImGuiKey, nint>)funcTable[358])(key);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static byte* GetKeyName(ImGuiKey key)
+		{
+			byte* ret = GetKeyNameNative(key);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static string GetKeyNameS(ImGuiKey key)
+		{
+			string ret = Utils.DecodeStringUTF8(GetKeyNameNative(key));
+			return ret;
 		}
 	}
 }

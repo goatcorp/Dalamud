@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Data payload for Drag and Drop operations: AcceptDragDropPayload(), GetDragDropPayload()<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiPayload

@@ -17,8 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Font runtime data and rendering<br/>
-	/// ImFontAtlas automatically loads a default embedded font for you when you call GetTexDataAsAlpha8() or GetTexDataAsRGBA32().<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImFont

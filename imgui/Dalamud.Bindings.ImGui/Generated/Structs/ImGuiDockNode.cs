@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// sizeof() 156~192<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiDockNode
@@ -158,76 +158,9 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public uint WantCloseTabId;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiDataAuthority AuthorityForPos;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiDataAuthority AuthorityForSize;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiDataAuthority AuthorityForViewport;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte IsVisible;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte IsFocused;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte IsBgDrawnThisFrame;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte HasCloseButton;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte HasWindowMenuButton;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte HasCentralNodeChild;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte WantCloseAll;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte WantLockSizeOnce;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte WantMouseMove;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte WantHiddenTabBarUpdate;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte WantHiddenTabBarToggle;
-
+		public ImGuiDataAuthority RawBits0;
+		public bool RawBits1;
+		public bool RawBits2;
 
 		/// <summary>
 		/// To be documented.
@@ -268,17 +201,17 @@ namespace Dalamud.Bindings.ImGui
 			AuthorityForPos = authorityForPos;
 			AuthorityForSize = authorityForSize;
 			AuthorityForViewport = authorityForViewport;
-			IsVisible = isVisible ? (byte)1 : (byte)0;
-			IsFocused = isFocused ? (byte)1 : (byte)0;
-			IsBgDrawnThisFrame = isBgDrawnThisFrame ? (byte)1 : (byte)0;
-			HasCloseButton = hasCloseButton ? (byte)1 : (byte)0;
-			HasWindowMenuButton = hasWindowMenuButton ? (byte)1 : (byte)0;
-			HasCentralNodeChild = hasCentralNodeChild ? (byte)1 : (byte)0;
-			WantCloseAll = wantCloseAll ? (byte)1 : (byte)0;
-			WantLockSizeOnce = wantLockSizeOnce ? (byte)1 : (byte)0;
-			WantMouseMove = wantMouseMove ? (byte)1 : (byte)0;
-			WantHiddenTabBarUpdate = wantHiddenTabBarUpdate ? (byte)1 : (byte)0;
-			WantHiddenTabBarToggle = wantHiddenTabBarToggle ? (byte)1 : (byte)0;
+			IsVisible = isVisible;
+			IsFocused = isFocused;
+			IsBgDrawnThisFrame = isBgDrawnThisFrame;
+			HasCloseButton = hasCloseButton;
+			HasWindowMenuButton = hasWindowMenuButton;
+			HasCentralNodeChild = hasCentralNodeChild;
+			WantCloseAll = wantCloseAll;
+			WantLockSizeOnce = wantLockSizeOnce;
+			WantMouseMove = wantMouseMove;
+			WantHiddenTabBarUpdate = wantHiddenTabBarUpdate;
+			WantHiddenTabBarToggle = wantHiddenTabBarToggle;
 		}
 
 		/// <summary>
@@ -320,19 +253,47 @@ namespace Dalamud.Bindings.ImGui
 			AuthorityForPos = authorityForPos;
 			AuthorityForSize = authorityForSize;
 			AuthorityForViewport = authorityForViewport;
-			IsVisible = isVisible ? (byte)1 : (byte)0;
-			IsFocused = isFocused ? (byte)1 : (byte)0;
-			IsBgDrawnThisFrame = isBgDrawnThisFrame ? (byte)1 : (byte)0;
-			HasCloseButton = hasCloseButton ? (byte)1 : (byte)0;
-			HasWindowMenuButton = hasWindowMenuButton ? (byte)1 : (byte)0;
-			HasCentralNodeChild = hasCentralNodeChild ? (byte)1 : (byte)0;
-			WantCloseAll = wantCloseAll ? (byte)1 : (byte)0;
-			WantLockSizeOnce = wantLockSizeOnce ? (byte)1 : (byte)0;
-			WantMouseMove = wantMouseMove ? (byte)1 : (byte)0;
-			WantHiddenTabBarUpdate = wantHiddenTabBarUpdate ? (byte)1 : (byte)0;
-			WantHiddenTabBarToggle = wantHiddenTabBarToggle ? (byte)1 : (byte)0;
+			IsVisible = isVisible;
+			IsFocused = isFocused;
+			IsBgDrawnThisFrame = isBgDrawnThisFrame;
+			HasCloseButton = hasCloseButton;
+			HasWindowMenuButton = hasWindowMenuButton;
+			HasCentralNodeChild = hasCentralNodeChild;
+			WantCloseAll = wantCloseAll;
+			WantLockSizeOnce = wantLockSizeOnce;
+			WantMouseMove = wantMouseMove;
+			WantHiddenTabBarUpdate = wantHiddenTabBarUpdate;
+			WantHiddenTabBarToggle = wantHiddenTabBarToggle;
 		}
 
+
+		public ImGuiDataAuthority AuthorityForPos { get => Bitfield.Get(RawBits0, 0, 3); set => Bitfield.Set(ref RawBits0, value, 0, 3); }
+
+		public ImGuiDataAuthority AuthorityForSize { get => Bitfield.Get(RawBits0, 3, 3); set => Bitfield.Set(ref RawBits0, value, 3, 3); }
+
+		public ImGuiDataAuthority AuthorityForViewport { get => Bitfield.Get(RawBits0, 6, 3); set => Bitfield.Set(ref RawBits0, value, 6, 3); }
+
+		public bool IsVisible { get => Bitfield.Get(RawBits1, 0, 1); set => Bitfield.Set(ref RawBits1, value, 0, 1); }
+
+		public bool IsFocused { get => Bitfield.Get(RawBits1, 1, 1); set => Bitfield.Set(ref RawBits1, value, 1, 1); }
+
+		public bool IsBgDrawnThisFrame { get => Bitfield.Get(RawBits1, 2, 1); set => Bitfield.Set(ref RawBits1, value, 2, 1); }
+
+		public bool HasCloseButton { get => Bitfield.Get(RawBits1, 3, 1); set => Bitfield.Set(ref RawBits1, value, 3, 1); }
+
+		public bool HasWindowMenuButton { get => Bitfield.Get(RawBits1, 4, 1); set => Bitfield.Set(ref RawBits1, value, 4, 1); }
+
+		public bool HasCentralNodeChild { get => Bitfield.Get(RawBits1, 5, 1); set => Bitfield.Set(ref RawBits1, value, 5, 1); }
+
+		public bool WantCloseAll { get => Bitfield.Get(RawBits1, 6, 1); set => Bitfield.Set(ref RawBits1, value, 6, 1); }
+
+		public bool WantLockSizeOnce { get => Bitfield.Get(RawBits1, 7, 1); set => Bitfield.Set(ref RawBits1, value, 7, 1); }
+
+		public bool WantMouseMove { get => Bitfield.Get(RawBits2, 0, 1); set => Bitfield.Set(ref RawBits2, value, 0, 1); }
+
+		public bool WantHiddenTabBarUpdate { get => Bitfield.Get(RawBits2, 1, 1); set => Bitfield.Set(ref RawBits2, value, 1, 1); }
+
+		public bool WantHiddenTabBarToggle { get => Bitfield.Get(RawBits2, 2, 1); set => Bitfield.Set(ref RawBits2, value, 2, 1); }
 
 		/// <summary>
 		/// To be documented.
@@ -501,59 +462,59 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiDataAuthority AuthorityForPos => ref Unsafe.AsRef<ImGuiDataAuthority>(&Handle->AuthorityForPos);
+		public ImGuiDataAuthority AuthorityForPos { get => Handle->AuthorityForPos; set => Handle->AuthorityForPos = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiDataAuthority AuthorityForSize => ref Unsafe.AsRef<ImGuiDataAuthority>(&Handle->AuthorityForSize);
+		public ImGuiDataAuthority AuthorityForSize { get => Handle->AuthorityForSize; set => Handle->AuthorityForSize = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiDataAuthority AuthorityForViewport => ref Unsafe.AsRef<ImGuiDataAuthority>(&Handle->AuthorityForViewport);
+		public ImGuiDataAuthority AuthorityForViewport { get => Handle->AuthorityForViewport; set => Handle->AuthorityForViewport = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool IsVisible => ref Unsafe.AsRef<bool>(&Handle->IsVisible);
+		public bool IsVisible { get => Handle->IsVisible; set => Handle->IsVisible = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool IsFocused => ref Unsafe.AsRef<bool>(&Handle->IsFocused);
+		public bool IsFocused { get => Handle->IsFocused; set => Handle->IsFocused = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool IsBgDrawnThisFrame => ref Unsafe.AsRef<bool>(&Handle->IsBgDrawnThisFrame);
+		public bool IsBgDrawnThisFrame { get => Handle->IsBgDrawnThisFrame; set => Handle->IsBgDrawnThisFrame = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool HasCloseButton => ref Unsafe.AsRef<bool>(&Handle->HasCloseButton);
+		public bool HasCloseButton { get => Handle->HasCloseButton; set => Handle->HasCloseButton = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool HasWindowMenuButton => ref Unsafe.AsRef<bool>(&Handle->HasWindowMenuButton);
+		public bool HasWindowMenuButton { get => Handle->HasWindowMenuButton; set => Handle->HasWindowMenuButton = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool HasCentralNodeChild => ref Unsafe.AsRef<bool>(&Handle->HasCentralNodeChild);
+		public bool HasCentralNodeChild { get => Handle->HasCentralNodeChild; set => Handle->HasCentralNodeChild = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WantCloseAll => ref Unsafe.AsRef<bool>(&Handle->WantCloseAll);
+		public bool WantCloseAll { get => Handle->WantCloseAll; set => Handle->WantCloseAll = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WantLockSizeOnce => ref Unsafe.AsRef<bool>(&Handle->WantLockSizeOnce);
+		public bool WantLockSizeOnce { get => Handle->WantLockSizeOnce; set => Handle->WantLockSizeOnce = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WantMouseMove => ref Unsafe.AsRef<bool>(&Handle->WantMouseMove);
+		public bool WantMouseMove { get => Handle->WantMouseMove; set => Handle->WantMouseMove = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WantHiddenTabBarUpdate => ref Unsafe.AsRef<bool>(&Handle->WantHiddenTabBarUpdate);
+		public bool WantHiddenTabBarUpdate { get => Handle->WantHiddenTabBarUpdate; set => Handle->WantHiddenTabBarUpdate = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref bool WantHiddenTabBarToggle => ref Unsafe.AsRef<bool>(&Handle->WantHiddenTabBarToggle);
+		public bool WantHiddenTabBarToggle { get => Handle->WantHiddenTabBarToggle; set => Handle->WantHiddenTabBarToggle = value; }
 	}
 
 }

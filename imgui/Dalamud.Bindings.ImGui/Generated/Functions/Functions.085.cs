@@ -3035,139 +3035,13 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte SetDragDropPayloadNative(byte* type, void* data, ulong sz, ImGuiCond cond)
+		internal static byte SetDragDropPayloadNative(byte* type, void* data, nuint sz, ImGuiCond cond)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<byte*, void*, ulong, ImGuiCond, byte>)funcTable[305])(type, data, sz, cond);
+			return ((delegate* unmanaged[Cdecl]<byte*, void*, nuint, ImGuiCond, byte>)funcTable[305])(type, data, sz, cond);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, ulong, ImGuiCond, byte>)funcTable[305])((nint)type, (nint)data, sz, cond);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, nint, nuint, ImGuiCond, byte>)funcTable[305])((nint)type, (nint)data, sz, cond);
 			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool SetDragDropPayload(byte* type, void* data, ulong sz, ImGuiCond cond)
-		{
-			byte ret = SetDragDropPayloadNative(type, data, sz, cond);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool SetDragDropPayload(byte* type, void* data, ulong sz)
-		{
-			byte ret = SetDragDropPayloadNative(type, data, sz, (ImGuiCond)(0));
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool SetDragDropPayload(ref byte type, void* data, ulong sz, ImGuiCond cond)
-		{
-			fixed (byte* ptype = &type)
-			{
-				byte ret = SetDragDropPayloadNative((byte*)ptype, data, sz, cond);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool SetDragDropPayload(ref byte type, void* data, ulong sz)
-		{
-			fixed (byte* ptype = &type)
-			{
-				byte ret = SetDragDropPayloadNative((byte*)ptype, data, sz, (ImGuiCond)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool SetDragDropPayload(ReadOnlySpan<byte> type, void* data, ulong sz, ImGuiCond cond)
-		{
-			fixed (byte* ptype = type)
-			{
-				byte ret = SetDragDropPayloadNative((byte*)ptype, data, sz, cond);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool SetDragDropPayload(ReadOnlySpan<byte> type, void* data, ulong sz)
-		{
-			fixed (byte* ptype = type)
-			{
-				byte ret = SetDragDropPayloadNative((byte*)ptype, data, sz, (ImGuiCond)(0));
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool SetDragDropPayload(string type, void* data, ulong sz, ImGuiCond cond)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (type != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(type);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(type, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = SetDragDropPayloadNative(pStr0, data, sz, cond);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool SetDragDropPayload(string type, void* data, ulong sz)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (type != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(type);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(type, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = SetDragDropPayloadNative(pStr0, data, sz, (ImGuiCond)(0));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
 		}
 
 		/// <summary>
@@ -5021,6 +4895,141 @@ namespace Dalamud.Bindings.ImGui
 				CalcTextSizeNative(&ret, (byte*)ptext, (byte*)(default), hideTextAfterDoubleHash ? (byte)1 : (byte)0, wrapWidth);
 				return ret;
 			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSize(ReadOnlySpan<byte> text, byte* textEnd, bool hideTextAfterDoubleHash, float wrapWidth)
+		{
+			fixed (byte* ptext = text)
+			{
+				Vector2 ret;
+				CalcTextSizeNative(&ret, (byte*)ptext, textEnd, hideTextAfterDoubleHash ? (byte)1 : (byte)0, wrapWidth);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSize(string text)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeNative(&ret, pStr0, (byte*)(default), (byte)(0), (float)(-1.0f));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSize(string text, byte* textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeNative(&ret, pStr0, textEnd, (byte)(0), (float)(-1.0f));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSize(Vector2* pOut, string text)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			CalcTextSizeNative(pOut, pStr0, (byte*)(default), (byte)(0), (float)(-1.0f));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSize(string text, bool hideTextAfterDoubleHash)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (text != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(text);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(text, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeNative(&ret, pStr0, (byte*)(default), hideTextAfterDoubleHash ? (byte)1 : (byte)0, (float)(-1.0f));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 	}
 }

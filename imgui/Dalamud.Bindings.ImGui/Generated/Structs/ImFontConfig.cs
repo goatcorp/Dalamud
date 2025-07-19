@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// A font inputsource (we may rename this to ImFontSource in the future)<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImFontConfig

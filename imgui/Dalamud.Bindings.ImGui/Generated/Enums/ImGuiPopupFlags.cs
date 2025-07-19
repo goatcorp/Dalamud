@@ -25,17 +25,17 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// For BeginPopupContext*(): open on Left Mouse release. Guaranteed to always be == 0 (same as ImGuiMouseButton_Left)<br/>
+		/// To be documented.
 		/// </summary>
 		MouseButtonLeft = unchecked(0),
 
 		/// <summary>
-		/// For BeginPopupContext*(): open on Right Mouse release. Guaranteed to always be == 1 (same as ImGuiMouseButton_Right)<br/>
+		/// To be documented.
 		/// </summary>
 		MouseButtonRight = unchecked(1),
 
 		/// <summary>
-		/// For BeginPopupContext*(): open on Middle Mouse release. Guaranteed to always be == 2 (same as ImGuiMouseButton_Middle)<br/>
+		/// To be documented.
 		/// </summary>
 		MouseButtonMiddle = unchecked(2),
 
@@ -50,22 +50,22 @@ namespace Dalamud.Bindings.ImGui
 		MouseButtonDefault = unchecked(1),
 
 		/// <summary>
-		/// For OpenPopup*(), BeginPopupContext*(): don't open if there's already a popup at the same level of the popup stack<br/>
+		/// To be documented.
 		/// </summary>
 		NoOpenOverExistingPopup = unchecked(32),
 
 		/// <summary>
-		/// For BeginPopupContextWindow(): don't return true when hovering items, only when hovering empty space<br/>
+		/// To be documented.
 		/// </summary>
 		NoOpenOverItems = unchecked(64),
 
 		/// <summary>
-		/// For IsPopupOpen(): ignore the ImGuiID parameter and test for any popup.<br/>
+		/// To be documented.
 		/// </summary>
 		AnyPopupId = unchecked(128),
 
 		/// <summary>
-		/// For IsPopupOpen(): searchtest at any level of the popup stack (default test in the current level)<br/>
+		/// To be documented.
 		/// </summary>
 		AnyPopupLevel = unchecked(256),
 

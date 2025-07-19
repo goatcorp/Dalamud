@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Helper: ImVec2ih (2D vector, half-size integer, for long-term packed storage)<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImVec2Ih

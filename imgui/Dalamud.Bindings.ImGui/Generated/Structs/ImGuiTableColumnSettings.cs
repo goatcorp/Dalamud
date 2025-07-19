@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// sizeof() ~ 16<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiTableColumnSettings
@@ -47,21 +47,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public sbyte SortOrder;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte SortDirection;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte IsEnabled;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte IsStretch;
-
+		public byte RawBits0;
 
 		/// <summary>
 		/// To be documented.
@@ -78,6 +64,12 @@ namespace Dalamud.Bindings.ImGui
 			IsStretch = isStretch;
 		}
 
+
+		public byte SortDirection { get => Bitfield.Get(RawBits0, 0, 2); set => Bitfield.Set(ref RawBits0, value, 0, 2); }
+
+		public byte IsEnabled { get => Bitfield.Get(RawBits0, 2, 1); set => Bitfield.Set(ref RawBits0, value, 2, 1); }
+
+		public byte IsStretch { get => Bitfield.Get(RawBits0, 3, 1); set => Bitfield.Set(ref RawBits0, value, 3, 1); }
 
 		/// <summary>
 		/// To be documented.
@@ -156,15 +148,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte SortDirection => ref Unsafe.AsRef<byte>(&Handle->SortDirection);
+		public byte SortDirection { get => Handle->SortDirection; set => Handle->SortDirection = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte IsEnabled => ref Unsafe.AsRef<byte>(&Handle->IsEnabled);
+		public byte IsEnabled { get => Handle->IsEnabled; set => Handle->IsEnabled = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte IsStretch => ref Unsafe.AsRef<byte>(&Handle->IsStretch);
+		public byte IsStretch { get => Handle->IsStretch; set => Handle->IsStretch = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>

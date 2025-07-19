@@ -25,7 +25,7 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// On failed request, restart from opposite side<br/>
+		/// To be documented.
 		/// </summary>
 		LoopX = unchecked(1),
 
@@ -35,27 +35,27 @@ namespace Dalamud.Bindings.ImGui
 		LoopY = unchecked(2),
 
 		/// <summary>
-		/// On failed request, request from opposite side one line down (when NavDir==right) or one line up (when NavDir==left)<br/>
+		/// To be documented.
 		/// </summary>
 		WrapX = unchecked(4),
 
 		/// <summary>
-		/// This is not super useful but provided for completeness<br/>
+		/// To be documented.
 		/// </summary>
 		WrapY = unchecked(8),
 
 		/// <summary>
-		/// Allow scoring and considering the current NavId as a move target candidate. This is used when the move source is offset (e.g. pressing PageDown actually needs to send a Up move request, if we are pressing PageDown from the bottom-most item we need to stay in place)<br/>
+		/// To be documented.
 		/// </summary>
 		AllowCurrentNavId = unchecked(16),
 
 		/// <summary>
-		/// Store alternate result in NavMoveResultLocalVisible that only comprise elements that are already fully visible (used by PageUpPageDown)<br/>
+		/// To be documented.
 		/// </summary>
 		AlsoScoreVisibleSet = unchecked(32),
 
 		/// <summary>
-		/// Force scrolling to minmax (used by HomeEnd)  FIXME-NAV: Aim to remove or reword, probably unnecessary<br/>
+		/// To be documented.
 		/// </summary>
 		ScrollToEdgeY = unchecked(64),
 
@@ -65,12 +65,12 @@ namespace Dalamud.Bindings.ImGui
 		Forwarded = unchecked(128),
 
 		/// <summary>
-		/// Dummy scoring for debug purpose, don't apply result<br/>
+		/// To be documented.
 		/// </summary>
 		DebugNoResult = unchecked(256),
 
 		/// <summary>
-		/// Requests from focus API can landfocusactivate items even if they are marked with _NoTabStop (see NavProcessItemForTabbingRequest() for details)<br/>
+		/// To be documented.
 		/// </summary>
 		FocusApi = unchecked(512),
 
@@ -80,7 +80,7 @@ namespace Dalamud.Bindings.ImGui
 		Tabbing = unchecked(1024),
 
 		/// <summary>
-		/// Activateselect target item.<br/>
+		/// To be documented.
 		/// </summary>
 		Activate = unchecked(2048),
 

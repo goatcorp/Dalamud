@@ -17,8 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Helper: Growable text buffer for loggingaccumulating text<br/>
-	/// (this could be called 'ImGuiTextBuilder'  'ImGuiStringBuilder')<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiTextBuffer

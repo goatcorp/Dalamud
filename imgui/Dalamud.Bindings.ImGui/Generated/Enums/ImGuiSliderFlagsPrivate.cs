@@ -20,12 +20,12 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiSliderFlagsPrivate : int
 	{
 		/// <summary>
-		/// Should this slider be orientated vertically?<br/>
+		/// To be documented.
 		/// </summary>
 		Vertical = unchecked(1048576),
 
 		/// <summary>
-		/// Consider using g.NextItemData.ItemFlags |= ImGuiItemFlags_ReadOnly instead.<br/>
+		/// To be documented.
 		/// </summary>
 		ReadOnly = unchecked(2097152),
 	}

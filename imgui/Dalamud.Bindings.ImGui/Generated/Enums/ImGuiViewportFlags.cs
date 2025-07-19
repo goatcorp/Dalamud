@@ -25,52 +25,52 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Represent a Platform Window<br/>
+		/// To be documented.
 		/// </summary>
 		IsPlatformWindow = unchecked(1),
 
 		/// <summary>
-		/// Represent a Platform Monitor (unused yet)<br/>
+		/// To be documented.
 		/// </summary>
 		IsPlatformMonitor = unchecked(2),
 
 		/// <summary>
-		/// Platform Window: Is createdmanaged by the user application? (rather than our backend)<br/>
+		/// To be documented.
 		/// </summary>
 		OwnedByApp = unchecked(4),
 
 		/// <summary>
-		/// Platform Window: Disable platform decorations: title bar, borders, etc. (generally set all windows, but if ImGuiConfigFlags_ViewportsDecoration is set we only set this on popupstooltips)<br/>
+		/// To be documented.
 		/// </summary>
 		NoDecoration = unchecked(8),
 
 		/// <summary>
-		/// Platform Window: Disable platform task bar icon (generally set on popupstooltips, or all windows if ImGuiConfigFlags_ViewportsNoTaskBarIcon is set)<br/>
+		/// To be documented.
 		/// </summary>
 		NoTaskBarIcon = unchecked(16),
 
 		/// <summary>
-		/// Platform Window: Don't take focus when created.<br/>
+		/// To be documented.
 		/// </summary>
 		NoFocusOnAppearing = unchecked(32),
 
 		/// <summary>
-		/// Platform Window: Don't take focus when clicked on.<br/>
+		/// To be documented.
 		/// </summary>
 		NoFocusOnClick = unchecked(64),
 
 		/// <summary>
-		/// Platform Window: Make mouse pass through so we can drag this window while peaking behind it.<br/>
+		/// To be documented.
 		/// </summary>
 		NoInputs = unchecked(128),
 
 		/// <summary>
-		/// Platform Window: Renderer doesn't need to clear the framebuffer ahead (because we will fill it entirely).<br/>
+		/// To be documented.
 		/// </summary>
 		NoRendererClear = unchecked(256),
 
 		/// <summary>
-		/// Platform Window: Display on top (for tooltips only).<br/>
+		/// To be documented.
 		/// </summary>
 		TopMost = unchecked(512),
 
@@ -80,12 +80,12 @@ namespace Dalamud.Bindings.ImGui
 		Minimized = unchecked(1024),
 
 		/// <summary>
-		/// Platform Window: Avoid merging this window into another host window. This can only be set via ImGuiWindowClass viewport flags override (because we need to now ahead if we are going to create a viewport in the first place!).<br/>
+		/// To be documented.
 		/// </summary>
 		NoAutoMerge = unchecked(2048),
 
 		/// <summary>
-		/// Viewport can host multiple imgui windows (secondary viewports are associated to a single window).  FIXME: In practice there's still probably code making the assumption that this is always and only on the MainViewport. Will fix once we add support for "no main viewport".<br/>
+		/// To be documented.
 		/// </summary>
 		CanHostOtherWindows = unchecked(4096),
 	}

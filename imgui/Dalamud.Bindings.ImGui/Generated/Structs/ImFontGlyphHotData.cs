@@ -32,21 +32,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public float OccupiedWidth;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint KerningPairUseBisect;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint KerningPairOffset;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint KerningPairCount;
-
+		public uint RawBits0;
 
 		/// <summary>
 		/// To be documented.
@@ -60,6 +46,12 @@ namespace Dalamud.Bindings.ImGui
 			KerningPairCount = kerningPairCount;
 		}
 
+
+		public uint KerningPairUseBisect { get => Bitfield.Get(RawBits0, 0, 1); set => Bitfield.Set(ref RawBits0, value, 0, 1); }
+
+		public uint KerningPairOffset { get => Bitfield.Get(RawBits0, 1, 19); set => Bitfield.Set(ref RawBits0, value, 1, 19); }
+
+		public uint KerningPairCount { get => Bitfield.Get(RawBits0, 20, 12); set => Bitfield.Set(ref RawBits0, value, 20, 12); }
 
 	}
 
@@ -115,15 +107,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint KerningPairUseBisect => ref Unsafe.AsRef<uint>(&Handle->KerningPairUseBisect);
+		public uint KerningPairUseBisect { get => Handle->KerningPairUseBisect; set => Handle->KerningPairUseBisect = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint KerningPairOffset => ref Unsafe.AsRef<uint>(&Handle->KerningPairOffset);
+		public uint KerningPairOffset { get => Handle->KerningPairOffset; set => Handle->KerningPairOffset = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint KerningPairCount => ref Unsafe.AsRef<uint>(&Handle->KerningPairCount);
+		public uint KerningPairCount { get => Handle->KerningPairCount; set => Handle->KerningPairCount = value; }
 	}
 
 }

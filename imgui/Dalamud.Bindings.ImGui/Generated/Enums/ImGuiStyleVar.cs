@@ -20,127 +20,127 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiStyleVar : int
 	{
 		/// <summary>
-		/// float     Alpha<br/>
+		/// To be documented.
 		/// </summary>
 		Alpha = unchecked(0),
 
 		/// <summary>
-		/// ImVec2    WindowPadding<br/>
+		/// To be documented.
 		/// </summary>
 		WindowPadding = unchecked(1),
 
 		/// <summary>
-		/// float     WindowRounding<br/>
+		/// To be documented.
 		/// </summary>
 		WindowRounding = unchecked(2),
 
 		/// <summary>
-		/// float     WindowBorderSize<br/>
+		/// To be documented.
 		/// </summary>
 		WindowBorderSize = unchecked(3),
 
 		/// <summary>
-		/// ImVec2    WindowMinSize<br/>
+		/// To be documented.
 		/// </summary>
 		WindowMinSize = unchecked(4),
 
 		/// <summary>
-		/// ImVec2    WindowTitleAlign<br/>
+		/// To be documented.
 		/// </summary>
 		WindowTitleAlign = unchecked(5),
 
 		/// <summary>
-		/// float     ChildRounding<br/>
+		/// To be documented.
 		/// </summary>
 		ChildRounding = unchecked(6),
 
 		/// <summary>
-		/// float     ChildBorderSize<br/>
+		/// To be documented.
 		/// </summary>
 		ChildBorderSize = unchecked(7),
 
 		/// <summary>
-		/// float     PopupRounding<br/>
+		/// To be documented.
 		/// </summary>
 		PopupRounding = unchecked(8),
 
 		/// <summary>
-		/// float     PopupBorderSize<br/>
+		/// To be documented.
 		/// </summary>
 		PopupBorderSize = unchecked(9),
 
 		/// <summary>
-		/// ImVec2    FramePadding<br/>
+		/// To be documented.
 		/// </summary>
 		FramePadding = unchecked(10),
 
 		/// <summary>
-		/// float     FrameRounding<br/>
+		/// To be documented.
 		/// </summary>
 		FrameRounding = unchecked(11),
 
 		/// <summary>
-		/// float     FrameBorderSize<br/>
+		/// To be documented.
 		/// </summary>
 		FrameBorderSize = unchecked(12),
 
 		/// <summary>
-		/// ImVec2    ItemSpacing<br/>
+		/// To be documented.
 		/// </summary>
 		ItemSpacing = unchecked(13),
 
 		/// <summary>
-		/// ImVec2    ItemInnerSpacing<br/>
+		/// To be documented.
 		/// </summary>
 		ItemInnerSpacing = unchecked(14),
 
 		/// <summary>
-		/// float     IndentSpacing<br/>
+		/// To be documented.
 		/// </summary>
 		IndentSpacing = unchecked(15),
 
 		/// <summary>
-		/// ImVec2    CellPadding<br/>
+		/// To be documented.
 		/// </summary>
 		CellPadding = unchecked(16),
 
 		/// <summary>
-		/// float     ScrollbarSize<br/>
+		/// To be documented.
 		/// </summary>
 		ScrollbarSize = unchecked(17),
 
 		/// <summary>
-		/// float     ScrollbarRounding<br/>
+		/// To be documented.
 		/// </summary>
 		ScrollbarRounding = unchecked(18),
 
 		/// <summary>
-		/// float     GrabMinSize<br/>
+		/// To be documented.
 		/// </summary>
 		GrabMinSize = unchecked(19),
 
 		/// <summary>
-		/// float     GrabRounding<br/>
+		/// To be documented.
 		/// </summary>
 		GrabRounding = unchecked(20),
 
 		/// <summary>
-		/// float     TabRounding<br/>
+		/// To be documented.
 		/// </summary>
 		TabRounding = unchecked(21),
 
 		/// <summary>
-		/// ImVec2    ButtonTextAlign<br/>
+		/// To be documented.
 		/// </summary>
 		ButtonTextAlign = unchecked(22),
 
 		/// <summary>
-		/// ImVec2    SelectableTextAlign<br/>
+		/// To be documented.
 		/// </summary>
 		SelectableTextAlign = unchecked(23),
 
 		/// <summary>
-		/// float     DisabledAlpha<br/>
+		/// To be documented.
 		/// </summary>
 		DisabledAlpha = unchecked(24),
 

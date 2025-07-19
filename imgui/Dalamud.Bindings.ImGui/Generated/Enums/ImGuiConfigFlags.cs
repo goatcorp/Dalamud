@@ -25,12 +25,12 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Master keyboard navigation enable flag. Enable full Tabbing + directional arrows + spaceenter to activate.<br/>
+		/// To be documented.
 		/// </summary>
 		NavEnableKeyboard = unchecked(1),
 
 		/// <summary>
-		/// Master gamepad navigation enable flag. Backend also needs to set ImGuiBackendFlags_HasGamepad.<br/>
+		/// To be documented.
 		/// </summary>
 		NavEnableGamepad = unchecked(2),
 
@@ -45,12 +45,12 @@ namespace Dalamud.Bindings.ImGui
 		NavNoCaptureKeyboard = unchecked(8),
 
 		/// <summary>
-		/// Instruct dear imgui to disable mouse inputs and interactions.<br/>
+		/// To be documented.
 		/// </summary>
 		NoMouse = unchecked(16),
 
 		/// <summary>
-		/// Instruct backend to not alter mouse cursor shape and visibility. Use if the backend cursor changes are interfering with yours and you don't want to use SetMouseCursor() to change mouse cursor. You may want to honor requests from imgui by reading GetMouseCursor() yourself instead.<br/>
+		/// To be documented.
 		/// </summary>
 		NoMouseCursorChange = unchecked(32),
 
@@ -60,32 +60,32 @@ namespace Dalamud.Bindings.ImGui
 		NoKerning = unchecked(128),
 
 		/// <summary>
-		/// Docking enable flags.<br/>
+		/// To be documented.
 		/// </summary>
 		DockingEnable = unchecked(64),
 
 		/// <summary>
-		/// Viewport enable flags (require both ImGuiBackendFlags_PlatformHasViewports + ImGuiBackendFlags_RendererHasViewports set by the respective backends)<br/>
+		/// To be documented.
 		/// </summary>
 		ViewportsEnable = unchecked(1024),
 
 		/// <summary>
-		/// [BETA: Don't use] FIXME-DPI: Reposition and resize imgui windows when the DpiScale of a viewport changed (mostly useful for the main viewport hosting other window). Note that resizing the main window itself is up to your application.<br/>
+		/// To be documented.
 		/// </summary>
 		DpiEnableScaleViewports = unchecked(16384),
 
 		/// <summary>
-		/// [BETA: Don't use] FIXME-DPI: Request bitmap-scaled fonts to match DpiScale. This is a very low-quality workaround. The correct way to handle DPI is _currently_ to replace the atlas andor fonts in the Platform_OnChangedViewport callback, but this is all early work in progress.<br/>
+		/// To be documented.
 		/// </summary>
 		DpiEnableScaleFonts = unchecked(32768),
 
 		/// <summary>
-		/// Application is SRGB-aware.<br/>
+		/// To be documented.
 		/// </summary>
 		IsSrgb = unchecked(1048576),
 
 		/// <summary>
-		/// Application is using a touch screen instead of a mouse.<br/>
+		/// To be documented.
 		/// </summary>
 		IsTouchScreen = unchecked(2097152),
 	}

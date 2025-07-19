@@ -25,37 +25,37 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// If item is not visible: scroll as little as possible on X axis to bring item back into view [default for X axis]<br/>
+		/// To be documented.
 		/// </summary>
 		KeepVisibleEdgeX = unchecked(1),
 
 		/// <summary>
-		/// If item is not visible: scroll as little as possible on Y axis to bring item back into view [default for Y axis for windows that are already visible]<br/>
+		/// To be documented.
 		/// </summary>
 		KeepVisibleEdgeY = unchecked(2),
 
 		/// <summary>
-		/// If item is not visible: scroll to make the item centered on X axis [rarely used]<br/>
+		/// To be documented.
 		/// </summary>
 		KeepVisibleCenterX = unchecked(4),
 
 		/// <summary>
-		/// If item is not visible: scroll to make the item centered on Y axis<br/>
+		/// To be documented.
 		/// </summary>
 		KeepVisibleCenterY = unchecked(8),
 
 		/// <summary>
-		/// Always center the result item on X axis [rarely used]<br/>
+		/// To be documented.
 		/// </summary>
 		AlwaysCenterX = unchecked(16),
 
 		/// <summary>
-		/// Always center the result item on Y axis [default for Y axis for appearing window)<br/>
+		/// To be documented.
 		/// </summary>
 		AlwaysCenterY = unchecked(32),
 
 		/// <summary>
-		/// Disable forwarding scrolling to parent window if required to keep itemrect visible (only scroll window the function was applied to).<br/>
+		/// To be documented.
 		/// </summary>
 		NoScrollParent = unchecked(64),
 

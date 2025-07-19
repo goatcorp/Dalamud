@@ -17,10 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Sorting specifications for a table (often handling sort specs for a single column, occasionally more)<br/>
-	/// Obtained by calling TableGetSortSpecs().<br/>
-	/// When 'SpecsDirty == true' you can sort your data. It will be true with sorting specs have changed since last call, or the first time.<br/>
-	/// Make sure to set 'SpecsDirty = false' after sorting, else you may wastefully sort your data every frame!<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiTableSortSpecs

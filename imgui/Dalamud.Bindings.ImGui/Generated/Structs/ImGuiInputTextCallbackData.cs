@@ -17,15 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Shared state of InputText(), passed as an argument to your callback when a ImGuiInputTextFlags_Callback* flag is used.<br/>
-	/// The callback function should return 0 by default.<br/>
-	/// Callbacks (follow a flag name and see comments in ImGuiInputTextFlags_ declarations for more details)<br/>
-	/// - ImGuiInputTextFlags_CallbackEdit:        Callback on buffer edit. Note that InputText() already returns true on edit + you can always use IsItemEdited(). The callback is useful to manipulate the underlying buffer while focus is active.<br/>
-	/// - ImGuiInputTextFlags_CallbackAlways:      Callback on each iteration<br/>
-	/// - ImGuiInputTextFlags_CallbackCompletion:  Callback on pressing TAB<br/>
-	/// - ImGuiInputTextFlags_CallbackHistory:     Callback on pressing UpDown arrows<br/>
-	/// - ImGuiInputTextFlags_CallbackCharFilter:  Callback on character inputs to replace or discard them. Modify 'EventChar' to replace or discard, or return 1 in callback to discard.<br/>
-	/// - ImGuiInputTextFlags_CallbackResize:      Callback on buffer capacity changes request (beyond 'buf_size' parameter value), allowing the string to grow.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiInputTextCallbackData

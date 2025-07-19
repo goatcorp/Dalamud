@@ -30,17 +30,17 @@ namespace Dalamud.Bindings.ImGui
 		DontClosePopups = unchecked(1),
 
 		/// <summary>
-		/// Frame will span all columns of its container table (text will still fit in current column)<br/>
+		/// To be documented.
 		/// </summary>
 		SpanAllColumns = unchecked(2),
 
 		/// <summary>
-		/// Generate press events on double clicks too<br/>
+		/// To be documented.
 		/// </summary>
 		AllowDoubleClick = unchecked(4),
 
 		/// <summary>
-		/// Cannot be selected, display grayed out text<br/>
+		/// To be documented.
 		/// </summary>
 		Disabled = unchecked(8),
 

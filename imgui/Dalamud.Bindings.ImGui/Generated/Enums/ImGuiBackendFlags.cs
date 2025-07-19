@@ -25,37 +25,37 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Backend Platform supports gamepad and currently has one connected.<br/>
+		/// To be documented.
 		/// </summary>
 		HasGamepad = unchecked(1),
 
 		/// <summary>
-		/// Backend Platform supports honoring GetMouseCursor() value to change the OS cursor shape.<br/>
+		/// To be documented.
 		/// </summary>
 		HasMouseCursors = unchecked(2),
 
 		/// <summary>
-		/// Backend Platform supports io.WantSetMousePos requests to reposition the OS mouse position (only used if io.ConfigNavMoveSetMousePos is set).<br/>
+		/// To be documented.
 		/// </summary>
 		HasSetMousePos = unchecked(4),
 
 		/// <summary>
-		/// Backend Renderer supports ImDrawCmd::VtxOffset. This enables output of large meshes (64K+ vertices) while still using 16-bit indices.<br/>
+		/// To be documented.
 		/// </summary>
 		RendererHasVtxOffset = unchecked(8),
 
 		/// <summary>
-		/// Backend Platform supports multiple viewports.<br/>
+		/// To be documented.
 		/// </summary>
 		PlatformHasViewports = unchecked(1024),
 
 		/// <summary>
-		/// Backend Platform supports calling io.AddMouseViewportEvent() with the viewport under the mouse. IF POSSIBLE, ignore viewports with the ImGuiViewportFlags_NoInputs flag (Win32 backend, GLFW 3.30+ backend can do this, SDL backend cannot). If this cannot be done, Dear ImGui needs to use a flawed heuristic to find the viewport under.<br/>
+		/// To be documented.
 		/// </summary>
 		HasMouseHoveredViewport = unchecked(2048),
 
 		/// <summary>
-		/// Backend Renderer supports multiple viewports.<br/>
+		/// To be documented.
 		/// </summary>
 		RendererHasViewports = unchecked(4096),
 	}

@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Sorting specification for one column of a table (sizeof == 12 bytes)<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiTableColumnSortSpecs
@@ -37,11 +37,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public short SortOrder;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiSortDirection SortDirection;
-
+		public ImGuiSortDirection RawBits0;
 
 		/// <summary>
 		/// To be documented.
@@ -54,6 +50,8 @@ namespace Dalamud.Bindings.ImGui
 			SortDirection = sortDirection;
 		}
 
+
+		public ImGuiSortDirection SortDirection { get => Bitfield.Get(RawBits0, 0, 8); set => Bitfield.Set(ref RawBits0, value, 0, 8); }
 
 		/// <summary>
 		/// To be documented.
@@ -124,7 +122,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiSortDirection SortDirection => ref Unsafe.AsRef<ImGuiSortDirection>(&Handle->SortDirection);
+		public ImGuiSortDirection SortDirection { get => Handle->SortDirection; set => Handle->SortDirection = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>

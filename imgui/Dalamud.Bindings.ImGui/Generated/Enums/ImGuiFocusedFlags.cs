@@ -25,27 +25,27 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Return true if any children of the window is focused<br/>
+		/// To be documented.
 		/// </summary>
 		ChildWindows = unchecked(1),
 
 		/// <summary>
-		/// Test from root window (top most parent of the current hierarchy)<br/>
+		/// To be documented.
 		/// </summary>
 		RootWindow = unchecked(2),
 
 		/// <summary>
-		/// Return true if any window is focused. Important: If you are trying to tell how to dispatch your low-level inputs, do NOT use this. Use 'io.WantCaptureMouse' instead! Please read the FAQ!<br/>
+		/// To be documented.
 		/// </summary>
 		AnyWindow = unchecked(4),
 
 		/// <summary>
-		/// Do not consider popup hierarchy (do not treat popup emitter as parent of popup) (when used with _ChildWindows or _RootWindow)<br/>
+		/// To be documented.
 		/// </summary>
 		NoPopupHierarchy = unchecked(8),
 
 		/// <summary>
-		/// Consider docking hierarchy (treat dockspace host as parent of docked window) (when used with _ChildWindows or _RootWindow)<br/>
+		/// To be documented.
 		/// </summary>
 		DockHierarchy = unchecked(16),
 

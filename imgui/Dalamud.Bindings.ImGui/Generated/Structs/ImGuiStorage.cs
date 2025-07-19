@@ -17,14 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Helper: Key-&gt;Value storage<br/>
-	/// Typically you don't have to worry about this since a storage is held within each Window.<br/>
-	/// We use it to e.g. store collapse state for a tree (Int 01)<br/>
-	/// This is optimized for efficient lookup (dichotomy into a contiguous buffer) and rare insertion (typically tied to user interactions aka max once a frame)<br/>
-	/// You can use it as custom user storage for temporary values. Declare your own storage if, for example:<br/>
-	/// - You want to manipulate the openclose state of a particular sub-tree in your interface (tree node uses Int 01 to store their state).<br/>
-	/// - You want to store custom debug data easily without adding or editing structures in your code (probably not efficient, but convenient)<br/>
-	/// Types are NOT stored, so it is up to you to make sure your Key don't collide with different types.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiStorage

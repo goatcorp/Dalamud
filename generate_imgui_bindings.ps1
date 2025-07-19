@@ -7,14 +7,19 @@ Set-Location -Path $PSScriptRoot
 # Copy cimgui files from the cimgui repository to Hexa.NET.ImGui
 Copy-Item -Path "lib/cimgui/cimgui.h" -Destination "lib/Hexa.NET.ImGui/Generator/cimgui" -Force
 Copy-Item -Path "lib/cimgui/generator/output/definitions.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimgui" -Force
+Copy-Item -Path "lib/cimgui/generator/output/structs_and_enums.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimgui" -Force
+Copy-Item -Path "lib/cimgui/generator/output/typedefs_dict.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimgui" -Force
 
 # Copy cimplot.h and cimguizmo.h
 Copy-Item -Path "lib/cimplot/cimplot.h" -Destination "lib/Hexa.NET.ImGui/Generator/cimplot" -Force
 Copy-Item -Path "lib/cimplot/generator/output/definitions.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimplot" -Force
+Copy-Item -Path "lib/cimplot/generator/output/structs_and_enums.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimplot" -Force
+Copy-Item -Path "lib/cimplot/generator/output/typedefs_dict.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimplot" -Force
 
 Copy-Item -Path "lib/cimguizmo/cimguizmo.h" -Destination "lib/Hexa.NET.ImGui/Generator/cimguizmo" -Force
 Copy-Item -Path "lib/cimguizmo/generator/output/definitions.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimguizmo" -Force
-
+Copy-Item -Path "lib/cimguizmo/generator/output/structs_and_enums.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimguizmo" -Force
+#Copy-Item -Path "lib/cimguizmo/generator/output/typedefs_dict.json" -Destination "lib/Hexa.NET.ImGui/Generator/cimguizmo" -Force
 
 # Find the first `#ifdef CIMGUI_DEFINE_ENUMS_AND_STRUCTS` in cimgui.h and insert `#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS` before it
 function InsertDefine {
@@ -66,6 +71,7 @@ Set-Location -Path "Generator"
 dotnet build
 
 # Run generator
+Read-Host -Prompt "Press any key to generate" | Out-Null
 Set-Location -Path "bin/Debug/net9.0"
 .\Generator.exe
 

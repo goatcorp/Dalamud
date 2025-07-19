@@ -1178,7 +1178,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe void ExtendFitWith(ImPlotAxis* alt, double v, double vAlt)
+		public unsafe void ExtendFitWith(ImPlotAxisPtr alt, double v, double vAlt)
 		{
 			ImPlot.ExtendFitWithNative(Handle, alt, v, vAlt);
 		}

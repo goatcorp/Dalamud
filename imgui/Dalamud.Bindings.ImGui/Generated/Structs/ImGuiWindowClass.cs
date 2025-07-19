@@ -17,13 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// [ALPHA] Rarely used  very advanced uses only. Use with SetNextWindowClass() and DockSpace() functions.<br/>
-	/// Important: the content of this class is still highly WIP and likely to change and be refactored<br/>
-	/// before we stabilize Docking features. Please be mindful if using this.<br/>
-	/// Provide hints:<br/>
-	/// - To the platform backend via altered viewport flags (enabledisable OS decoration, OS task bar icons, etc.)<br/>
-	/// - To the platform backend for OS level parentchild relationships of viewport.<br/>
-	/// - To the docking system for various options and filtering.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiWindowClass

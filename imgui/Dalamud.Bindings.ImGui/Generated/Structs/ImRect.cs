@@ -17,8 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Helper: ImRect (2D axis aligned bounding-box)<br/>
-	/// NB: we can't rely on ImVec2 math operators being available here!<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImRect

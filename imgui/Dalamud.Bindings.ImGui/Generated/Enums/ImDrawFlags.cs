@@ -25,32 +25,32 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// PathStroke(), AddPolyline(): specify that shape should be closed (Important: this is always == 1 for legacy reason)<br/>
+		/// To be documented.
 		/// </summary>
 		Closed = unchecked(1),
 
 		/// <summary>
-		/// AddRect(), AddRectFilled(), PathRect(): enable rounding top-left corner only (when rounding &gt; 0.0f, we default to all corners). Was 0x01.<br/>
+		/// To be documented.
 		/// </summary>
 		RoundCornersTopLeft = unchecked(16),
 
 		/// <summary>
-		/// AddRect(), AddRectFilled(), PathRect(): enable rounding top-right corner only (when rounding &gt; 0.0f, we default to all corners). Was 0x02.<br/>
+		/// To be documented.
 		/// </summary>
 		RoundCornersTopRight = unchecked(32),
 
 		/// <summary>
-		/// AddRect(), AddRectFilled(), PathRect(): enable rounding bottom-left corner only (when rounding &gt; 0.0f, we default to all corners). Was 0x04.<br/>
+		/// To be documented.
 		/// </summary>
 		RoundCornersBottomLeft = unchecked(64),
 
 		/// <summary>
-		/// AddRect(), AddRectFilled(), PathRect(): enable rounding bottom-right corner only (when rounding &gt; 0.0f, we default to all corners). Wax 0x08.<br/>
+		/// To be documented.
 		/// </summary>
 		RoundCornersBottomRight = unchecked(128),
 
 		/// <summary>
-		/// AddRect(), AddRectFilled(), PathRect(): disable rounding on all corners (when rounding &gt; 0.0f). This is NOT zero, NOT an implicit flag!<br/>
+		/// To be documented.
 		/// </summary>
 		RoundCornersNone = unchecked(256),
 
@@ -80,7 +80,7 @@ namespace Dalamud.Bindings.ImGui
 		RoundCornersAll = unchecked(240),
 
 		/// <summary>
-		/// Default to ALL corners if none of the _RoundCornersXX flags are specified.<br/>
+		/// To be documented.
 		/// </summary>
 		RoundCornersDefault = RoundCornersAll,
 

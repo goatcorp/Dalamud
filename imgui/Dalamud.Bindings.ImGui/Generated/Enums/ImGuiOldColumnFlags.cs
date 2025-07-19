@@ -25,27 +25,27 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Disable column dividers<br/>
+		/// To be documented.
 		/// </summary>
 		NoBorder = unchecked(1),
 
 		/// <summary>
-		/// Disable resizing columns when clicking on the dividers<br/>
+		/// To be documented.
 		/// </summary>
 		NoResize = unchecked(2),
 
 		/// <summary>
-		/// Disable column width preservation when adjusting columns<br/>
+		/// To be documented.
 		/// </summary>
 		NoPreserveWidths = unchecked(4),
 
 		/// <summary>
-		/// Disable forcing columns to fit within window<br/>
+		/// To be documented.
 		/// </summary>
 		NoForceWithinWindow = unchecked(8),
 
 		/// <summary>
-		/// Restore pre-1.51 behavior of extending the parent window contents size but _without affecting the columns width at all_. Will eventually remove.<br/>
+		/// To be documented.
 		/// </summary>
 		GrowParentContentsSize = unchecked(16),
 	}

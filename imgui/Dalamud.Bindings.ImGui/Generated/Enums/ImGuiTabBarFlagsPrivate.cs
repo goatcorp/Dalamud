@@ -20,7 +20,7 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiTabBarFlagsPrivate : int
 	{
 		/// <summary>
-		/// Part of a dock node [we don't use this in the master branch but it facilitate branch syncing to keep this around]<br/>
+		/// To be documented.
 		/// </summary>
 		DockNode = unchecked(1048576),
 
@@ -30,7 +30,7 @@ namespace Dalamud.Bindings.ImGui
 		IsFocused = unchecked(2097152),
 
 		/// <summary>
-		/// FIXME: Settings are handled by the docking system, this only request the tab bar to mark settings dirty when reordering tabs<br/>
+		/// To be documented.
 		/// </summary>
 		SaveSettings = unchecked(4194304),
 	}

@@ -25,42 +25,42 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Display a dot next to the title + set ImGuiTabItemFlags_NoAssumedClosure.<br/>
+		/// To be documented.
 		/// </summary>
 		UnsavedDocument = unchecked(1),
 
 		/// <summary>
-		/// Trigger flag to programmatically make the tab selected when calling BeginTabItem()<br/>
+		/// To be documented.
 		/// </summary>
 		SetSelected = unchecked(2),
 
 		/// <summary>
-		/// Disable behavior of closing tabs (that are submitted with p_open != NULL) with middle mouse button. You may handle this behavior manually on user's side with if (IsItemHovered() &amp;&amp; IsMouseClicked(2)) *p_open = false.<br/>
+		/// To be documented.
 		/// </summary>
 		NoCloseWithMiddleMouseButton = unchecked(4),
 
 		/// <summary>
-		/// Don't call PushID()PopID() on BeginTabItem()EndTabItem()<br/>
+		/// To be documented.
 		/// </summary>
 		NoPushId = unchecked(8),
 
 		/// <summary>
-		/// Disable tooltip for the given tab<br/>
+		/// To be documented.
 		/// </summary>
 		NoTooltip = unchecked(16),
 
 		/// <summary>
-		/// Disable reordering this tab or having another tab cross over this tab<br/>
+		/// To be documented.
 		/// </summary>
 		NoReorder = unchecked(32),
 
 		/// <summary>
-		/// Enforce the tab position to the left of the tab bar (after the tab list popup button)<br/>
+		/// To be documented.
 		/// </summary>
 		Leading = unchecked(64),
 
 		/// <summary>
-		/// Enforce the tab position to the right of the tab bar (before the scrolling buttons)<br/>
+		/// To be documented.
 		/// </summary>
 		Trailing = unchecked(128),
 	}

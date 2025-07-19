@@ -17,8 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// This structure is likely to evolve as we add support for incremental atlas updates.<br/>
-	/// Conceptually this could be in ImGuiPlatformIO, but we are far from ready to make this public.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImFontBuilderIO

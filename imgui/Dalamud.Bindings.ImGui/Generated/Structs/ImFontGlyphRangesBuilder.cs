@@ -17,8 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Helper to build glyph ranges from textstring data. Feed your application stringscharacters to it then call BuildRanges().<br/>
-	/// This is essentially a tightly packed of vector of 64k booleans = 8KB storage.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImFontGlyphRangesBuilder
@@ -57,20 +56,6 @@ namespace Dalamud.Bindings.ImGui
 			fixed (ImFontGlyphRangesBuilder* @this = &this)
 			{
 				ImGui.AddRangesNative(@this, ranges);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRanges(ref ushort ranges)
-		{
-			fixed (ImFontGlyphRangesBuilder* @this = &this)
-			{
-				fixed (ushort* pranges = &ranges)
-				{
-					ImGui.AddRangesNative(@this, (ushort*)pranges);
-				}
 			}
 		}
 
@@ -587,35 +572,12 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe bool GetBit(ulong n)
-		{
-			fixed (ImFontGlyphRangesBuilder* @this = &this)
-			{
-				byte ret = ImGui.GetBitNative(@this, n);
-				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public unsafe bool GetBit(nuint n)
 		{
 			fixed (ImFontGlyphRangesBuilder* @this = &this)
 			{
 				byte ret = ImGui.GetBitNative(@this, n);
 				return ret != 0;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void SetBit(ulong n)
-		{
-			fixed (ImFontGlyphRangesBuilder* @this = &this)
-			{
-				ImGui.SetBitNative(@this, n);
 			}
 		}
 
@@ -691,17 +653,6 @@ namespace Dalamud.Bindings.ImGui
 		public unsafe void AddRanges(ushort* ranges)
 		{
 			ImGui.AddRangesNative(Handle, ranges);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void AddRanges(ref ushort ranges)
-		{
-			fixed (ushort* pranges = &ranges)
-			{
-				ImGui.AddRangesNative(Handle, (ushort*)pranges);
-			}
 		}
 
 		/// <summary>
@@ -1145,27 +1096,10 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe bool GetBit(ulong n)
-		{
-			byte ret = ImGui.GetBitNative(Handle, n);
-			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		public unsafe bool GetBit(nuint n)
 		{
 			byte ret = ImGui.GetBitNative(Handle, n);
 			return ret != 0;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public unsafe void SetBit(ulong n)
-		{
-			ImGui.SetBitNative(Handle, n);
 		}
 
 		/// <summary>

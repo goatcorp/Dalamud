@@ -661,14 +661,14 @@ namespace Dalamud.Bindings.ImGui
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate void* ImGuiMemAllocFunc([NativeName(NativeNameType.Param, "sz")] [NativeName(NativeNameType.Type, "size_t")] ulong sz, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] void* userData);
+	public unsafe delegate void* ImGuiMemAllocFunc([NativeName(NativeNameType.Param, "sz")] [NativeName(NativeNameType.Type, "size_t")] nuint sz, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] void* userData);
 
 	#else
 	/// <summary>
 	/// To be documented.
 	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public unsafe delegate nint ImGuiMemAllocFunc([NativeName(NativeNameType.Param, "sz")] [NativeName(NativeNameType.Type, "size_t")] ulong sz, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] nint userData);
+	public unsafe delegate nint ImGuiMemAllocFunc([NativeName(NativeNameType.Param, "sz")] [NativeName(NativeNameType.Type, "size_t")] nuint sz, [NativeName(NativeNameType.Param, "user_data")] [NativeName(NativeNameType.Type, "void*")] nint userData);
 
 	#endif
 

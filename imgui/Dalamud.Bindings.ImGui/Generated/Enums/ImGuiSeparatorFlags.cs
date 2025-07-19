@@ -25,7 +25,7 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Axis default to current layout type, so generally Horizontal unless e.g. in a menu bar<br/>
+		/// To be documented.
 		/// </summary>
 		Horizontal = unchecked(1),
 
@@ -35,7 +35,7 @@ namespace Dalamud.Bindings.ImGui
 		Vertical = unchecked(2),
 
 		/// <summary>
-		/// Make separator cover all columns of a legacy Columns() set.<br/>
+		/// To be documented.
 		/// </summary>
 		SpanAllColumns = unchecked(4),
 	}

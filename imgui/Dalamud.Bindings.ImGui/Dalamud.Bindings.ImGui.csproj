@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="HexaGen.Runtime" Version="1.1.17" />
+        <PackageReference Include="HexaGen.Runtime" Version="1.1.20" />
     </ItemGroup>
 
 </Project>

@@ -25,7 +25,7 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Note: may be Mouse or TouchScreen or Pen. See io.MouseSource to distinguish them.<br/>
+		/// To be documented.
 		/// </summary>
 		Mouse = unchecked(1),
 

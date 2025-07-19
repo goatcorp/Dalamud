@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// We don't store style.Alpha: dock_node-&gt;LastBgColor embeds it and otherwise it would only affect the docking tab, which intuitively I would say we don't want to.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiWindowDockStyle

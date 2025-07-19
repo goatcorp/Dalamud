@@ -25,112 +25,112 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Default as a hiddendisabled column.<br/>
+		/// To be documented.
 		/// </summary>
 		DefaultHide = unchecked(1),
 
 		/// <summary>
-		/// Default as a sorting column.<br/>
+		/// To be documented.
 		/// </summary>
 		DefaultSort = unchecked(2),
 
 		/// <summary>
-		/// Column will stretch. Preferable with horizontal scrolling disabled (default if table sizing policy is _SizingStretchSame or _SizingStretchProp).<br/>
+		/// To be documented.
 		/// </summary>
 		WidthStretch = unchecked(4),
 
 		/// <summary>
-		/// Column will not stretch. Preferable with horizontal scrolling enabled (default if table sizing policy is _SizingFixedFit and table is resizable).<br/>
+		/// To be documented.
 		/// </summary>
 		WidthFixed = unchecked(8),
 
 		/// <summary>
-		/// Disable manual resizing.<br/>
+		/// To be documented.
 		/// </summary>
 		NoResize = unchecked(16),
 
 		/// <summary>
-		/// Disable manual reordering this column, this will also prevent other columns from crossing over this column.<br/>
+		/// To be documented.
 		/// </summary>
 		NoReorder = unchecked(32),
 
 		/// <summary>
-		/// Disable ability to hidedisable this column.<br/>
+		/// To be documented.
 		/// </summary>
 		NoHide = unchecked(64),
 
 		/// <summary>
-		/// Disable clipping for this column (all NoClip columns will render in a same draw command).<br/>
+		/// To be documented.
 		/// </summary>
 		NoClip = unchecked(128),
 
 		/// <summary>
-		/// Disable ability to sort on this field (even if ImGuiTableFlags_Sortable is set on the table).<br/>
+		/// To be documented.
 		/// </summary>
 		NoSort = unchecked(256),
 
 		/// <summary>
-		/// Disable ability to sort in the ascending direction.<br/>
+		/// To be documented.
 		/// </summary>
 		NoSortAscending = unchecked(512),
 
 		/// <summary>
-		/// Disable ability to sort in the descending direction.<br/>
+		/// To be documented.
 		/// </summary>
 		NoSortDescending = unchecked(1024),
 
 		/// <summary>
-		/// Disable header text width contribution to automatic column width.<br/>
+		/// To be documented.
 		/// </summary>
 		NoHeaderWidth = unchecked(2048),
 
 		/// <summary>
-		/// Make the initial sort direction Ascending when first sorting on this column (default).<br/>
+		/// To be documented.
 		/// </summary>
 		PreferSortAscending = unchecked(4096),
 
 		/// <summary>
-		/// Make the initial sort direction Descending when first sorting on this column.<br/>
+		/// To be documented.
 		/// </summary>
 		PreferSortDescending = unchecked(8192),
 
 		/// <summary>
-		/// Use current Indent value when entering cell (default for column 0).<br/>
+		/// To be documented.
 		/// </summary>
 		IndentEnable = unchecked(16384),
 
 		/// <summary>
-		/// Ignore current Indent value when entering cell (default for columns &gt; 0). Indentation changes _within_ the cell will still be honored.<br/>
+		/// To be documented.
 		/// </summary>
 		IndentDisable = unchecked(32768),
 
 		/// <summary>
-		/// Status: is enabled == not hidden by userapi (referred to as "Hide" in _DefaultHide and _NoHide) flags.<br/>
+		/// To be documented.
 		/// </summary>
 		IsEnabled = unchecked(1048576),
 
 		/// <summary>
-		/// Status: is visible == is enabled AND not clipped by scrolling.<br/>
+		/// To be documented.
 		/// </summary>
 		IsVisible = unchecked(2097152),
 
 		/// <summary>
-		/// Status: is currently part of the sort specs<br/>
+		/// To be documented.
 		/// </summary>
 		IsSorted = unchecked(4194304),
 
 		/// <summary>
-		/// Status: is hovered by mouse<br/>
+		/// To be documented.
 		/// </summary>
 		IsHovered = unchecked(8388608),
 
 		/// <summary>
-		/// Overridingmaster disable flag: hide column, won't show in context menu (unlike calling TableSetColumnEnabled() which manipulates the user accessible state)<br/>
+		/// To be documented.
 		/// </summary>
 		Disabled = unchecked(65536),
 
 		/// <summary>
-		/// TableHeadersRow() will submit an empty label for this column. Convenient for some small columns. Name will still appear in context menu or in angled headers. You may append into this cell by calling TableSetColumnIndex() right after the TableHeadersRow() call.<br/>
+		/// To be documented.
 		/// </summary>
 		NoHeaderLabel = unchecked(131072),
 
@@ -150,7 +150,7 @@ namespace Dalamud.Bindings.ImGui
 		StatusMask = unchecked(15728640),
 
 		/// <summary>
-		/// [Internal] Disable user resizing this column directly (it may however we resized indirectly from its left edge)<br/>
+		/// To be documented.
 		/// </summary>
 		NoDirectResize = unchecked(1073741824),
 	}

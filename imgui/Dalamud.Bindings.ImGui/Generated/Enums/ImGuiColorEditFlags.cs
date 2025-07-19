@@ -25,57 +25,57 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// ColorEdit, ColorPicker, ColorButton: ignore Alpha component (will only read 3 components from the input pointer).<br/>
+		/// To be documented.
 		/// </summary>
 		NoAlpha = unchecked(2),
 
 		/// <summary>
-		/// ColorEdit: disable picker when clicking on color square.<br/>
+		/// To be documented.
 		/// </summary>
 		NoPicker = unchecked(4),
 
 		/// <summary>
-		/// ColorEdit: disable toggling options menu when right-clicking on inputssmall preview.<br/>
+		/// To be documented.
 		/// </summary>
 		NoOptions = unchecked(8),
 
 		/// <summary>
-		/// ColorEdit, ColorPicker: disable color square preview next to the inputs. (e.g. to show only the inputs)<br/>
+		/// To be documented.
 		/// </summary>
 		NoSmallPreview = unchecked(16),
 
 		/// <summary>
-		/// ColorEdit, ColorPicker: disable inputs sliderstext widgets (e.g. to show only the small preview color square).<br/>
+		/// To be documented.
 		/// </summary>
 		NoInputs = unchecked(32),
 
 		/// <summary>
-		/// ColorEdit, ColorPicker, ColorButton: disable tooltip when hovering the preview.<br/>
+		/// To be documented.
 		/// </summary>
 		NoTooltip = unchecked(64),
 
 		/// <summary>
-		/// ColorEdit, ColorPicker: disable display of inline text label (the label is still forwarded to the tooltip and picker).<br/>
+		/// To be documented.
 		/// </summary>
 		NoLabel = unchecked(128),
 
 		/// <summary>
-		/// ColorPicker: disable bigger color preview on right side of the picker, use small color square preview instead.<br/>
+		/// To be documented.
 		/// </summary>
 		NoSidePreview = unchecked(256),
 
 		/// <summary>
-		/// ColorEdit: disable drag and drop target. ColorButton: disable drag and drop source.<br/>
+		/// To be documented.
 		/// </summary>
 		NoDragDrop = unchecked(512),
 
 		/// <summary>
-		/// ColorButton: disable border (which is enforced by default)<br/>
+		/// To be documented.
 		/// </summary>
 		NoBorder = unchecked(1024),
 
 		/// <summary>
-		/// ColorEdit, ColorPicker: show vertical alpha bargradient in picker.<br/>
+		/// To be documented.
 		/// </summary>
 		AlphaBar = unchecked(65536),
 
@@ -85,57 +85,57 @@ namespace Dalamud.Bindings.ImGui
 		AlphaPreview = unchecked(131072),
 
 		/// <summary>
-		/// ColorEdit, ColorPicker, ColorButton: display half opaque  half transparent preview.<br/>
+		/// To be documented.
 		/// </summary>
 		AlphaPreviewHalf = unchecked(262144),
 
 		/// <summary>
-		/// (WIP) ColorEdit: Currently only disable 0.0f..1.0f limits in RGBA edition (note: you probably want to use ImGuiColorEditFlags_Float flag as well).<br/>
+		/// To be documented.
 		/// </summary>
 		Hdr = unchecked(524288),
 
 		/// <summary>
-		/// [Display]     ColorEdit: override _display_ type among RGBHSVHex. ColorPicker: select any combination using one or more of RGBHSVHex.<br/>
+		/// To be documented.
 		/// </summary>
 		DisplayRgb = unchecked(1048576),
 
 		/// <summary>
-		/// [Display]     "<br/>
+		/// To be documented.
 		/// </summary>
 		DisplayHsv = unchecked(2097152),
 
 		/// <summary>
-		/// [Display]     "<br/>
+		/// To be documented.
 		/// </summary>
 		DisplayHex = unchecked(4194304),
 
 		/// <summary>
-		/// [DataType]    ColorEdit, ColorPicker, ColorButton: _display_ values formatted as 0..255.<br/>
+		/// To be documented.
 		/// </summary>
 		Uint8 = unchecked(8388608),
 
 		/// <summary>
-		/// [DataType]    ColorEdit, ColorPicker, ColorButton: _display_ values formatted as 0.0f..1.0f floats instead of 0..255 integers. No round-trip of value via integers.<br/>
+		/// To be documented.
 		/// </summary>
 		Float = unchecked(16777216),
 
 		/// <summary>
-		/// [Picker]      ColorPicker: bar for Hue, rectangle for SatValue.<br/>
+		/// To be documented.
 		/// </summary>
 		PickerHueBar = unchecked(33554432),
 
 		/// <summary>
-		/// [Picker]      ColorPicker: wheel for Hue, triangle for SatValue.<br/>
+		/// To be documented.
 		/// </summary>
 		PickerHueWheel = unchecked(67108864),
 
 		/// <summary>
-		/// [Input]       ColorEdit, ColorPicker: input and output data in RGB format.<br/>
+		/// To be documented.
 		/// </summary>
 		InputRgb = unchecked(134217728),
 
 		/// <summary>
-		/// [Input]       ColorEdit, ColorPicker: input and output data in HSV format.<br/>
+		/// To be documented.
 		/// </summary>
 		InputHsv = unchecked(268435456),
 

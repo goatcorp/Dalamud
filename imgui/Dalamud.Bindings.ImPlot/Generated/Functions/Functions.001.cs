@@ -4209,10 +4209,10 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PlotLineNative(byte* labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
+		internal static void PlotLineNative(byte* labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, byte*, int, double, double, ImPlotLineFlags, int, int, void>)funcTable[56])(labelId, values, count, xscale, xstart, flags, offset, stride);
+			((delegate* unmanaged[Cdecl]<byte*, sbyte*, int, double, double, ImPlotLineFlags, int, int, void>)funcTable[56])(labelId, values, count, xscale, xstart, flags, offset, stride);
 			#else
 			((delegate* unmanaged[Cdecl]<nint, nint, int, double, double, ImPlotLineFlags, int, int, void>)funcTable[56])((nint)labelId, (nint)values, count, xscale, xstart, flags, offset, stride);
 			#endif
@@ -4221,7 +4221,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
 		{
 			PlotLineNative(labelId, values, count, xscale, xstart, flags, offset, stride);
 		}
@@ -4229,7 +4229,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset)
 		{
 			PlotLineNative(labelId, values, count, xscale, xstart, flags, offset, (int)(sizeof(sbyte)));
 		}
@@ -4237,7 +4237,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags)
 		{
 			PlotLineNative(labelId, values, count, xscale, xstart, flags, (int)(0), (int)(sizeof(sbyte)));
 		}
@@ -4245,7 +4245,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, double xstart)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, double xstart)
 		{
 			PlotLineNative(labelId, values, count, xscale, xstart, (ImPlotLineFlags)(0), (int)(0), (int)(sizeof(sbyte)));
 		}
@@ -4253,7 +4253,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale)
 		{
 			PlotLineNative(labelId, values, count, xscale, (double)(0), (ImPlotLineFlags)(0), (int)(0), (int)(sizeof(sbyte)));
 		}
@@ -4261,7 +4261,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count)
+		public static void PlotLine(byte* labelId, sbyte* values, int count)
 		{
 			PlotLineNative(labelId, values, count, (double)(1), (double)(0), (ImPlotLineFlags)(0), (int)(0), (int)(sizeof(sbyte)));
 		}
@@ -4269,7 +4269,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, ImPlotLineFlags flags)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags)
 		{
 			PlotLineNative(labelId, values, count, xscale, (double)(0), flags, (int)(0), (int)(sizeof(sbyte)));
 		}
@@ -4277,7 +4277,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, ImPlotLineFlags flags)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, ImPlotLineFlags flags)
 		{
 			PlotLineNative(labelId, values, count, (double)(1), (double)(0), flags, (int)(0), (int)(sizeof(sbyte)));
 		}
@@ -4285,7 +4285,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, double xstart, int offset)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, double xstart, int offset)
 		{
 			PlotLineNative(labelId, values, count, xscale, xstart, (ImPlotLineFlags)(0), offset, (int)(sizeof(sbyte)));
 		}
@@ -4293,7 +4293,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, int offset)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, int offset)
 		{
 			PlotLineNative(labelId, values, count, xscale, (double)(0), (ImPlotLineFlags)(0), offset, (int)(sizeof(sbyte)));
 		}
@@ -4301,7 +4301,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, int offset)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, int offset)
 		{
 			PlotLineNative(labelId, values, count, (double)(1), (double)(0), (ImPlotLineFlags)(0), offset, (int)(sizeof(sbyte)));
 		}
@@ -4309,7 +4309,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags, int offset)
 		{
 			PlotLineNative(labelId, values, count, xscale, (double)(0), flags, offset, (int)(sizeof(sbyte)));
 		}
@@ -4317,7 +4317,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, ImPlotLineFlags flags, int offset)
 		{
 			PlotLineNative(labelId, values, count, (double)(1), (double)(0), flags, offset, (int)(sizeof(sbyte)));
 		}
@@ -4325,7 +4325,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, double xstart, int offset, int stride)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, double xstart, int offset, int stride)
 		{
 			PlotLineNative(labelId, values, count, xscale, xstart, (ImPlotLineFlags)(0), offset, stride);
 		}
@@ -4333,7 +4333,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, int offset, int stride)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, int offset, int stride)
 		{
 			PlotLineNative(labelId, values, count, xscale, (double)(0), (ImPlotLineFlags)(0), offset, stride);
 		}
@@ -4341,7 +4341,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, int offset, int stride)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, int offset, int stride)
 		{
 			PlotLineNative(labelId, values, count, (double)(1), (double)(0), (ImPlotLineFlags)(0), offset, stride);
 		}
@@ -4349,7 +4349,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, double xscale, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags, int offset, int stride)
 		{
 			PlotLineNative(labelId, values, count, xscale, (double)(0), flags, offset, stride);
 		}
@@ -4357,7 +4357,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(byte* labelId, byte* values, int count, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(byte* labelId, sbyte* values, int count, ImPlotLineFlags flags, int offset, int stride)
 		{
 			PlotLineNative(labelId, values, count, (double)(1), (double)(0), flags, offset, stride);
 		}
@@ -4365,7 +4365,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4376,7 +4376,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4387,7 +4387,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4398,7 +4398,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, double xstart)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, double xstart)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4409,7 +4409,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4420,7 +4420,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4431,7 +4431,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, ImPlotLineFlags flags)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4442,7 +4442,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, ImPlotLineFlags flags)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, ImPlotLineFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4453,7 +4453,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, double xstart, int offset)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, double xstart, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4464,7 +4464,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, int offset)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4475,7 +4475,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, int offset)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4486,7 +4486,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4497,7 +4497,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, ImPlotLineFlags flags, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4508,7 +4508,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, double xstart, int offset, int stride)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, double xstart, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4519,7 +4519,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, int offset, int stride)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4530,7 +4530,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, int offset, int stride)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4541,7 +4541,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, double xscale, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4552,7 +4552,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ref byte labelId, byte* values, int count, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(ref byte labelId, sbyte* values, int count, ImPlotLineFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
@@ -4563,7 +4563,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4574,7 +4574,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4585,7 +4585,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4596,7 +4596,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, double xstart)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, double xstart)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4607,7 +4607,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4618,7 +4618,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4629,7 +4629,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, ImPlotLineFlags flags)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4640,7 +4640,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, ImPlotLineFlags flags)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotLineFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4651,7 +4651,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, double xstart, int offset)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, double xstart, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4662,7 +4662,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, int offset)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4673,7 +4673,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, int offset)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4684,7 +4684,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4695,7 +4695,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotLineFlags flags, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4706,7 +4706,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, double xstart, int offset, int stride)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, double xstart, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4717,7 +4717,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, int offset, int stride)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4728,7 +4728,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, int offset, int stride)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4739,7 +4739,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, double xscale, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4750,7 +4750,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(ReadOnlySpan<byte> labelId, byte* values, int count, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotLineFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
@@ -4761,7 +4761,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
+		public static void PlotLine(string labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4790,7 +4790,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset)
+		public static void PlotLine(string labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4819,7 +4819,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count, double xscale, double xstart, ImPlotLineFlags flags)
+		public static void PlotLine(string labelId, sbyte* values, int count, double xscale, double xstart, ImPlotLineFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4848,7 +4848,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count, double xscale, double xstart)
+		public static void PlotLine(string labelId, sbyte* values, int count, double xscale, double xstart)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4877,7 +4877,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count, double xscale)
+		public static void PlotLine(string labelId, sbyte* values, int count, double xscale)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4906,7 +4906,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count)
+		public static void PlotLine(string labelId, sbyte* values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4935,7 +4935,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count, double xscale, ImPlotLineFlags flags)
+		public static void PlotLine(string labelId, sbyte* values, int count, double xscale, ImPlotLineFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4964,7 +4964,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count, ImPlotLineFlags flags)
+		public static void PlotLine(string labelId, sbyte* values, int count, ImPlotLineFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4993,7 +4993,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotLine(string labelId, byte* values, int count, double xscale, double xstart, int offset)
+		public static void PlotLine(string labelId, sbyte* values, int count, double xscale, double xstart, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;

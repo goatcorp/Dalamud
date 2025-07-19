@@ -20,32 +20,32 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiDockNodeFlagsPrivate : int
 	{
 		/// <summary>
-		/// Saved  A dockspace is a node that occupy space within an existing user window. Otherwise the node is floating and create its own window.<br/>
+		/// To be documented.
 		/// </summary>
 		Space = unchecked(1024),
 
 		/// <summary>
-		/// Saved  The central node has 2 main properties: stay visible when empty, only use "remaining" spaces from its neighbor.<br/>
+		/// To be documented.
 		/// </summary>
 		CentralNode = unchecked(2048),
 
 		/// <summary>
-		/// Saved  Tab bar is completely unavailable. No triangle in the corner to enable it back.<br/>
+		/// To be documented.
 		/// </summary>
 		NoTabBar = unchecked(4096),
 
 		/// <summary>
-		/// Saved  Tab bar is hidden, with a triangle in the corner to show it again (NB: actual tab-bar instance may be destroyed as this is only used for single-window tab bar)<br/>
+		/// To be documented.
 		/// </summary>
 		HiddenTabBar = unchecked(8192),
 
 		/// <summary>
-		/// Saved  Disable windowdocking menu (that one that appears instead of the collapse button)<br/>
+		/// To be documented.
 		/// </summary>
 		NoWindowMenuButton = unchecked(16384),
 
 		/// <summary>
-		/// Saved  Disable close button<br/>
+		/// To be documented.
 		/// </summary>
 		NoCloseButton = unchecked(32768),
 
@@ -60,30 +60,32 @@ namespace Dalamud.Bindings.ImGui
 		NoDockingSplitMe = unchecked(131072),
 
 		/// <summary>
-		/// Disable this node from splitting other windowsnodes.<br/>
+		/// To be documented.
 		/// </summary>
 		NoDockingSplitOther = unchecked(262144),
 
 		/// <summary>
-		/// Disable other windowsnodes from being docked over this node.<br/>
+		/// To be documented.
 		/// </summary>
 		NoDockingOverMe = unchecked(524288),
 
 		/// <summary>
-		/// Disable this node from being docked over another window or non-empty node.<br/>
+		/// To be documented.
 		/// </summary>
 		NoDockingOverOther = unchecked(1048576),
 
 		/// <summary>
-		/// Disable this node from being docked over an empty node (e.g. DockSpace with no other windows)<br/>
+		/// To be documented.
 		/// </summary>
 		NoDockingOverEmpty = unchecked(2097152),
 
 		/// <summary>
+		/// To be documented.
 		/// </summary>
 		NoResizeX = unchecked(4194304),
 
 		/// <summary>
+		/// To be documented.
 		/// </summary>
 		NoResizeY = unchecked(8388608),
 

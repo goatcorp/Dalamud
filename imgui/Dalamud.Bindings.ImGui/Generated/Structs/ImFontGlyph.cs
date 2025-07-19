@@ -17,32 +17,12 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Hold rendering data for one glyph.<br/>
-	/// (Note: some language parsers may fail to convert the 31+1 bitfield members, in this case maybe drop store a single u32 or we can rework this)<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImFontGlyph
 	{
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint Colored;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint Visible;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint TextureIndex;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint Codepoint;
-
+		public uint RawBits0;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -110,6 +90,14 @@ namespace Dalamud.Bindings.ImGui
 		}
 
 
+		public uint Colored { get => Bitfield.Get(RawBits0, 0, 1); set => Bitfield.Set(ref RawBits0, value, 0, 1); }
+
+		public uint Visible { get => Bitfield.Get(RawBits0, 1, 1); set => Bitfield.Set(ref RawBits0, value, 1, 1); }
+
+		public uint TextureIndex { get => Bitfield.Get(RawBits0, 2, 9); set => Bitfield.Set(ref RawBits0, value, 2, 9); }
+
+		public uint Codepoint { get => Bitfield.Get(RawBits0, 11, 21); set => Bitfield.Set(ref RawBits0, value, 11, 21); }
+
 	}
 
 	/// <summary>
@@ -156,19 +144,19 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint Colored => ref Unsafe.AsRef<uint>(&Handle->Colored);
+		public uint Colored { get => Handle->Colored; set => Handle->Colored = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint Visible => ref Unsafe.AsRef<uint>(&Handle->Visible);
+		public uint Visible { get => Handle->Visible; set => Handle->Visible = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint TextureIndex => ref Unsafe.AsRef<uint>(&Handle->TextureIndex);
+		public uint TextureIndex { get => Handle->TextureIndex; set => Handle->TextureIndex = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint Codepoint => ref Unsafe.AsRef<uint>(&Handle->Codepoint);
+		public uint Codepoint { get => Handle->Codepoint; set => Handle->Codepoint = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>

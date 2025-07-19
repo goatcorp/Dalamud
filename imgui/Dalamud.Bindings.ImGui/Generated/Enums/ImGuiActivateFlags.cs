@@ -25,17 +25,17 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Favor activation that requires keyboard text input (e.g. for SliderDrag). Default for Enter key.<br/>
+		/// To be documented.
 		/// </summary>
 		PreferInput = unchecked(1),
 
 		/// <summary>
-		/// Favor activation for tweaking with arrows or gamepad (e.g. for SliderDrag). Default for Space key and if keyboard is not used.<br/>
+		/// To be documented.
 		/// </summary>
 		PreferTweak = unchecked(2),
 
 		/// <summary>
-		/// Request widget to preserve state if it can (e.g. InputText will try to preserve cursorselection)<br/>
+		/// To be documented.
 		/// </summary>
 		TryToPreserveState = unchecked(4),
 	}

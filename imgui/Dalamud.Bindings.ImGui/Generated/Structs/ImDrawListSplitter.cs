@@ -17,8 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// SplitMerge functions are used to split the draw list into different layers which can be drawn into out of order.<br/>
-	/// This is used by the ColumnsTables API, so items of each column can be batched together in a same draw call.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImDrawListSplitter

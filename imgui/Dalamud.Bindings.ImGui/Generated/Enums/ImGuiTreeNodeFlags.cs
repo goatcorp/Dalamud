@@ -25,12 +25,12 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Draw as selected<br/>
+		/// To be documented.
 		/// </summary>
 		Selected = unchecked(1),
 
 		/// <summary>
-		/// Draw frame with background (e.g. for CollapsingHeader)<br/>
+		/// To be documented.
 		/// </summary>
 		Framed = unchecked(2),
 
@@ -40,57 +40,57 @@ namespace Dalamud.Bindings.ImGui
 		AllowItemOverlap = unchecked(4),
 
 		/// <summary>
-		/// Don't do a TreePush() when open (e.g. for CollapsingHeader) = no extra indent nor pushing on ID stack<br/>
+		/// To be documented.
 		/// </summary>
 		NoTreePushOnOpen = unchecked(8),
 
 		/// <summary>
-		/// Don't automatically and temporarily open node when Logging is active (by default logging will automatically open tree nodes)<br/>
+		/// To be documented.
 		/// </summary>
 		NoAutoOpenOnLog = unchecked(16),
 
 		/// <summary>
-		/// Default node to be open<br/>
+		/// To be documented.
 		/// </summary>
 		DefaultOpen = unchecked(32),
 
 		/// <summary>
-		/// Open on double-click instead of simple click (default for multi-select unless any _OpenOnXXX behavior is set explicitly). Both behaviors may be combined.<br/>
+		/// To be documented.
 		/// </summary>
 		OpenOnDoubleClick = unchecked(64),
 
 		/// <summary>
-		/// Open when clicking on the arrow part (default for multi-select unless any _OpenOnXXX behavior is set explicitly). Both behaviors may be combined.<br/>
+		/// To be documented.
 		/// </summary>
 		OpenOnArrow = unchecked(128),
 
 		/// <summary>
-		/// No collapsing, no arrow (use as a convenience for leaf nodes).<br/>
+		/// To be documented.
 		/// </summary>
 		Leaf = unchecked(256),
 
 		/// <summary>
-		/// Display a bullet instead of arrow. IMPORTANT: node can still be marked openclose if you don't set the _Leaf flag!<br/>
+		/// To be documented.
 		/// </summary>
 		Bullet = unchecked(512),
 
 		/// <summary>
-		/// Use FramePadding (even for an unframed text node) to vertically align text baseline to regular widget height. Equivalent to calling AlignTextToFramePadding() before the node.<br/>
+		/// To be documented.
 		/// </summary>
 		FramePadding = unchecked(1024),
 
 		/// <summary>
-		/// Extend hit box to the right-most edge, even if not framed. This is not the default in order to allow adding other items on the same line without using AllowOverlap mode.<br/>
+		/// To be documented.
 		/// </summary>
 		SpanAvailWidth = unchecked(2048),
 
 		/// <summary>
-		/// Extend hit box to the left-most and right-most edges (cover the indent area).<br/>
+		/// To be documented.
 		/// </summary>
 		SpanFullWidth = unchecked(4096),
 
 		/// <summary>
-		/// (WIP) Nav: left direction may move to this TreeNode() from any of its child (items submitted between TreeNode and TreePop)<br/>
+		/// To be documented.
 		/// </summary>
 		NavLeftJumpsBackHere = unchecked(8192),
 

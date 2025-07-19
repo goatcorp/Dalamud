@@ -17,8 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// ImGuiViewport PrivateInternals fields (cardinal sin: we are using inheritance!)<br/>
-	/// Every instance of ImGuiViewport is in fact a ImGuiViewportP.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiViewportP

@@ -65,7 +65,7 @@ namespace Dalamud.Bindings.ImGui
 		EventMask = unchecked(127),
 
 		/// <summary>
-		/// Also send output to TTY<br/>
+		/// To be documented.
 		/// </summary>
 		OutputToTty = unchecked(1024),
 	}

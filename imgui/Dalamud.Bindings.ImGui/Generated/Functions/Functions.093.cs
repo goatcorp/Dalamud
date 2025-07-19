@@ -21,242 +21,61 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, byte* filename, float sizePixels, ushort* glyphRanges)
+		public static void CalcCustomRectUV(ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, ref Vector2 outUvMax)
+		{
+			fixed (ImFontAtlasCustomRect* prect = &rect)
+			{
+				fixed (Vector2* poutUvMax = &outUvMax)
+				{
+					CalcCustomRectUVNative(self, (ImFontAtlasCustomRect*)prect, outUvMin, (Vector2*)poutUvMax);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcCustomRectUV(ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, filename, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, fontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, fontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, fontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, fontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (ImFontAtlasCustomRect* prect = &rect)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					fixed (Vector2* poutUvMax = &outUvMax)
+					{
+						CalcCustomRectUVNative((ImFontAtlas*)pself, (ImFontAtlasCustomRect*)prect, outUvMin, (Vector2*)poutUvMax);
+					}
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, fontCfg, glyphRanges);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels, ImFontConfigPtr fontCfg)
+		public static void CalcCustomRectUV(ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
 		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
+			fixed (Vector2* poutUvMin = &outUvMin)
 			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
+				fixed (Vector2* poutUvMax = &outUvMax)
 				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					CalcCustomRectUVNative(self, rect, (Vector2*)poutUvMin, (Vector2*)poutUvMax);
 				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
 			}
-			ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, fontCfg, (ushort*)(default));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels, ushort* glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, (ImFontConfig*)(default), glyphRanges);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
+		public static void CalcCustomRectUV(ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte* pfilename = &filename)
+				fixed (Vector2* poutUvMin = &outUvMin)
 				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, fontCfg, glyphRanges);
-					return ret;
+					fixed (Vector2* poutUvMax = &outUvMax)
+					{
+						CalcCustomRectUVNative((ImFontAtlas*)pself, rect, (Vector2*)poutUvMin, (Vector2*)poutUvMax);
+					}
 				}
 			}
 		}
@@ -264,1008 +83,34 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels, ImFontConfigPtr fontCfg)
+		public static void CalcCustomRectUV(ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
+		{
+			fixed (ImFontAtlasCustomRect* prect = &rect)
+			{
+				fixed (Vector2* poutUvMin = &outUvMin)
+				{
+					fixed (Vector2* poutUvMax = &outUvMax)
+					{
+						CalcCustomRectUVNative(self, (ImFontAtlasCustomRect*)prect, (Vector2*)poutUvMin, (Vector2*)poutUvMax);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcCustomRectUV(ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte* pfilename = &filename)
+				fixed (ImFontAtlasCustomRect* prect = &rect)
 				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, fontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = &filename)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = &filename)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, fontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, fontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
+					fixed (Vector2* poutUvMin = &outUvMin)
 					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, fontCfg, glyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, fontCfg, (ushort*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, byte* filename, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, filename, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, byte* filename, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, filename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, byte* filename, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, filename, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, byte* filename, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, filename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = &filename)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = &filename)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, byte* filename, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, filename, sizePixels, fontCfg, (ushort*)pglyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, byte* filename, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, filename, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, byte* filename, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, filename, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, byte* filename, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, filename, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, fontCfg, (ushort*)pglyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels, ref ushort glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = &filename)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, fontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = &filename)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, fontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, byte* filename, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, filename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, byte* filename, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, filename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ref byte filename, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (byte* pfilename = &filename)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, ReadOnlySpan<byte> filename, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (byte* pfilename = filename)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative(self, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ImFontAtlasPtr self, string filename, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (filename != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(filename);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromFileTTFNative(self, pStr0, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ref byte filename, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = &filename)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						fixed (ushort* pglyphRanges = &glyphRanges)
+						fixed (Vector2* poutUvMax = &outUvMax)
 						{
-							ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-							return ret;
+							CalcCustomRectUVNative((ImFontAtlas*)pself, (ImFontAtlasCustomRect*)prect, (Vector2*)poutUvMin, (Vector2*)poutUvMax);
 						}
 					}
 				}
@@ -1275,2096 +120,33 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, ReadOnlySpan<byte> filename, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pfilename = filename)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						fixed (ushort* pglyphRanges = &glyphRanges)
-						{
-							ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, (byte*)pfilename, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-							return ret;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromFileTTF(ref ImFontAtlas self, string filename, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (filename != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(filename);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(filename, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromFileTTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImFont* AddFontFromMemoryTTFNative(ImFontAtlas* self, void* fontData, int fontSize, float sizePixels, ImFontConfig* fontCfg, ushort* glyphRanges)
+		internal static byte GetMouseCursorTexDataNative(ImFontAtlas* self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, void*, int, float, ImFontConfig*, ushort*, ImFont*>)funcTable[588])(self, fontData, fontSize, sizePixels, fontCfg, glyphRanges);
+			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImGuiMouseCursor, Vector2*, Vector2*, Vector2*, Vector2*, int*, byte>)funcTable[613])(self, cursor, outOffset, outSize, outUvBorder, outUvFill, textureIndex);
 			#else
-			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, int, float, nint, nint, nint>)funcTable[588])((nint)self, (nint)fontData, fontSize, sizePixels, (nint)fontCfg, (nint)glyphRanges);
+			return (byte)((delegate* unmanaged[Cdecl]<nint, ImGuiMouseCursor, nint, nint, nint, nint, nint, byte>)funcTable[613])((nint)self, cursor, (nint)outOffset, (nint)outSize, (nint)outUvBorder, (nint)outUvFill, (nint)textureIndex);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
-			ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, fontCfg, glyphRanges);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, fontCfg, (ushort*)(default));
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels)
-		{
-			ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels, ushort* glyphRanges)
-		{
-			ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, (ImFontConfig*)(default), glyphRanges);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, fontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, fontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, fontCfg, (ushort*)pglyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ImFontAtlasPtr self, void* fontData, int fontSize, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryTTFNative(self, fontData, fontSize, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryTTF(ref ImFontAtlas self, void* fontData, int fontSize, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryTTFNative((ImFontAtlas*)pself, fontData, fontSize, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImFont* AddFontFromMemoryCompressedTTFNative(ImFontAtlas* self, void* compressedFontData, int compressedFontSize, float sizePixels, ImFontConfig* fontCfg, ushort* glyphRanges)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, void*, int, float, ImFontConfig*, ushort*, ImFont*>)funcTable[589])(self, compressedFontData, compressedFontSize, sizePixels, fontCfg, glyphRanges);
-			#else
-			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, int, float, nint, nint, nint>)funcTable[589])((nint)self, (nint)compressedFontData, compressedFontSize, sizePixels, (nint)fontCfg, (nint)glyphRanges);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, fontCfg, glyphRanges);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, fontCfg, (ushort*)(default));
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels)
-		{
-			ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels, ushort* glyphRanges)
-		{
-			ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)(default), glyphRanges);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, fontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, fontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, fontCfg, (ushort*)pglyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ImFontAtlasPtr self, void* compressedFontData, int compressedFontSize, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedTTFNative(self, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedTTF(ref ImFontAtlas self, void* compressedFontData, int compressedFontSize, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedTTFNative((ImFontAtlas*)pself, compressedFontData, compressedFontSize, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ImFont* AddFontFromMemoryCompressedBase85TTFNative(ImFontAtlas* self, byte* compressedFontDatabase85, float sizePixels, ImFontConfig* fontCfg, ushort* glyphRanges)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte*, float, ImFontConfig*, ushort*, ImFont*>)funcTable[590])(self, compressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
-			#else
-			return (ImFont*)((delegate* unmanaged[Cdecl]<nint, nint, float, nint, nint, nint>)funcTable[590])((nint)self, (nint)compressedFontDatabase85, sizePixels, (nint)fontCfg, (nint)glyphRanges);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, fontCfg, (ushort*)(default));
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels)
-		{
-			ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels, ushort* glyphRanges)
-		{
-			ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, (ImFontConfig*)(default), glyphRanges);
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, fontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, fontCfg, glyphRanges);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, fontCfg, (ushort*)(default));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels, ushort* glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, (ImFontConfig*)(default), glyphRanges);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret;
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, fontCfg, glyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, fontCfg, (ushort*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)(default), (ushort*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)(default), glyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ushort* glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)pfontCfg, glyphRanges);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)(default));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, fontCfg, (ushort*)pglyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, fontCfg, (ushort*)pglyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels, ref ushort glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ushort* pglyphRanges = &glyphRanges)
-			{
-				ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret;
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, fontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, fontCfg, (ushort*)pglyphRanges);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)(default), (ushort*)pglyphRanges);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, byte* compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, compressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, byte* compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, compressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ref byte compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-			{
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ImFontAtlasPtr self, string compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (compressedFontDatabase85 != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (ImFontConfig* pfontCfg = &fontCfg)
-			{
-				fixed (ushort* pglyphRanges = &glyphRanges)
-				{
-					ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative(self, pStr0, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-					return ret;
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ref byte compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = &compressedFontDatabase85)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						fixed (ushort* pglyphRanges = &glyphRanges)
-						{
-							ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-							return ret;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, ReadOnlySpan<byte> compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte* pcompressedFontDatabase85 = compressedFontDatabase85)
-				{
-					fixed (ImFontConfig* pfontCfg = &fontCfg)
-					{
-						fixed (ushort* pglyphRanges = &glyphRanges)
-						{
-							ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, (byte*)pcompressedFontDatabase85, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-							return ret;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(ref ImFontAtlas self, string compressedFontDatabase85, float sizePixels, ref ImFontConfig fontCfg, ref ushort glyphRanges)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (compressedFontDatabase85 != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(compressedFontDatabase85);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(compressedFontDatabase85, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				fixed (ImFontConfig* pfontCfg = &fontCfg)
-				{
-					fixed (ushort* pglyphRanges = &glyphRanges)
-					{
-						ImFontPtr ret = AddFontFromMemoryCompressedBase85TTFNative((ImFontAtlas*)pself, pStr0, sizePixels, (ImFontConfig*)pfontCfg, (ushort*)pglyphRanges);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-						return ret;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ClearInputDataNative(ImFontAtlas* self)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[591])(self);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[591])((nint)self);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ClearInputData(ImFontAtlasPtr self)
-		{
-			ClearInputDataNative(self);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ClearInputData(ref ImFontAtlas self)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ClearInputDataNative((ImFontAtlas*)pself);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ClearTexDataNative(ImFontAtlas* self)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[592])(self);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[592])((nint)self);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ClearTexData(ImFontAtlasPtr self)
-		{
-			ClearTexDataNative(self);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ClearTexData(ref ImFontAtlas self)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ClearTexDataNative((ImFontAtlas*)pself);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ClearFontsNative(ImFontAtlas* self)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[593])(self);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[593])((nint)self);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ClearFonts(ImFontAtlasPtr self)
-		{
-			ClearFontsNative(self);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ClearFonts(ref ImFontAtlas self)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ClearFontsNative((ImFontAtlas*)pself);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ClearNative(ImFontAtlas* self)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, void>)funcTable[594])(self);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[594])((nint)self);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Clear(ImFontAtlasPtr self)
-		{
-			ClearNative(self);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void Clear(ref ImFontAtlas self)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ClearNative((ImFontAtlas*)pself);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte BuildNative(ImFontAtlas* self)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte>)funcTable[595])(self);
-			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[595])((nint)self);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static bool Build(ImFontAtlasPtr self)
-		{
-			byte ret = BuildNative(self);
+			byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, outUvBorder, outUvFill, textureIndex);
 			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool Build(ref ImFontAtlas self)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				byte ret = BuildNative((ImFontAtlas*)pself);
+				byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, outUvBorder, outUvFill, textureIndex);
 				return ret != 0;
 			}
 		}
@@ -3372,86 +154,26 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetTexDataAsAlpha8Native(ImFontAtlas* self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, byte**, int*, int*, int*, void>)funcTable[596])(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, nint, void>)funcTable[596])((nint)self, textureIndex, (nint)outPixels, (nint)outWidth, (nint)outHeight, (nint)outBytesPerPixel);
-			#endif
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, outUvBorder, outUvFill, textureIndex);
+				return ret != 0;
+			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			GetTexDataAsAlpha8Native(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
-		{
-			GetTexDataAsAlpha8Native(self, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, outBytesPerPixel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, outHeight, outBytesPerPixel);
+					byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, outUvBorder, outUvFill, textureIndex);
+					return ret != 0;
 				}
 			}
 		}
@@ -3459,13 +181,26 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, outUvBorder, outUvFill, textureIndex);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte** poutPixels = &outPixels)
+				fixed (Vector2* poutSize = &outSize)
 				{
-					GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)(default));
+					byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, outUvBorder, outUvFill, textureIndex);
+					return ret != 0;
 				}
 			}
 		}
@@ -3473,93 +208,31 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
-			fixed (int* poutWidth = &outWidth)
+			fixed (Vector2* poutOffset = &outOffset)
 			{
-				GetTexDataAsAlpha8Native(self, textureIndex, outPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
+				fixed (Vector2* poutSize = &outSize)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, outUvFill, textureIndex);
+					return ret != 0;
+				}
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				GetTexDataAsAlpha8Native(self, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutWidth = &outWidth)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutWidth = &outWidth)
+					fixed (Vector2* poutSize = &outSize)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, outUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -3568,15 +241,100 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutUvBorder = &outUvBorder)
+			{
+				byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutUvBorder = outUvBorder)
+			{
+				byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte** poutPixels = &outPixels)
+				fixed (Vector2* poutUvBorder = &outUvBorder)
 				{
-					fixed (int* poutWidth = &outWidth)
+					byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, (int*)(default));
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -3585,93 +343,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (int* poutHeight = &outHeight)
-			{
-				GetTexDataAsAlpha8Native(self, textureIndex, outPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
-		{
-			fixed (int* poutHeight = &outHeight)
-			{
-				GetTexDataAsAlpha8Native(self, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutHeight = &outHeight)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutHeight = &outHeight)
+					fixed (Vector2* poutUvBorder = outUvBorder)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -3680,15 +361,46 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte** poutPixels = &outPixels)
+				fixed (Vector2* poutSize = &outSize)
 				{
-					fixed (int* poutHeight = &outHeight)
+					fixed (Vector2* poutUvBorder = &outUvBorder)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, (int*)(default));
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -3697,43 +409,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsAlpha8Native(self, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsAlpha8Native(self, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutWidth = &outWidth)
+				fixed (Vector2* poutSize = &outSize)
 				{
-					fixed (int* poutHeight = &outHeight)
+					fixed (Vector2* poutUvBorder = outUvBorder)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, outBytesPerPixel);
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -3742,68 +427,54 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutWidth = &outWidth)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					fixed (int* poutHeight = &outHeight)
+					fixed (Vector2* poutSize = &outSize)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, (int*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, outBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, (int*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutWidth = &outWidth)
-					{
-						fixed (int* poutHeight = &outHeight)
+						fixed (Vector2* poutUvBorder = &outUvBorder)
 						{
-							GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, outBytesPerPixel);
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+							return ret != 0;
 						}
 					}
 				}
@@ -3813,17 +484,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte** poutPixels = &outPixels)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					fixed (int* poutWidth = &outWidth)
+					fixed (Vector2* poutSize = &outSize)
 					{
-						fixed (int* poutHeight = &outHeight)
+						fixed (Vector2* poutUvBorder = outUvBorder)
 						{
-							GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, (int*)(default));
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, textureIndex);
+							return ret != 0;
 						}
 					}
 				}
@@ -3833,24 +505,38 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
-			fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+			fixed (Vector2* poutUvFill = &outUvFill)
 			{
-				GetTexDataAsAlpha8Native(self, textureIndex, outPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
+				byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+				return ret != 0;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutUvFill = outUvFill)
+			{
+				byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+				fixed (Vector2* poutUvFill = &outUvFill)
 				{
-					GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
+					byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+					return ret != 0;
 				}
 			}
 		}
@@ -3858,13 +544,14 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
-			fixed (byte** poutPixels = &outPixels)
+			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+				fixed (Vector2* poutUvFill = outUvFill)
 				{
-					GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
+					byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+					return ret != 0;
 				}
 			}
 		}
@@ -3872,15 +559,46 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvFill = &outUvFill)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvFill = outUvFill)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte** poutPixels = &outPixels)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+					fixed (Vector2* poutUvFill = &outUvFill)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -3889,29 +607,16 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-				{
-					GetTexDataAsAlpha8Native(self, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)poutBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutWidth = &outWidth)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+					fixed (Vector2* poutUvFill = outUvFill)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)poutBytesPerPixel);
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -3920,15 +625,46 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
-			fixed (byte** poutPixels = &outPixels)
+			fixed (Vector2* poutSize = &outSize)
 			{
-				fixed (int* poutWidth = &outWidth)
+				fixed (Vector2* poutUvFill = &outUvFill)
 				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvFill = outUvFill)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
 					{
-						GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, (int*)poutBytesPerPixel);
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -3937,17 +673,72 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte** poutPixels = &outPixels)
+				fixed (Vector2* poutSize = &outSize)
 				{
-					fixed (int* poutWidth = &outWidth)
+					fixed (Vector2* poutUvFill = outUvFill)
 					{
-						fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvFill = &outUvFill)
 						{
-							GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, (int*)poutBytesPerPixel);
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+							return ret != 0;
 						}
 					}
 				}
@@ -3957,65 +748,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (int* poutHeight = &outHeight)
-			{
-				fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-				{
-					GetTexDataAsAlpha8Native(self, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutHeight = &outHeight)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+					fixed (Vector2* poutSize = &outSize)
 					{
-						GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-					{
-						GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+						fixed (Vector2* poutUvFill = outUvFill)
 						{
-							GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, textureIndex);
+							return ret != 0;
 						}
 					}
 				}
@@ -4025,15 +769,46 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
-			fixed (int* poutWidth = &outWidth)
+			fixed (Vector2* poutUvBorder = &outUvBorder)
 			{
-				fixed (int* poutHeight = &outHeight)
+				fixed (Vector2* poutUvFill = &outUvFill)
 				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutUvBorder = outUvBorder)
+			{
+				fixed (Vector2* poutUvFill = outUvFill)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
 					{
-						GetTexDataAsAlpha8Native(self, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
 					}
 				}
 			}
@@ -4042,17 +817,72 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutWidth = &outWidth)
+				fixed (Vector2* poutUvBorder = outUvBorder)
 				{
-					fixed (int* poutHeight = &outHeight)
+					fixed (Vector2* poutUvFill = outUvFill)
 					{
-						fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = &outUvFill)
 						{
-							GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+							return ret != 0;
 						}
 					}
 				}
@@ -4062,17 +892,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
-			fixed (byte** poutPixels = &outPixels)
+			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (int* poutWidth = &outWidth)
+				fixed (Vector2* poutOffset = &outOffset)
 				{
-					fixed (int* poutHeight = &outHeight)
+					fixed (Vector2* poutUvBorder = outUvBorder)
 					{
-						fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+						fixed (Vector2* poutUvFill = outUvFill)
 						{
-							GetTexDataAsAlpha8Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+							return ret != 0;
 						}
 					}
 				}
@@ -4082,19 +913,1280 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
-				fixed (byte** poutPixels = &outPixels)
+				fixed (Vector2* poutSize = &outSize)
 				{
-					fixed (int* poutWidth = &outWidth)
+					fixed (Vector2* poutUvBorder = &outUvBorder)
 					{
-						fixed (int* poutHeight = &outHeight)
+						fixed (Vector2* poutUvFill = &outUvFill)
 						{
-							fixed (int* poutBytesPerPixel = &outBytesPerPixel)
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = outUvFill)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = &outUvFill)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = outUvFill)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvBorder = &outUvBorder)
+						{
+							fixed (Vector2* poutUvFill = &outUvFill)
 							{
-								GetTexDataAsAlpha8Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvBorder = outUvBorder)
+						{
+							fixed (Vector2* poutUvFill = outUvFill)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, textureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (int* ptextureIndex = &textureIndex)
+			{
+				byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, outUvBorder, outUvFill, (int*)ptextureIndex);
+				return ret != 0;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (int* ptextureIndex = &textureIndex)
+				{
+					byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, outUvBorder, outUvFill, (int*)ptextureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (int* ptextureIndex = &textureIndex)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, outUvBorder, outUvFill, (int*)ptextureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, outUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (int* ptextureIndex = &textureIndex)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, outUvBorder, outUvFill, (int*)ptextureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, outUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, outUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutUvBorder = &outUvBorder)
+			{
+				fixed (int* ptextureIndex = &textureIndex)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutUvBorder = outUvBorder)
+			{
+				fixed (int* ptextureIndex = &textureIndex)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvBorder = &outUvBorder)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvBorder = outUvBorder)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, outUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutUvFill = &outUvFill)
+			{
+				fixed (int* ptextureIndex = &textureIndex)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutUvFill = outUvFill)
+			{
+				fixed (int* ptextureIndex = &textureIndex)
+				{
+					byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+					return ret != 0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutUvFill = &outUvFill)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutUvFill = outUvFill)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvFill = &outUvFill)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvFill = outUvFill)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvFill = &outUvFill)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvFill = outUvFill)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvFill = &outUvFill)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvFill = outUvFill)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, outUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutUvBorder = &outUvBorder)
+			{
+				fixed (Vector2* poutUvFill = &outUvFill)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutUvBorder = outUvBorder)
+			{
+				fixed (Vector2* poutUvFill = outUvFill)
+				{
+					fixed (int* ptextureIndex = &textureIndex)
+					{
+						byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+						return ret != 0;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = &outUvFill)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = outUvFill)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, outSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvBorder = &outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = &outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutSize = &outSize)
+			{
+				fixed (Vector2* poutUvBorder = outUvBorder)
+				{
+					fixed (Vector2* poutUvFill = outUvFill)
+					{
+						fixed (int* ptextureIndex = &textureIndex)
+						{
+							byte ret = GetMouseCursorTexDataNative(self, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+							return ret != 0;
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = &outUvFill)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = outUvFill)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, outOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = &outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = &outUvFill)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (Vector2* poutOffset = &outOffset)
+			{
+				fixed (Vector2* poutSize = &outSize)
+				{
+					fixed (Vector2* poutUvBorder = outUvBorder)
+					{
+						fixed (Vector2* poutUvFill = outUvFill)
+						{
+							fixed (int* ptextureIndex = &textureIndex)
+							{
+								byte ret = GetMouseCursorTexDataNative(self, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+								return ret != 0;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvBorder = &outUvBorder)
+						{
+							fixed (Vector2* poutUvFill = &outUvFill)
+							{
+								fixed (int* ptextureIndex = &textureIndex)
+								{
+									byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+									return ret != 0;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		{
+			fixed (ImFontAtlas* pself = &self)
+			{
+				fixed (Vector2* poutOffset = &outOffset)
+				{
+					fixed (Vector2* poutSize = &outSize)
+					{
+						fixed (Vector2* poutUvBorder = outUvBorder)
+						{
+							fixed (Vector2* poutUvFill = outUvFill)
+							{
+								fixed (int* ptextureIndex = &textureIndex)
+								{
+									byte ret = GetMouseCursorTexDataNative((ImFontAtlas*)pself, cursor, (Vector2*)poutOffset, (Vector2*)poutSize, (Vector2*)poutUvBorder, (Vector2*)poutUvFill, (int*)ptextureIndex);
+									return ret != 0;
+								}
 							}
 						}
 					}
@@ -4106,732 +2198,53 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void GetTexDataAsRGBA32Native(ImFontAtlas* self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		internal static ImFont* ImFontNative()
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, byte**, int*, int*, int*, void>)funcTable[597])(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
+			return ((delegate* unmanaged[Cdecl]<ImFont*>)funcTable[614])();
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, nint, nint, nint, nint, void>)funcTable[597])((nint)self, textureIndex, (nint)outPixels, (nint)outWidth, (nint)outHeight, (nint)outBytesPerPixel);
+			return (ImFont*)((delegate* unmanaged[Cdecl]<nint>)funcTable[614])();
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static ImFontPtr ImFont()
 		{
-			GetTexDataAsRGBA32Native(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
+			ImFontPtr ret = ImFontNative();
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void DestroyNative(ImFont* self)
 		{
-			GetTexDataAsRGBA32Native(self, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<ImFont*, void>)funcTable[615])(self);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, void>)funcTable[615])((nint)self);
+			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void Destroy(ImFontPtr self)
 		{
-			fixed (ImFontAtlas* pself = &self)
+			DestroyNative(self);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void Destroy(ref ImFont self)
+		{
+			fixed (ImFont* pself = &self)
 			{
-				GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, outBytesPerPixel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, outHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				GetTexDataAsRGBA32Native(self, textureIndex, outPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				GetTexDataAsRGBA32Native(self, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutWidth = &outWidth)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutWidth = &outWidth)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, (int*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (int* poutHeight = &outHeight)
-			{
-				GetTexDataAsRGBA32Native(self, textureIndex, outPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
-		{
-			fixed (int* poutHeight = &outHeight)
-			{
-				GetTexDataAsRGBA32Native(self, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)(default));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, (int*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, outBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, (int*)(default));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, outBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, (int*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, outBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, (int*)(default));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutWidth = &outWidth)
-					{
-						fixed (int* poutHeight = &outHeight)
-						{
-							GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, outBytesPerPixel);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutWidth = &outWidth)
-					{
-						fixed (int* poutHeight = &outHeight)
-						{
-							GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, (int*)(default));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-			{
-				GetTexDataAsRGBA32Native(self, textureIndex, outPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-				{
-					GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)poutBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)poutBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-					{
-						GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, (int*)poutBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutWidth = &outWidth)
-					{
-						fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-						{
-							GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, outHeight, (int*)poutBytesPerPixel);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (int* poutHeight = &outHeight)
-			{
-				fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-				{
-					GetTexDataAsRGBA32Native(self, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-					{
-						GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-					{
-						GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-						{
-							GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, outWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (int* poutWidth = &outWidth)
-			{
-				fixed (int* poutHeight = &outHeight)
-				{
-					fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-					{
-						GetTexDataAsRGBA32Native(self, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-						{
-							GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, outPixels, (int*)poutWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (byte** poutPixels = &outPixels)
-			{
-				fixed (int* poutWidth = &outWidth)
-				{
-					fixed (int* poutHeight = &outHeight)
-					{
-						fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-						{
-							GetTexDataAsRGBA32Native(self, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				fixed (byte** poutPixels = &outPixels)
-				{
-					fixed (int* poutWidth = &outWidth)
-					{
-						fixed (int* poutHeight = &outHeight)
-						{
-							fixed (int* poutBytesPerPixel = &outBytesPerPixel)
-							{
-								GetTexDataAsRGBA32Native((ImFontAtlas*)pself, textureIndex, (byte**)poutPixels, (int*)poutWidth, (int*)poutHeight, (int*)poutBytesPerPixel);
-							}
-						}
-					}
-				}
+				DestroyNative((ImFont*)pself);
 			}
 		}
 
@@ -4839,32 +2252,168 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static byte IsBuiltNative(ImFontAtlas* self)
+		internal static ImFontGlyph* FindGlyphNative(ImFont* self, ushort c)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, byte>)funcTable[598])(self);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ImFontGlyph*>)funcTable[616])(self, c);
 			#else
-			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[598])((nint)self);
+			return (ImFontGlyph*)((delegate* unmanaged[Cdecl]<nint, ushort, nint>)funcTable[616])((nint)self, c);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool IsBuilt(ImFontAtlasPtr self)
+		public static ImFontGlyphPtr FindGlyph(ImFontPtr self, ushort c)
 		{
-			byte ret = IsBuiltNative(self);
+			ImFontGlyphPtr ret = FindGlyphNative(self, c);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ImFontGlyphPtr FindGlyph(ref ImFont self, ushort c)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				ImFontGlyphPtr ret = FindGlyphNative((ImFont*)pself, c);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static ImFontGlyph* FindGlyphNoFallbackNative(ImFont* self, ushort c)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ImFontGlyph*>)funcTable[617])(self, c);
+			#else
+			return (ImFontGlyph*)((delegate* unmanaged[Cdecl]<nint, ushort, nint>)funcTable[617])((nint)self, c);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ImFontGlyphPtr FindGlyphNoFallback(ImFontPtr self, ushort c)
+		{
+			ImFontGlyphPtr ret = FindGlyphNoFallbackNative(self, c);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static ImFontGlyphPtr FindGlyphNoFallback(ref ImFont self, ushort c)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				ImFontGlyphPtr ret = FindGlyphNoFallbackNative((ImFont*)pself, c);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetDistanceAdjustmentForPairNative(ImFont* self, ushort leftC, ushort rightC)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, ushort, float>)funcTable[618])(self, leftC, rightC);
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<nint, ushort, ushort, float>)funcTable[618])((nint)self, leftC, rightC);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetDistanceAdjustmentForPair(ImFontPtr self, ushort leftC, ushort rightC)
+		{
+			float ret = GetDistanceAdjustmentForPairNative(self, leftC, rightC);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetDistanceAdjustmentForPair(ref ImFont self, ushort leftC, ushort rightC)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				float ret = GetDistanceAdjustmentForPairNative((ImFont*)pself, leftC, rightC);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static float GetCharAdvanceNative(ImFont* self, ushort c)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImFont*, ushort, float>)funcTable[619])(self, c);
+			#else
+			return (float)((delegate* unmanaged[Cdecl]<nint, ushort, float>)funcTable[619])((nint)self, c);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetCharAdvance(ImFontPtr self, ushort c)
+		{
+			float ret = GetCharAdvanceNative(self, c);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static float GetCharAdvance(ref ImFont self, ushort c)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				float ret = GetCharAdvanceNative((ImFont*)pself, c);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static byte IsLoadedNative(ImFont* self)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<ImFont*, byte>)funcTable[620])(self);
+			#else
+			return (byte)((delegate* unmanaged[Cdecl]<nint, byte>)funcTable[620])((nint)self);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static bool IsLoaded(ImFontPtr self)
+		{
+			byte ret = IsLoadedNative(self);
 			return ret != 0;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static bool IsBuilt(ref ImFontAtlas self)
+		public static bool IsLoaded(ref ImFont self)
 		{
-			fixed (ImFontAtlas* pself = &self)
+			fixed (ImFont* pself = &self)
 			{
-				byte ret = IsBuiltNative((ImFontAtlas*)pself);
+				byte ret = IsLoadedNative((ImFont*)pself);
 				return ret != 0;
 			}
 		}
@@ -4873,96 +2422,53 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void SetTexIDNative(ImFontAtlas* self, int textureIndex, ImTextureID id)
+		internal static byte* GetDebugNameNative(ImFont* self)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, int, ImTextureID, void>)funcTable[599])(self, textureIndex, id);
+			return ((delegate* unmanaged[Cdecl]<ImFont*, byte*>)funcTable[621])(self);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, int, ImTextureID, void>)funcTable[599])((nint)self, textureIndex, id);
+			return (byte*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[621])((nint)self);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void SetTexID(ImFontAtlasPtr self, int textureIndex, ImTextureID id)
+		public static byte* GetDebugName(ImFontPtr self)
 		{
-			SetTexIDNative(self, textureIndex, id);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void SetTexID(ref ImFontAtlas self, int textureIndex, ImTextureID id)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				SetTexIDNative((ImFontAtlas*)pself, textureIndex, id);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void ClearTexIDNative(ImFontAtlas* self, ImTextureID nullId)
-		{
-			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<ImFontAtlas*, ImTextureID, void>)funcTable[600])(self, nullId);
-			#else
-			((delegate* unmanaged[Cdecl]<nint, ImTextureID, void>)funcTable[600])((nint)self, nullId);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ClearTexID(ImFontAtlasPtr self, ImTextureID nullId)
-		{
-			ClearTexIDNative(self, nullId);
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void ClearTexID(ref ImFontAtlas self, ImTextureID nullId)
-		{
-			fixed (ImFontAtlas* pself = &self)
-			{
-				ClearTexIDNative((ImFontAtlas*)pself, nullId);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ushort* GetGlyphRangesDefaultNative(ImFontAtlas* self)
-		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[601])(self);
-			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[601])((nint)self);
-			#endif
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static ushort* GetGlyphRangesDefault(ImFontAtlasPtr self)
-		{
-			ushort* ret = GetGlyphRangesDefaultNative(self);
+			byte* ret = GetDebugNameNative(self);
 			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ushort* GetGlyphRangesDefault(ref ImFontAtlas self)
+		public static string GetDebugNameS(ImFontPtr self)
 		{
-			fixed (ImFontAtlas* pself = &self)
+			string ret = Utils.DecodeStringUTF8(GetDebugNameNative(self));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static byte* GetDebugName(ref ImFont self)
+		{
+			fixed (ImFont* pself = &self)
 			{
-				ushort* ret = GetGlyphRangesDefaultNative((ImFontAtlas*)pself);
+				byte* ret = GetDebugNameNative((ImFont*)pself);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static string GetDebugNameS(ref ImFont self)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				string ret = Utils.DecodeStringUTF8(GetDebugNameNative((ImFont*)pself));
 				return ret;
 			}
 		}
@@ -4971,32 +2477,140 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ushort* GetGlyphRangesKoreanNative(ImFontAtlas* self)
+		internal static void CalcTextSizeANative(Vector2* pOut, ImFont* self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
 		{
 			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[602])(self);
+			((delegate* unmanaged[Cdecl]<Vector2*, ImFont*, float, float, float, byte*, byte*, byte**, void>)funcTable[622])(pOut, self, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
 			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[602])((nint)self);
+			((delegate* unmanaged[Cdecl]<nint, nint, float, float, float, nint, nint, nint, void>)funcTable[622])((nint)pOut, (nint)self, size, maxWidth, wrapWidth, (nint)textBegin, (nint)textEnd, (nint)remaining);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ushort* GetGlyphRangesKorean(ImFontAtlasPtr self)
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin)
 		{
-			ushort* ret = GetGlyphRangesKoreanNative(self);
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, (byte*)(default), (byte**)(default));
 			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ushort* GetGlyphRangesKorean(ref ImFontAtlas self)
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd)
 		{
-			fixed (ImFontAtlas* pself = &self)
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, textEnd, (byte**)(default));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin)
+		{
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)(default), (byte**)(default));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte** remaining)
+		{
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, (byte*)(default), remaining);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
+		{
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
+		{
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd)
+		{
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, textEnd, (byte**)(default));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte** remaining)
+		{
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)(default), remaining);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
 			{
-				ushort* ret = GetGlyphRangesKoreanNative((ImFontAtlas*)pself);
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, textEnd, (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)(default), (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)(default), remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)(default), (byte**)(default));
 				return ret;
 			}
 		}
@@ -5004,22 +2618,2433 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static ushort* GetGlyphRangesJapaneseNative(ImFontAtlas* self)
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd)
 		{
-			#if NET5_0_OR_GREATER
-			return ((delegate* unmanaged[Cdecl]<ImFontAtlas*, ushort*>)funcTable[603])(self);
-			#else
-			return (ushort*)((delegate* unmanaged[Cdecl]<nint, nint>)funcTable[603])((nint)self);
-			#endif
+			fixed (ImFont* pself = &self)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, textEnd, (byte**)(default));
+				return ret;
+			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static ushort* GetGlyphRangesJapanese(ImFontAtlasPtr self)
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin)
 		{
-			ushort* ret = GetGlyphRangesJapaneseNative(self);
+			fixed (ImFont* pself = &self)
+			{
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)(default), (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)(default), remaining);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, textEnd, (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)(default), remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, textEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, textEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)(default), (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)(default), remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte** remaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte** remaining)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, pStr0, (byte*)(default), (byte**)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, pStr0, textEnd, (byte**)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, pStr0, (byte*)(default), (byte**)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte** remaining)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, pStr0, (byte*)(default), remaining);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd, byte** remaining)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, pStr0, textEnd, remaining);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, pStr0, textEnd, remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, pStr0, textEnd, (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, pStr0, (byte*)(default), (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, pStr0, (byte*)(default), remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, (byte*)(default), (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, textEnd, (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, (byte*)(default), (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, (byte*)(default), remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, textEnd, remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextBegin = &textBegin)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), (byte**)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextBegin = textBegin)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, textEnd, remaining);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, textEnd, (byte**)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, (byte*)(default), (byte**)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textBegin != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, (byte*)(default), remaining);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte** remaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte** remaining)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd, byte** remaining)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, pStr0, textEnd, remaining);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, pStr0, textEnd, (byte**)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, byte** remaining)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, pStr0, (byte*)(default), remaining);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ref byte textBegin, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = &textBegin)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, textEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextBegin = textBegin)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)(default), remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, textEnd, remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte* textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, textEnd, (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, string textBegin, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textBegin != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, pStr0, (byte*)(default), remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd)
+		{
+			fixed (byte* ptextEnd = &textEnd)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd, byte** remaining)
+		{
+			fixed (byte* ptextEnd = &textEnd)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptextEnd = textEnd)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd, byte** remaining)
+		{
+			fixed (byte* ptextEnd = textEnd)
+			{
+				Vector2 ret;
+				CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textEnd != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, pStr0, (byte**)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd, byte** remaining)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textEnd != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, textBegin, pStr0, remaining);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, pStr0, remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative((Vector2*)ppOut, self, size, maxWidth, wrapWidth, textBegin, pStr0, (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, pStr0, (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				Vector2 ret;
+				CalcTextSizeANative(&ret, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, pStr0, remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextEnd = &textEnd)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					fixed (byte* ptextEnd = textEnd)
+					{
+						CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd, byte** remaining)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, pStr0, remaining);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(ref Vector2 pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd)
+		{
+			fixed (Vector2* ppOut = &pOut)
+			{
+				fixed (ImFont* pself = &self)
+				{
+					byte* pStr0 = null;
+					int pStrSize0 = 0;
+					if (textEnd != null)
+					{
+						pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+						if (pStrSize0 >= Utils.MaxStackallocSize)
+						{
+							pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+						}
+						else
+						{
+							byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+							pStr0 = pStrStack0;
+						}
+						int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+						pStr0[pStrOffset0] = 0;
+					}
+					CalcTextSizeANative((Vector2*)ppOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, pStr0, (byte**)(default));
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						Utils.Free(pStr0);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd, byte** remaining)
+		{
+			fixed (byte* ptextEnd = &textEnd)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd)
+		{
+			fixed (byte* ptextEnd = &textEnd)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd, byte** remaining)
+		{
+			fixed (byte* ptextEnd = textEnd)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptextEnd = textEnd)
+			{
+				CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd, byte** remaining)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textEnd != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, pStr0, remaining);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ImFontPtr self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textEnd != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			CalcTextSizeANative(pOut, self, size, maxWidth, wrapWidth, textBegin, pStr0, (byte**)(default));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ref byte textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, remaining);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, (byte*)ptextEnd, (byte**)(default));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd, byte** remaining)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, pStr0, remaining);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void CalcTextSizeA(Vector2* pOut, ref ImFont self, float size, float maxWidth, float wrapWidth, byte* textBegin, string textEnd)
+		{
+			fixed (ImFont* pself = &self)
+			{
+				byte* pStr0 = null;
+				int pStrSize0 = 0;
+				if (textEnd != null)
+				{
+					pStrSize0 = Utils.GetByteCountUTF8(textEnd);
+					if (pStrSize0 >= Utils.MaxStackallocSize)
+					{
+						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+					}
+					else
+					{
+						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+						pStr0 = pStrStack0;
+					}
+					int pStrOffset0 = Utils.EncodeStringUTF8(textEnd, pStr0, pStrSize0);
+					pStr0[pStrOffset0] = 0;
+				}
+				CalcTextSizeANative(pOut, (ImFont*)pself, size, maxWidth, wrapWidth, textBegin, pStr0, (byte**)(default));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, ref byte textEnd)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)ptextEnd, (byte**)(default));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ref byte textBegin, ref byte textEnd, byte** remaining)
+		{
+			fixed (byte* ptextBegin = &textBegin)
+			{
+				fixed (byte* ptextEnd = &textEnd)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)ptextEnd, remaining);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEnd)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)ptextEnd, (byte**)(default));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, ReadOnlySpan<byte> textBegin, ReadOnlySpan<byte> textEnd, byte** remaining)
+		{
+			fixed (byte* ptextBegin = textBegin)
+			{
+				fixed (byte* ptextEnd = textEnd)
+				{
+					Vector2 ret;
+					CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, (byte*)ptextBegin, (byte*)ptextEnd, remaining);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static Vector2 CalcTextSizeA(ImFontPtr self, float size, float maxWidth, float wrapWidth, string textBegin, string textEnd)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (textBegin != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(textBegin);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(textBegin, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			byte* pStr1 = null;
+			int pStrSize1 = 0;
+			if (textEnd != null)
+			{
+				pStrSize1 = Utils.GetByteCountUTF8(textEnd);
+				if (pStrSize1 >= Utils.MaxStackallocSize)
+				{
+					pStr1 = Utils.Alloc<byte>(pStrSize1 + 1);
+				}
+				else
+				{
+					byte* pStrStack1 = stackalloc byte[pStrSize1 + 1];
+					pStr1 = pStrStack1;
+				}
+				int pStrOffset1 = Utils.EncodeStringUTF8(textEnd, pStr1, pStrSize1);
+				pStr1[pStrOffset1] = 0;
+			}
+			Vector2 ret;
+			CalcTextSizeANative(&ret, self, size, maxWidth, wrapWidth, pStr0, pStr1, (byte**)(default));
+			if (pStrSize1 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr1);
+			}
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
 			return ret;
 		}
 	}

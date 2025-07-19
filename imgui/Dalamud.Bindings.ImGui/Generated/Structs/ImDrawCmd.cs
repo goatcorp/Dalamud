@@ -17,11 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Typically, 1 command = 1 GPU draw call (unless command is a callback)<br/>
-	/// - VtxOffset: When 'io.BackendFlags &amp; ImGuiBackendFlags_RendererHasVtxOffset' is enabled,<br/>
-	/// this fields allow us to render meshes larger than 64K vertices while keeping 16-bit indices.<br/>
-	/// Backends made for &lt;1.71. will typically ignore the VtxOffset fields.<br/>
-	/// - The ClipRectTextureIdVtxOffset fields must be contiguous as we memcmp() them together (this is asserted for).<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImDrawCmd

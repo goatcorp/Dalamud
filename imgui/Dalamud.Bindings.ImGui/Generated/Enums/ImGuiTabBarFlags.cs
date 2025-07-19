@@ -25,42 +25,42 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Allow manually dragging tabs to re-order them + New tabs are appended at the end of list<br/>
+		/// To be documented.
 		/// </summary>
 		Reorderable = unchecked(1),
 
 		/// <summary>
-		/// Automatically select new tabs when they appear<br/>
+		/// To be documented.
 		/// </summary>
 		AutoSelectNewTabs = unchecked(2),
 
 		/// <summary>
-		/// Disable buttons to open the tab list popup<br/>
+		/// To be documented.
 		/// </summary>
 		ListPopupButton = unchecked(4),
 
 		/// <summary>
-		/// Disable behavior of closing tabs (that are submitted with p_open != NULL) with middle mouse button. You may handle this behavior manually on user's side with if (IsItemHovered() &amp;&amp; IsMouseClicked(2)) *p_open = false.<br/>
+		/// To be documented.
 		/// </summary>
 		NoCloseWithMiddleMouseButton = unchecked(8),
 
 		/// <summary>
-		/// Disable scrolling buttons (apply when fitting policy is ImGuiTabBarFlags_FittingPolicyScroll)<br/>
+		/// To be documented.
 		/// </summary>
 		NoTabListScrollingButtons = unchecked(16),
 
 		/// <summary>
-		/// Disable tooltips when hovering a tab<br/>
+		/// To be documented.
 		/// </summary>
 		NoTooltip = unchecked(32),
 
 		/// <summary>
-		/// Resize tabs when they don't fit<br/>
+		/// To be documented.
 		/// </summary>
 		FittingPolicyResizeDown = unchecked(64),
 
 		/// <summary>
-		/// Add scroll buttons when tabs don't fit<br/>
+		/// To be documented.
 		/// </summary>
 		FittingPolicyScroll = unchecked(128),
 

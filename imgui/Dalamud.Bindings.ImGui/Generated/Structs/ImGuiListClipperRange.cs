@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// Note that Max is exclusive, so perhaps should be using a BeginEnd convention.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiListClipperRange
@@ -40,18 +40,18 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte PosToIndexOffsetMin;
+		public sbyte PosToIndexOffsetMin;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte PosToIndexOffsetMax;
+		public sbyte PosToIndexOffsetMax;
 
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiListClipperRange(int min = default, int max = default, bool posToIndexConvert = default, byte posToIndexOffsetMin = default, byte posToIndexOffsetMax = default)
+		public unsafe ImGuiListClipperRange(int min = default, int max = default, bool posToIndexConvert = default, sbyte posToIndexOffsetMin = default, sbyte posToIndexOffsetMax = default)
 		{
 			Min = min;
 			Max = max;
@@ -119,11 +119,11 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte PosToIndexOffsetMin => ref Unsafe.AsRef<byte>(&Handle->PosToIndexOffsetMin);
+		public ref sbyte PosToIndexOffsetMin => ref Unsafe.AsRef<sbyte>(&Handle->PosToIndexOffsetMin);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte PosToIndexOffsetMax => ref Unsafe.AsRef<byte>(&Handle->PosToIndexOffsetMax);
+		public ref sbyte PosToIndexOffsetMax => ref Unsafe.AsRef<sbyte>(&Handle->PosToIndexOffsetMax);
 	}
 
 }

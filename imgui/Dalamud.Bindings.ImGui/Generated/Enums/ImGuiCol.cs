@@ -30,17 +30,17 @@ namespace Dalamud.Bindings.ImGui
 		TextDisabled = unchecked(1),
 
 		/// <summary>
-		/// Background of normal windows<br/>
+		/// To be documented.
 		/// </summary>
 		WindowBg = unchecked(2),
 
 		/// <summary>
-		/// Background of child windows<br/>
+		/// To be documented.
 		/// </summary>
 		ChildBg = unchecked(3),
 
 		/// <summary>
-		/// Background of popups, menus, tooltips windows<br/>
+		/// To be documented.
 		/// </summary>
 		PopupBg = unchecked(4),
 
@@ -55,7 +55,7 @@ namespace Dalamud.Bindings.ImGui
 		BorderShadow = unchecked(6),
 
 		/// <summary>
-		/// Background of checkbox, radio button, plot, slider, text input<br/>
+		/// To be documented.
 		/// </summary>
 		FrameBg = unchecked(7),
 
@@ -70,17 +70,17 @@ namespace Dalamud.Bindings.ImGui
 		FrameBgActive = unchecked(9),
 
 		/// <summary>
-		/// Title bar<br/>
+		/// To be documented.
 		/// </summary>
 		TitleBg = unchecked(10),
 
 		/// <summary>
-		/// Title bar when focused<br/>
+		/// To be documented.
 		/// </summary>
 		TitleBgActive = unchecked(11),
 
 		/// <summary>
-		/// Title bar when collapsed<br/>
+		/// To be documented.
 		/// </summary>
 		TitleBgCollapsed = unchecked(12),
 
@@ -110,7 +110,7 @@ namespace Dalamud.Bindings.ImGui
 		ScrollbarGrabActive = unchecked(17),
 
 		/// <summary>
-		/// Checkbox tick and RadioButton circle<br/>
+		/// To be documented.
 		/// </summary>
 		CheckMark = unchecked(18),
 
@@ -140,7 +140,7 @@ namespace Dalamud.Bindings.ImGui
 		ButtonActive = unchecked(23),
 
 		/// <summary>
-		/// Header* colors are used for CollapsingHeader, TreeNode, Selectable, MenuItem<br/>
+		/// To be documented.
 		/// </summary>
 		Header = unchecked(24),
 
@@ -170,7 +170,7 @@ namespace Dalamud.Bindings.ImGui
 		SeparatorActive = unchecked(29),
 
 		/// <summary>
-		/// Resize grip in lower-right and lower-left corners of windows.<br/>
+		/// To be documented.
 		/// </summary>
 		ResizeGrip = unchecked(30),
 
@@ -185,12 +185,12 @@ namespace Dalamud.Bindings.ImGui
 		ResizeGripActive = unchecked(32),
 
 		/// <summary>
-		/// Tab background, when tab-bar is focused &amp; tab is unselected<br/>
+		/// To be documented.
 		/// </summary>
 		Tab = unchecked(33),
 
 		/// <summary>
-		/// Tab background, when hovered<br/>
+		/// To be documented.
 		/// </summary>
 		TabHovered = unchecked(34),
 
@@ -210,12 +210,12 @@ namespace Dalamud.Bindings.ImGui
 		TabUnfocusedActive = unchecked(37),
 
 		/// <summary>
-		/// Preview overlay color when about to docking something<br/>
+		/// To be documented.
 		/// </summary>
 		DockingPreview = unchecked(38),
 
 		/// <summary>
-		/// Background color for empty node (e.g. CentralNode with no window docked into it)<br/>
+		/// To be documented.
 		/// </summary>
 		DockingEmptyBg = unchecked(39),
 
@@ -240,27 +240,27 @@ namespace Dalamud.Bindings.ImGui
 		PlotHistogramHovered = unchecked(43),
 
 		/// <summary>
-		/// Table header background<br/>
+		/// To be documented.
 		/// </summary>
 		TableHeaderBg = unchecked(44),
 
 		/// <summary>
-		/// Table outer and header borders (prefer using Alpha=1.0 here)<br/>
+		/// To be documented.
 		/// </summary>
 		TableBorderStrong = unchecked(45),
 
 		/// <summary>
-		/// Table inner borders (prefer using Alpha=1.0 here)<br/>
+		/// To be documented.
 		/// </summary>
 		TableBorderLight = unchecked(46),
 
 		/// <summary>
-		/// Table row background (even rows)<br/>
+		/// To be documented.
 		/// </summary>
 		TableRowBg = unchecked(47),
 
 		/// <summary>
-		/// Table row background (odd rows)<br/>
+		/// To be documented.
 		/// </summary>
 		TableRowBgAlt = unchecked(48),
 
@@ -270,7 +270,7 @@ namespace Dalamud.Bindings.ImGui
 		TextSelectedBg = unchecked(49),
 
 		/// <summary>
-		/// Rectangle highlighting a drop target<br/>
+		/// To be documented.
 		/// </summary>
 		DragDropTarget = unchecked(50),
 
@@ -280,17 +280,17 @@ namespace Dalamud.Bindings.ImGui
 		NavHighlight = unchecked(51),
 
 		/// <summary>
-		/// Highlight window when using CTRL+TAB<br/>
+		/// To be documented.
 		/// </summary>
 		NavWindowingHighlight = unchecked(52),
 
 		/// <summary>
-		/// Darkencolorize entire screen behind the CTRL+TAB window list, when active<br/>
+		/// To be documented.
 		/// </summary>
 		NavWindowingDimBg = unchecked(53),
 
 		/// <summary>
-		/// Darkencolorize entire screen behind a modal window, when one is active<br/>
+		/// To be documented.
 		/// </summary>
 		ModalWindowDimBg = unchecked(54),
 

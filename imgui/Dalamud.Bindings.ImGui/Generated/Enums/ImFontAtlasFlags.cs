@@ -25,17 +25,17 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Don't round the height to next power of two<br/>
+		/// To be documented.
 		/// </summary>
 		NoPowerOfTwoHeight = unchecked(1),
 
 		/// <summary>
-		/// Don't build software mouse cursors into the atlas (save a little texture memory)<br/>
+		/// To be documented.
 		/// </summary>
 		NoMouseCursors = unchecked(2),
 
 		/// <summary>
-		/// Don't build thick line textures into the atlas (save a little texture memory, allow support for pointnearest filtering). The AntiAliasedLinesUseTex features uses them, otherwise they will be rendered using polygons (more expensive for CPUGPU).<br/>
+		/// To be documented.
 		/// </summary>
 		NoBakedLines = unchecked(4),
 	}

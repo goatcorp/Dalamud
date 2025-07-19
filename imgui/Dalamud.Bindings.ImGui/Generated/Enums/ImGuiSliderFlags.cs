@@ -30,22 +30,22 @@ namespace Dalamud.Bindings.ImGui
 		AlwaysClamp = unchecked(16),
 
 		/// <summary>
-		/// Make the widget logarithmic (linear otherwise). Consider using ImGuiSliderFlags_NoRoundToFormat with this if using a format-string with small amount of digits.<br/>
+		/// To be documented.
 		/// </summary>
 		Logarithmic = unchecked(32),
 
 		/// <summary>
-		/// Disable rounding underlying value to match precision of the display format string (e.g. %.3f values are rounded to those 3 digits).<br/>
+		/// To be documented.
 		/// </summary>
 		NoRoundToFormat = unchecked(64),
 
 		/// <summary>
-		/// Disable CTRL+Click or Enter key allowing to input text directly into the widget.<br/>
+		/// To be documented.
 		/// </summary>
 		NoInput = unchecked(128),
 
 		/// <summary>
-		/// [Internal] We treat using those bits as being potentially a 'float power' argument from the previous API that has got miscast to this enum, and will trigger an assert if needed.<br/>
+		/// To be documented.
 		/// </summary>
 		InvalidMask = unchecked(1879048207),
 	}

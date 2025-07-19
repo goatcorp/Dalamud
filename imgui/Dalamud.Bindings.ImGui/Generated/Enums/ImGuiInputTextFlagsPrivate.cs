@@ -20,7 +20,7 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiInputTextFlagsPrivate : int
 	{
 		/// <summary>
-		/// For internal use by InputTextMultiline()<br/>
+		/// To be documented.
 		/// </summary>
 		Multiline = unchecked(67108864),
 
@@ -30,7 +30,7 @@ namespace Dalamud.Bindings.ImGui
 		NoMarkEdited = unchecked(134217728),
 
 		/// <summary>
-		/// For internal use by TempInputText(), will skip calling ItemAdd(). Require bounding-box to strictly match.<br/>
+		/// To be documented.
 		/// </summary>
 		MergedItem = unchecked(268435456),
 	}

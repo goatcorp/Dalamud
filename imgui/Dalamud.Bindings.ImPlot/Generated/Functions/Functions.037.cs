@@ -22,7 +22,380 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, short* ys1, short* ys2, int count, int offset, int stride)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotStemsNative(byte* labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, long*, long*, int, double, ImPlotStemsFlags, int, int, void>)funcTable[213])(labelId, xs, ys, count, reference, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, nint, int, double, ImPlotStemsFlags, int, int, void>)funcTable[213])((nint)labelId, (nint)xs, (nint)ys, count, reference, flags, offset, stride);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, flags, offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, flags, offset, (int)(sizeof(long)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, flags, (int)(0), (int)(sizeof(long)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, double reference)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(long)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(long)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), flags, (int)(0), (int)(sizeof(long)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, double reference, int offset)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, (int)(sizeof(long)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, int offset)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, (int)(sizeof(long)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags, int offset)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), flags, offset, (int)(sizeof(long)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, double reference, int offset, int stride)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, int offset, int stride)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), flags, offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, offset, (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, (int)(0), (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, double reference)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, (int)(0), (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, double reference, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, offset, (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, double reference, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, offset, (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, (int)(0), (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, double reference)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, (int)(0), (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, double reference, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, offset, (int)(sizeof(long)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, double reference, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -41,9 +414,1679 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (short* pxs = &xs)
+			PlotStemsNative(pStr0, xs, ys, count, reference, flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, (short*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, flags, offset, (int)(sizeof(long)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, double reference, ImPlotStemsFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, flags, (int)(0), (int)(sizeof(long)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, double reference)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(long)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(long)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), flags, (int)(0), (int)(sizeof(long)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, double reference, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, (int)(sizeof(long)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, (int)(sizeof(long)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), flags, offset, (int)(sizeof(long)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, double reference, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, long* xs, long* ys, int count, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotStemsNative(byte* labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, ulong*, ulong*, int, double, ImPlotStemsFlags, int, int, void>)funcTable[214])(labelId, xs, ys, count, reference, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, nint, int, double, ImPlotStemsFlags, int, int, void>)funcTable[214])((nint)labelId, (nint)xs, (nint)ys, count, reference, flags, offset, stride);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, flags, offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, flags, offset, (int)(sizeof(ulong)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, flags, (int)(0), (int)(sizeof(ulong)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, double reference)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(ulong)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(ulong)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), flags, (int)(0), (int)(sizeof(ulong)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, double reference, int offset)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, (int)(sizeof(ulong)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, int offset)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, (int)(sizeof(ulong)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags, int offset)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), flags, offset, (int)(sizeof(ulong)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, double reference, int offset, int stride)
+		{
+			PlotStemsNative(labelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, int offset, int stride)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(byte* labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			PlotStemsNative(labelId, xs, ys, count, (double)(0), flags, offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, offset, (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, (int)(0), (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, double reference)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, (int)(0), (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, double reference, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, offset, (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, double reference, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ref byte labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, offset, (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, flags, (int)(0), (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, double reference)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, (int)(0), (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, double reference, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, offset, (int)(sizeof(ulong)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, double reference, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(ReadOnlySpan<byte> labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotStemsNative((byte*)plabelId, xs, ys, count, (double)(0), flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, flags, offset, (int)(sizeof(ulong)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, double reference, ImPlotStemsFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, flags, (int)(0), (int)(sizeof(ulong)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, double reference)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(ulong)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), (int)(0), (int)(sizeof(ulong)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), flags, (int)(0), (int)(sizeof(ulong)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, double reference, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, (int)(sizeof(ulong)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, (int)(sizeof(ulong)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), flags, offset, (int)(sizeof(ulong)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, double reference, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, reference, (ImPlotStemsFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), (ImPlotStemsFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotStems(string labelId, ulong* xs, ulong* ys, int count, ImPlotStemsFlags flags, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotStemsNative(pStr0, xs, ys, count, (double)(0), flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotInfLinesNative(byte* labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, float*, int, ImPlotInfLinesFlags, int, int, void>)funcTable[215])(labelId, values, count, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, int, ImPlotInfLinesFlags, int, int, void>)funcTable[215])((nint)labelId, (nint)values, count, flags, offset, stride);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, offset, (int)(sizeof(float)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, float* values, int count, ImPlotInfLinesFlags flags)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, (int)(0), (int)(sizeof(float)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, float* values, int count)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(float)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, float* values, int count, int offset)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(float)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, float* values, int count, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, float* values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, float* values, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, float* values, int count, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, float* values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, float* values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, float* values, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, float* values, int count, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, float* values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, float* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, offset, (int)(sizeof(float)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, float* values, int count, ImPlotInfLinesFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, (int)(0), (int)(sizeof(float)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, float* values, int count)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(float)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, float* values, int count, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(float)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, float* values, int count, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ref float values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (float* pvalues = &values)
+			{
+				PlotInfLinesNative(labelId, (float*)pvalues, count, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ref float values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (float* pvalues = &values)
+			{
+				PlotInfLinesNative(labelId, (float*)pvalues, count, flags, offset, (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ref float values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				PlotInfLinesNative(labelId, (float*)pvalues, count, flags, (int)(0), (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ref float values, int count)
+		{
+			fixed (float* pvalues = &values)
+			{
+				PlotInfLinesNative(labelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ref float values, int count, int offset)
+		{
+			fixed (float* pvalues = &values)
+			{
+				PlotInfLinesNative(labelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(float)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ref float values, int count, int offset, int stride)
+		{
+			fixed (float* pvalues = &values)
+			{
+				PlotInfLinesNative(labelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ref float values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, flags, offset, stride);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ref float values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, flags, offset, (int)(sizeof(float)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ref float values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, flags, (int)(0), (int)(sizeof(float)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ref float values, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(float)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ref float values, int count, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(float)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ref float values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, stride);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref float values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, flags, offset, stride);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref float values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, flags, offset, (int)(sizeof(float)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref float values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, flags, (int)(0), (int)(sizeof(float)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref float values, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(float)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref float values, int count, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(float)));
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref float values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, stride);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, ref float values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (float* pvalues = &values)
+			{
+				PlotInfLinesNative(pStr0, (float*)pvalues, count, flags, offset, stride);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -54,241 +2097,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (short*)pys1, ys2, count, flags, offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (short*)pys1, ys2, count, flags, offset, (int)(sizeof(short)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (short*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(short)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, short* ys2, int count)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, short* ys2, int count, int offset)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, short* ys2, int count, int offset, int stride)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, flags, offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, short* ys2, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, short* ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, short* ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, flags, offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, short* ys2, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, short* ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, short* ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(string labelId, ref float values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -307,9 +2116,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (short* pys1 = &ys1)
+			fixed (float* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, xs, (short*)pys1, ys2, count, flags, offset, stride);
+				PlotInfLinesNative(pStr0, (float*)pvalues, count, flags, offset, (int)(sizeof(float)));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -320,7 +2129,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(string labelId, ref float values, int count, ImPlotInfLinesFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -339,9 +2148,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (short* pys1 = &ys1)
+			fixed (float* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, xs, (short*)pys1, ys2, count, flags, offset, (int)(sizeof(short)));
+				PlotInfLinesNative(pStr0, (float*)pvalues, count, flags, (int)(0), (int)(sizeof(float)));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -352,7 +2161,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(string labelId, ref float values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -371,9 +2180,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (short* pys1 = &ys1)
+			fixed (float* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, xs, (short*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(short)));
+				PlotInfLinesNative(pStr0, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(float)));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -384,7 +2193,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, short* ys2, int count)
+		public static void PlotInfLines(string labelId, ref float values, int count, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -403,9 +2212,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (short* pys1 = &ys1)
+			fixed (float* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
+				PlotInfLinesNative(pStr0, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(float)));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -416,7 +2225,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, short* ys2, int count, int offset)
+		public static void PlotInfLines(string labelId, ref float values, int count, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -435,2534 +2244,12 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (short* pys1 = &ys1)
+			fixed (float* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
+				PlotInfLinesNative(pStr0, (float*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, stride);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, short* ys2, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys1 = &ys1)
-			{
-				PlotShadedNative(pStr0, xs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (short*)pxs, (short*)pys1, ys2, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (short*)pxs, (short*)pys1, ys2, count, flags, offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (short*)pxs, (short*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, short* ys2, int count)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, short* ys2, int count, int offset)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, short* ys2, int count, int offset, int stride)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, flags, offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, short* ys2, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, short* ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, short* ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, flags, offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, short* ys2, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, short* ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, short* ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, ys2, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, ys2, count, flags, offset, (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, short* ys2, int count, ImPlotShadedFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, short* ys2, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, short* ys2, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, short* ys2, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (short*)pys2, count, flags, offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, short* ys1, ref short ys2, int count)
-		{
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, short* ys1, ref short ys2, int count, int offset)
-		{
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, short* ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, short* ys1, ref short ys2, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, short* ys1, ref short ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, short* ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, short* ys1, ref short ys2, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, short* ys1, ref short ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, short* ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(pStr0, xs, ys1, (short*)pys2, count, flags, offset, stride);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(pStr0, xs, ys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(pStr0, xs, ys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, short* ys1, ref short ys2, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(pStr0, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, short* ys1, ref short ys2, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(pStr0, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, short* ys1, ref short ys2, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys2 = &ys2)
-			{
-				PlotShadedNative(pStr0, xs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, (short*)pxs, ys1, (short*)pys2, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, (short*)pxs, ys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, (short*)pxs, ys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, short* ys1, ref short ys2, int count)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, short* ys1, ref short ys2, int count, int offset)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, short* ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, short* ys1, ref short ys2, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, short* ys1, ref short ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, short* ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, short* ys1, ref short ys2, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, short* ys1, ref short ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, short* ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, ys1, (short*)pys2, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, ys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, short* ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, ys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, short* ys1, ref short ys2, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, short* ys1, ref short ys2, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, short* ys1, ref short ys2, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, (short*)pxs, ys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, xs, (short*)pys1, (short*)pys2, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, xs, (short*)pys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, xs, (short*)pys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, ref short ys2, int count)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, ref short ys2, int count, int offset)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, short* xs, ref short ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(labelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, ref short ys2, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, ref short ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, short* xs, ref short ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, ref short ys2, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, ref short ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, short* xs, ref short ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative((byte*)plabelId, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, xs, (short*)pys1, (short*)pys2, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, xs, (short*)pys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, xs, (short*)pys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, ref short ys2, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, ref short ys2, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, short* xs, ref short ys1, ref short ys2, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pys1 = &ys1)
-			{
-				fixed (short* pys2 = &ys2)
-				{
-					PlotShadedNative(pStr0, xs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(labelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(labelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(labelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, ref short ys2, int count)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(labelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, ref short ys2, int count, int offset)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(labelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(byte* labelId, ref short xs, ref short ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(labelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, ref short ys2, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, ref short ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref short xs, ref short ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, ref short ys2, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, ref short ys2, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref short xs, ref short ys1, ref short ys2, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (short* pxs = &xs)
-				{
-					fixed (short* pys1 = &ys1)
-					{
-						fixed (short* pys2 = &ys2)
-						{
-							PlotShadedNative((byte*)plabelId, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, offset, stride);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, offset, (int)(sizeof(short)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, ref short ys2, int count, ImPlotShadedFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, (short*)pys2, count, flags, (int)(0), (int)(sizeof(short)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, ref short ys2, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(short)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, ref short ys2, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(short)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(string labelId, ref short xs, ref short ys1, ref short ys2, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (short* pxs = &xs)
-			{
-				fixed (short* pys1 = &ys1)
-				{
-					fixed (short* pys2 = &ys2)
-					{
-						PlotShadedNative(pStr0, (short*)pxs, (short*)pys1, (short*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
 				}
 			}
 		}
@@ -2971,199 +2258,199 @@ namespace Dalamud.Bindings.ImPlot
 		/// To be documented.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static void PlotShadedNative(byte* labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		internal static void PlotInfLinesNative(byte* labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			#if NET5_0_OR_GREATER
-			((delegate* unmanaged[Cdecl]<byte*, ushort*, ushort*, ushort*, int, ImPlotShadedFlags, int, int, void>)funcTable[131])(labelId, xs, ys1, ys2, count, flags, offset, stride);
+			((delegate* unmanaged[Cdecl]<byte*, double*, int, ImPlotInfLinesFlags, int, int, void>)funcTable[216])(labelId, values, count, flags, offset, stride);
 			#else
-			((delegate* unmanaged[Cdecl]<nint, nint, nint, nint, int, ImPlotShadedFlags, int, int, void>)funcTable[131])((nint)labelId, (nint)xs, (nint)ys1, (nint)ys2, count, flags, offset, stride);
+			((delegate* unmanaged[Cdecl]<nint, nint, int, ImPlotInfLinesFlags, int, int, void>)funcTable[216])((nint)labelId, (nint)values, count, flags, offset, stride);
 			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
-			PlotShadedNative(labelId, xs, ys1, ys2, count, flags, offset, stride);
+			PlotInfLinesNative(labelId, values, count, flags, offset, stride);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(byte* labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
-			PlotShadedNative(labelId, xs, ys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
+			PlotInfLinesNative(labelId, values, count, flags, offset, (int)(sizeof(double)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(byte* labelId, double* values, int count, ImPlotInfLinesFlags flags)
 		{
-			PlotShadedNative(labelId, xs, ys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
+			PlotInfLinesNative(labelId, values, count, flags, (int)(0), (int)(sizeof(double)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ushort* ys2, int count)
+		public static void PlotInfLines(byte* labelId, double* values, int count)
 		{
-			PlotShadedNative(labelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(double)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(byte* labelId, double* values, int count, int offset)
 		{
-			PlotShadedNative(labelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(double)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, double* values, int count, int offset, int stride)
 		{
-			PlotShadedNative(labelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, flags, offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ref byte labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ref byte labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ushort* ys2, int count)
+		public static void PlotInfLines(ref byte labelId, double* values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(ref byte labelId, double* values, int count)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ref byte labelId, double* values, int count, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(ref byte labelId, double* values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, flags, offset, stride);
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, double* values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ushort* ys2, int count)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, double* values, int count)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, double* values, int count, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, double* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				PlotShadedNative((byte*)plabelId, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(string labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3182,7 +2469,7 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PlotShadedNative(pStr0, xs, ys1, ys2, count, flags, offset, stride);
+			PlotInfLinesNative(pStr0, values, count, flags, offset, stride);
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -3192,7 +2479,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(string labelId, double* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3211,7 +2498,7 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PlotShadedNative(pStr0, xs, ys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
+			PlotInfLinesNative(pStr0, values, count, flags, offset, (int)(sizeof(double)));
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -3221,7 +2508,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(string labelId, double* values, int count, ImPlotInfLinesFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3240,7 +2527,7 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PlotShadedNative(pStr0, xs, ys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
+			PlotInfLinesNative(pStr0, values, count, flags, (int)(0), (int)(sizeof(double)));
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -3250,7 +2537,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ushort* ys2, int count)
+		public static void PlotInfLines(string labelId, double* values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3269,7 +2556,7 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PlotShadedNative(pStr0, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(double)));
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -3279,7 +2566,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(string labelId, double* values, int count, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3298,7 +2585,7 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PlotShadedNative(pStr0, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(double)));
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -3308,7 +2595,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(string labelId, double* values, int count, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3327,7 +2614,7 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			PlotShadedNative(pStr0, xs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
 				Utils.Free(pStr0);
@@ -3337,93 +2624,79 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, ref double values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(labelId, (ushort*)pxs, ys1, ys2, count, flags, offset, stride);
+				PlotInfLinesNative(labelId, (double*)pvalues, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(byte* labelId, ref double values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(labelId, (ushort*)pxs, ys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
+				PlotInfLinesNative(labelId, (double*)pvalues, count, flags, offset, (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(byte* labelId, ref double values, int count, ImPlotInfLinesFlags flags)
 		{
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(labelId, (ushort*)pxs, ys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
+				PlotInfLinesNative(labelId, (double*)pvalues, count, flags, (int)(0), (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count)
+		public static void PlotInfLines(byte* labelId, ref double values, int count)
 		{
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(labelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+				PlotInfLinesNative(labelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(byte* labelId, ref double values, int count, int offset)
 		{
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(labelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
+				PlotInfLinesNative(labelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(double)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, ref double values, int count, int offset, int stride)
 		{
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(labelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+				PlotInfLinesNative(labelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (ushort* pxs = &xs)
-				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ref byte labelId, ref double values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, flags, offset, stride);
 				}
 			}
 		}
@@ -3431,13 +2704,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ref byte labelId, ref double values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, flags, offset, (int)(sizeof(double)));
 				}
 			}
 		}
@@ -3445,13 +2718,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count)
+		public static void PlotInfLines(ref byte labelId, ref double values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, flags, (int)(0), (int)(sizeof(double)));
 				}
 			}
 		}
@@ -3459,13 +2732,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(ref byte labelId, ref double values, int count)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(double)));
 				}
 			}
 		}
@@ -3473,13 +2746,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ref byte labelId, ref double values, int count, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(double)));
 				}
 			}
 		}
@@ -3487,13 +2760,27 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(ref byte labelId, ref double values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, stride);
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref double values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, flags, offset, stride);
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, flags, offset, stride);
 				}
 			}
 		}
@@ -3501,13 +2788,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref double values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, flags, offset, (int)(sizeof(double)));
 				}
 			}
 		}
@@ -3515,13 +2802,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref double values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, flags, (int)(0), (int)(sizeof(double)));
 				}
 			}
 		}
@@ -3529,13 +2816,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref double values, int count)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(double)));
 				}
 			}
 		}
@@ -3543,13 +2830,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref double values, int count, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(double)));
 				}
 			}
 		}
@@ -3557,13 +2844,13 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ref double values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
+				fixed (double* pvalues = &values)
 				{
-					PlotShadedNative((byte*)plabelId, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+					PlotInfLinesNative((byte*)plabelId, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, stride);
 				}
 			}
 		}
@@ -3571,7 +2858,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(string labelId, ref double values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3590,9 +2877,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, (ushort*)pxs, ys1, ys2, count, flags, offset, stride);
+				PlotInfLinesNative(pStr0, (double*)pvalues, count, flags, offset, stride);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -3603,7 +2890,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(string labelId, ref double values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3622,9 +2909,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, (ushort*)pxs, ys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
+				PlotInfLinesNative(pStr0, (double*)pvalues, count, flags, offset, (int)(sizeof(double)));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -3635,7 +2922,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(string labelId, ref double values, int count, ImPlotInfLinesFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3654,9 +2941,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, (ushort*)pxs, ys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
+				PlotInfLinesNative(pStr0, (double*)pvalues, count, flags, (int)(0), (int)(sizeof(double)));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -3667,7 +2954,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count)
+		public static void PlotInfLines(string labelId, ref double values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3686,9 +2973,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+				PlotInfLinesNative(pStr0, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(double)));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -3699,7 +2986,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(string labelId, ref double values, int count, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3718,9 +3005,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
+				PlotInfLinesNative(pStr0, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(double)));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -3731,7 +3018,7 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ushort* ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(string labelId, ref double values, int count, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3750,9 +3037,9 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				PlotShadedNative(pStr0, (ushort*)pxs, ys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
+				PlotInfLinesNative(pStr0, (double*)pvalues, count, (ImPlotInfLinesFlags)(0), offset, stride);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
@@ -3763,241 +3050,200 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotInfLinesNative(byte* labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
-			fixed (ushort* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (ushort*)pys1, ys2, count, flags, offset, stride);
-			}
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, sbyte*, int, ImPlotInfLinesFlags, int, int, void>)funcTable[217])(labelId, values, count, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, int, ImPlotInfLinesFlags, int, int, void>)funcTable[217])((nint)labelId, (nint)values, count, flags, offset, stride);
+			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(byte* labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
-			fixed (ushort* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (ushort*)pys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
-			}
+			PlotInfLinesNative(labelId, values, count, flags, offset, stride);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(byte* labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
-			fixed (ushort* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (ushort*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-			}
+			PlotInfLinesNative(labelId, values, count, flags, offset, (int)(sizeof(sbyte)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count)
+		public static void PlotInfLines(byte* labelId, sbyte* values, int count, ImPlotInfLinesFlags flags)
 		{
-			fixed (ushort* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-			}
+			PlotInfLinesNative(labelId, values, count, flags, (int)(0), (int)(sizeof(sbyte)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(byte* labelId, sbyte* values, int count)
 		{
-			fixed (ushort* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-			}
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(sbyte)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, sbyte* values, int count, int offset)
 		{
-			fixed (ushort* pys1 = &ys1)
-			{
-				PlotShadedNative(labelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-			}
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(sbyte)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, sbyte* values, int count, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, flags, offset, stride);
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ref byte labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(sbyte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ref byte labelId, sbyte* values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(sbyte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count)
+		public static void PlotInfLines(ref byte labelId, sbyte* values, int count)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(sbyte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(ref byte labelId, sbyte* values, int count, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(sbyte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ref byte labelId, sbyte* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, flags, offset, stride);
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(sbyte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(sbyte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, sbyte* values, int count)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(sbyte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, sbyte* values, int count, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(sbyte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, sbyte* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative((byte*)plabelId, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(string labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4016,20 +3262,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys1 = &ys1)
+			PlotInfLinesNative(pStr0, values, count, flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, (ushort*)pys1, ys2, count, flags, offset, stride);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(string labelId, sbyte* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4048,20 +3291,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys1 = &ys1)
+			PlotInfLinesNative(pStr0, values, count, flags, offset, (int)(sizeof(sbyte)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, (ushort*)pys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(string labelId, sbyte* values, int count, ImPlotInfLinesFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4080,20 +3320,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys1 = &ys1)
+			PlotInfLinesNative(pStr0, values, count, flags, (int)(0), (int)(sizeof(sbyte)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, (ushort*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count)
+		public static void PlotInfLines(string labelId, sbyte* values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4112,20 +3349,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys1 = &ys1)
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(sbyte)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(string labelId, sbyte* values, int count, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4144,20 +3378,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys1 = &ys1)
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(sbyte)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ref ushort ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(string labelId, sbyte* values, int count, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4176,308 +3407,210 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys1 = &ys1)
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotInfLinesNative(byte* labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
-			fixed (ushort* pxs = &xs)
-			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, offset, stride);
-				}
-			}
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, byte*, int, ImPlotInfLinesFlags, int, int, void>)funcTable[218])(labelId, values, count, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, int, ImPlotInfLinesFlags, int, int, void>)funcTable[218])((nint)labelId, (nint)values, count, flags, offset, stride);
+			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(byte* labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
-			fixed (ushort* pxs = &xs)
-			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
-				}
-			}
+			PlotInfLinesNative(labelId, values, count, flags, offset, stride);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(byte* labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
-			fixed (ushort* pxs = &xs)
-			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-				}
-			}
+			PlotInfLinesNative(labelId, values, count, flags, offset, (int)(sizeof(byte)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count)
+		public static void PlotInfLines(byte* labelId, byte* values, int count, ImPlotInfLinesFlags flags)
 		{
-			fixed (ushort* pxs = &xs)
-			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-				}
-			}
+			PlotInfLinesNative(labelId, values, count, flags, (int)(0), (int)(sizeof(byte)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(byte* labelId, byte* values, int count)
 		{
-			fixed (ushort* pxs = &xs)
-			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-				}
-			}
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(byte)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, byte* values, int count, int offset)
 		{
-			fixed (ushort* pxs = &xs)
-			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(labelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
-			}
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(byte)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, byte* values, int count, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, offset, stride);
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ref byte labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(byte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ref byte labelId, byte* values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(byte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count)
+		public static void PlotInfLines(ref byte labelId, byte* values, int count)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(byte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(ref byte labelId, byte* values, int count, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(byte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ref byte labelId, byte* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, offset, stride);
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(byte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, byte* values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(byte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, byte* values, int count)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(byte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, byte* values, int count, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(byte)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, byte* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pxs = &xs)
-				{
-					fixed (ushort* pys1 = &ys1)
-					{
-						PlotShadedNative((byte*)plabelId, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					}
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(string labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4496,23 +3629,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			PlotInfLinesNative(pStr0, values, count, flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(string labelId, byte* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4531,23 +3658,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			PlotInfLinesNative(pStr0, values, count, flags, offset, (int)(sizeof(byte)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, offset, (int)(sizeof(ushort)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(string labelId, byte* values, int count, ImPlotInfLinesFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4566,23 +3687,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			PlotInfLinesNative(pStr0, values, count, flags, (int)(0), (int)(sizeof(byte)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (ushort*)pxs, (ushort*)pys1, ys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count)
+		public static void PlotInfLines(string labelId, byte* values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4601,23 +3716,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(byte)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, int offset)
+		public static void PlotInfLines(string labelId, byte* values, int count, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4636,23 +3745,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(byte)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ref ushort xs, ref ushort ys1, ushort* ys2, int count, int offset, int stride)
+		public static void PlotInfLines(string labelId, byte* values, int count, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4671,257 +3774,210 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pxs = &xs)
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (ushort* pys1 = &ys1)
-				{
-					PlotShadedNative(pStr0, (ushort*)pxs, (ushort*)pys1, ys2, count, (ImPlotShadedFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotInfLinesNative(byte* labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
-			fixed (ushort* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (ushort*)pys2, count, flags, offset, stride);
-			}
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, short*, int, ImPlotInfLinesFlags, int, int, void>)funcTable[219])(labelId, values, count, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, int, ImPlotInfLinesFlags, int, int, void>)funcTable[219])((nint)labelId, (nint)values, count, flags, offset, stride);
+			#endif
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(byte* labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
-			fixed (ushort* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (ushort*)pys2, count, flags, offset, (int)(sizeof(ushort)));
-			}
+			PlotInfLinesNative(labelId, values, count, flags, offset, stride);
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(byte* labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
-			fixed (ushort* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (ushort*)pys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-			}
+			PlotInfLinesNative(labelId, values, count, flags, offset, (int)(sizeof(short)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count)
+		public static void PlotInfLines(byte* labelId, short* values, int count, ImPlotInfLinesFlags flags)
 		{
-			fixed (ushort* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-			}
+			PlotInfLinesNative(labelId, values, count, flags, (int)(0), (int)(sizeof(short)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, int offset)
+		public static void PlotInfLines(byte* labelId, short* values, int count)
 		{
-			fixed (ushort* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-			}
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(short)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(byte* labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, short* values, int count, int offset)
 		{
-			fixed (ushort* pys2 = &ys2)
-			{
-				PlotShadedNative(labelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-			}
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(short)));
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(byte* labelId, short* values, int count, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, flags, offset, stride);
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ref byte labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, flags, offset, (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(short)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ref byte labelId, short* values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(short)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count)
+		public static void PlotInfLines(ref byte labelId, short* values, int count)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(short)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, int offset)
+		public static void PlotInfLines(ref byte labelId, short* values, int count, int offset)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(short)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ref byte labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ref byte labelId, short* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, flags, offset, stride);
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, flags, offset, (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(short)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, short* values, int count, ImPlotInfLinesFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(short)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, short* values, int count)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(short)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, int offset)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, short* values, int count, int offset)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), offset, (int)(sizeof(ushort)));
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(short)));
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(ReadOnlySpan<byte> labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, int offset, int stride)
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, short* values, int count, int offset, int stride)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (ushort* pys2 = &ys2)
-				{
-					PlotShadedNative((byte*)plabelId, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), offset, stride);
-				}
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags, int offset, int stride)
+		public static void PlotInfLines(string labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4940,20 +3996,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys2 = &ys2)
+			PlotInfLinesNative(pStr0, values, count, flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, ys1, (ushort*)pys2, count, flags, offset, stride);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags, int offset)
+		public static void PlotInfLines(string labelId, short* values, int count, ImPlotInfLinesFlags flags, int offset)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4972,20 +4025,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys2 = &ys2)
+			PlotInfLinesNative(pStr0, values, count, flags, offset, (int)(sizeof(short)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, ys1, (ushort*)pys2, count, flags, offset, (int)(sizeof(ushort)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count, ImPlotShadedFlags flags)
+		public static void PlotInfLines(string labelId, short* values, int count, ImPlotInfLinesFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -5004,20 +4054,17 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys2 = &ys2)
+			PlotInfLinesNative(pStr0, values, count, flags, (int)(0), (int)(sizeof(short)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, ys1, (ushort*)pys2, count, flags, (int)(0), (int)(sizeof(ushort)));
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
+				Utils.Free(pStr0);
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotShaded(string labelId, ushort* xs, ushort* ys1, ref ushort ys2, int count)
+		public static void PlotInfLines(string labelId, short* values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -5036,13 +4083,940 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (ushort* pys2 = &ys2)
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(short)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotShadedNative(pStr0, xs, ys1, (ushort*)pys2, count, (ImPlotShadedFlags)(0), (int)(0), (int)(sizeof(ushort)));
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, short* values, int count, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					Utils.Free(pStr0);
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(short)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, short* values, int count, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotInfLinesNative(byte* labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, ushort*, int, ImPlotInfLinesFlags, int, int, void>)funcTable[220])(labelId, values, count, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, int, ImPlotInfLinesFlags, int, int, void>)funcTable[220])((nint)labelId, (nint)values, count, flags, offset, stride);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, offset, (int)(sizeof(ushort)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ushort* values, int count, ImPlotInfLinesFlags flags)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, (int)(0), (int)(sizeof(ushort)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ushort* values, int count)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(ushort)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ushort* values, int count, int offset)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(ushort)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, ushort* values, int count, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(ushort)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ushort* values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(ushort)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ushort* values, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(ushort)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ushort* values, int count, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(ushort)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, ushort* values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(ushort)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ushort* values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(ushort)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ushort* values, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(ushort)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ushort* values, int count, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(ushort)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, ushort* values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, ushort* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, offset, (int)(sizeof(ushort)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, ushort* values, int count, ImPlotInfLinesFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, (int)(0), (int)(sizeof(ushort)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, ushort* values, int count)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(ushort)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, ushort* values, int count, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(ushort)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, ushort* values, int count, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotInfLinesNative(byte* labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, int*, int, ImPlotInfLinesFlags, int, int, void>)funcTable[221])(labelId, values, count, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, int, ImPlotInfLinesFlags, int, int, void>)funcTable[221])((nint)labelId, (nint)values, count, flags, offset, stride);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, offset, (int)(sizeof(int)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, int* values, int count, ImPlotInfLinesFlags flags)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, (int)(0), (int)(sizeof(int)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, int* values, int count)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(int)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, int* values, int count, int offset)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(int)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, int* values, int count, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(int)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, int* values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(int)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, int* values, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(int)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, int* values, int count, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(int)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, int* values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(int)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, int* values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(int)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, int* values, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(int)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, int* values, int count, int offset)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(int)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, int* values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, int* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, offset, (int)(sizeof(int)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, int* values, int count, ImPlotInfLinesFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, flags, (int)(0), (int)(sizeof(int)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, int* values, int count)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(int)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, int* values, int count, int offset)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(int)));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(string labelId, int* values, int count, int offset, int stride)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			PlotInfLinesNative(pStr0, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void PlotInfLinesNative(byte* labelId, uint* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			#if NET5_0_OR_GREATER
+			((delegate* unmanaged[Cdecl]<byte*, uint*, int, ImPlotInfLinesFlags, int, int, void>)funcTable[222])(labelId, values, count, flags, offset, stride);
+			#else
+			((delegate* unmanaged[Cdecl]<nint, nint, int, ImPlotInfLinesFlags, int, int, void>)funcTable[222])((nint)labelId, (nint)values, count, flags, offset, stride);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, uint* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, uint* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, offset, (int)(sizeof(uint)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, uint* values, int count, ImPlotInfLinesFlags flags)
+		{
+			PlotInfLinesNative(labelId, values, count, flags, (int)(0), (int)(sizeof(uint)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, uint* values, int count)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(uint)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, uint* values, int count, int offset)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(uint)));
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(byte* labelId, uint* values, int count, int offset, int stride)
+		{
+			PlotInfLinesNative(labelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, uint* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, uint* values, int count, ImPlotInfLinesFlags flags, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, (int)(sizeof(uint)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, uint* values, int count, ImPlotInfLinesFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, (int)(0), (int)(sizeof(uint)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, uint* values, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), (int)(0), (int)(sizeof(uint)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, uint* values, int count, int offset)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, (int)(sizeof(uint)));
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ref byte labelId, uint* values, int count, int offset, int stride)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, (ImPlotInfLinesFlags)(0), offset, stride);
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static void PlotInfLines(ReadOnlySpan<byte> labelId, uint* values, int count, ImPlotInfLinesFlags flags, int offset, int stride)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				PlotInfLinesNative((byte*)plabelId, values, count, flags, offset, stride);
 			}
 		}
 	}

@@ -30,18 +30,14 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte QueryFrameCount;
+		public sbyte QueryFrameCount;
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
 		public byte QuerySuccess;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public ImGuiDataType DataType;
-
+		public ImGuiDataType RawBits0;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -107,7 +103,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiStackLevelInfo(uint id = default, byte queryFrameCount = default, bool querySuccess = default, ImGuiDataType dataType = default, byte* desc = default)
+		public unsafe ImGuiStackLevelInfo(uint id = default, sbyte queryFrameCount = default, bool querySuccess = default, ImGuiDataType dataType = default, byte* desc = default)
 		{
 			ID = id;
 			QueryFrameCount = queryFrameCount;
@@ -178,7 +174,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiStackLevelInfo(uint id = default, byte queryFrameCount = default, bool querySuccess = default, ImGuiDataType dataType = default, Span<byte> desc = default)
+		public unsafe ImGuiStackLevelInfo(uint id = default, sbyte queryFrameCount = default, bool querySuccess = default, ImGuiDataType dataType = default, Span<byte> desc = default)
 		{
 			ID = id;
 			QueryFrameCount = queryFrameCount;
@@ -247,6 +243,8 @@ namespace Dalamud.Bindings.ImGui
 		}
 
 
+		public ImGuiDataType DataType { get => Bitfield.Get(RawBits0, 0, 8); set => Bitfield.Set(ref RawBits0, value, 0, 8); }
+
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -308,7 +306,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte QueryFrameCount => ref Unsafe.AsRef<byte>(&Handle->QueryFrameCount);
+		public ref sbyte QueryFrameCount => ref Unsafe.AsRef<sbyte>(&Handle->QueryFrameCount);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -316,7 +314,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref ImGuiDataType DataType => ref Unsafe.AsRef<ImGuiDataType>(&Handle->DataType);
+		public ImGuiDataType DataType { get => Handle->DataType; set => Handle->DataType = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>

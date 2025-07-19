@@ -25,37 +25,37 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Align the popup toward the left by default<br/>
+		/// To be documented.
 		/// </summary>
 		PopupAlignLeft = unchecked(1),
 
 		/// <summary>
-		/// Max ~4 items visible. Tip: If you want your combo popup to be a specific size you can use SetNextWindowSizeConstraints() prior to calling BeginCombo()<br/>
+		/// To be documented.
 		/// </summary>
 		HeightSmall = unchecked(2),
 
 		/// <summary>
-		/// Max ~8 items visible (default)<br/>
+		/// To be documented.
 		/// </summary>
 		HeightRegular = unchecked(4),
 
 		/// <summary>
-		/// Max ~20 items visible<br/>
+		/// To be documented.
 		/// </summary>
 		HeightLarge = unchecked(8),
 
 		/// <summary>
-		/// As many fitting items as possible<br/>
+		/// To be documented.
 		/// </summary>
 		HeightLargest = unchecked(16),
 
 		/// <summary>
-		/// Display on the preview box without the square arrow button<br/>
+		/// To be documented.
 		/// </summary>
 		NoArrowButton = unchecked(32),
 
 		/// <summary>
-		/// Display only a square arrow button<br/>
+		/// To be documented.
 		/// </summary>
 		NoPreview = unchecked(64),
 

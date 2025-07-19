@@ -20,52 +20,52 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiDataType : int
 	{
 		/// <summary>
-		/// signed char  char (with sensible compilers)<br/>
+		/// To be documented.
 		/// </summary>
 		S8 = unchecked(0),
 
 		/// <summary>
-		/// unsigned char<br/>
+		/// To be documented.
 		/// </summary>
 		U8 = unchecked(1),
 
 		/// <summary>
-		/// short<br/>
+		/// To be documented.
 		/// </summary>
 		S16 = unchecked(2),
 
 		/// <summary>
-		/// unsigned short<br/>
+		/// To be documented.
 		/// </summary>
 		U16 = unchecked(3),
 
 		/// <summary>
-		/// int<br/>
+		/// To be documented.
 		/// </summary>
 		S32 = unchecked(4),
 
 		/// <summary>
-		/// unsigned int<br/>
+		/// To be documented.
 		/// </summary>
 		U32 = unchecked(5),
 
 		/// <summary>
-		/// long long  __int64<br/>
+		/// To be documented.
 		/// </summary>
 		S64 = unchecked(6),
 
 		/// <summary>
-		/// unsigned long long  unsigned __int64<br/>
+		/// To be documented.
 		/// </summary>
 		U64 = unchecked(7),
 
 		/// <summary>
-		/// float<br/>
+		/// To be documented.
 		/// </summary>
 		Float = unchecked(8),
 
 		/// <summary>
-		/// double<br/>
+		/// To be documented.
 		/// </summary>
 		Double = unchecked(9),
 

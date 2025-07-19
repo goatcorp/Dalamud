@@ -67,6 +67,17 @@ namespace Dalamud.Bindings.ImGui
 		}
 
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void Destroy()
+		{
+			fixed (ImGuiStackTool* @this = &this)
+			{
+				ImGui.DestroyNative(@this);
+			}
+		}
+
 	}
 
 	/// <summary>
@@ -134,6 +145,14 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref float CopyToClipboardLastTime => ref Unsafe.AsRef<float>(&Handle->CopyToClipboardLastTime);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void Destroy()
+		{
+			ImGui.DestroyNative(Handle);
+		}
+
 	}
 
 }

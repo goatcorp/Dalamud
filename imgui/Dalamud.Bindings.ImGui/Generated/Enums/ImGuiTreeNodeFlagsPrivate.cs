@@ -20,7 +20,7 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiTreeNodeFlagsPrivate : int
 	{
 		/// <summary>
-		/// FIXME-WIP: Hard-coded for CollapsingHeader()<br/>
+		/// To be documented.
 		/// </summary>
 		ClipLabelForTrailingButton = unchecked(1048576),
 	}

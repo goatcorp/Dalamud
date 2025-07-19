@@ -20,12 +20,12 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiNavLayer : int
 	{
 		/// <summary>
-		/// Main scrolling layer<br/>
+		/// To be documented.
 		/// </summary>
 		Main = unchecked(0),
 
 		/// <summary>
-		/// Menu layer (access with Alt)<br/>
+		/// To be documented.
 		/// </summary>
 		Menu = unchecked(1),
 

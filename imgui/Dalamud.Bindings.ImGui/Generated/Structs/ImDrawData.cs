@@ -17,9 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// All draw data to render a Dear ImGui frame<br/>
-	/// (NB: the style and the naming convention here is a little inconsistent, we currently preserve them for backward compatibility purpose,<br/>
-	/// as this is one of the oldest structure exposed by the library! Basically, ImDrawList == CmdList)<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImDrawData

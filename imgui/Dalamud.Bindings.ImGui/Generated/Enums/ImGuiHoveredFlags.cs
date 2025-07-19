@@ -20,32 +20,32 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiHoveredFlags : int
 	{
 		/// <summary>
-		/// Return true if directly over the itemwindow, not obstructed by another window, not obstructed by an active popup or modal blocking inputs under them.<br/>
+		/// To be documented.
 		/// </summary>
 		None = unchecked(0),
 
 		/// <summary>
-		/// IsWindowHovered() only: Return true if any children of the window is hovered<br/>
+		/// To be documented.
 		/// </summary>
 		ChildWindows = unchecked(1),
 
 		/// <summary>
-		/// IsWindowHovered() only: Test from root window (top most parent of the current hierarchy)<br/>
+		/// To be documented.
 		/// </summary>
 		RootWindow = unchecked(2),
 
 		/// <summary>
-		/// IsWindowHovered() only: Return true if any window is hovered<br/>
+		/// To be documented.
 		/// </summary>
 		AnyWindow = unchecked(4),
 
 		/// <summary>
-		/// Return true even if a popup window is normally blocking access to this itemwindow<br/>
+		/// To be documented.
 		/// </summary>
 		AllowWhenBlockedByPopup = unchecked(8),
 
 		/// <summary>
-		/// Return true even if an active item is blocking access to this itemwindow. Useful for Drag and Drop patterns.<br/>
+		/// To be documented.
 		/// </summary>
 		AllowWhenBlockedByActiveItem = unchecked(32),
 
@@ -55,12 +55,12 @@ namespace Dalamud.Bindings.ImGui
 		AllowWhenOverlapped = unchecked(64),
 
 		/// <summary>
-		/// IsItemHovered() only: Return true even if the item is disabled<br/>
+		/// To be documented.
 		/// </summary>
 		AllowWhenDisabled = unchecked(128),
 
 		/// <summary>
-		/// IsItemHovered() only: Disable using keyboardgamepad navigation state when active, always query mouse<br/>
+		/// To be documented.
 		/// </summary>
 		NoNavOverride = unchecked(256),
 
@@ -75,12 +75,12 @@ namespace Dalamud.Bindings.ImGui
 		RootAndChildWindows = unchecked(3),
 
 		/// <summary>
-		/// IsWindowHovered() only: Do not consider popup hierarchy (do not treat popup emitter as parent of popup) (when used with _ChildWindows or _RootWindow)<br/>
+		/// To be documented.
 		/// </summary>
 		NoPopupHierarchy = unchecked(512),
 
 		/// <summary>
-		/// IsWindowHovered() only: Consider docking hierarchy (treat dockspace host as parent of docked window) (when used with _ChildWindows or _RootWindow)<br/>
+		/// To be documented.
 		/// </summary>
 		DockHierarchy = unchecked(1024),
 	}

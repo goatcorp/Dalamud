@@ -22,175 +22,43 @@ namespace Dalamud.Bindings.ImPlot
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, float* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, flags, offset, stride);
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, flags);
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, float* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, flags, offset, (int)(sizeof(double)));
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, float* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(string labelId, float* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -209,20 +77,1173 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pys = &ys)
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, pos, count, flags, offset, stride);
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, int bins, double barScale)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, int bins)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, double barScale)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, int bins, ImPlotRange range)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, ImPlotRange range)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, double barScale, ImPlotRange range)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, float* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, bins, barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, int bins, double barScale)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, int bins)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, double barScale)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, int bins, ImPlotRange range)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, ImPlotRange range)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, bins, (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref float values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, barScale, range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, int bins, double barScale)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, int bins)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, double barScale)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, int bins, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, (double)(1.0), range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref float values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, barScale, range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, int bins, double barScale)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, int bins)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, double barScale)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, int bins, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, bins, (double)(1.0), range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref float values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (float* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, ref float values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (float* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, bins, barScale, range, flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(string labelId, ref float values, int count, int bins, double barScale, ImPlotRange range)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -241,20 +1262,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pys = &ys)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, pos, count, flags, offset, (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(string labelId, ref float values, int count, int bins, double barScale)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -273,20 +1295,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pys = &ys)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, pos, count, flags, (int)(0), (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, double* pos, int count)
+		public static double PlotHistogram(string labelId, ref float values, int count, int bins)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -305,20 +1328,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pys = &ys)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, double* pos, int count, int offset)
+		public static double PlotHistogram(string labelId, ref float values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -337,20 +1361,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pys = &ys)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, double* pos, int count, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref float values, int count, double barScale)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -369,308 +1394,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pys = &ys)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, pos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, pos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, double* pos, int count)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, double* pos, int count, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref float values, int count, int bins, ImPlotRange range)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -689,464 +1427,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			fixed (float* pvalues = &values)
 			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, pos, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, pos, count, flags, offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, double* pos, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, double* pos, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, double* pos, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (double* pneg = &neg)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, pos, count, flags, offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (double* pneg = &neg)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (double* pneg = &neg)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, double* pos, int count)
-		{
-			fixed (double* pneg = &neg)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (double* pneg = &neg)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (double* pneg = &neg)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, ref double neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pneg = &neg)
-			{
-				PlotErrorBarsNative(pStr0, xs, ys, (double*)pneg, pos, count, flags, offset, stride);
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(string labelId, ref float values, int count, ImPlotRange range)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1165,20 +1460,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pneg = &neg)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(string labelId, ref float values, int count, double barScale, ImPlotRange range)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1197,20 +1493,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pneg = &neg)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, ref double neg, double* pos, int count)
+		public static double PlotHistogram(string labelId, ref float values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1229,20 +1526,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pneg = &neg)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, ref double neg, double* pos, int count, int offset)
+		public static double PlotHistogram(string labelId, ref float values, int count, int bins, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1261,20 +1559,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pneg = &neg)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, ref double neg, double* pos, int count, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref float values, int count, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1293,308 +1592,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pneg = &neg)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, ref double neg, double* pos, int count)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, ref double neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, ref double neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref float values, int count, double barScale, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -1613,1532 +1625,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			fixed (float* pvalues = &values)
 			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, (double*)pneg, pos, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, ref double neg, double* pos, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, ref double neg, double* pos, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, (double*)pneg, pos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, ref double neg, double* pos, int count)
-		{
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, ref double neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, ref double neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, (double*)pneg, pos, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, ref double neg, double* pos, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, ref double neg, double* pos, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* pneg = &neg)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, ref double neg, double* pos, int count)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, ref double neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, ref double neg, double* pos, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* pneg = &neg)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, offset, stride);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, offset, (int)(sizeof(double)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, (double*)pneg, pos, count, flags, (int)(0), (int)(sizeof(double)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, ref double neg, double* pos, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, ref double neg, double* pos, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* pneg = &neg)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, (double*)pneg, pos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (double* ppos = &pos)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, neg, (double*)ppos, count, flags, offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (double* ppos = &pos)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (double* ppos = &pos)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, double* neg, ref double pos, int count)
-		{
-			fixed (double* ppos = &pos)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, double* neg, ref double pos, int count, int offset)
-		{
-			fixed (double* ppos = &pos)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			fixed (double* ppos = &pos)
-			{
-				PlotErrorBarsNative(labelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, double* neg, ref double pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, double* neg, ref double pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, double* neg, ref double pos, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, double* neg, ref double pos, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, double* ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative((byte*)plabelId, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* ppos = &pos)
-			{
-				PlotErrorBarsNative(pStr0, xs, ys, neg, (double*)ppos, count, flags, offset, stride);
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(string labelId, ref float values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3157,20 +1658,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* ppos = &pos)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, bins, (double)(1.0), range, flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(string labelId, ref float values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3189,20 +1691,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* ppos = &pos)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, double* neg, ref double pos, int count)
+		public static double PlotHistogram(string labelId, ref float values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3221,20 +1724,562 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* ppos = &pos)
+			fixed (float* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
+				double ret = PlotHistogramNative(pStr0, (float*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, double* neg, ref double pos, int count, int offset)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static double PlotHistogramNative(byte* labelId, double* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<byte*, double*, int, int, double, ImPlotRange, ImPlotHistogramFlags, double>)funcTable[246])(labelId, values, count, bins, barScale, range, flags);
+			#else
+			return (double)((delegate* unmanaged[Cdecl]<nint, nint, int, int, double, ImPlotRange, ImPlotHistogramFlags, double>)funcTable[246])((nint)labelId, (nint)values, count, bins, barScale, range, flags);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, int bins, double barScale)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, int bins)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, double barScale)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, int bins, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, double barScale, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, double* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, int bins, double barScale)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, int bins)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, double barScale)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, int bins, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, double* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, int bins, double barScale)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, int bins)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, double barScale)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, int bins, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, double* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3253,20 +2298,1173 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* ppos = &pos)
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, int bins, double barScale)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, int bins)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, double barScale)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, int bins, ImPlotRange range)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, ImPlotRange range)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, double barScale, ImPlotRange range)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, double* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, bins, barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, int bins, double barScale)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, int bins)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, double barScale)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, int bins, ImPlotRange range)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, ImPlotRange range)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, bins, (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, ref double values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(labelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, barScale, range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, int bins, double barScale)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, int bins)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, double barScale)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, int bins, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, (double)(1.0), range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, ref double values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, barScale, range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, int bins, double barScale)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, int bins)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, double barScale)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, int bins, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, bins, (double)(1.0), range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, ref double values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				fixed (double* pvalues = &values)
+				{
+					double ret = PlotHistogramNative((byte*)plabelId, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+					return ret;
+				}
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, ref double values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, bins, barScale, range, flags);
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, double* ys, double* neg, ref double pos, int count, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref double values, int count, int bins, double barScale, ImPlotRange range)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3285,308 +3483,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* ppos = &pos)
+			fixed (double* pvalues = &values)
 			{
-				PlotErrorBarsNative(pStr0, xs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
 				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
 					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, double* neg, ref double pos, int count)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, double* neg, ref double pos, int count, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, double* ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(labelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, double* neg, ref double pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, double* neg, ref double pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, double* ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, double* neg, ref double pos, int count)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, double* neg, ref double pos, int count, int offset)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, double* ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref double values, int count, int bins, double barScale)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3605,23 +3516,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				fixed (double* ppos = &pos)
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, neg, (double*)ppos, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
+					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(string labelId, ref double values, int count, int bins)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3640,23 +3549,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				fixed (double* ppos = &pos)
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
+					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(string labelId, ref double values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3675,23 +3582,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				fixed (double* ppos = &pos)
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
+					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, double* neg, ref double pos, int count)
+		public static double PlotHistogram(string labelId, ref double values, int count, double barScale)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3710,23 +3615,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				fixed (double* ppos = &pos)
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
+					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, double* neg, ref double pos, int count, int offset)
+		public static double PlotHistogram(string labelId, ref double values, int count, int bins, ImPlotRange range)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3745,23 +3648,21 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				fixed (double* ppos = &pos)
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
+					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, double* ys, double* neg, ref double pos, int count, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref double values, int count, ImPlotRange range)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -3780,863 +3681,826 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			fixed (double* pvalues = &values)
 			{
-				fixed (double* ppos = &pos)
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(pStr0, (double*)pxs, ys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
+					Utils.Free(pStr0);
 				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref double values, int count, double barScale, ImPlotRange range)
 		{
-			fixed (double* pys = &ys)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, neg, (double*)ppos, count, flags, offset, stride);
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(string labelId, ref double values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
 		{
-			fixed (double* pys = &ys)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(string labelId, ref double values, int count, int bins, ImPlotHistogramFlags flags)
 		{
-			fixed (double* pys = &ys)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, double* neg, ref double pos, int count)
+		public static double PlotHistogram(string labelId, ref double values, int count, ImPlotHistogramFlags flags)
 		{
-			fixed (double* pys = &ys)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, double* neg, ref double pos, int count, int offset)
+		public static double PlotHistogram(string labelId, ref double values, int count, double barScale, ImPlotHistogramFlags flags)
 		{
-			fixed (double* pys = &ys)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, ref double ys, double* neg, ref double pos, int count, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref double values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
-			fixed (double* pys = &ys)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, bins, (double)(1.0), range, flags);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(string labelId, ref double values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, ref double values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
+			{
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
+				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
+			}
+			fixed (double* pvalues = &values)
+			{
+				double ret = PlotHistogramNative(pStr0, (double*)pvalues, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
+				{
+					Utils.Free(pStr0);
+				}
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static double PlotHistogramNative(byte* labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<byte*, sbyte*, int, int, double, ImPlotRange, ImPlotHistogramFlags, double>)funcTable[247])(labelId, values, count, bins, barScale, range, flags);
+			#else
+			return (double)((delegate* unmanaged[Cdecl]<nint, nint, int, int, double, ImPlotRange, ImPlotHistogramFlags, double>)funcTable[247])((nint)labelId, (nint)values, count, bins, barScale, range, flags);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, int bins, double barScale)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, int bins)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, double barScale)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, int bins, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, double barScale, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, sbyte* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, flags, offset, stride);
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, range, flags);
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, int bins, double barScale)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, ref double pos, int count)
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, int bins)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, ref double pos, int count, int offset)
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, ref double ys, double* neg, ref double pos, int count, int offset, int stride)
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, double barScale)
 		{
 			fixed (byte* plabelId = &labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, int bins, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, double barScale, ImPlotRange range)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, int bins, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ref byte labelId, sbyte* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = &labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, flags, offset, stride);
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, range, flags);
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, int bins, double barScale)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, ref double pos, int count)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, int bins)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, ref double pos, int count, int offset)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, double* xs, ref double ys, double* neg, ref double pos, int count, int offset, int stride)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, double barScale)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, (double*)ppos, count, flags, offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, ref double pos, int count)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, ref double pos, int count, int offset)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(string labelId, double* xs, ref double ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (labelId != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(labelId);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			fixed (double* pys = &ys)
-			{
-				fixed (double* ppos = &pos)
-				{
-					PlotErrorBarsNative(pStr0, xs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						Utils.Free(pStr0);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, ref double pos, int count)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, int offset)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(byte* labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			fixed (double* pxs = &xs)
-			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(labelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, ref double pos, int count)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, int offset)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, int offset, int stride)
-		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, int bins, ImPlotRange range)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, offset, stride);
-						}
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotRange range)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-						}
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, double barScale, ImPlotRange range)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-						}
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, ref double pos, int count)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-						}
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, int offset)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, int bins, ImPlotHistogramFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-						}
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ReadOnlySpan<byte> labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, int offset, int stride)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotHistogramFlags flags)
 		{
 			fixed (byte* plabelId = labelId)
 			{
-				fixed (double* pxs = &xs)
-				{
-					fixed (double* pys = &ys)
-					{
-						fixed (double* ppos = &pos)
-						{
-							PlotErrorBarsNative((byte*)plabelId, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-						}
-					}
-				}
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
 			}
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, double barScale, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, bins, (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(ReadOnlySpan<byte> labelId, sbyte* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			fixed (byte* plabelId = labelId)
+			{
+				double ret = PlotHistogramNative((byte*)plabelId, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+				return ret;
+			}
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(string labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4655,26 +4519,18 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, offset, stride);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
+				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, int bins, double barScale, ImPlotRange range)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4693,26 +4549,18 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
+				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, int bins, double barScale)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4731,26 +4579,18 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
+				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, ref double pos, int count)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, int bins)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4769,26 +4609,18 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
+				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, int offset)
+		public static double PlotHistogram(string labelId, sbyte* values, int count)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4807,26 +4639,18 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
+				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(string labelId, ref double xs, ref double ys, double* neg, ref double pos, int count, int offset, int stride)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, double barScale)
 		{
 			byte* pStr0 = null;
 			int pStrSize0 = 0;
@@ -4845,189 +4669,361 @@ namespace Dalamud.Bindings.ImPlot
 				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
 				pStr0[pStrOffset0] = 0;
 			}
-			fixed (double* pxs = &xs)
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
 			{
-				fixed (double* pys = &ys)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative(pStr0, (double*)pxs, (double*)pys, neg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
-						if (pStrSize0 >= Utils.MaxStackallocSize)
-						{
-							Utils.Free(pStr0);
-						}
-					}
-				}
+				Utils.Free(pStr0);
 			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, int bins, ImPlotRange range)
 		{
-			fixed (double* pneg = &neg)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, (double*)ppos, count, flags, offset, stride);
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, ImPlotRange range)
 		{
-			fixed (double* pneg = &neg)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, double barScale, ImPlotRange range)
 		{
-			fixed (double* pneg = &neg)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, (ImPlotHistogramFlags)(0));
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, ref double pos, int count)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, int bins, double barScale, ImPlotHistogramFlags flags)
 		{
-			fixed (double* pneg = &neg)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, ref double pos, int count, int offset)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, int bins, ImPlotHistogramFlags flags)
 		{
-			fixed (double* pneg = &neg)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(byte* labelId, double* xs, double* ys, ref double neg, ref double pos, int count, int offset, int stride)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, ImPlotHistogramFlags flags)
 		{
-			fixed (double* pneg = &neg)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* ppos = &pos)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					PlotErrorBarsNative(labelId, xs, ys, (double*)pneg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, stride);
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset, int stride)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, double barScale, ImPlotHistogramFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* pneg = &neg)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, (double*)ppos, count, flags, offset, stride);
-					}
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, (ImPlotRange)(*ImPlotRangeNative()), flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, ref double pos, int count, ImPlotErrorBarsFlags flags, int offset)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, int bins, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* pneg = &neg)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, (double*)ppos, count, flags, offset, (int)(sizeof(double)));
-					}
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, bins, (double)(1.0), range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, ref double pos, int count, ImPlotErrorBarsFlags flags)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* pneg = &neg)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, (double*)ppos, count, flags, (int)(0), (int)(sizeof(double)));
-					}
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), (double)(1.0), range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, ref double pos, int count)
+		public static double PlotHistogram(string labelId, sbyte* values, int count, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
+			byte* pStr0 = null;
+			int pStrSize0 = 0;
+			if (labelId != null)
 			{
-				fixed (double* pneg = &neg)
+				pStrSize0 = Utils.GetByteCountUTF8(labelId);
+				if (pStrSize0 >= Utils.MaxStackallocSize)
 				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), (int)(0), (int)(sizeof(double)));
-					}
+					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
 				}
+				else
+				{
+					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
+					pStr0 = pStrStack0;
+				}
+				int pStrOffset0 = Utils.EncodeStringUTF8(labelId, pStr0, pStrSize0);
+				pStr0[pStrOffset0] = 0;
 			}
+			double ret = PlotHistogramNative(pStr0, values, count, (int)((int)ImPlotBin.Sturges), barScale, range, flags);
+			if (pStrSize0 >= Utils.MaxStackallocSize)
+			{
+				Utils.Free(pStr0);
+			}
+			return ret;
 		}
 
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public static void PlotErrorBars(ref byte labelId, double* xs, double* ys, ref double neg, ref double pos, int count, int offset)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static double PlotHistogramNative(byte* labelId, byte* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
 		{
-			fixed (byte* plabelId = &labelId)
-			{
-				fixed (double* pneg = &neg)
-				{
-					fixed (double* ppos = &pos)
-					{
-						PlotErrorBarsNative((byte*)plabelId, xs, ys, (double*)pneg, (double*)ppos, count, (ImPlotErrorBarsFlags)(0), offset, (int)(sizeof(double)));
-					}
-				}
-			}
+			#if NET5_0_OR_GREATER
+			return ((delegate* unmanaged[Cdecl]<byte*, byte*, int, int, double, ImPlotRange, ImPlotHistogramFlags, double>)funcTable[248])(labelId, values, count, bins, barScale, range, flags);
+			#else
+			return (double)((delegate* unmanaged[Cdecl]<nint, nint, int, int, double, ImPlotRange, ImPlotHistogramFlags, double>)funcTable[248])((nint)labelId, (nint)values, count, bins, barScale, range, flags);
+			#endif
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, byte* values, int count, int bins, double barScale, ImPlotRange range, ImPlotHistogramFlags flags)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, range, flags);
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, byte* values, int count, int bins, double barScale, ImPlotRange range)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, range, (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, byte* values, int count, int bins, double barScale)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, barScale, (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
+		}
+
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public static double PlotHistogram(byte* labelId, byte* values, int count, int bins)
+		{
+			double ret = PlotHistogramNative(labelId, values, count, bins, (double)(1.0), (ImPlotRange)(*ImPlotRangeNative()), (ImPlotHistogramFlags)(0));
+			return ret;
 		}
 	}
 }

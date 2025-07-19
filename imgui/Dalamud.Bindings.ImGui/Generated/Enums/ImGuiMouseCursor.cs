@@ -30,42 +30,42 @@ namespace Dalamud.Bindings.ImGui
 		Arrow = unchecked(0),
 
 		/// <summary>
-		/// When hovering over InputText, etc.<br/>
+		/// To be documented.
 		/// </summary>
 		TextInput = unchecked(1),
 
 		/// <summary>
-		/// (Unused by Dear ImGui functions)<br/>
+		/// To be documented.
 		/// </summary>
 		ResizeAll = unchecked(2),
 
 		/// <summary>
-		/// When hovering over a horizontal border<br/>
+		/// To be documented.
 		/// </summary>
 		ResizeNs = unchecked(3),
 
 		/// <summary>
-		/// When hovering over a vertical border or a column<br/>
+		/// To be documented.
 		/// </summary>
 		ResizeEw = unchecked(4),
 
 		/// <summary>
-		/// When hovering over the bottom-left corner of a window<br/>
+		/// To be documented.
 		/// </summary>
 		ResizeNesw = unchecked(5),
 
 		/// <summary>
-		/// When hovering over the bottom-right corner of a window<br/>
+		/// To be documented.
 		/// </summary>
 		ResizeNwse = unchecked(6),
 
 		/// <summary>
-		/// (Unused by Dear ImGui functions. Use for e.g. hyperlinks)<br/>
+		/// To be documented.
 		/// </summary>
 		Hand = unchecked(7),
 
 		/// <summary>
-		/// When hovering something with disallowed interaction. Usually a crossed circle.<br/>
+		/// To be documented.
 		/// </summary>
 		NotAllowed = unchecked(8),
 

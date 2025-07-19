@@ -20,7 +20,7 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiComboFlagsPrivate : int
 	{
 		/// <summary>
-		/// enable BeginComboPreview()<br/>
+		/// To be documented.
 		/// </summary>
 		CustomPreview = unchecked(1048576),
 	}

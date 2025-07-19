@@ -20,27 +20,27 @@ namespace Dalamud.Bindings.ImGui
 	public enum ImGuiCond : int
 	{
 		/// <summary>
-		/// No condition (always set the variable), same as _Always<br/>
+		/// To be documented.
 		/// </summary>
 		None = unchecked(0),
 
 		/// <summary>
-		/// No condition (always set the variable), same as _None<br/>
+		/// To be documented.
 		/// </summary>
 		Always = unchecked(1),
 
 		/// <summary>
-		/// Set the variable once per runtime session (only the first call will succeed)<br/>
+		/// To be documented.
 		/// </summary>
 		Once = unchecked(2),
 
 		/// <summary>
-		/// Set the variable if the objectwindow has no persistently saved data (no entry in .ini file)<br/>
+		/// To be documented.
 		/// </summary>
 		FirstUseEver = unchecked(4),
 
 		/// <summary>
-		/// Set the variable if the objectwindow is appearing after being hiddeninactive (or the first time)<br/>
+		/// To be documented.
 		/// </summary>
 		Appearing = unchecked(8),
 	}

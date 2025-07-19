@@ -17,13 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// - Currently represents the Platform Window created by the application which is hosting our Dear ImGui windows.<br/>
-	/// - With multi-viewport enabled, we extend this concept to have multiple active viewports.<br/>
-	/// - In the future we will extend this concept further to also represent Platform Monitor and support a "no main platform window" operation mode.<br/>
-	/// - About Main Area vs Work Area:<br/>
-	/// - Main Area = entire viewport.<br/>
-	/// - Work Area = entire viewport minus sections used by main menu bars (for platform windows), or by task bar (for platform monitor).<br/>
-	/// - Windows are generally trying to stay within the Work Area of their host viewport.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiViewport

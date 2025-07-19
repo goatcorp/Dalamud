@@ -25,17 +25,17 @@ namespace Dalamud.Bindings.ImGui
 		None = unchecked(0),
 
 		/// <summary>
-		/// Set row background color 0 (generally used for background, automatically set when ImGuiTableFlags_RowBg is used)<br/>
+		/// To be documented.
 		/// </summary>
 		RowBg0 = unchecked(1),
 
 		/// <summary>
-		/// Set row background color 1 (generally used for selection marking)<br/>
+		/// To be documented.
 		/// </summary>
 		RowBg1 = unchecked(2),
 
 		/// <summary>
-		/// Set cell background color (top-most color)<br/>
+		/// To be documented.
 		/// </summary>
 		CellBg = unchecked(3),
 	}

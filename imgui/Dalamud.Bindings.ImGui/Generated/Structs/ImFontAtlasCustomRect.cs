@@ -17,7 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// See ImFontAtlas::AddCustomRectXXX functions.<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImFontAtlasCustomRect
@@ -42,21 +42,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public ushort Y;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint Reserved;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint TextureIndex;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public uint GlyphID;
-
+		public uint RawBits0;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -90,6 +76,12 @@ namespace Dalamud.Bindings.ImGui
 			Font = font;
 		}
 
+
+		public uint Reserved { get => Bitfield.Get(RawBits0, 0, 2); set => Bitfield.Set(ref RawBits0, value, 0, 2); }
+
+		public uint TextureIndex { get => Bitfield.Get(RawBits0, 2, 9); set => Bitfield.Set(ref RawBits0, value, 2, 9); }
+
+		public uint GlyphID { get => Bitfield.Get(RawBits0, 11, 21); set => Bitfield.Set(ref RawBits0, value, 11, 21); }
 
 		/// <summary>
 		/// To be documented.
@@ -176,15 +168,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint Reserved => ref Unsafe.AsRef<uint>(&Handle->Reserved);
+		public uint Reserved { get => Handle->Reserved; set => Handle->Reserved = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint TextureIndex => ref Unsafe.AsRef<uint>(&Handle->TextureIndex);
+		public uint TextureIndex { get => Handle->TextureIndex; set => Handle->TextureIndex = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref uint GlyphID => ref Unsafe.AsRef<uint>(&Handle->GlyphID);
+		public uint GlyphID { get => Handle->GlyphID; set => Handle->GlyphID = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>

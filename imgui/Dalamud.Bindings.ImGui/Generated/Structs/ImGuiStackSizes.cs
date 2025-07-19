@@ -85,6 +85,17 @@ namespace Dalamud.Bindings.ImGui
 		}
 
 
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void Destroy()
+		{
+			fixed (ImGuiStackSizes* @this = &this)
+			{
+				ImGui.DestroyNative(@this);
+			}
+		}
+
 	}
 
 	/// <summary>
@@ -164,6 +175,14 @@ namespace Dalamud.Bindings.ImGui
 		/// To be documented.
 		/// </summary>
 		public ref short SizeOfDisabledStack => ref Unsafe.AsRef<short>(&Handle->SizeOfDisabledStack);
+		/// <summary>
+		/// To be documented.
+		/// </summary>
+		public unsafe void Destroy()
+		{
+			ImGui.DestroyNative(Handle);
+		}
+
 	}
 
 }

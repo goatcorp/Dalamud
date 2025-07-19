@@ -17,10 +17,7 @@ using System.Numerics;
 namespace Dalamud.Bindings.ImGui
 {
 	/// <summary>
-	/// [Internal] sizeof() ~ 112<br/>
-	/// We use the terminology "Enabled" to refer to a column that is not Hidden by userapi.<br/>
-	/// We use the terminology "Clipped" to refer to a column that is out of sight because of scrollingclipping.<br/>
-	/// This is in contrast with some user-facing api such as IsItemVisible()  IsRectVisible() which use "Visible" to mean "not clipped".<br/>
+	/// To be documented.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
 	public partial struct ImGuiTableColumn
@@ -198,7 +195,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public byte NavLayerCurrent;
+		public sbyte NavLayerCurrent;
 
 		/// <summary>
 		/// To be documented.
@@ -210,21 +207,7 @@ namespace Dalamud.Bindings.ImGui
 		/// </summary>
 		public byte CannotSkipItemsQueue;
 
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte SortDirection;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte SortDirectionsAvailCount;
-
-		/// <summary>
-		/// To be documented.
-		/// </summary>
-		public byte SortDirectionsAvailMask;
-
+		public byte RawBits0;
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -234,7 +217,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public unsafe ImGuiTableColumn(ImGuiTableColumnFlags flags = default, float widthGiven = default, float minX = default, float maxX = default, float widthRequest = default, float widthAuto = default, float stretchWeight = default, float initStretchWeightOrWidth = default, ImRect clipRect = default, uint userId = default, float workMinX = default, float workMaxX = default, float itemWidth = default, float contentMaxXFrozen = default, float contentMaxXUnfrozen = default, float contentMaxXHeadersUsed = default, float contentMaxXHeadersIdeal = default, short nameOffset = default, sbyte displayOrder = default, sbyte indexWithinEnabledSet = default, sbyte prevEnabledColumn = default, sbyte nextEnabledColumn = default, sbyte sortOrder = default, byte drawChannelCurrent = default, byte drawChannelFrozen = default, byte drawChannelUnfrozen = default, bool isEnabled = default, bool isUserEnabled = default, bool isUserEnabledNextFrame = default, bool isVisibleX = default, bool isVisibleY = default, bool isRequestOutput = default, bool isSkipItems = default, bool isPreserveWidthAuto = default, byte navLayerCurrent = default, byte autoFitQueue = default, byte cannotSkipItemsQueue = default, byte sortDirection = default, byte sortDirectionsAvailCount = default, byte sortDirectionsAvailMask = default, byte sortDirectionsAvailList = default)
+		public unsafe ImGuiTableColumn(ImGuiTableColumnFlags flags = default, float widthGiven = default, float minX = default, float maxX = default, float widthRequest = default, float widthAuto = default, float stretchWeight = default, float initStretchWeightOrWidth = default, ImRect clipRect = default, uint userId = default, float workMinX = default, float workMaxX = default, float itemWidth = default, float contentMaxXFrozen = default, float contentMaxXUnfrozen = default, float contentMaxXHeadersUsed = default, float contentMaxXHeadersIdeal = default, short nameOffset = default, sbyte displayOrder = default, sbyte indexWithinEnabledSet = default, sbyte prevEnabledColumn = default, sbyte nextEnabledColumn = default, sbyte sortOrder = default, byte drawChannelCurrent = default, byte drawChannelFrozen = default, byte drawChannelUnfrozen = default, bool isEnabled = default, bool isUserEnabled = default, bool isUserEnabledNextFrame = default, bool isVisibleX = default, bool isVisibleY = default, bool isRequestOutput = default, bool isSkipItems = default, bool isPreserveWidthAuto = default, sbyte navLayerCurrent = default, byte autoFitQueue = default, byte cannotSkipItemsQueue = default, byte sortDirection = default, byte sortDirectionsAvailCount = default, byte sortDirectionsAvailMask = default, byte sortDirectionsAvailList = default)
 		{
 			Flags = flags;
 			WidthGiven = widthGiven;
@@ -279,6 +262,12 @@ namespace Dalamud.Bindings.ImGui
 			SortDirectionsAvailList = sortDirectionsAvailList;
 		}
 
+
+		public byte SortDirection { get => Bitfield.Get(RawBits0, 0, 2); set => Bitfield.Set(ref RawBits0, value, 0, 2); }
+
+		public byte SortDirectionsAvailCount { get => Bitfield.Get(RawBits0, 2, 2); set => Bitfield.Set(ref RawBits0, value, 2, 2); }
+
+		public byte SortDirectionsAvailMask { get => Bitfield.Get(RawBits0, 4, 4); set => Bitfield.Set(ref RawBits0, value, 4, 4); }
 
 		/// <summary>
 		/// To be documented.
@@ -473,7 +462,7 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte NavLayerCurrent => ref Unsafe.AsRef<byte>(&Handle->NavLayerCurrent);
+		public ref sbyte NavLayerCurrent => ref Unsafe.AsRef<sbyte>(&Handle->NavLayerCurrent);
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -485,15 +474,15 @@ namespace Dalamud.Bindings.ImGui
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte SortDirection => ref Unsafe.AsRef<byte>(&Handle->SortDirection);
+		public byte SortDirection { get => Handle->SortDirection; set => Handle->SortDirection = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte SortDirectionsAvailCount => ref Unsafe.AsRef<byte>(&Handle->SortDirectionsAvailCount);
+		public byte SortDirectionsAvailCount { get => Handle->SortDirectionsAvailCount; set => Handle->SortDirectionsAvailCount = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
-		public ref byte SortDirectionsAvailMask => ref Unsafe.AsRef<byte>(&Handle->SortDirectionsAvailMask);
+		public byte SortDirectionsAvailMask { get => Handle->SortDirectionsAvailMask; set => Handle->SortDirectionsAvailMask = value; }
 		/// <summary>
 		/// To be documented.
 		/// </summary>
