@@ -107,7 +107,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         var sheet = dataManager.Excel.GetSheet<RawRow>(Language.English, sheetType.Name);
         var minRowId = (int)sheet.FirstOrDefault().RowId;
         var maxRowId = (int)sheet.LastOrDefault().RowId;
-        if (ImGui.InputInt("RowId###RowId", ref this.rowId, 1, 10, ImGuiInputTextFlags.AutoSelectAll))
+        if (ImGui.InputInt("RowId###RowId"u8, ref this.rowId, 1, 10, ImGuiInputTextFlags.AutoSelectAll))
         {
             if (this.rowId < minRowId)
                 this.rowId = minRowId;
@@ -120,7 +120,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         ImGui.TextUnformatted($"(Range: {minRowId} - {maxRowId})");
 
         ImGui.SetNextItemWidth(120);
-        if (ImGui.InputInt("Amount###Amount", ref this.amount, 1, 10, ImGuiInputTextFlags.AutoSelectAll))
+        if (ImGui.InputInt("Amount###Amount"u8, ref this.amount, 1, 10, ImGuiInputTextFlags.AutoSelectAll))
         {
             if (this.amount <= 0)
                 this.amount = 1;
@@ -137,7 +137,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         var numCases = language == ClientLanguage.German ? 4 : 1;
 
 #if DEBUG
-        if (ImGui.Button("Copy as self-test entry"))
+        if (ImGui.Button("Copy as self-test entry"u8))
         {
             var sb = new StringBuilder();
 
@@ -164,10 +164,10 @@ internal class NounProcessorWidget : IDataWindowWidget
         }
 #endif
 
-        using var table = ImRaii.Table("TextDecoderTable", 1 + numCases, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
+        using var table = ImRaii.Table("TextDecoderTable"u8, 1 + numCases, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
         if (!table) return;
 
-        ImGui.TableSetupColumn("ArticleType", ImGuiTableColumnFlags.WidthFixed, 150);
+        ImGui.TableSetupColumn("ArticleType"u8, ImGuiTableColumnFlags.WidthFixed, 150);
         for (var i = 0; i < numCases; i++)
             ImGui.TableSetupColumn(language == ClientLanguage.German ? GermanCases[i] : "Text");
         ImGui.TableSetupScrollFreeze(6, 1);

@@ -203,7 +203,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
 
                     var cursorPosBackup = ImGui.GetCursorScreenPos();
                     ImGui.SetCursorScreenPos(state.ScreenOffset + f.Offset);
-                    clicked = ImGui.InvisibleButton("##link", sz, buttonFlags);
+                    clicked = ImGui.InvisibleButton("##link"u8, sz, buttonFlags);
                     if (ImGui.IsItemHovered())
                         hoveredLinkOffset = f.Link;
                     if (ImGui.IsItemActive())
@@ -218,7 +218,7 @@ internal unsafe class SeStringRenderer : IInternalDisposableService
             if (!invisibleButtonDrawn)
             {
                 ImGui.SetCursorScreenPos(state.ScreenOffset);
-                clicked = ImGui.InvisibleButton("##text", itemSize, buttonFlags);
+                clicked = ImGui.InvisibleButton("##text"u8, itemSize, buttonFlags);
             }
 
             ImGui.PopID();

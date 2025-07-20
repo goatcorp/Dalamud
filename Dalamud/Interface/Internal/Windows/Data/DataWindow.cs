@@ -130,10 +130,10 @@ internal class DataWindow : Window, IDisposable
             return;
         }
 
-        if (ImGui.BeginTable("XlData_Table", 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.Resizable))
+        if (ImGui.BeginTable("XlData_Table"u8, 2, ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.Resizable))
         {
-            ImGui.TableSetupColumn("##SelectionColumn", ImGuiTableColumnFlags.WidthFixed, 200.0f * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("##ContentsColumn", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("##SelectionColumn"u8, ImGuiTableColumnFlags.WidthFixed, 200.0f * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("##ContentsColumn"u8, ImGuiTableColumnFlags.WidthStretch);
 
             ImGui.TableNextColumn();
             this.DrawSelection();
@@ -147,9 +147,9 @@ internal class DataWindow : Window, IDisposable
 
     private void DrawSelection()
     {
-        if (ImGui.BeginChild("XlData_SelectionPane", ImGui.GetContentRegionAvail()))
+        if (ImGui.BeginChild("XlData_SelectionPane"u8, ImGui.GetContentRegionAvail()))
         {
-            if (ImGui.BeginListBox("WidgetSelectionListbox", ImGui.GetContentRegionAvail()))
+            if (ImGui.BeginListBox("WidgetSelectionListbox"u8, ImGui.GetContentRegionAvail()))
             {
                 foreach (var widget in this.orderedModules)
                 {
@@ -168,7 +168,7 @@ internal class DataWindow : Window, IDisposable
 
     private void DrawContents()
     {
-        if (ImGui.BeginChild("XlData_ContentsPane", ImGui.GetContentRegionAvail()))
+        if (ImGui.BeginChild("XlData_ContentsPane"u8, ImGui.GetContentRegionAvail()))
         {
             if (ImGuiComponents.IconButton("collapse-expand", this.selectionCollapsed ? FontAwesomeIcon.ArrowRight : FontAwesomeIcon.ArrowLeft))
             {
@@ -190,7 +190,7 @@ internal class DataWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Force Reload");
+                ImGui.SetTooltip("Force Reload"u8);
             }
 
             ImGui.SameLine();
@@ -199,7 +199,7 @@ internal class DataWindow : Window, IDisposable
 
             ImGuiHelpers.ScaledDummy(10.0f);
 
-            if (ImGui.BeginChild("XlData_WidgetContents", ImGui.GetContentRegionAvail()))
+            if (ImGui.BeginChild("XlData_WidgetContents"u8, ImGui.GetContentRegionAvail()))
             {
                 if (copy)
                     ImGui.LogToClipboard();
@@ -212,7 +212,7 @@ internal class DataWindow : Window, IDisposable
                     }
                     else
                     {
-                        ImGui.TextUnformatted("Data not ready.");
+                        ImGui.TextUnformatted("Data not ready."u8);
                     }
 
                     this.isExcept = false;

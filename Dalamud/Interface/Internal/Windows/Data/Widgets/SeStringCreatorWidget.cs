@@ -191,7 +191,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             this.lastContentWidth = contentWidth;
         }
 
-        using var tabBar = ImRaii.TabBar("SeStringCreatorWidgetTabBar");
+        using var tabBar = ImRaii.TabBar("SeStringCreatorWidgetTabBar"u8);
         if (!tabBar) return;
 
         this.DrawCreatorTab(contentWidth);
@@ -200,7 +200,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
     private void DrawCreatorTab(float contentWidth)
     {
-        using var tab = ImRaii.TabItem("Creator");
+        using var tab = ImRaii.TabItem("Creator"u8);
         if (!tab) return;
 
         this.DrawControls();
@@ -216,7 +216,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         ImGui.SameLine(0, 0);
 
-        ImGui.Button("###InputPanelResizer", new Vector2(4, -1));
+        ImGui.Button("###InputPanelResizer"u8, new Vector2(4, -1));
         if (ImGui.IsItemActive())
         {
             this.inputsWidth += ImGui.GetIO().MouseDelta.X;
@@ -234,7 +234,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        using var child = ImRaii.Child("Preview", new Vector2(ImGui.GetContentRegionAvail().X, -1));
+        using var child = ImRaii.Child("Preview"u8, new Vector2(ImGui.GetContentRegionAvail().X, -1));
         if (!child) return;
 
         if (this.localParameters!.Length != 0)
@@ -251,17 +251,17 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
     private unsafe void DrawGlobalParametersTab()
     {
-        using var tab = ImRaii.TabItem("Global Parameters");
+        using var tab = ImRaii.TabItem("Global Parameters"u8);
         if (!tab) return;
 
-        using var table = ImRaii.Table("GlobalParametersTable", 5, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
+        using var table = ImRaii.Table("GlobalParametersTable"u8, 5, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
         if (!table) return;
 
-        ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed, 100);
-        ImGui.TableSetupColumn("ValuePtr", ImGuiTableColumnFlags.WidthFixed, 120);
-        ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("Description", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Id"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Type"u8, ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("ValuePtr"u8, ImGuiTableColumnFlags.WidthFixed, 120);
+        ImGui.TableSetupColumn("Value"u8, ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Description"u8, ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupScrollFreeze(5, 1);
         ImGui.TableHeadersRow();
 
@@ -293,7 +293,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                     if (item.ReferencedUtf8StringValue != null)
                         WidgetUtil.DrawCopyableText(new ReadOnlySeStringSpan(item.ReferencedUtf8StringValue->Utf8String).ToString());
                     else
-                        ImGui.TextUnformatted("null");
+                        ImGui.TextUnformatted("null"u8);
 
                     break;
 
@@ -301,7 +301,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                     if (item.StringValue.Value != null)
                         WidgetUtil.DrawCopyableText(item.StringValue.ToString());
                     else
-                        ImGui.TextUnformatted("null");
+                        ImGui.TextUnformatted("null"u8);
                     break;
             }
 
@@ -399,23 +399,23 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
     private unsafe void DrawControls()
     {
-        if (ImGui.Button("Add entry"))
+        if (ImGui.Button("Add entry"u8))
         {
             this.entries.Add(new(TextEntryType.String, string.Empty));
         }
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Add from Sheet"))
+        if (ImGui.Button("Add from Sheet"u8))
         {
-            ImGui.OpenPopup("AddFromSheetPopup");
+            ImGui.OpenPopup("AddFromSheetPopup"u8);
         }
 
         this.DrawAddFromSheetPopup();
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Print"))
+        if (ImGui.Button("Print"u8))
         {
             var output = Utf8String.CreateEmpty();
             var temp = Utf8String.CreateEmpty();
@@ -456,7 +456,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Print Evaluated"))
+        if (ImGui.Button("Print Evaluated"u8))
         {
             var sb = new LSeStringBuilder();
 
@@ -487,7 +487,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
         {
             ImGui.SameLine();
 
-            if (ImGui.Button("Copy MacroString"))
+            if (ImGui.Button("Copy MacroString"u8))
             {
                 var sb = new LSeStringBuilder();
 
@@ -511,7 +511,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Clear entries"))
+            if (ImGui.Button("Clear entries"u8))
             {
                 this.entries.Clear();
                 this.UpdateInputString();
@@ -527,7 +527,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         ImGui.SameLine();
         ImGui.SetNextItemWidth(90 * ImGuiHelpers.GlobalScale);
-        using (var dropdown = ImRaii.Combo("##Language", this.language.ToString() ?? "Language..."))
+        using (var dropdown = ImRaii.Combo("##Language"u8, this.language.ToString() ?? "Language..."))
         {
             if (dropdown)
             {
@@ -546,7 +546,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
     private void DrawAddFromSheetPopup()
     {
-        using var popup = ImRaii.Popup("AddFromSheetPopup");
+        using var popup = ImRaii.Popup("AddFromSheetPopup"u8);
         if (!popup) return;
 
         var dataManager = Service<DataManager>.Get();
@@ -576,7 +576,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             var minRowId = (int)sheet.FirstOrDefault().RowId;
             var maxRowId = (int)sheet.LastOrDefault().RowId;
 
-            var rowIdChanged = ImGui.InputInt("RowId", ref this.importRowId, 1, 10);
+            var rowIdChanged = ImGui.InputInt("RowId"u8, ref this.importRowId, 1, 10);
 
             ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
             ImGui.TextUnformatted($"(Range: {minRowId} - {maxRowId})");
@@ -592,17 +592,17 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
             if (!sheet.TryGetRow((uint)this.importRowId, out var row))
             {
-                ImGui.TextColored(new Vector4(1, 0, 0, 1), "Row not found");
+                ImGuiHelpers.SafeTextColored(new Vector4(1, 0, 0, 1), "Row not found"u8);
                 return;
             }
 
-            ImGui.TextUnformatted("Select string to add:");
+            ImGui.TextUnformatted("Select string to add:"u8);
 
-            using var table = ImRaii.Table("StringSelectionTable", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
+            using var table = ImRaii.Table("StringSelectionTable"u8, 2, ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
             if (!table) return;
 
-            ImGui.TableSetupColumn("Column", ImGuiTableColumnFlags.WidthFixed, 50);
-            ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("Column"u8, ImGuiTableColumnFlags.WidthFixed, 50);
+            ImGui.TableSetupColumn("Value"u8, ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupScrollFreeze(0, 1);
             ImGui.TableHeadersRow();
 
@@ -651,15 +651,15 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
     private unsafe void DrawInputs()
     {
-        using var child = ImRaii.Child("Inputs", new Vector2(this.inputsWidth, -1));
+        using var child = ImRaii.Child("Inputs"u8, new Vector2(this.inputsWidth, -1));
         if (!child) return;
 
-        using var table = ImRaii.Table("StringMakerTable", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
+        using var table = ImRaii.Table("StringMakerTable"u8, 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
         if (!table) return;
 
-        ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed, 100);
-        ImGui.TableSetupColumn("Text", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Type"u8, ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("Text"u8, ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Actions"u8, ImGuiTableColumnFlags.WidthFixed, 80);
         ImGui.TableSetupScrollFreeze(3, 1);
         ImGui.TableHeadersRow();
 
@@ -803,7 +803,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     private void DrawPreview(ReadOnlySeString str)
     {
         using var nodeColor = ImRaii.PushColor(ImGuiCol.Text, 0xFF00FF00);
-        using var node = ImRaii.TreeNode("Preview", ImGuiTreeNodeFlags.DefaultOpen);
+        using var node = ImRaii.TreeNode("Preview"u8, ImGuiTreeNodeFlags.DefaultOpen);
         nodeColor.Pop();
         if (!node) return;
 
@@ -815,7 +815,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     private void DrawParameters()
     {
         using var nodeColor = ImRaii.PushColor(ImGuiCol.Text, 0xFF00FF00);
-        using var node = ImRaii.TreeNode("Parameters", ImGuiTreeNodeFlags.DefaultOpen);
+        using var node = ImRaii.TreeNode("Parameters"u8, ImGuiTreeNodeFlags.DefaultOpen);
         nodeColor.Pop();
         if (!node) return;
 
@@ -843,7 +843,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
     private void DrawPayloads(ReadOnlySeString evaluated)
     {
         using (var nodeColor = ImRaii.PushColor(ImGuiCol.Text, 0xFF00FF00))
-        using (var node = ImRaii.TreeNode("Payloads", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.SpanAvailWidth))
+        using (var node = ImRaii.TreeNode("Payloads"u8, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.SpanAvailWidth))
         {
             nodeColor.Pop();
             if (node) this.DrawSeString("payloads", this.input.AsSpan(), treeNodeFlags: ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.SpanAvailWidth);
@@ -853,7 +853,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             return;
 
         using (var nodeColor = ImRaii.PushColor(ImGuiCol.Text, 0xFF00FF00))
-        using (var node = ImRaii.TreeNode("Payloads (Evaluated)", ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.SpanAvailWidth))
+        using (var node = ImRaii.TreeNode("Payloads (Evaluated)"u8, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.SpanAvailWidth))
         {
             nodeColor.Pop();
             if (node) this.DrawSeString("payloads-evaluated", evaluated.AsSpan(), treeNodeFlags: ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.SpanAvailWidth);
@@ -899,8 +899,8 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             using var table = ImRaii.Table($"##Payload{payloadIdx}Table", 2);
             if (!table) return;
 
-            ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthFixed, 120);
-            ImGui.TableSetupColumn("Tree", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("Label"u8, ImGuiTableColumnFlags.WidthFixed, 120);
+            ImGui.TableSetupColumn("Tree"u8, ImGuiTableColumnFlags.WidthStretch);
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
@@ -950,7 +950,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         if (expr.Body.IsEmpty)
         {
-            ImGui.TextUnformatted("(?)");
+            ImGui.TextUnformatted("(?)"u8);
             return;
         }
 
@@ -1027,7 +1027,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             if (macroCode is MacroCode.Fixed && subType != null && fixedType != null && fixedType is 100 or 200 && subType == 5 && exprIdx == 2)
             {
                 ImGui.SameLine();
-                if (ImGui.SmallButton("Play"))
+                if (ImGui.SmallButton("Play"u8))
                 {
                     UIGlobals.PlayChatSoundEffect(u32 + 1);
                 }

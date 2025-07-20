@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -133,13 +133,13 @@ public class SettingsTabDtr : SettingsTab
 
         ImGuiHelpers.ScaledDummy(10);
 
-        ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarSpacing", "Server Info Bar spacing"));
+        ImGui.TextUnformatted(Loc.Localize("DalamudSettingServerInfoBarSpacing", "Server Info Bar spacing"));
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarSpacingHint", "Configure the amount of space between entries in the server info bar here."));
-        ImGui.SliderInt("Spacing", ref this.dtrSpacing, 0, 40);
+        ImGui.SliderInt("Spacing"u8, ref this.dtrSpacing, 0, 40);
 
-        ImGui.Text(Loc.Localize("DalamudSettingServerInfoBarDirection", "Server Info Bar direction"));
+        ImGui.TextUnformatted(Loc.Localize("DalamudSettingServerInfoBarDirection", "Server Info Bar direction"));
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingServerInfoBarDirectionHint", "If checked, the Server Info Bar elements will expand to the right instead of the left."));
-        ImGui.Checkbox("Swap Direction", ref this.dtrSwapDirection);
+        ImGui.Checkbox("Swap Direction"u8, ref this.dtrSwapDirection);
 
         base.Draw();
     }

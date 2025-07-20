@@ -42,7 +42,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         {
             ImGuiHelpers.SafeTextColoredWrapped(
                 ImGuiColors.DalamudRed,
-                "Enable LogLevel=Information display to see the logs.");
+                "Enable LogLevel=Information display to see the logs."u8);
         }
 
         using var table = ImRaii.Table(this.DisplayName, 3, ImGuiTableFlags.SizingFixedFit);
@@ -50,12 +50,12 @@ internal class GameInventoryTestWidget : IDataWindowWidget
             return;
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Standard Logging");
+        ImGui.TextUnformatted("Standard Logging"u8);
 
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(this.standardEnabled))
         {
-            if (ImGui.Button("Enable##standard-enable") && !this.standardEnabled)
+            if (ImGui.Button("Enable##standard-enable"u8) && !this.standardEnabled)
             {
                 this.scoped ??= new();
                 this.scoped.InventoryChanged += ScopedOnInventoryChanged;
@@ -66,7 +66,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(!this.standardEnabled))
         {
-            if (ImGui.Button("Disable##standard-disable") && this.scoped is not null && this.standardEnabled)
+            if (ImGui.Button("Disable##standard-disable"u8) && this.scoped is not null && this.standardEnabled)
             {
                 this.scoped.InventoryChanged -= ScopedOnInventoryChanged;
                 this.standardEnabled = false;
@@ -81,12 +81,12 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         ImGui.TableNextRow();
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("Raw Logging");
+        ImGui.TextUnformatted("Raw Logging"u8);
 
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(this.rawEnabled))
         {
-            if (ImGui.Button("Enable##raw-enable") && !this.rawEnabled)
+            if (ImGui.Button("Enable##raw-enable"u8) && !this.rawEnabled)
             {
                 this.scoped ??= new();
                 this.scoped.InventoryChangedRaw += ScopedOnInventoryChangedRaw;
@@ -97,7 +97,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(!this.rawEnabled))
         {
-            if (ImGui.Button("Disable##raw-disable") && this.scoped is not null && this.rawEnabled)
+            if (ImGui.Button("Disable##raw-disable"u8) && this.scoped is not null && this.rawEnabled)
             {
                 this.scoped.InventoryChangedRaw -= ScopedOnInventoryChangedRaw;
                 this.rawEnabled = false;
@@ -112,12 +112,12 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         ImGui.TableNextRow();
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted("All");
+        ImGui.TextUnformatted("All"u8);
 
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(this.standardEnabled && this.rawEnabled))
         {
-            if (ImGui.Button("Enable##all-enable"))
+            if (ImGui.Button("Enable##all-enable"u8))
             {
                 this.scoped ??= new();
                 if (!this.standardEnabled)
@@ -131,7 +131,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(this.scoped is null))
         {
-            if (ImGui.Button("Disable##all-disable"))
+            if (ImGui.Button("Disable##all-disable"u8))
             {
                 ((IInternalDisposableService)this.scoped)?.DisposeService();
                 this.scoped = null;

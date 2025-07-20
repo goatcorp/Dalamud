@@ -35,7 +35,7 @@ internal class GaugeWidget : IDataWindowWidget
         var player = clientState.LocalPlayer;
         if (player == null)
         {
-            ImGui.Text("Player is not present");
+            ImGui.TextUnformatted("Player is not present"u8);
             return;
         }
 
@@ -68,7 +68,7 @@ internal class GaugeWidget : IDataWindowWidget
 
         if (gauge == null)
         {
-            ImGui.Text("No supported gauge exists for this job.");
+            ImGui.TextUnformatted("No supported gauge exists for this job."u8);
             return;
         }
 

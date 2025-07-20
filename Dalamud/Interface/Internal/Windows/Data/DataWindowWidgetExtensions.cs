@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
+using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Data;
 
@@ -40,7 +41,7 @@ internal static class DataWindowWidgetExtensions
             ImGui.SetNextWindowSizeConstraints(Vector2.One, new(wrx, float.MaxValue));
             ImGui.BeginTooltip();
             ImGui.PushTextWrapPos(wrx);
-            ImGui.TextWrapped(s.Replace("%", "%%"));
+            ImGuiHelpers.SafeTextWrapped(s.Replace("%", "%%"));
             ImGui.PopTextWrapPos();
             ImGui.EndTooltip();
         }

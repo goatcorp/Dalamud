@@ -97,7 +97,7 @@ internal sealed class DevTextureSaveMenu : IInternalDisposableService
                         return;
                     }
 
-                    if (ImGui.Selectable("Copy"))
+                    if (ImGui.Selectable("Copy"u8))
                         tcs.TrySetResult(null);
                     foreach (var encoder2 in encoders)
                     {

@@ -58,7 +58,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        using var id = ImRaii.PushId("devPluginLocation");
+        using var id = ImRaii.PushId("devPluginLocation"u8);
         ImGui.TextUnformatted(this.Name);
         if (this.devPluginLocationsChanged)
         {
@@ -97,11 +97,11 @@ public class DevPluginsSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("#");
+        ImGui.TextUnformatted("#"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Path");
+        ImGui.TextUnformatted("Path"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Enabled");
+        ImGui.TextUnformatted("Enabled"u8);
         ImGui.NextColumn();
         ImGui.TextUnformatted(string.Empty);
         ImGui.NextColumn();
@@ -150,7 +150,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
             ImGui.NextColumn();
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGuiHelpers.GlobalScale));
-            ImGui.Checkbox("##devPluginLocationCheck", ref isEnabled);
+            ImGui.Checkbox("##devPluginLocationCheck"u8, ref isEnabled);
             ImGui.NextColumn();
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
@@ -178,7 +178,7 @@ public class DevPluginsSettingsEntry : SettingsEntry
         ImGui.TextUnformatted(locNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputText("##devPluginLocationInput", ref this.devPluginTempLocation, 300);
+        ImGui.InputText("##devPluginLocationInput"u8, ref this.devPluginTempLocation, 300);
         ImGui.NextColumn();
         // Enabled button
         ImGui.NextColumn();

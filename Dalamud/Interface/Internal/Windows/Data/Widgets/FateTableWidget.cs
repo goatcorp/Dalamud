@@ -34,26 +34,26 @@ internal class FateTableWidget : IDataWindowWidget
 
         if (fateTable.Length == 0)
         {
-            ImGui.TextUnformatted("No fates or data not ready.");
+            ImGui.TextUnformatted("No fates or data not ready."u8);
             return;
         }
 
-        using var table = ImRaii.Table("FateTable", 13, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
+        using var table = ImRaii.Table("FateTable"u8, 13, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings);
         if (!table) return;
 
-        ImGui.TableSetupColumn("Index", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("Address", ImGuiTableColumnFlags.WidthFixed, 120);
-        ImGui.TableSetupColumn("FateId", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("State", ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 50);
-        ImGui.TableSetupColumn("Icon", ImGuiTableColumnFlags.WidthFixed, 30);
-        ImGui.TableSetupColumn("MapIcon", ImGuiTableColumnFlags.WidthFixed, 30);
-        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("Progress", ImGuiTableColumnFlags.WidthFixed, 55);
-        ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("Bonus", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("Position", ImGuiTableColumnFlags.WidthFixed, 240);
-        ImGui.TableSetupColumn("Radius", ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Index"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Address"u8, ImGuiTableColumnFlags.WidthFixed, 120);
+        ImGui.TableSetupColumn("FateId"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("State"u8, ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Level"u8, ImGuiTableColumnFlags.WidthFixed, 50);
+        ImGui.TableSetupColumn("Icon"u8, ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("MapIcon"u8, ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("Progress"u8, ImGuiTableColumnFlags.WidthFixed, 55);
+        ImGui.TableSetupColumn("Duration"u8, ImGuiTableColumnFlags.WidthFixed, 80);
+        ImGui.TableSetupColumn("Bonus"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Position"u8, ImGuiTableColumnFlags.WidthFixed, 240);
+        ImGui.TableSetupColumn("Radius"u8, ImGuiTableColumnFlags.WidthFixed, 40);
         ImGui.TableSetupScrollFreeze(7, 1);
         ImGui.TableHeadersRow();
 
@@ -99,7 +99,7 @@ internal class FateTableWidget : IDataWindowWidget
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy IconId");
+                        ImGui.TextUnformatted("Click to copy IconId"u8);
                         ImGui.TextUnformatted($"ID: {fate.IconId} – Size: {texture.Width}x{texture.Height}");
                         ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();
@@ -124,7 +124,7 @@ internal class FateTableWidget : IDataWindowWidget
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy MapIconId");
+                        ImGui.TextUnformatted("Click to copy MapIconId"u8);
                         ImGui.TextUnformatted($"ID: {fate.MapIconId} – Size: {texture.Width}x{texture.Height}");
                         ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();

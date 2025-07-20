@@ -158,7 +158,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (this.exceptionLogFilter is not null)
         {
-            ImGui.TextColored(
+            ImGuiHelpers.SafeTextColored(
                 ImGuiColors.DalamudRed,
                 $"Regex Filter Error: {this.exceptionLogFilter.GetType().Name}");
             ImGui.TextUnformatted(this.exceptionLogFilter.Message);
@@ -166,17 +166,17 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (this.exceptionLogHighlight is not null)
         {
-            ImGui.TextColored(
+            ImGuiHelpers.SafeTextColored(
                 ImGuiColors.DalamudRed,
                 $"Regex Highlight Error: {this.exceptionLogHighlight.GetType().Name}");
             ImGui.TextUnformatted(this.exceptionLogHighlight.Message);
         }
 
-        var sendButtonSize = ImGui.CalcTextSize("Send") +
+        var sendButtonSize = ImGui.CalcTextSize("Send"u8) +
                              ((new Vector2(16, 0) + (ImGui.GetStyle().FramePadding * 2)) * ImGuiHelpers.GlobalScale);
         var scrollingHeight = ImGui.GetContentRegionAvail().Y - sendButtonSize.Y;
         ImGui.BeginChild(
-            "scrolling",
+            "scrolling"u8,
             new Vector2(0, scrollingHeight),
             false,
             ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
@@ -189,9 +189,9 @@ internal class ConsoleWindow : Window, IDisposable
         var childDrawList = ImGui.GetWindowDrawList();
         var childSize = ImGui.GetWindowSize();
 
-        var timestampWidth = ImGui.CalcTextSize("00:00:00.000").X;
-        var levelWidth = ImGui.CalcTextSize("AAA").X;
-        var separatorWidth = ImGui.CalcTextSize(" | ").X;
+        var timestampWidth = ImGui.CalcTextSize("00:00:00.000"u8).X;
+        var levelWidth = ImGui.CalcTextSize("AAA"u8).X;
+        var separatorWidth = ImGui.CalcTextSize(" | "u8).X;
         var cursorLogLevel = timestampWidth + separatorWidth;
         var cursorLogLine = cursorLogLevel + levelWidth + separatorWidth;
 
@@ -225,7 +225,7 @@ internal class ConsoleWindow : Window, IDisposable
                 }
 
                 ImGui.Selectable(
-                    "###console_null",
+                    "###console_null"u8,
                     true,
                     ImGuiSelectableFlags.AllowItemOverlap | ImGuiSelectableFlags.SpanAllColumns);
 
@@ -321,7 +321,7 @@ internal class ConsoleWindow : Window, IDisposable
         unsafe
         {
             if (ImGui.InputText(
-                    "##command_box",
+                    "##command_box"u8,
                     ref this.commandText,
                     255,
                     ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackCompletion |
@@ -341,7 +341,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         if (hadColor) ImGui.PopStyleColor();
 
-        if (ImGui.Button("Send", sendButtonSize))
+        if (ImGui.Button("Send"u8, sendButtonSize))
         {
             this.ProcessCommand();
         }
@@ -473,7 +473,7 @@ internal class ConsoleWindow : Window, IDisposable
     private void DrawOptionsToolbar()
     {
         ImGui.PushItemWidth(150.0f * ImGuiHelpers.GlobalScale);
-        if (ImGui.BeginCombo("##log_level", $"{EntryPoint.LogLevelSwitch.MinimumLevel}+"))
+        if (ImGui.BeginCombo("##log_level"u8, $"{EntryPoint.LogLevelSwitch.MinimumLevel}+"))
         {
             foreach (var value in Enum.GetValues<LogEventLevel>())
             {
@@ -491,7 +491,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.SameLine();
 
-        var settingsPopup = ImGui.BeginPopup("##console_settings");
+        var settingsPopup = ImGui.BeginPopup("##console_settings"u8);
         if (settingsPopup)
         {
             this.DrawSettingsPopup();
@@ -506,7 +506,7 @@ internal class ConsoleWindow : Window, IDisposable
         this.settingsPopupWasOpen = settingsPopup;
 
         if (this.DrawToggleButtonWithTooltip("show_settings", "Show settings", FontAwesomeIcon.List, ref settingsPopup))
-            ImGui.OpenPopup("##console_settings");
+            ImGui.OpenPopup("##console_settings"u8);
 
         ImGui.SameLine();
 
@@ -537,7 +537,7 @@ internal class ConsoleWindow : Window, IDisposable
             this.QueueClear();
         }
 
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Clear Log");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Clear Log"u8);
 
         ImGui.SameLine();
 
@@ -573,7 +573,7 @@ internal class ConsoleWindow : Window, IDisposable
                 this.killGameArmed = true;
         }
 
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Kill game");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("Kill game"u8);
 
         ImGui.SameLine();
 
@@ -595,8 +595,8 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.PushItemWidth(inputWidth);
         if (ImGui.InputTextWithHint(
-                "##textHighlight",
-                "regex highlight",
+                "##textHighlight"u8,
+                "regex highlight"u8,
                 ref this.textHighlight,
                 2048,
                 ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll)
@@ -623,8 +623,8 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.PushItemWidth(inputWidth);
         if (ImGui.InputTextWithHint(
-                "##textFilter",
-                "regex global filter",
+                "##textFilter"u8,
+                "regex global filter"u8,
                 ref this.textFilter,
                 2048,
                 ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.AutoSelectAll)
@@ -655,21 +655,21 @@ internal class ConsoleWindow : Window, IDisposable
 
     private void DrawSettingsPopup()
     {
-        if (ImGui.Checkbox("Open at startup", ref this.autoOpen))
+        if (ImGui.Checkbox("Open at startup"u8, ref this.autoOpen))
         {
             this.configuration.LogOpenAtStartup = this.autoOpen;
             this.configuration.QueueSave();
         }
 
-        if (ImGui.Checkbox("Auto-scroll", ref this.autoScroll))
+        if (ImGui.Checkbox("Auto-scroll"u8, ref this.autoScroll))
         {
             this.configuration.LogAutoScroll = this.autoScroll;
             this.configuration.QueueSave();
         }
 
-        ImGui.TextUnformatted("Logs buffer");
-        ImGui.SliderInt("lines", ref this.logLinesLimit, LogLinesMinimum, LogLinesMaximum);
-        if (ImGui.Button("Apply"))
+        ImGui.TextUnformatted("Logs buffer"u8);
+        ImGui.SliderInt("lines"u8, ref this.logLinesLimit, LogLinesMinimum, LogLinesMaximum);
+        if (ImGui.Button("Apply"u8))
         {
             this.logLinesLimit = Math.Max(LogLinesMinimum, this.logLinesLimit);
 
@@ -686,15 +686,15 @@ internal class ConsoleWindow : Window, IDisposable
 
         PluginFilterEntry? removalEntry = null;
         using var table = ImRaii.Table(
-            "plugin_filter_entries",
+            "plugin_filter_entries"u8,
             4,
             ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV);
         if (!table) return;
 
-        ImGui.TableSetupColumn("##remove_button", ImGuiTableColumnFlags.WidthFixed, 25.0f * ImGuiHelpers.GlobalScale);
-        ImGui.TableSetupColumn("##source_name", ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
-        ImGui.TableSetupColumn("##log_level", ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
-        ImGui.TableSetupColumn("##filter_text", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("##remove_button"u8, ImGuiTableColumnFlags.WidthFixed, 25.0f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("##source_name"u8, ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("##log_level"u8, ImGuiTableColumnFlags.WidthFixed, 150.0f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("##filter_text"u8, ImGuiTableColumnFlags.WidthStretch);
 
         ImGui.TableNextColumn();
         if (ImGuiComponents.IconButton("add_entry", FontAwesomeIcon.Plus))
@@ -715,7 +715,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         ImGui.TableNextColumn();
         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-        if (ImGui.BeginCombo("##Sources", this.selectedSource, ImGuiComboFlags.HeightLarge))
+        if (ImGui.BeginCombo("##Sources"u8, this.selectedSource, ImGuiComboFlags.HeightLarge))
         {
             var sourceNames = Service<PluginManager>.Get().InstalledPlugins
                                                     .Select(p => p.Manifest.InternalName)
@@ -729,12 +729,12 @@ internal class ConsoleWindow : Window, IDisposable
                                                     .ToList();
 
             ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
-            ImGui.InputTextWithHint("##PluginSearchFilter", "Filter Plugin List", ref this.pluginFilter, 2048);
+            ImGui.InputTextWithHint("##PluginSearchFilter"u8, "Filter Plugin List"u8, ref this.pluginFilter, 2048);
             ImGui.Separator();
 
-            if (!sourceNames.Any())
+            if (sourceNames.Count == 0)
             {
-                ImGui.TextColored(ImGuiColors.DalamudRed, "No Results");
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, "No Results"u8);
             }
 
             foreach (var selectable in sourceNames)
@@ -762,11 +762,11 @@ internal class ConsoleWindow : Window, IDisposable
             }
 
             ImGui.TableNextColumn();
-            ImGui.Text(entry.Source);
+            ImGui.TextUnformatted(entry.Source);
 
             ImGui.TableNextColumn();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-            if (ImGui.BeginCombo("##levels", $"{entry.Level}+"))
+            if (ImGui.BeginCombo("##levels"u8, $"{entry.Level}+"))
             {
                 foreach (var value in Enum.GetValues<LogEventLevel>())
                 {
@@ -784,7 +784,7 @@ internal class ConsoleWindow : Window, IDisposable
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
             var entryFilter = entry.Filter;
             if (ImGui.InputTextWithHint(
-                    "##filter",
+                    "##filter"u8,
                     $"{entry.Source} regex filter",
                     ref entryFilter,
                     2048,

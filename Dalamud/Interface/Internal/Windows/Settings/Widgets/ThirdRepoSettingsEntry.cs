@@ -60,7 +60,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
     {
         var config = Service<DalamudConfiguration>.Get();
 
-        using var id = ImRaii.PushId("thirdRepo");
+        using var id = ImRaii.PushId("thirdRepo"u8);
         ImGui.TextUnformatted(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
         if (this.thirdRepoListChanged)
         {
@@ -136,20 +136,20 @@ public class ThirdRepoSettingsEntry : SettingsEntry
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("#");
+        ImGui.TextUnformatted("#"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("URL");
+        ImGui.TextUnformatted("URL"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("Enabled");
+        ImGui.TextUnformatted("Enabled"u8);
         ImGui.NextColumn();
         ImGui.TextUnformatted(string.Empty);
         ImGui.NextColumn();
 
         ImGui.Separator();
 
-        ImGui.TextUnformatted("0");
+        ImGui.TextUnformatted("0"u8);
         ImGui.NextColumn();
-        ImGui.TextUnformatted("XIVLauncher");
+        ImGui.TextUnformatted("XIVLauncher"u8);
         ImGui.NextColumn();
         ImGui.NextColumn();
         ImGui.NextColumn();
@@ -197,7 +197,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
             ImGui.NextColumn();
 
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetColumnWidth() / 2) - 7 - (12 * ImGuiHelpers.GlobalScale));
-            if (ImGui.Checkbox("##thirdRepoCheck", ref isEnabled))
+            if (ImGui.Checkbox("##thirdRepoCheck"u8, ref isEnabled))
             {
                 this.thirdRepoListChanged = true;
             }
@@ -229,7 +229,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         ImGui.TextUnformatted(repoNumber.ToString());
         ImGui.NextColumn();
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputText("##thirdRepoUrlInput", ref this.thirdRepoTempUrl, 300);
+        ImGui.InputText("##thirdRepoUrlInput"u8, ref this.thirdRepoTempUrl, 300);
         ImGui.NextColumn();
         // Enabled button
         ImGui.NextColumn();

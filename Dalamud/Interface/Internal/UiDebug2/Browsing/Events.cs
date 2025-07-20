@@ -35,13 +35,13 @@ public static class Events
 
             if (tbl.Success)
             {
-                ImGui.TableSetupColumn("#", WidthFixed);
-                ImGui.TableSetupColumn("Type", WidthFixed);
-                ImGui.TableSetupColumn("Param", WidthFixed);
-                ImGui.TableSetupColumn("Flags", WidthFixed);
-                ImGui.TableSetupColumn("StateFlags1", WidthFixed);
-                ImGui.TableSetupColumn("Target", WidthFixed);
-                ImGui.TableSetupColumn("Listener", WidthFixed);
+                ImGui.TableSetupColumn("#"u8, WidthFixed);
+                ImGui.TableSetupColumn("Type"u8, WidthFixed);
+                ImGui.TableSetupColumn("Param"u8, WidthFixed);
+                ImGui.TableSetupColumn("Flags"u8, WidthFixed);
+                ImGui.TableSetupColumn("StateFlags1"u8, WidthFixed);
+                ImGui.TableSetupColumn("Target"u8, WidthFixed);
+                ImGui.TableSetupColumn("Listener"u8, WidthFixed);
 
                 ImGui.TableHeadersRow();
 

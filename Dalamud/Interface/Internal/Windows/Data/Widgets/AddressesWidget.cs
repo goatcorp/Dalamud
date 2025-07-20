@@ -32,8 +32,8 @@ internal class AddressesWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        ImGui.InputText(".text sig", ref this.inputSig, 400);
-        if (ImGui.Button("Resolve"))
+        ImGui.InputText(".text sig"u8, ref this.inputSig, 400);
+        if (ImGui.Button("Resolve"u8))
         {
             try
             {
@@ -46,7 +46,7 @@ internal class AddressesWidget : IDataWindowWidget
             }
         }
 
-        ImGui.Text($"Result: {this.sigResult.ToInt64():X}");
+        ImGui.TextUnformatted($"Result: {this.sigResult.ToInt64():X}");
         ImGui.SameLine();
         if (ImGui.Button($"C##{this.sigResult.ToInt64():X}"))
             ImGui.SetClipboardText(this.sigResult.ToInt64().ToString("X"));
