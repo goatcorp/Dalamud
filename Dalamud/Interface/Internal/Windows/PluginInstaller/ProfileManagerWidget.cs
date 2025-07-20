@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -108,7 +108,7 @@ internal class ProfileManagerWidget
         {
             if (popup)
             {
-                using var scrolling = ImRaii.Child("###scrolling", new Vector2(-1, -1));
+                using var scrolling = ImRaii.Child("###scrolling"u8, new Vector2(-1, -1));
                 if (scrolling)
                 {
                     ImGuiHelpers.SafeTextWrapped(Locs.TutorialParagraphOne);
@@ -138,7 +138,7 @@ internal class ProfileManagerWidget
 
                     var buttonWidth = 120f;
                     ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
-                    if (ImGui.Button("OK", new Vector2(buttonWidth, 40)))
+                    if (ImGui.Button("OK"u8, new Vector2(buttonWidth, 40)))
                     {
                         ImGui.CloseCurrentPopup();
                     }
@@ -202,7 +202,7 @@ internal class ProfileManagerWidget
 
         var windowSize = ImGui.GetWindowSize();
 
-        using var profileChooserChild = ImRaii.Child("###profileChooserScrolling");
+        using var profileChooserChild = ImRaii.Child("###profileChooserScrolling"u8);
         if (profileChooserChild)
         {
             Guid? toCloneGuid = null;
@@ -227,7 +227,7 @@ internal class ProfileManagerWidget
                 // Center text in frame height
                 var textHeight = ImGui.CalcTextSize(profile.Name);
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() / 2) - (textHeight.Y / 2));
-                ImGui.Text(profile.Name);
+                ImGui.TextUnformatted(profile.Name);
 
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(windowSize.X - (ImGuiHelpers.GlobalScale * 30));
@@ -378,7 +378,7 @@ internal class ProfileManagerWidget
         ImGui.SameLine();
 
         ImGui.SetNextItemWidth(windowSize.X / 3);
-        if (ImGui.InputText("###profileNameInput", ref this.profileNameEdit, 255))
+        if (ImGui.InputText("###profileNameInput"u8, ref this.profileNameEdit, 255))
         {
             profile.Name = this.profileNameEdit;
         }
@@ -401,7 +401,7 @@ internal class ProfileManagerWidget
         ImGuiHelpers.ScaledDummy(5);
 
         ImGui.TextUnformatted(Locs.StartupBehavior);
-        if (ImGui.BeginCombo("##startupBehaviorPicker", Locs.PolicyToLocalisedName(profile.StartupPolicy)))
+        if (ImGui.BeginCombo("##startupBehaviorPicker"u8, Locs.PolicyToLocalisedName(profile.StartupPolicy)))
         {
             foreach (var policy in Enum.GetValues(typeof(ProfileModelV1.ProfileStartupPolicy)).Cast<ProfileModelV1.ProfileStartupPolicy>())
             {
@@ -420,7 +420,7 @@ internal class ProfileManagerWidget
         ImGui.Separator();
         var wantPluginAddPopup = false;
 
-        using var pluginListChild = ImRaii.Child("###profileEditorPluginList");
+        using var pluginListChild = ImRaii.Child("###profileEditorPluginList"u8);
         if (pluginListChild)
         {
             var pluginLineHeight = 32 * ImGuiHelpers.GlobalScale;
@@ -479,7 +479,7 @@ internal class ProfileManagerWidget
 
                     if (firstAvailableInstalled != null)
                     {
-                        ImGui.Text($"Match to plugin '{firstAvailableInstalled.Name}'?");
+                        ImGui.TextUnformatted($"Match to plugin '{firstAvailableInstalled.Name}'?");
                         ImGui.SameLine();
                         if (ImGuiComponents.IconButtonWithText(
                                 FontAwesomeIcon.Check,
@@ -557,7 +557,7 @@ internal class ProfileManagerWidget
 
             if (!didAny)
             {
-                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.NoPluginsInProfile);
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.NoPluginsInProfile);
             }
 
             ImGuiHelpers.ScaledDummy(10);

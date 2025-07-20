@@ -107,7 +107,7 @@ internal class SheetRedirectResolverSelfTestStep : ISelfTestStep
                     ImGui.TextUnformatted($"Game: {utf8SheetName->ToString()}#{rowId1}-{colIndex1} ({flags1})");
                     ImGui.TextUnformatted($"Evaluated: {sheetName2}#{rowId2}-{colIndex2} ({flags2})");
 
-                    if (ImGui.Button("Continue"))
+                    if (ImGui.Button("Continue"u8))
                         return SelfTestStepResult.Fail;
 
                     return SelfTestStepResult.Waiting;

@@ -34,8 +34,8 @@ internal unsafe class AddonWidget : IDataWindowWidget
     {
         var gameGui = Service<GameGui>.Get();
 
-        ImGui.InputText("Addon Name", ref this.inputAddonName, 256);
-        ImGui.InputInt("Addon Index", ref this.inputAddonIndex);
+        ImGui.InputText("Addon Name"u8, ref this.inputAddonName, 256);
+        ImGui.InputInt("Addon Index"u8, ref this.inputAddonIndex);
 
         if (this.inputAddonName.IsNullOrEmpty())
             return;
@@ -44,7 +44,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
 
         if (address == nint.Zero)
         {
-            ImGui.Text("Null");
+            ImGui.TextUnformatted("Null"u8);
             return;
         }
 
@@ -52,7 +52,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
         var name = addon->NameString;
         ImGui.TextUnformatted($"{name} - {Util.DescribeAddress(address)}\n    v:{addon->IsVisible} x:{addon->X} y:{addon->Y} s:{addon->Scale}, w:{addon->RootNode->Width}, h:{addon->RootNode->Height}");
 
-        if (ImGui.Button("Find Agent"))
+        if (ImGui.Button("Find Agent"u8))
         {
             this.findAgentInterfacePtr = gameGui.FindAgentInterface(address);
         }
@@ -62,7 +62,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
             ImGui.TextUnformatted($"Agent: {Util.DescribeAddress(this.findAgentInterfacePtr)}");
             ImGui.SameLine();
 
-            if (ImGui.Button("C"))
+            if (ImGui.Button("C"u8))
                 ImGui.SetClipboardText(this.findAgentInterfacePtr.ToInt64().ToString("X"));
         }
     }

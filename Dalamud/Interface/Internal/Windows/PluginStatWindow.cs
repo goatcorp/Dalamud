@@ -45,17 +45,17 @@ internal class PluginStatWindow : Window
     {
         var pluginManager = Service<PluginManager>.Get();
 
-        using var tabBar = ImRaii.TabBar("Stat Tabs");
+        using var tabBar = ImRaii.TabBar("Stat Tabs"u8);
         if (!tabBar)
             return;
 
-        using (var tabItem = ImRaii.TabItem("Draw times"))
+        using (var tabItem = ImRaii.TabItem("Draw times"u8))
         {
             if (tabItem)
             {
                 var doStats = UiBuilder.DoStats;
 
-                if (ImGui.Checkbox("Enable Draw Time Tracking", ref doStats))
+                if (ImGui.Checkbox("Enable Draw Time Tracking"u8, ref doStats))
                 {
                     UiBuilder.DoStats = doStats;
                 }
@@ -63,7 +63,7 @@ internal class PluginStatWindow : Window
                 if (doStats)
                 {
                     ImGui.SameLine();
-                    if (ImGui.Button("Reset"))
+                    if (ImGui.Button("Reset"u8))
                     {
                         foreach (var plugin in pluginManager.InstalledPlugins)
                         {
@@ -87,13 +87,13 @@ internal class PluginStatWindow : Window
                     ImGuiComponents.TextWithLabel("Collective Average",  $"{(loadedPlugins.Any() ? totalAverage / loadedPlugins.Count() / 10000f : 0):F4}ms",  "Average of all average draw times");
 
                     ImGui.InputTextWithHint(
-                        "###PluginStatWindow_DrawSearch",
-                        "Search",
+                        "###PluginStatWindow_DrawSearch"u8,
+                        "Search"u8,
                         ref this.drawSearchText,
                         500);
 
                     using var table = ImRaii.Table(
-                        "##PluginStatsDrawTimes",
+                        "##PluginStatsDrawTimes"u8,
                         4,
                         ImGuiTableFlags.RowBg
                         | ImGuiTableFlags.SizingStretchProp
@@ -106,10 +106,10 @@ internal class PluginStatWindow : Window
                     if (table)
                     {
                         ImGui.TableSetupScrollFreeze(0, 1);
-                        ImGui.TableSetupColumn("Plugin");
-                        ImGui.TableSetupColumn("Last", ImGuiTableColumnFlags.NoSort); // Changes too fast to sort
-                        ImGui.TableSetupColumn("Longest");
-                        ImGui.TableSetupColumn("Average");
+                        ImGui.TableSetupColumn("Plugin"u8);
+                        ImGui.TableSetupColumn("Last"u8, ImGuiTableColumnFlags.NoSort); // Changes too fast to sort
+                        ImGui.TableSetupColumn("Longest"u8);
+                        ImGui.TableSetupColumn("Average"u8);
                         ImGui.TableHeadersRow();
 
                         var sortSpecs = ImGui.TableGetSortSpecs();
@@ -138,18 +138,18 @@ internal class PluginStatWindow : Window
                             ImGui.TableNextRow();
 
                             ImGui.TableNextColumn();
-                            ImGui.Text(plugin.Manifest.Name);
+                            ImGui.TextUnformatted(plugin.Manifest.Name);
 
                             if (plugin.DalamudInterface != null)
                             {
                                 ImGui.TableNextColumn();
-                                ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.LastDrawTime / 10000f:F4}ms");
+                                ImGui.TextUnformatted($"{plugin.DalamudInterface.LocalUiBuilder.LastDrawTime / 10000f:F4}ms");
 
                                 ImGui.TableNextColumn();
-                                ImGui.Text($"{plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime / 10000f:F4}ms");
+                                ImGui.TextUnformatted($"{plugin.DalamudInterface.LocalUiBuilder.MaxDrawTime / 10000f:F4}ms");
 
                                 ImGui.TableNextColumn();
-                                ImGui.Text(plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Count > 0
+                                ImGui.TextUnformatted(plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Count > 0
                                                ? $"{plugin.DalamudInterface.LocalUiBuilder.DrawTimeHistory.Average() / 10000f:F4}ms"
                                                : "-");
                             }
@@ -159,13 +159,13 @@ internal class PluginStatWindow : Window
             }
         }
 
-        using (var tabItem = ImRaii.TabItem("Framework times"))
+        using (var tabItem = ImRaii.TabItem("Framework times"u8))
         {
             if (tabItem)
             {
                 var doStats = Framework.StatsEnabled;
 
-                if (ImGui.Checkbox("Enable Framework Update Tracking", ref doStats))
+                if (ImGui.Checkbox("Enable Framework Update Tracking"u8, ref doStats))
                 {
                     Framework.StatsEnabled = doStats;
                 }
@@ -173,7 +173,7 @@ internal class PluginStatWindow : Window
                 if (doStats)
                 {
                     ImGui.SameLine();
-                    if (ImGui.Button("Reset"))
+                    if (ImGui.Button("Reset"u8))
                     {
                         Framework.StatsHistory.Clear();
                     }
@@ -189,13 +189,13 @@ internal class PluginStatWindow : Window
                     ImGuiComponents.TextWithLabel("Collective Average", $"{(statsHistory.Any() ? totalAverage / statsHistory.Length : 0):F4}ms", "Average of all average update times");
 
                     ImGui.InputTextWithHint(
-                        "###PluginStatWindow_FrameworkSearch",
-                        "Search",
+                        "###PluginStatWindow_FrameworkSearch"u8,
+                        "Search"u8,
                         ref this.frameworkSearchText,
                         500);
 
                     using var table = ImRaii.Table(
-                        "##PluginStatsFrameworkTimes",
+                        "##PluginStatsFrameworkTimes"u8,
                         4,
                         ImGuiTableFlags.RowBg
                         | ImGuiTableFlags.SizingStretchProp
@@ -207,10 +207,10 @@ internal class PluginStatWindow : Window
                     if (table)
                     {
                         ImGui.TableSetupScrollFreeze(0, 1);
-                        ImGui.TableSetupColumn("Method", ImGuiTableColumnFlags.None, 250);
-                        ImGui.TableSetupColumn("Last", ImGuiTableColumnFlags.NoSort, 50); // Changes too fast to sort
-                        ImGui.TableSetupColumn("Longest", ImGuiTableColumnFlags.None, 50);
-                        ImGui.TableSetupColumn("Average", ImGuiTableColumnFlags.None, 50);
+                        ImGui.TableSetupColumn("Method"u8, ImGuiTableColumnFlags.None, 250);
+                        ImGui.TableSetupColumn("Last"u8, ImGuiTableColumnFlags.NoSort, 50); // Changes too fast to sort
+                        ImGui.TableSetupColumn("Longest"u8, ImGuiTableColumnFlags.None, 50);
+                        ImGui.TableSetupColumn("Average"u8, ImGuiTableColumnFlags.None, 50);
                         ImGui.TableHeadersRow();
 
                         var sortSpecs = ImGui.TableGetSortSpecs();
@@ -245,36 +245,36 @@ internal class PluginStatWindow : Window
                             ImGui.TableNextRow();
 
                             ImGui.TableNextColumn();
-                            ImGui.Text($"{handlerHistory.Key}");
+                            ImGui.TextUnformatted($"{handlerHistory.Key}");
 
                             ImGui.TableNextColumn();
-                            ImGui.Text($"{handlerHistory.Value.Last():F4}ms");
+                            ImGui.TextUnformatted($"{handlerHistory.Value.Last():F4}ms");
 
                             ImGui.TableNextColumn();
-                            ImGui.Text($"{handlerHistory.Value.Max():F4}ms");
+                            ImGui.TextUnformatted($"{handlerHistory.Value.Max():F4}ms");
 
                             ImGui.TableNextColumn();
-                            ImGui.Text($"{handlerHistory.Value.Average():F4}ms");
+                            ImGui.TextUnformatted($"{handlerHistory.Value.Average():F4}ms");
                         }
                     }
                 }
             }
         }
 
-        using (var tabItem = ImRaii.TabItem("Hooks"))
+        using (var tabItem = ImRaii.TabItem("Hooks"u8))
         {
             if (tabItem)
             {
-                ImGui.Checkbox("Show Dalamud Hooks", ref this.showDalamudHooks);
+                ImGui.Checkbox("Show Dalamud Hooks"u8, ref this.showDalamudHooks);
 
                 ImGui.InputTextWithHint(
-                    "###PluginStatWindow_HookSearch",
-                    "Search",
+                    "###PluginStatWindow_HookSearch"u8,
+                    "Search"u8,
                     ref this.hookSearchText,
                     500);
 
                 using var table = ImRaii.Table(
-                    "##PluginStatsHooks",
+                    "##PluginStatsHooks"u8,
                     4,
                     ImGuiTableFlags.RowBg
                     | ImGuiTableFlags.SizingStretchProp
@@ -285,10 +285,10 @@ internal class PluginStatWindow : Window
                 if (table)
                 {
                     ImGui.TableSetupScrollFreeze(0, 1);
-                    ImGui.TableSetupColumn("Detour Method", ImGuiTableColumnFlags.None, 250);
-                    ImGui.TableSetupColumn("Address", ImGuiTableColumnFlags.None, 100);
-                    ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.None, 40);
-                    ImGui.TableSetupColumn("Backend", ImGuiTableColumnFlags.None, 40);
+                    ImGui.TableSetupColumn("Detour Method"u8, ImGuiTableColumnFlags.None, 250);
+                    ImGui.TableSetupColumn("Address"u8, ImGuiTableColumnFlags.None, 100);
+                    ImGui.TableSetupColumn("Status"u8, ImGuiTableColumnFlags.None, 40);
+                    ImGui.TableSetupColumn("Backend"u8, ImGuiTableColumnFlags.None, 40);
                     ImGui.TableHeadersRow();
 
                     foreach (var (guid, trackedHook) in HookManager.TrackedHooks)
@@ -309,7 +309,7 @@ internal class PluginStatWindow : Window
 
                             ImGui.TableNextColumn();
 
-                            ImGui.Text($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
+                            ImGui.TextUnformatted($"{trackedHook.Delegate.Target} :: {trackedHook.Delegate.Method.Name}");
                             ImGui.TextDisabled(trackedHook.Assembly.FullName);
                             ImGui.TableNextColumn();
                             if (!trackedHook.Hook.IsDisposed)
@@ -335,16 +335,16 @@ internal class PluginStatWindow : Window
 
                             if (trackedHook.Hook.IsDisposed)
                             {
-                                ImGui.Text("Disposed");
+                                ImGui.TextUnformatted("Disposed"u8);
                             }
                             else
                             {
-                                ImGui.Text(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
+                                ImGui.TextUnformatted(trackedHook.Hook.IsEnabled ? "Enabled" : "Disabled");
                             }
 
                             ImGui.TableNextColumn();
 
-                            ImGui.Text(trackedHook.Hook.BackendName);
+                            ImGui.TextUnformatted(trackedHook.Hook.BackendName);
                         }
                         catch (Exception ex)
                         {

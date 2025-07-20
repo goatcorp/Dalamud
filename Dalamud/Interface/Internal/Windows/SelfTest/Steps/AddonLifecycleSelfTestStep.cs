@@ -66,19 +66,19 @@ internal class AddonLifecycleSelfTestStep : ISelfTestStep
         switch (this.currentStep)
         {
             case TestStep.CharacterRefresh:
-                ImGui.Text("Open Character Window.");
+                ImGui.TextUnformatted("Open Character Window."u8);
                 break;
 
             case TestStep.CharacterSetup:
-                ImGui.Text("Open Character Window.");
+                ImGui.TextUnformatted("Open Character Window."u8);
                 break;
 
             case TestStep.CharacterRequestedUpdate:
-                ImGui.Text("Change tabs, or un-equip/equip gear.");
+                ImGui.TextUnformatted("Change tabs, or un-equip/equip gear."u8);
                 break;
 
             case TestStep.CharacterFinalize:
-                ImGui.Text("Close Character Window.");
+                ImGui.TextUnformatted("Close Character Window."u8);
                 break;
 
             case TestStep.CharacterUpdate:

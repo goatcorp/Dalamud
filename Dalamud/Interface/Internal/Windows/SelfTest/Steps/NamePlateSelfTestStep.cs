@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.NamePlate;
@@ -40,14 +40,14 @@ internal class NamePlateSelfTestStep : ISelfTestStep
                 break;
 
             case SubStep.Confirm:
-                ImGui.Text("Click to redraw all visible nameplates");
-                if (ImGui.Button("Request redraw"))
+                ImGui.TextUnformatted("Click to redraw all visible nameplates"u8);
+                if (ImGui.Button("Request redraw"u8))
                     namePlateGui.RequestRedraw();
 
                 ImGui.TextUnformatted("Can you see marker icons above nameplates, and does\n" +
                                       "the update count increase when using request redraw?");
 
-                if (ImGui.Button("Yes"))
+                if (ImGui.Button("Yes"u8))
                 {
                     this.CleanUp();
                     return SelfTestStepResult.Pass;
@@ -55,7 +55,7 @@ internal class NamePlateSelfTestStep : ISelfTestStep
 
                 ImGui.SameLine();
 
-                if (ImGui.Button("No"))
+                if (ImGui.Button("No"u8))
                 {
                     this.CleanUp();
                     return SelfTestStepResult.Fail;

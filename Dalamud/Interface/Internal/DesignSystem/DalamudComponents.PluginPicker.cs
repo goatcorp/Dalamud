@@ -39,11 +39,11 @@ internal static partial class DalamudComponents
             var width = ImGuiHelpers.GlobalScale * 300;
 
             ImGui.SetNextItemWidth(width);
-            ImGui.InputTextWithHint("###pluginPickerSearch", Locs.SearchHint, ref pickerSearch, 255);
+            ImGui.InputTextWithHint("###pluginPickerSearch"u8, Locs.SearchHint, ref pickerSearch, 255);
 
             var currentSearchString = pickerSearch;
 
-            using var listBox = ImRaii.ListBox("###pluginPicker", new Vector2(width, width - 80));
+            using var listBox = ImRaii.ListBox("###pluginPicker"u8, new Vector2(width, width - 80));
             if (listBox.Success)
             {
                 // TODO: Plugin searching should be abstracted... installer and this should use the same search

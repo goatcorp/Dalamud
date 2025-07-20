@@ -31,7 +31,7 @@ internal class TargetWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
+        ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
 
         var clientState = Service<ClientState>.Get();
         var targetMgr = Service<TargetManager>.Get();
@@ -40,7 +40,7 @@ internal class TargetWidget : IDataWindowWidget
         {
             Util.PrintGameObject(targetMgr.Target, "CurrentTarget", this.resolveGameData);
 
-            ImGui.Text("Target");
+            ImGui.TextUnformatted("Target"u8);
             Util.ShowGameObjectStruct(targetMgr.Target);
 
             var tot = targetMgr.Target.TargetObject;
@@ -49,7 +49,7 @@ internal class TargetWidget : IDataWindowWidget
                 ImGuiHelpers.ScaledDummy(10);
 
                 ImGui.Separator();
-                ImGui.Text("ToT");
+                ImGui.TextUnformatted("ToT"u8);
                 Util.ShowGameObjectStruct(tot);
             }
 
@@ -74,25 +74,25 @@ internal class TargetWidget : IDataWindowWidget
         if (targetMgr.MouseOverNameplateTarget != null)
             Util.PrintGameObject(targetMgr.MouseOverNameplateTarget, "MouseOverNameplateTarget", this.resolveGameData);
 
-        if (ImGui.Button("Clear CT"))
+        if (ImGui.Button("Clear CT"u8))
             targetMgr.Target = null;
 
-        if (ImGui.Button("Clear FT"))
+        if (ImGui.Button("Clear FT"u8))
             targetMgr.FocusTarget = null;
 
         var localPlayer = clientState.LocalPlayer;
 
         if (localPlayer != null)
         {
-            if (ImGui.Button("Set CT"))
+            if (ImGui.Button("Set CT"u8))
                 targetMgr.Target = localPlayer;
 
-            if (ImGui.Button("Set FT"))
+            if (ImGui.Button("Set FT"u8))
                 targetMgr.FocusTarget = localPlayer;
         }
         else
         {
-            ImGui.Text("LocalPlayer is null.");
+            ImGui.TextUnformatted("LocalPlayer is null."u8);
         }
     }
 }

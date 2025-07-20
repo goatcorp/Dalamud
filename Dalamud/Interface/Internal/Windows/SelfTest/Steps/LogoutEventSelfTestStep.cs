@@ -19,7 +19,7 @@ internal class LogoutEventSelfTestStep : ISelfTestStep
     {
         var clientState = Service<ClientState>.Get();
 
-        ImGui.Text("Log out now...");
+        ImGui.TextUnformatted("Log out now..."u8);
 
         if (!this.subscribed)
         {
