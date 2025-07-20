@@ -19,7 +19,7 @@ internal class ActorTableSelfTestStep : ISelfTestStep
     {
         var objectTable = Service<ObjectTable>.Get();
 
-        ImGui.Text("Checking actor table...");
+        ImGui.TextUnformatted("Checking actor table..."u8);
 
         if (this.index == objectTable.Length - 1)
         {

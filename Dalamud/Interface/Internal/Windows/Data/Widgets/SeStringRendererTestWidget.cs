@@ -66,7 +66,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         ImGui.SameLine();
         var t = this.style.ForceEdgeColor;
-        if (ImGui.Checkbox("Forced", ref t))
+        if (ImGui.Checkbox("Forced"u8, ref t))
             this.style.ForceEdgeColor = t;
 
         t2 = ImGui.ColorConvertU32ToFloat4(this.style.ShadowColor ?? 0xFF000000u);
@@ -82,67 +82,67 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             this.style.LinkActiveBackColor = ImGui.ColorConvertFloat4ToU32(t2);
 
         var t3 = this.style.LineHeight ?? 1f;
-        if (ImGui.DragFloat("Line Height", ref t3, 0.01f, 0.4f, 3f, "%.02f"))
+        if (ImGui.DragFloat("Line Height"u8, ref t3, 0.01f, 0.4f, 3f, "%.02f"))
             this.style.LineHeight = t3;
 
         t3 = this.style.Opacity ?? ImGui.GetStyle().Alpha;
-        if (ImGui.DragFloat("Opacity", ref t3, 0.005f, 0f, 1f, "%.02f"))
+        if (ImGui.DragFloat("Opacity"u8, ref t3, 0.005f, 0f, 1f, "%.02f"))
             this.style.Opacity = t3;
 
         t3 = this.style.EdgeStrength ?? 0.25f;
-        if (ImGui.DragFloat("Edge Strength", ref t3, 0.005f, 0f, 1f, "%.02f"))
+        if (ImGui.DragFloat("Edge Strength"u8, ref t3, 0.005f, 0f, 1f, "%.02f"))
             this.style.EdgeStrength = t3;
 
         t = this.style.Edge;
-        if (ImGui.Checkbox("Edge", ref t))
+        if (ImGui.Checkbox("Edge"u8, ref t))
             this.style.Edge = t;
 
         ImGui.SameLine();
         t = this.style.Bold;
-        if (ImGui.Checkbox("Bold", ref t))
+        if (ImGui.Checkbox("Bold"u8, ref t))
             this.style.Bold = t;
 
         ImGui.SameLine();
         t = this.style.Italic;
-        if (ImGui.Checkbox("Italic", ref t))
+        if (ImGui.Checkbox("Italic"u8, ref t))
             this.style.Italic = t;
 
         ImGui.SameLine();
         t = this.style.Shadow;
-        if (ImGui.Checkbox("Shadow", ref t))
+        if (ImGui.Checkbox("Shadow"u8, ref t))
             this.style.Shadow = t;
 
         ImGui.SameLine();
         var t4 = this.style.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
-        ImGui.PushItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW").X);
+        ImGui.PushItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW"u8).X);
         if (ImGui.Combo("##theme", ref t4, ThemeNames))
             this.style.ThemeIndex = t4;
 
         ImGui.SameLine();
         t = this.style.LinkUnderlineThickness > 0f;
-        if (ImGui.Checkbox("Link Underline", ref t))
+        if (ImGui.Checkbox("Link Underline"u8, ref t))
             this.style.LinkUnderlineThickness = t ? 1f : 0f;
 
         ImGui.SameLine();
         t = this.style.WrapWidth is null;
-        if (ImGui.Checkbox("Word Wrap", ref t))
+        if (ImGui.Checkbox("Word Wrap"u8, ref t))
             this.style.WrapWidth = t ? null : float.PositiveInfinity;
 
         t = this.interactable;
-        if (ImGui.Checkbox("Interactable", ref t))
+        if (ImGui.Checkbox("Interactable"u8, ref t))
             this.interactable = t;
 
         ImGui.SameLine();
         t = this.useEntity;
-        if (ImGui.Checkbox("Use Entity Replacements", ref t))
+        if (ImGui.Checkbox("Use Entity Replacements"u8, ref t))
             this.useEntity = t;
 
         ImGui.SameLine();
         t = this.alignToFramePadding;
-        if (ImGui.Checkbox("Align to Frame Padding", ref t))
+        if (ImGui.Checkbox("Align to Frame Padding"u8, ref t))
             this.alignToFramePadding = t;
 
-        if (ImGui.CollapsingHeader("LogKind Preview"))
+        if (ImGui.CollapsingHeader("LogKind Preview"u8))
         {
             if (this.logkind is null)
             {
@@ -174,17 +174,17 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             ImGuiHelpers.SeStringWrapped(this.logkind.Value.Data.Span, this.style);
         }
 
-        if (ImGui.CollapsingHeader("Addon Table"))
+        if (ImGui.CollapsingHeader("Addon Table"u8))
         {
-            if (ImGui.BeginTable("Addon Sheet", 3))
+            if (ImGui.BeginTable("Addon Sheet"u8, 3))
             {
                 ImGui.TableSetupScrollFreeze(0, 1);
-                ImGui.TableSetupColumn("Row ID", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("0000000").X);
-                ImGui.TableSetupColumn("Text", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Row ID"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("0000000"u8).X);
+                ImGui.TableSetupColumn("Text"u8, ImGuiTableColumnFlags.WidthStretch);
                 ImGui.TableSetupColumn(
-                    "Misc",
+                    "Misc"u8,
                     ImGuiTableColumnFlags.WidthFixed,
-                    ImGui.CalcTextSize("AAAAAAAAAAAAAAAAA").X);
+                    ImGui.CalcTextSize("AAAAAAAAAAAAAAAAA"u8).X);
                 ImGui.TableHeadersRow();
 
                 var addon = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>() ??
@@ -210,7 +210,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                         ImGuiHelpers.SeStringWrapped(row.Text, this.style);
 
                         ImGui.TableNextColumn();
-                        if (ImGui.Button("Print to Chat"))
+                        if (ImGui.Button("Print to Chat"u8))
                             Service<ChatGui>.Get().Print(row.Text.ToDalamudString());
 
                         ImGui.PopID();
@@ -222,7 +222,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
             }
         }
 
-        if (ImGui.Button("Reset Text") || this.testStringBuffer.IsDisposed)
+        if (ImGui.Button("Reset Text"u8) || this.testStringBuffer.IsDisposed)
         {
             this.testStringBuffer.Dispose();
             this.testStringBuffer = ImVectorWrapper.CreateFromSpan(
@@ -233,7 +233,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         ImGui.SameLine();
 
-        if (ImGui.Button("Print to Chat Log"))
+        if (ImGui.Button("Print to Chat Log"u8))
         {
             Service<ChatGui>.Get().Print(
                 Game.Text.SeStringHandling.SeString.Parse(

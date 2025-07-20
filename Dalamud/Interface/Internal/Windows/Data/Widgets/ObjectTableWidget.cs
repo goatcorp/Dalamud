@@ -35,7 +35,7 @@ internal class ObjectTableWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
+        ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
 
         var chatGui = Service<ChatGui>.Get();
         var clientState = Service<ClientState>.Get();
@@ -46,11 +46,11 @@ internal class ObjectTableWidget : IDataWindowWidget
 
         if (clientState.LocalPlayer == null)
         {
-            ImGui.TextUnformatted("LocalPlayer null.");
+            ImGui.TextUnformatted("LocalPlayer null."u8);
         }
         else if (clientState.IsPvPExcludingDen)
         {
-            ImGui.TextUnformatted("Cannot access object table while in PvP.");
+            ImGui.TextUnformatted("Cannot access object table while in PvP."u8);
         }
         else
         {
@@ -64,8 +64,8 @@ internal class ObjectTableWidget : IDataWindowWidget
 
             ImGui.TextUnformatted(stateString);
 
-            ImGui.Checkbox("Draw characters on screen", ref this.drawCharacters);
-            ImGui.SliderFloat("Draw Distance", ref this.maxCharaDrawDistance, 2f, 40f);
+            ImGui.Checkbox("Draw characters on screen"u8, ref this.drawCharacters);
+            ImGui.SliderFloat("Draw Distance"u8, ref this.maxCharaDrawDistance, 2f, 40f);
 
             for (var i = 0; i < objectTable.Length; i++)
             {
@@ -112,7 +112,7 @@ internal class ObjectTableWidget : IDataWindowWidget
                             ImGuiWindowFlags.NoDocking |
                             ImGuiWindowFlags.NoFocusOnAppearing |
                             ImGuiWindowFlags.NoNav))
-                        ImGui.Text(objectText);
+                        ImGui.TextUnformatted(objectText);
                     ImGui.End();
                 }
             }

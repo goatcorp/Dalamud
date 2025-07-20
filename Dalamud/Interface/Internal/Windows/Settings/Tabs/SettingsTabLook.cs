@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -170,7 +170,7 @@ public class SettingsTabLook : SettingsTab
                 ImGui.SameLine();
 
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, v / 100);
-                ImGui.TextUnformatted("\uE020\uE021\uE022\uE023\uE024\uE025\uE026\uE027");
+                ImGui.TextUnformatted("\uE020\uE021\uE022\uE023\uE024\uE025\uE026\uE027"u8);
                 ImGui.PopStyleVar(1);
             },
         }
@@ -184,7 +184,7 @@ public class SettingsTabLook : SettingsTab
         var fontBuildTask = interfaceManager.FontBuildTask;
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
+        ImGui.TextUnformatted(Loc.Localize("DalamudSettingsGlobalUiScale", "Global Font Scale"));
 
         var buttonSize =
             GlobalUiScalePresets
@@ -216,7 +216,7 @@ public class SettingsTabLook : SettingsTab
         }
 
         var globalUiScaleInPct = 100f * this.globalUiScale;
-        if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag", ref globalUiScaleInPct, 1f, 80f, 300f, "%.0f%%", ImGuiSliderFlags.AlwaysClamp))
+        if (ImGui.DragFloat("##DalamudSettingsGlobalUiScaleDrag"u8, ref globalUiScaleInPct, 1f, 80f, 300f, "%.0f%%", ImGuiSliderFlags.AlwaysClamp))
         {
             this.globalUiScale = globalUiScaleInPct / 100f;
             ImGui.GetIO().FontGlobalScale = this.globalUiScale;
@@ -227,11 +227,11 @@ public class SettingsTabLook : SettingsTab
 
         if (fontBuildTask.IsFaulted || fontBuildTask.IsCanceled)
         {
-            ImGui.TextColored(
+            ImGuiHelpers.SafeTextColored(
                 ImGuiColors.DalamudRed,
                 Loc.Localize("DalamudSettingsFontBuildFaulted", "Failed to load fonts as requested."));
             if (fontBuildTask.Exception is not null
-                && ImGui.CollapsingHeader("##DalamudSetingsFontBuildFaultReason"))
+                && ImGui.CollapsingHeader("##DalamudSetingsFontBuildFaultReason"u8))
             {
                 foreach (var e in fontBuildTask.Exception.InnerExceptions)
                     ImGui.TextUnformatted(e.ToString());

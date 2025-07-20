@@ -28,28 +28,28 @@ public class HitchSettingsWindow : Window
         var config = Service<DalamudConfiguration>.Get();
 
         var uiBuilderHitch = (float)config.UiBuilderHitch;
-        if (ImGui.SliderFloat("UiBuilderHitch", ref uiBuilderHitch, MinHitch, MaxHitch))
+        if (ImGui.SliderFloat("UiBuilderHitch"u8, ref uiBuilderHitch, MinHitch, MaxHitch))
         {
             config.UiBuilderHitch = uiBuilderHitch;
             config.QueueSave();
         }
 
         var frameworkUpdateHitch = (float)config.FrameworkUpdateHitch;
-        if (ImGui.SliderFloat("FrameworkUpdateHitch", ref frameworkUpdateHitch, MinHitch, MaxHitch))
+        if (ImGui.SliderFloat("FrameworkUpdateHitch"u8, ref frameworkUpdateHitch, MinHitch, MaxHitch))
         {
             config.FrameworkUpdateHitch = frameworkUpdateHitch;
             config.QueueSave();
         }
 
         var gameNetworkUpHitch = (float)config.GameNetworkUpHitch;
-        if (ImGui.SliderFloat("GameNetworkUpHitch", ref gameNetworkUpHitch, MinHitch, MaxHitch))
+        if (ImGui.SliderFloat("GameNetworkUpHitch"u8, ref gameNetworkUpHitch, MinHitch, MaxHitch))
         {
             config.GameNetworkUpHitch = gameNetworkUpHitch;
             config.QueueSave();
         }
 
         var gameNetworkDownHitch = (float)config.GameNetworkDownHitch;
-        if (ImGui.SliderFloat("GameNetworkDownHitch", ref gameNetworkDownHitch, MinHitch, MaxHitch))
+        if (ImGui.SliderFloat("GameNetworkDownHitch"u8, ref gameNetworkDownHitch, MinHitch, MaxHitch))
         {
             config.GameNetworkDownHitch = gameNetworkDownHitch;
             config.QueueSave();

@@ -79,7 +79,7 @@ internal unsafe class ElementSelector : IDisposable
     /// </summary>
     internal void DrawInterface()
     {
-        using var ch = ImRaii.Child("###sidebar_elementSelector", new(250, -1), true);
+        using var ch = ImRaii.Child("###sidebar_elementSelector"u8, new(250, -1), true);
 
         if (ch.Success)
         {
@@ -105,15 +105,15 @@ internal unsafe class ElementSelector : IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Element Selector");
+                ImGui.SetTooltip("Element Selector"u8);
             }
 
             ImGui.SameLine();
 
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - 32);
             ImGui.InputTextWithHint(
-                "###addressSearchInput",
-                "Address Search",
+                "###addressSearchInput"u8,
+                "Address Search"u8,
                 ref this.addressSearchInput,
                 18,
                 ImGuiInputTextFlags.AutoSelectAll);
@@ -144,10 +144,10 @@ internal unsafe class ElementSelector : IDisposable
             return;
         }
 
-        ImGui.Text("ELEMENT SELECTOR");
-        ImGui.TextDisabled("Use the mouse to hover and identify UI elements, then click to jump to them in the inspector");
-        ImGui.TextDisabled("Use the scrollwheel to choose between overlapping elements");
-        ImGui.TextDisabled("Press ESCAPE to cancel");
+        ImGui.TextUnformatted("ELEMENT SELECTOR"u8);
+        ImGui.TextDisabled("Use the mouse to hover and identify UI elements, then click to jump to them in the inspector"u8);
+        ImGui.TextDisabled("Use the scrollwheel to choose between overlapping elements"u8);
+        ImGui.TextDisabled("Press ESCAPE to cancel"u8);
         ImGui.Spacing();
 
         var mousePos = ImGui.GetMousePos() - MainViewport.Pos;
@@ -155,7 +155,7 @@ internal unsafe class ElementSelector : IDisposable
 
         using (ImRaii.PushColor(WindowBg, new Vector4(0.5f)))
         {
-            using var ch = ImRaii.Child("noClick", new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse);
+            using var ch = ImRaii.Child("noClick"u8, new(800, 2000), false, NoInputs | NoBackground | NoScrollWithMouse);
             if (ch.Success)
             {
                 using var gr = ImRaii.Group();
@@ -163,7 +163,7 @@ internal unsafe class ElementSelector : IDisposable
                 {
                     Gui.PrintFieldValuePair("Mouse Position", $"{mousePos.X}, {mousePos.Y}");
                     ImGui.Spacing();
-                    ImGui.Text("RESULTS:\n");
+                    ImGui.TextUnformatted("RESULTS:\n"u8);
 
                     var i = 0;
                     foreach (var a in addonResults)

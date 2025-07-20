@@ -39,7 +39,7 @@ internal class KeyStateWidget : IDataWindowWidget
 
             ImGui.PushStyleColor(ImGuiCol.Text, value ? ImGuiColors.HealerGreen : ImGuiColors.DPSRed);
 
-            ImGui.Text($"{vkCode} ({code})");
+            ImGui.TextUnformatted($"{vkCode} ({code})");
 
             ImGui.PopStyleColor();
 

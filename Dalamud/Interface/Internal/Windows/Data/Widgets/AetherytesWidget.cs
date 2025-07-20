@@ -26,21 +26,21 @@ internal class AetherytesWidget : IDataWindowWidget
     /// <inheritdoc/>
     public void Draw()
     {
-        if (!ImGui.BeginTable("##aetheryteTable", 11, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders))
+        if (!ImGui.BeginTable("##aetheryteTable"u8, 11, ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Idx", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("ID", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Zone", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Ward", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Plot", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Sub", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Gil", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Fav", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Shared", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("Apartment", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Idx"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("ID"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Zone"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Ward"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Plot"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Sub"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Gil"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Fav"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Shared"u8, ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("Apartment"u8, ImGuiTableColumnFlags.WidthFixed);
         ImGui.TableHeadersRow();
 
         var tpList = Service<AetheryteList>.Get();

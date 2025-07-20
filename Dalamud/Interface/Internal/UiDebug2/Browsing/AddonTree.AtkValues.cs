@@ -2,6 +2,7 @@ using System.Numerics;
 
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
 using Dalamud.Utility;
@@ -26,13 +27,13 @@ public unsafe partial class AddonTree
             using var tree = ImRaii.TreeNode($"Atk Values [{addon->AtkValuesCount}]###atkValues_{addon->NameString}");
             if (tree.Success)
             {
-                using var tbl = ImRaii.Table("atkUnitBase_atkValueTable", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg);
+                using var tbl = ImRaii.Table("atkUnitBase_atkValueTable"u8, 3, ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg);
 
                 if (tbl.Success)
                 {
-                    ImGui.TableSetupColumn("Index");
-                    ImGui.TableSetupColumn("Type");
-                    ImGui.TableSetupColumn("Value");
+                    ImGui.TableSetupColumn("Index"u8);
+                    ImGui.TableSetupColumn("Type"u8);
+                    ImGui.TableSetupColumn("Value"u8);
                     ImGui.TableHeadersRow();
 
                     try
@@ -46,17 +47,17 @@ public unsafe partial class AddonTree
                             }
                             else
                             {
-                                ImGui.Text($"#{i}");
+                                ImGui.TextUnformatted($"#{i}");
                             }
 
                             ImGui.TableNextColumn();
                             if (atkValue->Type == 0)
                             {
-                                ImGui.TextDisabled("Not Set");
+                                ImGui.TextDisabled("Not Set"u8);
                             }
                             else
                             {
-                                ImGui.Text($"{atkValue->Type}");
+                                ImGui.TextUnformatted($"{atkValue->Type}");
                             }
 
                             ImGui.TableNextColumn();
@@ -78,7 +79,7 @@ public unsafe partial class AddonTree
                                 {
                                     if (atkValue->String.Value == null)
                                     {
-                                        ImGui.TextDisabled("null");
+                                        ImGui.TextDisabled("null"u8);
                                     }
                                     else
                                     {
@@ -100,7 +101,7 @@ public unsafe partial class AddonTree
 
                                 default:
                                 {
-                                    ImGui.TextDisabled("Unhandled Type");
+                                    ImGui.TextDisabled("Unhandled Type"u8);
                                     ImGui.SameLine();
                                     Util.ShowStruct(atkValue);
                                     break;

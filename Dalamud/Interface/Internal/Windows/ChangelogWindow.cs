@@ -253,7 +253,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         ImGui.SameLine();
 
         var logoContainerSize = new Vector2(windowSize.X * 0.2f - dummySize, windowSize.Y);
-        using (var child = ImRaii.Child("###logoContainer", logoContainerSize, false))
+        using (var child = ImRaii.Child("###logoContainer"u8, logoContainerSize, false))
         {
             if (!child)
                 return;
@@ -271,7 +271,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
         ImGui.Dummy(new Vector2(dummySize));
         ImGui.SameLine();
 
-        using (var child = ImRaii.Child("###textContainer", new Vector2((windowSize.X * 0.8f) - dummySize * 4, windowSize.Y), false))
+        using (var child = ImRaii.Child("###textContainer"u8, new Vector2((windowSize.X * 0.8f) - dummySize * 4, windowSize.Y), false))
         {
             if (!child)
                 return;
@@ -357,24 +357,24 @@ internal sealed class ChangelogWindow : Window, IDisposable
                 {
                     case State.WindowFadeIn:
                     case State.ExplainerIntro:
-                        ImGui.TextWrapped($"Welcome to Dalamud v{Util.GetScmVersion()}!");
+                        ImGuiHelpers.SafeTextWrapped($"Welcome to Dalamud v{Util.GetScmVersion()}!");
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGui.TextWrapped(ChangeLog);
+                        ImGuiHelpers.SafeTextWrapped(ChangeLog);
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGui.TextWrapped("This changelog is a quick overview of the most important changes in this version.");
-                        ImGui.TextWrapped("Please click next to see a quick guide to updating your plugins.");
+                        ImGuiHelpers.SafeTextWrapped("This changelog is a quick overview of the most important changes in this version."u8);
+                        ImGuiHelpers.SafeTextWrapped("Please click next to see a quick guide to updating your plugins."u8);
 
                         DrawNextButton(State.ExplainerApiBump);
                         break;
 
                     case State.ExplainerApiBump:
-                        ImGui.TextWrapped("Take care! Due to changes in this patch, all of your plugins need to be updated and were disabled automatically.");
-                        ImGui.TextWrapped("This is normal and required for major game updates.");
+                        ImGuiHelpers.SafeTextWrapped("Take care! Due to changes in this patch, all of your plugins need to be updated and were disabled automatically."u8);
+                        ImGuiHelpers.SafeTextWrapped("This is normal and required for major game updates."u8);
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGui.TextWrapped("To update your plugins, open the plugin installer and click 'update plugins'. Updated plugins should update and then re-enable themselves.");
+                        ImGuiHelpers.SafeTextWrapped("To update your plugins, open the plugin installer and click 'update plugins'. Updated plugins should update and then re-enable themselves."u8);
                         ImGuiHelpers.ScaledDummy(5);
-                        ImGui.TextWrapped("Please keep in mind that not all of your plugins may already be updated for the new version.");
-                        ImGui.TextWrapped("If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available.");
+                        ImGuiHelpers.SafeTextWrapped("Please keep in mind that not all of your plugins may already be updated for the new version."u8);
+                        ImGuiHelpers.SafeTextWrapped("If some plugins are displayed with a red cross in the 'Installed Plugins' tab, they may not yet be available."u8);
 
                         ImGuiHelpers.ScaledDummy(15);
 
@@ -446,8 +446,8 @@ internal sealed class ChangelogWindow : Window, IDisposable
                         break;
 
                     case State.Links:
-                        ImGui.TextWrapped("If you note any issues or need help, please check the FAQ, and reach out on our Discord if you need help.");
-                        ImGui.TextWrapped("Enjoy your time with the game and Dalamud!");
+                        ImGuiHelpers.SafeTextWrapped("If you note any issues or need help, please check the FAQ, and reach out on our Discord if you need help."u8);
+                        ImGuiHelpers.SafeTextWrapped("Enjoy your time with the game and Dalamud!"u8);
 
                         ImGuiHelpers.ScaledDummy(45);
 
@@ -529,7 +529,7 @@ internal sealed class ChangelogWindow : Window, IDisposable
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("I don't care about this");
+                ImGui.SetTooltip("I don't care about this"u8);
             }
         }
     }

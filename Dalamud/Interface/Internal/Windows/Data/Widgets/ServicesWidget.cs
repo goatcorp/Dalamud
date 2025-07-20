@@ -43,31 +43,31 @@ internal class ServicesWidget : IDataWindowWidget
     {
         var container = Service<ServiceContainer>.Get();
 
-        if (ImGui.CollapsingHeader("Dependencies"))
+        if (ImGui.CollapsingHeader("Dependencies"u8))
         {
-            if (ImGui.Button("Clear selection"))
+            if (ImGui.Button("Clear selection"u8))
                 this.selectedNodes.Clear();
 
             ImGui.SameLine();
             switch (this.includeUnloadDependencies)
             {
-                case true when ImGui.Button("Show load-time dependencies"):
+                case true when ImGui.Button("Show load-time dependencies"u8):
                     this.includeUnloadDependencies = false;
                     this.dependencyNodes = null;
                     break;
-                case false when ImGui.Button("Show unload-time dependencies"):
+                case false when ImGui.Button("Show unload-time dependencies"u8):
                     this.includeUnloadDependencies = true;
                     this.dependencyNodes = null;
                     break;
             }
 
             this.dependencyNodes ??= ServiceDependencyNode.CreateTreeByLevel(this.includeUnloadDependencies);
-            var cellPad = ImGui.CalcTextSize("WW");
-            var margin = ImGui.CalcTextSize("W\nW\nW");
+            var cellPad = ImGui.CalcTextSize("WW"u8);
+            var margin = ImGui.CalcTextSize("W\nW\nW"u8);
             var rowHeight = cellPad.Y * 3;
             var width = ImGui.GetContentRegionAvail().X;
             if (ImGui.BeginChild(
-                    "dependency-graph",
+                    "dependency-graph"u8,
                     new(width, (this.dependencyNodes.Count * (rowHeight + margin.Y)) + cellPad.Y),
                     false,
                     ImGuiWindowFlags.HorizontalScrollbar))
@@ -237,7 +237,7 @@ internal class ServicesWidget : IDataWindowWidget
             }
         }
 
-        if (ImGui.CollapsingHeader("Singleton Services"))
+        if (ImGui.CollapsingHeader("Singleton Services"u8))
         {
             foreach (var instance in container.Instances)
             {
@@ -248,21 +248,21 @@ internal class ServicesWidget : IDataWindowWidget
                 if (isPublic)
                 {
                     using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-                    ImGui.Text("\t => PUBLIC!!!");
+                    ImGui.TextUnformatted("\t => PUBLIC!!!"u8);
                 }
 
                 switch (instance.Value.Visibility)
                 {
                     case ObjectInstanceVisibility.Internal:
-                        ImGui.Text("\t => Internally resolved");
+                        ImGui.TextUnformatted("\t => Internally resolved"u8);
                         break;
 
                     case ObjectInstanceVisibility.ExposedToPlugins:
                         var hasInterface = container.InterfaceToTypeMap.Values.Any(x => x == instance.Key);
                         using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed, !hasInterface))
                         {
-                            ImGui.Text("\t => Exposed to plugins!");
-                            ImGui.Text(
+                            ImGui.TextUnformatted("\t => Exposed to plugins!"u8);
+                            ImGui.TextUnformatted(
                                 hasInterface
                                     ? $"\t => Provided via interface: {container.InterfaceToTypeMap.First(x => x.Value == instance.Key).Key.FullName}"
                                     : "\t => NO INTERFACE!!!");

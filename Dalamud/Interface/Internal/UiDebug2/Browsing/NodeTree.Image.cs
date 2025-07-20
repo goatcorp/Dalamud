@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -76,13 +77,13 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
                 PrintFieldValuePairs(("Texture Path", this.TexData.Path));
             }
 
-            if (ImGui.RadioButton("Full Image##textureDisplayStyle0", TexDisplayStyle == 0))
+            if (ImGui.RadioButton("Full Image##textureDisplayStyle0"u8, TexDisplayStyle == 0))
             {
                 TexDisplayStyle = 0;
             }
 
             ImGui.SameLine();
-            if (ImGui.RadioButton("Parts List##textureDisplayStyle1", TexDisplayStyle == 1))
+            if (ImGui.RadioButton("Parts List##textureDisplayStyle1"u8, TexDisplayStyle == 1))
             {
                 TexDisplayStyle = 1;
             }
@@ -130,7 +131,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
         ImGui.GetWindowDrawList().AddRect(partBegin, partEnd, RgbaVector4ToUint(col));
 
         ImGui.SetCursorPos(cursorLocalPos + uv + new Vector2(0, -20));
-        ImGui.TextColored(col, $"[#{partId}]\t{part.U}, {part.V}\t{part.Width}x{part.Height}");
+        ImGuiHelpers.SafeTextColored(col, $"[#{partId}]\t{part.U}, {part.V}\t{part.Width}x{part.Height}");
         ImGui.SetCursorPos(savePos);
     }
 
@@ -152,7 +153,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Click to copy as Vector2\nShift-click to copy as Vector4");
+            ImGui.SetTooltip("Click to copy as Vector2\nShift-click to copy as Vector4"u8);
         }
 
         var suffix = asFloat ? "f" : string.Empty;
@@ -191,9 +192,9 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
         using var tbl = ImRaii.Table($"partsTable##{(nint)this.TexData.Texture->D3D11ShaderResourceView:X}", 3, Borders | RowBg | Reorderable);
         if (tbl.Success)
         {
-            ImGui.TableSetupColumn("Part ID", WidthFixed);
-            ImGui.TableSetupColumn("Part Texture", WidthFixed);
-            ImGui.TableSetupColumn("Coordinates", WidthFixed);
+            ImGui.TableSetupColumn("Part ID"u8, WidthFixed);
+            ImGui.TableSetupColumn("Part Texture"u8, WidthFixed);
+            ImGui.TableSetupColumn("Coordinates"u8, WidthFixed);
 
             ImGui.TableHeadersRow();
 
@@ -206,7 +207,7 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
                 ImGui.TableNextColumn();
 
                 var col = i == this.TexData.PartId ? new Vector4(0, 0.85F, 1, 1) : new(1);
-                ImGui.TextColored(col, $"#{i.ToString().PadLeft(this.TexData.PartCount.ToString().Length, '0')}");
+                ImGuiHelpers.SafeTextColored(col, $"#{i.ToString().PadLeft(this.TexData.PartCount.ToString().Length, '0')}");
 
                 ImGui.TableNextColumn();
 
@@ -226,19 +227,19 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
                 ImGui.TableNextColumn();
 
-                ImGui.TextColored(!hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Standard:\t");
+                ImGuiHelpers.SafeTextColored(!hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Standard:\t");
                 ImGui.SameLine();
                 var cursX = ImGui.GetCursorPosX();
 
                 PrintPartCoords(u / 2f, v / 2f, width / 2f, height / 2f);
 
-                ImGui.TextColored(hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Hi-Res:\t");
+                ImGuiHelpers.SafeTextColored(hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Hi-Res:\t");
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(cursX);
 
                 PrintPartCoords(u, v, width, height);
 
-                ImGui.Text("UV:\t");
+                ImGui.TextUnformatted("UV:\t"u8);
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(cursX);
 

@@ -83,7 +83,7 @@ public readonly partial struct TimelineTree
             }
             else
             {
-                ImGui.TextDisabled("...");
+                ImGui.TextDisabled("..."u8);
             }
         }
     }

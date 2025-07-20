@@ -360,11 +360,11 @@ public static partial class Util
     {
         var type = obj.GetType();
 
-        ImGui.Text($"Object Dump({type.Name}) for {obj}({obj.GetHashCode()})");
+        ImGui.TextUnformatted($"Object Dump({type.Name}) for {obj}({obj.GetHashCode()})");
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextColored(ImGuiColors.DalamudOrange, "-> Properties:");
+        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudOrange, "-> Properties:"u8);
 
         ImGui.Indent();
 
@@ -372,16 +372,16 @@ public static partial class Util
         {
             if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
             {
-                ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: (ref typed property)");
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: (ref typed property)");
             }
             else
             {
                 var value = p.GetValue(obj);
                 var valueType = value?.GetType();
                 if (valueType == typeof(IntPtr))
-                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: 0x{value:X}");
+                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: 0x{value:X}");
                 else
-                    ImGui.TextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: {value}");
+                    ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudOrange, $"    {p.Name}: {value}");
             }
         }
 
@@ -389,13 +389,13 @@ public static partial class Util
 
         ImGuiHelpers.ScaledDummy(5);
 
-        ImGui.TextColored(ImGuiColors.HealerGreen, "-> Fields:");
+        ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, "-> Fields:"u8);
 
         ImGui.Indent();
 
         foreach (var fieldInfo in type.GetFields())
         {
-            ImGui.TextColored(ImGuiColors.HealerGreen, $"    {fieldInfo.Name}: {fieldInfo.GetValue(obj)}");
+            ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, $"    {fieldInfo.Name}: {fieldInfo.GetValue(obj)}");
         }
 
         ImGui.Unindent();
@@ -856,7 +856,7 @@ public static partial class Util
         var propType = p.PropertyType;
         if (p.GetGetMethod() is not { } getMethod)
         {
-            ImGui.Text("(No getter available)");
+            ImGui.TextUnformatted("(No getter available)"u8);
             return;
         }
 
@@ -991,7 +991,7 @@ public static partial class Util
                     var ptrObj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
                     if (ptrObj == null)
                     {
-                        ImGui.Text("null or invalid");
+                        ImGui.TextUnformatted("null or invalid"u8);
                     }
                     else
                     {
@@ -1005,7 +1005,7 @@ public static partial class Util
             }
             else
             {
-                ImGui.Text("null");
+                ImGui.TextUnformatted("null"u8);
             }
         }
         else
@@ -1016,7 +1016,7 @@ public static partial class Util
             }
             else
             {
-                ImGui.Text($"{value}");
+                ImGui.TextUnformatted($"{value}");
             }
         }
     }
@@ -1076,9 +1076,9 @@ public static partial class Util
 
                     if (fixedBuffer != null)
                     {
-                        ImGui.Text("fixed");
+                        ImGui.TextUnformatted("fixed"u8);
                         ImGui.SameLine();
-                        ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
+                        ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{fixedBuffer.ElementType.Name}[0x{fixedBuffer.Length:X}]");
                     }
                     else
                     {
@@ -1088,11 +1088,11 @@ public static partial class Util
                             ImGui.SameLine();
                         }
 
-                        ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
+                        ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{f.FieldType.Name}");
                     }
 
                     ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
+                    ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.9f, 0.4f, 1), $"{f.Name}: ");
                     ImGui.SameLine();
 
                     pathList.Add(f.Name);
@@ -1100,7 +1100,7 @@ public static partial class Util
                     {
                         if (f.FieldType.IsGenericType && (f.FieldType.IsByRef || f.FieldType.IsByRefLike))
                         {
-                            ImGui.Text("Cannot preview ref typed fields."); // object never contains ref struct
+                            ImGui.TextUnformatted("Cannot preview ref typed fields."u8); // object never contains ref struct
                         }
                         else if (f.FieldType == typeof(bool) && offset != null)
                         {
@@ -1126,9 +1126,9 @@ public static partial class Util
 
                 foreach (var p in obj.GetType().GetProperties().Where(static p => p.GetGetMethod()?.GetParameters().Length == 0))
                 {
-                    ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
+                    ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.9f, 0.9f, 1), $"{p.PropertyType.Name}");
                     ImGui.SameLine();
-                    ImGui.TextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
+                    ImGuiHelpers.SafeTextColored(new Vector4(0.2f, 0.6f, 0.4f, 1), $"{p.Name}: ");
                     ImGui.SameLine();
 
                     pathList.Add(p.Name);
@@ -1140,7 +1140,7 @@ public static partial class Util
                         }
                         else if (p.PropertyType.IsGenericType && (p.PropertyType.IsByRef || p.PropertyType.IsByRefLike))
                         {
-                            ImGui.Text("Cannot preview ref typed properties.");
+                            ImGui.TextUnformatted("Cannot preview ref typed properties."u8);
                         }
                         else
                         {

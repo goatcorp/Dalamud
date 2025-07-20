@@ -107,7 +107,7 @@ internal unsafe class ComponentNodeTree : ResNodeTree
             case List:
             case TreeList:
                 var l = (AtkComponentList*)this.Component;
-                if (ImGui.SmallButton("Inc.Selected"))
+                if (ImGui.SmallButton("Inc.Selected"u8))
                 {
                     l->SelectedItemIndex++;
                 }

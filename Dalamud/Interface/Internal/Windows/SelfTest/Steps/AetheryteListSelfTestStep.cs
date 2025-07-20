@@ -19,7 +19,7 @@ internal class AetheryteListSelfTestStep : ISelfTestStep
     {
         var list = Service<AetheryteList>.Get();
 
-        ImGui.Text("Checking aetheryte list...");
+        ImGui.TextUnformatted("Checking aetheryte list..."u8);
 
         if (this.index == list.Length - 1)
         {

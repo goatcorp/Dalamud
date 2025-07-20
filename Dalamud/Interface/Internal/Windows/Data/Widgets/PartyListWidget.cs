@@ -31,30 +31,30 @@ internal class PartyListWidget : IDataWindowWidget
     {
         var partyList = Service<PartyList>.Get();
 
-        ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
+        ImGui.Checkbox("Resolve GameData"u8, ref this.resolveGameData);
 
-        ImGui.Text($"GroupManager: {partyList.GroupManagerAddress.ToInt64():X}");
-        ImGui.Text($"GroupList: {partyList.GroupListAddress.ToInt64():X}");
-        ImGui.Text($"AllianceList: {partyList.AllianceListAddress.ToInt64():X}");
+        ImGui.TextUnformatted($"GroupManager: {partyList.GroupManagerAddress.ToInt64():X}");
+        ImGui.TextUnformatted($"GroupList: {partyList.GroupListAddress.ToInt64():X}");
+        ImGui.TextUnformatted($"AllianceList: {partyList.AllianceListAddress.ToInt64():X}");
 
-        ImGui.Text($"{partyList.Length} Members");
+        ImGui.TextUnformatted($"{partyList.Length} Members");
 
         for (var i = 0; i < partyList.Length; i++)
         {
             var member = partyList[i];
             if (member == null)
             {
-                ImGui.Text($"[{i}] was null");
+                ImGui.TextUnformatted($"[{i}] was null");
                 continue;
             }
 
-            ImGui.Text($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject?.GameObjectId}");
+            ImGui.TextUnformatted($"[{i}] {member.Address.ToInt64():X} - {member.Name} - {member.GameObject?.GameObjectId}");
             if (this.resolveGameData)
             {
                 var actor = member.GameObject;
                 if (actor == null)
                 {
-                    ImGui.Text("Actor was null");
+                    ImGui.TextUnformatted("Actor was null"u8);
                 }
                 else
                 {

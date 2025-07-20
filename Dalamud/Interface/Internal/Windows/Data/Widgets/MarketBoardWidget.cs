@@ -69,7 +69,7 @@ internal class MarketBoardWidget : IDataWindowWidget
     public void Draw()
     {
         var marketBoard = Service<MarketBoard>.Get();
-        if (ImGui.Checkbox("Track MarketBoard Events", ref this.trackMarketBoard))
+        if (ImGui.Checkbox("Track MarketBoard Events"u8, ref this.trackMarketBoard))
         {
             if (this.trackMarketBoard)
             {
@@ -90,21 +90,21 @@ internal class MarketBoardWidget : IDataWindowWidget
         }
 
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X / 2);
-        if (ImGui.DragInt("Stored Number of Events", ref this.trackedEvents, 0.1f, 1, 512))
+        if (ImGui.DragInt("Stored Number of Events"u8, ref this.trackedEvents, 0.1f, 1, 512))
         {
             this.trackedEvents = Math.Clamp(this.trackedEvents, 1, 512);
         }
 
-        if (ImGui.Button("Clear Stored Events"))
+        if (ImGui.Button("Clear Stored Events"u8))
         {
             this.marketBoardHistoryQueue.Clear();
         }
 
-        using (var tabBar = ImRaii.TabBar("marketTabs"))
+        using (var tabBar = ImRaii.TabBar("marketTabs"u8))
         {
             if (tabBar)
             {
-                using (var tabItem = ImRaii.TabItem("History"))
+                using (var tabItem = ImRaii.TabItem("History"u8))
                 {
                     if (tabItem)
                     {
@@ -112,7 +112,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                     }
                 }
 
-                using (var tabItem = ImRaii.TabItem("Offerings"))
+                using (var tabItem = ImRaii.TabItem("Offerings"u8))
                 {
                     if (tabItem)
                     {
@@ -120,7 +120,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                     }
                 }
 
-                using (var tabItem = ImRaii.TabItem("Purchases"))
+                using (var tabItem = ImRaii.TabItem("Purchases"u8))
                 {
                     if (tabItem)
                     {
@@ -128,7 +128,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                     }
                 }
 
-                using (var tabItem = ImRaii.TabItem("Purchase Requests"))
+                using (var tabItem = ImRaii.TabItem("Purchase Requests"u8))
                 {
                     if (tabItem)
                     {
@@ -136,7 +136,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                     }
                 }
 
-                using (var tabItem = ImRaii.TabItem("Taxes"))
+                using (var tabItem = ImRaii.TabItem("Taxes"u8))
                 {
                     if (tabItem)
                     {

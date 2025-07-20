@@ -263,7 +263,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
     {
         var windowSize = ImGui.GetWindowSize();
 
-        using var child = ImRaii.Child("scrolling", new Vector2(-1, -10 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.NoScrollbar);
+        using var child = ImRaii.Child("scrolling"u8, new Vector2(-1, -10 * ImGuiHelpers.GlobalScale), false, ImGuiWindowFlags.NoScrollbar);
         if (!child)
             return;
 
@@ -276,7 +276,7 @@ Contribute at: https://github.com/goatcorp/Dalamud
         using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero))
         {
             ImGuiHelpers.ScaledDummy(0, windowSize.Y + 20f);
-            ImGui.Text(string.Empty);
+            ImGui.TextUnformatted(string.Empty);
 
             const float imageSize = 190f;
             ImGui.SameLine((ImGui.GetWindowWidth() / 2) - (imageSize / 2));

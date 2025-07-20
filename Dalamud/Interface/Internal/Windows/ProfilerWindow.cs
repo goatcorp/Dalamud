@@ -43,11 +43,11 @@ public class ProfilerWindow : Window
         var actualMin = Timings.AllTimings.Keys.Min(x => x.StartTime);
         var actualMax = Timings.AllTimings.Keys.Max(x => x.EndTime);
 
-        ImGui.Text("Timings");
+        ImGui.TextUnformatted("Timings"u8);
 
         var childHeight = Math.Max(300, 20 * (2.5f + this.occupied.Count));
 
-        if (ImGui.BeginChild("Timings", new Vector2(0, childHeight), true))
+        if (ImGui.BeginChild("Timings"u8, new Vector2(0, childHeight), true))
         {
             var pos = ImGui.GetCursorScreenPos();
 
@@ -236,27 +236,27 @@ public class ProfilerWindow : Window
         ImGui.EndChild();
 
         var sliderMin = (float)this.min / 1000f;
-        if (ImGui.SliderFloat("Start", ref sliderMin, (float)actualMin / 1000f, (float)this.max / 1000f, "%.2fs"))
+        if (ImGui.SliderFloat("Start"u8, ref sliderMin, (float)actualMin / 1000f, (float)this.max / 1000f, "%.2fs"))
         {
             this.min = sliderMin * 1000f;
         }
 
         var sliderMax = (float)this.max / 1000f;
-        if (ImGui.SliderFloat("End", ref sliderMax, (float)this.min / 1000f, (float)actualMax / 1000f, "%.2fs"))
+        if (ImGui.SliderFloat("End"u8, ref sliderMax, (float)this.min / 1000f, (float)actualMax / 1000f, "%.2fs"))
         {
             this.max = sliderMax * 1000f;
         }
 
         var sizeShown = (float)(this.max - this.min) / 1000f;
         var sizeActual = (float)(actualMax - actualMin) / 1000f;
-        if (ImGui.SliderFloat("Size", ref sizeShown, sizeActual / 10f, sizeActual, "%.2fs"))
+        if (ImGui.SliderFloat("Size"u8, ref sizeShown, sizeActual / 10f, sizeActual, "%.2fs"))
         {
             this.max = this.min + (sizeShown * 1000f);
         }
 
-        ImGui.Text("Min: " + actualMin.ToString("0.000"));
-        ImGui.Text("Max: " + actualMax.ToString("0.000"));
-        ImGui.Text("Timings: " + Timings.AllTimings.Count);
+        ImGui.TextUnformatted("Min: " + actualMin.ToString("0.000"));
+        ImGui.TextUnformatted("Max: " + actualMax.ToString("0.000"));
+        ImGui.TextUnformatted("Timings: " + Timings.AllTimings.Count);
     }
 
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "Internals")]

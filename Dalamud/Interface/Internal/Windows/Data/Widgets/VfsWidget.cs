@@ -37,12 +37,12 @@ internal class VfsWidget : IDataWindowWidget
         var service = Service<ReliableFileStorage>.Get();
         var dalamud = Service<Dalamud>.Get();
 
-        ImGui.InputInt("Num bytes", ref this.numBytes);
-        ImGui.InputInt("Reps", ref this.reps);
+        ImGui.InputInt("Num bytes"u8, ref this.numBytes);
+        ImGui.InputInt("Reps"u8, ref this.reps);
 
         var path = Path.Combine(dalamud.StartInfo.WorkingDirectory!, "test.bin");
 
-        if (ImGui.Button("Write"))
+        if (ImGui.Button("Write"u8))
         {
             Log.Information("=== WRITING ===");
             var data = new byte[this.numBytes];
@@ -61,7 +61,7 @@ internal class VfsWidget : IDataWindowWidget
             Log.Information("Took {Ms}ms in total", acc);
         }
 
-        if (ImGui.Button("Read"))
+        if (ImGui.Button("Read"u8))
         {
             Log.Information("=== READING ===");
             var stopwatch = new Stopwatch();
@@ -79,7 +79,7 @@ internal class VfsWidget : IDataWindowWidget
             Log.Information("Took {Ms}ms in total", acc);
         }
 
-        if (ImGui.Button("Test Config"))
+        if (ImGui.Button("Test Config"u8))
         {
             var config = Service<DalamudConfiguration>.Get();
 

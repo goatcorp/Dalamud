@@ -135,7 +135,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
             {
                 using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
                 {
-                    ImGui.Text(validityMsg);
+                    ImGui.TextUnformatted(validityMsg);
                 }
             }
         }
@@ -150,7 +150,7 @@ internal sealed class EnumSettingsEntry<T> : SettingsEntry
         {
             using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed))
             {
-                ImGui.Text(warningMessage);
+                ImGui.TextUnformatted(warningMessage);
             }
         }
     }

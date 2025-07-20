@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -46,10 +46,10 @@ internal class ImGuiWidget : IDataWindowWidget
         var interfaceManager = Service<InterfaceManager>.Get();
         var nm = Service<NotificationManager>.Get();
 
-        ImGui.Text("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
-        ImGui.Text("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
+        ImGui.TextUnformatted("Monitor count: " + ImGui.GetPlatformIO().Monitors.Size);
+        ImGui.TextUnformatted("OverrideGameCursor: " + interfaceManager.OverrideGameCursor);
 
-        ImGui.Button("THIS IS A BUTTON###hoverTestButton");
+        ImGui.Button("THIS IS A BUTTON###hoverTestButton"u8);
         interfaceManager.OverrideGameCursor = !ImGui.IsItemHovered();
 
         ImGui.Separator();
@@ -59,19 +59,19 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Separator();
 
-        ImGui.Checkbox("##manualContent", ref this.notificationTemplate.ManualContent);
+        ImGui.Checkbox("##manualContent"u8, ref this.notificationTemplate.ManualContent);
         ImGui.SameLine();
-        ImGui.InputText("Content##content", ref this.notificationTemplate.Content, 255);
+        ImGui.InputText("Content##content"u8, ref this.notificationTemplate.Content, 255);
 
-        ImGui.Checkbox("##manualTitle", ref this.notificationTemplate.ManualTitle);
+        ImGui.Checkbox("##manualTitle"u8, ref this.notificationTemplate.ManualTitle);
         ImGui.SameLine();
-        ImGui.InputText("Title##title", ref this.notificationTemplate.Title, 255);
+        ImGui.InputText("Title##title"u8, ref this.notificationTemplate.Title, 255);
 
-        ImGui.Checkbox("##manualMinimizedText", ref this.notificationTemplate.ManualMinimizedText);
+        ImGui.Checkbox("##manualMinimizedText"u8, ref this.notificationTemplate.ManualMinimizedText);
         ImGui.SameLine();
-        ImGui.InputText("MinimizedText##minimizedText", ref this.notificationTemplate.MinimizedText, 255);
+        ImGui.InputText("MinimizedText##minimizedText"u8, ref this.notificationTemplate.MinimizedText, 255);
 
-        ImGui.Checkbox("##manualType", ref this.notificationTemplate.ManualType);
+        ImGui.Checkbox("##manualType"u8, ref this.notificationTemplate.ManualType);
         ImGui.SameLine();
         ImGui.Combo("Type##type", ref this.notificationTemplate.TypeInt, NotificationTemplate.TypeTitles);
 
@@ -80,7 +80,7 @@ internal class ImGuiWidget : IDataWindowWidget
         {
             case 1 or 2:
                 ImGui.InputText(
-                    "Icon Text##iconText",
+                    "Icon Text##iconText"u8,
                     ref this.notificationTemplate.IconText,
                     255);
                 break;
@@ -92,13 +92,13 @@ internal class ImGuiWidget : IDataWindowWidget
                 break;
             case 3 or 7:
                 ImGui.InputText(
-                    "Game Path##iconText",
+                    "Game Path##iconText"u8,
                     ref this.notificationTemplate.IconText,
                     255);
                 break;
             case 4 or 8:
                 ImGui.InputText(
-                    "File Path##iconText",
+                    "File Path##iconText"u8,
                     ref this.notificationTemplate.IconText,
                     255);
                 break;
@@ -119,19 +119,19 @@ internal class ImGuiWidget : IDataWindowWidget
             ref this.notificationTemplate.ProgressMode,
             NotificationTemplate.ProgressModeTitles);
 
-        ImGui.Checkbox("Respect UI Hidden", ref this.notificationTemplate.RespectUiHidden);
+        ImGui.Checkbox("Respect UI Hidden"u8, ref this.notificationTemplate.RespectUiHidden);
 
-        ImGui.Checkbox("Minimized", ref this.notificationTemplate.Minimized);
+        ImGui.Checkbox("Minimized"u8, ref this.notificationTemplate.Minimized);
 
-        ImGui.Checkbox("Show Indeterminate If No Expiry", ref this.notificationTemplate.ShowIndeterminateIfNoExpiry);
+        ImGui.Checkbox("Show Indeterminate If No Expiry"u8, ref this.notificationTemplate.ShowIndeterminateIfNoExpiry);
 
-        ImGui.Checkbox("User Dismissable", ref this.notificationTemplate.UserDismissable);
+        ImGui.Checkbox("User Dismissable"u8, ref this.notificationTemplate.UserDismissable);
 
         ImGui.Checkbox(
-            "Action Bar (always on if not user dismissable for the example)",
+            "Action Bar (always on if not user dismissable for the example)"u8,
             ref this.notificationTemplate.ActionBar);
 
-        if (ImGui.Button("Add notification"))
+        if (ImGui.Button("Add notification"u8))
         {
             var text =
                 "Bla bla bla bla bla bla bla bla bla bla bla.\nBla bla bla bla bla bla bla bla bla bla bla bla bla bla.";
@@ -269,7 +269,7 @@ internal class ImGuiWidget : IDataWindowWidget
                     ImGui.TextUnformatted($"{nclick}");
 
                     ImGui.SameLine();
-                    if (ImGui.Button("Update"))
+                    if (ImGui.Button("Update"u8))
                     {
                         NewRandom(out title, out type, out progress);
                         an.Notification.Title = title;
@@ -278,18 +278,18 @@ internal class ImGuiWidget : IDataWindowWidget
                     }
 
                     ImGui.SameLine();
-                    if (ImGui.Button("Dismiss"))
+                    if (ImGui.Button("Dismiss"u8))
                         an.Notification.DismissNow();
 
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(an.MaxCoord.X - ImGui.GetCursorPosX());
-                    ImGui.InputText("##input", ref testString, 255);
+                    ImGui.InputText("##input"u8, ref testString, 255);
                 };
             }
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Replace images using setter"))
+        if (ImGui.Button("Replace images using setter"u8))
         {
             foreach (var n in this.notifications)
             {

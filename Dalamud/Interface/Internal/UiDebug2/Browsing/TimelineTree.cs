@@ -74,7 +74,7 @@ public readonly unsafe partial struct TimelineTree
                         ("Frame Time", $"{this.NodeTimeline->FrameTime:F2} ({this.NodeTimeline->FrameTime * 30:F0})"));
 
                     PrintFieldValuePairs(("Active Label Id", $"{this.NodeTimeline->ActiveLabelId}"), ("Duration", $"{this.NodeTimeline->LabelFrameIdxDuration}"), ("End Frame", $"{this.NodeTimeline->LabelEndFrameIdx}"));
-                    ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Animation List");
+                    ImGuiHelpers.SafeTextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Animation List"u8);
 
                     for (var a = 0; a < animationCount; a++)
                     {
@@ -407,7 +407,7 @@ public readonly unsafe partial struct TimelineTree
             ("StartFrameIdx", $"{this.NodeTimeline->Resource->LabelSets->StartFrameIdx}"),
             ("EndFrameIdx", $"{this.NodeTimeline->Resource->LabelSets->EndFrameIdx}"));
 
-        using var labelSetTable = ImRaii.TreeNode("Entries");
+        using var labelSetTable = ImRaii.TreeNode("Entries"u8);
         if (labelSetTable.Success)
         {
             var keyFrameGroup = this.Resource->LabelSets->LabelKeyGroup;
@@ -415,13 +415,13 @@ public readonly unsafe partial struct TimelineTree
             using var table = ImRaii.Table($"##{(nint)this.node}labelSetKeyFrameTable", 7, Borders | SizingFixedFit | RowBg | NoHostExtendX);
             if (table.Success)
             {
-                ImGui.TableSetupColumn("Frame ID", WidthFixed);
-                ImGui.TableSetupColumn("Speed Start", WidthFixed);
-                ImGui.TableSetupColumn("Speed End", WidthFixed);
-                ImGui.TableSetupColumn("Interpolation", WidthFixed);
-                ImGui.TableSetupColumn("Label ID", WidthFixed);
-                ImGui.TableSetupColumn("Jump Behavior", WidthFixed);
-                ImGui.TableSetupColumn("Target Label ID", WidthFixed);
+                ImGui.TableSetupColumn("Frame ID"u8, WidthFixed);
+                ImGui.TableSetupColumn("Speed Start"u8, WidthFixed);
+                ImGui.TableSetupColumn("Speed End"u8, WidthFixed);
+                ImGui.TableSetupColumn("Interpolation"u8, WidthFixed);
+                ImGui.TableSetupColumn("Label ID"u8, WidthFixed);
+                ImGui.TableSetupColumn("Jump Behavior"u8, WidthFixed);
+                ImGui.TableSetupColumn("Target Label ID"u8, WidthFixed);
 
                 ImGui.TableHeadersRow();
 

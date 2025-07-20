@@ -96,7 +96,7 @@ internal class UldWidget : IDataWindowWidget
                 ClearTask(ref this.uldNamesTask);
                 goto default;
             default:
-                ImGui.TextUnformatted("Loading...");
+                ImGui.TextUnformatted("Loading..."u8);
                 return;
         }
 
@@ -109,7 +109,7 @@ internal class UldWidget : IDataWindowWidget
         if (ImGuiComponents.IconButton("selectUldRight", FontAwesomeIcon.AngleRight))
             this.selectedUld = (this.selectedUld + 1) % uldNames.Length;
         ImGui.SameLine();
-        ImGui.TextUnformatted("Select ULD File");
+        ImGui.TextUnformatted("Select ULD File"u8);
         if (selectedUldPrev != this.selectedUld)
         {
             // reset selected parts when changing ULD
@@ -125,7 +125,7 @@ internal class UldWidget : IDataWindowWidget
         if (ImGuiComponents.IconButton("selectThemeRight", FontAwesomeIcon.AngleRight))
             this.selectedTheme = (this.selectedTheme + 1) % ThemeDisplayNames.Length;
         ImGui.SameLine();
-        ImGui.TextUnformatted("Select Theme");
+        ImGui.TextUnformatted("Select Theme"u8);
 
         var dataManager = Service<DataManager>.Get();
         var textureManager = Service<TextureManager>.Get();
@@ -146,11 +146,11 @@ internal class UldWidget : IDataWindowWidget
                 this.selectedUldFileTask = null;
                 goto default;
             default:
-                ImGui.TextUnformatted("Loading...");
+                ImGui.TextUnformatted("Loading..."u8);
                 return;
         }
 
-        if (ImGui.CollapsingHeader("Texture Entries"))
+        if (ImGui.CollapsingHeader("Texture Entries"u8))
         {
             if (ForceNullable(uld.AssetData) is null)
             {
@@ -158,11 +158,11 @@ internal class UldWidget : IDataWindowWidget
                     ImGuiColors.DalamudRed,
                     $"Error: {nameof(UldFile.AssetData)} is not populated.");
             }
-            else if (ImGui.BeginTable("##uldTextureEntries", 3, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders))
+            else if (ImGui.BeginTable("##uldTextureEntries"u8, 3, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders))
             {
-                ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("000000").X);
-                ImGui.TableSetupColumn("Path", ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("Preview___").X);
+                ImGui.TableSetupColumn("Id"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("000000"u8).X);
+                ImGui.TableSetupColumn("Path"u8, ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Actions"u8, ImGuiTableColumnFlags.WidthFixed, ImGui.CalcTextSize("Preview___"u8).X);
                 ImGui.TableHeadersRow();
 
                 foreach (var textureEntry in uld.AssetData)
@@ -172,7 +172,7 @@ internal class UldWidget : IDataWindowWidget
             }
         }
 
-        if (ImGui.CollapsingHeader("Timeline##TimelineCollapsingHeader"))
+        if (ImGui.CollapsingHeader("Timeline##TimelineCollapsingHeader"u8))
         {
             if (ForceNullable(uld.Timelines) is null)
             {
@@ -182,16 +182,16 @@ internal class UldWidget : IDataWindowWidget
             }
             else if (uld.Timelines.Length == 0)
             {
-                ImGui.TextUnformatted("No entry exists.");
+                ImGui.TextUnformatted("No entry exists."u8);
             }
             else
             {
-                ImGui.SliderInt("Timeline##TimelineSlider", ref this.selectedTimeline, 0, uld.Timelines.Length - 1);
+                ImGui.SliderInt("Timeline##TimelineSlider"u8, ref this.selectedTimeline, 0, uld.Timelines.Length - 1);
                 this.DrawTimelines(uld.Timelines[this.selectedTimeline]);
             }
         }
 
-        if (ImGui.CollapsingHeader("Parts##PartsCollapsingHeader"))
+        if (ImGui.CollapsingHeader("Parts##PartsCollapsingHeader"u8))
         {
             if (ForceNullable(uld.Parts) is null)
             {
@@ -201,11 +201,11 @@ internal class UldWidget : IDataWindowWidget
             }
             else if (uld.Parts.Length == 0)
             {
-                ImGui.TextUnformatted("No entry exists.");
+                ImGui.TextUnformatted("No entry exists."u8);
             }
             else
             {
-                ImGui.SliderInt("Parts##PartsSlider", ref this.selectedParts, 0, uld.Parts.Length - 1);
+                ImGui.SliderInt("Parts##PartsSlider"u8, ref this.selectedParts, 0, uld.Parts.Length - 1);
                 this.DrawParts(uld.Parts[this.selectedParts], uld.AssetData, textureManager);
             }
         }
@@ -278,7 +278,7 @@ internal class UldWidget : IDataWindowWidget
         if (string.IsNullOrWhiteSpace(path))
             return;
 
-        ImGui.TextUnformatted("Preview");
+        ImGui.TextUnformatted("Preview"u8);
 
         if (ImGui.IsItemHovered())
         {
@@ -307,7 +307,7 @@ internal class UldWidget : IDataWindowWidget
 
     private void DrawTimelines(UldRoot.Timeline timeline)
     {
-        ImGui.SliderInt("FrameData", ref this.selectedFrameData, 0, timeline.FrameData.Length - 1);
+        ImGui.SliderInt("FrameData"u8, ref this.selectedFrameData, 0, timeline.FrameData.Length - 1);
         var frameData = timeline.FrameData[this.selectedFrameData];
         ImGui.TextUnformatted($"FrameInfo: {frameData.StartFrame} -> {frameData.EndFrame}");
         ImGui.Indent();
@@ -501,7 +501,7 @@ internal class UldWidget : IDataWindowWidget
             var texturePath = GetStringNullTerminated(path);
             if (string.IsNullOrWhiteSpace(texturePath))
             {
-                ImGui.TextUnformatted("Texture path is empty.");
+                ImGui.TextUnformatted("Texture path is empty."u8);
                 continue;
             }
 
@@ -542,7 +542,7 @@ internal class UldWidget : IDataWindowWidget
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.TextUnformatted("Click to copy:");
+                ImGui.TextUnformatted("Click to copy:"u8);
                 ImGui.TextUnformatted(texturePath);
                 ImGui.EndTooltip();
             }

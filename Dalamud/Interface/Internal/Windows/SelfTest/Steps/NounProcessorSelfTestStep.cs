@@ -229,7 +229,7 @@ internal class NounProcessorSelfTestStep : ISelfTestStep
                 ImGui.TextUnformatted($"Got: {output}");
                 ImGui.TextUnformatted($"Expected: {e.ExpectedResult}");
 
-                if (ImGui.Button("Continue"))
+                if (ImGui.Button("Continue"u8))
                     return SelfTestStepResult.Fail;
 
                 return SelfTestStepResult.Waiting;

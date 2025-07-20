@@ -48,7 +48,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
         this.materiaSheet = dataMgr.GetExcelSheet<Materia>();
         this.stainSheet = dataMgr.GetExcelSheet<Stain>();
 
-        ImGui.Text(this.currentSubStep.ToString());
+        ImGui.TextUnformatted(this.currentSubStep.ToString());
 
         switch (this.currentSubStep)
         {
@@ -59,21 +59,21 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
             case SubStep.TestInventoryAndSubmenu:
                 if (this.targetInventorySubmenuOpened == true)
                 {
-                    ImGui.Text($"Is the data in the submenu correct?");
+                    ImGui.TextUnformatted($"Is the data in the submenu correct?");
 
-                    if (ImGui.Button("Yes"))
+                    if (ImGui.Button("Yes"u8))
                         this.currentSubStep++;
 
                     ImGui.SameLine();
 
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                         return SelfTestStepResult.Fail;
                 }
                 else
                 {
-                    ImGui.Text("Right-click an item and select \"Self Test\".");
+                    ImGui.TextUnformatted("Right-click an item and select \"Self Test\".");
 
-                    if (ImGui.Button("Skip"))
+                    if (ImGui.Button("Skip"u8))
                         this.currentSubStep++;
                 }
 
@@ -82,21 +82,21 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
             case SubStep.TestDefault:
                 if (this.targetCharacter is { } character)
                 {
-                    ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
+                    ImGui.TextUnformatted($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
 
-                    if (ImGui.Button("Yes"))
+                    if (ImGui.Button("Yes"u8))
                         this.currentSubStep++;
 
                     ImGui.SameLine();
 
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                         return SelfTestStepResult.Fail;
                 }
                 else
                 {
-                    ImGui.Text("Right-click a character.");
+                    ImGui.TextUnformatted("Right-click a character."u8);
 
-                    if (ImGui.Button("Skip"))
+                    if (ImGui.Button("Skip"u8))
                         this.currentSubStep++;
                 }
 

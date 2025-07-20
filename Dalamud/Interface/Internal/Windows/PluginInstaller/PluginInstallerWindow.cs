@@ -566,7 +566,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var windowSize = ImGui.GetWindowSize();
         var titleHeight = ImGui.GetFontSize() + (ImGui.GetStyle().FramePadding.Y * 2);
 
-        using var loadingChild = ImRaii.Child("###installerLoadingFrame", new Vector2(-1, -1), false);
+        using var loadingChild = ImRaii.Child("###installerLoadingFrame"u8, new Vector2(-1, -1), false);
         if (loadingChild)
         {
             ImGui.GetWindowDrawList().PushClipRectFullScreen();
@@ -692,7 +692,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var headerText = Locs.Header_Hint;
         var headerTextSize = ImGui.CalcTextSize(headerText);
-        ImGui.Text(headerText);
+        ImGui.TextUnformatted(headerText);
 
         ImGui.SameLine();
 
@@ -713,7 +713,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             var prevSearchText = this.searchText;
             ImGui.SetNextItemWidth(searchInputWidth);
             searchTextChanged |= ImGui.InputTextWithHint(
-                "###XlPluginInstaller_Search",
+                "###XlPluginInstaller_Search"u8,
                 Locs.Header_SearchPlaceholder,
                 ref this.searchText,
                 100,
@@ -925,7 +925,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.errorModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.Text(this.errorModalMessage);
+            ImGui.TextUnformatted(this.errorModalMessage);
             ImGui.Spacing();
 
             var buttonWidth = 120f;
@@ -961,7 +961,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.updateModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.Text(Locs.UpdateModal_UpdateAvailable(this.updateModalPlugin.Name));
+            ImGui.TextUnformatted(Locs.UpdateModal_UpdateAvailable(this.updateModalPlugin.Name));
             ImGui.Spacing();
 
             var buttonWidth = 120f;
@@ -1002,7 +1002,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (ImGui.BeginPopupModal(modalTitle, ref this.testingWarningModalDrawing, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoScrollbar))
         {
-            ImGui.Text(Locs.TestingWarningModal_DowngradeBody);
+            ImGui.TextUnformatted(Locs.TestingWarningModal_DowngradeBody);
 
             ImGuiHelpers.ScaledDummy(10);
 
@@ -1047,11 +1047,11 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (this.deletePluginConfigWarningModalExplainTesting)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
-                ImGui.Text(Locs.DeletePluginConfigWarningModal_ExplainTesting());
+                ImGui.TextUnformatted(Locs.DeletePluginConfigWarningModal_ExplainTesting());
                 ImGui.PopStyleColor();
             }
 
-            ImGui.Text(Locs.DeletePluginConfigWarningModal_Body(this.deletePluginConfigWarningModalPluginName));
+            ImGui.TextUnformatted(Locs.DeletePluginConfigWarningModal_Body(this.deletePluginConfigWarningModalPluginName));
             ImGui.Spacing();
 
             var buttonWidth = 120f;
@@ -1102,12 +1102,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (this.pluginListUpdatable.Any(
                     up => up.InstalledPlugin.Manifest.InternalName == this.feedbackPlugin?.InternalName))
             {
-                ImGui.TextColored(ImGuiColors.DalamudRed, Locs.FeedbackModal_HasUpdate);
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, Locs.FeedbackModal_HasUpdate);
             }
 
             ImGui.Spacing();
 
-            ImGui.InputTextMultiline("###FeedbackContent", ref this.feedbackModalBody, 1000, new Vector2(400, 200));
+            ImGui.InputTextMultiline("###FeedbackContent"u8, ref this.feedbackModalBody, 1000, new Vector2(400, 200));
 
             ImGui.Spacing();
 
@@ -1123,18 +1123,18 @@ internal class PluginInstallerWindow : Window, IDisposable
                 });
             }
 
-            ImGui.Text(Locs.FeedbackModal_ContactInformationHelp);
+            ImGui.TextUnformatted(Locs.FeedbackModal_ContactInformationHelp);
 
-            ImGui.TextColored(ImGuiColors.DalamudRed, Locs.FeedbackModal_ContactInformationWarning);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, Locs.FeedbackModal_ContactInformationWarning);
 
             ImGui.Spacing();
 
             ImGui.Checkbox(Locs.FeedbackModal_IncludeLastError, ref this.feedbackModalIncludeException);
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.FeedbackModal_IncludeLastErrorHint);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.FeedbackModal_IncludeLastErrorHint);
 
             ImGui.Spacing();
 
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.FeedbackModal_Hint);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.FeedbackModal_Hint);
 
             var buttonWidth = 120f;
             ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
@@ -1219,20 +1219,20 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         if (this.pluginListInstalled.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoInstalled);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoInstalled);
             return;
         }
 
         if (this.dalamudChangelogRefreshTask?.IsFaulted == true ||
             this.dalamudChangelogRefreshTask?.IsCanceled == true)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_ChangelogError);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.TabBody_ChangelogError);
             return;
         }
 
         if (this.dalamudChangelogManager?.Changelogs == null)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_LoadingPlugins);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.TabBody_LoadingPlugins);
 
             if (this.dalamudChangelogManager != null &&
                 this.dalamudChangelogRefreshTask == null)
@@ -1269,9 +1269,9 @@ internal class PluginInstallerWindow : Window, IDisposable
         var sortedChangelogs = changelogs?.Where(x => this.searchText.IsNullOrWhitespace() || new FuzzyMatcher(this.searchText.ToLowerInvariant(), MatchMode.FuzzyParts).Matches(x.Title.ToLowerInvariant()) > 0)
                                                             .OrderByDescending(x => x.Date).ToList();
 
-        if (sortedChangelogs == null || !sortedChangelogs.Any())
+        if (sortedChangelogs == null || sortedChangelogs.Count == 0)
         {
-            ImGui.TextColored(
+            ImGuiHelpers.SafeTextColored(
                 ImGuiColors.DalamudGrey2,
                 this.pluginListInstalled.Any(plugin => !plugin.Manifest.Changelog.IsNullOrEmpty())
                     ? Locs.TabBody_SearchNoMatching
@@ -1298,7 +1298,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (availableManifests.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoCompatible);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.TabBody_SearchNoCompatible);
             return proxies;
         }
 
@@ -1513,14 +1513,14 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var useContentWidth = ImGui.GetContentRegionAvail().X;
 
-        using var installerMainChild = ImRaii.Child("InstallerCategories", new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale));
+        using var installerMainChild = ImRaii.Child("InstallerCategories"u8, new Vector2(useContentWidth, useContentHeight * ImGuiHelpers.GlobalScale));
         if (installerMainChild)
         {
             using var style = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ImGuiHelpers.ScaledVector2(5, 0));
 
             try
             {
-                using (var categoriesChild = ImRaii.Child("InstallerCategoriesSelector", new Vector2(useMenuWidth * ImGuiHelpers.GlobalScale, -1), false))
+                using (var categoriesChild = ImRaii.Child("InstallerCategoriesSelector"u8, new Vector2(useMenuWidth * ImGuiHelpers.GlobalScale, -1), false))
                 {
                     if (categoriesChild)
                     {
@@ -1531,7 +1531,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 ImGui.SameLine();
 
                 using var scrollingChild =
-                    ImRaii.Child("ScrollingPlugins", new Vector2(-1, -1), false, ImGuiWindowFlags.NoBackground);
+                    ImRaii.Child("ScrollingPlugins"u8, new Vector2(-1, -1), false, ImGuiWindowFlags.NoBackground);
                 if (scrollingChild)
                 {
                     try
@@ -1706,7 +1706,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         break;
 
                     default:
-                        ImGui.TextUnformatted("You found a mysterious category. Please keep it to yourself.");
+                        ImGui.TextUnformatted("You found a mysterious category. Please keep it to yourself."u8);
                         break;
                 }
 
@@ -1731,7 +1731,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         break;
 
                     default:
-                        ImGui.TextUnformatted("You found a secret category. Please feel a sense of pride and accomplishment.");
+                        ImGui.TextUnformatted("You found a secret category. Please feel a sense of pride and accomplishment."u8);
                         break;
                 }
 
@@ -1752,7 +1752,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                         break;
 
                     default:
-                        ImGui.TextUnformatted("You found a quiet category. Please don't wake it up.");
+                        ImGui.TextUnformatted("You found a quiet category. Please don't wake it up."u8);
                         break;
                 }
 
@@ -1813,19 +1813,19 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         var cursor = ImGui.GetCursorPos();
         // Name
-        ImGui.Text("My Cool Plugin");
+        ImGui.TextUnformatted("My Cool Plugin"u8);
 
         // Download count
         var downloadCountText = Locs.PluginBody_AuthorWithDownloadCount("Plugin Enjoyer", 69420);
 
         ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
+        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, downloadCountText);
 
         cursor.Y += ImGui.GetTextLineHeightWithSpacing();
         ImGui.SetCursorPos(cursor);
 
         // Description
-        ImGui.TextWrapped("This plugin does very many great things.");
+        ImGuiHelpers.SafeTextWrapped("This plugin does very many great things."u8);
 
         startCursor.Y += sectionSize;
         ImGui.SetCursorPos(startCursor);
@@ -1835,7 +1835,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.Indent();
 
         // Description
-        ImGui.TextWrapped("This is a description.\nIt has multiple lines.\nTruly descriptive.");
+        ImGuiHelpers.SafeTextWrapped("This is a description.\nIt has multiple lines.\nTruly descriptive."u8);
 
         ImGuiHelpers.ScaledDummy(5);
 
@@ -1869,7 +1869,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             var width = ImGui.GetWindowWidth();
 
             if (ImGui.BeginChild(
-                    "pluginTestingImageScrolling",
+                    "pluginTestingImageScrolling"u8,
                     new Vector2(width - (70 * ImGuiHelpers.GlobalScale), (PluginImageCache.PluginImageHeight / thumbFactor) + scrollBarSize),
                     false,
                     ImGuiWindowFlags.HorizontalScrollbar |
@@ -1887,7 +1887,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                         if (!imageTask.IsCompleted)
                         {
-                            ImGui.TextUnformatted("Loading...");
+                            ImGui.TextUnformatted("Loading..."u8);
                             continue;
                         }
 
@@ -1961,7 +1961,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
             if (!imageTask.IsCompleted)
             {
-                ImGui.Text("Loading...");
+                ImGui.TextUnformatted("Loading..."u8);
                 return;
             }
 
@@ -1987,27 +1987,27 @@ internal class PluginInstallerWindow : Window, IDisposable
             ImGui.PopStyleColor();
         }
 
-        ImGui.InputText("Icon Path", ref this.testerIconPath, 1000);
+        ImGui.InputText("Icon Path"u8, ref this.testerIconPath, 1000);
         if (this.testerIcon != null)
             CheckImageSize(this.testerIcon, PluginImageCache.PluginIconWidth, PluginImageCache.PluginIconHeight, true);
-        ImGui.InputText("Image 1 Path", ref this.testerImagePaths[0], 1000);
+        ImGui.InputText("Image 1 Path"u8, ref this.testerImagePaths[0], 1000);
         if (this.testerImages?.Length > 0)
             CheckImageSize(this.testerImages[0], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
-        ImGui.InputText("Image 2 Path", ref this.testerImagePaths[1], 1000);
+        ImGui.InputText("Image 2 Path"u8, ref this.testerImagePaths[1], 1000);
         if (this.testerImages?.Length > 1)
             CheckImageSize(this.testerImages[1], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
-        ImGui.InputText("Image 3 Path", ref this.testerImagePaths[2], 1000);
+        ImGui.InputText("Image 3 Path"u8, ref this.testerImagePaths[2], 1000);
         if (this.testerImages?.Length > 2)
             CheckImageSize(this.testerImages[2], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
-        ImGui.InputText("Image 4 Path", ref this.testerImagePaths[3], 1000);
+        ImGui.InputText("Image 4 Path"u8, ref this.testerImagePaths[3], 1000);
         if (this.testerImages?.Length > 3)
             CheckImageSize(this.testerImages[3], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
-        ImGui.InputText("Image 5 Path", ref this.testerImagePaths[4], 1000);
+        ImGui.InputText("Image 5 Path"u8, ref this.testerImagePaths[4], 1000);
         if (this.testerImages?.Length > 4)
             CheckImageSize(this.testerImages[4], PluginImageCache.PluginImageWidth, PluginImageCache.PluginImageHeight, false);
 
         var tm = Service<TextureManager>.Get();
-        if (ImGui.Button("Load"))
+        if (ImGui.Button("Load"u8))
         {
             try
             {
@@ -2039,8 +2039,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
         }
 
-        ImGui.Checkbox("Failed", ref this.testerError);
-        ImGui.Checkbox("Has Update", ref this.testerUpdateAvailable);
+        ImGui.Checkbox("Failed"u8, ref this.testerError);
+        ImGui.Checkbox("Has Update"u8, ref this.testerUpdateAvailable);
     }
 
     private bool DrawPluginListLoading()
@@ -2051,7 +2051,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         if (!ready)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.TabBody_LoadingPlugins);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.TabBody_LoadingPlugins);
         }
 
         var failedRepos = pluginManager.Repos
@@ -2065,7 +2065,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                               .Select(repo => $"{failText} ({repo.PluginMasterUrl})")
                               .Aggregate((s1, s2) => $"{s1}\n{s2}");
 
-            ImGui.TextColored(ImGuiColors.DalamudRed, aggFailText);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudRed, aggFailText);
         }
 
         return ready;
@@ -2223,7 +2223,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         // Verified Checkmark or dev plugin wrench
         {
             ImGui.SameLine();
-            ImGui.Text(" ");
+            ImGui.TextUnformatted(" "u8);
             ImGui.SameLine();
 
             var verifiedOutlineColor = KnownColor.White.Vector() with { W = 0.75f };
@@ -2256,12 +2256,12 @@ internal class PluginInstallerWindow : Window, IDisposable
                                     : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
 
         ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadCountText);
+        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, downloadCountText);
 
         if (flags.HasFlag(PluginHeaderFlags.IsNew))
         {
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.TankBlue, Locs.PluginTitleMod_New);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.TankBlue, Locs.PluginTitleMod_New);
         }
 
         cursor.Y += ImGui.GetTextLineHeightWithSpacing();
@@ -2271,7 +2271,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         if (flags.HasFlag(PluginHeaderFlags.IsIncompatible))
         {
             using var color = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextWrapped(Locs.PluginBody_Incompatible);
+            ImGuiHelpers.SafeTextWrapped(Locs.PluginBody_Incompatible);
         }
         else if (plugin is { IsOutdated: true, IsBanned: false } || flags.HasFlag(PluginHeaderFlags.IsInstallableOutdated))
         {
@@ -2283,7 +2283,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             else
                 bodyText += Locs.PluginBody_Outdated_WaitForUpdate;
 
-            ImGui.TextWrapped(bodyText);
+            ImGuiHelpers.SafeTextWrapped(bodyText);
         }
         else if (plugin is { IsBanned: true })
         {
@@ -2307,20 +2307,20 @@ internal class PluginInstallerWindow : Window, IDisposable
         else if (plugin is { IsOrphaned: true })
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextWrapped(Locs.PluginBody_Orphaned);
+            ImGuiHelpers.SafeTextWrapped(Locs.PluginBody_Orphaned);
             ImGui.PopStyleColor();
         }
         else if (plugin is { IsDecommissioned: true, IsThirdParty: false })
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextWrapped(Locs.PluginBody_NoServiceOfficial);
+            ImGuiHelpers.SafeTextWrapped(Locs.PluginBody_NoServiceOfficial);
             ImGui.PopStyleColor();
         }
         else if (plugin is { IsDecommissioned: true, IsThirdParty: true })
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
 
-            ImGui.TextWrapped(
+            ImGuiHelpers.SafeTextWrapped(
                 flags.HasFlag(PluginHeaderFlags.MainRepoCrossUpdate)
                     ? Locs.PluginBody_NoServiceThirdCrossUpdate
                     : Locs.PluginBody_NoServiceThird);
@@ -2330,14 +2330,14 @@ internal class PluginInstallerWindow : Window, IDisposable
         else if (plugin != null && !plugin.CheckPolicy())
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextWrapped(Locs.PluginBody_Policy);
+            ImGuiHelpers.SafeTextWrapped(Locs.PluginBody_Policy);
             ImGui.PopStyleColor();
         }
         else if (plugin is { State: PluginState.LoadError or PluginState.DependencyResolutionFailed })
         {
             // Load failed warning
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudRed);
-            ImGui.TextWrapped(Locs.PluginBody_LoadFailed);
+            ImGuiHelpers.SafeTextWrapped(Locs.PluginBody_LoadFailed);
             ImGui.PopStyleColor();
         }
 
@@ -2409,11 +2409,11 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.TextUnformatted(log.Title);
 
         ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{log.Version}");
+        ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, $" v{log.Version}");
         if (log.Author != null)
         {
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, Locs.PluginBody_AuthorWithoutDownloadCount(log.Author));
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, Locs.PluginBody_AuthorWithoutDownloadCount(log.Author));
         }
 
         if (log.Date != DateTime.MinValue)
@@ -2421,7 +2421,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             var whenText = log.Date.LocRelativePastLong();
             var whenSize = ImGui.CalcTextSize(whenText);
             ImGui.SameLine(ImGui.GetWindowWidth() - whenSize.X - (25 * ImGuiHelpers.GlobalScale));
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, whenText);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, whenText);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Published on " + log.Date.LocAbsolute());
         }
@@ -2518,7 +2518,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (manifest.SourceRepo.IsThirdParty)
             {
                 var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.SourceRepo.PluginMasterUrl);
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, repoText);
 
                 ImGuiHelpers.ScaledDummy(2);
             }
@@ -2588,7 +2588,7 @@ internal class PluginInstallerWindow : Window, IDisposable
         var hasTestingVersionAvailable = configuration.DoPluginTest &&
                                          PluginManager.HasTestingVersion(manifest);
 
-        if (ImGui.BeginPopupContextItem("ItemContextMenu"))
+        if (ImGui.BeginPopupContextItem("ItemContextMenu"u8))
         {
             if (hasTestingVersionAvailable)
             {
@@ -2839,7 +2839,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                                        : Locs.PluginBody_AuthorWithDownloadCountUnavailable(manifest.Author);
 
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, downloadText);
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, downloadText);
 
             var acceptsFeedback =
                 this.pluginListAvailable.Any(x => x.InternalName == plugin.InternalName && x.AcceptsFeedback);
@@ -2857,12 +2857,12 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (plugin.IsDev)
             {
                 var fileText = Locs.PluginBody_DevPluginPath(plugin.DllFile.FullName);
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, fileText);
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, fileText);
             }
             else if (isThirdParty)
             {
                 var repoText = Locs.PluginBody_Plugin3rdPartyRepo(manifest.InstalledFromUrl);
-                ImGui.TextColored(ImGuiColors.DalamudGrey3, repoText);
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, repoText);
             }
 
             // Description
@@ -2875,8 +2875,8 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (this.hasDevPlugins)
             {
                 ImGuiHelpers.ScaledDummy(3);
-                ImGui.TextColored(ImGuiColors.DalamudGrey, $"WorkingPluginId: {plugin.EffectiveWorkingPluginId}");
-                ImGui.TextColored(ImGuiColors.DalamudGrey, $"Command prefix: {ConsoleManagerPluginUtil.GetSanitizedNamespaceName(plugin.InternalName)}");
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, $"WorkingPluginId: {plugin.EffectiveWorkingPluginId}");
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, $"Command prefix: {ConsoleManagerPluginUtil.GetSanitizedNamespaceName(plugin.InternalName)}");
                 ImGuiHelpers.ScaledDummy(3);
             }
 
@@ -2927,7 +2927,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             ImGui.SameLine();
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, $" v{plugin.EffectiveVersion}");
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey3, $" v{plugin.EffectiveVersion}");
 
             ImGuiHelpers.ScaledDummy(5);
 
@@ -2980,9 +2980,9 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(7, 5));
 
-        if (ImGui.BeginChild("##changelog", new Vector2(-1, 100), true, ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.AlwaysAutoResize))
+        if (ImGui.BeginChild("##changelog"u8, new Vector2(-1, 100), true, ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.AlwaysAutoResize))
         {
-            ImGui.Text("Changelog:");
+            ImGui.TextUnformatted("Changelog:"u8);
             ImGuiHelpers.ScaledDummy(2);
             ImGuiHelpers.SafeTextWrapped(changelog!);
         }
@@ -2993,12 +2993,12 @@ internal class PluginInstallerWindow : Window, IDisposable
         ImGui.PopStyleColor(2);
     }
 
-    private void DrawInstalledPluginContextMenu(LocalPlugin plugin, PluginTestingOptIn? optIn)
+    private unsafe void DrawInstalledPluginContextMenu(LocalPlugin plugin, PluginTestingOptIn? optIn)
     {
         var pluginManager = Service<PluginManager>.Get();
         var configuration = Service<DalamudConfiguration>.Get();
 
-        if (ImGui.BeginPopupContextItem("InstalledItemContextMenu"))
+        if (ImGui.BeginPopupContextItem("InstalledItemContextMenu"u8))
         {
             if (configuration.DoPluginTest)
             {
@@ -3006,7 +3006,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 if (repoManifest?.IsTestingExclusive == true)
                     ImGui.BeginDisabled();
 
-                if (ImGui.MenuItem(Locs.PluginContext_TestingOptIn, string.Empty, optIn != null))
+                if (ImGui.MenuItem(Locs.PluginContext_TestingOptIn, (byte*)null, optIn != null))
                 {
                     if (optIn != null)
                     {
@@ -3127,7 +3127,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             if (!didAny)
-                ImGui.TextColored(ImGuiColors.DalamudGrey, Locs.Profiles_None);
+                ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, Locs.Profiles_None);
 
             ImGui.Separator();
 
@@ -3147,7 +3147,7 @@ internal class PluginInstallerWindow : Window, IDisposable
             }
 
             ImGui.SameLine();
-            ImGui.Text(Locs.Profiles_RemoveFromAll);
+            ImGui.TextUnformatted(Locs.Profiles_RemoveFromAll);
 
             ImGui.EndPopup();
         }
@@ -3424,7 +3424,7 @@ internal class PluginInstallerWindow : Window, IDisposable
     {
         if (!devPlugin.IsLoaded)
         {
-            ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, "You have to load this plugin to see validation issues.");
+            ImGuiHelpers.SafeTextColored(ImGuiColors.DalamudGrey, "You have to load this plugin to see validation issues."u8);
         }
         else
         {
@@ -3432,10 +3432,10 @@ internal class PluginInstallerWindow : Window, IDisposable
             if (problems.Count == 0)
             {
                 ImGui.PushFont(InterfaceManager.IconFont);
-                ImGui.Text(FontAwesomeIcon.Check.ToIconString());
+                ImGui.TextUnformatted(FontAwesomeIcon.Check.ToIconString());
                 ImGui.PopFont();
                 ImGui.SameLine();
-                ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.HealerGreen, "No validation issues found in this plugin!");
+                ImGuiHelpers.SafeTextColored(ImGuiColors.HealerGreen, "No validation issues found in this plugin!"u8);
             }
             else
             {
@@ -3468,7 +3468,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
                                 if (ImGui.IsItemHovered())
                                 {
-                                    ImGui.SetTooltip("Dismiss this issue");
+                                    ImGui.SetTooltip("Dismiss this issue"u8);
                                 }
                             }
 
@@ -3489,13 +3489,13 @@ internal class PluginInstallerWindow : Window, IDisposable
                             switch (problem.Severity)
                             {
                                 case PluginValidator.ValidationSeverity.Fatal:
-                                    ImGui.Text(FontAwesomeIcon.TimesCircle.ToIconString());
+                                    ImGui.TextUnformatted(FontAwesomeIcon.TimesCircle.ToIconString());
                                     break;
                                 case PluginValidator.ValidationSeverity.Warning:
-                                    ImGui.Text(FontAwesomeIcon.ExclamationTriangle.ToIconString());
+                                    ImGui.TextUnformatted(FontAwesomeIcon.ExclamationTriangle.ToIconString());
                                     break;
                                 case PluginValidator.ValidationSeverity.Information:
-                                    ImGui.Text(FontAwesomeIcon.InfoCircle.ToIconString());
+                                    ImGui.TextUnformatted(FontAwesomeIcon.InfoCircle.ToIconString());
                                     break;
                                 default:
                                     throw new ArgumentOutOfRangeException();
@@ -3986,7 +3986,7 @@ internal class PluginInstallerWindow : Window, IDisposable
                 if (x is 0 && y is 0) continue;
 
                 ImGui.SetCursorPos(cursorStart + new Vector2(x, y));
-                ImGui.Text(icon.ToIconString());
+                ImGui.TextUnformatted(icon.ToIconString());
             }
         }
 
@@ -3994,7 +3994,7 @@ internal class PluginInstallerWindow : Window, IDisposable
 
         ImGui.PushStyleColor(ImGuiCol.Text, iconColor);
         ImGui.SetCursorPos(cursorStart);
-        ImGui.Text(icon.ToIconString());
+        ImGui.TextUnformatted(icon.ToIconString());
         ImGui.PopStyleColor();
 
         ImGui.PopFont();
