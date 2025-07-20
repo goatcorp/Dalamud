@@ -857,9 +857,9 @@ internal class DalamudInterface : IInternalDisposableService
                         this.OpenBranchSwitcher();
                     }
 
-                    ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false);
-                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false);
-                    ImGui.MenuItem($"CLR: {Environment.Version}", false);
+                    ImGui.MenuItem(this.dalamud.StartInfo.GameVersion?.ToString() ?? "Unknown version", false, false);
+                    ImGui.MenuItem($"D: {Util.GetScmVersion()} CS: {Util.GetGitHashClientStructs()}[{FFXIVClientStructs.ThisAssembly.Git.Commits}]", false, false);
+                    ImGui.MenuItem($"CLR: {Environment.Version}", false, false);
 
                     ImGui.EndMenu();
                 }
@@ -1024,8 +1024,8 @@ internal class DalamudInterface : IInternalDisposableService
                     }
 
                     ImGui.Separator();
-                    ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false);
-                    ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count(), false);
+                    ImGui.MenuItem("API Level:" + PluginManager.DalamudApiLevel, false, false);
+                    ImGui.MenuItem("Loaded plugins:" + pluginManager.InstalledPlugins.Count(), false, false);
                     ImGui.EndMenu();
                 }
 
