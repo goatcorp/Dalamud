@@ -850,9 +850,9 @@ internal class TexWidget : IDataWindowWidget
         Span<int> wh = stackalloc int[2];
         wh[0] = this.textureModificationArgs.NewWidth;
         wh[1] = this.textureModificationArgs.NewHeight;
-        if (ImGui.InputInt2(
+        if (ImGui.InputInt(
                 $"{nameof(this.textureModificationArgs.NewWidth)}/{nameof(this.textureModificationArgs.NewHeight)}",
-                ref wh[0]))
+                wh))
         {
             this.textureModificationArgs.NewWidth = wh[0];
             this.textureModificationArgs.NewHeight = wh[1];

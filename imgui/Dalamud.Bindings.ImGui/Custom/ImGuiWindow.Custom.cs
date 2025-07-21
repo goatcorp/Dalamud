@@ -1,8 +1,10 @@
+using System.Runtime.CompilerServices;
+
 namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiWindow
 {
-    public readonly uint GetID(AutoUtf8Buffer str)
+    public readonly uint GetID([InterpolatedStringHandlerArgument] AutoUtf8Buffer str)
     {
         fixed (ImGuiWindow* thisPtr = &this)
             return ImGuiP.GetID(thisPtr, str);
@@ -23,7 +25,7 @@ public unsafe partial struct ImGuiWindow
 
 public unsafe partial struct ImGuiWindowPtr
 {
-    public readonly uint GetID(AutoUtf8Buffer str) => ImGuiP.GetID(this.Handle, str);
+    public readonly uint GetID([InterpolatedStringHandlerArgument] AutoUtf8Buffer str) => ImGuiP.GetID(this.Handle, str);
 
     public readonly uint GetID(void* ptr) => ImGuiP.GetID(this.Handle, ptr);
 

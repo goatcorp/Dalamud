@@ -1,8 +1,10 @@
+using System.Runtime.CompilerServices;
+
 namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImFontGlyphRangesBuilder
 {
-    public void AddText(AutoUtf8Buffer text)
+    public void AddText([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         fixed (ImFontGlyphRangesBuilder* thisPtr = &this)
             ImGui.AddText(thisPtr, text);
@@ -11,5 +13,5 @@ public unsafe partial struct ImFontGlyphRangesBuilder
 
 public partial struct ImFontGlyphRangesBuilderPtr
 {
-    public void AddText(AutoUtf8Buffer text) => ImGui.AddText(this, text);
+    public void AddText([InterpolatedStringHandlerArgument] AutoUtf8Buffer text) => ImGui.AddText(this, text);
 }

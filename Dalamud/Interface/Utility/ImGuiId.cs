@@ -161,12 +161,10 @@ public readonly ref struct ImGuiId
                 ImGui.PushID((void*)this.Numeric);
                 return true;
             case Type.U16:
-                fixed (void* p = this.U16)
-                    ImGui.PushID((byte*)p, (byte*)p + (this.U16.Length * 2));
+                ImGui.PushID(this.U16);
                 return true;
             case Type.U8:
-                fixed (void* p = this.U8)
-                    ImGui.PushID((byte*)p, (byte*)p + this.U8.Length);
+                ImGui.PushID(this.U8);
                 return true;
             case Type.None:
             default:

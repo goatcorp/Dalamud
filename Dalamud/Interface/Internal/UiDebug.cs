@@ -87,7 +87,7 @@ internal unsafe class UiDebug
         var addonName = atkUnitBase->NameString;
         var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
-        ImGui.Text($"{addonName}");
+        ImGui.Text(addonName);
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, isVisible ? 0xFF00FF00 : 0xFF0000FF);
         ImGui.Text(isVisible ? "Visible" : "Not Visible");

@@ -1,19 +1,20 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Dalamud.Bindings.ImGui;
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public static unsafe partial class ImGui
 {
-    public static void AddText(ImFontGlyphRangesBuilderPtr self, AutoUtf8Buffer text)
+    public static void AddText(ImFontGlyphRangesBuilderPtr self, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         fixed (byte* textPtr = text.Span)
             ImGuiNative.AddText(self.Handle, textPtr, textPtr + text.Length);
         text.Dispose();
     }
 
-    public static void AddText(ImDrawListPtr self, Vector2 pos, uint col, AutoUtf8Buffer text)
+    public static void AddText(ImDrawListPtr self, Vector2 pos, uint col, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         fixed (byte* textPtr = text.Span)
             ImGuiNative.AddText(self.Handle, pos, col, textPtr, textPtr + text.Length);
@@ -21,7 +22,7 @@ public static unsafe partial class ImGui
     }
 
     public static void AddText(
-        ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, AutoUtf8Buffer text, float wrapWidth,
+        ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, float wrapWidth,
         scoped in Vector4 cpuFineClipRect)
     {
         fixed (byte* textPtr = text.Span)
@@ -40,7 +41,7 @@ public static unsafe partial class ImGui
     }
 
     public static void AddText(
-        ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, AutoUtf8Buffer text,
+        ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text,
         float wrapWidth = 0f)
     {
         fixed (byte* textPtr = text.Span)
@@ -57,14 +58,14 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void append(ImGuiTextBufferPtr self, AutoUtf8Buffer str)
+    public static void append(ImGuiTextBufferPtr self, [InterpolatedStringHandlerArgument] AutoUtf8Buffer str)
     {
         fixed (byte* strPtr = str.Span)
             ImGuiNative.append(self.Handle, strPtr, strPtr + str.Length);
         str.Dispose();
     }
 
-    public static void BulletText(AutoUtf8Buffer text)
+    public static void BulletText([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         ImGuiWindow* window = ImGuiP.GetCurrentWindow();
         if (window->SkipItems != 0)
@@ -94,7 +95,7 @@ public static unsafe partial class ImGui
     }
 
     public static Vector2 CalcTextSize(
-        AutoUtf8Buffer text, bool hideTextAfterDoubleHash = false, float wrapWidth = -1.0f)
+        [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, bool hideTextAfterDoubleHash = false, float wrapWidth = -1.0f)
     {
         var @out = Vector2.Zero;
         fixed (byte* textPtr = text.Span)
@@ -109,7 +110,7 @@ public static unsafe partial class ImGui
     }
 
     public static Vector2 CalcTextSizeA(
-        ImFontPtr self, float size, float maxWidth, float wrapWidth, AutoUtf8Buffer text, out int remaining)
+        ImFontPtr self, float size, float maxWidth, float wrapWidth, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, out int remaining)
     {
         var @out = Vector2.Zero;
         fixed (byte* textPtr = text.Span)
@@ -131,7 +132,7 @@ public static unsafe partial class ImGui
         return @out;
     }
 
-    public static int CalcWordWrapPositionA(ImFontPtr font, float scale, AutoUtf8Buffer text, float wrapWidth)
+    public static int CalcWordWrapPositionA(ImFontPtr font, float scale, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, float wrapWidth)
     {
         fixed (byte* ptr = text.Span)
         {
@@ -142,14 +143,14 @@ public static unsafe partial class ImGui
         }
     }
 
-    public static void InsertChars(ImGuiInputTextCallbackDataPtr self, int pos, AutoUtf8Buffer text)
+    public static void InsertChars(ImGuiInputTextCallbackDataPtr self, int pos, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         fixed (byte* ptr = text.Span)
             ImGuiNative.InsertChars(self.Handle, pos, ptr, ptr + text.Length);
         text.Dispose();
     }
 
-    public static void LabelText(AutoUtf8Buffer label, AutoUtf8Buffer text)
+    public static void LabelText([InterpolatedStringHandlerArgument] AutoUtf8Buffer label, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         var window = ImGuiP.GetCurrentWindow().Handle;
         if (window->SkipItems != 0)
@@ -194,7 +195,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void LogText(AutoUtf8Buffer text)
+    public static void LogText([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         var g = GetCurrentContext();
         if (!g.LogFile.IsNull)
@@ -212,7 +213,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void PassFilter(ImGuiTextFilterPtr self, AutoUtf8Buffer text)
+    public static void PassFilter(ImGuiTextFilterPtr self, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         fixed (byte* textPtr = text.Span)
             ImGuiNative.PassFilter(self.Handle, textPtr, textPtr + text.Length);
@@ -221,7 +222,7 @@ public static unsafe partial class ImGui
 
     public static void RenderText(
         ImFontPtr self, ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect,
-        AutoUtf8Buffer text, float wrapWidth = 0.0f, bool cpuFineClip = false)
+        [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, float wrapWidth = 0.0f, bool cpuFineClip = false)
     {
         fixed (byte* textPtr = text.Span)
             ImGuiNative.RenderText(
@@ -238,7 +239,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void SetTooltip(AutoUtf8Buffer text)
+    public static void SetTooltip([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         ImGuiP.BeginTooltipEx(ImGuiTooltipFlags.OverridePreviousTooltip, ImGuiWindowFlags.None);
         Text(text.Span);
@@ -246,14 +247,14 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void Text(AutoUtf8Buffer text)
+    public static void Text([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         fixed (byte* ptr = text.Span)
             ImGuiNative.TextUnformatted(ptr, ptr + text.Length);
         text.Dispose();
     }
 
-    public static void TextColored(uint col, AutoUtf8Buffer text)
+    public static void TextColored(uint col, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         PushStyleColor(ImGuiCol.Text, col);
         Text(text.Span);
@@ -261,7 +262,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void TextColored(scoped in Vector4 col, AutoUtf8Buffer text)
+    public static void TextColored(scoped in Vector4 col, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         PushStyleColor(ImGuiCol.Text, col);
         Text(text.Span);
@@ -269,19 +270,19 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void TextDisabled(AutoUtf8Buffer text)
+    public static void TextDisabled([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         TextColored(*GetStyleColorVec4(ImGuiCol.TextDisabled), text.Span);
         text.Dispose();
     }
 
-    public static void TextUnformatted(AutoUtf8Buffer text)
+    public static void TextUnformatted([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         Text(text.Span);
         text.Dispose();
     }
 
-    public static void TextWrapped(AutoUtf8Buffer text)
+    public static void TextWrapped([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
     {
         scoped ref var g = ref *GetCurrentContext().Handle;
         var needBackup = g.CurrentWindow->DC.TextWrapPos < 0.0f; // Keep existing wrap position if one is already set
@@ -293,7 +294,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static bool TreeNode(AutoUtf8Buffer label)
+    public static bool TreeNode([InterpolatedStringHandlerArgument] AutoUtf8Buffer label)
     {
         var window = ImGuiP.GetCurrentWindow();
         if (window.SkipItems)
@@ -315,7 +316,7 @@ public static unsafe partial class ImGui
     }
 
     public static bool TreeNodeEx(
-        AutoUtf8Buffer id, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.None, AutoUtf8Buffer label = default)
+        [InterpolatedStringHandlerArgument] AutoUtf8Buffer id, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.None, [InterpolatedStringHandlerArgument] AutoUtf8Buffer label = default)
     {
         var window = ImGuiP.GetCurrentWindow();
         bool res;
