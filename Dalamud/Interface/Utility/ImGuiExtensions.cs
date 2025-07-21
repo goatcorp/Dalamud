@@ -44,7 +44,14 @@ public static class ImGuiExtensions
         if (needClipping)
         {
             var fineClipRect = new Vector4(clipMin.X, clipMin.Y, clipMax.X, clipMax.Y);
-            drawListPtr.AddText(ImGui.GetFont(), ImGui.GetFontSize(), pos, ImGui.GetColorU32(ImGuiCol.Text), text, ref fineClipRect);
+            drawListPtr.AddText(
+                ImGui.GetFont(),
+                ImGui.GetFontSize(),
+                pos,
+                ImGui.GetColorU32(ImGuiCol.Text),
+                text,
+                0,
+                fineClipRect);
         }
         else
         {

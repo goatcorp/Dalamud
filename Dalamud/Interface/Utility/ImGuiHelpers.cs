@@ -674,8 +674,7 @@ public static partial class ImGuiHelpers
         var len = Encoding.UTF8.GetByteCount(s);
         var buf = len < 1024 ? stackalloc byte[len] : new byte[len];
         Encoding.UTF8.GetBytes(s, buf);
-        fixed (byte* pBuf = buf)
-            data->InsertChars(0, pBuf, pBuf + len);
+        data->InsertChars(0, buf);
         data->SelectAll();
     }
 

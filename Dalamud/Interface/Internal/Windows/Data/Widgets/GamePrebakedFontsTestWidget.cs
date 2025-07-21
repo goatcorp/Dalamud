@@ -293,8 +293,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                     }
                     else if (!handle.Value.Available)
                     {
-                        fixed (byte* labelPtr = "Loading..."u8)
-                            ImGui.TextUnformatted(labelPtr, labelPtr + 8 + ((Environment.TickCount / 200) % 3));
+                        ImGui.TextUnformatted("Loading..."u8[..(8 + ((Environment.TickCount / 200) % 3))]);
                     }
                     else
                     {
@@ -303,16 +302,12 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
                         if (counter++ % 2 == 0)
                         {
                             using var pushPop = handle.Value.Push();
-                            ImGui.TextUnformatted(
-                                this.testStringBuffer.Data,
-                                this.testStringBuffer.Data + this.testStringBuffer.Length);
+                            ImGui.TextUnformatted(this.testStringBuffer.DataSpan);
                         }
                         else
                         {
                             handle.Value.Push();
-                            ImGui.TextUnformatted(
-                                this.testStringBuffer.Data,
-                                this.testStringBuffer.Data + this.testStringBuffer.Length);
+                            ImGui.TextUnformatted(this.testStringBuffer.DataSpan);
                             handle.Value.Pop();
                         }
                     }
@@ -379,12 +374,9 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
 
         return;
 
-        unsafe void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
+        void TestSingle(ImFontPtr fontPtr, IFontHandle handle)
         {
-            var dim = default(Vector2);
-            var test = "Test string"u8;
-            fixed (byte* pTest = test)
-                ImGui.CalcTextSizeA(ref dim, fontPtr, fontPtr.FontSize, float.MaxValue, 0f, pTest, (string)null, null);
+            var dim = ImGui.CalcTextSizeA(fontPtr, fontPtr.FontSize, float.MaxValue, 0f, "Test string"u8, out _);
             Log.Information($"{nameof(GamePrebakedFontsTestWidget)}: {handle} => {dim}");
         }
     }
