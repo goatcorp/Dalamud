@@ -7,7 +7,7 @@ namespace Dalamud.Bindings.ImGui;
 
 public static unsafe partial class ImGuiP
 {
-    public static void DebugLog([InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
+    public static void DebugLog(AutoUtf8Buffer text)
     {
         var g = ImGui.GetCurrentContext().Handle;
         ImGui.append(&g->DebugLogBuf, $"[{g->FrameCount:00000}] ");
@@ -40,7 +40,7 @@ public static unsafe partial class ImGuiP
         return before.Length;
     }
 
-    public static uint GetID(ImGuiWindowPtr self, [InterpolatedStringHandlerArgument] AutoUtf8Buffer str)
+    public static uint GetID(ImGuiWindowPtr self, AutoUtf8Buffer str)
     {
         fixed (byte* strPtr = str.Span)
         {
@@ -55,16 +55,14 @@ public static unsafe partial class ImGuiP
     }
 
     public static uint GetID(ImGuiWindowPtr self, void* ptr) => ImGuiPNative.GetID(self.Handle, ptr);
-
     public static uint GetID(ImGuiWindowPtr self, int n) => ImGuiPNative.GetID(self.Handle, n);
 
     public static uint ImHashData(ReadOnlySpan<byte> data, uint seed = 0)
     {
-        fixed (byte* ptr = data)
-            return ImGuiPNative.ImHashData(ptr, (nuint)data.Length, seed);
+        fixed (byte* ptr = data) return ImGuiPNative.ImHashData(ptr, (nuint)data.Length, seed);
     }
 
-    public static uint ImHashStr([InterpolatedStringHandlerArgument] AutoUtf8Buffer data, uint seed = 0)
+    public static uint ImHashStr(AutoUtf8Buffer data, uint seed = 0)
     {
         fixed (byte* ptr = data.Span)
         {
@@ -133,7 +131,7 @@ public static unsafe partial class ImGuiP
         return i;
     }
 
-    public static void LogRenderedText(scoped in Vector2 refPos, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text)
+    public static void LogRenderedText(scoped in Vector2 refPos, AutoUtf8Buffer text)
     {
         fixed (Vector2* refPosPtr = &refPos)
         fixed (byte* textPtr = text.Span)
@@ -141,14 +139,15 @@ public static unsafe partial class ImGuiP
         text.Dispose();
     }
 
-    public static void RenderText(Vector2 pos, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, bool hideTextAfterHash = true)
+    public static void RenderText(Vector2 pos, AutoUtf8Buffer text, bool hideTextAfterHash = true)
     {
         fixed (byte* textPtr = text.Span)
             ImGuiPNative.RenderText(pos, textPtr, textPtr + text.Length, hideTextAfterHash ? (byte)1 : (byte)0);
         text.Dispose();
     }
 
-    public static void RenderTextWrapped(Vector2 pos, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, float wrapWidth)
+    public static void RenderTextWrapped(
+        Vector2 pos, AutoUtf8Buffer text, float wrapWidth)
     {
         fixed (byte* textPtr = text.Span)
             ImGuiPNative.RenderTextWrapped(pos, textPtr, textPtr + text.Length, wrapWidth);
@@ -156,7 +155,8 @@ public static unsafe partial class ImGuiP
     }
 
     public static void RenderTextClipped(
-        scoped in Vector2 posMin, scoped in Vector2 posMax, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, scoped in Vector2? textSizeIfKnown = null,
+        scoped in Vector2 posMin, scoped in Vector2 posMax, AutoUtf8Buffer text,
+        scoped in Vector2? textSizeIfKnown = null,
         scoped in Vector2 align = default, scoped in ImRect? clipRect = null)
     {
         var textSizeIfKnownOrDefault = textSizeIfKnown ?? default;
@@ -174,7 +174,8 @@ public static unsafe partial class ImGuiP
     }
 
     public static void RenderTextClippedEx(
-        ImDrawListPtr drawList, scoped in Vector2 posMin, scoped in Vector2 posMax, [InterpolatedStringHandlerArgument] AutoUtf8Buffer text,
+        ImDrawListPtr drawList, scoped in Vector2 posMin, scoped in Vector2 posMax,
+        AutoUtf8Buffer text,
         scoped in Vector2? textSizeIfKnown = null, scoped in Vector2 align = default, scoped in ImRect? clipRect = null)
     {
         var textSizeIfKnownOrDefault = textSizeIfKnown ?? default;
@@ -194,7 +195,7 @@ public static unsafe partial class ImGuiP
 
     public static void RenderTextEllipsis(
         ImDrawListPtr drawList, scoped in Vector2 posMin, scoped in Vector2 posMax, float clipMaxX, float ellipsisMaxX,
-        [InterpolatedStringHandlerArgument] AutoUtf8Buffer text, scoped in Vector2? textSizeIfKnown = null)
+        AutoUtf8Buffer text, scoped in Vector2? textSizeIfKnown = null)
     {
         var textSizeIfKnownOrDefault = textSizeIfKnown ?? default;
         fixed (byte* textPtr = text.Span)

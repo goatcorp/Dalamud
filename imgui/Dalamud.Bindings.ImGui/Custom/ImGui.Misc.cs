@@ -9,7 +9,7 @@ namespace Dalamud.Bindings.ImGui;
 public static unsafe partial class ImGui
 {
     public static ImFontPtr AddFontFromFileTTF(
-        ImFontAtlasPtr self, [InterpolatedStringHandlerArgument] AutoUtf8Buffer filename, float sizePixels, ImFontConfigPtr fontCfg = default,
+        ImFontAtlasPtr self, AutoUtf8Buffer filename, float sizePixels, ImFontConfigPtr fontCfg = default,
         ushort* glyphRanges = null)
     {
         fixed (byte* filenamePtr = filename.NullTerminatedSpan)
@@ -21,7 +21,7 @@ public static unsafe partial class ImGui
     }
 
     public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(
-        ImFontAtlasPtr self, [InterpolatedStringHandlerArgument] AutoUtf8Buffer compressedFontDatabase85, float sizePixels,
+        ImFontAtlasPtr self, AutoUtf8Buffer compressedFontDatabase85, float sizePixels,
         ImFontConfigPtr fontCfg = default, ushort* glyphRanges = null)
     {
         fixed (byte* compressedFontDatabase85Ptr = compressedFontDatabase85.NullTerminatedSpan)
@@ -77,20 +77,16 @@ public static unsafe partial class ImGui
     public static ref void* GetVoidPtrRef(ImGuiStoragePtr self, uint key, void* defaultValue = null) =>
         ref *ImGuiNative.GetVoidPtrRef(self.Handle, key, defaultValue);
 
-    public static ref T* GetPtrRef<T>(ImGuiStoragePtr self, uint key, T* defaultValue = null)
-        where T : unmanaged =>
+    public static ref T* GetPtrRef<T>(ImGuiStoragePtr self, uint key, T* defaultValue = null) where T : unmanaged =>
         ref *(T**)ImGuiNative.GetVoidPtrRef(self.Handle, key, defaultValue);
 
-    public static ref T GetRef<T>(ImGuiStoragePtr self, uint key, T defaultValue = default)
-        where T : unmanaged
+    public static ref T GetRef<T>(ImGuiStoragePtr self, uint key, T defaultValue = default) where T : unmanaged
     {
-        if (sizeof(T) > sizeof(void*))
-            throw new ArgumentOutOfRangeException(nameof(T), typeof(T), null);
-
+        if (sizeof(T) > sizeof(void*)) throw new ArgumentOutOfRangeException(nameof(T), typeof(T), null);
         return ref *(T*)ImGuiNative.GetVoidPtrRef(self.Handle, key, *(void**)&defaultValue);
     }
 
-    public static uint GetID([InterpolatedStringHandlerArgument] AutoUtf8Buffer strId)
+    public static uint GetID(AutoUtf8Buffer strId)
     {
         fixed (byte* strIdPtr = strId.Span)
         {
@@ -101,12 +97,10 @@ public static unsafe partial class ImGui
     }
 
     public static uint GetID(nint ptrId) => ImGuiNative.GetID((void*)ptrId);
-
     public static uint GetID(nuint ptrId) => ImGuiNative.GetID((void*)ptrId);
-
     public static uint GetID(void* ptrId) => ImGuiNative.GetID(ptrId);
 
-    public static void PushID([InterpolatedStringHandlerArgument] AutoUtf8Buffer strId)
+    public static void PushID(AutoUtf8Buffer strId)
     {
         fixed (byte* strIdPtr = strId.Span)
         {
@@ -116,11 +110,11 @@ public static unsafe partial class ImGui
     }
 
     public static void PushID(nint ptrId) => ImGuiNative.PushID((void*)ptrId);
-
     public static void PushID(nuint ptrId) => ImGuiNative.PushID((void*)ptrId);
 
-    public static void PushID(void* ptrId) => ImGuiNative.PushID(ptrId);
+    public static void PushID(void* ptrId) =>
+        ImGuiNative.PushID(ptrId);
+}
 
 // DISCARDED: PlotHistogram
 // DISCARDED: PlotLines
-}

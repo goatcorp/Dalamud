@@ -13,7 +13,6 @@ public ref struct AutoUtf8Buffer : IDisposable
     private const int TotalBufferSize = 1024;
     private const int FixedBufferSize = TotalBufferSize - 8 - 8 - 8 - 1;
     private const int MinimumRentSize = TotalBufferSize * 2;
-
     private byte[]? rentedBuffer;
     private ReadOnlySpan<byte> span;
     private IFormatProvider? formatProvider;
@@ -38,30 +37,26 @@ public ref struct AutoUtf8Buffer : IDisposable
             IncreaseBuffer(out _, literalLength);
     }
 
-    public AutoUtf8Buffer(int literalLength, int formattedCount, IFormatProvider? formatProvider)
-        : this(literalLength, formattedCount)
+    public AutoUtf8Buffer(int literalLength, int formattedCount, IFormatProvider? formatProvider) : this(
+        literalLength,
+        formattedCount)
     {
         this.formatProvider = formatProvider;
     }
 
-    public AutoUtf8Buffer(ReadOnlySpan<byte> text)
+    public unsafe AutoUtf8Buffer(ReadOnlySpan<byte> text)
     {
         this.state = State.Initialized;
         if (text.IsEmpty)
         {
-            unsafe
-            {
-                this.span = MemoryMarshal.CreateSpan(ref this.fixedBuffer[0], 0);
-                this.fixedBuffer[0] = 0;
-            }
-
+            this.span = MemoryMarshal.CreateSpan(ref this.fixedBuffer[0], 0);
+            this.fixedBuffer[0] = 0;
             this.state |= State.NullTerminated | State.OwnedSpan;
         }
         else
         {
             this.span = text;
-            if (Unsafe.Add(ref Unsafe.AsRef(in text[0]), text.Length) == 0)
-                this.state |= State.NullTerminated;
+            if (Unsafe.Add(ref Unsafe.AsRef(in text[0]), text.Length) == 0) this.state |= State.NullTerminated;
         }
     }
 
@@ -125,7 +120,6 @@ public ref struct AutoUtf8Buffer : IDisposable
         {
             if ((this.state & State.OwnedSpan) != 0)
                 this.span = MemoryMarshal.CreateSpan(ref this.fixedBuffer[0], this.span.Length);
-
             if ((this.state & State.NullTerminated) == 0)
             {
                 if (this.span.Length + 1 < FixedBufferSize)
@@ -151,8 +145,8 @@ public ref struct AutoUtf8Buffer : IDisposable
     }
 
     private unsafe Span<byte> EffectiveBuffer =>
-        this.rentedBuffer is { } rentedBuffer
-            ? rentedBuffer.AsSpan()
+        this.rentedBuffer is { } buf
+            ? buf.AsSpan()
             : MemoryMarshal.CreateSpan(ref this.fixedBuffer[0], FixedBufferSize);
 
     private Span<byte> RemainingBuffer => this.EffectiveBuffer[this.span.Length..];
@@ -171,17 +165,17 @@ public ref struct AutoUtf8Buffer : IDisposable
 
     public void Dispose()
     {
-        if (this.rentedBuffer is { } rentedBuffer)
+        if (this.rentedBuffer is { } buf)
         {
             this.rentedBuffer = null;
             this.span = default;
-            ArrayPool<byte>.Shared.Return(rentedBuffer);
+            ArrayPool<byte>.Shared.Return(buf);
         }
 
         this.state = State.None;
     }
 
-    public AutoUtf8Buffer MoveOrDefault([InterpolatedStringHandlerArgument] AutoUtf8Buffer other)
+    public AutoUtf8Buffer MoveOrDefault(AutoUtf8Buffer other)
     {
         if (this.IsInitialized)
         {
