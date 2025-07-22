@@ -8,7 +8,7 @@ $lines = New-Object -TypeName "System.Collections.Generic.List[string]"
 $namespaceDefPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s*)namespace\s+(?<namespace>[\w.]+)\b', 'Compiled,Multiline,Singleline'
 $usingPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^|;)\s*using\s+(?<using>\w+)\s*;', 'Compiled,Multiline,Singleline'
 $classDefPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?<indent>^\s*)(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<partial>partial\s+)?(?<type>class\s+|struct\s+)(?<name>\w+)\b', 'Compiled,Multiline,Singleline'
-$methodPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s+?\[.*?\](?:\r\n|\r|\n))?(?<indent>^\s*)(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<return>(?!public|internal|protected|private|static|unsafe)\w+(?:\s*<\s*\w+?(?:<\s*\w+\s*>?)?\s*>)?(?:\s*\*)?\s+)(?<name>\w+)(?<args>\s*\([^)]*\))(?:\r\n|\r|\n)[\s\S]+?(?:^\k<indent>}(?:\r\n|\r|\n))', 'Compiled,Multiline,Singleline'
+$methodPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s+?\[.*?\](?:\r\n|\r|\n))?(?<indent>^\s*)(?<prototype>(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<return>(?!public|internal|protected|private|static|unsafe)\w+(?:\s*<\s*\w+?(?:<\s*\w+\s*>?)?\s*>)?(?:\s*\*)?\s+)(?<name>\w+)(?<args>\s*\([^)]*\)))(?:\r\n|\r|\n)[\s\S]+?(?:^\k<indent>}(?:\r\n|\r|\n))', 'Compiled,Multiline,Singleline'
 $emptyClassPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s+?\[.*?\](?:\r\n|\r|\n))?(?<indent>^\s*)(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<partial>partial\s+)?(?<type>class\s+|struct\s+)(?<name>\w+)\s*\{\s*\}', 'Compiled,Multiline,Singleline'
 $emptyNamespacePattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s*)namespace\s+(?<namespace>\w+)\b\s*\{\s*\}', 'Compiled,Multiline,Singleline'
 $referNativeFunction = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?<!\.\s*)\b(\w+)Native(?=\()', 'Compiled'
@@ -160,6 +160,14 @@ foreach ($targetPath in $targetPaths)
                     continue
                 }
 
+                # discard specific functions
+                if ($methodName.StartsWith("ImGuiTextRange") -or
+                    $methodName.StartsWith("AddInputCharacter"))
+                {
+                    $null = $discardMethods.Add($methodName)
+                    continue
+                }
+
                 # discard Get...Ref functions
                 if ($methodName.StartsWith("Get") -And
                     $methodName.EndsWith("Ref"))
@@ -172,10 +180,18 @@ foreach ($targetPath in $targetPaths)
                 {
                     # discard formatting functions or functions accepting (begin, end) or (data, size) pairs
                     $argDef = $overload.Groups["args"].Value
-                    if ($argDef.Contains("byte* fmt") -or
-                        $argDef.Contains("byte* textEnd") -or
-                        $argDef.Contains("byte* strEnd") -or
-                        $argDef.Contains("byte* strIdEnd") -or
+                    if ($argDef.Contains("fmt") -or
+                        $argDef -match "\btext\b" -or
+                        # $argDef.Contains("byte* textEnd") -or
+                        $argDef.Contains("str") -or
+                        # $argDef.Contains("byte* strEnd") -or
+                        # $argDef.Contains("byte* strIdEnd") -or
+                        $argDef.Contains("label") -or
+                        $argDef.Contains("name") -or
+                        $argDef.Contains("prefix") -or
+                        $argDef.Contains("byte* shortcut") -or
+                        $argDef.Contains("byte* type") -or
+                        $argDef.Contains("byte* iniData") -or
                         $argDef.Contains("int dataSize") -or
                         $argDef.Contains("values, int valuesCount") -or
                         $argDef.Contains("data, int itemCount") -or
@@ -216,8 +232,27 @@ foreach ($targetPath in $targetPaths)
 
         $null = $sb.Append("}`r`n")
 
+        $nativeMethods = $null
+        if (!$classes.TryGetValue($classDef + "Native", [ref]$nativeMethods))
+        {
+            $nativeMethods = $null
+        }
+
         foreach ($methodName in $discardMethods)
         {
+            if ($nativeMethods -ne $null)
+            {
+                $overloads = $null
+                if ($nativeMethods.TryGetValue($methodName + "Native", [ref]$overloads))
+                {
+                    foreach ($overload in $overloads)
+                    {
+                        $null = $sb.Append("// DISCARDED: $( $overload.Groups["prototype"].Value )`r`n")
+                    }
+                    continue
+                }
+            }
+
             $null = $sb.Append("// DISCARDED: $methodName`r`n")
         }
 

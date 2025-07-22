@@ -19,53 +19,6 @@ public unsafe partial struct ImGuiPayloadPtr
 		{
 			ImGuiNative.Destroy(Handle);
 		}
-		public unsafe bool IsDataType(byte* type)
-		{
-			byte ret = ImGuiNative.IsDataType(Handle, type);
-			return ret != 0;
-		}
-		public unsafe bool IsDataType(ref byte type)
-		{
-			fixed (byte* ptype = &type)
-			{
-				byte ret = ImGuiNative.IsDataType(Handle, (byte*)ptype);
-				return ret != 0;
-			}
-		}
-		public unsafe bool IsDataType(ReadOnlySpan<byte> type)
-		{
-			fixed (byte* ptype = type)
-			{
-				byte ret = ImGuiNative.IsDataType(Handle, (byte*)ptype);
-				return ret != 0;
-			}
-		}
-		public unsafe bool IsDataType(string type)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (type != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(type);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(type, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			byte ret = ImGuiNative.IsDataType(Handle, pStr0);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-			return ret != 0;
-		}
 		public unsafe bool IsDelivery()
 		{
 			byte ret = ImGuiNative.IsDelivery(Handle);
@@ -77,4 +30,5 @@ public unsafe partial struct ImGuiPayloadPtr
 			return ret != 0;
 		}
 }
+// DISCARDED: IsDataType
 

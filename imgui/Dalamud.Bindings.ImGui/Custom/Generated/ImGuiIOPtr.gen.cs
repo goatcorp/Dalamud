@@ -15,57 +15,6 @@ public unsafe partial struct ImGuiIOPtr
 		{
 			ImGuiNative.AddFocusEvent(Handle, focused ? (byte)1 : (byte)0);
 		}
-		public unsafe void AddInputCharacter(uint c)
-		{
-			ImGuiNative.AddInputCharacter(Handle, c);
-		}
-		public unsafe void AddInputCharactersUTF8(byte* str)
-		{
-			ImGuiNative.AddInputCharactersUTF8(Handle, str);
-		}
-		public unsafe void AddInputCharactersUTF8(ref byte str)
-		{
-			fixed (byte* pstr = &str)
-			{
-				ImGuiNative.AddInputCharactersUTF8(Handle, (byte*)pstr);
-			}
-		}
-		public unsafe void AddInputCharactersUTF8(ReadOnlySpan<byte> str)
-		{
-			fixed (byte* pstr = str)
-			{
-				ImGuiNative.AddInputCharactersUTF8(Handle, (byte*)pstr);
-			}
-		}
-		public unsafe void AddInputCharactersUTF8(string str)
-		{
-			byte* pStr0 = null;
-			int pStrSize0 = 0;
-			if (str != null)
-			{
-				pStrSize0 = Utils.GetByteCountUTF8(str);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-				}
-				else
-				{
-					byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-					pStr0 = pStrStack0;
-				}
-				int pStrOffset0 = Utils.EncodeStringUTF8(str, pStr0, pStrSize0);
-				pStr0[pStrOffset0] = 0;
-			}
-			ImGuiNative.AddInputCharactersUTF8(Handle, pStr0);
-			if (pStrSize0 >= Utils.MaxStackallocSize)
-			{
-				Utils.Free(pStr0);
-			}
-		}
-		public unsafe void AddInputCharacterUTF16(ushort c)
-		{
-			ImGuiNative.AddInputCharacterUTF16(Handle, c);
-		}
 		public unsafe void AddKeyAnalogEvent(ImGuiKey key, bool down, float v)
 		{
 			ImGuiNative.AddKeyAnalogEvent(Handle, key, down ? (byte)1 : (byte)0, v);
@@ -115,4 +64,7 @@ public unsafe partial struct ImGuiIOPtr
 			ImGuiNative.SetKeyEventNativeData(Handle, key, nativeKeycode, nativeScancode, (int)(-1));
 		}
 }
+// DISCARDED: AddInputCharacter
+// DISCARDED: AddInputCharactersUTF8
+// DISCARDED: AddInputCharacterUTF16
 

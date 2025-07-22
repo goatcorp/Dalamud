@@ -61,58 +61,25 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
     public unsafe void Draw()
     {
         ImGui.AlignTextToFramePadding();
-        if (ImGui.Combo("Global Scale per Font", ref this.fontScaleMode, FontScaleModes, FontScaleModes.Length))
+        if (ImGui.Combo("Global Scale per Font"u8, ref this.fontScaleMode, FontScaleModes, FontScaleModes.Length))
             this.ClearAtlas();
-        fixed (byte* labelPtr = "Global Scale for Atlas"u8)
-        {
-            var v = this.atlasScaleMode;
-            if (ImGui.Checkbox(labelPtr, ref v))
-            {
-                this.atlasScaleMode = v;
-                this.ClearAtlas();
-            }
-        }
+        if (ImGui.Checkbox("Global Scale for Atlas"u8, ref this.atlasScaleMode))
+            this.ClearAtlas();
 
         ImGui.SameLine();
-        fixed (byte* labelPtr = "Word Wrap"u8)
-        {
-            var v = this.useWordWrap;
-            if (ImGui.Checkbox(labelPtr, &v))
-                this.useWordWrap = v;
-        }
+        ImGui.Checkbox("Word Wrap"u8, ref this.useWordWrap);
 
         ImGui.SameLine();
-        fixed (byte* labelPtr = "Italic"u8)
-        {
-            var v = this.useItalic;
-            if (ImGui.Checkbox(labelPtr, &v))
-            {
-                this.useItalic = v;
-                this.ClearAtlas();
-            }
-        }
+        if (ImGui.Checkbox("Italic"u8, ref this.useItalic))
+            this.ClearAtlas();
 
         ImGui.SameLine();
-        fixed (byte* labelPtr = "Bold"u8)
-        {
-            var v = this.useBold;
-            if (ImGui.Checkbox(labelPtr, &v))
-            {
-                this.useBold = v;
-                this.ClearAtlas();
-            }
-        }
+        if (ImGui.Checkbox("Bold"u8, ref this.useBold))
+            this.ClearAtlas();
 
         ImGui.SameLine();
-        fixed (byte* labelPtr = "Minimum Range"u8)
-        {
-            var v = this.useMinimumBuild;
-            if (ImGui.Checkbox(labelPtr, &v))
-            {
-                this.useMinimumBuild = v;
-                this.ClearAtlas();
-            }
-        }
+        if (ImGui.Checkbox("Minimum Range"u8, ref this.useMinimumBuild))
+            this.ClearAtlas();
 
         ImGui.SameLine();
         if (ImGui.Button("Reset Text") || this.testStringBuffer.IsDisposed)

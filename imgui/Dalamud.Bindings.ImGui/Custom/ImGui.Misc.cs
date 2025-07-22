@@ -1,18 +1,27 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Dalamud.Bindings.ImGui;
 
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public static unsafe partial class ImGui
 {
+    public static ImGuiPayloadPtr AcceptDragDropPayload(
+        Utf8Buffer type, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
+    {
+        fixed (byte* typePtr = &type.GetPinnableNullTerminatedReference())
+        {
+            var r = ImGuiNative.AcceptDragDropPayload(typePtr, flags);
+            type.Dispose();
+            return r;
+        }
+    }
+
     public static ImFontPtr AddFontFromFileTTF(
-        ImFontAtlasPtr self, AutoUtf8Buffer filename, float sizePixels, ImFontConfigPtr fontCfg = default,
+        ImFontAtlasPtr self, Utf8Buffer filename, float sizePixels, ImFontConfigPtr fontCfg = default,
         ushort* glyphRanges = null)
     {
-        fixed (byte* filenamePtr = filename.NullTerminatedSpan)
+        fixed (byte* filenamePtr = &filename.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.AddFontFromFileTTF(self, filenamePtr, sizePixels, fontCfg, glyphRanges);
             filename.Dispose();
@@ -21,10 +30,10 @@ public static unsafe partial class ImGui
     }
 
     public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(
-        ImFontAtlasPtr self, AutoUtf8Buffer compressedFontDatabase85, float sizePixels,
+        ImFontAtlasPtr self, Utf8Buffer compressedFontDatabase85, float sizePixels,
         ImFontConfigPtr fontCfg = default, ushort* glyphRanges = null)
     {
-        fixed (byte* compressedFontDatabase85Ptr = compressedFontDatabase85.NullTerminatedSpan)
+        fixed (byte* compressedFontDatabase85Ptr = &compressedFontDatabase85.GetPinnableNullTerminatedReference())
         {
             var r = ImGuiNative.AddFontFromMemoryCompressedBase85TTF(
                 self,
@@ -65,6 +74,15 @@ public static unsafe partial class ImGui
                 glyphRanges);
     }
 
+    public static void AddInputCharacter(ImGuiIOPtr self, char c) => ImGuiNative.AddInputCharacter(self, c);
+    public static void AddInputCharacter(ImGuiIOPtr self, Rune c) => ImGuiNative.AddInputCharacter(self, (uint)c.Value);
+    public static void AddInputCharacters(ImGuiIOPtr self, Utf8Buffer str)
+    {
+        fixed (byte* strPtr = &str.GetPinnableNullTerminatedReference())
+            ImGuiNative.AddInputCharactersUTF8(self.Handle, strPtr);
+        str.Dispose();
+    }
+
     public static ref bool GetBoolRef(ImGuiStoragePtr self, uint key, bool defaultValue = false) =>
         ref *ImGuiNative.GetBoolRef(self.Handle, key, defaultValue ? (byte)1 : (byte)0);
 
@@ -86,7 +104,7 @@ public static unsafe partial class ImGui
         return ref *(T*)ImGuiNative.GetVoidPtrRef(self.Handle, key, *(void**)&defaultValue);
     }
 
-    public static uint GetID(AutoUtf8Buffer strId)
+    public static uint GetID(Utf8Buffer strId)
     {
         fixed (byte* strIdPtr = strId.Span)
         {
@@ -100,7 +118,7 @@ public static unsafe partial class ImGui
     public static uint GetID(nuint ptrId) => ImGuiNative.GetID((void*)ptrId);
     public static uint GetID(void* ptrId) => ImGuiNative.GetID(ptrId);
 
-    public static void PushID(AutoUtf8Buffer strId)
+    public static void PushID(Utf8Buffer strId)
     {
         fixed (byte* strIdPtr = strId.Span)
         {
@@ -115,6 +133,3 @@ public static unsafe partial class ImGui
     public static void PushID(void* ptrId) =>
         ImGuiNative.PushID(ptrId);
 }
-
-// DISCARDED: PlotHistogram
-// DISCARDED: PlotLines

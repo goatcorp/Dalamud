@@ -225,13 +225,13 @@ public static partial class ImRaii
         => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label));
 
     public static unsafe IEndObject TabItem(byte* label, ImGuiTabItemFlags flags)
-        => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, null, flags));
+        => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, flags));
 
     public static unsafe IEndObject TabItem(string label, ImGuiTabItemFlags flags)
-        => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, null, flags));
+        => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, flags));
 
     public static unsafe IEndObject TabItem(ReadOnlySpan<byte> label, ImGuiTabItemFlags flags)
-        => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, null, flags));
+        => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, flags));
 
     public static IEndObject TabItem(string label, ref bool open)
         => new EndConditionally(ImGui.EndTabItem, ImGui.BeginTabItem(label, ref open));

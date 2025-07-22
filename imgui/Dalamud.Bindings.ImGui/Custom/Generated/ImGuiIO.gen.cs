@@ -18,75 +18,6 @@ public unsafe partial struct ImGuiIO
 				ImGuiNative.AddFocusEvent(@this, focused ? (byte)1 : (byte)0);
 			}
 		}
-		public unsafe void AddInputCharacter(uint c)
-		{
-			fixed (ImGuiIO* @this = &this)
-			{
-				ImGuiNative.AddInputCharacter(@this, c);
-			}
-		}
-		public unsafe void AddInputCharactersUTF8(byte* str)
-		{
-			fixed (ImGuiIO* @this = &this)
-			{
-				ImGuiNative.AddInputCharactersUTF8(@this, str);
-			}
-		}
-		public unsafe void AddInputCharactersUTF8(ref byte str)
-		{
-			fixed (ImGuiIO* @this = &this)
-			{
-				fixed (byte* pstr = &str)
-				{
-					ImGuiNative.AddInputCharactersUTF8(@this, (byte*)pstr);
-				}
-			}
-		}
-		public unsafe void AddInputCharactersUTF8(ReadOnlySpan<byte> str)
-		{
-			fixed (ImGuiIO* @this = &this)
-			{
-				fixed (byte* pstr = str)
-				{
-					ImGuiNative.AddInputCharactersUTF8(@this, (byte*)pstr);
-				}
-			}
-		}
-		public unsafe void AddInputCharactersUTF8(string str)
-		{
-			fixed (ImGuiIO* @this = &this)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (str != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(str);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(str, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				ImGuiNative.AddInputCharactersUTF8(@this, pStr0);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-			}
-		}
-		public unsafe void AddInputCharacterUTF16(ushort c)
-		{
-			fixed (ImGuiIO* @this = &this)
-			{
-				ImGuiNative.AddInputCharacterUTF16(@this, c);
-			}
-		}
 		public unsafe void AddKeyAnalogEvent(ImGuiKey key, bool down, float v)
 		{
 			fixed (ImGuiIO* @this = &this)
@@ -172,4 +103,7 @@ public unsafe partial struct ImGuiIO
 			}
 		}
 }
+// DISCARDED: AddInputCharacter
+// DISCARDED: AddInputCharactersUTF8
+// DISCARDED: AddInputCharacterUTF16
 

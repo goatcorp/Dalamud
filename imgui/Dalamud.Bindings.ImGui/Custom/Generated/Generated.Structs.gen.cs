@@ -12958,22 +12958,6 @@ namespace Dalamud.Bindings.ImGui
 		{
 			Data = data;
 		}
-		public unsafe void** GetVoidPtrRef(uint key, void* defaultVal)
-		{
-			fixed (ImGuiStorage* @this = &this)
-			{
-				void** ret = ImGuiNative.GetVoidPtrRef(@this, key, defaultVal);
-				return ret;
-			}
-		}
-		public unsafe void** GetVoidPtrRef(uint key)
-		{
-			fixed (ImGuiStorage* @this = &this)
-			{
-				void** ret = ImGuiNative.GetVoidPtrRef(@this, key, (void*)(default));
-				return ret;
-			}
-		}
 	}
 
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -12997,16 +12981,6 @@ namespace Dalamud.Bindings.ImGui
 
 		private string DebuggerDisplay => string.Format("ImGuiStoragePtr [0x{0}]", ((nuint)Handle).ToString("X"));
 		public ref ImVector<ImGuiStoragePair> Data => ref Unsafe.AsRef<ImVector<ImGuiStoragePair>>(&Handle->Data);
-		public unsafe void** GetVoidPtrRef(uint key, void* defaultVal)
-		{
-			void** ret = ImGuiNative.GetVoidPtrRef(Handle, key, defaultVal);
-			return ret;
-		}
-		public unsafe void** GetVoidPtrRef(uint key)
-		{
-			void** ret = ImGuiNative.GetVoidPtrRef(Handle, key, (void*)(default));
-			return ret;
-		}
 	}
 }
 /* ImGuiStoragePair.cs */

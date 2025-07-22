@@ -25,65 +25,6 @@ public unsafe partial struct ImGuiPayload
 				ImGuiNative.Destroy(@this);
 			}
 		}
-		public unsafe bool IsDataType(byte* type)
-		{
-			fixed (ImGuiPayload* @this = &this)
-			{
-				byte ret = ImGuiNative.IsDataType(@this, type);
-				return ret != 0;
-			}
-		}
-		public unsafe bool IsDataType(ref byte type)
-		{
-			fixed (ImGuiPayload* @this = &this)
-			{
-				fixed (byte* ptype = &type)
-				{
-					byte ret = ImGuiNative.IsDataType(@this, (byte*)ptype);
-					return ret != 0;
-				}
-			}
-		}
-		public unsafe bool IsDataType(ReadOnlySpan<byte> type)
-		{
-			fixed (ImGuiPayload* @this = &this)
-			{
-				fixed (byte* ptype = type)
-				{
-					byte ret = ImGuiNative.IsDataType(@this, (byte*)ptype);
-					return ret != 0;
-				}
-			}
-		}
-		public unsafe bool IsDataType(string type)
-		{
-			fixed (ImGuiPayload* @this = &this)
-			{
-				byte* pStr0 = null;
-				int pStrSize0 = 0;
-				if (type != null)
-				{
-					pStrSize0 = Utils.GetByteCountUTF8(type);
-					if (pStrSize0 >= Utils.MaxStackallocSize)
-					{
-						pStr0 = Utils.Alloc<byte>(pStrSize0 + 1);
-					}
-					else
-					{
-						byte* pStrStack0 = stackalloc byte[pStrSize0 + 1];
-						pStr0 = pStrStack0;
-					}
-					int pStrOffset0 = Utils.EncodeStringUTF8(type, pStr0, pStrSize0);
-					pStr0[pStrOffset0] = 0;
-				}
-				byte ret = ImGuiNative.IsDataType(@this, pStr0);
-				if (pStrSize0 >= Utils.MaxStackallocSize)
-				{
-					Utils.Free(pStr0);
-				}
-				return ret != 0;
-			}
-		}
 		public unsafe bool IsDelivery()
 		{
 			fixed (ImGuiPayload* @this = &this)
@@ -101,4 +42,5 @@ public unsafe partial struct ImGuiPayload
 			}
 		}
 }
+// DISCARDED: IsDataType
 

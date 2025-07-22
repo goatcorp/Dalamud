@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 namespace Dalamud.Bindings.ImGui;
 
@@ -8,9 +7,9 @@ namespace Dalamud.Bindings.ImGui;
 public static unsafe partial class ImGui
 {
     public static bool ColorEdit3(
-        AutoUtf8Buffer label, scoped ref Vector3 col, ImGuiColorEditFlags flags = ImGuiColorEditFlags.None)
+        Utf8Buffer label, scoped ref Vector3 col, ImGuiColorEditFlags flags = ImGuiColorEditFlags.None)
     {
-        fixed (byte* labelPtr = label.NullTerminatedSpan)
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (Vector3* colPtr = &col)
         {
             var res = ImGuiNative.ColorEdit3(labelPtr, &colPtr->X, flags) != 0;
@@ -20,9 +19,9 @@ public static unsafe partial class ImGui
     }
 
     public static bool ColorEdit4(
-        AutoUtf8Buffer label, scoped ref Vector4 col, ImGuiColorEditFlags flags = ImGuiColorEditFlags.None)
+        Utf8Buffer label, scoped ref Vector4 col, ImGuiColorEditFlags flags = ImGuiColorEditFlags.None)
     {
-        fixed (byte* labelPtr = label.NullTerminatedSpan)
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (Vector4* colPtr = &col)
         {
             var res = ImGuiNative.ColorEdit4(labelPtr, &colPtr->X, flags) != 0;
@@ -32,9 +31,9 @@ public static unsafe partial class ImGui
     }
 
     public static bool ColorPicker3(
-        AutoUtf8Buffer label, scoped ref Vector3 col, ImGuiColorEditFlags flags = ImGuiColorEditFlags.None)
+        Utf8Buffer label, scoped ref Vector3 col, ImGuiColorEditFlags flags = ImGuiColorEditFlags.None)
     {
-        fixed (byte* labelPtr = label.NullTerminatedSpan)
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (Vector3* colPtr = &col)
         {
             var res = ImGuiNative.ColorPicker3(labelPtr, &colPtr->X, flags) != 0;
@@ -44,9 +43,9 @@ public static unsafe partial class ImGui
     }
 
     public static bool ColorPicker4(
-        AutoUtf8Buffer label, scoped ref Vector4 col, ImGuiColorEditFlags flags = ImGuiColorEditFlags.None)
+        Utf8Buffer label, scoped ref Vector4 col, ImGuiColorEditFlags flags = ImGuiColorEditFlags.None)
     {
-        fixed (byte* labelPtr = label.NullTerminatedSpan)
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (Vector4* colPtr = &col)
         {
             var res = ImGuiNative.ColorPicker4(labelPtr, &colPtr->X, flags, null) != 0;
@@ -56,9 +55,9 @@ public static unsafe partial class ImGui
     }
 
     public static bool ColorPicker4(
-        AutoUtf8Buffer label, scoped ref Vector4 col, ImGuiColorEditFlags flags, scoped in Vector4 refCol)
+        Utf8Buffer label, scoped ref Vector4 col, ImGuiColorEditFlags flags, scoped in Vector4 refCol)
     {
-        fixed (byte* labelPtr = label.NullTerminatedSpan)
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (Vector4* colPtr = &col)
         fixed (Vector4* refColPtr = &refCol)
         {
@@ -68,9 +67,9 @@ public static unsafe partial class ImGui
         }
     }
 
-    public static bool ColorPicker4(AutoUtf8Buffer label, scoped ref Vector4 col, scoped in Vector4 refCol)
+    public static bool ColorPicker4(Utf8Buffer label, scoped ref Vector4 col, scoped in Vector4 refCol)
     {
-        fixed (byte* labelPtr = label.NullTerminatedSpan)
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (Vector4* colPtr = &col)
         fixed (Vector4* refColPtr = &refCol)
         {

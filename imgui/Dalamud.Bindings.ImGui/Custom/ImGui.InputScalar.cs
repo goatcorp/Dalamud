@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Dalamud.Bindings.ImGui;
@@ -9,8 +8,8 @@ namespace Dalamud.Bindings.ImGui;
 public static unsafe partial class ImGui
 {
     public static bool InputSByte(
-        AutoUtf8Buffer label, scoped ref sbyte data, sbyte step = 0, sbyte stepFast = 0,
-        AutoUtf8Buffer format = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
+        Utf8Buffer label, scoped ref sbyte data, sbyte step = 0, sbyte stepFast = 0,
+        Utf8Buffer format = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.S8,
         ref data,
@@ -20,7 +19,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputSByte(
-        AutoUtf8Buffer label, Span<sbyte> data, sbyte step = 0, sbyte stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, Span<sbyte> data, sbyte step = 0, sbyte stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.S8,
@@ -31,7 +30,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputByte(
-        AutoUtf8Buffer label, scoped ref byte data, byte step = 0, byte stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, scoped ref byte data, byte step = 0, byte stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.U8,
@@ -42,7 +41,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputByte(
-        AutoUtf8Buffer label, Span<byte> data, byte step = 0, byte stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, Span<byte> data, byte step = 0, byte stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.U8,
@@ -53,8 +52,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputShort(
-        AutoUtf8Buffer label, scoped ref short data, short step = 0, short stepFast = 0,
-        AutoUtf8Buffer format = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
+        Utf8Buffer label, scoped ref short data, short step = 0, short stepFast = 0,
+        Utf8Buffer format = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.S16,
         ref data,
@@ -64,7 +63,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputShort(
-        AutoUtf8Buffer label, Span<short> data, short step = 0, short stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, Span<short> data, short step = 0, short stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.S16,
@@ -75,8 +74,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputUShort(
-        AutoUtf8Buffer label, scoped ref ushort data, ushort step = 0, ushort stepFast = 0,
-        AutoUtf8Buffer format = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
+        Utf8Buffer label, scoped ref ushort data, ushort step = 0, ushort stepFast = 0,
+        Utf8Buffer format = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.U16,
         ref data,
@@ -86,7 +85,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputUShort(
-        AutoUtf8Buffer label, Span<ushort> data, ushort step = 0, ushort stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, Span<ushort> data, ushort step = 0, ushort stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.U16,
@@ -97,7 +96,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputInt(
-        AutoUtf8Buffer label, scoped ref int data, int step = 0, int stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, scoped ref int data, int step = 0, int stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.S32,
@@ -108,7 +107,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputInt(
-        AutoUtf8Buffer label, Span<int> data, int step = 0, int stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, Span<int> data, int step = 0, int stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.S32,
@@ -119,7 +118,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputUInt(
-        AutoUtf8Buffer label, scoped ref uint data, uint step = 0, uint stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, scoped ref uint data, uint step = 0, uint stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.U32,
@@ -130,7 +129,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputUInt(
-        AutoUtf8Buffer label, Span<uint> data, uint step = 0, uint stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, Span<uint> data, uint step = 0, uint stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.U32,
@@ -141,7 +140,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputLong(
-        AutoUtf8Buffer label, scoped ref long data, long step = 0, long stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, scoped ref long data, long step = 0, long stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.S64,
@@ -152,7 +151,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputLong(
-        AutoUtf8Buffer label, Span<long> data, long step = 0, long stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, Span<long> data, long step = 0, long stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.S64,
@@ -163,8 +162,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputULong(
-        AutoUtf8Buffer label, scoped ref ulong data, ulong step = 0, ulong stepFast = 0,
-        AutoUtf8Buffer format = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
+        Utf8Buffer label, scoped ref ulong data, ulong step = 0, ulong stepFast = 0,
+        Utf8Buffer format = default, ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.U64,
         ref data,
@@ -174,7 +173,7 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputULong(
-        AutoUtf8Buffer label, Span<ulong> data, ulong step = 0, ulong stepFast = 0, AutoUtf8Buffer format = default,
+        Utf8Buffer label, Span<ulong> data, ulong step = 0, ulong stepFast = 0, Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) => InputScalar(
         label,
         ImGuiDataType.U64,
@@ -185,23 +184,23 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool InputFloat(
-        AutoUtf8Buffer label, scoped ref float data, float step = 0.0f,
+        Utf8Buffer label, scoped ref float data, float step = 0.0f,
         float stepFast = 0.0f,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) =>
         InputScalar(label, ImGuiDataType.Float, ref data, step, stepFast, format.MoveOrDefault("%.3f"u8), flags);
 
     public static bool InputFloat(
-        AutoUtf8Buffer label, Span<float> data, float step = 0.0f,
+        Utf8Buffer label, Span<float> data, float step = 0.0f,
         float stepFast = 0.0f,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) =>
         InputScalar(label, ImGuiDataType.Float, data, step, stepFast, format.MoveOrDefault("%.3f"u8), flags);
 
     public static bool InputFloat2(
-        AutoUtf8Buffer label, scoped ref Vector2 data, float step = 0.0f,
+        Utf8Buffer label, scoped ref Vector2 data, float step = 0.0f,
         float stepFast = 0.0f,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) =>
         InputScalar(
             label,
@@ -213,9 +212,9 @@ public static unsafe partial class ImGui
             flags);
 
     public static bool InputFloat3(
-        AutoUtf8Buffer label, scoped ref Vector3 data, float step = 0.0f,
+        Utf8Buffer label, scoped ref Vector3 data, float step = 0.0f,
         float stepFast = 0.0f,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) =>
         InputScalar(
             label,
@@ -227,9 +226,9 @@ public static unsafe partial class ImGui
             flags);
 
     public static bool InputFloat4(
-        AutoUtf8Buffer label, scoped ref Vector4 data, float step = 0.0f,
+        Utf8Buffer label, scoped ref Vector4 data, float step = 0.0f,
         float stepFast = 0.0f,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) =>
         InputScalar(
             label,
@@ -241,28 +240,28 @@ public static unsafe partial class ImGui
             flags);
 
     public static bool InputDouble(
-        AutoUtf8Buffer label, scoped ref double data, double step = 0.0f,
+        Utf8Buffer label, scoped ref double data, double step = 0.0f,
         double stepFast = 0.0f,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) =>
         InputScalar(label, ImGuiDataType.Double, ref data, step, stepFast, format.MoveOrDefault("%.3f"u8), flags);
 
     public static bool InputDouble(
-        AutoUtf8Buffer label, Span<double> data, double step = 0.0f,
+        Utf8Buffer label, Span<double> data, double step = 0.0f,
         double stepFast = 0.0f,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None) =>
         InputScalar(label, ImGuiDataType.Double, data, step, stepFast, format.MoveOrDefault("%.3f"u8), flags);
 
     public static bool InputScalar<T>(
-        AutoUtf8Buffer label, ImGuiDataType dataType, scoped ref T data,
+        Utf8Buffer label, ImGuiDataType dataType, scoped ref T data,
         scoped in T step, scoped in T stepFast,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
         where T : unmanaged, IBinaryNumber<T>
     {
-        fixed (byte* labelPtr = label.NullTerminatedSpan)
-        fixed (byte* formatPtr = format.IsInitialized ? format.NullTerminatedSpan : null)
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         fixed (T* dataPtr = &data)
         fixed (T* stepPtr = &step)
         fixed (T* stepFastPtr = &stepFast)
@@ -282,14 +281,14 @@ public static unsafe partial class ImGui
     }
 
     public static bool InputScalar<T>(
-        AutoUtf8Buffer label, ImGuiDataType dataType, Span<T> data,
+        Utf8Buffer label, ImGuiDataType dataType, Span<T> data,
         scoped in T step, scoped in T stepFast,
-        AutoUtf8Buffer format = default,
+        Utf8Buffer format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
         where T : unmanaged, INumber<T>, IBinaryNumber<T>
     {
-        fixed (byte* labelPtr = label.NullTerminatedSpan)
-        fixed (byte* formatPtr = format.IsInitialized ? format.NullTerminatedSpan : null)
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
         fixed (T* dataPtr = data)
         fixed (T* stepPtr = &step)
         fixed (T* stepFastPtr = &stepFast)
