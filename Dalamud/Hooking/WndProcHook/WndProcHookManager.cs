@@ -36,7 +36,7 @@ internal sealed class WndProcHookManager : IInternalDisposableService
         this.dispatchMessageWHook.Enable();
 
         // Capture the game main window handle,
-        // so that no guarantees would have to be made on the service dispose order. 
+        // so that no guarantees would have to be made on the service dispose order.
         Service<InterfaceManager.InterfaceManagerWithScene>
             .GetAsync()
             .ContinueWith(r => this.mainWindowHwnd = (HWND)r.Result.Manager.GameWindowHandle);
@@ -82,13 +82,16 @@ internal sealed class WndProcHookManager : IInternalDisposableService
     /// <param name="args">The arguments.</param>
     internal void InvokePreWndProc(WndProcEventArgs args)
     {
-        try
+        foreach (var d in Delegate.EnumerateInvocationList(this.PreWndProc))
         {
-            this.PreWndProc?.Invoke(args);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, $"{nameof(this.PreWndProc)} error");
+            try
+            {
+                d(args);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"{nameof(this.PreWndProc)} error calling {d.Method.Name}");
+            }
         }
     }
 
@@ -98,13 +101,16 @@ internal sealed class WndProcHookManager : IInternalDisposableService
     /// <param name="args">The arguments.</param>
     internal void InvokePostWndProc(WndProcEventArgs args)
     {
-        try
+        foreach (var d in Delegate.EnumerateInvocationList(this.PostWndProc))
         {
-            this.PostWndProc?.Invoke(args);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, $"{nameof(this.PostWndProc)} error");
+            try
+            {
+                d(args);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"{nameof(this.PostWndProc)} error calling {d.Method.Name}");
+            }
         }
     }
 

@@ -202,7 +202,7 @@ internal sealed unsafe class Completion : IInternalDisposableService
 
         for (var i = 0; i < module->CategoryNames.Count; i++)
         {
-            if (module->CategoryNames[i].ExtractText() == "【Dalamud】")
+            if (module->CategoryNames[i].AsReadOnlySeStringSpan().ContainsText("【Dalamud】"u8))
             {
                 return module->CategoryData[i];
             }
@@ -248,17 +248,24 @@ internal sealed unsafe class Completion : IInternalDisposableService
 
         if (catData->CompletionData.Count == 0)
         {
-            var inputCommands = this.commandManager.Commands.Where(pair => pair.Value.ShowInHelp).OrderBy(pair => pair.Key);
+            var inputCommands = this.commandManager.Commands.Where(pair => pair.Value.ShowInHelp);
             foreach (var (cmd, _) in inputCommands)
                 AddEntry(cmd);
+            catData->SortEntries();
 
             return;
         }
 
+        var needsSort = false;
         while (this.addedCommands.TryDequeue(out var cmd))
+        {
+            needsSort = true;
             AddEntry(cmd);
+        }
 
-        catData->SortEntries();
+        if (needsSort)
+            catData->SortEntries();
+
         return;
 
         void AddEntry(string cmd)
@@ -302,7 +309,7 @@ internal sealed unsafe class Completion : IInternalDisposableService
     private class EntryStrings(string command) : IDisposable
     {
         public Utf8String* Display { get; } =
-            Utf8String.FromSequence(new SeStringBuilder().AddUiForeground(command, 539).Encode());
+            Utf8String.FromSequence(new SeStringBuilder().AddUiForeground(command, 539).BuiltString.EncodeWithNullTerminator());
 
         public Utf8String* Match { get; } = Utf8String.FromString(command);
 

@@ -3,6 +3,7 @@
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -69,14 +70,14 @@ internal class NotificationPositionChooser
 
         if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
         {
-            this.SelectionMade?.Invoke();
+            this.SelectionMade.InvokeSafely();
         }
         else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
             this.configuration.NotificationAnchorPosition = this.currentAnchorPosition;
             this.configuration.QueueSave();
 
-            this.SelectionMade?.Invoke();
+            this.SelectionMade.InvokeSafely();
         }
 
         // In the middle of the screen, draw some instructions

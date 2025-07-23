@@ -184,8 +184,18 @@ internal partial class ConsoleManager : IServiceType
     /// <returns>Whether the command was successfully processed.</returns>
     public bool ProcessCommand(string command)
     {
-        if (this.Invoke?.Invoke(command) == true)
-            return true;
+        foreach (var action in Delegate.EnumerateInvocationList(this.Invoke))
+        {
+            try
+            {
+                if (action(command))
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
+            }
+        }
 
         var matches = GetCommandParsingRegex().Matches(command);
         if (matches.Count == 0)

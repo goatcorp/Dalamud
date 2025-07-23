@@ -89,7 +89,17 @@ internal sealed unsafe class PartyFinderGui : IInternalDisposableService, IParty
 
             var listing = new PartyFinderListing(packet.Listings[i]);
             var args = new PartyFinderListingEventArgs(packet.BatchNumber);
-            this.ReceiveListing?.Invoke(listing, args);
+            foreach (var d in Delegate.EnumerateInvocationList(this.ReceiveListing))
+            {
+                try
+                {
+                    d(listing, args);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", d.Method);
+                }
+            }
 
             if (args.Visible)
             {
