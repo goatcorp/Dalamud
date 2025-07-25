@@ -75,7 +75,7 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
 
         strArray->SetValue((int)strOffset + 0, text1.EncodeWithNullTerminator(), false, true, false);
         strArray->SetValue((int)strOffset + 1, text2.EncodeWithNullTerminator(), false, true, false);
-        
+
         flytext->AddFlyText(actorIndex, 1, numArray, numOffset, 10, strArray, strOffset, 2, 0);
     }
 
@@ -116,17 +116,27 @@ internal sealed class FlyTextGui : IInternalDisposableService, IFlyTextGui
                         $"text1({(nint)text1:X}, \"{tmpText1}\") text2({(nint)text2:X}, \"{tmpText2}\") " +
                         $"color({color:X}) icon({icon}) yOffset({yOffset})");
             Log.Verbose("[FlyText] Calling flytext events!");
-            this.FlyTextCreated?.Invoke(
-                ref tmpKind,
-                ref tmpVal1,
-                ref tmpVal2,
-                ref tmpText1,
-                ref tmpText2,
-                ref tmpColor,
-                ref tmpIcon,
-                ref tmpDamageTypeIcon,
-                ref tmpYOffset,
-                ref handled);
+            foreach (var d in Delegate.EnumerateInvocationList(this.FlyTextCreated))
+            {
+                try
+                {
+                    d(
+                        ref tmpKind,
+                        ref tmpVal1,
+                        ref tmpVal2,
+                        ref tmpText1,
+                        ref tmpText2,
+                        ref tmpColor,
+                        ref tmpIcon,
+                        ref tmpDamageTypeIcon,
+                        ref tmpYOffset,
+                        ref handled);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Exception during raise of {handler}", d.Method);
+                }
+            }
 
             // If handled, ignore the original call
             if (handled)

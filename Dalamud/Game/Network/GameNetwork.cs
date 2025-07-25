@@ -28,7 +28,7 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetw
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-    
+
     [ServiceManager.ServiceConstructor]
     private unsafe GameNetwork(TargetSigScanner sigScanner)
     {
@@ -71,32 +71,36 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetw
         // Go back 0x10 to get back to the start of the packet header
         dataPtr -= 0x10;
 
-        try
+        foreach (var d in Delegate.EnumerateInvocationList(this.NetworkMessage))
         {
-            // Call events
-            this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
-
-            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
-        }
-        catch (Exception ex)
-        {
-            string header;
             try
             {
-                var data = new byte[32];
-                Marshal.Copy(dataPtr, data, 0, 32);
-                header = BitConverter.ToString(data);
+                d.Invoke(
+                    dataPtr + 0x20,
+                    (ushort)Marshal.ReadInt16(dataPtr, 0x12),
+                    0,
+                    targetId,
+                    NetworkMessageDirection.ZoneDown);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                header = "failed";
+                string header;
+                try
+                {
+                    var data = new byte[32];
+                    Marshal.Copy(dataPtr, data, 0, 32);
+                    header = BitConverter.ToString(data);
+                }
+                catch (Exception)
+                {
+                    header = "failed";
+                }
+
+                Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
             }
-
-            Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
-
-            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
         }
 
+        this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
         this.hitchDetectorDown.Stop();
     }
 
@@ -153,7 +157,7 @@ internal class GameNetworkPluginScoped : IInternalDisposableService, IGameNetwor
     {
         this.gameNetworkService.NetworkMessage += this.NetworkMessageForward;
     }
-    
+
     /// <inheritdoc/>
     public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
 

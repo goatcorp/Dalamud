@@ -22,7 +22,7 @@ internal sealed class Condition : IInternalDisposableService, ICondition
 
     [ServiceManager.ServiceDependency]
     private readonly Framework framework = Service<Framework>.Get();
-    
+
     private readonly bool[] cache = new bool[MaxConditionEntries];
 
     private bool isDisposed;
@@ -38,7 +38,7 @@ internal sealed class Condition : IInternalDisposableService, ICondition
 
         this.framework.Update += this.FrameworkUpdate;
     }
-    
+
     /// <summary>Finalizes an instance of the <see cref="Condition" /> class.</summary>
     ~Condition() => this.Dispose(false);
 
@@ -69,12 +69,12 @@ internal sealed class Condition : IInternalDisposableService, ICondition
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService() => this.Dispose(true);
-    
+
     /// <inheritdoc/>
     public IReadOnlySet<ConditionFlag> AsReadOnlySet()
     {
         var result = new HashSet<ConditionFlag>();
-        
+
         for (var i = 0; i < MaxConditionEntries; i++)
         {
             if (this[i])
@@ -99,14 +99,14 @@ internal sealed class Condition : IInternalDisposableService, ICondition
 
         return false;
     }
-    
+
     /// <inheritdoc/>
     public bool Any(params ConditionFlag[] flags)
     {
         foreach (var flag in flags)
         {
             // this[i] performs range checking, so no need to check here
-            if (this[flag]) 
+            if (this[flag])
             {
                 return true;
             }
@@ -114,7 +114,7 @@ internal sealed class Condition : IInternalDisposableService, ICondition
 
         return false;
     }
-    
+
     /// <inheritdoc/>
     public bool AnyExcept(params ConditionFlag[] excluded)
     {
@@ -157,13 +157,16 @@ internal sealed class Condition : IInternalDisposableService, ICondition
             {
                 this.cache[i] = value;
 
-                try
+                foreach (var d in Delegate.EnumerateInvocationList(this.ConditionChange))
                 {
-                    this.ConditionChange?.Invoke((ConditionFlag)i, value);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, $"While invoking {nameof(this.ConditionChange)}, an exception was thrown.");
+                    try
+                    {
+                        d((ConditionFlag)i, value);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"While invoking {d.Method.Name}, an exception was thrown.");
+                    }
                 }
             }
         }
@@ -190,7 +193,7 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
     {
         this.conditionService.ConditionChange += this.ConditionChangedForward;
     }
-    
+
     /// <inheritdoc/>
     public event ICondition.ConditionChangeDelegate? ConditionChange;
 
@@ -202,7 +205,7 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 
     /// <inheritdoc/>
     public bool this[int flag] => this.conditionService[flag];
-    
+
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
     {
@@ -210,7 +213,7 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 
         this.ConditionChange = null;
     }
-    
+
     /// <inheritdoc/>
     public IReadOnlySet<ConditionFlag> AsReadOnlySet() => this.conditionService.AsReadOnlySet();
 
@@ -222,10 +225,10 @@ internal class ConditionPluginScoped : IInternalDisposableService, ICondition
 
     /// <inheritdoc/>
     public bool AnyExcept(params ConditionFlag[] except) => this.conditionService.AnyExcept(except);
-    
+
     /// <inheritdoc/>
     public bool OnlyAny(params ConditionFlag[] other) => this.conditionService.OnlyAny(other);
-    
+
     /// <inheritdoc/>
     public bool EqualTo(params ConditionFlag[] other) => this.conditionService.EqualTo(other);
 
