@@ -5,7 +5,6 @@ using System.Threading;
 
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Addon.Events;
-using Dalamud.Game.Addon.Events.EventDataTypes;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.Text.SeStringHandling;
@@ -629,7 +628,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
             }
         }
 
-        if (dtrBarEntry is { OnClick: not null })
+        if (dtrBarEntry is not null)
         {
             switch (atkEventType)
             {
@@ -642,7 +641,22 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
                     break;
 
                 case AddonEventType.MouseClick:
-                    dtrBarEntry.OnClick?.Invoke(new AddonMouseEventData(eventData));
+                    dtrBarEntry.OnClick?.Invoke();
+                    dtrBarEntry.OnClicked?.Invoke(eventData);
+
+                    var dataPointer = (AtkEventData*)eventData.AtkEventDataPointer;
+                    var mouseData = dataPointer->MouseData;
+
+                    if (mouseData.ButtonId is 0)
+                    {
+                        dtrBarEntry.OnLeftClick?.Invoke();
+                    }
+
+                    if (mouseData.ButtonId is 1)
+                    {
+                        dtrBarEntry.OnRightClick?.Invoke();
+                    }
+
                     break;
             }
         }

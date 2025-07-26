@@ -1,5 +1,5 @@
 ﻿using Dalamud.Configuration.Internal;
-using Dalamud.Game.Addon.Events.EventDataTypes;
+using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
@@ -43,6 +43,13 @@ public interface IReadOnlyDtrBarEntry
     /// Gets a value indicating whether the user has hidden this entry from view through the Dalamud settings.
     /// </summary>
     public bool UserHidden { get; }
+
+    /// <summary>
+    /// Triggers the click action of this entry.
+    /// </summary>
+    /// <returns>True, if a click action was registered and executed.</returns>
+    [Api13ToDo("Remove, doesn't mesh well with new click actions")]
+    public bool TriggerClickAction();
 }
 
 /// <summary>
@@ -66,9 +73,25 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     public new bool Shown { get; set; }
 
     /// <summary>
-    /// Gets or sets an action to be invoked when the user clicks on the dtr entry.
+    /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
     /// </summary>
-    public Action<AddonMouseEventData>? OnClick { get; set; }
+    [Api13ToDo("Remove this, and rename OnClicked to OnClick")]
+    public Action? OnClick { get; set; }
+
+    /// <summary>
+    /// Gets or sets a action to be invoked when the user left-clicks on the dtr entry.
+    /// </summary>
+    public Action? OnLeftClick { get; set; }
+
+    /// <summary>
+    /// Gets or sets a action to be invoked when the user right-clicks on the dtr entry.
+    /// </summary>
+    public Action? OnRightClick { get; set; }
+
+    /// <summary>
+    /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
+    /// </summary>
+    public Action<AddonEventData>? OnClicked { get; set; }
 
     /// <summary>
     /// Remove this entry from the bar.
@@ -117,11 +140,23 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// <inheritdoc cref="IDtrBarEntry.Tooltip" />
     public SeString? Tooltip { get; set; }
 
-    /// <inheritdoc/>
-    public Action<AddonMouseEventData>? OnClick { get; set; }
+    /// <summary>
+    /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
+    /// </summary>
+    [Api13ToDo("Remove this and rename OnClicked to OnClick")]
+    public Action? OnClick { get; set; }
 
     /// <inheritdoc/>
-    public bool HasClickAction => this.OnClick != null;
+    public Action? OnLeftClick { get; set; }
+
+    /// <inheritdoc/>
+    public Action? OnRightClick { get; set; }
+
+    /// <inheritdoc/>
+    public Action<AddonEventData>? OnClicked { get; set; }
+
+    /// <inheritdoc/>
+    public bool HasClickAction => this.OnClick != null || this.OnLeftClick != null || this.OnRightClick != null || this.OnClicked != null;
 
     /// <inheritdoc cref="IDtrBarEntry.Shown" />
     public bool Shown
@@ -138,7 +173,7 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     }
 
     /// <inheritdoc/>
-    [Api13ToDo("Maybe make this config scoped to internal name?")]
+    [Api13ToDo("Maybe make this config scoped to internalname?")]
     public bool UserHidden => this.configuration.DtrIgnore?.Contains(this.Title) ?? false;
 
     /// <summary>
@@ -170,6 +205,17 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// Gets or sets the plugin that owns this entry.
     /// </summary>
     internal LocalPlugin? OwnerPlugin { get; set; }
+
+    /// <inheritdoc/>
+    [Api13ToDo("Remove, doesn't mesh well with new click actions")]
+    public bool TriggerClickAction()
+    {
+        if (this.OnClick == null)
+            return false;
+
+        this.OnClick.Invoke();
+        return true;
+    }
 
     /// <summary>
     /// Remove this entry from the bar.
