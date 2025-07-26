@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Game.Addon.Events.EventDataTypes;
 using Dalamud.Game.Gui;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Services;
