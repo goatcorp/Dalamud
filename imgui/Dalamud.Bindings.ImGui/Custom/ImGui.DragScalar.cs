@@ -8,8 +8,8 @@ namespace Dalamud.Bindings.ImGui;
 public static unsafe partial class ImGui
 {
     public static bool DragSByte(
-        Utf8Buffer label, scoped ref sbyte v, float vSpeed = 1.0f, sbyte vMin = 0, sbyte vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, scoped ref sbyte v, float vSpeed = 1.0f, sbyte vMin = 0, sbyte vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.S8,
         ref v,
@@ -20,8 +20,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragSByte(
-        Utf8Buffer label, Span<sbyte> v, float vSpeed = 1.0f, sbyte vMin = 0, sbyte vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, Span<sbyte> v, float vSpeed = 1.0f, sbyte vMin = 0, sbyte vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.S8,
         v,
@@ -32,8 +32,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragByte(
-        Utf8Buffer label, scoped ref byte v, float vSpeed = 1.0f, byte vMin = 0, byte vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, scoped ref byte v, float vSpeed = 1.0f, byte vMin = 0, byte vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.U8,
         ref v,
@@ -44,8 +44,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragByte(
-        Utf8Buffer label, Span<byte> v, float vSpeed = 1.0f, byte vMin = 0, byte vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, Span<byte> v, float vSpeed = 1.0f, byte vMin = 0, byte vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.U8,
         v,
@@ -56,8 +56,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragShort(
-        Utf8Buffer label, scoped ref short v, float vSpeed = 1.0f, short vMin = 0, short vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, scoped ref short v, float vSpeed = 1.0f, short vMin = 0, short vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.S16,
         ref v,
@@ -68,8 +68,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragShort(
-        Utf8Buffer label, Span<short> v, float vSpeed = 1.0f, short vMin = 0, short vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, Span<short> v, float vSpeed = 1.0f, short vMin = 0, short vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.S16,
         v,
@@ -80,8 +80,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragUShort(
-        Utf8Buffer label, scoped ref ushort v, float vSpeed = 1.0f, ushort vMin = 0, ushort vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, scoped ref ushort v, float vSpeed = 1.0f, ushort vMin = 0, ushort vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.U16,
         ref v,
@@ -92,8 +92,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragUShort(
-        Utf8Buffer label, Span<ushort> v, float vSpeed = 1.0f, ushort vMin = 0, ushort vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, Span<ushort> v, float vSpeed = 1.0f, ushort vMin = 0, ushort vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.U16,
         v,
@@ -104,8 +104,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragInt(
-        Utf8Buffer label, scoped ref int v, float vSpeed = 1.0f, int vMin = 0, int vMax = 0,
-        Utf8Buffer format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
+        ImU8String label, scoped ref int v, float vSpeed = 1.0f, int vMin = 0, int vMax = 0,
+        ImU8String format = default, ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.S32,
         ref v,
@@ -116,8 +116,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragInt(
-        Utf8Buffer label, Span<int> v, float vSpeed = 1.0f, int vMin = 0,
-        int vMax = 0, Utf8Buffer format = default,
+        ImU8String label, Span<int> v, float vSpeed = 1.0f, int vMin = 0,
+        int vMax = 0, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.S32,
@@ -129,8 +129,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragUInt(
-        Utf8Buffer label, scoped ref uint v, float vSpeed = 1.0f, uint vMin = 0,
-        uint vMax = 0, Utf8Buffer format = default,
+        ImU8String label, scoped ref uint v, float vSpeed = 1.0f, uint vMin = 0,
+        uint vMax = 0, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.U32,
@@ -142,8 +142,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragUInt(
-        Utf8Buffer label, Span<uint> v, float vSpeed = 1.0f, uint vMin = 0,
-        uint vMax = 0, Utf8Buffer format = default,
+        ImU8String label, Span<uint> v, float vSpeed = 1.0f, uint vMin = 0,
+        uint vMax = 0, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.U32,
@@ -155,8 +155,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragLong(
-        Utf8Buffer label, scoped ref long v, float vSpeed = 1.0f, long vMin = 0,
-        long vMax = 0, Utf8Buffer format = default,
+        ImU8String label, scoped ref long v, float vSpeed = 1.0f, long vMin = 0,
+        long vMax = 0, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.S64,
@@ -168,8 +168,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragLong(
-        Utf8Buffer label, Span<long> v, float vSpeed = 1.0f, long vMin = 0,
-        long vMax = 0, Utf8Buffer format = default,
+        ImU8String label, Span<long> v, float vSpeed = 1.0f, long vMin = 0,
+        long vMax = 0, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.S64,
@@ -181,8 +181,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragULong(
-        Utf8Buffer label, scoped ref ulong v, float vSpeed = 1.0f,
-        ulong vMin = 0, ulong vMax = 0, Utf8Buffer format = default,
+        ImU8String label, scoped ref ulong v, float vSpeed = 1.0f,
+        ulong vMin = 0, ulong vMax = 0, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.U64,
@@ -194,8 +194,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragULong(
-        Utf8Buffer label, Span<ulong> v, float vSpeed = 1.0f, ulong vMin = 0,
-        ulong vMax = 0, Utf8Buffer format = default,
+        ImU8String label, Span<ulong> v, float vSpeed = 1.0f, ulong vMin = 0,
+        ulong vMax = 0, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.U64,
@@ -207,8 +207,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragFloat(
-        Utf8Buffer label, scoped ref float v, float vSpeed = 1.0f,
-        float vMin = 0.0f, float vMax = 0.0f, Utf8Buffer format = default,
+        ImU8String label, scoped ref float v, float vSpeed = 1.0f,
+        float vMin = 0.0f, float vMax = 0.0f, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Float,
@@ -220,8 +220,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragFloat(
-        Utf8Buffer label, Span<float> v, float vSpeed = 1.0f, float vMin = 0.0f,
-        float vMax = 0.0f, Utf8Buffer format = default,
+        ImU8String label, Span<float> v, float vSpeed = 1.0f, float vMin = 0.0f,
+        float vMax = 0.0f, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Float,
@@ -233,8 +233,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragFloat2(
-        Utf8Buffer label, scoped ref Vector2 v, float vSpeed = 1.0f,
-        float vMin = 0.0f, float vMax = 0.0f, Utf8Buffer format = default,
+        ImU8String label, scoped ref Vector2 v, float vSpeed = 1.0f,
+        float vMin = 0.0f, float vMax = 0.0f, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Float,
@@ -246,8 +246,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragFloat3(
-        Utf8Buffer label, scoped ref Vector3 v, float vSpeed = 1.0f,
-        float vMin = 0.0f, float vMax = 0.0f, Utf8Buffer format = default,
+        ImU8String label, scoped ref Vector3 v, float vSpeed = 1.0f,
+        float vMin = 0.0f, float vMax = 0.0f, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Float,
@@ -259,8 +259,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragFloat4(
-        Utf8Buffer label, scoped ref Vector4 v, float vSpeed = 1.0f,
-        float vMin = 0.0f, float vMax = 0.0f, Utf8Buffer format = default,
+        ImU8String label, scoped ref Vector4 v, float vSpeed = 1.0f,
+        float vMin = 0.0f, float vMax = 0.0f, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Float,
@@ -272,8 +272,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragDouble(
-        Utf8Buffer label, scoped ref double v, float vSpeed = 1.0f,
-        double vMin = 0.0f, double vMax = 0.0f, Utf8Buffer format = default,
+        ImU8String label, scoped ref double v, float vSpeed = 1.0f,
+        double vMin = 0.0f, double vMax = 0.0f, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Double,
@@ -285,8 +285,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragDouble(
-        Utf8Buffer label, Span<double> v, float vSpeed = 1.0f,
-        double vMin = 0.0f, double vMax = 0.0f, Utf8Buffer format = default,
+        ImU8String label, Span<double> v, float vSpeed = 1.0f,
+        double vMin = 0.0f, double vMax = 0.0f, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) => DragScalar(
         label,
         ImGuiDataType.Double,
@@ -298,8 +298,8 @@ public static unsafe partial class ImGui
         flags);
 
     public static bool DragScalar<T>(
-        Utf8Buffer label, ImGuiDataType dataType, scoped ref T v, float vSpeed,
-        scoped in T vMin, scoped in T vMax, Utf8Buffer format = default,
+        ImU8String label, ImGuiDataType dataType, scoped ref T v, float vSpeed,
+        scoped in T vMin, scoped in T vMax, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) where T : unmanaged, INumber<T>, IBinaryNumber<T>
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
@@ -316,8 +316,8 @@ public static unsafe partial class ImGui
     }
 
     public static bool DragScalar<T>(
-        Utf8Buffer label, ImGuiDataType dataType, Span<T> v, float vSpeed,
-        scoped in T vMin, scoped in T vMax, Utf8Buffer format = default,
+        ImU8String label, ImGuiDataType dataType, Span<T> v, float vSpeed,
+        scoped in T vMin, scoped in T vMax, ImU8String format = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None) where T : unmanaged, INumber<T>, IBinaryNumber<T>
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
@@ -343,10 +343,10 @@ public static unsafe partial class ImGui
     }
 
     public static bool DragFloatRange2(
-        Utf8Buffer label, scoped ref float vCurrentMin,
+        ImU8String label, scoped ref float vCurrentMin,
         scoped ref float vCurrentMax, float vSpeed = 1.0f, float vMin = 0.0f, float vMax = 0.0f,
-        Utf8Buffer format = default,
-        Utf8Buffer formatMax = default,
+        ImU8String format = default,
+        ImU8String formatMax = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
@@ -373,10 +373,10 @@ public static unsafe partial class ImGui
     }
 
     public static bool DragIntRange2(
-        Utf8Buffer label, scoped ref int vCurrentMin,
+        ImU8String label, scoped ref int vCurrentMin,
         scoped ref int vCurrentMax, float vSpeed = 1.0f, int vMin = 0, int vMax = 0,
-        Utf8Buffer format = default,
-        Utf8Buffer formatMax = default,
+        ImU8String format = default,
+        ImU8String formatMax = default,
         ImGuiSliderFlags flags = ImGuiSliderFlags.None)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())

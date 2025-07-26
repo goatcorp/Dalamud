@@ -2,14 +2,20 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiInputTextCallbackData
 {
-    public void InsertChars(int pos, Utf8Buffer text)
+    public readonly Span<byte> BufSpan => new(this.Buf, this.BufSize);
+    public readonly Span<byte> BufTextSpan => new(this.Buf, this.BufTextLen);
+
+    public void InsertChars(int pos, ImU8String text)
     {
         fixed (ImGuiInputTextCallbackData* thisPtr = &this)
             ImGui.InsertChars(thisPtr, pos, text);
     }
 }
 
-public partial struct ImGuiInputTextCallbackDataPtr
+public unsafe partial struct ImGuiInputTextCallbackDataPtr
 {
-    public void InsertChars(int pos, Utf8Buffer text) => ImGui.InsertChars(this, pos, text);
+    public readonly Span<byte> BufSpan => this.Handle->BufSpan;
+    public readonly Span<byte> BufTextSpan => this.Handle->BufTextSpan;
+
+    public void InsertChars(int pos, ImU8String text) => ImGui.InsertChars(this, pos, text);
 }

@@ -7,7 +7,7 @@ namespace Dalamud.Bindings.ImGui;
 public unsafe partial class ImGuiP
 {
     public static bool ArrowButtonEx(
-        Utf8Buffer strId, ImGuiDir dir, Vector2 sizeArg, ImGuiButtonFlags flags = ImGuiButtonFlags.None)
+        ImU8String strId, ImGuiDir dir, Vector2 sizeArg, ImGuiButtonFlags flags = ImGuiButtonFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -17,7 +17,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static bool BeginChildEx(Utf8Buffer name, uint id, Vector2 sizeArg, bool border, ImGuiWindowFlags flags)
+    public static bool BeginChildEx(ImU8String name, uint id, Vector2 sizeArg, bool border, ImGuiWindowFlags flags)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
@@ -27,14 +27,14 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static void BeginColumns(Utf8Buffer strId, int count, ImGuiOldColumnFlags flags = ImGuiOldColumnFlags.None)
+    public static void BeginColumns(ImU8String strId, int count, ImGuiOldColumnFlags flags = ImGuiOldColumnFlags.None)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
             ImGuiPNative.BeginColumns(strIdPtr, count, flags);
         strId.Dispose();
     }
 
-    public static bool BeginMenuEx(Utf8Buffer label, Utf8Buffer icon = default, bool enabled = true)
+    public static bool BeginMenuEx(ImU8String label, ImU8String icon = default, bool enabled = true)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* iconPtr = &icon.GetPinnableNullTerminatedReference())
@@ -47,7 +47,7 @@ public unsafe partial class ImGuiP
     }
 
     public static bool BeginTableEx(
-        Utf8Buffer name, uint id, int columnsCount, ImGuiTableFlags flags = ImGuiTableFlags.None,
+        ImU8String name, uint id, int columnsCount, ImGuiTableFlags flags = ImGuiTableFlags.None,
         Vector2 outerSize = default, float innerWidth = 0.0f)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
@@ -59,7 +59,7 @@ public unsafe partial class ImGuiP
     }
 
     public static bool BeginViewportSideBar(
-        Utf8Buffer name, ImGuiViewportPtr viewport, ImGuiDir dir, float size, ImGuiWindowFlags windowFlags)
+        ImU8String name, ImGuiViewportPtr viewport, ImGuiDir dir, float size, ImGuiWindowFlags windowFlags)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
@@ -70,7 +70,7 @@ public unsafe partial class ImGuiP
     }
 
     public static bool ButtonEx(
-        Utf8Buffer label, Vector2 sizeArg = default, ImGuiButtonFlags flags = ImGuiButtonFlags.None)
+        ImU8String label, Vector2 sizeArg = default, ImGuiButtonFlags flags = ImGuiButtonFlags.None)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
@@ -92,7 +92,7 @@ public unsafe partial class ImGuiP
             ImGuiPNative.ColorPickerOptionsPopup(refColPtr, flags);
     }
 
-    public static void ColorTooltip(Utf8Buffer text, ReadOnlySpan<float> col, ImGuiColorEditFlags flags)
+    public static void ColorTooltip(ImU8String text, ReadOnlySpan<float> col, ImGuiColorEditFlags flags)
     {
         fixed (byte* textPtr = &text.GetPinnableNullTerminatedReference())
         fixed (float* colPtr = col)
@@ -100,7 +100,7 @@ public unsafe partial class ImGuiP
         text.Dispose();
     }
 
-    public static ImGuiWindowSettingsPtr CreateNewWindowSettings(Utf8Buffer name)
+    public static ImGuiWindowSettingsPtr CreateNewWindowSettings(ImU8String name)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
@@ -116,7 +116,7 @@ public unsafe partial class ImGuiP
 
     public static void Custom_StbTextUndo(ImGuiInputTextStatePtr str) => ImGuiPNative.Custom_StbTextUndo(str);
 
-    public static bool DataTypeApplyFromText<T>(Utf8Buffer buf, ImGuiDataType dataType, T data, Utf8Buffer format)
+    public static bool DataTypeApplyFromText<T>(ImU8String buf, ImGuiDataType dataType, T data, ImU8String format)
         where T : unmanaged, IBinaryNumber<T>
     {
         fixed (byte* bufPtr = &buf.GetPinnableNullTerminatedReference())
@@ -129,7 +129,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static void DebugNodeDockNode(ImGuiDockNodePtr node, Utf8Buffer label)
+    public static void DebugNodeDockNode(ImGuiDockNodePtr node, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeDockNode(node, labelPtr);
@@ -137,35 +137,35 @@ public unsafe partial class ImGuiP
     }
 
     public static void DebugNodeDrawList(
-        ImGuiWindowPtr window, ImGuiViewportPPtr viewport, ImDrawListPtr drawList, Utf8Buffer label)
+        ImGuiWindowPtr window, ImGuiViewportPPtr viewport, ImDrawListPtr drawList, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeDrawList(window, viewport, drawList, labelPtr);
         label.Dispose();
     }
 
-    public static void DebugNodeStorage(ImGuiStoragePtr storage, Utf8Buffer label)
+    public static void DebugNodeStorage(ImGuiStoragePtr storage, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeStorage(storage, labelPtr);
         label.Dispose();
     }
 
-    public static void DebugNodeTabBar(ImGuiTabBarPtr tabBar, Utf8Buffer label)
+    public static void DebugNodeTabBar(ImGuiTabBarPtr tabBar, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeTabBar(tabBar, labelPtr);
         label.Dispose();
     }
 
-    public static void DebugNodeWindow(ImGuiWindowPtr window, Utf8Buffer label)
+    public static void DebugNodeWindow(ImGuiWindowPtr window, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
             ImGuiPNative.DebugNodeWindow(window, labelPtr);
         label.Dispose();
     }
 
-    public static void DebugNodeWindowsList(scoped in ImVector<ImGuiWindowPtr> windows, Utf8Buffer label)
+    public static void DebugNodeWindowsList(scoped in ImVector<ImGuiWindowPtr> windows, ImU8String label)
     {
         fixed (ImVector<ImGuiWindowPtr>* windowsPtr = &windows)
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
@@ -173,7 +173,7 @@ public unsafe partial class ImGuiP
         label.Dispose();
     }
 
-    public static void DockBuilderCopyWindowSettings(Utf8Buffer srcName, Utf8Buffer dstName)
+    public static void DockBuilderCopyWindowSettings(ImU8String srcName, ImU8String dstName)
     {
         fixed (byte* srcNamePtr = &srcName.GetPinnableNullTerminatedReference())
         fixed (byte* dstNamePtr = &dstName.GetPinnableNullTerminatedReference())
@@ -182,7 +182,7 @@ public unsafe partial class ImGuiP
         dstName.Dispose();
     }
 
-    public static void DockBuilderDockWindow(Utf8Buffer windowName, uint nodeId)
+    public static void DockBuilderDockWindow(ImU8String windowName, uint nodeId)
     {
         fixed (byte* windowNamePtr = &windowName.GetPinnableNullTerminatedReference())
             ImGuiPNative.DockBuilderDockWindow(windowNamePtr, nodeId);
@@ -190,7 +190,7 @@ public unsafe partial class ImGuiP
     }
 
     public static bool DragBehavior(
-        uint id, ImGuiDataType dataType, void* pV, float vSpeed, void* pMin, void* pMax, Utf8Buffer format,
+        uint id, ImGuiDataType dataType, void* pV, float vSpeed, void* pMin, void* pMax, ImU8String format,
         ImGuiSliderFlags flags)
     {
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
@@ -201,7 +201,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static ImGuiWindowSettingsPtr FindOrCreateWindowSettings(Utf8Buffer name)
+    public static ImGuiWindowSettingsPtr FindOrCreateWindowSettings(ImU8String name)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
@@ -211,7 +211,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static ImGuiSettingsHandlerPtr FindSettingsHandler(Utf8Buffer typeName)
+    public static ImGuiSettingsHandlerPtr FindSettingsHandler(ImU8String typeName)
     {
         fixed (byte* typeNamePtr = &typeName.GetPinnableNullTerminatedReference())
         {
@@ -221,7 +221,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static ImGuiWindowPtr FindWindowByName(Utf8Buffer name)
+    public static ImGuiWindowPtr FindWindowByName(ImU8String name)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
@@ -231,7 +231,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static uint GetColumnsID(Utf8Buffer strId, int count)
+    public static uint GetColumnsID(ImU8String strId, int count)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -241,7 +241,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static uint GetIDWithSeed(Utf8Buffer strId, uint seed)
+    public static uint GetIDWithSeed(ImU8String strId, uint seed)
     {
         fixed (byte* strIdPtr = &strId.GetPinnableNullTerminatedReference())
         {
@@ -252,7 +252,7 @@ public unsafe partial class ImGuiP
     }
 
     public static void* ImFileLoadToMemory(
-        Utf8Buffer filename, Utf8Buffer mode, out nuint outFileSize, int paddingBytes = 0)
+        ImU8String filename, ImU8String mode, out nuint outFileSize, int paddingBytes = 0)
     {
         fixed (byte* filenamePtr = &filename.GetPinnableNullTerminatedReference())
         fixed (byte* modePtr = &mode.GetPinnableNullTerminatedReference())
@@ -265,7 +265,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static void* ImFileLoadToMemory(Utf8Buffer filename, Utf8Buffer mode, int paddingBytes = 0)
+    public static void* ImFileLoadToMemory(ImU8String filename, ImU8String mode, int paddingBytes = 0)
     {
         fixed (byte* filenamePtr = &filename.GetPinnableNullTerminatedReference())
         fixed (byte* modePtr = &mode.GetPinnableNullTerminatedReference())
@@ -277,7 +277,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static ImFileHandle ImFileOpen(Utf8Buffer filename, Utf8Buffer mode)
+    public static ImFileHandle ImFileOpen(ImU8String filename, ImU8String mode)
     {
         fixed (byte* filenamePtr = &filename.GetPinnableNullTerminatedReference())
         fixed (byte* modePtr = &mode.GetPinnableNullTerminatedReference())
@@ -335,14 +335,14 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static void ImFormatStringToTempBuffer(byte** outBuf, byte** outBufEnd, Utf8Buffer fmt)
+    public static void ImFormatStringToTempBuffer(byte** outBuf, byte** outBufEnd, ImU8String fmt)
     {
         fixed (byte* fmtPtr = &fmt.GetPinnableNullTerminatedReference())
             ImGuiPNative.ImFormatStringToTempBuffer(outBuf, outBufEnd, fmtPtr);
         fmt.Dispose();
     }
 
-    public static ImGuiWindowPtr ImGuiWindow(ImGuiContextPtr context, Utf8Buffer name)
+    public static ImGuiWindowPtr ImGuiWindow(ImGuiContextPtr context, ImU8String name)
     {
         fixed (byte* namePtr = &name.GetPinnableNullTerminatedReference())
         {
@@ -373,7 +373,7 @@ public unsafe partial class ImGuiP
         ImGuiPNative.LogSetNextTextDecoration(prefix, suffix);
 
     public static bool MenuItemEx(
-        Utf8Buffer label, Utf8Buffer icon = default, Utf8Buffer shortcut = default, bool selected = false,
+        ImU8String label, ImU8String icon = default, ImU8String shortcut = default, bool selected = false,
         bool enabled = true)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
@@ -393,7 +393,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static void RemoveSettingsHandler(Utf8Buffer typeName)
+    public static void RemoveSettingsHandler(ImU8String typeName)
     {
         fixed (byte* typeNamePtr = &typeName.GetPinnableNullTerminatedReference())
             ImGuiPNative.RemoveSettingsHandler(typeNamePtr);
@@ -401,7 +401,7 @@ public unsafe partial class ImGuiP
     }
 
     public static bool SliderBehavior<T>(
-        ImRect bb, uint id, ImGuiDataType dataType, scoped ref T value, T min, T max, Utf8Buffer format,
+        ImRect bb, uint id, ImGuiDataType dataType, scoped ref T value, T min, T max, ImU8String format,
         ImGuiSliderFlags flags, ImRectPtr outGrabBb)
         where T : unmanaged, IBinaryNumber<T>
     {
@@ -423,7 +423,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static Vector2 TabItemCalcSize(Utf8Buffer label, bool hasCloseButton)
+    public static Vector2 TabItemCalcSize(ImU8String label, bool hasCloseButton)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {
@@ -434,7 +434,7 @@ public unsafe partial class ImGuiP
     }
 
     public static bool TabItemEx(
-        ImGuiTabBarPtr tabBar, Utf8Buffer label, ref bool open, ImGuiTabItemFlags flags, ImGuiWindowPtr dockedWindow)
+        ImGuiTabBarPtr tabBar, ImU8String label, ref bool open, ImGuiTabItemFlags flags, ImGuiWindowPtr dockedWindow)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (bool* openPtr = &open)
@@ -446,7 +446,7 @@ public unsafe partial class ImGuiP
     }
 
     public static void TabItemLabelAndCloseButton(
-        ImDrawListPtr drawList, ImRect bb, ImGuiTabItemFlags flags, Vector2 framePadding, Utf8Buffer label, uint tabId,
+        ImDrawListPtr drawList, ImRect bb, ImGuiTabItemFlags flags, Vector2 framePadding, ImU8String label, uint tabId,
         uint closeButtonId, bool isContentsVisible, out bool justClosed, out bool textClipped)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
@@ -470,7 +470,7 @@ public unsafe partial class ImGuiP
     }
 
     public static bool TempInputScalar<T>(
-        ImRect bb, uint id, Utf8Buffer label, ImGuiDataType dataType, scoped ref T data, Utf8Buffer format, T min,
+        ImRect bb, uint id, ImU8String label, ImGuiDataType dataType, scoped ref T data, ImU8String format, T min,
         T max)
         where T : unmanaged, IBinaryNumber<T>
     {
@@ -484,7 +484,7 @@ public unsafe partial class ImGuiP
         }
     }
 
-    public static bool TreeNodeBehavior(uint id, ImGuiTreeNodeFlags flags, Utf8Buffer label)
+    public static bool TreeNodeBehavior(uint id, ImGuiTreeNodeFlags flags, ImU8String label)
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         {

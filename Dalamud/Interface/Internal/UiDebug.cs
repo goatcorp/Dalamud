@@ -211,7 +211,7 @@ internal unsafe class UiDebug
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textNode->NodeText);
 
-                    ImGui.InputText($"Replace Text##{(ulong)textNode:X}", textNode->NodeText.StringPtr, (uint)textNode->NodeText.BufSize);
+                    ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new(textNode->NodeText.StringPtr, (int)textNode->NodeText.BufSize));
 
                     ImGui.SameLine();
                     if (ImGui.Button($"Encode##{(ulong)textNode:X}"))

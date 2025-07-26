@@ -3,14 +3,14 @@ namespace Dalamud.Bindings.ImGui;
 public unsafe partial struct ImFontAtlas
 {
     public ImFontPtr AddFontFromFileTTF(
-        Utf8Buffer filename, float sizePixels, ImFontConfigPtr fontCfg = default, ushort* glyphRanges = null)
+        ImU8String filename, float sizePixels, ImFontConfigPtr fontCfg = default, ushort* glyphRanges = null)
     {
         fixed (ImFontAtlas* thisPtr = &this)
             return ImGui.AddFontFromFileTTF(thisPtr, filename, sizePixels, fontCfg, glyphRanges);
     }
 
     public ImFontPtr AddFontFromMemoryCompressedBase85TTF(
-        Utf8Buffer compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg = default,
+        ImU8String compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg = default,
         ushort* glyphRanges = null)
     {
         fixed (ImFontAtlas* thisPtr = &this)
@@ -58,11 +58,11 @@ public unsafe partial struct ImFontAtlas
 public unsafe partial struct ImFontAtlasPtr
 {
     public ImFontPtr AddFontFromFileTTF(
-        Utf8Buffer filename, float sizePixels, ImFontConfigPtr fontCfg = default, ushort* glyphRanges = null) =>
+        ImU8String filename, float sizePixels, ImFontConfigPtr fontCfg = default, ushort* glyphRanges = null) =>
         ImGui.AddFontFromFileTTF(this, filename, sizePixels, fontCfg, glyphRanges);
 
     public ImFontPtr AddFontFromMemoryCompressedBase85TTF(
-        Utf8Buffer compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg = default,
+        ImU8String compressedFontDatabase85, float sizePixels, ImFontConfigPtr fontCfg = default,
         ushort* glyphRanges = null) =>
         ImGui.AddFontFromMemoryCompressedBase85TTF(this, compressedFontDatabase85, sizePixels, fontCfg, glyphRanges);
 

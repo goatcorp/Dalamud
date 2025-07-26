@@ -89,7 +89,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         var language = this.languages[this.selectedLanguageIndex];
 
         ImGui.SetNextItemWidth(300);
-        if (ImGui.Combo("###SelectedSheetName", ref this.selectedSheetNameIndex, NounSheets.Select(t => t.Name).ToArray(), NounSheets.Length))
+        if (ImGui.Combo("###SelectedSheetName", ref this.selectedSheetNameIndex, NounSheets.Select(t => t.Name).ToArray()))
         {
             this.rowId = 1;
         }
@@ -97,7 +97,7 @@ internal class NounProcessorWidget : IDataWindowWidget
         ImGui.SameLine();
 
         ImGui.SetNextItemWidth(120);
-        if (ImGui.Combo("###SelectedLanguage", ref this.selectedLanguageIndex, this.languageNames, this.languageNames.Length))
+        if (ImGui.Combo("###SelectedLanguage", ref this.selectedLanguageIndex, this.languageNames))
         {
             language = this.languages[this.selectedLanguageIndex];
             this.rowId = 1;

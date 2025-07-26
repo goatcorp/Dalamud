@@ -68,7 +68,7 @@ public class BranchSwitcherWindow : Window
         var si = Service<Dalamud>.Get().StartInfo;
 
         var itemsArray = this.branches.Select(x => x.Key).ToArray();
-        ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray, itemsArray.Length);
+        ImGui.ListBox("Branch", ref this.selectedBranchIndex, itemsArray);
 
         var pickedBranch = this.branches.ElementAt(this.selectedBranchIndex);
 

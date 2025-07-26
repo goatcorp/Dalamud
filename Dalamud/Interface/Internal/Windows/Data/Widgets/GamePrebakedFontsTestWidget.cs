@@ -61,7 +61,7 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
     public unsafe void Draw()
     {
         ImGui.AlignTextToFramePadding();
-        if (ImGui.Combo("Global Scale per Font"u8, ref this.fontScaleMode, FontScaleModes, FontScaleModes.Length))
+        if (ImGui.Combo("Global Scale per Font"u8, ref this.fontScaleMode, FontScaleModes))
             this.ClearAtlas();
         if (ImGui.Checkbox("Global Scale for Atlas"u8, ref this.atlasScaleMode))
             this.ClearAtlas();
@@ -182,12 +182,8 @@ internal class GamePrebakedFontsTestWidget : IDataWindowWidget, IDisposable
             {
                 if (ImGui.InputTextMultiline(
                         labelPtr,
-                        this.testStringBuffer.Data,
-                        (uint)this.testStringBuffer.Capacity,
-                        new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
-                        0,
-                        null,
-                        null))
+                        this.testStringBuffer.StorageSpan,
+                        new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3)))
                 {
                     var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
                     if (len + 4 >= this.testStringBuffer.Capacity)

@@ -666,16 +666,13 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="data">The callback data.</param>
     /// <param name="s">The new text.</param>
-    internal static unsafe void SetTextFromCallback(ImGuiInputTextCallbackData* data, string s)
+    internal static void SetTextFromCallback(ref ImGuiInputTextCallbackData data, ImU8String s)
     {
-        if (data->BufTextLen != 0)
-            data->DeleteChars(0, data->BufTextLen);
+        if (data.BufTextLen != 0)
+            data.DeleteChars(0, data.BufTextLen);
 
-        var len = Encoding.UTF8.GetByteCount(s);
-        var buf = len < 1024 ? stackalloc byte[len] : new byte[len];
-        Encoding.UTF8.GetBytes(s, buf);
-        data->InsertChars(0, buf);
-        data->SelectAll();
+        data.InsertChars(0, s);
+        data.SelectAll();
     }
 
     /// <summary>

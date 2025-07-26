@@ -3,35 +3,33 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-$lines = New-Object -TypeName "System.Collections.Generic.List[string]"
 $namespaceDefPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s*)namespace\s+(?<namespace>[\w.]+)\b', 'Compiled,Multiline,Singleline'
 $usingPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^|;)\s*using\s+(?<using>\w+)\s*;', 'Compiled,Multiline,Singleline'
 $classDefPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?<indent>^\s*)(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<partial>partial\s+)?(?<type>class\s+|struct\s+)(?<name>\w+)\b', 'Compiled,Multiline,Singleline'
-$methodPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s+?\[.*?\](?:\r\n|\r|\n))?(?<indent>^\s*)(?<prototype>(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<return>(?!public|internal|protected|private|static|unsafe)\w+(?:\s*<\s*\w+?(?:<\s*\w+\s*>?)?\s*>)?(?:\s*\*)?\s+)(?<name>\w+)(?<args>\s*\([^)]*\)))(?:\r\n|\r|\n)[\s\S]+?(?:^\k<indent>}(?:\r\n|\r|\n))', 'Compiled,Multiline,Singleline'
-$emptyClassPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s+?\[.*?\](?:\r\n|\r|\n))?(?<indent>^\s*)(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<partial>partial\s+)?(?<type>class\s+|struct\s+)(?<name>\w+)\s*\{\s*\}', 'Compiled,Multiline,Singleline'
-$emptyNamespacePattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s*)namespace\s+(?<namespace>\w+)\b\s*\{\s*\}', 'Compiled,Multiline,Singleline'
+$methodPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?:^\s+?\[.*?\](?:\r\n|\r|\n))?(?<indent>^\s*)(?<prototype>(?<visibility>public\s+|internal\s+|protected\s+|private\s+)?(?<static>static\s+)?(?<unsafe>unsafe\s+)?(?<return>(?!public|internal|protected|private|static|unsafe)\w+(?:\s*<\s*\w+?(?:<\s*\w+\s*>?)?\s*>)?(?:\s*\*+)?\s+)(?<name>\w+)(?<args>\s*\([^)]*\)))(?:\r\n|\r|\n)[\s\S]+?(?:^\k<indent>}(?:\r\n|\r|\n))', 'Compiled,Multiline,Singleline'
 $referNativeFunction = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(?<!\.\s*)\b(\w+)Native(?=\()', 'Compiled'
 $referNativeFunctionQualified = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '\b(\w+)\s*\.\s*(\w+)Native(?=\()', 'Compiled'
-# $ptrStructDefPattern = New-Object -TypeName System.Text.RegularExpressions.Regex -ArgumentList '(^\s*(?:public\s+)?(?:unsafe\s+)?)(struct\s+\S+Ptr\b)', 'Compiled'
-$manualRequiredFunctions = New-Object -TypeName System.Collections.Generic.SortedSet[string]
 
-$targetPaths = (
-"$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Functions",
-"$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Structs",
-"$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Internals\Functions",
-# "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Manual\Functions",
-# "$PSScriptRoot\imgui\Dalamud.Bindings.ImPlot\Generated\Functions",
-# "$PSScriptRoot\imgui\Dalamud.Bindings.ImPlot\Generated\Structs",
-$null
+$sourcePaths = (
+    "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Functions",
+    "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Structs",
+    "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Internals\Functions",
+    "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Manual\Functions",
+    # "$PSScriptRoot\imgui\Dalamud.Bindings.ImPlot\Generated\Functions",
+    # "$PSScriptRoot\imgui\Dalamud.Bindings.ImPlot\Generated\Structs",
+    $null
 )
 
-foreach ($targetPath in $targetPaths)
+foreach ($sourcePath in $sourcePaths)
 {
-    if (!$targetPath)
+    if (!$sourcePath)
     {
         continue
     }
+
+    $targetPath = "$( Split-Path $( Split-Path $sourcePath ) )/Custom/Generated/$( Split-Path $( Split-Path $sourcePath ) -Leaf )/$( Split-Path $sourcePath -Leaf )"
+    $null = New-Item -Path $targetPath -Type Container -Force
+
     $namespace = $null
     $classes = New-Object -TypeName "System.Collections.Generic.Dictionary[string, System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[System.Text.RegularExpressions.Match]]]"
     $imports = New-Object -TypeName "System.Collections.Generic.SortedSet[string]"
@@ -41,7 +39,7 @@ foreach ($targetPath in $targetPaths)
     $null = $imports.Add("System.Numerics")
     $null = $imports.Add("HexaGen.Runtime")
     $husks = New-Object -TypeName "System.Text.StringBuilder"
-    foreach ($file in (Get-ChildItem -Path $targetPath))
+    foreach ($file in (Get-ChildItem -Path $sourcePath))
     {
         $fileData = Get-Content -Path $file.FullName -Raw
         $fileData = [Regex]::Replace($fileData, '#else\s*$[\s\S]*?^\s*#endif\s*$', '#endif', 'Multiline')
@@ -91,7 +89,7 @@ foreach ($targetPath in $targetPaths)
                 $overload = $null
                 $methodContainer = $( If ( $methodName.EndsWith("Native"))
                 {
-                    if ($nativeMethods -eq $null -and !$classes.TryGetValue("$( $className )Native", [ref]$nativeMethods))
+                    if ($null -eq $nativeMethods -and !$classes.TryGetValue("$( $className )Native", [ref]$nativeMethods))
                     {
                         $nativeMethods = New-Object -TypeName "System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[System.Text.RegularExpressions.Match]]"
                         $classes.Add("$( $className )Native", $nativeMethods)
@@ -125,7 +123,7 @@ foreach ($targetPath in $targetPaths)
         $husks = $husks.Replace("public unsafe struct", "public unsafe partial struct")
         $husks = $referNativeFunctionQualified.Replace($husks, '$1Native.$2')
         $husks = "// <auto-generated/>`r`n`r`nusing $([string]::Join(";`r`nusing ", $imports) );`r`n`r`n$husks"
-        $husks | Set-Content -Path "$( Split-Path $( Split-Path $targetPath ) )/Custom/Generated/$( Split-Path $( Split-Path $targetPath ) -Leaf ).$( Split-Path $targetPath -Leaf ).gen.cs" -Encoding ascii
+        $husks | Set-Content -Path "$targetPath.gen.cs" -Encoding ascii
     }
 
     $husks = "// <auto-generated/>`r`n`r`nusing $([string]::Join(";`r`nusing ", $imports) );`r`n`r`nnamespace $namespace;`r`n`r`n"
@@ -256,6 +254,6 @@ foreach ($targetPath in $targetPaths)
             $null = $sb.Append("// DISCARDED: $methodName`r`n")
         }
 
-        $sb.ToString() | Set-Content -Path "$( Split-Path $( Split-Path $targetPath ) )/Custom/Generated/$className.gen.cs" -Encoding ascii
+        $sb.ToString() | Set-Content -Path "$targetPath/$className.gen.cs" -Encoding ascii
     }
 }

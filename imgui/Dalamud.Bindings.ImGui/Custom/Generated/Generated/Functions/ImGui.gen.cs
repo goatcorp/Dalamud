@@ -8953,6 +8953,7 @@ public unsafe partial class ImGui
 // DISCARDED: internal static uint GetIDNative(byte* strIdBegin, byte* strIdEnd)
 // DISCARDED: internal static uint GetIDNative(void* ptrId)
 // DISCARDED: internal static int* GetIntRefNative(ImGuiStorage* self, uint key, int defaultVal)
+// DISCARDED: internal static void** GetVoidPtrRefNative(ImGuiStorage* self, uint key, void* defaultVal)
 // DISCARDED: internal static ImGuiTextFilter* ImGuiTextFilterNative(byte* defaultFilter)
 // DISCARDED: internal static ImGuiTextRange* ImGuiTextRangeNative()
 // DISCARDED: internal static ImGuiTextRange* ImGuiTextRangeNative(byte* b, byte* e)

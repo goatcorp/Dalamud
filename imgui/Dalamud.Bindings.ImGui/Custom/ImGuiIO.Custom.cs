@@ -16,7 +16,7 @@ public unsafe partial struct ImGuiIO
             ImGui.AddInputCharacter(thisPtr, c);
     }
 
-    public void AddInputCharacters(Utf8Buffer str)
+    public void AddInputCharacters(ImU8String str)
     {
         fixed (ImGuiIO* thisPtr = &this)
             ImGui.AddInputCharacters(thisPtr, str);
@@ -29,5 +29,5 @@ public partial struct ImGuiIOPtr
 
     public void AddInputCharacter(Rune c) => ImGui.AddInputCharacter(this, c);
 
-    public void AddInputCharacters(Utf8Buffer str) => ImGui.AddInputCharacters(this, str);
+    public void AddInputCharacters(ImU8String str) => ImGui.AddInputCharacters(this, str);
 }

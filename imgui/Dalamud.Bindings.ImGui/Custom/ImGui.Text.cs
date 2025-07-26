@@ -6,20 +6,20 @@ namespace Dalamud.Bindings.ImGui;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public static unsafe partial class ImGui
 {
-    public static void AddText(ImFontGlyphRangesBuilderPtr self, Utf8Buffer text)
+    public static void AddText(ImFontGlyphRangesBuilderPtr self, ImU8String text)
     {
         fixed (byte* textPtr = text.Span) ImGuiNative.AddText(self.Handle, textPtr, textPtr + text.Length);
         text.Dispose();
     }
 
-    public static void AddText(ImDrawListPtr self, Vector2 pos, uint col, Utf8Buffer text)
+    public static void AddText(ImDrawListPtr self, Vector2 pos, uint col, ImU8String text)
     {
         fixed (byte* textPtr = text.Span) ImGuiNative.AddText(self.Handle, pos, col, textPtr, textPtr + text.Length);
         text.Dispose();
     }
 
     public static void AddText(
-        ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, Utf8Buffer text, float wrapWidth,
+        ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, ImU8String text, float wrapWidth,
         scoped in Vector4 cpuFineClipRect)
     {
         fixed (byte* textPtr = text.Span)
@@ -38,7 +38,7 @@ public static unsafe partial class ImGui
     }
 
     public static void AddText(
-        ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, Utf8Buffer text,
+        ImDrawListPtr self, ImFontPtr font, float fontSize, Vector2 pos, uint col, ImU8String text,
         float wrapWidth = 0f)
     {
         fixed (byte* textPtr = text.Span)
@@ -46,13 +46,13 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void append(ImGuiTextBufferPtr self, Utf8Buffer str)
+    public static void append(ImGuiTextBufferPtr self, ImU8String str)
     {
         fixed (byte* strPtr = str.Span) ImGuiNative.append(self.Handle, strPtr, strPtr + str.Length);
         str.Dispose();
     }
 
-    public static void BulletText(Utf8Buffer text)
+    public static void BulletText(ImU8String text)
     {
         ImGuiWindow* window = ImGuiP.GetCurrentWindow();
         if (window->SkipItems != 0) return;
@@ -79,7 +79,7 @@ public static unsafe partial class ImGui
     }
 
     public static Vector2 CalcTextSize(
-        Utf8Buffer text, bool hideTextAfterDoubleHash = false, float wrapWidth = -1.0f)
+        ImU8String text, bool hideTextAfterDoubleHash = false, float wrapWidth = -1.0f)
     {
         var @out = Vector2.Zero;
         fixed (byte* textPtr = text.Span)
@@ -94,7 +94,7 @@ public static unsafe partial class ImGui
     }
 
     public static Vector2 CalcTextSizeA(
-        ImFontPtr self, float size, float maxWidth, float wrapWidth, Utf8Buffer text, out int remaining)
+        ImFontPtr self, float size, float maxWidth, float wrapWidth, ImU8String text, out int remaining)
     {
         var @out = Vector2.Zero;
         fixed (byte* textPtr = text.Span)
@@ -117,7 +117,7 @@ public static unsafe partial class ImGui
     }
 
     public static int CalcWordWrapPositionA(
-        ImFontPtr font, float scale, Utf8Buffer text, float wrapWidth)
+        ImFontPtr font, float scale, ImU8String text, float wrapWidth)
     {
         fixed (byte* ptr = text.Span)
         {
@@ -129,7 +129,7 @@ public static unsafe partial class ImGui
     }
 
     public static void InsertChars(
-        ImGuiInputTextCallbackDataPtr self, int pos, Utf8Buffer text)
+        ImGuiInputTextCallbackDataPtr self, int pos, ImU8String text)
     {
         fixed (byte* ptr = text.Span)
             ImGuiNative.InsertChars(self.Handle, pos, ptr, ptr + text.Length);
@@ -137,8 +137,8 @@ public static unsafe partial class ImGui
     }
 
     public static void LabelText(
-        Utf8Buffer label,
-        Utf8Buffer text)
+        ImU8String label,
+        ImU8String text)
     {
         var window = ImGuiP.GetCurrentWindow().Handle;
         if (window->SkipItems != 0)
@@ -183,7 +183,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void LogText(Utf8Buffer text)
+    public static void LogText(ImU8String text)
     {
         var g = GetCurrentContext();
         if (!g.LogFile.IsNull)
@@ -201,7 +201,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void PassFilter(ImGuiTextFilterPtr self, Utf8Buffer text)
+    public static void PassFilter(ImGuiTextFilterPtr self, ImU8String text)
     {
         fixed (byte* textPtr = text.Span)
             ImGuiNative.PassFilter(self.Handle, textPtr, textPtr + text.Length);
@@ -210,7 +210,7 @@ public static unsafe partial class ImGui
 
     public static void RenderText(
         ImFontPtr self, ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect,
-        Utf8Buffer text, float wrapWidth = 0.0f, bool cpuFineClip = false)
+        ImU8String text, float wrapWidth = 0.0f, bool cpuFineClip = false)
     {
         fixed (byte* textPtr = text.Span)
             ImGuiNative.RenderText(
@@ -227,7 +227,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void SetTooltip(Utf8Buffer text)
+    public static void SetTooltip(ImU8String text)
     {
         ImGuiP.BeginTooltipEx(ImGuiTooltipFlags.OverridePreviousTooltip, ImGuiWindowFlags.None);
         Text(text.Span);
@@ -235,14 +235,14 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void Text(Utf8Buffer text)
+    public static void Text(ImU8String text)
     {
         fixed (byte* ptr = text.Span)
             ImGuiNative.TextUnformatted(ptr, ptr + text.Length);
         text.Dispose();
     }
 
-    public static void TextColored(uint col, Utf8Buffer text)
+    public static void TextColored(uint col, ImU8String text)
     {
         PushStyleColor(ImGuiCol.Text, col);
         Text(text.Span);
@@ -250,7 +250,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void TextColored(scoped in Vector4 col, Utf8Buffer text)
+    public static void TextColored(scoped in Vector4 col, ImU8String text)
     {
         PushStyleColor(ImGuiCol.Text, col);
         Text(text.Span);
@@ -258,19 +258,19 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void TextDisabled(Utf8Buffer text)
+    public static void TextDisabled(ImU8String text)
     {
         TextColored(*GetStyleColorVec4(ImGuiCol.TextDisabled), text.Span);
         text.Dispose();
     }
 
-    public static void TextUnformatted(Utf8Buffer text)
+    public static void TextUnformatted(ImU8String text)
     {
         Text(text.Span);
         text.Dispose();
     }
 
-    public static void TextWrapped(Utf8Buffer text)
+    public static void TextWrapped(ImU8String text)
     {
         scoped ref var g = ref *GetCurrentContext().Handle;
         var needBackup = g.CurrentWindow->DC.TextWrapPos < 0.0f; // Keep existing wrap position if one is already set
@@ -282,7 +282,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static bool TreeNode(Utf8Buffer label)
+    public static bool TreeNode(ImU8String label)
     {
         var window = ImGuiP.GetCurrentWindow();
         if (window.SkipItems)
@@ -300,8 +300,8 @@ public static unsafe partial class ImGui
     }
 
     public static bool TreeNodeEx(
-        Utf8Buffer id, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.None,
-        Utf8Buffer label = default)
+        ImU8String id, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.None,
+        ImU8String label = default)
     {
         var window = ImGuiP.GetCurrentWindow();
         bool res;

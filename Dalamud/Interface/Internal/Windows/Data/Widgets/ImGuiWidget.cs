@@ -73,17 +73,9 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Checkbox("##manualType", ref this.notificationTemplate.ManualType);
         ImGui.SameLine();
-        ImGui.Combo(
-            "Type##type",
-            ref this.notificationTemplate.TypeInt,
-            NotificationTemplate.TypeTitles,
-            NotificationTemplate.TypeTitles.Length);
+        ImGui.Combo("Type##type", ref this.notificationTemplate.TypeInt, NotificationTemplate.TypeTitles);
 
-        ImGui.Combo(
-            "Icon##iconCombo",
-            ref this.notificationTemplate.IconInt,
-            NotificationTemplate.IconTitles,
-            NotificationTemplate.IconTitles.Length);
+        ImGui.Combo("Icon##iconCombo", ref this.notificationTemplate.IconInt, NotificationTemplate.IconTitles);
         switch (this.notificationTemplate.IconInt)
         {
             case 1 or 2:
@@ -96,8 +88,7 @@ internal class ImGuiWidget : IDataWindowWidget
                 ImGui.Combo(
                     "Asset##iconAssetCombo",
                     ref this.notificationTemplate.IconAssetInt,
-                    NotificationTemplate.AssetSources,
-                    NotificationTemplate.AssetSources.Length);
+                    NotificationTemplate.AssetSources);
                 break;
             case 3 or 7:
                 ImGui.InputText(
@@ -116,20 +107,17 @@ internal class ImGuiWidget : IDataWindowWidget
         ImGui.Combo(
             "Initial Duration",
             ref this.notificationTemplate.InitialDurationInt,
-            NotificationTemplate.InitialDurationTitles,
-            NotificationTemplate.InitialDurationTitles.Length);
+            NotificationTemplate.InitialDurationTitles);
 
         ImGui.Combo(
             "Extension Duration",
             ref this.notificationTemplate.HoverExtendDurationInt,
-            NotificationTemplate.HoverExtendDurationTitles,
-            NotificationTemplate.HoverExtendDurationTitles.Length);
+            NotificationTemplate.HoverExtendDurationTitles);
 
         ImGui.Combo(
             "Progress",
             ref this.notificationTemplate.ProgressMode,
-            NotificationTemplate.ProgressModeTitles,
-            NotificationTemplate.ProgressModeTitles.Length);
+            NotificationTemplate.ProgressModeTitles);
 
         ImGui.Checkbox("Respect UI Hidden", ref this.notificationTemplate.RespectUiHidden);
 

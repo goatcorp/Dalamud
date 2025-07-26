@@ -7,7 +7,7 @@ namespace Dalamud.Bindings.ImGui;
 public static unsafe partial class ImGui
 {
     public static ImGuiPayloadPtr AcceptDragDropPayload(
-        Utf8Buffer type, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
+        ImU8String type, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
     {
         fixed (byte* typePtr = &type.GetPinnableNullTerminatedReference())
         {
@@ -18,7 +18,7 @@ public static unsafe partial class ImGui
     }
 
     public static ImFontPtr AddFontFromFileTTF(
-        ImFontAtlasPtr self, Utf8Buffer filename, float sizePixels, ImFontConfigPtr fontCfg = default,
+        ImFontAtlasPtr self, ImU8String filename, float sizePixels, ImFontConfigPtr fontCfg = default,
         ushort* glyphRanges = null)
     {
         fixed (byte* filenamePtr = &filename.GetPinnableNullTerminatedReference())
@@ -30,7 +30,7 @@ public static unsafe partial class ImGui
     }
 
     public static ImFontPtr AddFontFromMemoryCompressedBase85TTF(
-        ImFontAtlasPtr self, Utf8Buffer compressedFontDatabase85, float sizePixels,
+        ImFontAtlasPtr self, ImU8String compressedFontDatabase85, float sizePixels,
         ImFontConfigPtr fontCfg = default, ushort* glyphRanges = null)
     {
         fixed (byte* compressedFontDatabase85Ptr = &compressedFontDatabase85.GetPinnableNullTerminatedReference())
@@ -76,7 +76,7 @@ public static unsafe partial class ImGui
 
     public static void AddInputCharacter(ImGuiIOPtr self, char c) => ImGuiNative.AddInputCharacter(self, c);
     public static void AddInputCharacter(ImGuiIOPtr self, Rune c) => ImGuiNative.AddInputCharacter(self, (uint)c.Value);
-    public static void AddInputCharacters(ImGuiIOPtr self, Utf8Buffer str)
+    public static void AddInputCharacters(ImGuiIOPtr self, ImU8String str)
     {
         fixed (byte* strPtr = &str.GetPinnableNullTerminatedReference())
             ImGuiNative.AddInputCharactersUTF8(self.Handle, strPtr);
@@ -104,7 +104,7 @@ public static unsafe partial class ImGui
         return ref *(T*)ImGuiNative.GetVoidPtrRef(self.Handle, key, *(void**)&defaultValue);
     }
 
-    public static uint GetID(Utf8Buffer strId)
+    public static uint GetID(ImU8String strId)
     {
         fixed (byte* strIdPtr = strId.Span)
         {
@@ -118,7 +118,7 @@ public static unsafe partial class ImGui
     public static uint GetID(nuint ptrId) => ImGuiNative.GetID((void*)ptrId);
     public static uint GetID(void* ptrId) => ImGuiNative.GetID(ptrId);
 
-    public static void PushID(Utf8Buffer strId)
+    public static void PushID(ImU8String strId)
     {
         fixed (byte* strIdPtr = strId.Span)
         {

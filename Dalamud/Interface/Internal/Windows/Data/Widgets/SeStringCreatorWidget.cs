@@ -568,7 +568,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             }
         }).OrderBy(sheetName => sheetName, StringComparer.InvariantCulture).ToArray();
 
-        var sheetChanged = ImGui.Combo("Sheet Name", ref this.importSelectedSheetName, this.validImportSheetNames, this.validImportSheetNames.Length);
+        var sheetChanged = ImGui.Combo("Sheet Name", ref this.importSelectedSheetName, this.validImportSheetNames);
 
         try
         {
@@ -683,7 +683,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Type
             var type = (int)entry.Type;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.Combo($"##Type{i}", ref type, ["String", "Macro", "Fixed"], 3))
+            if (ImGui.Combo($"##Type{i}", ref type, ["String", "Macro", "Fixed"]))
             {
                 entry.Type = (TextEntryType)type;
                 updateString |= true;

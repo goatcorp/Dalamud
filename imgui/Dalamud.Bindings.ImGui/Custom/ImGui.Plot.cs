@@ -9,10 +9,12 @@ public static unsafe partial class ImGui
 {
     public delegate float GetFloatDelegate(int index);
 
-    public delegate float GetFloatDelegate<T>(scoped in T context, int index);
+    public delegate float GetFloatInContextDelegate<T>(scoped in T context, int index) where T : allows ref struct;
+
+    public delegate float GetFloatRefContextDelegate<T>(scoped ref T context, int index) where T : allows ref struct;
 
     public static void PlotHistogram(
-        Utf8Buffer label, ReadOnlySpan<float> values, int valuesOffset = 0, Utf8Buffer overlayText = default,
+        ImU8String label, ReadOnlySpan<float> values, int valuesOffset = 0, ImU8String overlayText = default,
         float scaleMin = float.MaxValue, float scaleMax = float.MaxValue, Vector2 graphSize = default,
         int stride = sizeof(float))
     {
@@ -37,8 +39,9 @@ public static unsafe partial class ImGui
     }
 
     public static void PlotHistogram<TContext>(
-        Utf8Buffer label, GetFloatDelegate<TContext> valuesGetter, scoped in TContext context, int valuesCount,
-        int valuesOffset = 0, Utf8Buffer overlayText = default, float scaleMin = float.MaxValue,
+        ImU8String label, GetFloatRefContextDelegate<TContext> valuesGetter, scoped ref TContext context,
+        int valuesCount,
+        int valuesOffset = 0, ImU8String overlayText = default, float scaleMin = float.MaxValue,
         float scaleMax = float.MaxValue, Vector2 graphSize = default)
     {
         var dataBuffer = stackalloc void*[2];
@@ -53,7 +56,38 @@ public static unsafe partial class ImGui
             ImGuiNative.PlotHistogram(
                 labelPtr,
                 (delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float>)
-                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatWithContext,
+                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatRefContextStatic,
+                dataBuffer,
+                valuesCount,
+                valuesOffset,
+                overlayTextPtr,
+                scaleMin,
+                scaleMax,
+                graphSize);
+        }
+
+        label.Dispose();
+        overlayText.Dispose();
+    }
+
+    public static void PlotHistogram<TContext>(
+        ImU8String label, GetFloatInContextDelegate<TContext> valuesGetter, scoped in TContext context, int valuesCount,
+        int valuesOffset = 0, ImU8String overlayText = default, float scaleMin = float.MaxValue,
+        float scaleMax = float.MaxValue, Vector2 graphSize = default)
+    {
+        var dataBuffer = stackalloc void*[2];
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* overlayTextPtr = &overlayText.GetPinnableNullTerminatedReference())
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+        fixed (TContext* contextPtr = &context)
+        {
+            dataBuffer[0] = &valuesGetter;
+            dataBuffer[1] = contextPtr;
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+            ImGuiNative.PlotHistogram(
+                labelPtr,
+                (delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float>)
+                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatInContextStatic,
                 dataBuffer,
                 valuesCount,
                 valuesOffset,
@@ -68,8 +102,8 @@ public static unsafe partial class ImGui
     }
 
     public static void PlotHistogram(
-        Utf8Buffer label, GetFloatDelegate valuesGetter, int valuesCount,
-        int valuesOffset = 0, Utf8Buffer overlayText = default, float scaleMin = float.MaxValue,
+        ImU8String label, GetFloatDelegate valuesGetter, int valuesCount,
+        int valuesOffset = 0, ImU8String overlayText = default, float scaleMin = float.MaxValue,
         float scaleMax = float.MaxValue, Vector2 graphSize = default)
     {
         var dataBuffer = stackalloc void*[1];
@@ -82,7 +116,7 @@ public static unsafe partial class ImGui
             ImGuiNative.PlotHistogram(
                 labelPtr,
                 (delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float>)
-                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatWithContext,
+                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatStatic,
                 dataBuffer,
                 valuesCount,
                 valuesOffset,
@@ -97,7 +131,7 @@ public static unsafe partial class ImGui
     }
 
     public static void PlotLines(
-        Utf8Buffer label, ReadOnlySpan<float> values, int valuesOffset = 0, Utf8Buffer overlayText = default,
+        ImU8String label, ReadOnlySpan<float> values, int valuesOffset = 0, ImU8String overlayText = default,
         float scaleMin = float.MaxValue, float scaleMax = float.MaxValue, Vector2 graphSize = default,
         int stride = sizeof(float))
     {
@@ -122,8 +156,8 @@ public static unsafe partial class ImGui
     }
 
     public static void PlotLines<TContext>(
-        Utf8Buffer label, GetFloatDelegate<TContext> valuesGetter, scoped in TContext context, int valuesCount,
-        int valuesOffset = 0, Utf8Buffer overlayText = default, float scaleMin = float.MaxValue,
+        ImU8String label, GetFloatInContextDelegate<TContext> valuesGetter, scoped in TContext context, int valuesCount,
+        int valuesOffset = 0, ImU8String overlayText = default, float scaleMin = float.MaxValue,
         float scaleMax = float.MaxValue, Vector2 graphSize = default)
     {
         var dataBuffer = stackalloc void*[2];
@@ -138,7 +172,39 @@ public static unsafe partial class ImGui
             ImGuiNative.PlotLines(
                 labelPtr,
                 (delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float>)
-                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatWithContext,
+                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatInContextStatic,
+                dataBuffer,
+                valuesCount,
+                valuesOffset,
+                overlayTextPtr,
+                scaleMin,
+                scaleMax,
+                graphSize);
+        }
+
+        label.Dispose();
+        overlayText.Dispose();
+    }
+
+    public static void PlotLines<TContext>(
+        ImU8String label, GetFloatRefContextDelegate<TContext> valuesGetter, scoped in TContext context,
+        int valuesCount,
+        int valuesOffset = 0, ImU8String overlayText = default, float scaleMin = float.MaxValue,
+        float scaleMax = float.MaxValue, Vector2 graphSize = default)
+    {
+        var dataBuffer = stackalloc void*[2];
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* overlayTextPtr = &overlayText.GetPinnableNullTerminatedReference())
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+        fixed (TContext* contextPtr = &context)
+        {
+            dataBuffer[0] = &valuesGetter;
+            dataBuffer[1] = contextPtr;
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+            ImGuiNative.PlotLines(
+                labelPtr,
+                (delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float>)
+                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatRefContextStatic,
                 dataBuffer,
                 valuesCount,
                 valuesOffset,
@@ -153,8 +219,8 @@ public static unsafe partial class ImGui
     }
 
     public static void PlotLines(
-        Utf8Buffer label, GetFloatDelegate valuesGetter, int valuesCount,
-        int valuesOffset = 0, Utf8Buffer overlayText = default, float scaleMin = float.MaxValue,
+        ImU8String label, GetFloatDelegate valuesGetter, int valuesCount,
+        int valuesOffset = 0, ImU8String overlayText = default, float scaleMin = float.MaxValue,
         float scaleMax = float.MaxValue, Vector2 graphSize = default)
     {
         var dataBuffer = stackalloc void*[1];
@@ -167,7 +233,7 @@ public static unsafe partial class ImGui
             ImGuiNative.PlotLines(
                 labelPtr,
                 (delegate*<byte*, delegate*<void*, int, float>, void*, int, int, byte*, float, float, Vector2, float>)
-                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatWithContext,
+                (nint)(delegate* unmanaged<void*, int, float>)&GetFloatStatic,
                 dataBuffer,
                 valuesCount,
                 valuesOffset,
@@ -183,11 +249,20 @@ public static unsafe partial class ImGui
 
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
     [UnmanagedCallersOnly]
-    private static float GetFloatWithContext(void* data, int index) =>
-        ((GetFloatDelegate<object>*)((void**)data)[0])->Invoke(*(object*)((void**)data)[1], index);
+    internal static float GetFloatRefContextStatic(void* data, int index)
+    {
+        ref var pt = ref PointerTuple.From<GetFloatRefContextDelegate<object>, object>(data);
+        return pt.Item1.Invoke(ref pt.Item2, index);
+    }
 
     [UnmanagedCallersOnly]
-    private static float GetFloatWithoutContext(void* data, int index) =>
-        ((GetFloatDelegate*)((void**)data)[0])->Invoke(index);
-#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+    internal static float GetFloatInContextStatic(void* data, int index)
+    {
+        ref var pt = ref PointerTuple.From<GetFloatInContextDelegate<object>, object>(data);
+        return pt.Item1.Invoke(pt.Item2, index);
+    }
+
+    [UnmanagedCallersOnly]
+    internal static float GetFloatStatic(void* data, int index) =>
+        PointerTuple.From<GetFloatDelegate>(data).Item1.Invoke(index);
 }

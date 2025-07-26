@@ -2,7 +2,7 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiTextBuffer
 {
-    public void append(Utf8Buffer str)
+    public void append(ImU8String str)
     {
         fixed (ImGuiTextBuffer* thisPtr = &this)
             ImGui.append(thisPtr, str);
@@ -11,5 +11,5 @@ public unsafe partial struct ImGuiTextBuffer
 
 public partial struct ImGuiTextBufferPtr
 {
-    public void append(Utf8Buffer str) => ImGui.append(this, str);
+    public void append(ImU8String str) => ImGui.append(this, str);
 }

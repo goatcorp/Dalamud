@@ -10,7 +10,7 @@ public unsafe partial struct ImFont
     }
 
     public readonly void RenderText(
-        ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect, Utf8Buffer text,
+        ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect, ImU8String text,
         float wrapWidth = 0.0f, bool cpuFineClip = false)
     {
         fixed (ImFont* thisPtr =
@@ -20,11 +20,11 @@ public unsafe partial struct ImFont
 
 public partial struct ImFontPtr
 {
-    public readonly int CalcWordWrapPositionA(float scale, Utf8Buffer text, float wrapWidth) =>
+    public readonly int CalcWordWrapPositionA(float scale, ImU8String text, float wrapWidth) =>
         ImGui.CalcWordWrapPositionA(this, scale, text, wrapWidth);
 
     public readonly void RenderText(
-        ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect, Utf8Buffer text,
+        ImDrawListPtr drawList, float size, Vector2 pos, uint col, Vector4 clipRect, ImU8String text,
         float wrapWidth = 0.0f, bool cpuFineClip = false) => ImGui.RenderText(
         this,
         drawList,
