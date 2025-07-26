@@ -125,8 +125,6 @@ internal class PluginManager : IInternalDisposableService
         this.openInstallerWindowPluginChangelogsLink =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
-                    "Dalamud",
-                    1003,
                     (_, _) =>
                     {
                         Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(

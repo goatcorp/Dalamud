@@ -12,6 +12,7 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Logging.Internal;
 using Dalamud.Memory;
+using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
@@ -40,7 +41,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     private static readonly ModuleLog Log = new("ChatGui");
 
     private readonly Queue<XivChatEntry> chatQueue = new();
-    private readonly Dictionary<(string PluginName, uint CommandId), Action<uint, SeString>> dalamudLinkHandlers = new();
+    private readonly Dictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>> dalamudLinkHandlers = new();
 
     private readonly Hook<PrintMessageDelegate> printMessageHook;
     private readonly Hook<InventoryItem.Delegates.Copy> inventoryItemCopyHook;
@@ -49,7 +50,8 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-    private ImmutableDictionary<(string PluginName, uint CommandId), Action<uint, SeString>>? dalamudLinkHandlersCopy;
+    private uint dommandIdCounter = 0;
+    private ImmutableDictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>>? dalamudLinkHandlersCopy;
 
     [ServiceManager.ServiceConstructor]
     private ChatGui()
@@ -85,7 +87,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     public byte LastLinkedItemFlags { get; private set; }
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers
+    public IReadOnlyDictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>> RegisteredLinkHandlers
     {
         get
         {
@@ -161,6 +163,28 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
 
     #endregion
 
+    #region Chat Links
+
+    /// <inheritdoc/>
+    public DalamudLinkPayload AddChatLinkHandler(Action<Guid, SeString> commandAction)
+    {
+        return this.AddChatLinkHandler("Dalamud", commandAction);
+    }
+
+    /// <inheritdoc/>
+    public void RemoveChatLinkHandler(Guid commandId)
+    {
+        this.RemoveChatLinkHandler("Dalamud", commandId);
+    }
+
+    /// <inheritdoc/>
+    public void RemoveChatLinkHandler()
+    {
+        this.RemoveChatLinkHandler("Dalamud");
+    }
+
+    #endregion
+
     /// <summary>
     /// Process a chat queue.
     /// </summary>
@@ -217,12 +241,11 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// Create a link handler.
     /// </summary>
     /// <param name="pluginName">The name of the plugin handling the link.</param>
-    /// <param name="commandId">The ID of the command to run.</param>
     /// <param name="commandAction">The command action itself.</param>
     /// <returns>A payload for handling.</returns>
-    [Api13ToDo("Plugins should not specify their own command IDs here. We should assign them ourselves.")]
-    internal DalamudLinkPayload AddChatLinkHandler(string pluginName, uint commandId, Action<uint, SeString> commandAction)
+    internal DalamudLinkPayload AddChatLinkHandler(string pluginName, Action<Guid, SeString> commandAction)
     {
+        var commandId = Guid.CreateVersion7();
         var payload = new DalamudLinkPayload { Plugin = pluginName, CommandId = commandId };
         lock (this.dalamudLinkHandlers)
         {
@@ -255,7 +278,7 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     /// </summary>
     /// <param name="pluginName">The name of the plugin handling the link.</param>
     /// <param name="commandId">The ID of the command to be removed.</param>
-    internal void RemoveChatLinkHandler(string pluginName, uint commandId)
+    internal void RemoveChatLinkHandler(string pluginName, Guid commandId)
     {
         lock (this.dalamudLinkHandlers)
         {
@@ -478,11 +501,15 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     [ServiceManager.ServiceDependency]
     private readonly ChatGui chatGuiService = Service<ChatGui>.Get();
 
+    private readonly LocalPlugin plugin;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatGuiPluginScoped"/> class.
     /// </summary>
-    internal ChatGuiPluginScoped()
+    /// <param name="plugin">The plugin.</param>
+    internal ChatGuiPluginScoped(LocalPlugin plugin)
     {
+        this.plugin = plugin;
         this.chatGuiService.ChatMessage += this.OnMessageForward;
         this.chatGuiService.CheckMessageHandled += this.OnCheckMessageForward;
         this.chatGuiService.ChatMessageHandled += this.OnMessageHandledForward;
@@ -508,7 +535,7 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
     public byte LastLinkedItemFlags => this.chatGuiService.LastLinkedItemFlags;
 
     /// <inheritdoc/>
-    public IReadOnlyDictionary<(string PluginName, uint CommandId), Action<uint, SeString>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
+    public IReadOnlyDictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>> RegisteredLinkHandlers => this.chatGuiService.RegisteredLinkHandlers;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -523,6 +550,18 @@ internal class ChatGuiPluginScoped : IInternalDisposableService, IChatGui
         this.ChatMessageHandled = null;
         this.ChatMessageUnhandled = null;
     }
+
+    /// <inheritdoc/>
+    public DalamudLinkPayload AddChatLinkHandler(Action<Guid, SeString> commandAction)
+        => this.chatGuiService.AddChatLinkHandler(this.plugin.InternalName, commandAction);
+
+    /// <inheritdoc/>
+    public void RemoveChatLinkHandler(Guid commandId)
+        => this.chatGuiService.RemoveChatLinkHandler(this.plugin.InternalName, commandId);
+
+    /// <inheritdoc/>
+    public void RemoveChatLinkHandler()
+        => this.chatGuiService.RemoveChatLinkHandler(this.plugin.InternalName);
 
     /// <inheritdoc/>
     public void Print(XivChatEntry chat)

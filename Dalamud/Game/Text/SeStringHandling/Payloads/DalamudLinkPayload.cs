@@ -16,7 +16,7 @@ public class DalamudLinkPayload : Payload
     public override PayloadType Type => PayloadType.DalamudLink;
 
     /// <summary>Gets the plugin command ID to be linked.</summary>
-    public uint CommandId { get; internal set; }
+    public Guid CommandId { get; internal set; }
 
     /// <summary>Gets an optional extra integer value 1.</summary>
     public int Extra1 { get; internal set; }
@@ -40,7 +40,7 @@ public class DalamudLinkPayload : Payload
         var ssb = Lumina.Text.SeStringBuilder.SharedPool.Get();
         var res = ssb.BeginMacro(MacroCode.Link)
                      .AppendIntExpression((int)EmbeddedInfoType.DalamudLink - 1)
-                     .AppendUIntExpression(this.CommandId)
+                     .AppendStringExpression(this.CommandId.ToString())
                      .AppendIntExpression(this.Extra1)
                      .AppendIntExpression(this.Extra2)
                      .BeginStringExpression()
@@ -72,15 +72,15 @@ public class DalamudLinkPayload : Payload
             if (!pluginExpression.TryGetString(out var pluginString))
                 return;
 
-            if (!commandIdExpression.TryGetUInt(out var commandId))
+            if (!commandIdExpression.TryGetString(out var commandId))
                 return;
 
             this.Plugin = pluginString.ExtractText();
-            this.CommandId = commandId;
+            this.CommandId = Guid.Parse(commandId.ExtractText());
         }
         else
         {
-            if (!commandIdExpression.TryGetUInt(out var commandId))
+            if (!commandIdExpression.TryGetString(out var commandId))
                 return;
 
             if (!extra1Expression.TryGetInt(out var extra1))
@@ -102,7 +102,7 @@ public class DalamudLinkPayload : Payload
                 return;
             }
 
-            this.CommandId = commandId;
+            this.CommandId = Guid.Parse(commandId.ExtractText());
             this.Extra1 = extra1;
             this.Extra2 = extra2;
             this.Plugin = extraData[0];

@@ -13,8 +13,6 @@ using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -425,39 +423,6 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <returns>directory with path of AppData/XIVLauncher/pluginConfig/PluginInternalName/loc.</returns>
     public string GetPluginLocDirectory() => this.configs.GetDirectory(Path.Combine(this.plugin.InternalName, "loc"));
 
-    #endregion
-
-    #region Chat Links
-
-    // TODO API9: Move to chatgui, don't allow passing own commandId
-
-    /// <summary>
-    /// Register a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    /// <param name="commandAction">The action to be executed.</param>
-    /// <returns>Returns an SeString payload for the link.</returns>
-    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
-    {
-        return Service<ChatGui>.Get().AddChatLinkHandler(this.plugin.InternalName, commandId, commandAction);
-    }
-
-    /// <summary>
-    /// Remove a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    public void RemoveChatLinkHandler(uint commandId)
-    {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName, commandId);
-    }
-
-    /// <summary>
-    /// Removes all chat link handlers registered by the plugin.
-    /// </summary>
-    public void RemoveChatLinkHandler()
-    {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
-    }
     #endregion
 
     #region Dependency Injection
