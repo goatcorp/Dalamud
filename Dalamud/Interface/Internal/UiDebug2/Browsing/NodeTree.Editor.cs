@@ -321,7 +321,7 @@ internal unsafe partial class TextNodeTree
         ImGui.Text("Font:");
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(150);
-        if (ImGui.Combo($"##{(nint)this.Node:X}fontType", ref fontIndex, FontNames, FontList.Count))
+        if (ImGui.Combo($"##{(nint)this.Node:X}fontType", ref fontIndex, FontNames))
         {
             this.TxtNode->FontType = FontList[fontIndex];
         }

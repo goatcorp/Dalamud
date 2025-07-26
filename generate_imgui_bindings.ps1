@@ -77,3 +77,5 @@ Set-Location -Path "bin/Debug/net9.0"
 
 # Restore initial directory
 Set-Location -Path $initialDirectory
+
+& "$PSScriptRoot\filter_imgui_bindings.ps1"

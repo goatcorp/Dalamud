@@ -210,7 +210,8 @@ public class SettingsTabLook : SettingsTab
                 var len = Encoding.UTF8.GetByteCount(buildingFonts);
                 var p = stackalloc byte[len];
                 Encoding.UTF8.GetBytes(buildingFonts, new(p, len));
-                ImGui.TextUnformatted(p, (p + len + ((Environment.TickCount / 200) % 3)) - 2);
+                ImGui.TextUnformatted(
+                    new ReadOnlySpan<byte>(p, len)[..((len + ((Environment.TickCount / 200) % 3)) - 2)]);
             }
         }
 

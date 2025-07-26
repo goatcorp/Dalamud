@@ -243,8 +243,8 @@ internal class TaskSchedulerWidget : IDataWindowWidget
 
         if (ImGui.CollapsingHeader("Download"))
         {
-            ImGui.InputText("URL", ref this.url, (uint)this.url.Length);
-            ImGui.InputText("Local Path", ref this.localPath, (uint)this.localPath.Length);
+            ImGui.InputText("URL", ref this.url);
+            ImGui.InputText("Local Path", ref this.localPath);
             ImGui.SameLine();
 
             if (ImGuiComponents.IconButton("##localpathpicker", FontAwesomeIcon.File))

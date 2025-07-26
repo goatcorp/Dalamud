@@ -348,7 +348,7 @@ internal sealed unsafe partial class Win32InputHandler : IImGuiInputHandler
             case WM.WM_CHAR:
                 if (io.WantTextInput)
                 {
-                    io.AddInputCharacter((uint)wParam);
+                    io.AddInputCharacter(new Rune((uint)wParam));
                     return nint.Zero;
                 }
 

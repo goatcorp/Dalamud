@@ -101,7 +101,7 @@ internal class UldWidget : IDataWindowWidget
         }
 
         var selectedUldPrev = this.selectedUld;
-        ImGui.Combo("##selectUld", ref this.selectedUld, uldNames, uldNames.Length);
+        ImGui.Combo("##selectUld", ref this.selectedUld, uldNames);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectUldLeft", FontAwesomeIcon.AngleLeft))
             this.selectedUld = ((this.selectedUld + uldNames.Length) - 1) % uldNames.Length;
@@ -117,7 +117,7 @@ internal class UldWidget : IDataWindowWidget
             ClearTask(ref this.selectedUldFileTask);
         }
 
-        ImGui.Combo("##selectTheme", ref this.selectedTheme, ThemeDisplayNames, ThemeDisplayNames.Length);
+        ImGui.Combo("##selectTheme", ref this.selectedTheme, ThemeDisplayNames);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectThemeLeft", FontAwesomeIcon.AngleLeft))
             this.selectedTheme = ((this.selectedTheme + ThemeDisplayNames.Length) - 1) % ThemeDisplayNames.Length;

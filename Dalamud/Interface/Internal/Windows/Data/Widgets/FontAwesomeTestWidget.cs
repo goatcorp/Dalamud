@@ -69,7 +69,7 @@ internal class FontAwesomeTestWidget : IDataWindowWidget
 
         ImGui.SetNextItemWidth(160f);
         var categoryIndex = this.selectedIconCategory;
-        if (ImGui.Combo("####FontAwesomeCategorySearch", ref categoryIndex, this.iconCategories, this.iconCategories.Length))
+        if (ImGui.Combo("####FontAwesomeCategorySearch", ref categoryIndex, this.iconCategories))
         {
             this.selectedIconCategory = categoryIndex;
             this.iconSearchChanged = true;

@@ -115,7 +115,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         ImGui.SameLine();
         var t4 = this.style.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
         ImGui.PushItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW").X);
-        if (ImGui.Combo("##theme", ref t4, ThemeNames, ThemeNames.Length))
+        if (ImGui.Combo("##theme", ref t4, ThemeNames))
             this.style.ThemeIndex = t4;
 
         ImGui.SameLine();
@@ -265,12 +265,8 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         {
             if (ImGui.InputTextMultiline(
                     labelPtr,
-                    this.testStringBuffer.Data,
-                    (uint)this.testStringBuffer.Capacity,
-                    new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
-                    0,
-                    null,
-                    null))
+                    this.testStringBuffer.StorageSpan,
+                    new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3)))
             {
                 var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
                 if (len + 4 >= this.testStringBuffer.Capacity)
@@ -278,7 +274,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 if (len < this.testStringBuffer.Capacity)
                 {
                     this.testStringBuffer.LengthUnsafe = len;
-                    this.testStringBuffer.StorageSpan[len] = default;
+                    this.testStringBuffer.StorageSpan[len] = 0;
                 }
 
                 this.testString = string.Empty;

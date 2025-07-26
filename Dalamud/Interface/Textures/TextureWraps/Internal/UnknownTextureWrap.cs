@@ -16,7 +16,7 @@ internal sealed unsafe class UnknownTextureWrap : IDalamudTextureWrap, IDeferred
 
     /// <summary>Initializes a new instance of the <see cref="UnknownTextureWrap"/> class.</summary>
     /// <param name="unknown">The pointer to <see cref="IUnknown"/> that is suitable for use with
-    /// <see cref="IDalamudTextureWrap.ImGuiHandle"/>.</param>
+    /// <see cref="IDalamudTextureWrap.Handle"/>.</param>
     /// <param name="width">The width of the texture.</param>
     /// <param name="height">The height of the texture.</param>
     /// <param name="callAddRef">If <c>true</c>, call <see cref="IUnknown.AddRef"/>.</param>

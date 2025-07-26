@@ -87,7 +87,7 @@ internal unsafe class UiDebug
         var addonName = atkUnitBase->NameString;
         var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
-        ImGui.Text($"{addonName}");
+        ImGui.Text(addonName);
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, isVisible ? 0xFF00FF00 : 0xFF0000FF);
         ImGui.Text(isVisible ? "Visible" : "Not Visible");
@@ -211,7 +211,7 @@ internal unsafe class UiDebug
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textNode->NodeText);
 
-                    ImGui.InputText($"Replace Text##{(ulong)textNode:X}", textNode->NodeText.StringPtr, (uint)textNode->NodeText.BufSize);
+                    ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new(textNode->NodeText.StringPtr, (int)textNode->NodeText.BufSize));
 
                     ImGui.SameLine();
                     if (ImGui.Button($"Encode##{(ulong)textNode:X}"))

@@ -41,9 +41,9 @@ internal class ToastWidget : IDataWindowWidget
 
         ImGui.InputText("Toast text", ref this.inputTextToast, 200);
 
-        ImGui.Combo("Toast Position", ref this.toastPosition, new[] { "Bottom", "Top", }, 2);
-        ImGui.Combo("Toast Speed", ref this.toastSpeed, new[] { "Slow", "Fast", }, 2);
-        ImGui.Combo("Quest Toast Position", ref this.questToastPosition, new[] { "Centre", "Right", "Left" }, 3);
+        ImGui.Combo("Toast Position", ref this.toastPosition, ["Bottom", "Top"]);
+        ImGui.Combo("Toast Speed", ref this.toastSpeed, ["Slow", "Fast"]);
+        ImGui.Combo("Quest Toast Position", ref this.questToastPosition, ["Centre", "Right", "Left"]);
         ImGui.Checkbox("Quest Checkmark", ref this.questToastCheckmark);
         ImGui.Checkbox("Quest Play Sound", ref this.questToastSound);
         ImGui.InputInt("Quest Icon ID", ref this.questToastIconId);

@@ -136,11 +136,7 @@ public static partial class ImGuiHelpers
     /// <param name="name">The name/ID of the window.</param>
     /// <param name="position">The position of the window.</param>
     /// <param name="condition">When to set the position.</param>
-    public static void SetWindowPosRelativeMainViewport(string name, Vector2 position, ImGuiCond condition = ImGuiCond.None)
-        => ImGui.SetWindowPos(name, position + MainViewport.Pos, condition);
-
-    /// <inheritdoc cref="SetWindowPosRelativeMainViewport(string, Vector2, ImGuiCond)"/>
-    public static void SetWindowPosRelativeMainViewport(ReadOnlySpan<byte> name, Vector2 position, ImGuiCond condition = ImGuiCond.None)
+    public static void SetWindowPosRelativeMainViewport(ImU8String name, Vector2 position, ImGuiCond condition = ImGuiCond.None)
         => ImGui.SetWindowPos(name, position + MainViewport.Pos, condition);
 
     /// <summary>
@@ -166,11 +162,7 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="text">Text in the button.</param>
     /// <returns><see cref="Vector2"/> with the size of the button.</returns>
-    public static Vector2 GetButtonSize(string text)
-        => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
-
-    /// <inheritdoc cref="GetButtonSize(string)"/>
-    public static Vector2 GetButtonSize(ReadOnlySpan<byte> text)
+    public static Vector2 GetButtonSize(ImU8String text)
         => ImGui.CalcTextSize(text) + (ImGui.GetStyle().FramePadding * 2);
 
     /// <summary>
@@ -179,11 +171,8 @@ public static partial class ImGuiHelpers
     /// <param name="text">The text to show.</param>
     /// <param name="textCopy">The text to copy when clicked.</param>
     /// <param name="color">The color of the text.</param>
-    public static void ClickToCopyText(string text, string? textCopy = null, Vector4? color = null)
+    public static void ClickToCopyText(ImU8String text, ImU8String textCopy = default, Vector4? color = null)
     {
-        text ??= string.Empty;
-        textCopy ??= text;
-
         using (var col = new ImRaii.Color())
         {
             if (color.HasValue)
@@ -191,7 +180,7 @@ public static partial class ImGuiHelpers
                 col.Push(ImGuiCol.Text, color.Value);
             }
 
-            ImGui.TextUnformatted(text);
+            ImGui.TextUnformatted(text.Span);
         }
 
         if (ImGui.IsItemHovered())
@@ -206,52 +195,17 @@ public static partial class ImGuiHelpers
                 }
 
                 ImGui.SameLine();
-                ImGui.TextUnformatted(textCopy);
+                ImGui.TextUnformatted(textCopy.IsNull ? text.Span : textCopy.Span);
             }
         }
 
         if (ImGui.IsItemClicked())
         {
-            ImGui.SetClipboardText(textCopy);
-        }
-    }
-
-    /// <inheritdoc cref="ClickToCopyText(string, string?, Vector4?)"/>
-    public static void ClickToCopyText(ReadOnlySpan<byte> text, ReadOnlySpan<byte> textCopy = default, Vector4? color = null)
-    {
-        if (textCopy.IsEmpty)
-            textCopy = text;
-
-        using (var col = new ImRaii.Color())
-        {
-            if (color.HasValue)
-            {
-                col.Push(ImGuiCol.Text, color.Value);
-            }
-
-            ImGui.TextUnformatted(text);
+            ImGui.SetClipboardText(textCopy.IsNull ? text.Span : textCopy.Span);
         }
 
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-
-            using (ImRaii.Tooltip())
-            {
-                using (ImRaii.PushFont(UiBuilder.IconFont))
-                {
-                    ImGui.TextUnformatted(FontAwesomeIcon.Copy.ToIconString());
-                }
-
-                ImGui.SameLine();
-                ImGui.TextUnformatted(textCopy);
-            }
-        }
-
-        if (ImGui.IsItemClicked())
-        {
-            ImGui.SetClipboardText(textCopy);
-        }
+        text.Dispose();
+        textCopy.Dispose();
     }
 
     /// <summary>Draws a SeString.</summary>
@@ -285,32 +239,14 @@ public static partial class ImGuiHelpers
     /// Write unformatted text wrapped.
     /// </summary>
     /// <param name="text">The text to write.</param>
-    public static void SafeTextWrapped(string text) => ImGui.TextWrapped(text.Replace("%", "%%"));
-
-    /// <inheritdoc cref="SafeTextWrapped(string)"/>
-    public static void SafeTextWrapped(ReadOnlySpan<byte> text)
-    {
-        if (text.Contains((byte)'%'))
-            ImGui.TextWrapped(Encoding.UTF8.GetString(text).Replace("%", "%%"));
-        else
-            ImGui.TextWrapped(text);
-    }
+    public static void SafeTextWrapped(ImU8String text) => ImGui.TextWrapped(text);
 
     /// <summary>
     /// Write unformatted text wrapped.
     /// </summary>
     /// <param name="color">The color of the text.</param>
     /// <param name="text">The text to write.</param>
-    public static void SafeTextColoredWrapped(Vector4 color, string text)
-    {
-        using (ImRaii.PushColor(ImGuiCol.Text, color))
-        {
-            SafeTextWrapped(text);
-        }
-    }
-
-    /// <inheritdoc cref="SafeTextColoredWrapped(Vector4, string)"/>
-    public static void SafeTextColoredWrapped(Vector4 color, ReadOnlySpan<byte> text)
+    public static void SafeTextColoredWrapped(Vector4 color, ImU8String text)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color))
         {
@@ -510,16 +446,9 @@ public static partial class ImGuiHelpers
     /// Show centered text.
     /// </summary>
     /// <param name="text">Text to show.</param>
-    public static void CenteredText(string text)
+    public static void CenteredText(ImU8String text)
     {
-        CenterCursorForText(text);
-        ImGui.TextUnformatted(text);
-    }
-
-    /// <inheritdoc cref="CenteredText(string)"/>
-    public static void CenteredText(ReadOnlySpan<byte> text)
-    {
-        CenterCursorForText(text);
+        CenterCursorForText(text.Span);
         ImGui.TextUnformatted(text);
     }
 
@@ -527,11 +456,7 @@ public static partial class ImGuiHelpers
     /// Center the ImGui cursor for a certain text.
     /// </summary>
     /// <param name="text">The text to center for.</param>
-    public static void CenterCursorForText(string text)
-        => CenterCursorFor(ImGui.CalcTextSize(text).X);
-
-    /// <inheritdoc cref="CenterCursorForText(string)"/>
-    public static void CenterCursorForText(ReadOnlySpan<byte> text)
+    public static void CenterCursorForText(ImU8String text)
         => CenterCursorFor(ImGui.CalcTextSize(text).X);
 
     /// <summary>
@@ -666,17 +591,13 @@ public static partial class ImGuiHelpers
     /// </summary>
     /// <param name="data">The callback data.</param>
     /// <param name="s">The new text.</param>
-    internal static unsafe void SetTextFromCallback(ImGuiInputTextCallbackData* data, string s)
+    internal static void SetTextFromCallback(ref ImGuiInputTextCallbackData data, ImU8String s)
     {
-        if (data->BufTextLen != 0)
-            data->DeleteChars(0, data->BufTextLen);
+        if (data.BufTextLen != 0)
+            data.DeleteChars(0, data.BufTextLen);
 
-        var len = Encoding.UTF8.GetByteCount(s);
-        var buf = len < 1024 ? stackalloc byte[len] : new byte[len];
-        Encoding.UTF8.GetBytes(s, buf);
-        fixed (byte* pBuf = buf)
-            data->InsertChars(0, pBuf, pBuf + len);
-        data->SelectAll();
+        data.InsertChars(0, s);
+        data.SelectAll();
     }
 
     /// <summary>
