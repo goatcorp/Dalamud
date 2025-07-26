@@ -119,8 +119,6 @@ internal partial class ChatHandlers : IServiceType
         if (string.IsNullOrEmpty(this.configuration.LastVersion) || !Util.AssemblyVersion.StartsWith(this.configuration.LastVersion))
         {
             var linkPayload = chatGui.AddChatLinkHandler(
-                "dalamud",
-                8459324,
                 (_, _) => dalamudInterface.OpenPluginInstallerTo(PluginInstallerOpenKind.Changelogs));
 
             var updateMessage = new SeStringBuilder()
