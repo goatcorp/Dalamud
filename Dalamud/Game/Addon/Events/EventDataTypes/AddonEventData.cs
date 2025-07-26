@@ -1,10 +1,32 @@
-﻿namespace Dalamud.Game.Addon.Events;
+﻿namespace Dalamud.Game.Addon.Events.EventDataTypes;
 
 /// <summary>
 /// Object representing data that is relevant in handling native events.
 /// </summary>
 public class AddonEventData
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddonEventData"/> class.
+    /// </summary>
+    internal AddonEventData()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddonEventData"/> class.
+    /// </summary>
+    /// <param name="eventData">Other event data to copy.</param>
+    internal AddonEventData(AddonEventData eventData)
+    {
+        this.AtkEventType = eventData.AtkEventType;
+        this.Param = eventData.Param;
+        this.AtkEventPointer = eventData.AtkEventPointer;
+        this.AtkEventDataPointer = eventData.AtkEventDataPointer;
+        this.AddonPointer = eventData.AddonPointer;
+        this.NodeTargetPointer = eventData.NodeTargetPointer;
+        this.AtkEventListener = eventData.AtkEventListener;
+    }
+
     /// <summary>
     /// Gets the AtkEventType for this event.
     /// </summary>
@@ -18,8 +40,8 @@ public class AddonEventData
     /// <summary>
     /// Gets the pointer to the AtkEvent object for this event.
     /// </summary>
-    /// <remarks>Note: This is not a pointer to the AtkEventData object.<br/><br/></remarks>
-    /// <remarks>Warning: AtkEvent->Node has been modified to be the AtkUnitBase*, and AtkEvent->Target has been modified to be the AtkResNode* that triggered this event.</remarks>
+    /// <remarks>Note: This is not a pointer to the AtkEventData object.<br/><br/>
+    /// Warning: AtkEvent->Node has been modified to be the AtkUnitBase*, and AtkEvent->Target has been modified to be the AtkResNode* that triggered this event.</remarks>
     public nint AtkEventPointer { get; internal set; }
 
     /// <summary>
