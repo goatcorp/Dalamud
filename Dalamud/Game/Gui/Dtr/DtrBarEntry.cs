@@ -1,4 +1,5 @@
 ﻿using Dalamud.Configuration.Internal;
+using Dalamud.Game.Addon.Events;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
@@ -47,6 +48,7 @@ public interface IReadOnlyDtrBarEntry
     /// Triggers the click action of this entry.
     /// </summary>
     /// <returns>True, if a click action was registered and executed.</returns>
+    [Api13ToDo("Remove, doesn't mesh well with new click actions")]
     public bool TriggerClickAction();
 }
 
@@ -73,7 +75,23 @@ public interface IDtrBarEntry : IReadOnlyDtrBarEntry
     /// <summary>
     /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
     /// </summary>
+    [Api13ToDo("Remove this, and rename OnClicked to OnClick")]
     public Action? OnClick { get; set; }
+
+    /// <summary>
+    /// Gets or sets a action to be invoked when the user left-clicks on the dtr entry.
+    /// </summary>
+    public Action? OnLeftClick { get; set; }
+
+    /// <summary>
+    /// Gets or sets a action to be invoked when the user right-clicks on the dtr entry.
+    /// </summary>
+    public Action? OnRightClick { get; set; }
+
+    /// <summary>
+    /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
+    /// </summary>
+    public Action<AddonEventData>? OnClicked { get; set; }
 
     /// <summary>
     /// Remove this entry from the bar.
@@ -125,10 +143,20 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     /// <summary>
     /// Gets or sets a action to be invoked when the user clicks on the dtr entry.
     /// </summary>
+    [Api13ToDo("Remove this and rename OnClicked to OnClick")]
     public Action? OnClick { get; set; }
 
     /// <inheritdoc/>
-    public bool HasClickAction => this.OnClick != null;
+    public Action? OnLeftClick { get; set; }
+
+    /// <inheritdoc/>
+    public Action? OnRightClick { get; set; }
+
+    /// <inheritdoc/>
+    public Action<AddonEventData>? OnClicked { get; set; }
+
+    /// <inheritdoc/>
+    public bool HasClickAction => this.OnClick != null || this.OnLeftClick != null || this.OnRightClick != null || this.OnClicked != null;
 
     /// <inheritdoc cref="IDtrBarEntry.Shown" />
     public bool Shown
@@ -179,6 +207,7 @@ internal sealed unsafe class DtrBarEntry : IDisposable, IDtrBarEntry
     internal LocalPlugin? OwnerPlugin { get; set; }
 
     /// <inheritdoc/>
+    [Api13ToDo("Remove, doesn't mesh well with new click actions")]
     public bool TriggerClickAction()
     {
         if (this.OnClick == null)
