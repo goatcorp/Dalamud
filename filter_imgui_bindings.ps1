@@ -1,5 +1,3 @@
-# public static .*(fmt|textEnd|args)
-
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
@@ -20,6 +18,13 @@ $sourcePaths = (
     $null
 )
 
+# replace "ImGuiKey.GamepadStart"
+$tmp = Get-Content -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Raw
+$tmp = $tmp.Replace("unchecked((int)GamepadStart)", "unchecked((int)ImGuiKey.GamepadStart)").Trim()
+$tmp | Set-Content -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Encoding ascii
+
+Remove-Item -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Handles\ImTextureID.cs" -Force
+
 foreach ($sourcePath in $sourcePaths)
 {
     if (!$sourcePath)
@@ -38,6 +43,12 @@ foreach ($sourcePath in $sourcePaths)
     $null = $imports.Add("System.Runtime.InteropServices")
     $null = $imports.Add("System.Numerics")
     $null = $imports.Add("HexaGen.Runtime")
+
+    if (!$sourcePath.StartsWith("$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\"))
+    {
+        $null = $imports.Add("Dalamud.Bindings.ImGui")
+    }
+
     $husks = New-Object -TypeName "System.Text.StringBuilder"
     foreach ($file in (Get-ChildItem -Path $sourcePath))
     {
@@ -130,6 +141,7 @@ foreach ($sourcePath in $sourcePaths)
 
     $sb = New-Object -TypeName "System.Text.StringBuilder"
     $discardMethods = New-Object -TypeName "System.Collections.Generic.SortedSet[string]"
+    $null = $discardMethods.Add("ImFontAtlasBuildPackCustomRectsNative")
     foreach ($classDef in $classes.Keys)
     {
         $null = $sb.Clear().Append($husks).Append("public unsafe partial $classDef`r`n{`r`n")

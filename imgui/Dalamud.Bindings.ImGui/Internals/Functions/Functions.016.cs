@@ -1610,8 +1610,6 @@ namespace Dalamud.Bindings.ImGui
 			}
 		}
 
-        /*
-
 		/// <summary>
 		/// To be documented.
 		/// </summary>
@@ -1668,8 +1666,6 @@ namespace Dalamud.Bindings.ImGui
 				}
 			}
 		}
-
-        */
 
 		/// <summary>
 		/// To be documented.

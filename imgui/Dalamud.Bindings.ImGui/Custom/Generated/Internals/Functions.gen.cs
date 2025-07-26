@@ -124,7 +124,5 @@ namespace Dalamud.Bindings.ImGui
 {
 	public unsafe partial class ImGuiP
 	{
-        /*
-        */
 	}
 }
