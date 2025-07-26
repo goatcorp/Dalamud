@@ -1,6 +1,6 @@
-﻿using Dalamud.Game.Gui;
+using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Utility;
 
 using ImGuiNET;
 
@@ -59,7 +59,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.PrintHqItem:
-                toPrint = SeString.CreateItemLink(hqItemId, ItemPayload.ItemKind.Hq);
+                toPrint = SeString.CreateItemLink(hqItemId, ItemKind.Hq);
                 this.currentSubStep++;
                 break;
             case SubStep.HoverHqItem:
@@ -69,7 +69,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.PrintCollectable:
-                toPrint = SeString.CreateItemLink(collectableItemId, ItemPayload.ItemKind.Collectible);
+                toPrint = SeString.CreateItemLink(collectableItemId, ItemKind.Collectible);
                 this.currentSubStep++;
                 break;
             case SubStep.HoverCollectable:
@@ -79,7 +79,7 @@ internal class ItemPayloadSelfTestStep : ISelfTestStep
                 this.currentSubStep++;
                 break;
             case SubStep.PrintEventItem:
-                toPrint = SeString.CreateItemLink(eventItemId, ItemPayload.ItemKind.EventItem);
+                toPrint = SeString.CreateItemLink(eventItemId, ItemKind.EventItem);
                 this.currentSubStep++;
                 break;
             case SubStep.HoverEventItem:
