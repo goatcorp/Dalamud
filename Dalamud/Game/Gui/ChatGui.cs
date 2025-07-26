@@ -50,7 +50,6 @@ internal sealed unsafe class ChatGui : IInternalDisposableService, IChatGui
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
 
-    private uint dommandIdCounter = 0;
     private ImmutableDictionary<(string PluginName, Guid CommandId), Action<Guid, SeString>>? dalamudLinkHandlersCopy;
 
     [ServiceManager.ServiceConstructor]
