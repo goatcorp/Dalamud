@@ -40,8 +40,6 @@ using StatusSheet = Lumina.Excel.Sheets.Status;
 
 namespace Dalamud.Game.Text.Evaluator;
 
-#pragma warning disable SeStringEvaluator
-
 /// <summary>
 /// Evaluator for SeStrings.
 /// </summary>
