@@ -181,7 +181,7 @@ public class SeString
     /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
     /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
     public static SeString CreateItemLink(uint itemId, bool isHq, string? displayNameOverride = null) =>
-        CreateItemLink(itemId, isHq ? ItemPayload.ItemKind.Hq : ItemPayload.ItemKind.Normal, displayNameOverride);
+        CreateItemLink(itemId, isHq ? ItemKind.Hq : ItemKind.Normal, displayNameOverride);
 
     /// <summary>
     /// Creates an SeString representing an entire Payload chain that can be used to link an item in the chat log.
@@ -190,7 +190,7 @@ public class SeString
     /// <param name="kind">The kind of item to link.</param>
     /// <param name="displayNameOverride">An optional name override to display, instead of the actual item name.</param>
     /// <returns>An SeString containing all the payloads necessary to display an item link in the chat log.</returns>
-    public static SeString CreateItemLink(uint itemId, ItemPayload.ItemKind kind = ItemPayload.ItemKind.Normal, string? displayNameOverride = null)
+    public static SeString CreateItemLink(uint itemId, ItemKind kind = ItemKind.Normal, string? displayNameOverride = null)
     {
         var clientState = Service<ClientState.ClientState>.Get();
         var seStringEvaluator = Service<SeStringEvaluator>.Get();

@@ -3,7 +3,6 @@ using Dalamud.Utility;
 
 using Lumina.Extensions;
 
-using ItemKind = Dalamud.Game.Text.SeStringHandling.Payloads.ItemPayload.ItemKind;
 using LSheets = Lumina.Excel.Sheets;
 
 namespace Dalamud.Game.Text.Evaluator.Internal;

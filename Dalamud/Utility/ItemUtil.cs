@@ -7,9 +7,33 @@ using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
-using static Dalamud.Game.Text.SeStringHandling.Payloads.ItemPayload;
-
 namespace Dalamud.Utility;
+
+/// <summary>
+/// Kinds of items that can be fetched from this payload.
+/// </summary>
+public enum ItemKind : uint
+{
+    /// <summary>
+    /// Normal items.
+    /// </summary>
+    Normal,
+
+    /// <summary>
+    /// Collectible Items.
+    /// </summary>
+    Collectible = 500_000,
+
+    /// <summary>
+    /// High-Quality items.
+    /// </summary>
+    Hq = 1_000_000,
+
+    /// <summary>
+    /// Event/Key items.
+    /// </summary>
+    EventItem = 2_000_000,
+}
 
 /// <summary>
 /// Utilities related to Items.
