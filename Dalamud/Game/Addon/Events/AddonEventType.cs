@@ -122,12 +122,6 @@ public enum AddonEventType : byte
     ListItemClick = 35,
 
     /// <summary>
-    /// AtkComponentList Toggle.
-    /// </summary>
-    [Obsolete("Use ListItemClick")]
-    ListItemToggle = 35,
-
-    /// <summary>
     /// AtkComponentList Double Click.
     /// </summary>
     ListItemDoubleClick = 36,

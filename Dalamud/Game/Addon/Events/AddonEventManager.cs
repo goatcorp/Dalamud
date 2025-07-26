@@ -80,29 +80,6 @@ internal unsafe class AddonEventManager : IInternalDisposableService
     /// <param name="atkUnitBase">The parent addon for this event.</param>
     /// <param name="atkResNode">The node that will trigger this event.</param>
     /// <param name="eventType">The event type for this event.</param>
-    /// <param name="eventHandler">The handler to call when event is triggered.</param>
-    /// <returns>IAddonEventHandle used to remove the event.</returns>
-    internal IAddonEventHandle? AddEvent(Guid pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
-    {
-        if (this.pluginEventControllers.TryGetValue(pluginId, out var controller))
-        {
-            return controller.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
-        }
-        else
-        {
-            Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Registers an event handler for the specified addon, node, and type.
-    /// </summary>
-    /// <param name="pluginId">Unique ID for this plugin.</param>
-    /// <param name="atkUnitBase">The parent addon for this event.</param>
-    /// <param name="atkResNode">The node that will trigger this event.</param>
-    /// <param name="eventType">The event type for this event.</param>
     /// <param name="eventDelegate">The delegate to call when event is triggered.</param>
     /// <returns>IAddonEventHandle used to remove the event.</returns>
     internal IAddonEventHandle? AddEvent(Guid pluginId, nint atkUnitBase, nint atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventDelegate eventDelegate)
@@ -259,10 +236,6 @@ internal class AddonEventManagerPluginScoped : IInternalDisposableService, IAddo
             this.eventManagerService.RemovePluginEventController(this.plugin.EffectiveWorkingPluginId);
         }).Wait();
     }
-
-    /// <inheritdoc/>
-    public IAddonEventHandle? AddEvent(IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
-        => this.eventManagerService.AddEvent(this.plugin.EffectiveWorkingPluginId, atkUnitBase, atkResNode, eventType, eventHandler);
 
     /// <inheritdoc/>
     public IAddonEventHandle? AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventDelegate eventDelegate)

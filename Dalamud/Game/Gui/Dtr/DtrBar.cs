@@ -610,10 +610,10 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         return newTextNode;
     }
 
-    private void DtrEventHandler(AddonEventType atkEventType, IntPtr atkUnitBase, IntPtr atkResNode)
+    private void DtrEventHandler(AddonEventType atkEventType, AddonEventData data)
     {
-        var addon = (AtkUnitBase*)atkUnitBase;
-        var node = (AtkResNode*)atkResNode;
+        var addon = (AtkUnitBase*)data.AddonPointer;
+        var node = (AtkResNode*)data.NodeTargetPointer;
 
         DtrBarEntry? dtrBarEntry = null;
         this.entriesLock.EnterReadLock();
