@@ -153,21 +153,9 @@ internal sealed class DalamudConfiguration : IInternalDisposableService
     public float GlobalUiScale { get; set; } = 1.0f;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to use AXIS fonts from the game.
-    /// </summary>
-    [Obsolete($"See {nameof(DefaultFontSpec)}")]
-    public bool UseAxisFontsFromGame { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets the default font spec.
     /// </summary>
     public IFontSpec? DefaultFontSpec { get; set; }
-
-    /// <summary>
-    /// Gets or sets the gamma value to apply for Dalamud fonts. Do not use.
-    /// </summary>
-    [Obsolete("It happens that nobody touched this setting", true)]
-    public float FontGammaLevel { get; set; } = 1.4f;
 
     /// <summary>Gets or sets the opacity of the IME state indicator.</summary>
     /// <value>0 will hide the state indicator. 1 will make the state indicator fully visible. Values outside the
