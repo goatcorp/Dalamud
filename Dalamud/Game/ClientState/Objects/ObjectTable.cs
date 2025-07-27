@@ -168,7 +168,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         for (var index = 0; index < 200; index += 2)
         {
-            if (this[index] is IBattleChara gameObject)
+            if (this[index] is IBattleChara { ObjectKind: ObjectKind.Player } gameObject)
             {
                 yield return gameObject;
             }
@@ -179,7 +179,7 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     {
         for (var index = range.Start.Value; index <= range.End.Value; index++)
         {
-            if (this[index] is { ObjectKind: ObjectKind.Player } gameObject)
+            if (this[index] is { } gameObject)
             {
                 yield return gameObject;
             }
