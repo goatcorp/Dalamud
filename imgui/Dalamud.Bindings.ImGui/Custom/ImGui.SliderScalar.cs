@@ -311,6 +311,61 @@ public static unsafe partial class ImGui
         }
     }
 
+    public static bool SliderScalar<T>(
+        ImU8String label, scoped ref T v,
+        scoped in T vMin, scoped in T vMax,
+        ImU8String format = default,
+        ImGuiSliderFlags flags = ImGuiSliderFlags.None)
+        where T : unmanaged, IBinaryNumber<T>
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
+        fixed (T* vPtr = &v)
+        fixed (T* vMinPtr = &vMin)
+        fixed (T* vMaxPtr = &vMax)
+        {
+            var res = ImGuiNative.SliderScalar(
+                          labelPtr,
+                          GetImGuiDataType<T>(),
+                          vPtr,
+                          vMinPtr,
+                          vMaxPtr,
+                          formatPtr,
+                          flags) != 0;
+            label.Dispose();
+            format.Dispose();
+            return res;
+        }
+    }
+
+    public static bool SliderScalar<T>(
+        ImU8String label, Span<T> v, scoped in T vMin,
+        scoped in T vMax,
+        ImU8String format = default,
+        ImGuiSliderFlags flags = ImGuiSliderFlags.None)
+        where T : unmanaged, INumber<T>, IBinaryNumber<T>
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
+        fixed (T* vPtr = v)
+        fixed (T* vMinPtr = &vMin)
+        fixed (T* vMaxPtr = &vMax)
+        {
+            var res = ImGuiNative.SliderScalarN(
+                          labelPtr,
+                          GetImGuiDataType<T>(),
+                          vPtr,
+                          v.Length,
+                          vMinPtr,
+                          vMaxPtr,
+                          formatPtr,
+                          flags) != 0;
+            label.Dispose();
+            format.Dispose();
+            return res;
+        }
+    }
+
     public static bool SliderAngle(
         ImU8String label, ref float vRad, float vDegreesMin = -360.0f,
         float vDegreesMax = +360.0f,

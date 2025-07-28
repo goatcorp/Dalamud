@@ -300,7 +300,7 @@ public static unsafe partial class ImGui
     public static bool DragScalar<T>(
         ImU8String label, ImGuiDataType dataType, scoped ref T v, float vSpeed,
         scoped in T vMin, scoped in T vMax, ImU8String format = default,
-        ImGuiSliderFlags flags = ImGuiSliderFlags.None) where T : unmanaged, INumber<T>, IBinaryNumber<T>
+        ImGuiSliderFlags flags = ImGuiSliderFlags.None) where T : unmanaged, IBinaryNumber<T>
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
@@ -318,7 +318,7 @@ public static unsafe partial class ImGui
     public static bool DragScalar<T>(
         ImU8String label, ImGuiDataType dataType, Span<T> v, float vSpeed,
         scoped in T vMin, scoped in T vMax, ImU8String format = default,
-        ImGuiSliderFlags flags = ImGuiSliderFlags.None) where T : unmanaged, INumber<T>, IBinaryNumber<T>
+        ImGuiSliderFlags flags = ImGuiSliderFlags.None) where T : unmanaged, IBinaryNumber<T>
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
@@ -329,6 +329,59 @@ public static unsafe partial class ImGui
             var res = ImGuiNative.DragScalarN(
                           labelPtr,
                           dataType,
+                          vPtr,
+                          v.Length,
+                          vSpeed,
+                          vMinPtr,
+                          vMaxPtr,
+                          formatPtr,
+                          flags) != 0;
+            label.Dispose();
+            format.Dispose();
+            return res;
+        }
+    }
+
+    public static bool DragScalar<T>(
+        ImU8String label, scoped ref T v, float vSpeed,
+        scoped in T vMin, scoped in T vMax, ImU8String format = default,
+        ImGuiSliderFlags flags = ImGuiSliderFlags.None) where T : unmanaged, IBinaryNumber<T>
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
+        fixed (T* vPtr = &v)
+        fixed (T* vMinPtr = &vMin)
+        fixed (T* vMaxPtr = &vMax)
+        {
+            var res = ImGuiNative.DragScalar(
+                          labelPtr,
+                          GetImGuiDataType<T>(),
+                          vPtr,
+                          vSpeed,
+                          vMinPtr,
+                          vMaxPtr,
+                          formatPtr,
+                          flags) != 0;
+            label.Dispose();
+            format.Dispose();
+            return res;
+        }
+    }
+
+    public static bool DragScalar<T>(
+        ImU8String label, Span<T> v, float vSpeed,
+        scoped in T vMin, scoped in T vMax, ImU8String format = default,
+        ImGuiSliderFlags flags = ImGuiSliderFlags.None) where T : unmanaged, IBinaryNumber<T>
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
+        fixed (T* vPtr = v)
+        fixed (T* vMinPtr = &vMin)
+        fixed (T* vMaxPtr = &vMax)
+        {
+            var res = ImGuiNative.DragScalarN(
+                          labelPtr,
+                          GetImGuiDataType<T>(),
                           vPtr,
                           v.Length,
                           vSpeed,

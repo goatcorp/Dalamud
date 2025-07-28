@@ -285,7 +285,7 @@ public static unsafe partial class ImGui
         scoped in T step, scoped in T stepFast,
         ImU8String format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
-        where T : unmanaged, INumber<T>, IBinaryNumber<T>
+        where T : unmanaged, IBinaryNumber<T>
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
@@ -340,7 +340,7 @@ public static unsafe partial class ImGui
         scoped in T step, scoped in T stepFast,
         ImU8String format = default,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
-        where T : unmanaged, INumber<T>, IBinaryNumber<T>
+        where T : unmanaged, IBinaryNumber<T>
     {
         fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
         fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
