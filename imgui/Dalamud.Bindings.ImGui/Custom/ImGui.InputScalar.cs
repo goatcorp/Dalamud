@@ -307,4 +307,60 @@ public static unsafe partial class ImGui
             return res;
         }
     }
+
+    public static bool InputScalar<T>(
+        ImU8String label, scoped ref T data,
+        scoped in T step, scoped in T stepFast,
+        ImU8String format = default,
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
+        where T : unmanaged, IBinaryNumber<T>
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
+        fixed (T* dataPtr = &data)
+        fixed (T* stepPtr = &step)
+        fixed (T* stepFastPtr = &stepFast)
+        {
+            var res = ImGuiNative.InputScalar(
+                          labelPtr,
+                          GetImGuiDataType<T>(),
+                          dataPtr,
+                          stepPtr,
+                          stepFastPtr,
+                          formatPtr,
+                          flags) != 0;
+            label.Dispose();
+            format.Dispose();
+            return res;
+        }
+    }
+
+    public static bool InputScalar<T>(
+        ImU8String label, Span<T> data,
+        scoped in T step, scoped in T stepFast,
+        ImU8String format = default,
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None)
+        where T : unmanaged, INumber<T>, IBinaryNumber<T>
+    {
+        fixed (byte* labelPtr = &label.GetPinnableNullTerminatedReference())
+        fixed (byte* formatPtr = &format.GetPinnableNullTerminatedReference())
+        fixed (T* dataPtr = data)
+        fixed (T* stepPtr = &step)
+        fixed (T* stepFastPtr = &stepFast)
+        {
+            var res = ImGuiNative.InputScalarN(
+                          labelPtr,
+                          GetImGuiDataType<T>(),
+                          dataPtr,
+                          data.Length,
+                          stepPtr,
+                          stepFastPtr,
+                          formatPtr,
+                          flags) != 0;
+            label.Dispose();
+            format.Dispose();
+            return res;
+        }
+    }
+
 }
