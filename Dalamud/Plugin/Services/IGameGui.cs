@@ -1,7 +1,7 @@
 using System.Numerics;
 
 using Dalamud.Game.Gui;
-using Dalamud.Game.Gui.NativeWrapper;
+using Dalamud.Game.NativeWrapper;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Plugin.Services;

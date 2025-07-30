@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
-namespace Dalamud.Game.Gui.NativeWrapper;
+namespace Dalamud.Game.NativeWrapper;
 
 /// <summary>
 /// A wrapper for AtkUnitBase.

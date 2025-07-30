@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-using Dalamud.Game.Gui.NativeWrapper;
+using Dalamud.Game.NativeWrapper;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Utility;

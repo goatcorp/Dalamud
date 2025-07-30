@@ -1,4 +1,4 @@
-using Dalamud.Game.Gui.NativeWrapper;
+using Dalamud.Game.NativeWrapper;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
