@@ -86,6 +86,7 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
         }
 
         using var returner = this.argsPool.Rent(out AddonReceiveEventArgs arg);
+        arg.Clear();
         arg.Addon = (nint)addon;
         arg.AtkEventType = (byte)eventType;
         arg.EventParam = eventParam;

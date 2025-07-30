@@ -55,6 +55,15 @@ public abstract unsafe class AddonArgs
     }
 
     /// <summary>
+    /// Clears this AddonArgs values.
+    /// </summary>
+    internal virtual void Clear()
+    {
+        this.addonName = null;
+        this.Addon = 0;
+    }
+
+    /// <summary>
     /// Helper method for ensuring the name of the addon is valid.
     /// </summary>
     /// <returns>The name of the addon for this object. <see cref="InvalidAddon"/> when invalid.</returns>

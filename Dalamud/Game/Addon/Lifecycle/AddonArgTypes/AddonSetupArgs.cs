@@ -1,4 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 
@@ -38,4 +38,12 @@ public class AddonSetupArgs : AddonArgs, ICloneable
 
     /// <inheritdoc cref="Clone"/>
     object ICloneable.Clone() => this.Clone();
+
+    /// <inheritdoc cref="AddonArgs.Clear"/>
+    internal override void Clear()
+    {
+        base.Clear();
+        this.AtkValueCount = default;
+        this.AtkValues = default;
+    }
 }
