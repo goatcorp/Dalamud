@@ -1,6 +1,7 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 using Dalamud.Game.Gui;
+using Dalamud.Game.Gui.NativeWrapper;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace Dalamud.Plugin.Services;
@@ -86,7 +87,7 @@ public unsafe interface IGameGui
     /// <param name="name">Name of addon to find.</param>
     /// <param name="index">Index of addon to find (1-indexed).</param>
     /// <returns>nint.Zero if unable to find UI, otherwise nint pointing to the start of the addon.</returns>
-    public nint GetAddonByName(string name, int index = 1);
+    public AtkUnitBasePtr GetAddonByName(string name, int index = 1);
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.

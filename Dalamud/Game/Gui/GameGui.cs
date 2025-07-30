@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 
+using Dalamud.Game.Gui.NativeWrapper;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Utility;
@@ -181,21 +182,21 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     }
 
     /// <inheritdoc/>
-    public IntPtr GetAddonByName(string name, int index = 1)
+    public AtkUnitBasePtr GetAddonByName(string name, int index = 1)
     {
         var atkStage = AtkStage.Instance();
         if (atkStage == null)
-            return IntPtr.Zero;
+            return 0;
 
         var unitMgr = atkStage->RaptureAtkUnitManager;
         if (unitMgr == null)
-            return IntPtr.Zero;
+            return 0;
 
         var addon = unitMgr->GetAddonByName(name, index);
         if (addon == null)
-            return IntPtr.Zero;
+            return 0;
 
-        return (IntPtr)addon;
+        return (nint)addon;
     }
 
     /// <inheritdoc/>
@@ -458,7 +459,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         => this.gameGuiService.GetUIModule();
 
     /// <inheritdoc/>
-    public IntPtr GetAddonByName(string name, int index = 1)
+    public AtkUnitBasePtr GetAddonByName(string name, int index = 1)
         => this.gameGuiService.GetAddonByName(name, index);
 
     /// <inheritdoc/>
