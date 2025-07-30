@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Hooking;
@@ -86,7 +86,7 @@ internal unsafe class AddonLifecycleReceiveEventListener : IDisposable
         }
 
         using var returner = this.argsPool.Rent(out AddonReceiveEventArgs arg);
-        arg.AddonInternal = (nint)addon;
+        arg.Addon = (nint)addon;
         arg.AtkEventType = (byte)eventType;
         arg.EventParam = eventParam;
         arg.AtkEvent = (IntPtr)atkEvent;

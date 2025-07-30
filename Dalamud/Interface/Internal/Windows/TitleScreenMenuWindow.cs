@@ -477,7 +477,7 @@ internal class TitleScreenMenuWindow : Window, IDisposable
     {
         if (args is not AddonDrawArgs drawArgs) return;
 
-        var addon = (AtkUnitBase*)drawArgs.Addon;
+        var addon = drawArgs.Addon.Struct;
         var textNode = addon->GetTextNodeById(3);
 
         // look and feel init. should be harmless to set.
