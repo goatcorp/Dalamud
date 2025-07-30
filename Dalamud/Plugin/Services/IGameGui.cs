@@ -76,37 +76,37 @@ public unsafe interface IGameGui
     public bool ScreenToWorld(Vector2 screenPos, out Vector3 worldPos, float rayDistance = 100000.0f);
 
     /// <summary>
-    /// Gets a pointer to the game's UI module.
+    /// Gets a pointer to the game's UIModule instance.
     /// </summary>
-    /// <returns>IntPtr pointing to UI module.</returns>
-    public nint GetUIModule();
+    /// <returns>A pointer wrapper to UIModule.</returns>
+    public UIModulePtr GetUIModule();
 
     /// <summary>
     /// Gets the pointer to the Addon with the given name and index.
     /// </summary>
     /// <param name="name">Name of addon to find.</param>
     /// <param name="index">Index of addon to find (1-indexed).</param>
-    /// <returns>A pointer to the addon.</returns>
+    /// <returns>A pointer wrapper to the addon.</returns>
     public AtkUnitBasePtr GetAddonByName(string name, int index = 1);
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.
     /// </summary>
     /// <param name="id">The agent id.</param>
-    /// <returns>A pointer to the agent interface.</returns>
+    /// <returns>A pointer wrapper to the agent interface.</returns>
     public AgentInterfacePtr GetAgentById(int id);
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.
     /// </summary>
     /// <param name="addonName">The addon name.</param>
-    /// <returns>A pointer to the agent interface.</returns>
+    /// <returns>A pointer wrapper to the agent interface.</returns>
     public AgentInterfacePtr FindAgentInterface(string addonName);
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.
     /// </summary>
     /// <param name="addon">The addon address.</param>
-    /// <returns>A pointer to the agent interface.</returns>
+    /// <returns>A pointer wrapper to the agent interface.</returns>
     public AgentInterfacePtr FindAgentInterface(AtkUnitBasePtr addon);
 }

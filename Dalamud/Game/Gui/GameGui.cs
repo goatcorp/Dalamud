@@ -168,7 +168,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     }
 
     /// <inheritdoc/>
-    public IntPtr GetUIModule()
+    public UIModulePtr GetUIModule()
     {
         return (nint)UIModule.Instance();
     }
@@ -180,11 +180,7 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
         if (unitManager == null)
             return 0;
 
-        var addon = unitManager->GetAddonByName(name, index);
-        if (addon == null)
-            return 0;
-
-        return (nint)addon;
+        return (nint)unitManager->GetAddonByName(name, index);
     }
 
     /// <inheritdoc/>
@@ -439,7 +435,7 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         => this.gameGuiService.ScreenToWorld(screenPos, out worldPos, rayDistance);
 
     /// <inheritdoc/>
-    public IntPtr GetUIModule()
+    public UIModulePtr GetUIModule()
         => this.gameGuiService.GetUIModule();
 
     /// <inheritdoc/>
