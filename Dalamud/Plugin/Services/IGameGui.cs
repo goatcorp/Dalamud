@@ -86,27 +86,27 @@ public unsafe interface IGameGui
     /// </summary>
     /// <param name="name">Name of addon to find.</param>
     /// <param name="index">Index of addon to find (1-indexed).</param>
-    /// <returns>nint.Zero if unable to find UI, otherwise nint pointing to the start of the addon.</returns>
+    /// <returns>A pointer to the addon.</returns>
     public AtkUnitBasePtr GetAddonByName(string name, int index = 1);
+
+    /// <summary>
+    /// Find the agent associated with an addon, if possible.
+    /// </summary>
+    /// <param name="id">The agent id.</param>
+    /// <returns>A pointer to the agent interface.</returns>
+    public AgentInterfacePtr GetAgentById(int id);
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.
     /// </summary>
     /// <param name="addonName">The addon name.</param>
     /// <returns>A pointer to the agent interface.</returns>
-    public nint FindAgentInterface(string addonName);
+    public AgentInterfacePtr FindAgentInterface(string addonName);
 
     /// <summary>
     /// Find the agent associated with an addon, if possible.
     /// </summary>
     /// <param name="addon">The addon address.</param>
     /// <returns>A pointer to the agent interface.</returns>
-    public nint FindAgentInterface(void* addon);
-
-    /// <summary>
-    /// Find the agent associated with an addon, if possible.
-    /// </summary>
-    /// <param name="addonPtr">The addon address.</param>
-    /// <returns>A pointer to the agent interface.</returns>
-    public IntPtr FindAgentInterface(IntPtr addonPtr);
+    public AgentInterfacePtr FindAgentInterface(AtkUnitBasePtr addon);
 }

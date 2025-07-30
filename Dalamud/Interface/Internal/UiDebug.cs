@@ -87,7 +87,7 @@ internal unsafe class UiDebug
     {
         var isVisible = atkUnitBase->IsVisible;
         var addonName = atkUnitBase->NameString;
-        var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
+        var agent = Service<GameGui>.Get().FindAgentInterface((nint)atkUnitBase);
 
         ImGui.Text($"{addonName}");
         ImGui.SameLine();
@@ -102,8 +102,8 @@ internal unsafe class UiDebug
         }
 
         ImGui.Separator();
-        ImGuiHelpers.ClickToCopyText($"Address: {(ulong)atkUnitBase:X}", $"{(ulong)atkUnitBase:X}");
-        ImGuiHelpers.ClickToCopyText($"Agent: {(ulong)agent:X}", $"{(ulong)agent:X}");
+        ImGuiHelpers.ClickToCopyText($"Address: {(nint)atkUnitBase:X}", $"{(nint)atkUnitBase:X}");
+        ImGuiHelpers.ClickToCopyText($"Agent: {(nint)agent:X}", $"{(nint)agent:X}");
         ImGui.Separator();
 
         ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");

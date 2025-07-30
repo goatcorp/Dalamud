@@ -170,29 +170,17 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     /// <inheritdoc/>
     public IntPtr GetUIModule()
     {
-        var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
-        if (framework == null)
-            return IntPtr.Zero;
-
-        var uiModule = framework->GetUIModule();
-        if (uiModule == null)
-            return IntPtr.Zero;
-
-        return (IntPtr)uiModule;
+        return (nint)UIModule.Instance();
     }
 
     /// <inheritdoc/>
     public AtkUnitBasePtr GetAddonByName(string name, int index = 1)
     {
-        var atkStage = AtkStage.Instance();
-        if (atkStage == null)
+        var unitManager = RaptureAtkUnitManager.Instance();
+        if (unitManager == null)
             return 0;
 
-        var unitMgr = atkStage->RaptureAtkUnitManager;
-        if (unitMgr == null)
-            return 0;
-
-        var addon = unitMgr->GetAddonByName(name, index);
+        var addon = unitManager->GetAddonByName(name, index);
         if (addon == null)
             return 0;
 
@@ -200,47 +188,43 @@ internal sealed unsafe class GameGui : IInternalDisposableService, IGameGui
     }
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(string addonName)
+    public AgentInterfacePtr GetAgentById(int id)
+    {
+        var agentModule = AgentModule.Instance();
+        if (agentModule == null || id < 0 || id >= agentModule->Agents.Length)
+            return 0;
+
+        return (nint)agentModule->Agents[id].Value;
+    }
+
+    /// <inheritdoc/>
+    public AgentInterfacePtr FindAgentInterface(string addonName)
     {
         var addon = this.GetAddonByName(addonName);
         return this.FindAgentInterface(addon);
     }
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(void* addon) => this.FindAgentInterface((IntPtr)addon);
-
-    /// <inheritdoc/>
-    public IntPtr FindAgentInterface(IntPtr addonPtr)
+    public AgentInterfacePtr FindAgentInterface(AtkUnitBasePtr addon)
     {
-        if (addonPtr == IntPtr.Zero)
-            return IntPtr.Zero;
+        if (addon.IsNull)
+            return 0;
 
-        var uiModule = (UIModule*)this.GetUIModule();
-        if (uiModule == null)
-            return IntPtr.Zero;
-
-        var agentModule = uiModule->GetAgentModule();
+        var agentModule = AgentModule.Instance();
         if (agentModule == null)
-            return IntPtr.Zero;
+            return 0;
 
-        var addon = (AtkUnitBase*)addonPtr;
-        var addonId = addon->ParentId == 0 ? addon->Id : addon->ParentId;
-
+        var addonId = addon.ParentId == 0 ? addon.Id : addon.ParentId;
         if (addonId == 0)
-            return IntPtr.Zero;
+            return 0;
 
-        var index = 0;
-        while (true)
+        foreach (AgentInterface* agent in agentModule->Agents)
         {
-            var agent = agentModule->GetAgentByInternalId((AgentId)index++);
-            if (agent == uiModule || agent == null)
-                break;
-
-            if (agent->AddonId == addonId)
-                return new IntPtr(agent);
+            if (agent != null && agent->AddonId == addonId)
+                return (nint)agent;
         }
 
-        return IntPtr.Zero;
+        return 0;
     }
 
     /// <summary>
@@ -463,16 +447,16 @@ internal class GameGuiPluginScoped : IInternalDisposableService, IGameGui
         => this.gameGuiService.GetAddonByName(name, index);
 
     /// <inheritdoc/>
-    public IntPtr FindAgentInterface(string addonName)
+    public AgentInterfacePtr GetAgentById(int id)
+        => this.gameGuiService.GetAgentById(id);
+
+    /// <inheritdoc/>
+    public AgentInterfacePtr FindAgentInterface(string addonName)
         => this.gameGuiService.FindAgentInterface(addonName);
 
     /// <inheritdoc/>
-    public unsafe IntPtr FindAgentInterface(void* addon)
+    public AgentInterfacePtr FindAgentInterface(AtkUnitBasePtr addon)
         => this.gameGuiService.FindAgentInterface(addon);
-
-    /// <inheritdoc/>
-    public IntPtr FindAgentInterface(IntPtr addonPtr)
-        => this.gameGuiService.FindAgentInterface(addonPtr);
 
     private void UiHideToggledForward(object sender, bool toggled) => this.UiHideToggled?.Invoke(sender, toggled);
 

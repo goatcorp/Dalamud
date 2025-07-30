@@ -3,7 +3,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
-using Dalamud.Game.Gui.NativeWrapper;
 using Dalamud.Hooking;
 using Dalamud.Hooking.Internal;
 using Dalamud.IoC;
