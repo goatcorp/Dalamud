@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.Gui;
+using Dalamud.Game.Gui;
 using Dalamud.Memory;
 using Dalamud.Utility;
 using ImGuiNET;
@@ -48,7 +48,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
             return;
         }
 
-        var addon = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)address;
+        var addon = address.Struct;
         var name = addon->NameString;
         ImGui.TextUnformatted($"{name} - {Util.DescribeAddress(address)}\n    v:{addon->IsVisible} x:{addon->X} y:{addon->Y} s:{addon->Scale}, w:{addon->RootNode->Width}, h:{addon->RootNode->Height}");
 

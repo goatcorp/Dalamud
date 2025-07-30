@@ -140,7 +140,7 @@ internal unsafe class PluginEventController : IDisposable
         if (currentAddonPointer != eventEntry.Addon) return;
 
         // Make sure the addon is not unloaded
-        var atkUnitBase = (AtkUnitBase*)currentAddonPointer;
+        var atkUnitBase = currentAddonPointer.Struct;
         if (atkUnitBase->UldManager.LoadedState == AtkLoadState.Unloaded) return;
 
         // Does this addon contain the node this event is for? (by address)

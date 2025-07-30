@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.Gui.NativeWrapper;
 
