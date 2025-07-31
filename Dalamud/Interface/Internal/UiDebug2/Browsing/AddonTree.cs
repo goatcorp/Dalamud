@@ -152,7 +152,7 @@ public unsafe partial class AddonTree : IDisposable
         var uldManager = addon->UldManager;
 
         PrintFieldValuePair("Address", $"{(nint)addon:X}");
-        PrintFieldValuePair("Agent", $"{GameGui.FindAgentInterface(addon):X}");
+        PrintFieldValuePair("Agent", $"{(nint)GameGui.FindAgentInterface(addon):X}");
 
         PrintFieldValuePairs(
             ("X", $"{addon->X}"),

@@ -5,7 +5,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 namespace Dalamud.Game.NativeWrapper;
 
 /// <summary>
-/// A wrapper for UIModule.
+/// A readonly wrapper for UIModule.
 /// </summary>
 /// <param name="address">The address to the UIModule.</param>
 [StructLayout(LayoutKind.Explicit, Size = 0x08)]

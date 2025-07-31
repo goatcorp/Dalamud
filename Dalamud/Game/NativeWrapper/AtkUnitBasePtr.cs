@@ -6,7 +6,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace Dalamud.Game.NativeWrapper;
 
 /// <summary>
-/// A wrapper for AtkUnitBase.
+/// A readonly wrapper for AtkUnitBase.
 /// </summary>
 /// <param name="address">The address to the AtkUnitBase.</param>
 [StructLayout(LayoutKind.Explicit, Size = 0x08)]

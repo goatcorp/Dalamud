@@ -6,7 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 namespace Dalamud.Game.NativeWrapper;
 
 /// <summary>
-/// A wrapper for AgentInterface.
+/// A readonly wrapper for AgentInterface.
 /// </summary>
 /// <param name="address">The address to the AgentInterface.</param>
 [StructLayout(LayoutKind.Explicit, Size = 0x08)]
