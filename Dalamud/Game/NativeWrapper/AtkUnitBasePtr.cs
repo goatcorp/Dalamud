@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using FFXIVClientStructs.Interop;
 
 namespace Dalamud.Game.NativeWrapper;
 
@@ -24,7 +26,7 @@ public readonly unsafe struct AtkUnitBasePtr(nint address) : IEquatable<AtkUnitB
     public readonly bool IsNull => this.Address == 0;
 
     /// <summary>
-    /// Gets a value indicating whether the OnSetup function of the AtkUnitBase has been called.
+    /// Gets a value indicating whether the OnSetup function has been called.
     /// </summary>
     public readonly bool IsReady => !this.IsNull && this.Struct->IsReady;
 
@@ -34,74 +36,102 @@ public readonly unsafe struct AtkUnitBasePtr(nint address) : IEquatable<AtkUnitB
     public readonly bool IsVisible => !this.IsNull && this.Struct->IsVisible;
 
     /// <summary>
-    /// Gets the name of the AtkUnitBase.
+    /// Gets the name.
     /// </summary>
     public readonly string Name => this.IsNull ? string.Empty : this.Struct->NameString;
 
     /// <summary>
-    /// Gets the id of the AtkUnitBase.
+    /// Gets the id.
     /// </summary>
     public readonly ushort Id => this.IsNull ? (ushort)0 : this.Struct->Id;
 
     /// <summary>
-    /// Gets the parent id of the AtkUnitBase.
+    /// Gets the parent id.
     /// </summary>
     public readonly ushort ParentId => this.IsNull ? (ushort)0 : this.Struct->ParentId;
 
     /// <summary>
-    /// Gets the host id of the AtkUnitBase.
+    /// Gets the host id.
     /// </summary>
     public readonly ushort HostId => this.IsNull ? (ushort)0 : this.Struct->HostId;
 
     /// <summary>
-    /// Gets the scale of the AtkUnitBase.
+    /// Gets the scale.
     /// </summary>
     public readonly float Scale => this.IsNull ? 0f : this.Struct->Scale;
 
     /// <summary>
-    /// Gets the x-position of the AtkUnitBase.
+    /// Gets the x-position.
     /// </summary>
     public readonly short X => this.IsNull ? (short)0 : this.Struct->X;
 
     /// <summary>
-    /// Gets the y-position of the AtkUnitBase.
+    /// Gets the y-position.
     /// </summary>
     public readonly short Y => this.IsNull ? (short)0 : this.Struct->Y;
 
     /// <summary>
-    /// Gets the width of the AtkUnitBase.
+    /// Gets the width.
     /// </summary>
     public readonly float Width => this.IsNull ? 0f : this.Struct->GetScaledWidth(false);
 
     /// <summary>
-    /// Gets the height of the AtkUnitBase.
+    /// Gets the height.
     /// </summary>
     public readonly float Height => this.IsNull ? 0f : this.Struct->GetScaledHeight(false);
 
     /// <summary>
-    /// Gets the scaled width of the AtkUnitBase.
+    /// Gets the scaled width.
     /// </summary>
     public readonly float ScaledWidth => this.IsNull ? 0f : this.Struct->GetScaledWidth(true);
 
     /// <summary>
-    /// Gets the scaled height of the AtkUnitBase.
+    /// Gets the scaled height.
     /// </summary>
     public readonly float ScaledHeight => this.IsNull ? 0f : this.Struct->GetScaledHeight(true);
 
     /// <summary>
-    /// Gets the position of the AtkUnitBase.
+    /// Gets the position.
     /// </summary>
     public readonly Vector2 Position => new(this.X, this.Y);
 
     /// <summary>
-    /// Gets the size of the AtkUnitBase.
+    /// Gets the size.
     /// </summary>
     public readonly Vector2 Size => new(this.Width, this.Height);
 
     /// <summary>
-    /// Gets the scaled size of the AtkUnitBase.
+    /// Gets the scaled size.
     /// </summary>
     public readonly Vector2 ScaledSize => new(this.ScaledWidth, this.ScaledHeight);
+
+    /// <summary>
+    /// Gets the number of <see cref="AtkValue"/> entries.
+    /// </summary>
+    public readonly int AtkValuesCount => this.Struct->AtkValuesCount;
+
+    /// <summary>
+    /// Gets an enumerable collection of <see cref="AtkValuePtr"/> of the addons current AtkValues.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="IEnumerable{T}"/> of <see cref="AtkValuePtr"/> corresponding to the addons AtkValues.
+    /// </returns>
+    public IEnumerable<AtkValuePtr> AtkValues
+    {
+        get
+        {
+            for (var i = 0; i < this.AtkValuesCount; i++)
+            {
+                AtkValuePtr ptr;
+                unsafe
+                {
+                    ptr = new AtkValuePtr((nint)this.Struct->AtkValuesSpan.GetPointer(i));
+                }
+
+                yield return ptr;
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the AtkUnitBase*.
