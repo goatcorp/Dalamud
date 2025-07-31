@@ -71,6 +71,8 @@ public readonly unsafe struct AgentInterfacePtr(nint address) : IEquatable<Agent
 
     public static implicit operator AgentInterfacePtr(nint address) => new(address);
 
+    public static implicit operator AgentInterfacePtr(void* ptr) => new((nint)ptr);
+
     public static bool operator ==(AgentInterfacePtr left, AgentInterfacePtr right) => left.Address == right.Address;
 
     public static bool operator !=(AgentInterfacePtr left, AgentInterfacePtr right) => left.Address != right.Address;

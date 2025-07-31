@@ -32,6 +32,8 @@ public readonly unsafe struct UIModulePtr(nint address) : IEquatable<UIModulePtr
 
     public static implicit operator UIModulePtr(nint address) => new(address);
 
+    public static implicit operator UIModulePtr(void* ptr) => new((nint)ptr);
+
     public static bool operator ==(UIModulePtr left, UIModulePtr right) => left.Address == right.Address;
 
     public static bool operator !=(UIModulePtr left, UIModulePtr right) => left.Address != right.Address;

@@ -113,6 +113,8 @@ public readonly unsafe struct AtkUnitBasePtr(nint address) : IEquatable<AtkUnitB
 
     public static implicit operator AtkUnitBasePtr(nint address) => new(address);
 
+    public static implicit operator AtkUnitBasePtr(void* ptr) => new((nint)ptr);
+
     public static bool operator ==(AtkUnitBasePtr left, AtkUnitBasePtr right) => left.Address == right.Address;
 
     public static bool operator !=(AtkUnitBasePtr left, AtkUnitBasePtr right) => left.Address != right.Address;

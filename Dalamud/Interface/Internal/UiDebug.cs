@@ -12,8 +12,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
-using Lumina.Text.ReadOnly;
-
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
 namespace Dalamud.Interface.Internal;
@@ -87,7 +85,7 @@ internal unsafe class UiDebug
     {
         var isVisible = atkUnitBase->IsVisible;
         var addonName = atkUnitBase->NameString;
-        var agent = Service<GameGui>.Get().FindAgentInterface((nint)atkUnitBase);
+        var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
         ImGui.Text($"{addonName}");
         ImGui.SameLine();
