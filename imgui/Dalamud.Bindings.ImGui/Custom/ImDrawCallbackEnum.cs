@@ -1,6 +1,6 @@
 namespace Dalamud.Bindings.ImGui;
 
-public enum ImDrawCallbackEnum
+public enum ImDrawCallbackEnum : long
 {
     Empty,
 
@@ -11,5 +11,5 @@ public enum ImDrawCallbackEnum
     /// state, and you want it to be restored. It is not done by default because they are many perfectly useful way of
     /// altering render state for imgui contents (e.g. changing shader/blending settings before an Image call).
     /// </summary>
-    ResetRenderState = -1,
+    ResetRenderState = ImGui.ImDrawCallbackResetRenderState,
 }

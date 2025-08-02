@@ -8,8 +8,7 @@ public static unsafe partial class ImGui
 {
     public static void AddCallback(
         ImDrawListPtr self, delegate*<ImDrawList*, ImDrawCmd*, void> callback, void* callbackData = null) =>
-        ((delegate* unmanaged[Cdecl]<ImDrawList*, delegate*<ImDrawList*, ImDrawCmd*, void>, void*, void>)funcTable
-                [540])(self, callback, callbackData);
+        ImGuiNative.AddCallback(self, callback, callbackData);
 
     public static void AddCallback(
         ImDrawListPtr self, delegate*<ImDrawListPtr, ImDrawCmdPtr, void> callback, void* callbackData = null) =>

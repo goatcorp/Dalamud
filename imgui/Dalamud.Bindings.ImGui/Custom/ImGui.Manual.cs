@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -160,17 +161,15 @@ public unsafe partial class ImGui
         {
             var dataBuffer = PointerTuple.Create(&callback);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-            var r =
-                ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate* unmanaged
-                        <ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1277])(
-                    labelPtr,
-                    hintPtr,
-                    bufPtr,
-                    buf.Length,
-                    sizeArg,
-                    flags,
-                    callback == null ? null : &InputTextCallbackStatic,
-                    callback == null ? null : &dataBuffer) != 0;
+            var r = ImGuiNative.InputTextEx(
+                        labelPtr,
+                        hintPtr,
+                        bufPtr,
+                        buf.Length,
+                        sizeArg,
+                        flags,
+                        callback == null ? null : &InputTextCallbackStatic,
+                        callback == null ? null : &dataBuffer) != 0;
             label.Dispose();
             hint.Dispose();
             return r;
@@ -189,17 +188,15 @@ public unsafe partial class ImGui
         {
             var dataBuffer = PointerTuple.Create(&callback, contextPtr);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-            var r =
-                ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate* unmanaged
-                        <ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1277])(
-                    labelPtr,
-                    hintPtr,
-                    bufPtr,
-                    buf.Length,
-                    sizeArg,
-                    flags,
-                    &InputTextCallbackRefContextStatic,
-                    &dataBuffer) != 0;
+            var r = ImGuiNative.InputTextEx(
+                        labelPtr,
+                        hintPtr,
+                        bufPtr,
+                        buf.Length,
+                        sizeArg,
+                        flags,
+                        &InputTextCallbackRefContextStatic,
+                        &dataBuffer) != 0;
             label.Dispose();
             hint.Dispose();
             return r;
@@ -218,17 +215,15 @@ public unsafe partial class ImGui
         {
             var dataBuffer = PointerTuple.Create(&callback, contextPtr);
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-            var r =
-                ((delegate* unmanaged[Cdecl]<byte*, byte*, byte*, int, Vector2, ImGuiInputTextFlags, delegate* unmanaged
-                        <ImGuiInputTextCallbackData*, int>, void*, byte>)ImGui.funcTable[1277])(
-                    labelPtr,
-                    hintPtr,
-                    bufPtr,
-                    buf.Length,
-                    sizeArg,
-                    flags,
-                    &InputTextCallbackInContextStatic,
-                    &dataBuffer) != 0;
+            var r = ImGuiNative.InputTextEx(
+                        labelPtr,
+                        hintPtr,
+                        bufPtr,
+                        buf.Length,
+                        sizeArg,
+                        flags,
+                        &InputTextCallbackInContextStatic,
+                        &dataBuffer) != 0;
             label.Dispose();
             hint.Dispose();
             return r;
@@ -445,21 +440,21 @@ public unsafe partial class ImGui
         return r;
     }
 
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static int InputTextCallbackStatic(ImGuiInputTextCallbackData* data)
     {
         ref var dvps = ref PointerTuple.From<ImGuiInputTextCallbackDelegate>(data->UserData);
         return dvps.Item1.Invoke(ref *data);
     }
 
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static int InputTextCallbackRefContextStatic(ImGuiInputTextCallbackData* data)
     {
         ref var dvps = ref PointerTuple.From<ImGuiInputTextCallbackRefContextDelegate<object>, object>(data->UserData);
         return dvps.Item1.Invoke(ref *data, ref dvps.Item2);
     }
 
-    [UnmanagedCallersOnly]
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static int InputTextCallbackInContextStatic(ImGuiInputTextCallbackData* data)
     {
         ref var dvps = ref PointerTuple.From<ImGuiInputTextCallbackInContextDelegate<object>, object>(data->UserData);
