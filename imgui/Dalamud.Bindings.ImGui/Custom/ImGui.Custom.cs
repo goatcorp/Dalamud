@@ -1,6 +1,3 @@
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
 namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial class ImGui

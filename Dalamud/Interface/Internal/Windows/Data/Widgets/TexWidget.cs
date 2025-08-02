@@ -71,7 +71,7 @@ internal class TexWidget : IDataWindowWidget
 
     private enum DrawBlameTableColumnUserId
     {
-        NativeAddress,
+        NativeAddress = 1,
         Actions,
         Name,
         Width,
@@ -231,7 +231,7 @@ internal class TexWidget : IDataWindowWidget
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader($"CropCopy##{this.DrawExistingTextureModificationArgs}"))
+        if (ImGui.CollapsingHeader($"CropCopy##{nameof(this.DrawExistingTextureModificationArgs)}"))
         {
             ImGui.PushID(nameof(this.DrawExistingTextureModificationArgs));
             this.DrawExistingTextureModificationArgs();

@@ -6,6 +6,26 @@ namespace Dalamud.Bindings.ImGui;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public static unsafe partial class ImGui
 {
+    public static void AddCallback(
+        ImDrawListPtr self, delegate*<ImDrawList*, ImDrawCmd*, void> callback, void* callbackData = null) =>
+        ((delegate* unmanaged[Cdecl]<ImDrawList*, delegate*<ImDrawList*, ImDrawCmd*, void>, void*, void>)funcTable
+                [540])(self, callback, callbackData);
+
+    public static void AddCallback(
+        ImDrawListPtr self, delegate*<ImDrawListPtr, ImDrawCmdPtr, void> callback, void* callbackData = null) =>
+        AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData);
+
+    public static void AddCallback(
+        ImDrawListPtr self, delegate*<ref ImDrawList, ref ImDrawCmd, void> callback, void* callbackData = null) =>
+        AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData);
+
+    public static void AddCallback(ImDrawListPtr self, ImDrawCallbackEnum presetCallback)
+    {
+        if (!Enum.IsDefined(presetCallback))
+            throw new ArgumentOutOfRangeException(nameof(presetCallback), presetCallback, null);
+        AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)presetCallback);
+    }
+
     public static ImGuiPayloadPtr AcceptDragDropPayload(
         ImU8String type, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
     {
