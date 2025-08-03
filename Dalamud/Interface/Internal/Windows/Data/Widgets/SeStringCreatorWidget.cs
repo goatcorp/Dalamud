@@ -1065,10 +1065,10 @@ internal class SeStringCreatorWidget : IDataWindowWidget
                         break;
 
                     case LinkMacroPayloadType.AkatsukiNote when
-                        dataManager.GetSubrowExcelSheet<AkatsukiNote>(this.language).TryGetRow(u32, out var akatsukiNoteRow) &&
-                        dataManager.GetExcelSheet<AkatsukiNoteString>(this.language).TryGetRow((uint)akatsukiNoteRow[0].Unknown2, out var akatsukiNoteStringRow):
+                        dataManager.GetSubrowExcelSheet<AkatsukiNote>(this.language).TryGetSubrow(u32, 0, out var akatsukiNoteRow) &&
+                        akatsukiNoteRow.ListName.ValueNullable is { } akatsukiNoteStringRow:
                         ImGui.SameLine();
-                        ImGui.Text(akatsukiNoteStringRow.Unknown0.ExtractText());
+                        ImGui.Text(akatsukiNoteStringRow.Text.ExtractText());
                         break;
                 }
             }
