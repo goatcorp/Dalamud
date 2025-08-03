@@ -26,7 +26,6 @@
 
     <ItemGroup>
         <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
-        <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
         <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
             <PrivateAssets>all</PrivateAssets>
