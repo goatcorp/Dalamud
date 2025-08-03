@@ -20,10 +20,18 @@ namespace Dalamud.Bindings.ImGui
             {
                 InitApi(new NativeLibraryContext(Process.GetCurrentProcess().MainModule!.BaseAddress));
             }
+
+            var linuxPath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location)!, GetLibraryName() + ".so");
+            var windowsPath = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location)!, GetLibraryName() + ".dll");
+
+            // This shouldn't affect wine as it'll be reported as Win32NT
+            if (System.Environment.OSVersion.Platform == PlatformID.Unix && File.Exists(linuxPath))
+            {
+                InitApi(new NativeLibraryContext(linuxPath));
+            }
             else
             {
-                //InitApi(new NativeLibraryContext(LibraryLoader.LoadLibrary(GetLibraryName, null)));
-                InitApi(new NativeLibraryContext(Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location)!, GetLibraryName() + ".dll")));
+                InitApi(new NativeLibraryContext(windowsPath));
             }
         }
 
