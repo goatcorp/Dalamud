@@ -69,7 +69,7 @@ public readonly unsafe struct AtkValuePtr(nint address) : IEquatable<AtkValuePtr
             AtkValueType.UInt => this.Struct->UInt,
             AtkValueType.UInt64 => this.Struct->UInt64,
             AtkValueType.Float => this.Struct->Float,
-            AtkValueType.String or AtkValueType.String8 or AtkValueType.ManagedString => this.Struct->String == null ? default : this.Struct->String.AsReadOnlySeString(),
+            AtkValueType.String or AtkValueType.String8 or AtkValueType.ManagedString => this.Struct->String.HasValue ? this.Struct->String.AsReadOnlySeString() : default,
             AtkValueType.WideString => this.Struct->WideString == null ? string.Empty : new string(this.Struct->WideString),
             AtkValueType.Pointer => (nint)this.Struct->Pointer,
             _ => throw new NotImplementedException($"AtkValueType {this.ValueType} is currently not supported"),
