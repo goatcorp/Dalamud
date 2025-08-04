@@ -46,7 +46,7 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
-    public static void append(ImGuiTextBufferPtr self, ImU8String str)
+    public static void append(this ImGuiTextBufferPtr self, ImU8String str)
     {
         fixed (byte* strPtr = str.Span) ImGuiNative.append(self.Handle, strPtr, strPtr + str.Length);
         str.Dispose();

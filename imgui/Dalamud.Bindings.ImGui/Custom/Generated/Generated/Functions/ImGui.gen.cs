@@ -894,16 +894,6 @@ public unsafe partial class ImGui
 		{
 			ImGuiNative.ShowUserGuide();
 		}
-		public static byte* GetVersion()
-		{
-			byte* ret = ImGuiNative.GetVersion();
-			return ret;
-		}
-		public static string GetVersionS()
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.GetVersion());
-			return ret;
-		}
 		public static void StyleColorsDark(ImGuiStylePtr dst)
 		{
 			ImGuiNative.StyleColorsDark(dst);
@@ -1814,26 +1804,6 @@ public unsafe partial class ImGui
 			int ret = ImGuiNative.TableGetRowIndex();
 			return ret;
 		}
-		public static byte* TableGetColumnName(int columnN)
-		{
-			byte* ret = ImGuiNative.TableGetColumnName(columnN);
-			return ret;
-		}
-		public static byte* TableGetColumnName()
-		{
-			byte* ret = ImGuiNative.TableGetColumnName((int)(-1));
-			return ret;
-		}
-		public static string TableGetColumnNameS()
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.TableGetColumnName((int)(-1)));
-			return ret;
-		}
-		public static string TableGetColumnNameS(int columnN)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.TableGetColumnName(columnN));
-			return ret;
-		}
 		public static ImGuiTableColumnFlags TableGetColumnFlags(int columnN)
 		{
 			ImGuiTableColumnFlags ret = ImGuiNative.TableGetColumnFlags(columnN);
@@ -2446,16 +2416,6 @@ public unsafe partial class ImGui
 			ImDrawListSharedDataPtr ret = ImGuiNative.GetDrawListSharedData();
 			return ret;
 		}
-		public static byte* GetStyleColorName(ImGuiCol idx)
-		{
-			byte* ret = ImGuiNative.GetStyleColorName(idx);
-			return ret;
-		}
-		public static string GetStyleColorNameS(ImGuiCol idx)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.GetStyleColorName(idx));
-			return ret;
-		}
 		public static void SetStateStorage(ImGuiStoragePtr storage)
 		{
 			ImGuiNative.SetStateStorage(storage);
@@ -2669,16 +2629,6 @@ public unsafe partial class ImGui
 			int ret = ImGuiNative.GetKeyPressedAmount(key, repeatDelay, rate);
 			return ret;
 		}
-		public static byte* GetKeyName(ImGuiKey key)
-		{
-			byte* ret = ImGuiNative.GetKeyName(key);
-			return ret;
-		}
-		public static string GetKeyNameS(ImGuiKey key)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.GetKeyName(key));
-			return ret;
-		}
 		public static void SetNextFrameWantCaptureKeyboard(bool wantCaptureKeyboard)
 		{
 			ImGuiNative.SetNextFrameWantCaptureKeyboard(wantCaptureKeyboard ? (byte)1 : (byte)0);
@@ -2878,36 +2828,6 @@ public unsafe partial class ImGui
 		public static void SetNextFrameWantCaptureMouse(bool wantCaptureMouse)
 		{
 			ImGuiNative.SetNextFrameWantCaptureMouse(wantCaptureMouse ? (byte)1 : (byte)0);
-		}
-		public static byte* GetClipboardText()
-		{
-			byte* ret = ImGuiNative.GetClipboardText();
-			return ret;
-		}
-		public static string GetClipboardTextS()
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.GetClipboardText());
-			return ret;
-		}
-		public static byte* SaveIniSettingsToMemory(nuint* outIniSize)
-		{
-			byte* ret = ImGuiNative.SaveIniSettingsToMemory(outIniSize);
-			return ret;
-		}
-		public static byte* SaveIniSettingsToMemory()
-		{
-			byte* ret = ImGuiNative.SaveIniSettingsToMemory((nuint*)(default));
-			return ret;
-		}
-		public static string SaveIniSettingsToMemoryS()
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.SaveIniSettingsToMemory((nuint*)(default)));
-			return ret;
-		}
-		public static string SaveIniSettingsToMemoryS(nuint* outIniSize)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.SaveIniSettingsToMemory(outIniSize));
-			return ret;
 		}
 		public static void SetAllocatorFunctions(ImGuiMemAllocFunc allocFunc, ImGuiMemFreeFunc freeFunc, void* userData)
 		{
@@ -3393,58 +3313,6 @@ public unsafe partial class ImGui
 			ImGuiTextBufferPtr ret = ImGuiNative.ImGuiTextBuffer();
 			return ret;
 		}
-		public static byte* begin(ImGuiTextBufferPtr self)
-		{
-			byte* ret = ImGuiNative.begin(self);
-			return ret;
-		}
-		public static byte* begin(ref ImGuiTextBuffer self)
-		{
-			fixed (ImGuiTextBuffer* pself = &self)
-			{
-				byte* ret = ImGuiNative.begin((ImGuiTextBuffer*)pself);
-				return ret;
-			}
-		}
-		public static string beginS(ImGuiTextBufferPtr self)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.begin(self));
-			return ret;
-		}
-		public static string beginS(ref ImGuiTextBuffer self)
-		{
-			fixed (ImGuiTextBuffer* pself = &self)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiNative.begin((ImGuiTextBuffer*)pself));
-				return ret;
-			}
-		}
-		public static byte* end(ImGuiTextBufferPtr self)
-		{
-			byte* ret = ImGuiNative.end(self);
-			return ret;
-		}
-		public static byte* end(ref ImGuiTextBuffer self)
-		{
-			fixed (ImGuiTextBuffer* pself = &self)
-			{
-				byte* ret = ImGuiNative.end((ImGuiTextBuffer*)pself);
-				return ret;
-			}
-		}
-		public static string endS(ImGuiTextBufferPtr self)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.end(self));
-			return ret;
-		}
-		public static string endS(ref ImGuiTextBuffer self)
-		{
-			fixed (ImGuiTextBuffer* pself = &self)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiNative.end((ImGuiTextBuffer*)pself));
-				return ret;
-			}
-		}
 		public static int size(ImGuiTextBufferPtr self)
 		{
 			int ret = ImGuiNative.size(self);
@@ -3478,32 +3346,6 @@ public unsafe partial class ImGui
 			fixed (ImGuiTextBuffer* pself = &self)
 			{
 				ImGuiNative.reserve((ImGuiTextBuffer*)pself, capacity);
-			}
-		}
-		public static byte* c_str(ImGuiTextBufferPtr self)
-		{
-			byte* ret = ImGuiNative.c_str(self);
-			return ret;
-		}
-		public static byte* c_str(ref ImGuiTextBuffer self)
-		{
-			fixed (ImGuiTextBuffer* pself = &self)
-			{
-				byte* ret = ImGuiNative.c_str((ImGuiTextBuffer*)pself);
-				return ret;
-			}
-		}
-		public static string c_strS(ImGuiTextBufferPtr self)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.c_str(self));
-			return ret;
-		}
-		public static string c_strS(ref ImGuiTextBuffer self)
-		{
-			fixed (ImGuiTextBuffer* pself = &self)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiNative.c_str((ImGuiTextBuffer*)pself));
-				return ret;
 			}
 		}
 		public static ImGuiStoragePairPtr ImGuiStoragePair(uint key, int valI)
@@ -8517,32 +8359,6 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static byte* GetDebugName(ImFontPtr self)
-		{
-			byte* ret = ImGuiNative.GetDebugName(self);
-			return ret;
-		}
-		public static byte* GetDebugName(ref ImFont self)
-		{
-			fixed (ImFont* pself = &self)
-			{
-				byte* ret = ImGuiNative.GetDebugName((ImFont*)pself);
-				return ret;
-			}
-		}
-		public static string GetDebugNameS(ImFontPtr self)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.GetDebugName(self));
-			return ret;
-		}
-		public static string GetDebugNameS(ref ImFont self)
-		{
-			fixed (ImFont* pself = &self)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiNative.GetDebugName((ImFont*)pself));
-				return ret;
-			}
-		}
 		public static void RenderChar(ImFontPtr self, ImDrawListPtr drawList, float size, Vector2 pos, uint col, ushort c)
 		{
 			ImGuiNative.RenderChar(self, drawList, size, pos, col, c);
@@ -8896,6 +8712,7 @@ public unsafe partial class ImGui
 // DISCARDED: internal static void appendfNative(ImGuiTextBuffer* buffer, byte* fmt)
 // DISCARDED: internal static void appendfvNative(ImGuiTextBuffer* self, byte* fmt, nuint args)
 // DISCARDED: internal static byte ArrowButtonNative(byte* strId, ImGuiDir dir)
+// DISCARDED: internal static byte* beginNative(ImGuiTextBuffer* self)
 // DISCARDED: internal static byte BeginNative(byte* name, bool* pOpen, ImGuiWindowFlags flags)
 // DISCARDED: internal static void BeginNative(ImGuiListClipper* self, int itemsCount, float itemsHeight)
 // DISCARDED: internal static byte BeginChildNative(byte* strId, Vector2 size, byte border, ImGuiWindowFlags flags)
@@ -8908,12 +8725,15 @@ public unsafe partial class ImGui
 // DISCARDED: internal static byte BeginPopupContextVoidNative(byte* strId, ImGuiPopupFlags popupFlags)
 // DISCARDED: internal static byte BeginPopupContextWindowNative(byte* strId, ImGuiPopupFlags popupFlags)
 // DISCARDED: internal static byte BeginPopupModalNative(byte* name, bool* pOpen, ImGuiWindowFlags flags)
+// DISCARDED: beginS
 // DISCARDED: internal static byte BeginTabBarNative(byte* strId, ImGuiTabBarFlags flags)
 // DISCARDED: internal static byte BeginTabItemNative(byte* label, bool* pOpen, ImGuiTabItemFlags flags)
 // DISCARDED: internal static byte BeginTableNative(byte* strId, int column, ImGuiTableFlags flags, Vector2 outerSize, float innerWidth)
 // DISCARDED: internal static void BulletTextNative(byte* fmt)
 // DISCARDED: internal static void BulletTextVNative(byte* fmt, nuint args)
 // DISCARDED: internal static byte ButtonNative(byte* label, Vector2 size)
+// DISCARDED: internal static byte* c_strNative(ImGuiTextBuffer* self)
+// DISCARDED: c_strS
 // DISCARDED: internal static void CalcTextSizeNative(Vector2* pOut, byte* text, byte* textEnd, byte hideTextAfterDoubleHash, float wrapWidth)
 // DISCARDED: internal static void CalcTextSizeANative(Vector2* pOut, ImFont* self, float size, float maxWidth, float wrapWidth, byte* textBegin, byte* textEnd, byte** remaining)
 // DISCARDED: internal static byte* CalcWordWrapPositionANative(ImFont* self, float scale, byte* text, byte* textEnd, float wrapWidth)
@@ -8947,12 +8767,24 @@ public unsafe partial class ImGui
 // DISCARDED: internal static byte DragScalarNative(byte* label, ImGuiDataType dataType, void* pData, float vSpeed, void* pMin, void* pMax, byte* format, ImGuiSliderFlags flags)
 // DISCARDED: internal static byte DragScalarNNative(byte* label, ImGuiDataType dataType, void* pData, int components, float vSpeed, void* pMin, void* pMax, byte* format, ImGuiSliderFlags flags)
 // DISCARDED: internal static byte DrawNative(ImGuiTextFilter* self, byte* label, float width)
+// DISCARDED: internal static byte* endNative(ImGuiTextBuffer* self)
+// DISCARDED: endS
 // DISCARDED: internal static bool* GetBoolRefNative(ImGuiStorage* self, uint key, byte defaultVal)
+// DISCARDED: internal static byte* GetClipboardTextNative()
+// DISCARDED: GetClipboardTextS
+// DISCARDED: internal static byte* GetDebugNameNative(ImFont* self)
+// DISCARDED: GetDebugNameS
 // DISCARDED: internal static float* GetFloatRefNative(ImGuiStorage* self, uint key, float defaultVal)
 // DISCARDED: internal static uint GetIDNative(byte* strId)
 // DISCARDED: internal static uint GetIDNative(byte* strIdBegin, byte* strIdEnd)
 // DISCARDED: internal static uint GetIDNative(void* ptrId)
 // DISCARDED: internal static int* GetIntRefNative(ImGuiStorage* self, uint key, int defaultVal)
+// DISCARDED: internal static byte* GetKeyNameNative(ImGuiKey key)
+// DISCARDED: GetKeyNameS
+// DISCARDED: internal static byte* GetStyleColorNameNative(ImGuiCol idx)
+// DISCARDED: GetStyleColorNameS
+// DISCARDED: internal static byte* GetVersionNative()
+// DISCARDED: GetVersionS
 // DISCARDED: internal static void** GetVoidPtrRefNative(ImGuiStorage* self, uint key, void* defaultVal)
 // DISCARDED: internal static ImGuiTextFilter* ImGuiTextFilterNative(byte* defaultFilter)
 // DISCARDED: internal static ImGuiTextRange* ImGuiTextRangeNative()
@@ -9000,6 +8832,8 @@ public unsafe partial class ImGui
 // DISCARDED: internal static byte RadioButtonNative(byte* label, int* v, int vButton)
 // DISCARDED: internal static void RenderTextNative(ImFont* self, ImDrawList* drawList, float size, Vector2 pos, uint col, Vector4 clipRect, byte* textBegin, byte* textEnd, float wrapWidth, byte cpuFineClip)
 // DISCARDED: internal static void SaveIniSettingsToDiskNative(byte* iniFilename)
+// DISCARDED: internal static byte* SaveIniSettingsToMemoryNative(nuint* outIniSize)
+// DISCARDED: SaveIniSettingsToMemoryS
 // DISCARDED: internal static byte SelectableNative(byte* label, byte selected, ImGuiSelectableFlags flags, Vector2 size)
 // DISCARDED: internal static byte SelectableNative(byte* label, bool* pSelected, ImGuiSelectableFlags flags, Vector2 size)
 // DISCARDED: internal static void SetClipboardTextNative(byte* text)
@@ -9030,6 +8864,8 @@ public unsafe partial class ImGui
 // DISCARDED: internal static byte SliderScalarNNative(byte* label, ImGuiDataType dataType, void* pData, int components, void* pMin, void* pMax, byte* format, ImGuiSliderFlags flags)
 // DISCARDED: internal static byte SmallButtonNative(byte* label)
 // DISCARDED: internal static byte TabItemButtonNative(byte* label, ImGuiTabItemFlags flags)
+// DISCARDED: internal static byte* TableGetColumnNameNative(int columnN)
+// DISCARDED: TableGetColumnNameS
 // DISCARDED: internal static void TableHeaderNative(byte* label)
 // DISCARDED: internal static void TableSetupColumnNative(byte* label, ImGuiTableColumnFlags flags, float initWidthOrWeight, uint userId)
 // DISCARDED: internal static void TextNative(byte* fmt)

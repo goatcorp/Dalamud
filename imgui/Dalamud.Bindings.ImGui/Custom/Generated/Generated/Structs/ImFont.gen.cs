@@ -94,22 +94,6 @@ public unsafe partial struct ImFont
 				return ret;
 			}
 		}
-		public unsafe byte* GetDebugName()
-		{
-			fixed (ImFont* @this = &this)
-			{
-				byte* ret = ImGuiNative.GetDebugName(@this);
-				return ret;
-			}
-		}
-		public unsafe string GetDebugNameS()
-		{
-			fixed (ImFont* @this = &this)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiNative.GetDebugName(@this));
-				return ret;
-			}
-		}
 		public unsafe float GetDistanceAdjustmentForPair(ushort leftC, ushort rightC)
 		{
 			fixed (ImFont* @this = &this)
@@ -187,5 +171,7 @@ public unsafe partial struct ImFont
 }
 // DISCARDED: CalcWordWrapPositionA
 // DISCARDED: CalcWordWrapPositionAS
+// DISCARDED: GetDebugName
+// DISCARDED: GetDebugNameS
 // DISCARDED: RenderText
 

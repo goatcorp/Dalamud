@@ -11,26 +11,6 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiTextBufferPtr
 {
-		public unsafe byte* begin()
-		{
-			byte* ret = ImGuiNative.begin(Handle);
-			return ret;
-		}
-		public unsafe string beginS()
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.begin(Handle));
-			return ret;
-		}
-		public unsafe byte* c_str()
-		{
-			byte* ret = ImGuiNative.c_str(Handle);
-			return ret;
-		}
-		public unsafe string c_strS()
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.c_str(Handle));
-			return ret;
-		}
 		public unsafe void clear()
 		{
 			ImGuiNative.clear(Handle);
@@ -43,16 +23,6 @@ public unsafe partial struct ImGuiTextBufferPtr
 		{
 			byte ret = ImGuiNative.empty(Handle);
 			return ret != 0;
-		}
-		public unsafe byte* end()
-		{
-			byte* ret = ImGuiNative.end(Handle);
-			return ret;
-		}
-		public unsafe string endS()
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiNative.end(Handle));
-			return ret;
 		}
 		public unsafe void reserve(int capacity)
 		{
@@ -67,4 +37,10 @@ public unsafe partial struct ImGuiTextBufferPtr
 // DISCARDED: append
 // DISCARDED: appendf
 // DISCARDED: appendfv
+// DISCARDED: begin
+// DISCARDED: beginS
+// DISCARDED: c_str
+// DISCARDED: c_strS
+// DISCARDED: end
+// DISCARDED: endS
 

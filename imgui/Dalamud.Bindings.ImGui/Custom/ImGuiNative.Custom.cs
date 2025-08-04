@@ -19,14 +19,14 @@ public static unsafe partial class ImGuiNative
         }
     }
 
-    [LibraryImport($"{LibraryName}.dll", EntryPoint = "ImDrawList_AddCallback")]
+    [LibraryImport(LibraryName, EntryPoint = "ImDrawList_AddCallback")]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
     public static partial void AddCallback(
         ImDrawList* self,
         delegate*<ImDrawList*, ImDrawCmd*, void> callback,
         void* callbackData = null);
 
-    [LibraryImport($"{LibraryName}.dll", EntryPoint = "igInputTextEx")]
+    [LibraryImport(LibraryName, EntryPoint = "igInputTextEx")]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
     public static partial int InputTextEx(
         byte* label,

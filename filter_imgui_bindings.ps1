@@ -23,7 +23,14 @@ $tmp = Get-Content -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\E
 $tmp = $tmp.Replace("unchecked((int)GamepadStart)", "unchecked((int)ImGuiKey.GamepadStart)").Trim()
 $tmp | Set-Content -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Enums\ImGuiKeyPrivate.cs" -Encoding ascii
 
-Remove-Item -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Handles\ImTextureID.cs" -Force
+try
+{
+    Remove-Item -Path "$PSScriptRoot\imgui\Dalamud.Bindings.ImGui\Generated\Handles\ImTextureID.cs" -Force
+}
+catch [System.Management.Automation.ItemNotFoundException]
+{
+    # pass
+}
 
 foreach ($sourcePath in $sourcePaths)
 {
@@ -188,8 +195,19 @@ foreach ($sourcePath in $sourcePaths)
 
                 foreach ($overload in $methods)
                 {
-                    # discard formatting functions or functions accepting (begin, end) or (data, size) pairs
+                    $returnType = $overload.Groups["return"].Value.Trim()
                     $argDef = $overload.Groups["args"].Value
+
+                    # discard functions returning a string of some sort
+                    if ($returnType -eq "string" -and
+                        $methodName.EndsWith("S"))
+                    {
+                        $null = $discardMethods.Add($methodName.Substring(0, $methodName.Length - 1))
+                        $null = $discardMethods.Add($methodName)
+                        break
+                    }
+
+                    # discard formatting functions or functions accepting (begin, end) or (data, size) pairs
                     if ($argDef.Contains("fmt") -or
                         $argDef -match "\btext\b" -or
                         # $argDef.Contains("byte* textEnd") -or

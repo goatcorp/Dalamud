@@ -50,48 +50,6 @@ public unsafe partial class ImGuiP
 			byte ret = ImGuiPNative.ImCharIsBlankW(c);
 			return ret != 0;
 		}
-		public static byte* ImTextCharToUtf8(byte* outBuf, uint c)
-		{
-			byte* ret = ImGuiPNative.ImTextCharToUtf8(outBuf, c);
-			return ret;
-		}
-		public static byte* ImTextCharToUtf8(ref byte outBuf, uint c)
-		{
-			fixed (byte* poutBuf = &outBuf)
-			{
-				byte* ret = ImGuiPNative.ImTextCharToUtf8((byte*)poutBuf, c);
-				return ret;
-			}
-		}
-		public static byte* ImTextCharToUtf8(ReadOnlySpan<byte> outBuf, uint c)
-		{
-			fixed (byte* poutBuf = outBuf)
-			{
-				byte* ret = ImGuiPNative.ImTextCharToUtf8((byte*)poutBuf, c);
-				return ret;
-			}
-		}
-		public static string ImTextCharToUtf8S(byte* outBuf, uint c)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiPNative.ImTextCharToUtf8(outBuf, c));
-			return ret;
-		}
-		public static string ImTextCharToUtf8S(ref byte outBuf, uint c)
-		{
-			fixed (byte* poutBuf = &outBuf)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiPNative.ImTextCharToUtf8((byte*)poutBuf, c));
-				return ret;
-			}
-		}
-		public static string ImTextCharToUtf8S(ReadOnlySpan<byte> outBuf, uint c)
-		{
-			fixed (byte* poutBuf = outBuf)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiPNative.ImTextCharToUtf8((byte*)poutBuf, c));
-				return ret;
-			}
-		}
 		public static int ImTextCountUtf8BytesFromStr(ushort* inText, ushort* inTextEnd)
 		{
 			int ret = ImGuiPNative.ImTextCountUtf8BytesFromStr(inText, inTextEnd);
@@ -2159,32 +2117,6 @@ public unsafe partial class ImGuiP
 			ImGuiWindowSettingsPtr ret = ImGuiPNative.ImGuiWindowSettings();
 			return ret;
 		}
-		public static byte* GetName(ImGuiWindowSettingsPtr self)
-		{
-			byte* ret = ImGuiPNative.GetName(self);
-			return ret;
-		}
-		public static byte* GetName(ref ImGuiWindowSettings self)
-		{
-			fixed (ImGuiWindowSettings* pself = &self)
-			{
-				byte* ret = ImGuiPNative.GetName((ImGuiWindowSettings*)pself);
-				return ret;
-			}
-		}
-		public static string GetNameS(ImGuiWindowSettingsPtr self)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiPNative.GetName(self));
-			return ret;
-		}
-		public static string GetNameS(ref ImGuiWindowSettings self)
-		{
-			fixed (ImGuiWindowSettings* pself = &self)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiPNative.GetName((ImGuiWindowSettings*)pself));
-				return ret;
-			}
-		}
 		public static ImGuiSettingsHandlerPtr ImGuiSettingsHandler()
 		{
 			ImGuiSettingsHandlerPtr ret = ImGuiPNative.ImGuiSettingsHandler();
@@ -2399,70 +2331,6 @@ public unsafe partial class ImGuiP
 				fixed (ImGuiTabItem* ptab = &tab)
 				{
 					int ret = ImGuiPNative.GetTabOrder((ImGuiTabBar*)pself, (ImGuiTabItem*)ptab);
-					return ret;
-				}
-			}
-		}
-		public static byte* GetTabName(ImGuiTabBarPtr self, ImGuiTabItemPtr tab)
-		{
-			byte* ret = ImGuiPNative.GetTabName(self, tab);
-			return ret;
-		}
-		public static byte* GetTabName(ref ImGuiTabBar self, ImGuiTabItemPtr tab)
-		{
-			fixed (ImGuiTabBar* pself = &self)
-			{
-				byte* ret = ImGuiPNative.GetTabName((ImGuiTabBar*)pself, tab);
-				return ret;
-			}
-		}
-		public static byte* GetTabName(ImGuiTabBarPtr self, ref ImGuiTabItem tab)
-		{
-			fixed (ImGuiTabItem* ptab = &tab)
-			{
-				byte* ret = ImGuiPNative.GetTabName(self, (ImGuiTabItem*)ptab);
-				return ret;
-			}
-		}
-		public static byte* GetTabName(ref ImGuiTabBar self, ref ImGuiTabItem tab)
-		{
-			fixed (ImGuiTabBar* pself = &self)
-			{
-				fixed (ImGuiTabItem* ptab = &tab)
-				{
-					byte* ret = ImGuiPNative.GetTabName((ImGuiTabBar*)pself, (ImGuiTabItem*)ptab);
-					return ret;
-				}
-			}
-		}
-		public static string GetTabNameS(ImGuiTabBarPtr self, ImGuiTabItemPtr tab)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiPNative.GetTabName(self, tab));
-			return ret;
-		}
-		public static string GetTabNameS(ref ImGuiTabBar self, ImGuiTabItemPtr tab)
-		{
-			fixed (ImGuiTabBar* pself = &self)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiPNative.GetTabName((ImGuiTabBar*)pself, tab));
-				return ret;
-			}
-		}
-		public static string GetTabNameS(ImGuiTabBarPtr self, ref ImGuiTabItem tab)
-		{
-			fixed (ImGuiTabItem* ptab = &tab)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiPNative.GetTabName(self, (ImGuiTabItem*)ptab));
-				return ret;
-			}
-		}
-		public static string GetTabNameS(ref ImGuiTabBar self, ref ImGuiTabItem tab)
-		{
-			fixed (ImGuiTabBar* pself = &self)
-			{
-				fixed (ImGuiTabItem* ptab = &tab)
-				{
-					string ret = Utils.DecodeStringUTF8(ImGuiPNative.GetTabName((ImGuiTabBar*)pself, (ImGuiTabItem*)ptab));
 					return ret;
 				}
 			}
@@ -3900,16 +3768,6 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.NavMoveRequestTryWrapping((ImGuiWindow*)pwindow, moveFlags);
 			}
 		}
-		public static byte* GetNavInputName(ImGuiNavInput n)
-		{
-			byte* ret = ImGuiPNative.GetNavInputName(n);
-			return ret;
-		}
-		public static string GetNavInputNameS(ImGuiNavInput n)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiPNative.GetNavInputName(n));
-			return ret;
-		}
 		public static float GetNavInputAmount(ImGuiNavInput n, ImGuiNavReadMode mode)
 		{
 			float ret = ImGuiPNative.GetNavInputAmount(n, mode);
@@ -5245,32 +5103,6 @@ public unsafe partial class ImGuiP
 				{
 					ImGuiPNative.TableGetCellBgRect((ImRect*)ppOut, (ImGuiTable*)ptable, columnN);
 				}
-			}
-		}
-		public static byte* TableGetColumnName(ImGuiTablePtr table, int columnN)
-		{
-			byte* ret = ImGuiPNative.TableGetColumnName(table, columnN);
-			return ret;
-		}
-		public static byte* TableGetColumnName(ref ImGuiTable table, int columnN)
-		{
-			fixed (ImGuiTable* ptable = &table)
-			{
-				byte* ret = ImGuiPNative.TableGetColumnName((ImGuiTable*)ptable, columnN);
-				return ret;
-			}
-		}
-		public static string TableGetColumnNameS(ImGuiTablePtr table, int columnN)
-		{
-			string ret = Utils.DecodeStringUTF8(ImGuiPNative.TableGetColumnName(table, columnN));
-			return ret;
-		}
-		public static string TableGetColumnNameS(ref ImGuiTable table, int columnN)
-		{
-			fixed (ImGuiTable* ptable = &table)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiPNative.TableGetColumnName((ImGuiTable*)ptable, columnN));
-				return ret;
 			}
 		}
 		public static uint TableGetColumnResizeID(ImGuiTablePtr table, int columnN, int instanceNo)
@@ -6697,6 +6529,12 @@ public unsafe partial class ImGuiP
 // DISCARDED: internal static uint GetIDNative(ImGuiWindow* self, void* ptr)
 // DISCARDED: internal static uint GetIDNative(ImGuiWindow* self, int n)
 // DISCARDED: internal static uint GetIDWithSeedNative(byte* strIdBegin, byte* strIdEnd, uint seed)
+// DISCARDED: internal static byte* GetNameNative(ImGuiWindowSettings* self)
+// DISCARDED: GetNameS
+// DISCARDED: internal static byte* GetNavInputNameNative(ImGuiNavInput n)
+// DISCARDED: GetNavInputNameS
+// DISCARDED: internal static byte* GetTabNameNative(ImGuiTabBar* self, ImGuiTabItem* tab)
+// DISCARDED: GetTabNameS
 // DISCARDED: internal static void* ImFileLoadToMemoryNative(byte* filename, byte* mode, nuint* outFileSize, int paddingBytes)
 // DISCARDED: internal static ImFileHandle ImFileOpenNative(byte* filename, byte* mode)
 // DISCARDED: internal static void ImFontAtlasBuildMultiplyRectAlpha8Native(byte* table, byte* pixels, int x, int y, int w, int h, int stride)
@@ -6733,6 +6571,8 @@ public unsafe partial class ImGuiP
 // DISCARDED: ImStrSkipBlankS
 // DISCARDED: internal static void ImStrTrimBlanksNative(byte* str)
 // DISCARDED: internal static int ImTextCharFromUtf8Native(uint* outChar, byte* inText, byte* inTextEnd)
+// DISCARDED: internal static byte* ImTextCharToUtf8Native(byte* outBuf, uint c)
+// DISCARDED: ImTextCharToUtf8S
 // DISCARDED: internal static int ImTextCountCharsFromUtf8Native(byte* inText, byte* inTextEnd)
 // DISCARDED: internal static int ImTextCountUtf8BytesFromCharNative(byte* inText, byte* inTextEnd)
 // DISCARDED: internal static void LogRenderedTextNative(Vector2* refPos, byte* text, byte* textEnd)
@@ -6749,6 +6589,8 @@ public unsafe partial class ImGuiP
 // DISCARDED: internal static void TabItemCalcSizeNative(Vector2* pOut, byte* label, byte hasCloseButton)
 // DISCARDED: internal static byte TabItemExNative(ImGuiTabBar* tabBar, byte* label, bool* pOpen, ImGuiTabItemFlags flags, ImGuiWindow* dockedWindow)
 // DISCARDED: internal static void TabItemLabelAndCloseButtonNative(ImDrawList* drawList, ImRect bb, ImGuiTabItemFlags flags, Vector2 framePadding, byte* label, uint tabId, uint closeButtonId, byte isContentsVisible, bool* outJustClosed, bool* outTextClipped)
+// DISCARDED: internal static byte* TableGetColumnNameNative(ImGuiTable* table, int columnN)
+// DISCARDED: TableGetColumnNameS
 // DISCARDED: internal static byte TempInputScalarNative(ImRect bb, uint id, byte* label, ImGuiDataType dataType, void* pData, byte* format, void* pClampMin, void* pClampMax)
 // DISCARDED: internal static void TextExNative(byte* text, byte* textEnd, ImGuiTextFlags flags)
 // DISCARDED: internal static byte TreeNodeBehaviorNative(uint id, ImGuiTreeNodeFlags flags, byte* label, byte* labelEnd)

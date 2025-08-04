@@ -11,38 +11,6 @@ namespace Dalamud.Bindings.ImGui;
 
 public unsafe partial struct ImGuiTextBuffer
 {
-		public unsafe byte* begin()
-		{
-			fixed (ImGuiTextBuffer* @this = &this)
-			{
-				byte* ret = ImGuiNative.begin(@this);
-				return ret;
-			}
-		}
-		public unsafe string beginS()
-		{
-			fixed (ImGuiTextBuffer* @this = &this)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiNative.begin(@this));
-				return ret;
-			}
-		}
-		public unsafe byte* c_str()
-		{
-			fixed (ImGuiTextBuffer* @this = &this)
-			{
-				byte* ret = ImGuiNative.c_str(@this);
-				return ret;
-			}
-		}
-		public unsafe string c_strS()
-		{
-			fixed (ImGuiTextBuffer* @this = &this)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiNative.c_str(@this));
-				return ret;
-			}
-		}
 		public unsafe void clear()
 		{
 			fixed (ImGuiTextBuffer* @this = &this)
@@ -65,22 +33,6 @@ public unsafe partial struct ImGuiTextBuffer
 				return ret != 0;
 			}
 		}
-		public unsafe byte* end()
-		{
-			fixed (ImGuiTextBuffer* @this = &this)
-			{
-				byte* ret = ImGuiNative.end(@this);
-				return ret;
-			}
-		}
-		public unsafe string endS()
-		{
-			fixed (ImGuiTextBuffer* @this = &this)
-			{
-				string ret = Utils.DecodeStringUTF8(ImGuiNative.end(@this));
-				return ret;
-			}
-		}
 		public unsafe void reserve(int capacity)
 		{
 			fixed (ImGuiTextBuffer* @this = &this)
@@ -100,4 +52,10 @@ public unsafe partial struct ImGuiTextBuffer
 // DISCARDED: append
 // DISCARDED: appendf
 // DISCARDED: appendfv
+// DISCARDED: begin
+// DISCARDED: beginS
+// DISCARDED: c_str
+// DISCARDED: c_strS
+// DISCARDED: end
+// DISCARDED: endS
 
