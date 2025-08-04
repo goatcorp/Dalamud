@@ -254,6 +254,8 @@ foreach ($sourcePath in $sourcePaths)
                 $tmp = $overload.Groups[0].Value
                 $tmp = $referNativeFunction.Replace($tmp, "$( $className )Native.`$1")
                 $tmp = $referNativeFunctionQualified.Replace($tmp, '$1Native.$2')
+                $tmp = $tmp -creplace '(?<=Get[A-Za-z0-9_]+\()ref ([A-Za-z*]+) self(?=, |\))', 'this in $1 self'
+                $tmp = $tmp -creplace '(?<=\()(ref )?([A-Za-z*]+) self(?=, |\))', 'this $1$2 self'
                 $null = $sb.Append($tmp)
             }
         }

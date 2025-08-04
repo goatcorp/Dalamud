@@ -580,7 +580,7 @@ public unsafe partial class ImGuiP
 			ImRectPtr ret = ImGuiPNative.ImRect(x1, y1, x2, y2);
 			return ret;
 		}
-		public static Vector2 GetCenter(ImRectPtr self)
+		public static Vector2 GetCenter(this ImRectPtr self)
 		{
 			Vector2 ret;
 			ImGuiPNative.GetCenter(&ret, self);
@@ -597,7 +597,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetCenter((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetCenter(ref ImRect self)
+		public static Vector2 GetCenter(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -623,7 +623,7 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static Vector2 GetSize(ImRectPtr self)
+		public static Vector2 GetSize(this ImRectPtr self)
 		{
 			Vector2 ret;
 			ImGuiPNative.GetSize(&ret, self);
@@ -640,7 +640,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetSize((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetSize(ref ImRect self)
+		public static Vector2 GetSize(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -666,12 +666,12 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static float GetWidth(ImRectPtr self)
+		public static float GetWidth(this ImRectPtr self)
 		{
 			float ret = ImGuiPNative.GetWidth(self);
 			return ret;
 		}
-		public static float GetWidth(ref ImRect self)
+		public static float GetWidth(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -679,12 +679,12 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static float GetHeight(ImRectPtr self)
+		public static float GetHeight(this ImRectPtr self)
 		{
 			float ret = ImGuiPNative.GetHeight(self);
 			return ret;
 		}
-		public static float GetHeight(ref ImRect self)
+		public static float GetHeight(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -692,12 +692,12 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static float GetArea(ImRectPtr self)
+		public static float GetArea(this ImRectPtr self)
 		{
 			float ret = ImGuiPNative.GetArea(self);
 			return ret;
 		}
-		public static float GetArea(ref ImRect self)
+		public static float GetArea(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -705,7 +705,7 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static Vector2 GetTL(ImRectPtr self)
+		public static Vector2 GetTL(this ImRectPtr self)
 		{
 			Vector2 ret;
 			ImGuiPNative.GetTL(&ret, self);
@@ -722,7 +722,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetTL((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetTL(ref ImRect self)
+		public static Vector2 GetTL(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -748,7 +748,7 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static Vector2 GetTR(ImRectPtr self)
+		public static Vector2 GetTR(this ImRectPtr self)
 		{
 			Vector2 ret;
 			ImGuiPNative.GetTR(&ret, self);
@@ -765,7 +765,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetTR((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetTR(ref ImRect self)
+		public static Vector2 GetTR(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -791,7 +791,7 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static Vector2 GetBL(ImRectPtr self)
+		public static Vector2 GetBL(this ImRectPtr self)
 		{
 			Vector2 ret;
 			ImGuiPNative.GetBL(&ret, self);
@@ -808,7 +808,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetBL((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetBL(ref ImRect self)
+		public static Vector2 GetBL(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -834,7 +834,7 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static Vector2 GetBR(ImRectPtr self)
+		public static Vector2 GetBR(this ImRectPtr self)
 		{
 			Vector2 ret;
 			ImGuiPNative.GetBR(&ret, self);
@@ -851,7 +851,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetBR((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetBR(ref ImRect self)
+		public static Vector2 GetBR(this in ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -877,12 +877,12 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static bool Contains(ImRectPtr self, Vector2 p)
+		public static bool Contains(this ImRectPtr self, Vector2 p)
 		{
 			byte ret = ImGuiPNative.Contains(self, p);
 			return ret != 0;
 		}
-		public static bool Contains(ref ImRect self, Vector2 p)
+		public static bool Contains(this ref ImRect self, Vector2 p)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -890,12 +890,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool Contains(ImRectPtr self, ImRect r)
+		public static bool Contains(this ImRectPtr self, ImRect r)
 		{
 			byte ret = ImGuiPNative.Contains(self, r);
 			return ret != 0;
 		}
-		public static bool Contains(ref ImRect self, ImRect r)
+		public static bool Contains(this ref ImRect self, ImRect r)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -903,12 +903,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool Overlaps(ImRectPtr self, ImRect r)
+		public static bool Overlaps(this ImRectPtr self, ImRect r)
 		{
 			byte ret = ImGuiPNative.Overlaps(self, r);
 			return ret != 0;
 		}
-		public static bool Overlaps(ref ImRect self, ImRect r)
+		public static bool Overlaps(this ref ImRect self, ImRect r)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -916,122 +916,122 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static void Add(ImRectPtr self, Vector2 p)
+		public static void Add(this ImRectPtr self, Vector2 p)
 		{
 			ImGuiPNative.Add(self, p);
 		}
-		public static void Add(ref ImRect self, Vector2 p)
+		public static void Add(this ref ImRect self, Vector2 p)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.Add((ImRect*)pself, p);
 			}
 		}
-		public static void Add(ImRectPtr self, ImRect r)
+		public static void Add(this ImRectPtr self, ImRect r)
 		{
 			ImGuiPNative.Add(self, r);
 		}
-		public static void Add(ref ImRect self, ImRect r)
+		public static void Add(this ref ImRect self, ImRect r)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.Add((ImRect*)pself, r);
 			}
 		}
-		public static void Expand(ImRectPtr self, float amount)
+		public static void Expand(this ImRectPtr self, float amount)
 		{
 			ImGuiPNative.Expand(self, amount);
 		}
-		public static void Expand(ref ImRect self, float amount)
+		public static void Expand(this ref ImRect self, float amount)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.Expand((ImRect*)pself, amount);
 			}
 		}
-		public static void Expand(ImRectPtr self, Vector2 amount)
+		public static void Expand(this ImRectPtr self, Vector2 amount)
 		{
 			ImGuiPNative.Expand(self, amount);
 		}
-		public static void Expand(ref ImRect self, Vector2 amount)
+		public static void Expand(this ref ImRect self, Vector2 amount)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.Expand((ImRect*)pself, amount);
 			}
 		}
-		public static void Translate(ImRectPtr self, Vector2 d)
+		public static void Translate(this ImRectPtr self, Vector2 d)
 		{
 			ImGuiPNative.Translate(self, d);
 		}
-		public static void Translate(ref ImRect self, Vector2 d)
+		public static void Translate(this ref ImRect self, Vector2 d)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.Translate((ImRect*)pself, d);
 			}
 		}
-		public static void TranslateX(ImRectPtr self, float dx)
+		public static void TranslateX(this ImRectPtr self, float dx)
 		{
 			ImGuiPNative.TranslateX(self, dx);
 		}
-		public static void TranslateX(ref ImRect self, float dx)
+		public static void TranslateX(this ref ImRect self, float dx)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.TranslateX((ImRect*)pself, dx);
 			}
 		}
-		public static void TranslateY(ImRectPtr self, float dy)
+		public static void TranslateY(this ImRectPtr self, float dy)
 		{
 			ImGuiPNative.TranslateY(self, dy);
 		}
-		public static void TranslateY(ref ImRect self, float dy)
+		public static void TranslateY(this ref ImRect self, float dy)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.TranslateY((ImRect*)pself, dy);
 			}
 		}
-		public static void ClipWith(ImRectPtr self, ImRect r)
+		public static void ClipWith(this ImRectPtr self, ImRect r)
 		{
 			ImGuiPNative.ClipWith(self, r);
 		}
-		public static void ClipWith(ref ImRect self, ImRect r)
+		public static void ClipWith(this ref ImRect self, ImRect r)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.ClipWith((ImRect*)pself, r);
 			}
 		}
-		public static void ClipWithFull(ImRectPtr self, ImRect r)
+		public static void ClipWithFull(this ImRectPtr self, ImRect r)
 		{
 			ImGuiPNative.ClipWithFull(self, r);
 		}
-		public static void ClipWithFull(ref ImRect self, ImRect r)
+		public static void ClipWithFull(this ref ImRect self, ImRect r)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.ClipWithFull((ImRect*)pself, r);
 			}
 		}
-		public static void Floor(ImRectPtr self)
+		public static void Floor(this ImRectPtr self)
 		{
 			ImGuiPNative.Floor(self);
 		}
-		public static void Floor(ref ImRect self)
+		public static void Floor(this ref ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiPNative.Floor((ImRect*)pself);
 			}
 		}
-		public static bool IsInverted(ImRectPtr self)
+		public static bool IsInverted(this ImRectPtr self)
 		{
 			byte ret = ImGuiPNative.IsInverted(self);
 			return ret != 0;
 		}
-		public static bool IsInverted(ref ImRect self)
+		public static bool IsInverted(this ref ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -1039,7 +1039,7 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static Vector4 ToVec4(ImRectPtr self)
+		public static Vector4 ToVec4(this ImRectPtr self)
 		{
 			Vector4 ret;
 			ImGuiPNative.ToVec4(&ret, self);
@@ -1056,7 +1056,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.ToVec4((Vector4*)ppOut, self);
 			}
 		}
-		public static Vector4 ToVec4(ref ImRect self)
+		public static Vector4 ToVec4(this ref ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
@@ -1099,56 +1099,56 @@ public unsafe partial class ImGuiP
 		{
 			ImGuiPNative.ImBitArraySetBitRange(arr, n, n2);
 		}
-		public static void Create(ImBitVectorPtr self, int sz)
+		public static void Create(this ImBitVectorPtr self, int sz)
 		{
 			ImGuiPNative.Create(self, sz);
 		}
-		public static void Create(ref ImBitVector self, int sz)
+		public static void Create(this ref ImBitVector self, int sz)
 		{
 			fixed (ImBitVector* pself = &self)
 			{
 				ImGuiPNative.Create((ImBitVector*)pself, sz);
 			}
 		}
-		public static void Clear(ImBitVectorPtr self)
+		public static void Clear(this ImBitVectorPtr self)
 		{
 			ImGuiPNative.Clear(self);
 		}
-		public static void Clear(ref ImBitVector self)
+		public static void Clear(this ref ImBitVector self)
 		{
 			fixed (ImBitVector* pself = &self)
 			{
 				ImGuiPNative.Clear((ImBitVector*)pself);
 			}
 		}
-		public static void Clear(ImDrawDataBuilderPtr self)
+		public static void Clear(this ImDrawDataBuilderPtr self)
 		{
 			ImGuiPNative.Clear(self);
 		}
-		public static void Clear(ref ImDrawDataBuilder self)
+		public static void Clear(this ref ImDrawDataBuilder self)
 		{
 			fixed (ImDrawDataBuilder* pself = &self)
 			{
 				ImGuiPNative.Clear((ImDrawDataBuilder*)pself);
 			}
 		}
-		public static void Clear(ImGuiNavItemDataPtr self)
+		public static void Clear(this ImGuiNavItemDataPtr self)
 		{
 			ImGuiPNative.Clear(self);
 		}
-		public static void Clear(ref ImGuiNavItemData self)
+		public static void Clear(this ref ImGuiNavItemData self)
 		{
 			fixed (ImGuiNavItemData* pself = &self)
 			{
 				ImGuiPNative.Clear((ImGuiNavItemData*)pself);
 			}
 		}
-		public static bool TestBit(ImBitVectorPtr self, int n)
+		public static bool TestBit(this ImBitVectorPtr self, int n)
 		{
 			byte ret = ImGuiPNative.TestBit(self, n);
 			return ret != 0;
 		}
-		public static bool TestBit(ref ImBitVector self, int n)
+		public static bool TestBit(this ref ImBitVector self, int n)
 		{
 			fixed (ImBitVector* pself = &self)
 			{
@@ -1156,22 +1156,22 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static void SetBit(ImBitVectorPtr self, int n)
+		public static void SetBit(this ImBitVectorPtr self, int n)
 		{
 			ImGuiPNative.SetBit(self, n);
 		}
-		public static void SetBit(ref ImBitVector self, int n)
+		public static void SetBit(this ref ImBitVector self, int n)
 		{
 			fixed (ImBitVector* pself = &self)
 			{
 				ImGuiPNative.SetBit((ImBitVector*)pself, n);
 			}
 		}
-		public static void ClearBit(ImBitVectorPtr self, int n)
+		public static void ClearBit(this ImBitVectorPtr self, int n)
 		{
 			ImGuiPNative.ClearBit(self, n);
 		}
-		public static void ClearBit(ref ImBitVector self, int n)
+		public static void ClearBit(this ref ImBitVector self, int n)
 		{
 			fixed (ImBitVector* pself = &self)
 			{
@@ -1183,45 +1183,45 @@ public unsafe partial class ImGuiP
 			ImDrawListSharedDataPtr ret = ImGuiPNative.ImDrawListSharedData();
 			return ret;
 		}
-		public static void SetCircleTessellationMaxError(ImDrawListSharedDataPtr self, float maxError)
+		public static void SetCircleTessellationMaxError(this ImDrawListSharedDataPtr self, float maxError)
 		{
 			ImGuiPNative.SetCircleTessellationMaxError(self, maxError);
 		}
-		public static void SetCircleTessellationMaxError(ref ImDrawListSharedData self, float maxError)
+		public static void SetCircleTessellationMaxError(this ref ImDrawListSharedData self, float maxError)
 		{
 			fixed (ImDrawListSharedData* pself = &self)
 			{
 				ImGuiPNative.SetCircleTessellationMaxError((ImDrawListSharedData*)pself, maxError);
 			}
 		}
-		public static void ClearFreeMemory(ImDrawDataBuilderPtr self)
+		public static void ClearFreeMemory(this ImDrawDataBuilderPtr self)
 		{
 			ImGuiPNative.ClearFreeMemory(self);
 		}
-		public static void ClearFreeMemory(ref ImDrawDataBuilder self)
+		public static void ClearFreeMemory(this ref ImDrawDataBuilder self)
 		{
 			fixed (ImDrawDataBuilder* pself = &self)
 			{
 				ImGuiPNative.ClearFreeMemory((ImDrawDataBuilder*)pself);
 			}
 		}
-		public static void ClearFreeMemory(ImGuiInputTextStatePtr self)
+		public static void ClearFreeMemory(this ImGuiInputTextStatePtr self)
 		{
 			ImGuiPNative.ClearFreeMemory(self);
 		}
-		public static void ClearFreeMemory(ref ImGuiInputTextState self)
+		public static void ClearFreeMemory(this ref ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
 				ImGuiPNative.ClearFreeMemory((ImGuiInputTextState*)pself);
 			}
 		}
-		public static int GetDrawListCount(ImDrawDataBuilderPtr self)
+		public static int GetDrawListCount(this ImDrawDataBuilderPtr self)
 		{
 			int ret = ImGuiPNative.GetDrawListCount(self);
 			return ret;
 		}
-		public static int GetDrawListCount(ref ImDrawDataBuilder self)
+		public static int GetDrawListCount(this in ImDrawDataBuilder self)
 		{
 			fixed (ImDrawDataBuilder* pself = &self)
 			{
@@ -1229,11 +1229,11 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static void FlattenIntoSingleLayer(ImDrawDataBuilderPtr self)
+		public static void FlattenIntoSingleLayer(this ImDrawDataBuilderPtr self)
 		{
 			ImGuiPNative.FlattenIntoSingleLayer(self);
 		}
-		public static void FlattenIntoSingleLayer(ref ImDrawDataBuilder self)
+		public static void FlattenIntoSingleLayer(this ref ImDrawDataBuilder self)
 		{
 			fixed (ImDrawDataBuilder* pself = &self)
 			{
@@ -1265,23 +1265,23 @@ public unsafe partial class ImGuiP
 			ImGuiMenuColumnsPtr ret = ImGuiPNative.ImGuiMenuColumns();
 			return ret;
 		}
-		public static void Update(ImGuiMenuColumnsPtr self, float spacing, bool windowReappearing)
+		public static void Update(this ImGuiMenuColumnsPtr self, float spacing, bool windowReappearing)
 		{
 			ImGuiPNative.Update(self, spacing, windowReappearing ? (byte)1 : (byte)0);
 		}
-		public static void Update(ref ImGuiMenuColumns self, float spacing, bool windowReappearing)
+		public static void Update(this ref ImGuiMenuColumns self, float spacing, bool windowReappearing)
 		{
 			fixed (ImGuiMenuColumns* pself = &self)
 			{
 				ImGuiPNative.Update((ImGuiMenuColumns*)pself, spacing, windowReappearing ? (byte)1 : (byte)0);
 			}
 		}
-		public static float DeclColumns(ImGuiMenuColumnsPtr self, float wIcon, float wLabel, float wShortcut, float wMark)
+		public static float DeclColumns(this ImGuiMenuColumnsPtr self, float wIcon, float wLabel, float wShortcut, float wMark)
 		{
 			float ret = ImGuiPNative.DeclColumns(self, wIcon, wLabel, wShortcut, wMark);
 			return ret;
 		}
-		public static float DeclColumns(ref ImGuiMenuColumns self, float wIcon, float wLabel, float wShortcut, float wMark)
+		public static float DeclColumns(this ref ImGuiMenuColumns self, float wIcon, float wLabel, float wShortcut, float wMark)
 		{
 			fixed (ImGuiMenuColumns* pself = &self)
 			{
@@ -1289,11 +1289,11 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static void CalcNextTotalWidth(ImGuiMenuColumnsPtr self, bool updateOffsets)
+		public static void CalcNextTotalWidth(this ImGuiMenuColumnsPtr self, bool updateOffsets)
 		{
 			ImGuiPNative.CalcNextTotalWidth(self, updateOffsets ? (byte)1 : (byte)0);
 		}
-		public static void CalcNextTotalWidth(ref ImGuiMenuColumns self, bool updateOffsets)
+		public static void CalcNextTotalWidth(this ref ImGuiMenuColumns self, bool updateOffsets)
 		{
 			fixed (ImGuiMenuColumns* pself = &self)
 			{
@@ -1305,23 +1305,23 @@ public unsafe partial class ImGuiP
 			ImGuiInputTextStatePtr ret = ImGuiPNative.ImGuiInputTextState();
 			return ret;
 		}
-		public static void ClearText(ImGuiInputTextStatePtr self)
+		public static void ClearText(this ImGuiInputTextStatePtr self)
 		{
 			ImGuiPNative.ClearText(self);
 		}
-		public static void ClearText(ref ImGuiInputTextState self)
+		public static void ClearText(this ref ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
 				ImGuiPNative.ClearText((ImGuiInputTextState*)pself);
 			}
 		}
-		public static int GetUndoAvailCount(ImGuiInputTextStatePtr self)
+		public static int GetUndoAvailCount(this ImGuiInputTextStatePtr self)
 		{
 			int ret = ImGuiPNative.GetUndoAvailCount(self);
 			return ret;
 		}
-		public static int GetUndoAvailCount(ref ImGuiInputTextState self)
+		public static int GetUndoAvailCount(this in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1329,12 +1329,12 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static int GetRedoAvailCount(ImGuiInputTextStatePtr self)
+		public static int GetRedoAvailCount(this ImGuiInputTextStatePtr self)
 		{
 			int ret = ImGuiPNative.GetRedoAvailCount(self);
 			return ret;
 		}
-		public static int GetRedoAvailCount(ref ImGuiInputTextState self)
+		public static int GetRedoAvailCount(this in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1342,45 +1342,45 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static void OnKeyPressed(ImGuiInputTextStatePtr self, int key)
+		public static void OnKeyPressed(this ImGuiInputTextStatePtr self, int key)
 		{
 			ImGuiPNative.OnKeyPressed(self, key);
 		}
-		public static void OnKeyPressed(ref ImGuiInputTextState self, int key)
+		public static void OnKeyPressed(this ref ImGuiInputTextState self, int key)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
 				ImGuiPNative.OnKeyPressed((ImGuiInputTextState*)pself, key);
 			}
 		}
-		public static void CursorAnimReset(ImGuiInputTextStatePtr self)
+		public static void CursorAnimReset(this ImGuiInputTextStatePtr self)
 		{
 			ImGuiPNative.CursorAnimReset(self);
 		}
-		public static void CursorAnimReset(ref ImGuiInputTextState self)
+		public static void CursorAnimReset(this ref ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
 				ImGuiPNative.CursorAnimReset((ImGuiInputTextState*)pself);
 			}
 		}
-		public static void CursorClamp(ImGuiInputTextStatePtr self)
+		public static void CursorClamp(this ImGuiInputTextStatePtr self)
 		{
 			ImGuiPNative.CursorClamp(self);
 		}
-		public static void CursorClamp(ref ImGuiInputTextState self)
+		public static void CursorClamp(this ref ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
 				ImGuiPNative.CursorClamp((ImGuiInputTextState*)pself);
 			}
 		}
-		public static bool HasSelection(ImGuiInputTextStatePtr self)
+		public static bool HasSelection(this ImGuiInputTextStatePtr self)
 		{
 			byte ret = ImGuiPNative.HasSelection(self);
 			return ret != 0;
 		}
-		public static bool HasSelection(ref ImGuiInputTextState self)
+		public static bool HasSelection(this ref ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1388,23 +1388,23 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static void ClearSelection(ImGuiInputTextStatePtr self)
+		public static void ClearSelection(this ImGuiInputTextStatePtr self)
 		{
 			ImGuiPNative.ClearSelection(self);
 		}
-		public static void ClearSelection(ref ImGuiInputTextState self)
+		public static void ClearSelection(this ref ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
 				ImGuiPNative.ClearSelection((ImGuiInputTextState*)pself);
 			}
 		}
-		public static int GetCursorPos(ImGuiInputTextStatePtr self)
+		public static int GetCursorPos(this ImGuiInputTextStatePtr self)
 		{
 			int ret = ImGuiPNative.GetCursorPos(self);
 			return ret;
 		}
-		public static int GetCursorPos(ref ImGuiInputTextState self)
+		public static int GetCursorPos(this in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1412,12 +1412,12 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static int GetSelectionStart(ImGuiInputTextStatePtr self)
+		public static int GetSelectionStart(this ImGuiInputTextStatePtr self)
 		{
 			int ret = ImGuiPNative.GetSelectionStart(self);
 			return ret;
 		}
-		public static int GetSelectionStart(ref ImGuiInputTextState self)
+		public static int GetSelectionStart(this in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1425,12 +1425,12 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static int GetSelectionEnd(ImGuiInputTextStatePtr self)
+		public static int GetSelectionEnd(this ImGuiInputTextStatePtr self)
 		{
 			int ret = ImGuiPNative.GetSelectionEnd(self);
 			return ret;
 		}
-		public static int GetSelectionEnd(ref ImGuiInputTextState self)
+		public static int GetSelectionEnd(this in ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1438,11 +1438,11 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static void SelectAll(ImGuiInputTextStatePtr self)
+		public static void SelectAll(this ImGuiInputTextStatePtr self)
 		{
 			ImGuiPNative.SelectAll(self);
 		}
-		public static void SelectAll(ref ImGuiInputTextState self)
+		public static void SelectAll(this ref ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
@@ -1459,22 +1459,22 @@ public unsafe partial class ImGuiP
 			ImGuiNextWindowDataPtr ret = ImGuiPNative.ImGuiNextWindowData();
 			return ret;
 		}
-		public static void ClearFlags(ImGuiNextWindowDataPtr self)
+		public static void ClearFlags(this ImGuiNextWindowDataPtr self)
 		{
 			ImGuiPNative.ClearFlags(self);
 		}
-		public static void ClearFlags(ref ImGuiNextWindowData self)
+		public static void ClearFlags(this ref ImGuiNextWindowData self)
 		{
 			fixed (ImGuiNextWindowData* pself = &self)
 			{
 				ImGuiPNative.ClearFlags((ImGuiNextWindowData*)pself);
 			}
 		}
-		public static void ClearFlags(ImGuiNextItemDataPtr self)
+		public static void ClearFlags(this ImGuiNextItemDataPtr self)
 		{
 			ImGuiPNative.ClearFlags(self);
 		}
-		public static void ClearFlags(ref ImGuiNextItemData self)
+		public static void ClearFlags(this ref ImGuiNextItemData self)
 		{
 			fixed (ImGuiNextItemData* pself = &self)
 			{
@@ -1496,22 +1496,22 @@ public unsafe partial class ImGuiP
 			ImGuiStackSizesPtr ret = ImGuiPNative.ImGuiStackSizes();
 			return ret;
 		}
-		public static void SetToCurrentState(ImGuiStackSizesPtr self)
+		public static void SetToCurrentState(this ImGuiStackSizesPtr self)
 		{
 			ImGuiPNative.SetToCurrentState(self);
 		}
-		public static void SetToCurrentState(ref ImGuiStackSizes self)
+		public static void SetToCurrentState(this ref ImGuiStackSizes self)
 		{
 			fixed (ImGuiStackSizes* pself = &self)
 			{
 				ImGuiPNative.SetToCurrentState((ImGuiStackSizes*)pself);
 			}
 		}
-		public static void CompareWithCurrentState(ImGuiStackSizesPtr self)
+		public static void CompareWithCurrentState(this ImGuiStackSizesPtr self)
 		{
 			ImGuiPNative.CompareWithCurrentState(self);
 		}
-		public static void CompareWithCurrentState(ref ImGuiStackSizes self)
+		public static void CompareWithCurrentState(this ref ImGuiStackSizes self)
 		{
 			fixed (ImGuiStackSizes* pself = &self)
 			{
@@ -1548,25 +1548,25 @@ public unsafe partial class ImGuiP
 			ImGuiListClipperDataPtr ret = ImGuiPNative.ImGuiListClipperData();
 			return ret;
 		}
-		public static void Reset(ImGuiListClipperDataPtr self, ImGuiListClipperPtr clipper)
+		public static void Reset(this ImGuiListClipperDataPtr self, ImGuiListClipperPtr clipper)
 		{
 			ImGuiPNative.Reset(self, clipper);
 		}
-		public static void Reset(ref ImGuiListClipperData self, ImGuiListClipperPtr clipper)
+		public static void Reset(this ref ImGuiListClipperData self, ImGuiListClipperPtr clipper)
 		{
 			fixed (ImGuiListClipperData* pself = &self)
 			{
 				ImGuiPNative.Reset((ImGuiListClipperData*)pself, clipper);
 			}
 		}
-		public static void Reset(ImGuiListClipperDataPtr self, ref ImGuiListClipper clipper)
+		public static void Reset(this ImGuiListClipperDataPtr self, ref ImGuiListClipper clipper)
 		{
 			fixed (ImGuiListClipper* pclipper = &clipper)
 			{
 				ImGuiPNative.Reset(self, (ImGuiListClipper*)pclipper);
 			}
 		}
-		public static void Reset(ref ImGuiListClipperData self, ref ImGuiListClipper clipper)
+		public static void Reset(this ref ImGuiListClipperData self, ref ImGuiListClipper clipper)
 		{
 			fixed (ImGuiListClipperData* pself = &self)
 			{
@@ -1596,56 +1596,56 @@ public unsafe partial class ImGuiP
 			ImGuiDockNodePtr ret = ImGuiPNative.ImGuiDockNode(id);
 			return ret;
 		}
-		public static void Destroy(ImGuiDockNodePtr self)
+		public static void Destroy(this ImGuiDockNodePtr self)
 		{
 			ImGuiPNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiDockNode self)
+		public static void Destroy(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
 				ImGuiPNative.Destroy((ImGuiDockNode*)pself);
 			}
 		}
-		public static void Destroy(ImGuiViewportPPtr self)
+		public static void Destroy(this ImGuiViewportPPtr self)
 		{
 			ImGuiPNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiViewportP self)
+		public static void Destroy(this ref ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
 				ImGuiPNative.Destroy((ImGuiViewportP*)pself);
 			}
 		}
-		public static void Destroy(ImGuiWindowPtr self)
+		public static void Destroy(this ImGuiWindowPtr self)
 		{
 			ImGuiPNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiWindow self)
+		public static void Destroy(this ref ImGuiWindow self)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
 				ImGuiPNative.Destroy((ImGuiWindow*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTablePtr self)
+		public static void Destroy(this ImGuiTablePtr self)
 		{
 			ImGuiPNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTable self)
+		public static void Destroy(this ref ImGuiTable self)
 		{
 			fixed (ImGuiTable* pself = &self)
 			{
 				ImGuiPNative.Destroy((ImGuiTable*)pself);
 			}
 		}
-		public static bool IsRootNode(ImGuiDockNodePtr self)
+		public static bool IsRootNode(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsRootNode(self);
 			return ret != 0;
 		}
-		public static bool IsRootNode(ref ImGuiDockNode self)
+		public static bool IsRootNode(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1653,12 +1653,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool IsDockSpace(ImGuiDockNodePtr self)
+		public static bool IsDockSpace(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsDockSpace(self);
 			return ret != 0;
 		}
-		public static bool IsDockSpace(ref ImGuiDockNode self)
+		public static bool IsDockSpace(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1666,12 +1666,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool IsFloatingNode(ImGuiDockNodePtr self)
+		public static bool IsFloatingNode(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsFloatingNode(self);
 			return ret != 0;
 		}
-		public static bool IsFloatingNode(ref ImGuiDockNode self)
+		public static bool IsFloatingNode(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1679,12 +1679,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool IsCentralNode(ImGuiDockNodePtr self)
+		public static bool IsCentralNode(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsCentralNode(self);
 			return ret != 0;
 		}
-		public static bool IsCentralNode(ref ImGuiDockNode self)
+		public static bool IsCentralNode(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1692,12 +1692,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool IsHiddenTabBar(ImGuiDockNodePtr self)
+		public static bool IsHiddenTabBar(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsHiddenTabBar(self);
 			return ret != 0;
 		}
-		public static bool IsHiddenTabBar(ref ImGuiDockNode self)
+		public static bool IsHiddenTabBar(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1705,12 +1705,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool IsNoTabBar(ImGuiDockNodePtr self)
+		public static bool IsNoTabBar(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsNoTabBar(self);
 			return ret != 0;
 		}
-		public static bool IsNoTabBar(ref ImGuiDockNode self)
+		public static bool IsNoTabBar(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1718,12 +1718,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool IsSplitNode(ImGuiDockNodePtr self)
+		public static bool IsSplitNode(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsSplitNode(self);
 			return ret != 0;
 		}
-		public static bool IsSplitNode(ref ImGuiDockNode self)
+		public static bool IsSplitNode(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1731,12 +1731,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool IsLeafNode(ImGuiDockNodePtr self)
+		public static bool IsLeafNode(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsLeafNode(self);
 			return ret != 0;
 		}
-		public static bool IsLeafNode(ref ImGuiDockNode self)
+		public static bool IsLeafNode(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1744,12 +1744,12 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static bool IsEmpty(ImGuiDockNodePtr self)
+		public static bool IsEmpty(this ImGuiDockNodePtr self)
 		{
 			byte ret = ImGuiPNative.IsEmpty(self);
 			return ret != 0;
 		}
-		public static bool IsEmpty(ref ImGuiDockNode self)
+		public static bool IsEmpty(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1757,7 +1757,7 @@ public unsafe partial class ImGuiP
 				return ret != 0;
 			}
 		}
-		public static ImRect Rect(ImGuiDockNodePtr self)
+		public static ImRect Rect(this ImGuiDockNodePtr self)
 		{
 			ImRect ret;
 			ImGuiPNative.Rect(&ret, self);
@@ -1774,7 +1774,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.Rect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect Rect(ref ImGuiDockNode self)
+		public static ImRect Rect(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1800,7 +1800,7 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static ImRect Rect(ImGuiWindowPtr self)
+		public static ImRect Rect(this ImGuiWindowPtr self)
 		{
 			ImRect ret;
 			ImGuiPNative.Rect(&ret, self);
@@ -1817,7 +1817,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.Rect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect Rect(ref ImGuiWindow self)
+		public static ImRect Rect(this ref ImGuiWindow self)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
@@ -1843,22 +1843,22 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static void SetLocalFlags(ImGuiDockNodePtr self, ImGuiDockNodeFlags flags)
+		public static void SetLocalFlags(this ImGuiDockNodePtr self, ImGuiDockNodeFlags flags)
 		{
 			ImGuiPNative.SetLocalFlags(self, flags);
 		}
-		public static void SetLocalFlags(ref ImGuiDockNode self, ImGuiDockNodeFlags flags)
+		public static void SetLocalFlags(this ref ImGuiDockNode self, ImGuiDockNodeFlags flags)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
 				ImGuiPNative.SetLocalFlags((ImGuiDockNode*)pself, flags);
 			}
 		}
-		public static void UpdateMergedFlags(ImGuiDockNodePtr self)
+		public static void UpdateMergedFlags(this ImGuiDockNodePtr self)
 		{
 			ImGuiPNative.UpdateMergedFlags(self);
 		}
-		public static void UpdateMergedFlags(ref ImGuiDockNode self)
+		public static void UpdateMergedFlags(this ref ImGuiDockNode self)
 		{
 			fixed (ImGuiDockNode* pself = &self)
 			{
@@ -1875,18 +1875,18 @@ public unsafe partial class ImGuiP
 			ImGuiViewportPPtr ret = ImGuiPNative.ImGuiViewportP();
 			return ret;
 		}
-		public static void ClearRequestFlags(ImGuiViewportPPtr self)
+		public static void ClearRequestFlags(this ImGuiViewportPPtr self)
 		{
 			ImGuiPNative.ClearRequestFlags(self);
 		}
-		public static void ClearRequestFlags(ref ImGuiViewportP self)
+		public static void ClearRequestFlags(this ref ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
 				ImGuiPNative.ClearRequestFlags((ImGuiViewportP*)pself);
 			}
 		}
-		public static Vector2 CalcWorkRectPos(ImGuiViewportPPtr self, Vector2 offMin)
+		public static Vector2 CalcWorkRectPos(this ImGuiViewportPPtr self, Vector2 offMin)
 		{
 			Vector2 ret;
 			ImGuiPNative.CalcWorkRectPos(&ret, self, offMin);
@@ -1903,7 +1903,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.CalcWorkRectPos((Vector2*)ppOut, self, offMin);
 			}
 		}
-		public static Vector2 CalcWorkRectPos(ref ImGuiViewportP self, Vector2 offMin)
+		public static Vector2 CalcWorkRectPos(this ref ImGuiViewportP self, Vector2 offMin)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
@@ -1929,7 +1929,7 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static Vector2 CalcWorkRectSize(ImGuiViewportPPtr self, Vector2 offMin, Vector2 offMax)
+		public static Vector2 CalcWorkRectSize(this ImGuiViewportPPtr self, Vector2 offMin, Vector2 offMax)
 		{
 			Vector2 ret;
 			ImGuiPNative.CalcWorkRectSize(&ret, self, offMin, offMax);
@@ -1946,7 +1946,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.CalcWorkRectSize((Vector2*)ppOut, self, offMin, offMax);
 			}
 		}
-		public static Vector2 CalcWorkRectSize(ref ImGuiViewportP self, Vector2 offMin, Vector2 offMax)
+		public static Vector2 CalcWorkRectSize(this ref ImGuiViewportP self, Vector2 offMin, Vector2 offMax)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
@@ -1972,18 +1972,18 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static void UpdateWorkRect(ImGuiViewportPPtr self)
+		public static void UpdateWorkRect(this ImGuiViewportPPtr self)
 		{
 			ImGuiPNative.UpdateWorkRect(self);
 		}
-		public static void UpdateWorkRect(ref ImGuiViewportP self)
+		public static void UpdateWorkRect(this ref ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
 				ImGuiPNative.UpdateWorkRect((ImGuiViewportP*)pself);
 			}
 		}
-		public static ImRect GetMainRect(ImGuiViewportPPtr self)
+		public static ImRect GetMainRect(this ImGuiViewportPPtr self)
 		{
 			ImRect ret;
 			ImGuiPNative.GetMainRect(&ret, self);
@@ -2000,7 +2000,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetMainRect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect GetMainRect(ref ImGuiViewportP self)
+		public static ImRect GetMainRect(this in ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
@@ -2026,7 +2026,7 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static ImRect GetWorkRect(ImGuiViewportPPtr self)
+		public static ImRect GetWorkRect(this ImGuiViewportPPtr self)
 		{
 			ImRect ret;
 			ImGuiPNative.GetWorkRect(&ret, self);
@@ -2043,7 +2043,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetWorkRect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect GetWorkRect(ref ImGuiViewportP self)
+		public static ImRect GetWorkRect(this in ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
@@ -2069,7 +2069,7 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static ImRect GetBuildWorkRect(ImGuiViewportPPtr self)
+		public static ImRect GetBuildWorkRect(this ImGuiViewportPPtr self)
 		{
 			ImRect ret;
 			ImGuiPNative.GetBuildWorkRect(&ret, self);
@@ -2086,7 +2086,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.GetBuildWorkRect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect GetBuildWorkRect(ref ImGuiViewportP self)
+		public static ImRect GetBuildWorkRect(this in ImGuiViewportP self)
 		{
 			fixed (ImGuiViewportP* pself = &self)
 			{
@@ -2155,12 +2155,12 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static uint GetIDFromRectangle(ImGuiWindowPtr self, ImRect rAbs)
+		public static uint GetIDFromRectangle(this ImGuiWindowPtr self, ImRect rAbs)
 		{
 			uint ret = ImGuiPNative.GetIDFromRectangle(self, rAbs);
 			return ret;
 		}
-		public static uint GetIDFromRectangle(ref ImGuiWindow self, ImRect rAbs)
+		public static uint GetIDFromRectangle(this in ImGuiWindow self, ImRect rAbs)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
@@ -2168,12 +2168,12 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static float CalcFontSize(ImGuiWindowPtr self)
+		public static float CalcFontSize(this ImGuiWindowPtr self)
 		{
 			float ret = ImGuiPNative.CalcFontSize(self);
 			return ret;
 		}
-		public static float CalcFontSize(ref ImGuiWindow self)
+		public static float CalcFontSize(this ref ImGuiWindow self)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
@@ -2181,12 +2181,12 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static float TitleBarHeight(ImGuiWindowPtr self)
+		public static float TitleBarHeight(this ImGuiWindowPtr self)
 		{
 			float ret = ImGuiPNative.TitleBarHeight(self);
 			return ret;
 		}
-		public static float TitleBarHeight(ref ImGuiWindow self)
+		public static float TitleBarHeight(this ref ImGuiWindow self)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
@@ -2194,7 +2194,7 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static ImRect TitleBarRect(ImGuiWindowPtr self)
+		public static ImRect TitleBarRect(this ImGuiWindowPtr self)
 		{
 			ImRect ret;
 			ImGuiPNative.TitleBarRect(&ret, self);
@@ -2211,7 +2211,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.TitleBarRect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect TitleBarRect(ref ImGuiWindow self)
+		public static ImRect TitleBarRect(this ref ImGuiWindow self)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
@@ -2237,12 +2237,12 @@ public unsafe partial class ImGuiP
 				}
 			}
 		}
-		public static float MenuBarHeight(ImGuiWindowPtr self)
+		public static float MenuBarHeight(this ImGuiWindowPtr self)
 		{
 			float ret = ImGuiPNative.MenuBarHeight(self);
 			return ret;
 		}
-		public static float MenuBarHeight(ref ImGuiWindow self)
+		public static float MenuBarHeight(this ref ImGuiWindow self)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
@@ -2250,7 +2250,7 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static ImRect MenuBarRect(ImGuiWindowPtr self)
+		public static ImRect MenuBarRect(this ImGuiWindowPtr self)
 		{
 			ImRect ret;
 			ImGuiPNative.MenuBarRect(&ret, self);
@@ -2267,7 +2267,7 @@ public unsafe partial class ImGuiP
 				ImGuiPNative.MenuBarRect((ImRect*)ppOut, self);
 			}
 		}
-		public static ImRect MenuBarRect(ref ImGuiWindow self)
+		public static ImRect MenuBarRect(this ref ImGuiWindow self)
 		{
 			fixed (ImGuiWindow* pself = &self)
 			{
@@ -2303,12 +2303,12 @@ public unsafe partial class ImGuiP
 			ImGuiTabBarPtr ret = ImGuiPNative.ImGuiTabBar();
 			return ret;
 		}
-		public static int GetTabOrder(ImGuiTabBarPtr self, ImGuiTabItemPtr tab)
+		public static int GetTabOrder(this ImGuiTabBarPtr self, ImGuiTabItemPtr tab)
 		{
 			int ret = ImGuiPNative.GetTabOrder(self, tab);
 			return ret;
 		}
-		public static int GetTabOrder(ref ImGuiTabBar self, ImGuiTabItemPtr tab)
+		public static int GetTabOrder(this in ImGuiTabBar self, ImGuiTabItemPtr tab)
 		{
 			fixed (ImGuiTabBar* pself = &self)
 			{
@@ -2316,7 +2316,7 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static int GetTabOrder(ImGuiTabBarPtr self, ref ImGuiTabItem tab)
+		public static int GetTabOrder(this ImGuiTabBarPtr self, ref ImGuiTabItem tab)
 		{
 			fixed (ImGuiTabItem* ptab = &tab)
 			{
@@ -2324,7 +2324,7 @@ public unsafe partial class ImGuiP
 				return ret;
 			}
 		}
-		public static int GetTabOrder(ref ImGuiTabBar self, ref ImGuiTabItem tab)
+		public static int GetTabOrder(this in ImGuiTabBar self, ref ImGuiTabItem tab)
 		{
 			fixed (ImGuiTabBar* pself = &self)
 			{
@@ -2365,12 +2365,12 @@ public unsafe partial class ImGuiP
 			ImGuiTableSettingsPtr ret = ImGuiPNative.ImGuiTableSettings();
 			return ret;
 		}
-		public static ImGuiTableColumnSettingsPtr GetColumnSettings(ImGuiTableSettingsPtr self)
+		public static ImGuiTableColumnSettingsPtr GetColumnSettings(this ImGuiTableSettingsPtr self)
 		{
 			ImGuiTableColumnSettingsPtr ret = ImGuiPNative.GetColumnSettings(self);
 			return ret;
 		}
-		public static ImGuiTableColumnSettingsPtr GetColumnSettings(ref ImGuiTableSettings self)
+		public static ImGuiTableColumnSettingsPtr GetColumnSettings(this in ImGuiTableSettings self)
 		{
 			fixed (ImGuiTableSettings* pself = &self)
 			{

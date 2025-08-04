@@ -43,297 +43,297 @@ public unsafe partial class ImGui
 				ImGuiNative.Destroy((Vector4*)pself);
 			}
 		}
-		public static void Destroy(ImGuiStylePtr self)
+		public static void Destroy(this ImGuiStylePtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiStyle self)
+		public static void Destroy(this ref ImGuiStyle self)
 		{
 			fixed (ImGuiStyle* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiStyle*)pself);
 			}
 		}
-		public static void Destroy(ImGuiIOPtr self)
+		public static void Destroy(this ImGuiIOPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiIO self)
+		public static void Destroy(this ref ImGuiIO self)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiIO*)pself);
 			}
 		}
-		public static void Destroy(ImGuiInputTextCallbackDataPtr self)
+		public static void Destroy(this ImGuiInputTextCallbackDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiInputTextCallbackData self)
+		public static void Destroy(this ref ImGuiInputTextCallbackData self)
 		{
 			fixed (ImGuiInputTextCallbackData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiInputTextCallbackData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiWindowClassPtr self)
+		public static void Destroy(this ImGuiWindowClassPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiWindowClass self)
+		public static void Destroy(this ref ImGuiWindowClass self)
 		{
 			fixed (ImGuiWindowClass* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiWindowClass*)pself);
 			}
 		}
-		public static void Destroy(ImGuiPayloadPtr self)
+		public static void Destroy(this ImGuiPayloadPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiPayload self)
+		public static void Destroy(this ref ImGuiPayload self)
 		{
 			fixed (ImGuiPayload* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiPayload*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTableColumnSortSpecsPtr self)
+		public static void Destroy(this ImGuiTableColumnSortSpecsPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTableColumnSortSpecs self)
+		public static void Destroy(this ref ImGuiTableColumnSortSpecs self)
 		{
 			fixed (ImGuiTableColumnSortSpecs* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTableColumnSortSpecs*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTableSortSpecsPtr self)
+		public static void Destroy(this ImGuiTableSortSpecsPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTableSortSpecs self)
+		public static void Destroy(this ref ImGuiTableSortSpecs self)
 		{
 			fixed (ImGuiTableSortSpecs* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTableSortSpecs*)pself);
 			}
 		}
-		public static void Destroy(ImGuiOnceUponAFramePtr self)
+		public static void Destroy(this ImGuiOnceUponAFramePtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiOnceUponAFrame self)
+		public static void Destroy(this ref ImGuiOnceUponAFrame self)
 		{
 			fixed (ImGuiOnceUponAFrame* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiOnceUponAFrame*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTextFilterPtr self)
+		public static void Destroy(this ImGuiTextFilterPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTextFilter self)
+		public static void Destroy(this ref ImGuiTextFilter self)
 		{
 			fixed (ImGuiTextFilter* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTextFilter*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTextRangePtr self)
+		public static void Destroy(this ImGuiTextRangePtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTextRange self)
+		public static void Destroy(this ref ImGuiTextRange self)
 		{
 			fixed (ImGuiTextRange* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTextRange*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTextBufferPtr self)
+		public static void Destroy(this ImGuiTextBufferPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTextBuffer self)
+		public static void Destroy(this ref ImGuiTextBuffer self)
 		{
 			fixed (ImGuiTextBuffer* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTextBuffer*)pself);
 			}
 		}
-		public static void Destroy(ImGuiStoragePairPtr self)
+		public static void Destroy(this ImGuiStoragePairPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiStoragePair self)
+		public static void Destroy(this ref ImGuiStoragePair self)
 		{
 			fixed (ImGuiStoragePair* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiStoragePair*)pself);
 			}
 		}
-		public static void Destroy(ImGuiListClipperPtr self)
+		public static void Destroy(this ImGuiListClipperPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiListClipper self)
+		public static void Destroy(this ref ImGuiListClipper self)
 		{
 			fixed (ImGuiListClipper* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiListClipper*)pself);
 			}
 		}
-		public static void Destroy(ImColorPtr self)
+		public static void Destroy(this ImColorPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImColor self)
+		public static void Destroy(this ref ImColor self)
 		{
 			fixed (ImColor* pself = &self)
 			{
 				ImGuiNative.Destroy((ImColor*)pself);
 			}
 		}
-		public static void Destroy(ImDrawCmdPtr self)
+		public static void Destroy(this ImDrawCmdPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImDrawCmd self)
+		public static void Destroy(this ref ImDrawCmd self)
 		{
 			fixed (ImDrawCmd* pself = &self)
 			{
 				ImGuiNative.Destroy((ImDrawCmd*)pself);
 			}
 		}
-		public static void Destroy(ImDrawListSplitterPtr self)
+		public static void Destroy(this ImDrawListSplitterPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImDrawListSplitter self)
+		public static void Destroy(this ref ImDrawListSplitter self)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
 				ImGuiNative.Destroy((ImDrawListSplitter*)pself);
 			}
 		}
-		public static void Destroy(ImDrawListPtr self)
+		public static void Destroy(this ImDrawListPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImDrawList self)
+		public static void Destroy(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.Destroy((ImDrawList*)pself);
 			}
 		}
-		public static void Destroy(ImDrawDataPtr self)
+		public static void Destroy(this ImDrawDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImDrawData self)
+		public static void Destroy(this ref ImDrawData self)
 		{
 			fixed (ImDrawData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImDrawData*)pself);
 			}
 		}
-		public static void Destroy(ImFontConfigPtr self)
+		public static void Destroy(this ImFontConfigPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImFontConfig self)
+		public static void Destroy(this ref ImFontConfig self)
 		{
 			fixed (ImFontConfig* pself = &self)
 			{
 				ImGuiNative.Destroy((ImFontConfig*)pself);
 			}
 		}
-		public static void Destroy(ImFontGlyphRangesBuilderPtr self)
+		public static void Destroy(this ImFontGlyphRangesBuilderPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImFontGlyphRangesBuilder self)
+		public static void Destroy(this ref ImFontGlyphRangesBuilder self)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
 				ImGuiNative.Destroy((ImFontGlyphRangesBuilder*)pself);
 			}
 		}
-		public static void Destroy(ImFontAtlasCustomRectPtr self)
+		public static void Destroy(this ImFontAtlasCustomRectPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImFontAtlasCustomRect self)
+		public static void Destroy(this ref ImFontAtlasCustomRect self)
 		{
 			fixed (ImFontAtlasCustomRect* pself = &self)
 			{
 				ImGuiNative.Destroy((ImFontAtlasCustomRect*)pself);
 			}
 		}
-		public static void Destroy(ImFontAtlasPtr self)
+		public static void Destroy(this ImFontAtlasPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImFontAtlas self)
+		public static void Destroy(this ref ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.Destroy((ImFontAtlas*)pself);
 			}
 		}
-		public static void Destroy(ImFontPtr self)
+		public static void Destroy(this ImFontPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImFont self)
+		public static void Destroy(this ref ImFont self)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.Destroy((ImFont*)pself);
 			}
 		}
-		public static void Destroy(ImGuiViewportPtr self)
+		public static void Destroy(this ImGuiViewportPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiViewport self)
+		public static void Destroy(this ref ImGuiViewport self)
 		{
 			fixed (ImGuiViewport* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiViewport*)pself);
 			}
 		}
-		public static void Destroy(ImGuiPlatformIOPtr self)
+		public static void Destroy(this ImGuiPlatformIOPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiPlatformIO self)
+		public static void Destroy(this ref ImGuiPlatformIO self)
 		{
 			fixed (ImGuiPlatformIO* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiPlatformIO*)pself);
 			}
 		}
-		public static void Destroy(ImGuiPlatformMonitorPtr self)
+		public static void Destroy(this ImGuiPlatformMonitorPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiPlatformMonitor self)
+		public static void Destroy(this ref ImGuiPlatformMonitor self)
 		{
 			fixed (ImGuiPlatformMonitor* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiPlatformMonitor*)pself);
 			}
 		}
-		public static void Destroy(ImGuiPlatformImeDataPtr self)
+		public static void Destroy(this ImGuiPlatformImeDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiPlatformImeData self)
+		public static void Destroy(this ref ImGuiPlatformImeData self)
 		{
 			fixed (ImGuiPlatformImeData* pself = &self)
 			{
@@ -362,352 +362,352 @@ public unsafe partial class ImGui
 				ImGuiNative.Destroy((ImVec2Ih*)pself);
 			}
 		}
-		public static void Destroy(ImRectPtr self)
+		public static void Destroy(this ImRectPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImRect self)
+		public static void Destroy(this ref ImRect self)
 		{
 			fixed (ImRect* pself = &self)
 			{
 				ImGuiNative.Destroy((ImRect*)pself);
 			}
 		}
-		public static void Destroy(ImDrawListSharedDataPtr self)
+		public static void Destroy(this ImDrawListSharedDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImDrawListSharedData self)
+		public static void Destroy(this ref ImDrawListSharedData self)
 		{
 			fixed (ImDrawListSharedData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImDrawListSharedData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiStyleModPtr self)
+		public static void Destroy(this ImGuiStyleModPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiStyleMod self)
+		public static void Destroy(this ref ImGuiStyleMod self)
 		{
 			fixed (ImGuiStyleMod* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiStyleMod*)pself);
 			}
 		}
-		public static void Destroy(ImGuiComboPreviewDataPtr self)
+		public static void Destroy(this ImGuiComboPreviewDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiComboPreviewData self)
+		public static void Destroy(this ref ImGuiComboPreviewData self)
 		{
 			fixed (ImGuiComboPreviewData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiComboPreviewData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiMenuColumnsPtr self)
+		public static void Destroy(this ImGuiMenuColumnsPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiMenuColumns self)
+		public static void Destroy(this ref ImGuiMenuColumns self)
 		{
 			fixed (ImGuiMenuColumns* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiMenuColumns*)pself);
 			}
 		}
-		public static void Destroy(ImGuiInputTextStatePtr self)
+		public static void Destroy(this ImGuiInputTextStatePtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiInputTextState self)
+		public static void Destroy(this ref ImGuiInputTextState self)
 		{
 			fixed (ImGuiInputTextState* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiInputTextState*)pself);
 			}
 		}
-		public static void Destroy(ImGuiPopupDataPtr self)
+		public static void Destroy(this ImGuiPopupDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiPopupData self)
+		public static void Destroy(this ref ImGuiPopupData self)
 		{
 			fixed (ImGuiPopupData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiPopupData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiNextWindowDataPtr self)
+		public static void Destroy(this ImGuiNextWindowDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiNextWindowData self)
+		public static void Destroy(this ref ImGuiNextWindowData self)
 		{
 			fixed (ImGuiNextWindowData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiNextWindowData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiNextItemDataPtr self)
+		public static void Destroy(this ImGuiNextItemDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiNextItemData self)
+		public static void Destroy(this ref ImGuiNextItemData self)
 		{
 			fixed (ImGuiNextItemData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiNextItemData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiLastItemDataPtr self)
+		public static void Destroy(this ImGuiLastItemDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiLastItemData self)
+		public static void Destroy(this ref ImGuiLastItemData self)
 		{
 			fixed (ImGuiLastItemData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiLastItemData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiStackSizesPtr self)
+		public static void Destroy(this ImGuiStackSizesPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiStackSizes self)
+		public static void Destroy(this ref ImGuiStackSizes self)
 		{
 			fixed (ImGuiStackSizes* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiStackSizes*)pself);
 			}
 		}
-		public static void Destroy(ImGuiPtrOrIndexPtr self)
+		public static void Destroy(this ImGuiPtrOrIndexPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiPtrOrIndex self)
+		public static void Destroy(this ref ImGuiPtrOrIndex self)
 		{
 			fixed (ImGuiPtrOrIndex* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiPtrOrIndex*)pself);
 			}
 		}
-		public static void Destroy(ImGuiInputEventPtr self)
+		public static void Destroy(this ImGuiInputEventPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiInputEvent self)
+		public static void Destroy(this ref ImGuiInputEvent self)
 		{
 			fixed (ImGuiInputEvent* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiInputEvent*)pself);
 			}
 		}
-		public static void Destroy(ImGuiListClipperDataPtr self)
+		public static void Destroy(this ImGuiListClipperDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiListClipperData self)
+		public static void Destroy(this ref ImGuiListClipperData self)
 		{
 			fixed (ImGuiListClipperData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiListClipperData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiNavItemDataPtr self)
+		public static void Destroy(this ImGuiNavItemDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiNavItemData self)
+		public static void Destroy(this ref ImGuiNavItemData self)
 		{
 			fixed (ImGuiNavItemData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiNavItemData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiOldColumnDataPtr self)
+		public static void Destroy(this ImGuiOldColumnDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiOldColumnData self)
+		public static void Destroy(this ref ImGuiOldColumnData self)
 		{
 			fixed (ImGuiOldColumnData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiOldColumnData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiOldColumnsPtr self)
+		public static void Destroy(this ImGuiOldColumnsPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiOldColumns self)
+		public static void Destroy(this ref ImGuiOldColumns self)
 		{
 			fixed (ImGuiOldColumns* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiOldColumns*)pself);
 			}
 		}
-		public static void Destroy(ImGuiDockContextPtr self)
+		public static void Destroy(this ImGuiDockContextPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiDockContext self)
+		public static void Destroy(this ref ImGuiDockContext self)
 		{
 			fixed (ImGuiDockContext* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiDockContext*)pself);
 			}
 		}
-		public static void Destroy(ImGuiWindowSettingsPtr self)
+		public static void Destroy(this ImGuiWindowSettingsPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiWindowSettings self)
+		public static void Destroy(this ref ImGuiWindowSettings self)
 		{
 			fixed (ImGuiWindowSettings* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiWindowSettings*)pself);
 			}
 		}
-		public static void Destroy(ImGuiSettingsHandlerPtr self)
+		public static void Destroy(this ImGuiSettingsHandlerPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiSettingsHandler self)
+		public static void Destroy(this ref ImGuiSettingsHandler self)
 		{
 			fixed (ImGuiSettingsHandler* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiSettingsHandler*)pself);
 			}
 		}
-		public static void Destroy(ImGuiMetricsConfigPtr self)
+		public static void Destroy(this ImGuiMetricsConfigPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiMetricsConfig self)
+		public static void Destroy(this ref ImGuiMetricsConfig self)
 		{
 			fixed (ImGuiMetricsConfig* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiMetricsConfig*)pself);
 			}
 		}
-		public static void Destroy(ImGuiStackLevelInfoPtr self)
+		public static void Destroy(this ImGuiStackLevelInfoPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiStackLevelInfo self)
+		public static void Destroy(this ref ImGuiStackLevelInfo self)
 		{
 			fixed (ImGuiStackLevelInfo* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiStackLevelInfo*)pself);
 			}
 		}
-		public static void Destroy(ImGuiStackToolPtr self)
+		public static void Destroy(this ImGuiStackToolPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiStackTool self)
+		public static void Destroy(this ref ImGuiStackTool self)
 		{
 			fixed (ImGuiStackTool* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiStackTool*)pself);
 			}
 		}
-		public static void Destroy(ImGuiContextHookPtr self)
+		public static void Destroy(this ImGuiContextHookPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiContextHook self)
+		public static void Destroy(this ref ImGuiContextHook self)
 		{
 			fixed (ImGuiContextHook* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiContextHook*)pself);
 			}
 		}
-		public static void Destroy(ImGuiContextPtr self)
+		public static void Destroy(this ImGuiContextPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiContext self)
+		public static void Destroy(this ref ImGuiContext self)
 		{
 			fixed (ImGuiContext* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiContext*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTabItemPtr self)
+		public static void Destroy(this ImGuiTabItemPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTabItem self)
+		public static void Destroy(this ref ImGuiTabItem self)
 		{
 			fixed (ImGuiTabItem* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTabItem*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTabBarPtr self)
+		public static void Destroy(this ImGuiTabBarPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTabBar self)
+		public static void Destroy(this ref ImGuiTabBar self)
 		{
 			fixed (ImGuiTabBar* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTabBar*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTableColumnPtr self)
+		public static void Destroy(this ImGuiTableColumnPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTableColumn self)
+		public static void Destroy(this ref ImGuiTableColumn self)
 		{
 			fixed (ImGuiTableColumn* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTableColumn*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTableInstanceDataPtr self)
+		public static void Destroy(this ImGuiTableInstanceDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTableInstanceData self)
+		public static void Destroy(this ref ImGuiTableInstanceData self)
 		{
 			fixed (ImGuiTableInstanceData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTableInstanceData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTableTempDataPtr self)
+		public static void Destroy(this ImGuiTableTempDataPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTableTempData self)
+		public static void Destroy(this ref ImGuiTableTempData self)
 		{
 			fixed (ImGuiTableTempData* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTableTempData*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTableColumnSettingsPtr self)
+		public static void Destroy(this ImGuiTableColumnSettingsPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTableColumnSettings self)
+		public static void Destroy(this ref ImGuiTableColumnSettings self)
 		{
 			fixed (ImGuiTableColumnSettings* pself = &self)
 			{
 				ImGuiNative.Destroy((ImGuiTableColumnSettings*)pself);
 			}
 		}
-		public static void Destroy(ImGuiTableSettingsPtr self)
+		public static void Destroy(this ImGuiTableSettingsPtr self)
 		{
 			ImGuiNative.Destroy(self);
 		}
-		public static void Destroy(ref ImGuiTableSettings self)
+		public static void Destroy(this ref ImGuiTableSettings self)
 		{
 			fixed (ImGuiTableSettings* pself = &self)
 			{
@@ -943,11 +943,11 @@ public unsafe partial class ImGui
 		{
 			ImGuiNative.End();
 		}
-		public static void End(ImGuiListClipperPtr self)
+		public static void End(this ImGuiListClipperPtr self)
 		{
 			ImGuiNative.End(self);
 		}
-		public static void End(ref ImGuiListClipper self)
+		public static void End(this ref ImGuiListClipper self)
 		{
 			fixed (ImGuiListClipper* pself = &self)
 			{
@@ -2171,22 +2171,22 @@ public unsafe partial class ImGui
 		{
 			ImGuiNative.PushClipRect(clipRectMin, clipRectMax, intersectWithCurrentClipRect ? (byte)1 : (byte)0);
 		}
-		public static void PushClipRect(ImDrawListPtr self, Vector2 clipRectMin, Vector2 clipRectMax, bool intersectWithCurrentClipRect)
+		public static void PushClipRect(this ImDrawListPtr self, Vector2 clipRectMin, Vector2 clipRectMax, bool intersectWithCurrentClipRect)
 		{
 			ImGuiNative.PushClipRect(self, clipRectMin, clipRectMax, intersectWithCurrentClipRect ? (byte)1 : (byte)0);
 		}
-		public static void PushClipRect(ImDrawListPtr self, Vector2 clipRectMin, Vector2 clipRectMax)
+		public static void PushClipRect(this ImDrawListPtr self, Vector2 clipRectMin, Vector2 clipRectMax)
 		{
 			ImGuiNative.PushClipRect(self, clipRectMin, clipRectMax, (byte)(0));
 		}
-		public static void PushClipRect(ref ImDrawList self, Vector2 clipRectMin, Vector2 clipRectMax, bool intersectWithCurrentClipRect)
+		public static void PushClipRect(this ref ImDrawList self, Vector2 clipRectMin, Vector2 clipRectMax, bool intersectWithCurrentClipRect)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PushClipRect((ImDrawList*)pself, clipRectMin, clipRectMax, intersectWithCurrentClipRect ? (byte)1 : (byte)0);
 			}
 		}
-		public static void PushClipRect(ref ImDrawList self, Vector2 clipRectMin, Vector2 clipRectMax)
+		public static void PushClipRect(this ref ImDrawList self, Vector2 clipRectMin, Vector2 clipRectMax)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -2197,11 +2197,11 @@ public unsafe partial class ImGui
 		{
 			ImGuiNative.PopClipRect();
 		}
-		public static void PopClipRect(ImDrawListPtr self)
+		public static void PopClipRect(this ImDrawListPtr self)
 		{
 			ImGuiNative.PopClipRect(self);
 		}
-		public static void PopClipRect(ref ImDrawList self)
+		public static void PopClipRect(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -2890,143 +2890,143 @@ public unsafe partial class ImGui
 			ImGuiStylePtr ret = ImGuiNative.ImGuiStyle();
 			return ret;
 		}
-		public static void ScaleAllSizes(ImGuiStylePtr self, float scaleFactor)
+		public static void ScaleAllSizes(this ImGuiStylePtr self, float scaleFactor)
 		{
 			ImGuiNative.ScaleAllSizes(self, scaleFactor);
 		}
-		public static void ScaleAllSizes(ref ImGuiStyle self, float scaleFactor)
+		public static void ScaleAllSizes(this ref ImGuiStyle self, float scaleFactor)
 		{
 			fixed (ImGuiStyle* pself = &self)
 			{
 				ImGuiNative.ScaleAllSizes((ImGuiStyle*)pself, scaleFactor);
 			}
 		}
-		public static void AddKeyEvent(ImGuiIOPtr self, ImGuiKey key, bool down)
+		public static void AddKeyEvent(this ImGuiIOPtr self, ImGuiKey key, bool down)
 		{
 			ImGuiNative.AddKeyEvent(self, key, down ? (byte)1 : (byte)0);
 		}
-		public static void AddKeyEvent(ref ImGuiIO self, ImGuiKey key, bool down)
+		public static void AddKeyEvent(this ref ImGuiIO self, ImGuiKey key, bool down)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.AddKeyEvent((ImGuiIO*)pself, key, down ? (byte)1 : (byte)0);
 			}
 		}
-		public static void AddKeyAnalogEvent(ImGuiIOPtr self, ImGuiKey key, bool down, float v)
+		public static void AddKeyAnalogEvent(this ImGuiIOPtr self, ImGuiKey key, bool down, float v)
 		{
 			ImGuiNative.AddKeyAnalogEvent(self, key, down ? (byte)1 : (byte)0, v);
 		}
-		public static void AddKeyAnalogEvent(ref ImGuiIO self, ImGuiKey key, bool down, float v)
+		public static void AddKeyAnalogEvent(this ref ImGuiIO self, ImGuiKey key, bool down, float v)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.AddKeyAnalogEvent((ImGuiIO*)pself, key, down ? (byte)1 : (byte)0, v);
 			}
 		}
-		public static void AddMousePosEvent(ImGuiIOPtr self, float x, float y)
+		public static void AddMousePosEvent(this ImGuiIOPtr self, float x, float y)
 		{
 			ImGuiNative.AddMousePosEvent(self, x, y);
 		}
-		public static void AddMousePosEvent(ref ImGuiIO self, float x, float y)
+		public static void AddMousePosEvent(this ref ImGuiIO self, float x, float y)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.AddMousePosEvent((ImGuiIO*)pself, x, y);
 			}
 		}
-		public static void AddMouseButtonEvent(ImGuiIOPtr self, int button, bool down)
+		public static void AddMouseButtonEvent(this ImGuiIOPtr self, int button, bool down)
 		{
 			ImGuiNative.AddMouseButtonEvent(self, button, down ? (byte)1 : (byte)0);
 		}
-		public static void AddMouseButtonEvent(ref ImGuiIO self, int button, bool down)
+		public static void AddMouseButtonEvent(this ref ImGuiIO self, int button, bool down)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.AddMouseButtonEvent((ImGuiIO*)pself, button, down ? (byte)1 : (byte)0);
 			}
 		}
-		public static void AddMouseWheelEvent(ImGuiIOPtr self, float whX, float whY)
+		public static void AddMouseWheelEvent(this ImGuiIOPtr self, float whX, float whY)
 		{
 			ImGuiNative.AddMouseWheelEvent(self, whX, whY);
 		}
-		public static void AddMouseWheelEvent(ref ImGuiIO self, float whX, float whY)
+		public static void AddMouseWheelEvent(this ref ImGuiIO self, float whX, float whY)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.AddMouseWheelEvent((ImGuiIO*)pself, whX, whY);
 			}
 		}
-		public static void AddMouseViewportEvent(ImGuiIOPtr self, uint id)
+		public static void AddMouseViewportEvent(this ImGuiIOPtr self, uint id)
 		{
 			ImGuiNative.AddMouseViewportEvent(self, id);
 		}
-		public static void AddMouseViewportEvent(ref ImGuiIO self, uint id)
+		public static void AddMouseViewportEvent(this ref ImGuiIO self, uint id)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.AddMouseViewportEvent((ImGuiIO*)pself, id);
 			}
 		}
-		public static void AddFocusEvent(ImGuiIOPtr self, bool focused)
+		public static void AddFocusEvent(this ImGuiIOPtr self, bool focused)
 		{
 			ImGuiNative.AddFocusEvent(self, focused ? (byte)1 : (byte)0);
 		}
-		public static void AddFocusEvent(ref ImGuiIO self, bool focused)
+		public static void AddFocusEvent(this ref ImGuiIO self, bool focused)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.AddFocusEvent((ImGuiIO*)pself, focused ? (byte)1 : (byte)0);
 			}
 		}
-		public static void SetKeyEventNativeData(ImGuiIOPtr self, ImGuiKey key, int nativeKeycode, int nativeScancode, int nativeLegacyIndex)
+		public static void SetKeyEventNativeData(this ImGuiIOPtr self, ImGuiKey key, int nativeKeycode, int nativeScancode, int nativeLegacyIndex)
 		{
 			ImGuiNative.SetKeyEventNativeData(self, key, nativeKeycode, nativeScancode, nativeLegacyIndex);
 		}
-		public static void SetKeyEventNativeData(ImGuiIOPtr self, ImGuiKey key, int nativeKeycode, int nativeScancode)
+		public static void SetKeyEventNativeData(this ImGuiIOPtr self, ImGuiKey key, int nativeKeycode, int nativeScancode)
 		{
 			ImGuiNative.SetKeyEventNativeData(self, key, nativeKeycode, nativeScancode, (int)(-1));
 		}
-		public static void SetKeyEventNativeData(ref ImGuiIO self, ImGuiKey key, int nativeKeycode, int nativeScancode, int nativeLegacyIndex)
+		public static void SetKeyEventNativeData(this ref ImGuiIO self, ImGuiKey key, int nativeKeycode, int nativeScancode, int nativeLegacyIndex)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.SetKeyEventNativeData((ImGuiIO*)pself, key, nativeKeycode, nativeScancode, nativeLegacyIndex);
 			}
 		}
-		public static void SetKeyEventNativeData(ref ImGuiIO self, ImGuiKey key, int nativeKeycode, int nativeScancode)
+		public static void SetKeyEventNativeData(this ref ImGuiIO self, ImGuiKey key, int nativeKeycode, int nativeScancode)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.SetKeyEventNativeData((ImGuiIO*)pself, key, nativeKeycode, nativeScancode, (int)(-1));
 			}
 		}
-		public static void SetAppAcceptingEvents(ImGuiIOPtr self, bool acceptingEvents)
+		public static void SetAppAcceptingEvents(this ImGuiIOPtr self, bool acceptingEvents)
 		{
 			ImGuiNative.SetAppAcceptingEvents(self, acceptingEvents ? (byte)1 : (byte)0);
 		}
-		public static void SetAppAcceptingEvents(ref ImGuiIO self, bool acceptingEvents)
+		public static void SetAppAcceptingEvents(this ref ImGuiIO self, bool acceptingEvents)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.SetAppAcceptingEvents((ImGuiIO*)pself, acceptingEvents ? (byte)1 : (byte)0);
 			}
 		}
-		public static void ClearInputCharacters(ImGuiIOPtr self)
+		public static void ClearInputCharacters(this ImGuiIOPtr self)
 		{
 			ImGuiNative.ClearInputCharacters(self);
 		}
-		public static void ClearInputCharacters(ref ImGuiIO self)
+		public static void ClearInputCharacters(this ref ImGuiIO self)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
 				ImGuiNative.ClearInputCharacters((ImGuiIO*)pself);
 			}
 		}
-		public static void ClearInputKeys(ImGuiIOPtr self)
+		public static void ClearInputKeys(this ImGuiIOPtr self)
 		{
 			ImGuiNative.ClearInputKeys(self);
 		}
-		public static void ClearInputKeys(ref ImGuiIO self)
+		public static void ClearInputKeys(this ref ImGuiIO self)
 		{
 			fixed (ImGuiIO* pself = &self)
 			{
@@ -3043,45 +3043,45 @@ public unsafe partial class ImGui
 			ImGuiInputTextCallbackDataPtr ret = ImGuiNative.ImGuiInputTextCallbackData();
 			return ret;
 		}
-		public static void DeleteChars(ImGuiInputTextCallbackDataPtr self, int pos, int bytesCount)
+		public static void DeleteChars(this ImGuiInputTextCallbackDataPtr self, int pos, int bytesCount)
 		{
 			ImGuiNative.DeleteChars(self, pos, bytesCount);
 		}
-		public static void DeleteChars(ref ImGuiInputTextCallbackData self, int pos, int bytesCount)
+		public static void DeleteChars(this ref ImGuiInputTextCallbackData self, int pos, int bytesCount)
 		{
 			fixed (ImGuiInputTextCallbackData* pself = &self)
 			{
 				ImGuiNative.DeleteChars((ImGuiInputTextCallbackData*)pself, pos, bytesCount);
 			}
 		}
-		public static void SelectAll(ImGuiInputTextCallbackDataPtr self)
+		public static void SelectAll(this ImGuiInputTextCallbackDataPtr self)
 		{
 			ImGuiNative.SelectAll(self);
 		}
-		public static void SelectAll(ref ImGuiInputTextCallbackData self)
+		public static void SelectAll(this ref ImGuiInputTextCallbackData self)
 		{
 			fixed (ImGuiInputTextCallbackData* pself = &self)
 			{
 				ImGuiNative.SelectAll((ImGuiInputTextCallbackData*)pself);
 			}
 		}
-		public static void ClearSelection(ImGuiInputTextCallbackDataPtr self)
+		public static void ClearSelection(this ImGuiInputTextCallbackDataPtr self)
 		{
 			ImGuiNative.ClearSelection(self);
 		}
-		public static void ClearSelection(ref ImGuiInputTextCallbackData self)
+		public static void ClearSelection(this ref ImGuiInputTextCallbackData self)
 		{
 			fixed (ImGuiInputTextCallbackData* pself = &self)
 			{
 				ImGuiNative.ClearSelection((ImGuiInputTextCallbackData*)pself);
 			}
 		}
-		public static bool HasSelection(ImGuiInputTextCallbackDataPtr self)
+		public static bool HasSelection(this ImGuiInputTextCallbackDataPtr self)
 		{
 			byte ret = ImGuiNative.HasSelection(self);
 			return ret != 0;
 		}
-		public static bool HasSelection(ref ImGuiInputTextCallbackData self)
+		public static bool HasSelection(this ref ImGuiInputTextCallbackData self)
 		{
 			fixed (ImGuiInputTextCallbackData* pself = &self)
 			{
@@ -3099,89 +3099,89 @@ public unsafe partial class ImGui
 			ImGuiPayloadPtr ret = ImGuiNative.ImGuiPayload();
 			return ret;
 		}
-		public static void Clear(ImGuiPayloadPtr self)
+		public static void Clear(this ImGuiPayloadPtr self)
 		{
 			ImGuiNative.Clear(self);
 		}
-		public static void Clear(ref ImGuiPayload self)
+		public static void Clear(this ref ImGuiPayload self)
 		{
 			fixed (ImGuiPayload* pself = &self)
 			{
 				ImGuiNative.Clear((ImGuiPayload*)pself);
 			}
 		}
-		public static void Clear(ImGuiTextFilterPtr self)
+		public static void Clear(this ImGuiTextFilterPtr self)
 		{
 			ImGuiNative.Clear(self);
 		}
-		public static void Clear(ref ImGuiTextFilter self)
+		public static void Clear(this ref ImGuiTextFilter self)
 		{
 			fixed (ImGuiTextFilter* pself = &self)
 			{
 				ImGuiNative.Clear((ImGuiTextFilter*)pself);
 			}
 		}
-		public static void Clear(ImGuiStoragePtr self)
+		public static void Clear(this ImGuiStoragePtr self)
 		{
 			ImGuiNative.Clear(self);
 		}
-		public static void Clear(ref ImGuiStorage self)
+		public static void Clear(this ref ImGuiStorage self)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
 				ImGuiNative.Clear((ImGuiStorage*)pself);
 			}
 		}
-		public static void Clear(ImDrawListSplitterPtr self)
+		public static void Clear(this ImDrawListSplitterPtr self)
 		{
 			ImGuiNative.Clear(self);
 		}
-		public static void Clear(ref ImDrawListSplitter self)
+		public static void Clear(this ref ImDrawListSplitter self)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
 				ImGuiNative.Clear((ImDrawListSplitter*)pself);
 			}
 		}
-		public static void Clear(ImDrawDataPtr self)
+		public static void Clear(this ImDrawDataPtr self)
 		{
 			ImGuiNative.Clear(self);
 		}
-		public static void Clear(ref ImDrawData self)
+		public static void Clear(this ref ImDrawData self)
 		{
 			fixed (ImDrawData* pself = &self)
 			{
 				ImGuiNative.Clear((ImDrawData*)pself);
 			}
 		}
-		public static void Clear(ImFontGlyphRangesBuilderPtr self)
+		public static void Clear(this ImFontGlyphRangesBuilderPtr self)
 		{
 			ImGuiNative.Clear(self);
 		}
-		public static void Clear(ref ImFontGlyphRangesBuilder self)
+		public static void Clear(this ref ImFontGlyphRangesBuilder self)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
 				ImGuiNative.Clear((ImFontGlyphRangesBuilder*)pself);
 			}
 		}
-		public static void Clear(ImFontAtlasPtr self)
+		public static void Clear(this ImFontAtlasPtr self)
 		{
 			ImGuiNative.Clear(self);
 		}
-		public static void Clear(ref ImFontAtlas self)
+		public static void Clear(this ref ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.Clear((ImFontAtlas*)pself);
 			}
 		}
-		public static bool IsPreview(ImGuiPayloadPtr self)
+		public static bool IsPreview(this ImGuiPayloadPtr self)
 		{
 			byte ret = ImGuiNative.IsPreview(self);
 			return ret != 0;
 		}
-		public static bool IsPreview(ref ImGuiPayload self)
+		public static bool IsPreview(this ref ImGuiPayload self)
 		{
 			fixed (ImGuiPayload* pself = &self)
 			{
@@ -3189,12 +3189,12 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool IsDelivery(ImGuiPayloadPtr self)
+		public static bool IsDelivery(this ImGuiPayloadPtr self)
 		{
 			byte ret = ImGuiNative.IsDelivery(self);
 			return ret != 0;
 		}
-		public static bool IsDelivery(ref ImGuiPayload self)
+		public static bool IsDelivery(this ref ImGuiPayload self)
 		{
 			fixed (ImGuiPayload* pself = &self)
 			{
@@ -3217,23 +3217,23 @@ public unsafe partial class ImGui
 			ImGuiOnceUponAFramePtr ret = ImGuiNative.ImGuiOnceUponAFrame();
 			return ret;
 		}
-		public static void Build(ImGuiTextFilterPtr self)
+		public static void Build(this ImGuiTextFilterPtr self)
 		{
 			ImGuiNative.Build(self);
 		}
-		public static void Build(ref ImGuiTextFilter self)
+		public static void Build(this ref ImGuiTextFilter self)
 		{
 			fixed (ImGuiTextFilter* pself = &self)
 			{
 				ImGuiNative.Build((ImGuiTextFilter*)pself);
 			}
 		}
-		public static bool Build(ImFontAtlasPtr self)
+		public static bool Build(this ImFontAtlasPtr self)
 		{
 			byte ret = ImGuiNative.Build(self);
 			return ret != 0;
 		}
-		public static bool Build(ref ImFontAtlas self)
+		public static bool Build(this ref ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -3241,12 +3241,12 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool IsActive(ImGuiTextFilterPtr self)
+		public static bool IsActive(this ImGuiTextFilterPtr self)
 		{
 			byte ret = ImGuiNative.IsActive(self);
 			return ret != 0;
 		}
-		public static bool IsActive(ref ImGuiTextFilter self)
+		public static bool IsActive(this ref ImGuiTextFilter self)
 		{
 			fixed (ImGuiTextFilter* pself = &self)
 			{
@@ -3254,12 +3254,12 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool empty(ImGuiTextRangePtr self)
+		public static bool empty(this ImGuiTextRangePtr self)
 		{
 			byte ret = ImGuiNative.empty(self);
 			return ret != 0;
 		}
-		public static bool empty(ref ImGuiTextRange self)
+		public static bool empty(this ref ImGuiTextRange self)
 		{
 			fixed (ImGuiTextRange* pself = &self)
 			{
@@ -3267,12 +3267,12 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool empty(ImGuiTextBufferPtr self)
+		public static bool empty(this ImGuiTextBufferPtr self)
 		{
 			byte ret = ImGuiNative.empty(self);
 			return ret != 0;
 		}
-		public static bool empty(ref ImGuiTextBuffer self)
+		public static bool empty(this ref ImGuiTextBuffer self)
 		{
 			fixed (ImGuiTextBuffer* pself = &self)
 			{
@@ -3280,25 +3280,25 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static void split(ImGuiTextRangePtr self, byte separator, ImVector<ImGuiTextRange>* output)
+		public static void split(this ImGuiTextRangePtr self, byte separator, ImVector<ImGuiTextRange>* output)
 		{
 			ImGuiNative.split(self, separator, output);
 		}
-		public static void split(ref ImGuiTextRange self, byte separator, ImVector<ImGuiTextRange>* output)
+		public static void split(this ref ImGuiTextRange self, byte separator, ImVector<ImGuiTextRange>* output)
 		{
 			fixed (ImGuiTextRange* pself = &self)
 			{
 				ImGuiNative.split((ImGuiTextRange*)pself, separator, output);
 			}
 		}
-		public static void split(ImGuiTextRangePtr self, byte separator, ref ImVector<ImGuiTextRange> output)
+		public static void split(this ImGuiTextRangePtr self, byte separator, ref ImVector<ImGuiTextRange> output)
 		{
 			fixed (ImVector<ImGuiTextRange>* poutput = &output)
 			{
 				ImGuiNative.split(self, separator, (ImVector<ImGuiTextRange>*)poutput);
 			}
 		}
-		public static void split(ref ImGuiTextRange self, byte separator, ref ImVector<ImGuiTextRange> output)
+		public static void split(this ref ImGuiTextRange self, byte separator, ref ImVector<ImGuiTextRange> output)
 		{
 			fixed (ImGuiTextRange* pself = &self)
 			{
@@ -3313,12 +3313,12 @@ public unsafe partial class ImGui
 			ImGuiTextBufferPtr ret = ImGuiNative.ImGuiTextBuffer();
 			return ret;
 		}
-		public static int size(ImGuiTextBufferPtr self)
+		public static int size(this ImGuiTextBufferPtr self)
 		{
 			int ret = ImGuiNative.size(self);
 			return ret;
 		}
-		public static int size(ref ImGuiTextBuffer self)
+		public static int size(this ref ImGuiTextBuffer self)
 		{
 			fixed (ImGuiTextBuffer* pself = &self)
 			{
@@ -3326,22 +3326,22 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static void clear(ImGuiTextBufferPtr self)
+		public static void clear(this ImGuiTextBufferPtr self)
 		{
 			ImGuiNative.clear(self);
 		}
-		public static void clear(ref ImGuiTextBuffer self)
+		public static void clear(this ref ImGuiTextBuffer self)
 		{
 			fixed (ImGuiTextBuffer* pself = &self)
 			{
 				ImGuiNative.clear((ImGuiTextBuffer*)pself);
 			}
 		}
-		public static void reserve(ImGuiTextBufferPtr self, int capacity)
+		public static void reserve(this ImGuiTextBufferPtr self, int capacity)
 		{
 			ImGuiNative.reserve(self, capacity);
 		}
-		public static void reserve(ref ImGuiTextBuffer self, int capacity)
+		public static void reserve(this ref ImGuiTextBuffer self, int capacity)
 		{
 			fixed (ImGuiTextBuffer* pself = &self)
 			{
@@ -3363,17 +3363,17 @@ public unsafe partial class ImGui
 			ImGuiStoragePairPtr ret = ImGuiNative.ImGuiStoragePair(key, valP);
 			return ret;
 		}
-		public static int GetInt(ImGuiStoragePtr self, uint key, int defaultVal)
+		public static int GetInt(this ImGuiStoragePtr self, uint key, int defaultVal)
 		{
 			int ret = ImGuiNative.GetInt(self, key, defaultVal);
 			return ret;
 		}
-		public static int GetInt(ImGuiStoragePtr self, uint key)
+		public static int GetInt(this ImGuiStoragePtr self, uint key)
 		{
 			int ret = ImGuiNative.GetInt(self, key, (int)(0));
 			return ret;
 		}
-		public static int GetInt(ref ImGuiStorage self, uint key, int defaultVal)
+		public static int GetInt(this in ImGuiStorage self, uint key, int defaultVal)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3381,7 +3381,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static int GetInt(ref ImGuiStorage self, uint key)
+		public static int GetInt(this in ImGuiStorage self, uint key)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3389,28 +3389,28 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static void SetInt(ImGuiStoragePtr self, uint key, int val)
+		public static void SetInt(this ImGuiStoragePtr self, uint key, int val)
 		{
 			ImGuiNative.SetInt(self, key, val);
 		}
-		public static void SetInt(ref ImGuiStorage self, uint key, int val)
+		public static void SetInt(this ref ImGuiStorage self, uint key, int val)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
 				ImGuiNative.SetInt((ImGuiStorage*)pself, key, val);
 			}
 		}
-		public static bool GetBool(ImGuiStoragePtr self, uint key, bool defaultVal)
+		public static bool GetBool(this ImGuiStoragePtr self, uint key, bool defaultVal)
 		{
 			byte ret = ImGuiNative.GetBool(self, key, defaultVal ? (byte)1 : (byte)0);
 			return ret != 0;
 		}
-		public static bool GetBool(ImGuiStoragePtr self, uint key)
+		public static bool GetBool(this ImGuiStoragePtr self, uint key)
 		{
 			byte ret = ImGuiNative.GetBool(self, key, (byte)(0));
 			return ret != 0;
 		}
-		public static bool GetBool(ref ImGuiStorage self, uint key, bool defaultVal)
+		public static bool GetBool(this in ImGuiStorage self, uint key, bool defaultVal)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3418,7 +3418,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetBool(ref ImGuiStorage self, uint key)
+		public static bool GetBool(this in ImGuiStorage self, uint key)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3426,28 +3426,28 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static void SetBool(ImGuiStoragePtr self, uint key, bool val)
+		public static void SetBool(this ImGuiStoragePtr self, uint key, bool val)
 		{
 			ImGuiNative.SetBool(self, key, val ? (byte)1 : (byte)0);
 		}
-		public static void SetBool(ref ImGuiStorage self, uint key, bool val)
+		public static void SetBool(this ref ImGuiStorage self, uint key, bool val)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
 				ImGuiNative.SetBool((ImGuiStorage*)pself, key, val ? (byte)1 : (byte)0);
 			}
 		}
-		public static float GetFloat(ImGuiStoragePtr self, uint key, float defaultVal)
+		public static float GetFloat(this ImGuiStoragePtr self, uint key, float defaultVal)
 		{
 			float ret = ImGuiNative.GetFloat(self, key, defaultVal);
 			return ret;
 		}
-		public static float GetFloat(ImGuiStoragePtr self, uint key)
+		public static float GetFloat(this ImGuiStoragePtr self, uint key)
 		{
 			float ret = ImGuiNative.GetFloat(self, key, (float)(0.0f));
 			return ret;
 		}
-		public static float GetFloat(ref ImGuiStorage self, uint key, float defaultVal)
+		public static float GetFloat(this in ImGuiStorage self, uint key, float defaultVal)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3455,7 +3455,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static float GetFloat(ref ImGuiStorage self, uint key)
+		public static float GetFloat(this in ImGuiStorage self, uint key)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3463,23 +3463,23 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static void SetFloat(ImGuiStoragePtr self, uint key, float val)
+		public static void SetFloat(this ImGuiStoragePtr self, uint key, float val)
 		{
 			ImGuiNative.SetFloat(self, key, val);
 		}
-		public static void SetFloat(ref ImGuiStorage self, uint key, float val)
+		public static void SetFloat(this ref ImGuiStorage self, uint key, float val)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
 				ImGuiNative.SetFloat((ImGuiStorage*)pself, key, val);
 			}
 		}
-		public static void* GetVoidPtr(ImGuiStoragePtr self, uint key)
+		public static void* GetVoidPtr(this ImGuiStoragePtr self, uint key)
 		{
 			void* ret = ImGuiNative.GetVoidPtr(self, key);
 			return ret;
 		}
-		public static void* GetVoidPtr(ref ImGuiStorage self, uint key)
+		public static void* GetVoidPtr(this in ImGuiStorage self, uint key)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3487,33 +3487,33 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static void SetVoidPtr(ImGuiStoragePtr self, uint key, void* val)
+		public static void SetVoidPtr(this ImGuiStoragePtr self, uint key, void* val)
 		{
 			ImGuiNative.SetVoidPtr(self, key, val);
 		}
-		public static void SetVoidPtr(ref ImGuiStorage self, uint key, void* val)
+		public static void SetVoidPtr(this ref ImGuiStorage self, uint key, void* val)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
 				ImGuiNative.SetVoidPtr((ImGuiStorage*)pself, key, val);
 			}
 		}
-		public static void SetAllInt(ImGuiStoragePtr self, int val)
+		public static void SetAllInt(this ImGuiStoragePtr self, int val)
 		{
 			ImGuiNative.SetAllInt(self, val);
 		}
-		public static void SetAllInt(ref ImGuiStorage self, int val)
+		public static void SetAllInt(this ref ImGuiStorage self, int val)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
 				ImGuiNative.SetAllInt((ImGuiStorage*)pself, val);
 			}
 		}
-		public static void BuildSortByKey(ImGuiStoragePtr self)
+		public static void BuildSortByKey(this ImGuiStoragePtr self)
 		{
 			ImGuiNative.BuildSortByKey(self);
 		}
-		public static void BuildSortByKey(ref ImGuiStorage self)
+		public static void BuildSortByKey(this ref ImGuiStorage self)
 		{
 			fixed (ImGuiStorage* pself = &self)
 			{
@@ -3525,12 +3525,12 @@ public unsafe partial class ImGui
 			ImGuiListClipperPtr ret = ImGuiNative.ImGuiListClipper();
 			return ret;
 		}
-		public static bool Step(ImGuiListClipperPtr self)
+		public static bool Step(this ImGuiListClipperPtr self)
 		{
 			byte ret = ImGuiNative.Step(self);
 			return ret != 0;
 		}
-		public static bool Step(ref ImGuiListClipper self)
+		public static bool Step(this ref ImGuiListClipper self)
 		{
 			fixed (ImGuiListClipper* pself = &self)
 			{
@@ -3538,11 +3538,11 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static void ForceDisplayRangeByIndices(ImGuiListClipperPtr self, int itemMin, int itemMax)
+		public static void ForceDisplayRangeByIndices(this ImGuiListClipperPtr self, int itemMin, int itemMax)
 		{
 			ImGuiNative.ForceDisplayRangeByIndices(self, itemMin, itemMax);
 		}
-		public static void ForceDisplayRangeByIndices(ref ImGuiListClipper self, int itemMin, int itemMax)
+		public static void ForceDisplayRangeByIndices(this ref ImGuiListClipper self, int itemMin, int itemMax)
 		{
 			fixed (ImGuiListClipper* pself = &self)
 			{
@@ -3584,22 +3584,22 @@ public unsafe partial class ImGui
 			ImColorPtr ret = ImGuiNative.ImColor(rgba);
 			return ret;
 		}
-		public static void SetHSV(ImColorPtr self, float h, float s, float v, float a)
+		public static void SetHSV(this ImColorPtr self, float h, float s, float v, float a)
 		{
 			ImGuiNative.SetHSV(self, h, s, v, a);
 		}
-		public static void SetHSV(ImColorPtr self, float h, float s, float v)
+		public static void SetHSV(this ImColorPtr self, float h, float s, float v)
 		{
 			ImGuiNative.SetHSV(self, h, s, v, (float)(1.0f));
 		}
-		public static void SetHSV(ref ImColor self, float h, float s, float v, float a)
+		public static void SetHSV(this ref ImColor self, float h, float s, float v, float a)
 		{
 			fixed (ImColor* pself = &self)
 			{
 				ImGuiNative.SetHSV((ImColor*)pself, h, s, v, a);
 			}
 		}
-		public static void SetHSV(ref ImColor self, float h, float s, float v)
+		public static void SetHSV(this ref ImColor self, float h, float s, float v)
 		{
 			fixed (ImColor* pself = &self)
 			{
@@ -3645,12 +3645,12 @@ public unsafe partial class ImGui
 			ImDrawCmdPtr ret = ImGuiNative.ImDrawCmd();
 			return ret;
 		}
-		public static ImTextureID GetTexID(ImDrawCmdPtr self)
+		public static ImTextureID GetTexID(this ImDrawCmdPtr self)
 		{
 			ImTextureID ret = ImGuiNative.GetTexID(self);
 			return ret;
 		}
-		public static ImTextureID GetTexID(ref ImDrawCmd self)
+		public static ImTextureID GetTexID(this in ImDrawCmd self)
 		{
 			fixed (ImDrawCmd* pself = &self)
 			{
@@ -3663,36 +3663,36 @@ public unsafe partial class ImGui
 			ImDrawListSplitterPtr ret = ImGuiNative.ImDrawListSplitter();
 			return ret;
 		}
-		public static void ClearFreeMemory(ImDrawListSplitterPtr self)
+		public static void ClearFreeMemory(this ImDrawListSplitterPtr self)
 		{
 			ImGuiNative.ClearFreeMemory(self);
 		}
-		public static void ClearFreeMemory(ref ImDrawListSplitter self)
+		public static void ClearFreeMemory(this ref ImDrawListSplitter self)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
 				ImGuiNative.ClearFreeMemory((ImDrawListSplitter*)pself);
 			}
 		}
-		public static void Split(ImDrawListSplitterPtr self, ImDrawListPtr drawList, int count)
+		public static void Split(this ImDrawListSplitterPtr self, ImDrawListPtr drawList, int count)
 		{
 			ImGuiNative.Split(self, drawList, count);
 		}
-		public static void Split(ref ImDrawListSplitter self, ImDrawListPtr drawList, int count)
+		public static void Split(this ref ImDrawListSplitter self, ImDrawListPtr drawList, int count)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
 				ImGuiNative.Split((ImDrawListSplitter*)pself, drawList, count);
 			}
 		}
-		public static void Split(ImDrawListSplitterPtr self, ref ImDrawList drawList, int count)
+		public static void Split(this ImDrawListSplitterPtr self, ref ImDrawList drawList, int count)
 		{
 			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				ImGuiNative.Split(self, (ImDrawList*)pdrawList, count);
 			}
 		}
-		public static void Split(ref ImDrawListSplitter self, ref ImDrawList drawList, int count)
+		public static void Split(this ref ImDrawListSplitter self, ref ImDrawList drawList, int count)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
@@ -3702,25 +3702,25 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void Merge(ImDrawListSplitterPtr self, ImDrawListPtr drawList)
+		public static void Merge(this ImDrawListSplitterPtr self, ImDrawListPtr drawList)
 		{
 			ImGuiNative.Merge(self, drawList);
 		}
-		public static void Merge(ref ImDrawListSplitter self, ImDrawListPtr drawList)
+		public static void Merge(this ref ImDrawListSplitter self, ImDrawListPtr drawList)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
 				ImGuiNative.Merge((ImDrawListSplitter*)pself, drawList);
 			}
 		}
-		public static void Merge(ImDrawListSplitterPtr self, ref ImDrawList drawList)
+		public static void Merge(this ImDrawListSplitterPtr self, ref ImDrawList drawList)
 		{
 			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				ImGuiNative.Merge(self, (ImDrawList*)pdrawList);
 			}
 		}
-		public static void Merge(ref ImDrawListSplitter self, ref ImDrawList drawList)
+		public static void Merge(this ref ImDrawListSplitter self, ref ImDrawList drawList)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
@@ -3730,25 +3730,25 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void SetCurrentChannel(ImDrawListSplitterPtr self, ImDrawListPtr drawList, int channelIdx)
+		public static void SetCurrentChannel(this ImDrawListSplitterPtr self, ImDrawListPtr drawList, int channelIdx)
 		{
 			ImGuiNative.SetCurrentChannel(self, drawList, channelIdx);
 		}
-		public static void SetCurrentChannel(ref ImDrawListSplitter self, ImDrawListPtr drawList, int channelIdx)
+		public static void SetCurrentChannel(this ref ImDrawListSplitter self, ImDrawListPtr drawList, int channelIdx)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
 				ImGuiNative.SetCurrentChannel((ImDrawListSplitter*)pself, drawList, channelIdx);
 			}
 		}
-		public static void SetCurrentChannel(ImDrawListSplitterPtr self, ref ImDrawList drawList, int channelIdx)
+		public static void SetCurrentChannel(this ImDrawListSplitterPtr self, ref ImDrawList drawList, int channelIdx)
 		{
 			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				ImGuiNative.SetCurrentChannel(self, (ImDrawList*)pdrawList, channelIdx);
 			}
 		}
-		public static void SetCurrentChannel(ref ImDrawListSplitter self, ref ImDrawList drawList, int channelIdx)
+		public static void SetCurrentChannel(this ref ImDrawListSplitter self, ref ImDrawList drawList, int channelIdx)
 		{
 			fixed (ImDrawListSplitter* pself = &self)
 			{
@@ -3771,40 +3771,40 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static void PushClipRectFullScreen(ImDrawListPtr self)
+		public static void PushClipRectFullScreen(this ImDrawListPtr self)
 		{
 			ImGuiNative.PushClipRectFullScreen(self);
 		}
-		public static void PushClipRectFullScreen(ref ImDrawList self)
+		public static void PushClipRectFullScreen(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PushClipRectFullScreen((ImDrawList*)pself);
 			}
 		}
-		public static void PushTextureID(ImDrawListPtr self, ImTextureID textureId)
+		public static void PushTextureID(this ImDrawListPtr self, ImTextureID textureId)
 		{
 			ImGuiNative.PushTextureID(self, textureId);
 		}
-		public static void PushTextureID(ref ImDrawList self, ImTextureID textureId)
+		public static void PushTextureID(this ref ImDrawList self, ImTextureID textureId)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PushTextureID((ImDrawList*)pself, textureId);
 			}
 		}
-		public static void PopTextureID(ImDrawListPtr self)
+		public static void PopTextureID(this ImDrawListPtr self)
 		{
 			ImGuiNative.PopTextureID(self);
 		}
-		public static void PopTextureID(ref ImDrawList self)
+		public static void PopTextureID(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PopTextureID((ImDrawList*)pself);
 			}
 		}
-		public static Vector2 GetClipRectMin(ImDrawListPtr self)
+		public static Vector2 GetClipRectMin(this ImDrawListPtr self)
 		{
 			Vector2 ret;
 			ImGuiNative.GetClipRectMin(&ret, self);
@@ -3821,7 +3821,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetClipRectMin((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetClipRectMin(ref ImDrawList self)
+		public static Vector2 GetClipRectMin(this in ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -3847,7 +3847,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static Vector2 GetClipRectMax(ImDrawListPtr self)
+		public static Vector2 GetClipRectMax(this ImDrawListPtr self)
 		{
 			Vector2 ret;
 			ImGuiNative.GetClipRectMax(&ret, self);
@@ -3864,7 +3864,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetClipRectMax((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetClipRectMax(ref ImDrawList self)
+		public static Vector2 GetClipRectMax(this in ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -3890,344 +3890,344 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void AddLine(ImDrawListPtr self, Vector2 p1, Vector2 p2, uint col, float thickness)
+		public static void AddLine(this ImDrawListPtr self, Vector2 p1, Vector2 p2, uint col, float thickness)
 		{
 			ImGuiNative.AddLine(self, p1, p2, col, thickness);
 		}
-		public static void AddLine(ImDrawListPtr self, Vector2 p1, Vector2 p2, uint col)
+		public static void AddLine(this ImDrawListPtr self, Vector2 p1, Vector2 p2, uint col)
 		{
 			ImGuiNative.AddLine(self, p1, p2, col, (float)(1.0f));
 		}
-		public static void AddLine(ref ImDrawList self, Vector2 p1, Vector2 p2, uint col, float thickness)
+		public static void AddLine(this ref ImDrawList self, Vector2 p1, Vector2 p2, uint col, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddLine((ImDrawList*)pself, p1, p2, col, thickness);
 			}
 		}
-		public static void AddLine(ref ImDrawList self, Vector2 p1, Vector2 p2, uint col)
+		public static void AddLine(this ref ImDrawList self, Vector2 p1, Vector2 p2, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddLine((ImDrawList*)pself, p1, p2, col, (float)(1.0f));
 			}
 		}
-		public static void AddRect(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags, float thickness)
+		public static void AddRect(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags, float thickness)
 		{
 			ImGuiNative.AddRect(self, pMin, pMax, col, rounding, flags, thickness);
 		}
-		public static void AddRect(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
+		public static void AddRect(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
 		{
 			ImGuiNative.AddRect(self, pMin, pMax, col, rounding, flags, (float)(1.0f));
 		}
-		public static void AddRect(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding)
+		public static void AddRect(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding)
 		{
 			ImGuiNative.AddRect(self, pMin, pMax, col, rounding, (ImDrawFlags)(0), (float)(1.0f));
 		}
-		public static void AddRect(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col)
+		public static void AddRect(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col)
 		{
 			ImGuiNative.AddRect(self, pMin, pMax, col, (float)(0.0f), (ImDrawFlags)(0), (float)(1.0f));
 		}
-		public static void AddRect(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
+		public static void AddRect(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
 		{
 			ImGuiNative.AddRect(self, pMin, pMax, col, (float)(0.0f), flags, (float)(1.0f));
 		}
-		public static void AddRect(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness)
+		public static void AddRect(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness)
 		{
 			ImGuiNative.AddRect(self, pMin, pMax, col, rounding, (ImDrawFlags)(0), thickness);
 		}
-		public static void AddRect(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags, float thickness)
+		public static void AddRect(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags, float thickness)
 		{
 			ImGuiNative.AddRect(self, pMin, pMax, col, (float)(0.0f), flags, thickness);
 		}
-		public static void AddRect(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags, float thickness)
+		public static void AddRect(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRect((ImDrawList*)pself, pMin, pMax, col, rounding, flags, thickness);
 			}
 		}
-		public static void AddRect(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
+		public static void AddRect(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRect((ImDrawList*)pself, pMin, pMax, col, rounding, flags, (float)(1.0f));
 			}
 		}
-		public static void AddRect(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding)
+		public static void AddRect(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRect((ImDrawList*)pself, pMin, pMax, col, rounding, (ImDrawFlags)(0), (float)(1.0f));
 			}
 		}
-		public static void AddRect(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col)
+		public static void AddRect(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRect((ImDrawList*)pself, pMin, pMax, col, (float)(0.0f), (ImDrawFlags)(0), (float)(1.0f));
 			}
 		}
-		public static void AddRect(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
+		public static void AddRect(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRect((ImDrawList*)pself, pMin, pMax, col, (float)(0.0f), flags, (float)(1.0f));
 			}
 		}
-		public static void AddRect(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness)
+		public static void AddRect(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRect((ImDrawList*)pself, pMin, pMax, col, rounding, (ImDrawFlags)(0), thickness);
 			}
 		}
-		public static void AddRect(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags, float thickness)
+		public static void AddRect(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRect((ImDrawList*)pself, pMin, pMax, col, (float)(0.0f), flags, thickness);
 			}
 		}
-		public static void AddRectFilled(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
+		public static void AddRectFilled(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
 		{
 			ImGuiNative.AddRectFilled(self, pMin, pMax, col, rounding, flags);
 		}
-		public static void AddRectFilled(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding)
+		public static void AddRectFilled(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, float rounding)
 		{
 			ImGuiNative.AddRectFilled(self, pMin, pMax, col, rounding, (ImDrawFlags)(0));
 		}
-		public static void AddRectFilled(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col)
+		public static void AddRectFilled(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col)
 		{
 			ImGuiNative.AddRectFilled(self, pMin, pMax, col, (float)(0.0f), (ImDrawFlags)(0));
 		}
-		public static void AddRectFilled(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
+		public static void AddRectFilled(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
 		{
 			ImGuiNative.AddRectFilled(self, pMin, pMax, col, (float)(0.0f), flags);
 		}
-		public static void AddRectFilled(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
+		public static void AddRectFilled(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRectFilled((ImDrawList*)pself, pMin, pMax, col, rounding, flags);
 			}
 		}
-		public static void AddRectFilled(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding)
+		public static void AddRectFilled(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, float rounding)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRectFilled((ImDrawList*)pself, pMin, pMax, col, rounding, (ImDrawFlags)(0));
 			}
 		}
-		public static void AddRectFilled(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col)
+		public static void AddRectFilled(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRectFilled((ImDrawList*)pself, pMin, pMax, col, (float)(0.0f), (ImDrawFlags)(0));
 			}
 		}
-		public static void AddRectFilled(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
+		public static void AddRectFilled(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint col, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRectFilled((ImDrawList*)pself, pMin, pMax, col, (float)(0.0f), flags);
 			}
 		}
-		public static void AddRectFilledMultiColor(ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint colUprLeft, uint colUprRight, uint colBotRight, uint colBotLeft)
+		public static void AddRectFilledMultiColor(this ImDrawListPtr self, Vector2 pMin, Vector2 pMax, uint colUprLeft, uint colUprRight, uint colBotRight, uint colBotLeft)
 		{
 			ImGuiNative.AddRectFilledMultiColor(self, pMin, pMax, colUprLeft, colUprRight, colBotRight, colBotLeft);
 		}
-		public static void AddRectFilledMultiColor(ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint colUprLeft, uint colUprRight, uint colBotRight, uint colBotLeft)
+		public static void AddRectFilledMultiColor(this ref ImDrawList self, Vector2 pMin, Vector2 pMax, uint colUprLeft, uint colUprRight, uint colBotRight, uint colBotLeft)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddRectFilledMultiColor((ImDrawList*)pself, pMin, pMax, colUprLeft, colUprRight, colBotRight, colBotLeft);
 			}
 		}
-		public static void AddQuad(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
+		public static void AddQuad(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
 		{
 			ImGuiNative.AddQuad(self, p1, p2, p3, p4, col, thickness);
 		}
-		public static void AddQuad(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public static void AddQuad(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
 			ImGuiNative.AddQuad(self, p1, p2, p3, p4, col, (float)(1.0f));
 		}
-		public static void AddQuad(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
+		public static void AddQuad(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddQuad((ImDrawList*)pself, p1, p2, p3, p4, col, thickness);
 			}
 		}
-		public static void AddQuad(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public static void AddQuad(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddQuad((ImDrawList*)pself, p1, p2, p3, p4, col, (float)(1.0f));
 			}
 		}
-		public static void AddQuadFilled(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public static void AddQuadFilled(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
 			ImGuiNative.AddQuadFilled(self, p1, p2, p3, p4, col);
 		}
-		public static void AddQuadFilled(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public static void AddQuadFilled(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddQuadFilled((ImDrawList*)pself, p1, p2, p3, p4, col);
 			}
 		}
-		public static void AddTriangle(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
+		public static void AddTriangle(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
 			ImGuiNative.AddTriangle(self, p1, p2, p3, col, thickness);
 		}
-		public static void AddTriangle(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col)
+		public static void AddTriangle(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col)
 		{
 			ImGuiNative.AddTriangle(self, p1, p2, p3, col, (float)(1.0f));
 		}
-		public static void AddTriangle(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
+		public static void AddTriangle(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddTriangle((ImDrawList*)pself, p1, p2, p3, col, thickness);
 			}
 		}
-		public static void AddTriangle(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col)
+		public static void AddTriangle(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddTriangle((ImDrawList*)pself, p1, p2, p3, col, (float)(1.0f));
 			}
 		}
-		public static void AddTriangleFilled(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col)
+		public static void AddTriangleFilled(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col)
 		{
 			ImGuiNative.AddTriangleFilled(self, p1, p2, p3, col);
 		}
-		public static void AddTriangleFilled(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col)
+		public static void AddTriangleFilled(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddTriangleFilled((ImDrawList*)pself, p1, p2, p3, col);
 			}
 		}
-		public static void AddCircle(ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments, float thickness)
+		public static void AddCircle(this ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments, float thickness)
 		{
 			ImGuiNative.AddCircle(self, center, radius, col, numSegments, thickness);
 		}
-		public static void AddCircle(ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments)
+		public static void AddCircle(this ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments)
 		{
 			ImGuiNative.AddCircle(self, center, radius, col, numSegments, (float)(1.0f));
 		}
-		public static void AddCircle(ImDrawListPtr self, Vector2 center, float radius, uint col)
+		public static void AddCircle(this ImDrawListPtr self, Vector2 center, float radius, uint col)
 		{
 			ImGuiNative.AddCircle(self, center, radius, col, (int)(0), (float)(1.0f));
 		}
-		public static void AddCircle(ImDrawListPtr self, Vector2 center, float radius, uint col, float thickness)
+		public static void AddCircle(this ImDrawListPtr self, Vector2 center, float radius, uint col, float thickness)
 		{
 			ImGuiNative.AddCircle(self, center, radius, col, (int)(0), thickness);
 		}
-		public static void AddCircle(ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments, float thickness)
+		public static void AddCircle(this ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddCircle((ImDrawList*)pself, center, radius, col, numSegments, thickness);
 			}
 		}
-		public static void AddCircle(ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments)
+		public static void AddCircle(this ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddCircle((ImDrawList*)pself, center, radius, col, numSegments, (float)(1.0f));
 			}
 		}
-		public static void AddCircle(ref ImDrawList self, Vector2 center, float radius, uint col)
+		public static void AddCircle(this ref ImDrawList self, Vector2 center, float radius, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddCircle((ImDrawList*)pself, center, radius, col, (int)(0), (float)(1.0f));
 			}
 		}
-		public static void AddCircle(ref ImDrawList self, Vector2 center, float radius, uint col, float thickness)
+		public static void AddCircle(this ref ImDrawList self, Vector2 center, float radius, uint col, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddCircle((ImDrawList*)pself, center, radius, col, (int)(0), thickness);
 			}
 		}
-		public static void AddCircleFilled(ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments)
+		public static void AddCircleFilled(this ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments)
 		{
 			ImGuiNative.AddCircleFilled(self, center, radius, col, numSegments);
 		}
-		public static void AddCircleFilled(ImDrawListPtr self, Vector2 center, float radius, uint col)
+		public static void AddCircleFilled(this ImDrawListPtr self, Vector2 center, float radius, uint col)
 		{
 			ImGuiNative.AddCircleFilled(self, center, radius, col, (int)(0));
 		}
-		public static void AddCircleFilled(ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments)
+		public static void AddCircleFilled(this ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddCircleFilled((ImDrawList*)pself, center, radius, col, numSegments);
 			}
 		}
-		public static void AddCircleFilled(ref ImDrawList self, Vector2 center, float radius, uint col)
+		public static void AddCircleFilled(this ref ImDrawList self, Vector2 center, float radius, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddCircleFilled((ImDrawList*)pself, center, radius, col, (int)(0));
 			}
 		}
-		public static void AddNgon(ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments, float thickness)
+		public static void AddNgon(this ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments, float thickness)
 		{
 			ImGuiNative.AddNgon(self, center, radius, col, numSegments, thickness);
 		}
-		public static void AddNgon(ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments)
+		public static void AddNgon(this ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments)
 		{
 			ImGuiNative.AddNgon(self, center, radius, col, numSegments, (float)(1.0f));
 		}
-		public static void AddNgon(ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments, float thickness)
+		public static void AddNgon(this ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddNgon((ImDrawList*)pself, center, radius, col, numSegments, thickness);
 			}
 		}
-		public static void AddNgon(ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments)
+		public static void AddNgon(this ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddNgon((ImDrawList*)pself, center, radius, col, numSegments, (float)(1.0f));
 			}
 		}
-		public static void AddNgonFilled(ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments)
+		public static void AddNgonFilled(this ImDrawListPtr self, Vector2 center, float radius, uint col, int numSegments)
 		{
 			ImGuiNative.AddNgonFilled(self, center, radius, col, numSegments);
 		}
-		public static void AddNgonFilled(ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments)
+		public static void AddNgonFilled(this ref ImDrawList self, Vector2 center, float radius, uint col, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddNgonFilled((ImDrawList*)pself, center, radius, col, numSegments);
 			}
 		}
-		public static void AddPolyline(ImDrawListPtr self, Vector2* points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public static void AddPolyline(this ImDrawListPtr self, Vector2* points, int numPoints, uint col, ImDrawFlags flags, float thickness)
 		{
 			ImGuiNative.AddPolyline(self, points, numPoints, col, flags, thickness);
 		}
-		public static void AddPolyline(ref ImDrawList self, Vector2* points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public static void AddPolyline(this ref ImDrawList self, Vector2* points, int numPoints, uint col, ImDrawFlags flags, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddPolyline((ImDrawList*)pself, points, numPoints, col, flags, thickness);
 			}
 		}
-		public static void AddPolyline(ImDrawListPtr self, ref Vector2 points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public static void AddPolyline(this ImDrawListPtr self, ref Vector2 points, int numPoints, uint col, ImDrawFlags flags, float thickness)
 		{
 			fixed (Vector2* ppoints = &points)
 			{
 				ImGuiNative.AddPolyline(self, (Vector2*)ppoints, numPoints, col, flags, thickness);
 			}
 		}
-		public static void AddPolyline(ref ImDrawList self, ref Vector2 points, int numPoints, uint col, ImDrawFlags flags, float thickness)
+		public static void AddPolyline(this ref ImDrawList self, ref Vector2 points, int numPoints, uint col, ImDrawFlags flags, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -4237,25 +4237,25 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void AddConvexPolyFilled(ImDrawListPtr self, Vector2* points, int numPoints, uint col)
+		public static void AddConvexPolyFilled(this ImDrawListPtr self, Vector2* points, int numPoints, uint col)
 		{
 			ImGuiNative.AddConvexPolyFilled(self, points, numPoints, col);
 		}
-		public static void AddConvexPolyFilled(ref ImDrawList self, Vector2* points, int numPoints, uint col)
+		public static void AddConvexPolyFilled(this ref ImDrawList self, Vector2* points, int numPoints, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddConvexPolyFilled((ImDrawList*)pself, points, numPoints, col);
 			}
 		}
-		public static void AddConvexPolyFilled(ImDrawListPtr self, ref Vector2 points, int numPoints, uint col)
+		public static void AddConvexPolyFilled(this ImDrawListPtr self, ref Vector2 points, int numPoints, uint col)
 		{
 			fixed (Vector2* ppoints = &points)
 			{
 				ImGuiNative.AddConvexPolyFilled(self, (Vector2*)ppoints, numPoints, col);
 			}
 		}
-		public static void AddConvexPolyFilled(ref ImDrawList self, ref Vector2 points, int numPoints, uint col)
+		public static void AddConvexPolyFilled(this ref ImDrawList self, ref Vector2 points, int numPoints, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -4265,485 +4265,485 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void AddBezierCubic(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments)
+		public static void AddBezierCubic(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments)
 		{
 			ImGuiNative.AddBezierCubic(self, p1, p2, p3, p4, col, thickness, numSegments);
 		}
-		public static void AddBezierCubic(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
+		public static void AddBezierCubic(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
 		{
 			ImGuiNative.AddBezierCubic(self, p1, p2, p3, p4, col, thickness, (int)(0));
 		}
-		public static void AddBezierCubic(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments)
+		public static void AddBezierCubic(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddBezierCubic((ImDrawList*)pself, p1, p2, p3, p4, col, thickness, numSegments);
 			}
 		}
-		public static void AddBezierCubic(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
+		public static void AddBezierCubic(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddBezierCubic((ImDrawList*)pself, p1, p2, p3, p4, col, thickness, (int)(0));
 			}
 		}
-		public static void AddBezierQuadratic(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments)
+		public static void AddBezierQuadratic(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments)
 		{
 			ImGuiNative.AddBezierQuadratic(self, p1, p2, p3, col, thickness, numSegments);
 		}
-		public static void AddBezierQuadratic(ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
+		public static void AddBezierQuadratic(this ImDrawListPtr self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
 			ImGuiNative.AddBezierQuadratic(self, p1, p2, p3, col, thickness, (int)(0));
 		}
-		public static void AddBezierQuadratic(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments)
+		public static void AddBezierQuadratic(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddBezierQuadratic((ImDrawList*)pself, p1, p2, p3, col, thickness, numSegments);
 			}
 		}
-		public static void AddBezierQuadratic(ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
+		public static void AddBezierQuadratic(this ref ImDrawList self, Vector2 p1, Vector2 p2, Vector2 p3, uint col, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddBezierQuadratic((ImDrawList*)pself, p1, p2, p3, col, thickness, (int)(0));
 			}
 		}
-		public static void AddImage(ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
+		public static void AddImage(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
 		{
 			ImGuiNative.AddImage(self, userTextureId, pMin, pMax, uvMin, uvMax, col);
 		}
-		public static void AddImage(ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
+		public static void AddImage(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
 		{
 			ImGuiNative.AddImage(self, userTextureId, pMin, pMax, uvMin, uvMax, (uint)(4294967295));
 		}
-		public static void AddImage(ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
+		public static void AddImage(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
 		{
 			ImGuiNative.AddImage(self, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), (uint)(4294967295));
 		}
-		public static void AddImage(ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax)
+		public static void AddImage(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax)
 		{
 			ImGuiNative.AddImage(self, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), (uint)(4294967295));
 		}
-		public static void AddImage(ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
+		public static void AddImage(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
 		{
 			ImGuiNative.AddImage(self, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), col);
 		}
-		public static void AddImage(ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, uint col)
+		public static void AddImage(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, uint col)
 		{
 			ImGuiNative.AddImage(self, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), col);
 		}
-		public static void AddImage(ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
+		public static void AddImage(this ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImage((ImDrawList*)pself, userTextureId, pMin, pMax, uvMin, uvMax, col);
 			}
 		}
-		public static void AddImage(ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
+		public static void AddImage(this ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImage((ImDrawList*)pself, userTextureId, pMin, pMax, uvMin, uvMax, (uint)(4294967295));
 			}
 		}
-		public static void AddImage(ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
+		public static void AddImage(this ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImage((ImDrawList*)pself, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), (uint)(4294967295));
 			}
 		}
-		public static void AddImage(ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax)
+		public static void AddImage(this ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImage((ImDrawList*)pself, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), (uint)(4294967295));
 			}
 		}
-		public static void AddImage(ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
+		public static void AddImage(this ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImage((ImDrawList*)pself, userTextureId, pMin, pMax, uvMin, (Vector2)(new Vector2(1,1)), col);
 			}
 		}
-		public static void AddImage(ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, uint col)
+		public static void AddImage(this ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImage((ImDrawList*)pself, userTextureId, pMin, pMax, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,1)), col);
 			}
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, (uint)(4294967295));
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), (uint)(4294967295));
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), col);
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
 		}
-		public static void AddImageQuad(ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public static void AddImageQuad(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
 			ImGuiNative.AddImageQuad(self, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col);
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, Vector2 uv4)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, uv4, (uint)(4294967295));
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), (uint)(4294967295));
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), (uint)(4294967295));
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, Vector2 uv3, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, uv1, uv2, uv3, (Vector2)(new Vector2(0,1)), col);
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, Vector2 uv2, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, uv1, uv2, (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, Vector2 uv1, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, uv1, (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
 			}
 		}
-		public static void AddImageQuad(ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
+		public static void AddImageQuad(this ref ImDrawList self, ImTextureID userTextureId, Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageQuad((ImDrawList*)pself, userTextureId, p1, p2, p3, p4, (Vector2)(new Vector2(0,0)), (Vector2)(new Vector2(1,0)), (Vector2)(new Vector2(1,1)), (Vector2)(new Vector2(0,1)), col);
 			}
 		}
-		public static void AddImageRounded(ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
+		public static void AddImageRounded(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
 		{
 			ImGuiNative.AddImageRounded(self, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, flags);
 		}
-		public static void AddImageRounded(ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
+		public static void AddImageRounded(this ImDrawListPtr self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
 		{
 			ImGuiNative.AddImageRounded(self, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, (ImDrawFlags)(0));
 		}
-		public static void AddImageRounded(ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
+		public static void AddImageRounded(this ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageRounded((ImDrawList*)pself, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, flags);
 			}
 		}
-		public static void AddImageRounded(ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
+		public static void AddImageRounded(this ref ImDrawList self, ImTextureID userTextureId, Vector2 pMin, Vector2 pMax, Vector2 uvMin, Vector2 uvMax, uint col, float rounding)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddImageRounded((ImDrawList*)pself, userTextureId, pMin, pMax, uvMin, uvMax, col, rounding, (ImDrawFlags)(0));
 			}
 		}
-		public static void PathClear(ImDrawListPtr self)
+		public static void PathClear(this ImDrawListPtr self)
 		{
 			ImGuiNative.PathClear(self);
 		}
-		public static void PathClear(ref ImDrawList self)
+		public static void PathClear(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathClear((ImDrawList*)pself);
 			}
 		}
-		public static void PathLineTo(ImDrawListPtr self, Vector2 pos)
+		public static void PathLineTo(this ImDrawListPtr self, Vector2 pos)
 		{
 			ImGuiNative.PathLineTo(self, pos);
 		}
-		public static void PathLineTo(ref ImDrawList self, Vector2 pos)
+		public static void PathLineTo(this ref ImDrawList self, Vector2 pos)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathLineTo((ImDrawList*)pself, pos);
 			}
 		}
-		public static void PathLineToMergeDuplicate(ImDrawListPtr self, Vector2 pos)
+		public static void PathLineToMergeDuplicate(this ImDrawListPtr self, Vector2 pos)
 		{
 			ImGuiNative.PathLineToMergeDuplicate(self, pos);
 		}
-		public static void PathLineToMergeDuplicate(ref ImDrawList self, Vector2 pos)
+		public static void PathLineToMergeDuplicate(this ref ImDrawList self, Vector2 pos)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathLineToMergeDuplicate((ImDrawList*)pself, pos);
 			}
 		}
-		public static void PathFillConvex(ImDrawListPtr self, uint col)
+		public static void PathFillConvex(this ImDrawListPtr self, uint col)
 		{
 			ImGuiNative.PathFillConvex(self, col);
 		}
-		public static void PathFillConvex(ref ImDrawList self, uint col)
+		public static void PathFillConvex(this ref ImDrawList self, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathFillConvex((ImDrawList*)pself, col);
 			}
 		}
-		public static void PathStroke(ImDrawListPtr self, uint col, ImDrawFlags flags, float thickness)
+		public static void PathStroke(this ImDrawListPtr self, uint col, ImDrawFlags flags, float thickness)
 		{
 			ImGuiNative.PathStroke(self, col, flags, thickness);
 		}
-		public static void PathStroke(ImDrawListPtr self, uint col, ImDrawFlags flags)
+		public static void PathStroke(this ImDrawListPtr self, uint col, ImDrawFlags flags)
 		{
 			ImGuiNative.PathStroke(self, col, flags, (float)(1.0f));
 		}
-		public static void PathStroke(ImDrawListPtr self, uint col)
+		public static void PathStroke(this ImDrawListPtr self, uint col)
 		{
 			ImGuiNative.PathStroke(self, col, (ImDrawFlags)(0), (float)(1.0f));
 		}
-		public static void PathStroke(ImDrawListPtr self, uint col, float thickness)
+		public static void PathStroke(this ImDrawListPtr self, uint col, float thickness)
 		{
 			ImGuiNative.PathStroke(self, col, (ImDrawFlags)(0), thickness);
 		}
-		public static void PathStroke(ref ImDrawList self, uint col, ImDrawFlags flags, float thickness)
+		public static void PathStroke(this ref ImDrawList self, uint col, ImDrawFlags flags, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathStroke((ImDrawList*)pself, col, flags, thickness);
 			}
 		}
-		public static void PathStroke(ref ImDrawList self, uint col, ImDrawFlags flags)
+		public static void PathStroke(this ref ImDrawList self, uint col, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathStroke((ImDrawList*)pself, col, flags, (float)(1.0f));
 			}
 		}
-		public static void PathStroke(ref ImDrawList self, uint col)
+		public static void PathStroke(this ref ImDrawList self, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathStroke((ImDrawList*)pself, col, (ImDrawFlags)(0), (float)(1.0f));
 			}
 		}
-		public static void PathStroke(ref ImDrawList self, uint col, float thickness)
+		public static void PathStroke(this ref ImDrawList self, uint col, float thickness)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathStroke((ImDrawList*)pself, col, (ImDrawFlags)(0), thickness);
 			}
 		}
-		public static void PathArcTo(ImDrawListPtr self, Vector2 center, float radius, float aMin, float aMax, int numSegments)
+		public static void PathArcTo(this ImDrawListPtr self, Vector2 center, float radius, float aMin, float aMax, int numSegments)
 		{
 			ImGuiNative.PathArcTo(self, center, radius, aMin, aMax, numSegments);
 		}
-		public static void PathArcTo(ImDrawListPtr self, Vector2 center, float radius, float aMin, float aMax)
+		public static void PathArcTo(this ImDrawListPtr self, Vector2 center, float radius, float aMin, float aMax)
 		{
 			ImGuiNative.PathArcTo(self, center, radius, aMin, aMax, (int)(0));
 		}
-		public static void PathArcTo(ref ImDrawList self, Vector2 center, float radius, float aMin, float aMax, int numSegments)
+		public static void PathArcTo(this ref ImDrawList self, Vector2 center, float radius, float aMin, float aMax, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathArcTo((ImDrawList*)pself, center, radius, aMin, aMax, numSegments);
 			}
 		}
-		public static void PathArcTo(ref ImDrawList self, Vector2 center, float radius, float aMin, float aMax)
+		public static void PathArcTo(this ref ImDrawList self, Vector2 center, float radius, float aMin, float aMax)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathArcTo((ImDrawList*)pself, center, radius, aMin, aMax, (int)(0));
 			}
 		}
-		public static void PathArcToFast(ImDrawListPtr self, Vector2 center, float radius, int aMinOf12, int aMaxOf12)
+		public static void PathArcToFast(this ImDrawListPtr self, Vector2 center, float radius, int aMinOf12, int aMaxOf12)
 		{
 			ImGuiNative.PathArcToFast(self, center, radius, aMinOf12, aMaxOf12);
 		}
-		public static void PathArcToFast(ref ImDrawList self, Vector2 center, float radius, int aMinOf12, int aMaxOf12)
+		public static void PathArcToFast(this ref ImDrawList self, Vector2 center, float radius, int aMinOf12, int aMaxOf12)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathArcToFast((ImDrawList*)pself, center, radius, aMinOf12, aMaxOf12);
 			}
 		}
-		public static void PathBezierCubicCurveTo(ImDrawListPtr self, Vector2 p2, Vector2 p3, Vector2 p4, int numSegments)
+		public static void PathBezierCubicCurveTo(this ImDrawListPtr self, Vector2 p2, Vector2 p3, Vector2 p4, int numSegments)
 		{
 			ImGuiNative.PathBezierCubicCurveTo(self, p2, p3, p4, numSegments);
 		}
-		public static void PathBezierCubicCurveTo(ImDrawListPtr self, Vector2 p2, Vector2 p3, Vector2 p4)
+		public static void PathBezierCubicCurveTo(this ImDrawListPtr self, Vector2 p2, Vector2 p3, Vector2 p4)
 		{
 			ImGuiNative.PathBezierCubicCurveTo(self, p2, p3, p4, (int)(0));
 		}
-		public static void PathBezierCubicCurveTo(ref ImDrawList self, Vector2 p2, Vector2 p3, Vector2 p4, int numSegments)
+		public static void PathBezierCubicCurveTo(this ref ImDrawList self, Vector2 p2, Vector2 p3, Vector2 p4, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathBezierCubicCurveTo((ImDrawList*)pself, p2, p3, p4, numSegments);
 			}
 		}
-		public static void PathBezierCubicCurveTo(ref ImDrawList self, Vector2 p2, Vector2 p3, Vector2 p4)
+		public static void PathBezierCubicCurveTo(this ref ImDrawList self, Vector2 p2, Vector2 p3, Vector2 p4)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathBezierCubicCurveTo((ImDrawList*)pself, p2, p3, p4, (int)(0));
 			}
 		}
-		public static void PathBezierQuadraticCurveTo(ImDrawListPtr self, Vector2 p2, Vector2 p3, int numSegments)
+		public static void PathBezierQuadraticCurveTo(this ImDrawListPtr self, Vector2 p2, Vector2 p3, int numSegments)
 		{
 			ImGuiNative.PathBezierQuadraticCurveTo(self, p2, p3, numSegments);
 		}
-		public static void PathBezierQuadraticCurveTo(ImDrawListPtr self, Vector2 p2, Vector2 p3)
+		public static void PathBezierQuadraticCurveTo(this ImDrawListPtr self, Vector2 p2, Vector2 p3)
 		{
 			ImGuiNative.PathBezierQuadraticCurveTo(self, p2, p3, (int)(0));
 		}
-		public static void PathBezierQuadraticCurveTo(ref ImDrawList self, Vector2 p2, Vector2 p3, int numSegments)
+		public static void PathBezierQuadraticCurveTo(this ref ImDrawList self, Vector2 p2, Vector2 p3, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathBezierQuadraticCurveTo((ImDrawList*)pself, p2, p3, numSegments);
 			}
 		}
-		public static void PathBezierQuadraticCurveTo(ref ImDrawList self, Vector2 p2, Vector2 p3)
+		public static void PathBezierQuadraticCurveTo(this ref ImDrawList self, Vector2 p2, Vector2 p3)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathBezierQuadraticCurveTo((ImDrawList*)pself, p2, p3, (int)(0));
 			}
 		}
-		public static void PathRect(ImDrawListPtr self, Vector2 rectMin, Vector2 rectMax, float rounding, ImDrawFlags flags)
+		public static void PathRect(this ImDrawListPtr self, Vector2 rectMin, Vector2 rectMax, float rounding, ImDrawFlags flags)
 		{
 			ImGuiNative.PathRect(self, rectMin, rectMax, rounding, flags);
 		}
-		public static void PathRect(ImDrawListPtr self, Vector2 rectMin, Vector2 rectMax, float rounding)
+		public static void PathRect(this ImDrawListPtr self, Vector2 rectMin, Vector2 rectMax, float rounding)
 		{
 			ImGuiNative.PathRect(self, rectMin, rectMax, rounding, (ImDrawFlags)(0));
 		}
-		public static void PathRect(ImDrawListPtr self, Vector2 rectMin, Vector2 rectMax)
+		public static void PathRect(this ImDrawListPtr self, Vector2 rectMin, Vector2 rectMax)
 		{
 			ImGuiNative.PathRect(self, rectMin, rectMax, (float)(0.0f), (ImDrawFlags)(0));
 		}
-		public static void PathRect(ImDrawListPtr self, Vector2 rectMin, Vector2 rectMax, ImDrawFlags flags)
+		public static void PathRect(this ImDrawListPtr self, Vector2 rectMin, Vector2 rectMax, ImDrawFlags flags)
 		{
 			ImGuiNative.PathRect(self, rectMin, rectMax, (float)(0.0f), flags);
 		}
-		public static void PathRect(ref ImDrawList self, Vector2 rectMin, Vector2 rectMax, float rounding, ImDrawFlags flags)
+		public static void PathRect(this ref ImDrawList self, Vector2 rectMin, Vector2 rectMax, float rounding, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathRect((ImDrawList*)pself, rectMin, rectMax, rounding, flags);
 			}
 		}
-		public static void PathRect(ref ImDrawList self, Vector2 rectMin, Vector2 rectMax, float rounding)
+		public static void PathRect(this ref ImDrawList self, Vector2 rectMin, Vector2 rectMax, float rounding)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathRect((ImDrawList*)pself, rectMin, rectMax, rounding, (ImDrawFlags)(0));
 			}
 		}
-		public static void PathRect(ref ImDrawList self, Vector2 rectMin, Vector2 rectMax)
+		public static void PathRect(this ref ImDrawList self, Vector2 rectMin, Vector2 rectMax)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathRect((ImDrawList*)pself, rectMin, rectMax, (float)(0.0f), (ImDrawFlags)(0));
 			}
 		}
-		public static void PathRect(ref ImDrawList self, Vector2 rectMin, Vector2 rectMax, ImDrawFlags flags)
+		public static void PathRect(this ref ImDrawList self, Vector2 rectMin, Vector2 rectMax, ImDrawFlags flags)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PathRect((ImDrawList*)pself, rectMin, rectMax, (float)(0.0f), flags);
 			}
 		}
-		public static void AddCallback(ImDrawListPtr self, ImDrawCallback callback, void* callbackData)
+		public static void AddCallback(this ImDrawListPtr self, ImDrawCallback callback, void* callbackData)
 		{
 			ImGuiNative.AddCallback(self, callback, callbackData);
 		}
-		public static void AddCallback(ref ImDrawList self, ImDrawCallback callback, void* callbackData)
+		public static void AddCallback(this ref ImDrawList self, ImDrawCallback callback, void* callbackData)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddCallback((ImDrawList*)pself, callback, callbackData);
 			}
 		}
-		public static void AddDrawCmd(ImDrawListPtr self)
+		public static void AddDrawCmd(this ImDrawListPtr self)
 		{
 			ImGuiNative.AddDrawCmd(self);
 		}
-		public static void AddDrawCmd(ref ImDrawList self)
+		public static void AddDrawCmd(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.AddDrawCmd((ImDrawList*)pself);
 			}
 		}
-		public static ImDrawListPtr CloneOutput(ImDrawListPtr self)
+		public static ImDrawListPtr CloneOutput(this ImDrawListPtr self)
 		{
 			ImDrawListPtr ret = ImGuiNative.CloneOutput(self);
 			return ret;
 		}
-		public static ImDrawListPtr CloneOutput(ref ImDrawList self)
+		public static ImDrawListPtr CloneOutput(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -4751,210 +4751,210 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static void ChannelsSplit(ImDrawListPtr self, int count)
+		public static void ChannelsSplit(this ImDrawListPtr self, int count)
 		{
 			ImGuiNative.ChannelsSplit(self, count);
 		}
-		public static void ChannelsSplit(ref ImDrawList self, int count)
+		public static void ChannelsSplit(this ref ImDrawList self, int count)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.ChannelsSplit((ImDrawList*)pself, count);
 			}
 		}
-		public static void ChannelsMerge(ImDrawListPtr self)
+		public static void ChannelsMerge(this ImDrawListPtr self)
 		{
 			ImGuiNative.ChannelsMerge(self);
 		}
-		public static void ChannelsMerge(ref ImDrawList self)
+		public static void ChannelsMerge(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.ChannelsMerge((ImDrawList*)pself);
 			}
 		}
-		public static void ChannelsSetCurrent(ImDrawListPtr self, int n)
+		public static void ChannelsSetCurrent(this ImDrawListPtr self, int n)
 		{
 			ImGuiNative.ChannelsSetCurrent(self, n);
 		}
-		public static void ChannelsSetCurrent(ref ImDrawList self, int n)
+		public static void ChannelsSetCurrent(this ref ImDrawList self, int n)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.ChannelsSetCurrent((ImDrawList*)pself, n);
 			}
 		}
-		public static void PrimReserve(ImDrawListPtr self, int idxCount, int vtxCount)
+		public static void PrimReserve(this ImDrawListPtr self, int idxCount, int vtxCount)
 		{
 			ImGuiNative.PrimReserve(self, idxCount, vtxCount);
 		}
-		public static void PrimReserve(ref ImDrawList self, int idxCount, int vtxCount)
+		public static void PrimReserve(this ref ImDrawList self, int idxCount, int vtxCount)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PrimReserve((ImDrawList*)pself, idxCount, vtxCount);
 			}
 		}
-		public static void PrimUnreserve(ImDrawListPtr self, int idxCount, int vtxCount)
+		public static void PrimUnreserve(this ImDrawListPtr self, int idxCount, int vtxCount)
 		{
 			ImGuiNative.PrimUnreserve(self, idxCount, vtxCount);
 		}
-		public static void PrimUnreserve(ref ImDrawList self, int idxCount, int vtxCount)
+		public static void PrimUnreserve(this ref ImDrawList self, int idxCount, int vtxCount)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PrimUnreserve((ImDrawList*)pself, idxCount, vtxCount);
 			}
 		}
-		public static void PrimRect(ImDrawListPtr self, Vector2 a, Vector2 b, uint col)
+		public static void PrimRect(this ImDrawListPtr self, Vector2 a, Vector2 b, uint col)
 		{
 			ImGuiNative.PrimRect(self, a, b, col);
 		}
-		public static void PrimRect(ref ImDrawList self, Vector2 a, Vector2 b, uint col)
+		public static void PrimRect(this ref ImDrawList self, Vector2 a, Vector2 b, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PrimRect((ImDrawList*)pself, a, b, col);
 			}
 		}
-		public static void PrimRectUV(ImDrawListPtr self, Vector2 a, Vector2 b, Vector2 uvA, Vector2 uvB, uint col)
+		public static void PrimRectUV(this ImDrawListPtr self, Vector2 a, Vector2 b, Vector2 uvA, Vector2 uvB, uint col)
 		{
 			ImGuiNative.PrimRectUV(self, a, b, uvA, uvB, col);
 		}
-		public static void PrimRectUV(ref ImDrawList self, Vector2 a, Vector2 b, Vector2 uvA, Vector2 uvB, uint col)
+		public static void PrimRectUV(this ref ImDrawList self, Vector2 a, Vector2 b, Vector2 uvA, Vector2 uvB, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PrimRectUV((ImDrawList*)pself, a, b, uvA, uvB, col);
 			}
 		}
-		public static void PrimQuadUV(ImDrawListPtr self, Vector2 a, Vector2 b, Vector2 c, Vector2 d, Vector2 uvA, Vector2 uvB, Vector2 uvC, Vector2 uvD, uint col)
+		public static void PrimQuadUV(this ImDrawListPtr self, Vector2 a, Vector2 b, Vector2 c, Vector2 d, Vector2 uvA, Vector2 uvB, Vector2 uvC, Vector2 uvD, uint col)
 		{
 			ImGuiNative.PrimQuadUV(self, a, b, c, d, uvA, uvB, uvC, uvD, col);
 		}
-		public static void PrimQuadUV(ref ImDrawList self, Vector2 a, Vector2 b, Vector2 c, Vector2 d, Vector2 uvA, Vector2 uvB, Vector2 uvC, Vector2 uvD, uint col)
+		public static void PrimQuadUV(this ref ImDrawList self, Vector2 a, Vector2 b, Vector2 c, Vector2 d, Vector2 uvA, Vector2 uvB, Vector2 uvC, Vector2 uvD, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PrimQuadUV((ImDrawList*)pself, a, b, c, d, uvA, uvB, uvC, uvD, col);
 			}
 		}
-		public static void PrimWriteVtx(ImDrawListPtr self, Vector2 pos, Vector2 uv, uint col)
+		public static void PrimWriteVtx(this ImDrawListPtr self, Vector2 pos, Vector2 uv, uint col)
 		{
 			ImGuiNative.PrimWriteVtx(self, pos, uv, col);
 		}
-		public static void PrimWriteVtx(ref ImDrawList self, Vector2 pos, Vector2 uv, uint col)
+		public static void PrimWriteVtx(this ref ImDrawList self, Vector2 pos, Vector2 uv, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PrimWriteVtx((ImDrawList*)pself, pos, uv, col);
 			}
 		}
-		public static void PrimWriteIdx(ImDrawListPtr self, ushort idx)
+		public static void PrimWriteIdx(this ImDrawListPtr self, ushort idx)
 		{
 			ImGuiNative.PrimWriteIdx(self, idx);
 		}
-		public static void PrimWriteIdx(ref ImDrawList self, ushort idx)
+		public static void PrimWriteIdx(this ref ImDrawList self, ushort idx)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PrimWriteIdx((ImDrawList*)pself, idx);
 			}
 		}
-		public static void PrimVtx(ImDrawListPtr self, Vector2 pos, Vector2 uv, uint col)
+		public static void PrimVtx(this ImDrawListPtr self, Vector2 pos, Vector2 uv, uint col)
 		{
 			ImGuiNative.PrimVtx(self, pos, uv, col);
 		}
-		public static void PrimVtx(ref ImDrawList self, Vector2 pos, Vector2 uv, uint col)
+		public static void PrimVtx(this ref ImDrawList self, Vector2 pos, Vector2 uv, uint col)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative.PrimVtx((ImDrawList*)pself, pos, uv, col);
 			}
 		}
-		public static void _ResetForNewFrame(ImDrawListPtr self)
+		public static void _ResetForNewFrame(this ImDrawListPtr self)
 		{
 			ImGuiNative._ResetForNewFrame(self);
 		}
-		public static void _ResetForNewFrame(ref ImDrawList self)
+		public static void _ResetForNewFrame(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative._ResetForNewFrame((ImDrawList*)pself);
 			}
 		}
-		public static void _ClearFreeMemory(ImDrawListPtr self)
+		public static void _ClearFreeMemory(this ImDrawListPtr self)
 		{
 			ImGuiNative._ClearFreeMemory(self);
 		}
-		public static void _ClearFreeMemory(ref ImDrawList self)
+		public static void _ClearFreeMemory(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative._ClearFreeMemory((ImDrawList*)pself);
 			}
 		}
-		public static void _PopUnusedDrawCmd(ImDrawListPtr self)
+		public static void _PopUnusedDrawCmd(this ImDrawListPtr self)
 		{
 			ImGuiNative._PopUnusedDrawCmd(self);
 		}
-		public static void _PopUnusedDrawCmd(ref ImDrawList self)
+		public static void _PopUnusedDrawCmd(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative._PopUnusedDrawCmd((ImDrawList*)pself);
 			}
 		}
-		public static void _TryMergeDrawCmds(ImDrawListPtr self)
+		public static void _TryMergeDrawCmds(this ImDrawListPtr self)
 		{
 			ImGuiNative._TryMergeDrawCmds(self);
 		}
-		public static void _TryMergeDrawCmds(ref ImDrawList self)
+		public static void _TryMergeDrawCmds(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative._TryMergeDrawCmds((ImDrawList*)pself);
 			}
 		}
-		public static void _OnChangedClipRect(ImDrawListPtr self)
+		public static void _OnChangedClipRect(this ImDrawListPtr self)
 		{
 			ImGuiNative._OnChangedClipRect(self);
 		}
-		public static void _OnChangedClipRect(ref ImDrawList self)
+		public static void _OnChangedClipRect(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative._OnChangedClipRect((ImDrawList*)pself);
 			}
 		}
-		public static void _OnChangedTextureID(ImDrawListPtr self)
+		public static void _OnChangedTextureID(this ImDrawListPtr self)
 		{
 			ImGuiNative._OnChangedTextureID(self);
 		}
-		public static void _OnChangedTextureID(ref ImDrawList self)
+		public static void _OnChangedTextureID(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative._OnChangedTextureID((ImDrawList*)pself);
 			}
 		}
-		public static void _OnChangedVtxOffset(ImDrawListPtr self)
+		public static void _OnChangedVtxOffset(this ImDrawListPtr self)
 		{
 			ImGuiNative._OnChangedVtxOffset(self);
 		}
-		public static void _OnChangedVtxOffset(ref ImDrawList self)
+		public static void _OnChangedVtxOffset(this ref ImDrawList self)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative._OnChangedVtxOffset((ImDrawList*)pself);
 			}
 		}
-		public static int _CalcCircleAutoSegmentCount(ImDrawListPtr self, float radius)
+		public static int _CalcCircleAutoSegmentCount(this ImDrawListPtr self, float radius)
 		{
 			int ret = ImGuiNative._CalcCircleAutoSegmentCount(self, radius);
 			return ret;
 		}
-		public static int _CalcCircleAutoSegmentCount(ref ImDrawList self, float radius)
+		public static int _CalcCircleAutoSegmentCount(this ref ImDrawList self, float radius)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -4962,22 +4962,22 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static void _PathArcToFastEx(ImDrawListPtr self, Vector2 center, float radius, int aMinSample, int aMaxSample, int aStep)
+		public static void _PathArcToFastEx(this ImDrawListPtr self, Vector2 center, float radius, int aMinSample, int aMaxSample, int aStep)
 		{
 			ImGuiNative._PathArcToFastEx(self, center, radius, aMinSample, aMaxSample, aStep);
 		}
-		public static void _PathArcToFastEx(ref ImDrawList self, Vector2 center, float radius, int aMinSample, int aMaxSample, int aStep)
+		public static void _PathArcToFastEx(this ref ImDrawList self, Vector2 center, float radius, int aMinSample, int aMaxSample, int aStep)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
 				ImGuiNative._PathArcToFastEx((ImDrawList*)pself, center, radius, aMinSample, aMaxSample, aStep);
 			}
 		}
-		public static void _PathArcToN(ImDrawListPtr self, Vector2 center, float radius, float aMin, float aMax, int numSegments)
+		public static void _PathArcToN(this ImDrawListPtr self, Vector2 center, float radius, float aMin, float aMax, int numSegments)
 		{
 			ImGuiNative._PathArcToN(self, center, radius, aMin, aMax, numSegments);
 		}
-		public static void _PathArcToN(ref ImDrawList self, Vector2 center, float radius, float aMin, float aMax, int numSegments)
+		public static void _PathArcToN(this ref ImDrawList self, Vector2 center, float radius, float aMin, float aMax, int numSegments)
 		{
 			fixed (ImDrawList* pself = &self)
 			{
@@ -4989,22 +4989,22 @@ public unsafe partial class ImGui
 			ImDrawDataPtr ret = ImGuiNative.ImDrawData();
 			return ret;
 		}
-		public static void DeIndexAllBuffers(ImDrawDataPtr self)
+		public static void DeIndexAllBuffers(this ImDrawDataPtr self)
 		{
 			ImGuiNative.DeIndexAllBuffers(self);
 		}
-		public static void DeIndexAllBuffers(ref ImDrawData self)
+		public static void DeIndexAllBuffers(this ref ImDrawData self)
 		{
 			fixed (ImDrawData* pself = &self)
 			{
 				ImGuiNative.DeIndexAllBuffers((ImDrawData*)pself);
 			}
 		}
-		public static void ScaleClipRects(ImDrawDataPtr self, Vector2 fbScale)
+		public static void ScaleClipRects(this ImDrawDataPtr self, Vector2 fbScale)
 		{
 			ImGuiNative.ScaleClipRects(self, fbScale);
 		}
-		public static void ScaleClipRects(ref ImDrawData self, Vector2 fbScale)
+		public static void ScaleClipRects(this ref ImDrawData self, Vector2 fbScale)
 		{
 			fixed (ImDrawData* pself = &self)
 			{
@@ -5021,12 +5021,12 @@ public unsafe partial class ImGui
 			ImFontGlyphRangesBuilderPtr ret = ImGuiNative.ImFontGlyphRangesBuilder();
 			return ret;
 		}
-		public static bool GetBit(ImFontGlyphRangesBuilderPtr self, nuint n)
+		public static bool GetBit(this ImFontGlyphRangesBuilderPtr self, nuint n)
 		{
 			byte ret = ImGuiNative.GetBit(self, n);
 			return ret != 0;
 		}
-		public static bool GetBit(ref ImFontGlyphRangesBuilder self, nuint n)
+		public static bool GetBit(this in ImFontGlyphRangesBuilder self, nuint n)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
@@ -5034,58 +5034,58 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static void SetBit(ImFontGlyphRangesBuilderPtr self, nuint n)
+		public static void SetBit(this ImFontGlyphRangesBuilderPtr self, nuint n)
 		{
 			ImGuiNative.SetBit(self, n);
 		}
-		public static void SetBit(ref ImFontGlyphRangesBuilder self, nuint n)
+		public static void SetBit(this ref ImFontGlyphRangesBuilder self, nuint n)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
 				ImGuiNative.SetBit((ImFontGlyphRangesBuilder*)pself, n);
 			}
 		}
-		public static void AddChar(ImFontGlyphRangesBuilderPtr self, ushort c)
+		public static void AddChar(this ImFontGlyphRangesBuilderPtr self, ushort c)
 		{
 			ImGuiNative.AddChar(self, c);
 		}
-		public static void AddChar(ref ImFontGlyphRangesBuilder self, ushort c)
+		public static void AddChar(this ref ImFontGlyphRangesBuilder self, ushort c)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
 				ImGuiNative.AddChar((ImFontGlyphRangesBuilder*)pself, c);
 			}
 		}
-		public static void AddRanges(ImFontGlyphRangesBuilderPtr self, ushort* ranges)
+		public static void AddRanges(this ImFontGlyphRangesBuilderPtr self, ushort* ranges)
 		{
 			ImGuiNative.AddRanges(self, ranges);
 		}
-		public static void AddRanges(ref ImFontGlyphRangesBuilder self, ushort* ranges)
+		public static void AddRanges(this ref ImFontGlyphRangesBuilder self, ushort* ranges)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
 				ImGuiNative.AddRanges((ImFontGlyphRangesBuilder*)pself, ranges);
 			}
 		}
-		public static void BuildRanges(ImFontGlyphRangesBuilderPtr self, ImVector<ushort>* outRanges)
+		public static void BuildRanges(this ImFontGlyphRangesBuilderPtr self, ImVector<ushort>* outRanges)
 		{
 			ImGuiNative.BuildRanges(self, outRanges);
 		}
-		public static void BuildRanges(ref ImFontGlyphRangesBuilder self, ImVector<ushort>* outRanges)
+		public static void BuildRanges(this ref ImFontGlyphRangesBuilder self, ImVector<ushort>* outRanges)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
 				ImGuiNative.BuildRanges((ImFontGlyphRangesBuilder*)pself, outRanges);
 			}
 		}
-		public static void BuildRanges(ImFontGlyphRangesBuilderPtr self, ref ImVector<ushort> outRanges)
+		public static void BuildRanges(this ImFontGlyphRangesBuilderPtr self, ref ImVector<ushort> outRanges)
 		{
 			fixed (ImVector<ushort>* poutRanges = &outRanges)
 			{
 				ImGuiNative.BuildRanges(self, (ImVector<ushort>*)poutRanges);
 			}
 		}
-		public static void BuildRanges(ref ImFontGlyphRangesBuilder self, ref ImVector<ushort> outRanges)
+		public static void BuildRanges(this ref ImFontGlyphRangesBuilder self, ref ImVector<ushort> outRanges)
 		{
 			fixed (ImFontGlyphRangesBuilder* pself = &self)
 			{
@@ -5100,12 +5100,12 @@ public unsafe partial class ImGui
 			ImFontAtlasCustomRectPtr ret = ImGuiNative.ImFontAtlasCustomRect();
 			return ret;
 		}
-		public static bool IsPacked(ImFontAtlasCustomRectPtr self)
+		public static bool IsPacked(this ImFontAtlasCustomRectPtr self)
 		{
 			byte ret = ImGuiNative.IsPacked(self);
 			return ret != 0;
 		}
-		public static bool IsPacked(ref ImFontAtlasCustomRect self)
+		public static bool IsPacked(this ref ImFontAtlasCustomRect self)
 		{
 			fixed (ImFontAtlasCustomRect* pself = &self)
 			{
@@ -5118,12 +5118,12 @@ public unsafe partial class ImGui
 			ImFontAtlasPtr ret = ImGuiNative.ImFontAtlas();
 			return ret;
 		}
-		public static ImFontPtr AddFont(ImFontAtlasPtr self, ImFontConfigPtr fontCfg)
+		public static ImFontPtr AddFont(this ImFontAtlasPtr self, ImFontConfigPtr fontCfg)
 		{
 			ImFontPtr ret = ImGuiNative.AddFont(self, fontCfg);
 			return ret;
 		}
-		public static ImFontPtr AddFont(ref ImFontAtlas self, ImFontConfigPtr fontCfg)
+		public static ImFontPtr AddFont(this ref ImFontAtlas self, ImFontConfigPtr fontCfg)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5131,7 +5131,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ImFontPtr AddFont(ImFontAtlasPtr self, ref ImFontConfig fontCfg)
+		public static ImFontPtr AddFont(this ImFontAtlasPtr self, ref ImFontConfig fontCfg)
 		{
 			fixed (ImFontConfig* pfontCfg = &fontCfg)
 			{
@@ -5139,7 +5139,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ImFontPtr AddFont(ref ImFontAtlas self, ref ImFontConfig fontCfg)
+		public static ImFontPtr AddFont(this ref ImFontAtlas self, ref ImFontConfig fontCfg)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5150,17 +5150,17 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static ImFontPtr AddFontDefault(ImFontAtlasPtr self, ImFontConfigPtr fontCfg)
+		public static ImFontPtr AddFontDefault(this ImFontAtlasPtr self, ImFontConfigPtr fontCfg)
 		{
 			ImFontPtr ret = ImGuiNative.AddFontDefault(self, fontCfg);
 			return ret;
 		}
-		public static ImFontPtr AddFontDefault(ImFontAtlasPtr self)
+		public static ImFontPtr AddFontDefault(this ImFontAtlasPtr self)
 		{
 			ImFontPtr ret = ImGuiNative.AddFontDefault(self, (ImFontConfig*)(default));
 			return ret;
 		}
-		public static ImFontPtr AddFontDefault(ref ImFontAtlas self, ImFontConfigPtr fontCfg)
+		public static ImFontPtr AddFontDefault(this ref ImFontAtlas self, ImFontConfigPtr fontCfg)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5168,7 +5168,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ImFontPtr AddFontDefault(ref ImFontAtlas self)
+		public static ImFontPtr AddFontDefault(this ref ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5176,7 +5176,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ImFontPtr AddFontDefault(ImFontAtlasPtr self, ref ImFontConfig fontCfg)
+		public static ImFontPtr AddFontDefault(this ImFontAtlasPtr self, ref ImFontConfig fontCfg)
 		{
 			fixed (ImFontConfig* pfontCfg = &fontCfg)
 			{
@@ -5184,7 +5184,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ImFontPtr AddFontDefault(ref ImFontAtlas self, ref ImFontConfig fontCfg)
+		public static ImFontPtr AddFontDefault(this ref ImFontAtlas self, ref ImFontConfig fontCfg)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5195,76 +5195,76 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void ClearInputData(ImFontAtlasPtr self)
+		public static void ClearInputData(this ImFontAtlasPtr self)
 		{
 			ImGuiNative.ClearInputData(self);
 		}
-		public static void ClearInputData(ref ImFontAtlas self)
+		public static void ClearInputData(this ref ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.ClearInputData((ImFontAtlas*)pself);
 			}
 		}
-		public static void ClearTexData(ImFontAtlasPtr self)
+		public static void ClearTexData(this ImFontAtlasPtr self)
 		{
 			ImGuiNative.ClearTexData(self);
 		}
-		public static void ClearTexData(ref ImFontAtlas self)
+		public static void ClearTexData(this ref ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.ClearTexData((ImFontAtlas*)pself);
 			}
 		}
-		public static void ClearFonts(ImFontAtlasPtr self)
+		public static void ClearFonts(this ImFontAtlasPtr self)
 		{
 			ImGuiNative.ClearFonts(self);
 		}
-		public static void ClearFonts(ref ImFontAtlas self)
+		public static void ClearFonts(this ref ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.ClearFonts((ImFontAtlas*)pself);
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
 		{
 			ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.GetTexDataAsAlpha8((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.GetTexDataAsAlpha8((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5274,7 +5274,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5284,21 +5284,21 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5308,7 +5308,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5318,7 +5318,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5328,7 +5328,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5338,7 +5338,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5351,7 +5351,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5364,21 +5364,21 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (int* poutHeight = &outHeight)
 			{
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (int* poutHeight = &outHeight)
 			{
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5388,7 +5388,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5398,7 +5398,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5408,7 +5408,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5418,7 +5418,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5431,7 +5431,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5444,7 +5444,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
@@ -5454,7 +5454,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
@@ -5464,7 +5464,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5477,7 +5477,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5490,7 +5490,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5503,7 +5503,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5516,7 +5516,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5532,7 +5532,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5548,14 +5548,14 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (int* poutBytesPerPixel = &outBytesPerPixel)
 			{
 				ImGuiNative.GetTexDataAsAlpha8(self, textureIndex, outPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5565,7 +5565,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5575,7 +5575,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5588,7 +5588,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
@@ -5598,7 +5598,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5611,7 +5611,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5624,7 +5624,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5640,7 +5640,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (int* poutHeight = &outHeight)
 			{
@@ -5650,7 +5650,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5663,7 +5663,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5676,7 +5676,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5692,7 +5692,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
@@ -5705,7 +5705,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5721,7 +5721,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5737,7 +5737,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsAlpha8(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsAlpha8(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5756,43 +5756,43 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
 		{
 			ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.GetTexDataAsRGBA32((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.GetTexDataAsRGBA32((ImFontAtlas*)pself, textureIndex, outPixels, outWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, (byte**)poutPixels, outWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5802,7 +5802,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5812,21 +5812,21 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, (int*)poutWidth, outHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, (int*)poutWidth, outHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5836,7 +5836,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5846,7 +5846,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5856,7 +5856,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5866,7 +5866,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5879,7 +5879,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5892,21 +5892,21 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (int* poutHeight = &outHeight)
 			{
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, outWidth, (int*)poutHeight, outBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (int* poutHeight = &outHeight)
 			{
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, outWidth, (int*)poutHeight, (int*)(default));
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5916,7 +5916,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5926,7 +5926,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5936,7 +5936,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -5946,7 +5946,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5959,7 +5959,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -5972,7 +5972,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
@@ -5982,7 +5982,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
@@ -5992,7 +5992,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6005,7 +6005,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6018,7 +6018,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -6031,7 +6031,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -6044,7 +6044,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, int* outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6060,7 +6060,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6076,14 +6076,14 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (int* poutBytesPerPixel = &outBytesPerPixel)
 			{
 				ImGuiNative.GetTexDataAsRGBA32(self, textureIndex, outPixels, outWidth, outHeight, (int*)poutBytesPerPixel);
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6093,7 +6093,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -6103,7 +6103,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6116,7 +6116,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
@@ -6126,7 +6126,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6139,7 +6139,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -6152,7 +6152,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, int* outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6168,7 +6168,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (int* poutHeight = &outHeight)
 			{
@@ -6178,7 +6178,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6191,7 +6191,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -6204,7 +6204,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, int* outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6220,7 +6220,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (int* poutWidth = &outWidth)
 			{
@@ -6233,7 +6233,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, byte** outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6249,7 +6249,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this ImFontAtlasPtr self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (byte** poutPixels = &outPixels)
 			{
@@ -6265,7 +6265,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void GetTexDataAsRGBA32(ref ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
+		public static void GetTexDataAsRGBA32(this in ImFontAtlas self, int textureIndex, ref byte* outPixels, ref int outWidth, ref int outHeight, ref int outBytesPerPixel)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6284,12 +6284,12 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool IsBuilt(ImFontAtlasPtr self)
+		public static bool IsBuilt(this ImFontAtlasPtr self)
 		{
 			byte ret = ImGuiNative.IsBuilt(self);
 			return ret != 0;
 		}
-		public static bool IsBuilt(ref ImFontAtlas self)
+		public static bool IsBuilt(this ref ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6297,34 +6297,34 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static void SetTexID(ImFontAtlasPtr self, int textureIndex, ImTextureID id)
+		public static void SetTexID(this ImFontAtlasPtr self, int textureIndex, ImTextureID id)
 		{
 			ImGuiNative.SetTexID(self, textureIndex, id);
 		}
-		public static void SetTexID(ref ImFontAtlas self, int textureIndex, ImTextureID id)
+		public static void SetTexID(this ref ImFontAtlas self, int textureIndex, ImTextureID id)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.SetTexID((ImFontAtlas*)pself, textureIndex, id);
 			}
 		}
-		public static void ClearTexID(ImFontAtlasPtr self, ImTextureID nullId)
+		public static void ClearTexID(this ImFontAtlasPtr self, ImTextureID nullId)
 		{
 			ImGuiNative.ClearTexID(self, nullId);
 		}
-		public static void ClearTexID(ref ImFontAtlas self, ImTextureID nullId)
+		public static void ClearTexID(this ref ImFontAtlas self, ImTextureID nullId)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.ClearTexID((ImFontAtlas*)pself, nullId);
 			}
 		}
-		public static ushort* GetGlyphRangesDefault(ImFontAtlasPtr self)
+		public static ushort* GetGlyphRangesDefault(this ImFontAtlasPtr self)
 		{
 			ushort* ret = ImGuiNative.GetGlyphRangesDefault(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesDefault(ref ImFontAtlas self)
+		public static ushort* GetGlyphRangesDefault(this in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6332,12 +6332,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ushort* GetGlyphRangesKorean(ImFontAtlasPtr self)
+		public static ushort* GetGlyphRangesKorean(this ImFontAtlasPtr self)
 		{
 			ushort* ret = ImGuiNative.GetGlyphRangesKorean(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesKorean(ref ImFontAtlas self)
+		public static ushort* GetGlyphRangesKorean(this in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6345,12 +6345,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ushort* GetGlyphRangesJapanese(ImFontAtlasPtr self)
+		public static ushort* GetGlyphRangesJapanese(this ImFontAtlasPtr self)
 		{
 			ushort* ret = ImGuiNative.GetGlyphRangesJapanese(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesJapanese(ref ImFontAtlas self)
+		public static ushort* GetGlyphRangesJapanese(this in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6358,12 +6358,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ushort* GetGlyphRangesChineseFull(ImFontAtlasPtr self)
+		public static ushort* GetGlyphRangesChineseFull(this ImFontAtlasPtr self)
 		{
 			ushort* ret = ImGuiNative.GetGlyphRangesChineseFull(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesChineseFull(ref ImFontAtlas self)
+		public static ushort* GetGlyphRangesChineseFull(this in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6371,12 +6371,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ushort* GetGlyphRangesChineseSimplifiedCommon(ImFontAtlasPtr self)
+		public static ushort* GetGlyphRangesChineseSimplifiedCommon(this ImFontAtlasPtr self)
 		{
 			ushort* ret = ImGuiNative.GetGlyphRangesChineseSimplifiedCommon(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesChineseSimplifiedCommon(ref ImFontAtlas self)
+		public static ushort* GetGlyphRangesChineseSimplifiedCommon(this in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6384,12 +6384,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ushort* GetGlyphRangesCyrillic(ImFontAtlasPtr self)
+		public static ushort* GetGlyphRangesCyrillic(this ImFontAtlasPtr self)
 		{
 			ushort* ret = ImGuiNative.GetGlyphRangesCyrillic(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesCyrillic(ref ImFontAtlas self)
+		public static ushort* GetGlyphRangesCyrillic(this in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6397,12 +6397,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ushort* GetGlyphRangesThai(ImFontAtlasPtr self)
+		public static ushort* GetGlyphRangesThai(this ImFontAtlasPtr self)
 		{
 			ushort* ret = ImGuiNative.GetGlyphRangesThai(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesThai(ref ImFontAtlas self)
+		public static ushort* GetGlyphRangesThai(this in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6410,12 +6410,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ushort* GetGlyphRangesVietnamese(ImFontAtlasPtr self)
+		public static ushort* GetGlyphRangesVietnamese(this ImFontAtlasPtr self)
 		{
 			ushort* ret = ImGuiNative.GetGlyphRangesVietnamese(self);
 			return ret;
 		}
-		public static ushort* GetGlyphRangesVietnamese(ref ImFontAtlas self)
+		public static ushort* GetGlyphRangesVietnamese(this in ImFontAtlas self)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6423,12 +6423,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static int AddCustomRectRegular(ImFontAtlasPtr self, int width, int height)
+		public static int AddCustomRectRegular(this ImFontAtlasPtr self, int width, int height)
 		{
 			int ret = ImGuiNative.AddCustomRectRegular(self, width, height);
 			return ret;
 		}
-		public static int AddCustomRectRegular(ref ImFontAtlas self, int width, int height)
+		public static int AddCustomRectRegular(this ref ImFontAtlas self, int width, int height)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6436,17 +6436,17 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static int AddCustomRectFontGlyph(ImFontAtlasPtr self, ImFontPtr font, ushort id, int width, int height, float advanceX, Vector2 offset)
+		public static int AddCustomRectFontGlyph(this ImFontAtlasPtr self, ImFontPtr font, ushort id, int width, int height, float advanceX, Vector2 offset)
 		{
 			int ret = ImGuiNative.AddCustomRectFontGlyph(self, font, id, width, height, advanceX, offset);
 			return ret;
 		}
-		public static int AddCustomRectFontGlyph(ImFontAtlasPtr self, ImFontPtr font, ushort id, int width, int height, float advanceX)
+		public static int AddCustomRectFontGlyph(this ImFontAtlasPtr self, ImFontPtr font, ushort id, int width, int height, float advanceX)
 		{
 			int ret = ImGuiNative.AddCustomRectFontGlyph(self, font, id, width, height, advanceX, (Vector2)(new Vector2(0,0)));
 			return ret;
 		}
-		public static int AddCustomRectFontGlyph(ref ImFontAtlas self, ImFontPtr font, ushort id, int width, int height, float advanceX, Vector2 offset)
+		public static int AddCustomRectFontGlyph(this ref ImFontAtlas self, ImFontPtr font, ushort id, int width, int height, float advanceX, Vector2 offset)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6454,7 +6454,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static int AddCustomRectFontGlyph(ref ImFontAtlas self, ImFontPtr font, ushort id, int width, int height, float advanceX)
+		public static int AddCustomRectFontGlyph(this ref ImFontAtlas self, ImFontPtr font, ushort id, int width, int height, float advanceX)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6462,7 +6462,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static int AddCustomRectFontGlyph(ImFontAtlasPtr self, ref ImFont font, ushort id, int width, int height, float advanceX, Vector2 offset)
+		public static int AddCustomRectFontGlyph(this ImFontAtlasPtr self, ref ImFont font, ushort id, int width, int height, float advanceX, Vector2 offset)
 		{
 			fixed (ImFont* pfont = &font)
 			{
@@ -6470,7 +6470,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static int AddCustomRectFontGlyph(ImFontAtlasPtr self, ref ImFont font, ushort id, int width, int height, float advanceX)
+		public static int AddCustomRectFontGlyph(this ImFontAtlasPtr self, ref ImFont font, ushort id, int width, int height, float advanceX)
 		{
 			fixed (ImFont* pfont = &font)
 			{
@@ -6478,7 +6478,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static int AddCustomRectFontGlyph(ref ImFontAtlas self, ref ImFont font, ushort id, int width, int height, float advanceX, Vector2 offset)
+		public static int AddCustomRectFontGlyph(this ref ImFontAtlas self, ref ImFont font, ushort id, int width, int height, float advanceX, Vector2 offset)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6489,7 +6489,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static int AddCustomRectFontGlyph(ref ImFontAtlas self, ref ImFont font, ushort id, int width, int height, float advanceX)
+		public static int AddCustomRectFontGlyph(this ref ImFontAtlas self, ref ImFont font, ushort id, int width, int height, float advanceX)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6500,12 +6500,12 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static ImFontAtlasCustomRectPtr GetCustomRectByIndex(ImFontAtlasPtr self, int index)
+		public static ImFontAtlasCustomRectPtr GetCustomRectByIndex(this ImFontAtlasPtr self, int index)
 		{
 			ImFontAtlasCustomRectPtr ret = ImGuiNative.GetCustomRectByIndex(self, index);
 			return ret;
 		}
-		public static ImFontAtlasCustomRectPtr GetCustomRectByIndex(ref ImFontAtlas self, int index)
+		public static ImFontAtlasCustomRectPtr GetCustomRectByIndex(this in ImFontAtlas self, int index)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6513,25 +6513,25 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static void CalcCustomRectUV(ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, Vector2* outUvMin, Vector2* outUvMax)
+		public static void CalcCustomRectUV(this ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, Vector2* outUvMin, Vector2* outUvMax)
 		{
 			ImGuiNative.CalcCustomRectUV(self, rect, outUvMin, outUvMax);
 		}
-		public static void CalcCustomRectUV(ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, Vector2* outUvMin, Vector2* outUvMax)
+		public static void CalcCustomRectUV(this ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, Vector2* outUvMin, Vector2* outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
 				ImGuiNative.CalcCustomRectUV((ImFontAtlas*)pself, rect, outUvMin, outUvMax);
 			}
 		}
-		public static void CalcCustomRectUV(ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, Vector2* outUvMax)
+		public static void CalcCustomRectUV(this ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, Vector2* outUvMax)
 		{
 			fixed (ImFontAtlasCustomRect* prect = &rect)
 			{
 				ImGuiNative.CalcCustomRectUV(self, (ImFontAtlasCustomRect*)prect, outUvMin, outUvMax);
 			}
 		}
-		public static void CalcCustomRectUV(ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, Vector2* outUvMax)
+		public static void CalcCustomRectUV(this ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, Vector2* outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6541,14 +6541,14 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, Vector2* outUvMax)
+		public static void CalcCustomRectUV(this ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, Vector2* outUvMax)
 		{
 			fixed (Vector2* poutUvMin = &outUvMin)
 			{
 				ImGuiNative.CalcCustomRectUV(self, rect, (Vector2*)poutUvMin, outUvMax);
 			}
 		}
-		public static void CalcCustomRectUV(ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, Vector2* outUvMax)
+		public static void CalcCustomRectUV(this ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, Vector2* outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6558,7 +6558,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, Vector2* outUvMax)
+		public static void CalcCustomRectUV(this ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, Vector2* outUvMax)
 		{
 			fixed (ImFontAtlasCustomRect* prect = &rect)
 			{
@@ -6568,7 +6568,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, Vector2* outUvMax)
+		public static void CalcCustomRectUV(this ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, Vector2* outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6581,14 +6581,14 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, Vector2* outUvMin, ref Vector2 outUvMax)
+		public static void CalcCustomRectUV(this ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, Vector2* outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (Vector2* poutUvMax = &outUvMax)
 			{
 				ImGuiNative.CalcCustomRectUV(self, rect, outUvMin, (Vector2*)poutUvMax);
 			}
 		}
-		public static void CalcCustomRectUV(ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, Vector2* outUvMin, ref Vector2 outUvMax)
+		public static void CalcCustomRectUV(this ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, Vector2* outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6598,7 +6598,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, ref Vector2 outUvMax)
+		public static void CalcCustomRectUV(this ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlasCustomRect* prect = &rect)
 			{
@@ -6608,7 +6608,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, ref Vector2 outUvMax)
+		public static void CalcCustomRectUV(this ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, Vector2* outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6621,7 +6621,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
+		public static void CalcCustomRectUV(this ImFontAtlasPtr self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (Vector2* poutUvMin = &outUvMin)
 			{
@@ -6631,7 +6631,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
+		public static void CalcCustomRectUV(this ref ImFontAtlas self, ImFontAtlasCustomRectPtr rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6644,7 +6644,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
+		public static void CalcCustomRectUV(this ImFontAtlasPtr self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlasCustomRect* prect = &rect)
 			{
@@ -6657,7 +6657,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void CalcCustomRectUV(ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
+		public static void CalcCustomRectUV(this ref ImFontAtlas self, ref ImFontAtlasCustomRect rect, ref Vector2 outUvMin, ref Vector2 outUvMax)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6673,12 +6673,12 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			byte ret = ImGuiNative.GetMouseCursorTexData(self, cursor, outOffset, outSize, outUvBorder, outUvFill, textureIndex);
 			return ret != 0;
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6686,7 +6686,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -6694,7 +6694,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6705,7 +6705,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -6713,7 +6713,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6724,7 +6724,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -6735,7 +6735,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6749,7 +6749,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutUvBorder = &outUvBorder)
 			{
@@ -6757,7 +6757,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutUvBorder = outUvBorder)
 			{
@@ -6765,7 +6765,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6776,7 +6776,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6787,7 +6787,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -6798,7 +6798,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -6809,7 +6809,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6823,7 +6823,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6837,7 +6837,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -6848,7 +6848,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -6859,7 +6859,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6873,7 +6873,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6887,7 +6887,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -6901,7 +6901,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -6915,7 +6915,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6932,7 +6932,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6949,7 +6949,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutUvFill = &outUvFill)
 			{
@@ -6957,7 +6957,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutUvFill = outUvFill)
 			{
@@ -6965,7 +6965,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6976,7 +6976,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -6987,7 +6987,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -6998,7 +6998,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7009,7 +7009,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7023,7 +7023,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7037,7 +7037,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7048,7 +7048,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7059,7 +7059,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7073,7 +7073,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7087,7 +7087,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7101,7 +7101,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7115,7 +7115,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7132,7 +7132,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7149,7 +7149,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutUvBorder = &outUvBorder)
 			{
@@ -7160,7 +7160,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutUvBorder = outUvBorder)
 			{
@@ -7171,7 +7171,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7185,7 +7185,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7199,7 +7199,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7213,7 +7213,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7227,7 +7227,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7244,7 +7244,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7261,7 +7261,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7275,7 +7275,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7289,7 +7289,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7306,7 +7306,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7323,7 +7323,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7340,7 +7340,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7357,7 +7357,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7377,7 +7377,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, int* textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7397,7 +7397,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (int* ptextureIndex = &textureIndex)
 			{
@@ -7405,7 +7405,7 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7416,7 +7416,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7427,7 +7427,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7441,7 +7441,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7452,7 +7452,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7466,7 +7466,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7480,7 +7480,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7497,7 +7497,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutUvBorder = &outUvBorder)
 			{
@@ -7508,7 +7508,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutUvBorder = outUvBorder)
 			{
@@ -7519,7 +7519,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7533,7 +7533,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7547,7 +7547,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7561,7 +7561,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7575,7 +7575,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7592,7 +7592,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7609,7 +7609,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7623,7 +7623,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7637,7 +7637,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7654,7 +7654,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7671,7 +7671,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7688,7 +7688,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7705,7 +7705,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7725,7 +7725,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, Vector2* outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7745,7 +7745,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutUvFill = &outUvFill)
 			{
@@ -7756,7 +7756,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutUvFill = outUvFill)
 			{
@@ -7767,7 +7767,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7781,7 +7781,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7795,7 +7795,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7809,7 +7809,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7823,7 +7823,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7840,7 +7840,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7857,7 +7857,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7871,7 +7871,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -7885,7 +7885,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7902,7 +7902,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7919,7 +7919,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7936,7 +7936,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -7953,7 +7953,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7973,7 +7973,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, Vector2* outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -7993,7 +7993,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutUvBorder = &outUvBorder)
 			{
@@ -8007,7 +8007,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutUvBorder = outUvBorder)
 			{
@@ -8021,7 +8021,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8038,7 +8038,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8055,7 +8055,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -8072,7 +8072,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -8089,7 +8089,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8109,7 +8109,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, Vector2* outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8129,7 +8129,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -8146,7 +8146,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutSize = &outSize)
 			{
@@ -8163,7 +8163,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8183,7 +8183,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, Vector2* outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8203,7 +8203,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -8223,7 +8223,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this ImFontAtlasPtr self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (Vector2* poutOffset = &outOffset)
 			{
@@ -8243,7 +8243,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ref Vector2 outUvBorder, ref Vector2 outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8266,7 +8266,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static bool GetMouseCursorTexData(ref ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
+		public static bool GetMouseCursorTexData(this in ImFontAtlas self, ImGuiMouseCursor cursor, ref Vector2 outOffset, ref Vector2 outSize, ReadOnlySpan<Vector2> outUvBorder, ReadOnlySpan<Vector2> outUvFill, ref int textureIndex)
 		{
 			fixed (ImFontAtlas* pself = &self)
 			{
@@ -8294,12 +8294,12 @@ public unsafe partial class ImGui
 			ImFontPtr ret = ImGuiNative.ImFont();
 			return ret;
 		}
-		public static ImFontGlyphPtr FindGlyph(ImFontPtr self, ushort c)
+		public static ImFontGlyphPtr FindGlyph(this ImFontPtr self, ushort c)
 		{
 			ImFontGlyphPtr ret = ImGuiNative.FindGlyph(self, c);
 			return ret;
 		}
-		public static ImFontGlyphPtr FindGlyph(ref ImFont self, ushort c)
+		public static ImFontGlyphPtr FindGlyph(this ref ImFont self, ushort c)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8307,12 +8307,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static ImFontGlyphPtr FindGlyphNoFallback(ImFontPtr self, ushort c)
+		public static ImFontGlyphPtr FindGlyphNoFallback(this ImFontPtr self, ushort c)
 		{
 			ImFontGlyphPtr ret = ImGuiNative.FindGlyphNoFallback(self, c);
 			return ret;
 		}
-		public static ImFontGlyphPtr FindGlyphNoFallback(ref ImFont self, ushort c)
+		public static ImFontGlyphPtr FindGlyphNoFallback(this ref ImFont self, ushort c)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8320,12 +8320,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static float GetDistanceAdjustmentForPair(ImFontPtr self, ushort leftC, ushort rightC)
+		public static float GetDistanceAdjustmentForPair(this ImFontPtr self, ushort leftC, ushort rightC)
 		{
 			float ret = ImGuiNative.GetDistanceAdjustmentForPair(self, leftC, rightC);
 			return ret;
 		}
-		public static float GetDistanceAdjustmentForPair(ref ImFont self, ushort leftC, ushort rightC)
+		public static float GetDistanceAdjustmentForPair(this in ImFont self, ushort leftC, ushort rightC)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8333,12 +8333,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static float GetCharAdvance(ImFontPtr self, ushort c)
+		public static float GetCharAdvance(this ImFontPtr self, ushort c)
 		{
 			float ret = ImGuiNative.GetCharAdvance(self, c);
 			return ret;
 		}
-		public static float GetCharAdvance(ref ImFont self, ushort c)
+		public static float GetCharAdvance(this in ImFont self, ushort c)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8346,12 +8346,12 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static bool IsLoaded(ImFontPtr self)
+		public static bool IsLoaded(this ImFontPtr self)
 		{
 			byte ret = ImGuiNative.IsLoaded(self);
 			return ret != 0;
 		}
-		public static bool IsLoaded(ref ImFont self)
+		public static bool IsLoaded(this ref ImFont self)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8359,25 +8359,25 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static void RenderChar(ImFontPtr self, ImDrawListPtr drawList, float size, Vector2 pos, uint col, ushort c)
+		public static void RenderChar(this ImFontPtr self, ImDrawListPtr drawList, float size, Vector2 pos, uint col, ushort c)
 		{
 			ImGuiNative.RenderChar(self, drawList, size, pos, col, c);
 		}
-		public static void RenderChar(ref ImFont self, ImDrawListPtr drawList, float size, Vector2 pos, uint col, ushort c)
+		public static void RenderChar(this ref ImFont self, ImDrawListPtr drawList, float size, Vector2 pos, uint col, ushort c)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.RenderChar((ImFont*)pself, drawList, size, pos, col, c);
 			}
 		}
-		public static void RenderChar(ImFontPtr self, ref ImDrawList drawList, float size, Vector2 pos, uint col, ushort c)
+		public static void RenderChar(this ImFontPtr self, ref ImDrawList drawList, float size, Vector2 pos, uint col, ushort c)
 		{
 			fixed (ImDrawList* pdrawList = &drawList)
 			{
 				ImGuiNative.RenderChar(self, (ImDrawList*)pdrawList, size, pos, col, c);
 			}
 		}
-		public static void RenderChar(ref ImFont self, ref ImDrawList drawList, float size, Vector2 pos, uint col, ushort c)
+		public static void RenderChar(this ref ImFont self, ref ImDrawList drawList, float size, Vector2 pos, uint col, ushort c)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8387,58 +8387,58 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void BuildLookupTable(ImFontPtr self)
+		public static void BuildLookupTable(this ImFontPtr self)
 		{
 			ImGuiNative.BuildLookupTable(self);
 		}
-		public static void BuildLookupTable(ref ImFont self)
+		public static void BuildLookupTable(this ref ImFont self)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.BuildLookupTable((ImFont*)pself);
 			}
 		}
-		public static void ClearOutputData(ImFontPtr self)
+		public static void ClearOutputData(this ImFontPtr self)
 		{
 			ImGuiNative.ClearOutputData(self);
 		}
-		public static void ClearOutputData(ref ImFont self)
+		public static void ClearOutputData(this ref ImFont self)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.ClearOutputData((ImFont*)pself);
 			}
 		}
-		public static void GrowIndex(ImFontPtr self, int newSize)
+		public static void GrowIndex(this ImFontPtr self, int newSize)
 		{
 			ImGuiNative.GrowIndex(self, newSize);
 		}
-		public static void GrowIndex(ref ImFont self, int newSize)
+		public static void GrowIndex(this ref ImFont self, int newSize)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.GrowIndex((ImFont*)pself, newSize);
 			}
 		}
-		public static void AddGlyph(ImFontPtr self, ImFontConfigPtr srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
+		public static void AddGlyph(this ImFontPtr self, ImFontConfigPtr srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
 		{
 			ImGuiNative.AddGlyph(self, srcCfg, c, textureIndex, x0, y0, x1, y1, u0, v0, u1, v1, advanceX);
 		}
-		public static void AddGlyph(ref ImFont self, ImFontConfigPtr srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
+		public static void AddGlyph(this ref ImFont self, ImFontConfigPtr srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.AddGlyph((ImFont*)pself, srcCfg, c, textureIndex, x0, y0, x1, y1, u0, v0, u1, v1, advanceX);
 			}
 		}
-		public static void AddGlyph(ImFontPtr self, ref ImFontConfig srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
+		public static void AddGlyph(this ImFontPtr self, ref ImFontConfig srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
 		{
 			fixed (ImFontConfig* psrcCfg = &srcCfg)
 			{
 				ImGuiNative.AddGlyph(self, (ImFontConfig*)psrcCfg, c, textureIndex, x0, y0, x1, y1, u0, v0, u1, v1, advanceX);
 			}
 		}
-		public static void AddGlyph(ref ImFont self, ref ImFontConfig srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
+		public static void AddGlyph(this ref ImFont self, ref ImFontConfig srcCfg, ushort c, int textureIndex, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1, float advanceX)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8448,45 +8448,45 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static void AddRemapChar(ImFontPtr self, ushort dst, ushort src, bool overwriteDst)
+		public static void AddRemapChar(this ImFontPtr self, ushort dst, ushort src, bool overwriteDst)
 		{
 			ImGuiNative.AddRemapChar(self, dst, src, overwriteDst ? (byte)1 : (byte)0);
 		}
-		public static void AddRemapChar(ImFontPtr self, ushort dst, ushort src)
+		public static void AddRemapChar(this ImFontPtr self, ushort dst, ushort src)
 		{
 			ImGuiNative.AddRemapChar(self, dst, src, (byte)(1));
 		}
-		public static void AddRemapChar(ref ImFont self, ushort dst, ushort src, bool overwriteDst)
+		public static void AddRemapChar(this ref ImFont self, ushort dst, ushort src, bool overwriteDst)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.AddRemapChar((ImFont*)pself, dst, src, overwriteDst ? (byte)1 : (byte)0);
 			}
 		}
-		public static void AddRemapChar(ref ImFont self, ushort dst, ushort src)
+		public static void AddRemapChar(this ref ImFont self, ushort dst, ushort src)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.AddRemapChar((ImFont*)pself, dst, src, (byte)(1));
 			}
 		}
-		public static void SetGlyphVisible(ImFontPtr self, ushort c, bool visible)
+		public static void SetGlyphVisible(this ImFontPtr self, ushort c, bool visible)
 		{
 			ImGuiNative.SetGlyphVisible(self, c, visible ? (byte)1 : (byte)0);
 		}
-		public static void SetGlyphVisible(ref ImFont self, ushort c, bool visible)
+		public static void SetGlyphVisible(this ref ImFont self, ushort c, bool visible)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.SetGlyphVisible((ImFont*)pself, c, visible ? (byte)1 : (byte)0);
 			}
 		}
-		public static bool IsGlyphRangeUnused(ImFontPtr self, uint cBegin, uint cLast)
+		public static bool IsGlyphRangeUnused(this ImFontPtr self, uint cBegin, uint cLast)
 		{
 			byte ret = ImGuiNative.IsGlyphRangeUnused(self, cBegin, cLast);
 			return ret != 0;
 		}
-		public static bool IsGlyphRangeUnused(ref ImFont self, uint cBegin, uint cLast)
+		public static bool IsGlyphRangeUnused(this ref ImFont self, uint cBegin, uint cLast)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8494,23 +8494,23 @@ public unsafe partial class ImGui
 				return ret != 0;
 			}
 		}
-		public static void AddKerningPair(ImFontPtr self, ushort leftC, ushort rightC, float distanceAdjustment)
+		public static void AddKerningPair(this ImFontPtr self, ushort leftC, ushort rightC, float distanceAdjustment)
 		{
 			ImGuiNative.AddKerningPair(self, leftC, rightC, distanceAdjustment);
 		}
-		public static void AddKerningPair(ref ImFont self, ushort leftC, ushort rightC, float distanceAdjustment)
+		public static void AddKerningPair(this ref ImFont self, ushort leftC, ushort rightC, float distanceAdjustment)
 		{
 			fixed (ImFont* pself = &self)
 			{
 				ImGuiNative.AddKerningPair((ImFont*)pself, leftC, rightC, distanceAdjustment);
 			}
 		}
-		public static float GetDistanceAdjustmentForPairFromHotData(ImFontPtr self, ushort leftC, ImFontGlyphHotDataPtr rightCInfo)
+		public static float GetDistanceAdjustmentForPairFromHotData(this ImFontPtr self, ushort leftC, ImFontGlyphHotDataPtr rightCInfo)
 		{
 			float ret = ImGuiNative.GetDistanceAdjustmentForPairFromHotData(self, leftC, rightCInfo);
 			return ret;
 		}
-		public static float GetDistanceAdjustmentForPairFromHotData(ref ImFont self, ushort leftC, ImFontGlyphHotDataPtr rightCInfo)
+		public static float GetDistanceAdjustmentForPairFromHotData(this in ImFont self, ushort leftC, ImFontGlyphHotDataPtr rightCInfo)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8518,7 +8518,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static float GetDistanceAdjustmentForPairFromHotData(ImFontPtr self, ushort leftC, ref ImFontGlyphHotData rightCInfo)
+		public static float GetDistanceAdjustmentForPairFromHotData(this ImFontPtr self, ushort leftC, ref ImFontGlyphHotData rightCInfo)
 		{
 			fixed (ImFontGlyphHotData* prightCInfo = &rightCInfo)
 			{
@@ -8526,7 +8526,7 @@ public unsafe partial class ImGui
 				return ret;
 			}
 		}
-		public static float GetDistanceAdjustmentForPairFromHotData(ref ImFont self, ushort leftC, ref ImFontGlyphHotData rightCInfo)
+		public static float GetDistanceAdjustmentForPairFromHotData(this in ImFont self, ushort leftC, ref ImFontGlyphHotData rightCInfo)
 		{
 			fixed (ImFont* pself = &self)
 			{
@@ -8542,7 +8542,7 @@ public unsafe partial class ImGui
 			ImGuiViewportPtr ret = ImGuiNative.ImGuiViewport();
 			return ret;
 		}
-		public static Vector2 GetCenter(ImGuiViewportPtr self)
+		public static Vector2 GetCenter(this ImGuiViewportPtr self)
 		{
 			Vector2 ret;
 			ImGuiNative.GetCenter(&ret, self);
@@ -8559,7 +8559,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetCenter((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetCenter(ref ImGuiViewport self)
+		public static Vector2 GetCenter(this in ImGuiViewport self)
 		{
 			fixed (ImGuiViewport* pself = &self)
 			{
@@ -8585,7 +8585,7 @@ public unsafe partial class ImGui
 				}
 			}
 		}
-		public static Vector2 GetWorkCenter(ImGuiViewportPtr self)
+		public static Vector2 GetWorkCenter(this ImGuiViewportPtr self)
 		{
 			Vector2 ret;
 			ImGuiNative.GetWorkCenter(&ret, self);
@@ -8602,7 +8602,7 @@ public unsafe partial class ImGui
 				ImGuiNative.GetWorkCenter((Vector2*)ppOut, self);
 			}
 		}
-		public static Vector2 GetWorkCenter(ref ImGuiViewport self)
+		public static Vector2 GetWorkCenter(this in ImGuiViewport self)
 		{
 			fixed (ImGuiViewport* pself = &self)
 			{
