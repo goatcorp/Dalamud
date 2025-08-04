@@ -120,23 +120,13 @@ internal class DataShareWidget : IDataWindowWidget
 
             ImGui.SameLine();
             if (ImGui.Button("Copy"))
-            {
-                fixed (byte* pData = data)
-                    ImGui.SetClipboardText(pData);
-            }
+                ImGui.SetClipboardText(data);
 
-            fixed (byte* pLabel = "text"u8)
-            fixed (byte* pData = data)
-            {
-                ImGui.InputTextMultiline(
-                    pLabel,
-                    pData,
-                    (uint)data.Length,
-                    ImGui.GetContentRegionAvail(),
-                    ImGuiInputTextFlags.ReadOnly,
-                    null,
-                    null);
-            }
+            ImGui.InputTextMultiline(
+                "text"u8,
+                data,
+                ImGui.GetContentRegionAvail(),
+                ImGuiInputTextFlags.ReadOnly);
         }
 
         this.nextTab = -1;
@@ -243,7 +233,7 @@ internal class DataShareWidget : IDataWindowWidget
         {
             ImGui.SetClipboardText(tooltip?.Invoke() ?? s);
             Service<NotificationManager>.Get().AddNotification(
-                $"Copied {ImGui.TableGetColumnNameS()} to clipboard.",
+                $"Copied {ImGui.TableGetColumnName()} to clipboard.",
                 this.DisplayName,
                 NotificationType.Success);
         }

@@ -226,13 +226,13 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
                 ImGui.TableNextColumn();
 
-                ImGui.TextColored(!hiRes ? new(1) : new(0.6f, 0.6f, 0.6f, 1), "Standard:\t");
+                ImGui.TextColored(!hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Standard:\t");
                 ImGui.SameLine();
                 var cursX = ImGui.GetCursorPosX();
 
                 PrintPartCoords(u / 2f, v / 2f, width / 2f, height / 2f);
 
-                ImGui.TextColored(hiRes ? new(1) : new(0.6f, 0.6f, 0.6f, 1), "Hi-Res:\t");
+                ImGui.TextColored(hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Hi-Res:\t");
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(cursX);
 

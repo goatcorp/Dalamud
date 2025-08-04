@@ -343,31 +343,50 @@ internal unsafe partial class Dx11Renderer : IImGuiRenderer
         var vertexOffset = 0;
         var indexOffset = 0;
         var clipOff = new Vector4(drawData.DisplayPos, drawData.DisplayPos.X, drawData.DisplayPos.Y);
+        this.context.Get()->PSSetShader(this.pixelShader, null, 0);
+        this.context.Get()->PSSetSamplers(0, 1, this.sampler.GetAddressOf());
         foreach (ref var cmdList in cmdLists)
         {
             var cmds = new ImVectorWrapper<ImDrawCmd>(cmdList.Handle->CmdBuffer.ToUntyped());
             foreach (ref var cmd in cmds.DataSpan)
             {
-                var clipV4 = cmd.ClipRect - clipOff;
-                var clipRect = new RECT((int)clipV4.X, (int)clipV4.Y, (int)clipV4.Z, (int)clipV4.W);
-
-                // Skip the draw if nothing would be visible
-                if (clipRect.left >= clipRect.right || clipRect.top >= clipRect.bottom)
-                    continue;
-
-                this.context.Get()->RSSetScissorRects(1, &clipRect);
-
-                if (cmd.UserCallback == null)
+                switch ((ImDrawCallbackEnum)(nint)cmd.UserCallback)
                 {
-                    // Bind texture and draw
-                    var srv = (ID3D11ShaderResourceView*)cmd.TextureId.Handle;
-                    this.context.Get()->PSSetShader(this.pixelShader, null, 0);
-                    this.context.Get()->PSSetSamplers(0, 1, this.sampler.GetAddressOf());
-                    this.context.Get()->PSSetShaderResources(0, 1, &srv);
-                    this.context.Get()->DrawIndexed(
-                        cmd.ElemCount,
-                        (uint)(cmd.IdxOffset + indexOffset),
-                        (int)(cmd.VtxOffset + vertexOffset));
+                    case ImDrawCallbackEnum.Empty:
+                    {
+                        var clipV4 = cmd.ClipRect - clipOff;
+                        var clipRect = new RECT((int)clipV4.X, (int)clipV4.Y, (int)clipV4.Z, (int)clipV4.W);
+
+                        // Skip the draw if nothing would be visible
+                        if (clipRect.left >= clipRect.right || clipRect.top >= clipRect.bottom)
+                            continue;
+
+                        this.context.Get()->RSSetScissorRects(1, &clipRect);
+
+                        // Bind texture and draw
+                        var srv = (ID3D11ShaderResourceView*)cmd.TextureId.Handle;
+                        this.context.Get()->PSSetShaderResources(0, 1, &srv);
+                        this.context.Get()->DrawIndexed(
+                            cmd.ElemCount,
+                            (uint)(cmd.IdxOffset + indexOffset),
+                            (int)(cmd.VtxOffset + vertexOffset));
+                        break;
+                    }
+
+                    case ImDrawCallbackEnum.ResetRenderState:
+                    {
+                        // Special callback value used by the user to request the renderer to reset render state.
+                        this.SetupRenderState(drawData);
+                        break;
+                    }
+
+                    default:
+                    {
+                        // User callback, registered via ImDrawList::AddCallback()
+                        var cb = (delegate*<ImDrawListPtr, ref ImDrawCmd, void>)cmd.UserCallback;
+                        cb(cmdList, ref cmd);
+                        break;
+                    }
                 }
             }
 

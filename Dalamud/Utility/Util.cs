@@ -37,7 +37,7 @@ namespace Dalamud.Utility;
 /// <summary>
 /// Class providing various helper methods for use in Dalamud and plugins.
 /// </summary>
-public static class Util
+public static partial class Util
 {
     private static readonly string[] PageProtectionFlagNames = [
         "PAGE_NOACCESS",

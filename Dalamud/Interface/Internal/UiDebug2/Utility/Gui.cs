@@ -28,7 +28,7 @@ internal static class Gui
         var grey60 = new Vector4(0.6f, 0.6f, 0.6f, 1);
         if (copy)
         {
-            ImGuiHelpers.ClickToCopyText(value, null, grey60);
+            ImGuiHelpers.ClickToCopyText(value, default, grey60);
         }
         else
         {

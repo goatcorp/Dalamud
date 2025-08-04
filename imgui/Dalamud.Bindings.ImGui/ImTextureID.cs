@@ -28,7 +28,7 @@ namespace Dalamud.Bindings.ImGui
         public ImTextureID(void* handle) { Handle = (ulong)handle; }
         public ulong Handle { get; }
 		public bool IsNull => Handle == 0;
-		public static ImTextureID Null => new ImTextureID(0);
+		public static ImTextureID Null => default;
         public static implicit operator ImTextureID(ulong handle) => new ImTextureID(handle);
         public static bool operator ==(ImTextureID left, ImTextureID right) => left.Handle == right.Handle;
 		public static bool operator !=(ImTextureID left, ImTextureID right) => left.Handle != right.Handle;

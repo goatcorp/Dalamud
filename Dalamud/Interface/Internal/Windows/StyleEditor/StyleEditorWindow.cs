@@ -84,7 +84,7 @@ public class StyleEditorWindow : Window
 
         var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
         ImGui.Text(Loc.Localize("StyleEditorChooseStyle", "Choose Style:"));
-        if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry, styleAry.Length))
+        if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry))
         {
             var newStyle = config.SavedStyles[this.currentSel];
             newStyle.Apply();
@@ -166,7 +166,7 @@ public class StyleEditorWindow : Window
         {
             this.SaveStyle();
 
-            var styleJson = ImGui.GetClipboardTextS();
+            var styleJson = ImGui.GetClipboardText();
 
             try
             {
@@ -245,7 +245,7 @@ public class StyleEditorWindow : Window
                     ImGui.Text("Alignment");
                     ImGui.SliderFloat2("WindowTitleAlign", ref style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
                     var windowMenuButtonPosition = (int)style.WindowMenuButtonPosition + 1;
-                    if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, "None\0Left\0Right\0"))
+                    if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, ["None", "Left", "Right"]))
                         style.WindowMenuButtonPosition = (ImGuiDir)(windowMenuButtonPosition - 1);
                     ImGui.SliderFloat2("ButtonTextAlign", ref style.ButtonTextAlign, 0.0f, 1.0f, "%.2f");
                     ImGui.SameLine();

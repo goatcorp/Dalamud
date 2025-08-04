@@ -71,7 +71,7 @@ internal class TexWidget : IDataWindowWidget
 
     private enum DrawBlameTableColumnUserId
     {
-        NativeAddress,
+        NativeAddress = 1,
         Actions,
         Name,
         Width,
@@ -231,7 +231,7 @@ internal class TexWidget : IDataWindowWidget
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader($"CropCopy##{this.DrawExistingTextureModificationArgs}"))
+        if (ImGui.CollapsingHeader($"CropCopy##{nameof(this.DrawExistingTextureModificationArgs)}"))
         {
             ImGui.PushID(nameof(this.DrawExistingTextureModificationArgs));
             this.DrawExistingTextureModificationArgs();
@@ -709,8 +709,7 @@ internal class TexWidget : IDataWindowWidget
         if (ImGui.Combo(
                 "Assembly",
                 ref this.inputManifestResourceAssemblyIndex,
-                this.inputManifestResourceAssemblyCandidateNames,
-                this.inputManifestResourceAssemblyCandidateNames.Length))
+                this.inputManifestResourceAssemblyCandidateNames))
         {
             this.inputManifestResourceNameIndex = 0;
             this.inputManifestResourceNameCandidates = null;
@@ -727,8 +726,7 @@ internal class TexWidget : IDataWindowWidget
         ImGui.Combo(
             "Name",
             ref this.inputManifestResourceNameIndex,
-            this.inputManifestResourceNameCandidates,
-            this.inputManifestResourceNameCandidates.Length);
+            this.inputManifestResourceNameCandidates);
 
         var name =
             this.inputManifestResourceNameIndex >= 0
@@ -844,15 +842,14 @@ internal class TexWidget : IDataWindowWidget
         ImGui.Combo(
             nameof(this.textureModificationArgs.DxgiFormat),
             ref this.renderTargetChoiceInt,
-            this.supportedRenderTargetFormatNames,
-            this.supportedRenderTargetFormatNames.Length);
+            this.supportedRenderTargetFormatNames);
 
         Span<int> wh = stackalloc int[2];
         wh[0] = this.textureModificationArgs.NewWidth;
         wh[1] = this.textureModificationArgs.NewHeight;
-        if (ImGui.InputInt2(
+        if (ImGui.InputInt(
                 $"{nameof(this.textureModificationArgs.NewWidth)}/{nameof(this.textureModificationArgs.NewHeight)}",
-                ref wh[0]))
+                wh))
         {
             this.textureModificationArgs.NewWidth = wh[0];
             this.textureModificationArgs.NewHeight = wh[1];

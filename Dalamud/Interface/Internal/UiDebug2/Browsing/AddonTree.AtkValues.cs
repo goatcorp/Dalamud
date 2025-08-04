@@ -1,3 +1,5 @@
+using System.Numerics;
+
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.UiDebug2.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -110,7 +112,7 @@ public unsafe partial class AddonTree
                     }
                     catch (Exception ex)
                     {
-                        ImGui.TextColored(new(1, 0, 0, 1), $"{ex}");
+                        ImGui.TextColored(new Vector4(1, 0, 0, 1), $"{ex}");
                     }
                 }
             }
