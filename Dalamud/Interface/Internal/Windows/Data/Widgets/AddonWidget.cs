@@ -1,6 +1,7 @@
-﻿using Dalamud.Game.Gui;
-using Dalamud.Memory;
+using Dalamud.Game.Gui;
+using Dalamud.Game.NativeWrapper;
 using Dalamud.Utility;
+
 using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -12,7 +13,7 @@ internal unsafe class AddonWidget : IDataWindowWidget
 {
     private string inputAddonName = string.Empty;
     private int inputAddonIndex;
-    private nint findAgentInterfacePtr;
+    private AgentInterfacePtr agentInterfacePtr;
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Addon"; 
@@ -40,30 +41,27 @@ internal unsafe class AddonWidget : IDataWindowWidget
         if (this.inputAddonName.IsNullOrEmpty())
             return;
 
-        var address = gameGui.GetAddonByName(this.inputAddonName, this.inputAddonIndex);
-
-        if (address == nint.Zero)
+        var addon = gameGui.GetAddonByName(this.inputAddonName, this.inputAddonIndex);
+        if (addon.IsNull)
         {
             ImGui.Text("Null");
             return;
         }
 
-        var addon = (FFXIVClientStructs.FFXIV.Component.GUI.AtkUnitBase*)address;
-        var name = addon->NameString;
-        ImGui.TextUnformatted($"{name} - {Util.DescribeAddress(address)}\n    v:{addon->IsVisible} x:{addon->X} y:{addon->Y} s:{addon->Scale}, w:{addon->RootNode->Width}, h:{addon->RootNode->Height}");
+        ImGui.TextUnformatted($"{addon.Name} - {Util.DescribeAddress(addon)}\n    v:{addon.IsVisible} x:{addon.X} y:{addon.Y} s:{addon.Scale}, w:{addon.Width}, h:{addon.Height}");
 
         if (ImGui.Button("Find Agent"))
         {
-            this.findAgentInterfacePtr = gameGui.FindAgentInterface(address);
+            this.agentInterfacePtr = gameGui.FindAgentInterface(addon);
         }
 
-        if (this.findAgentInterfacePtr != nint.Zero)
+        if (!this.agentInterfacePtr.IsNull)
         {
-            ImGui.TextUnformatted($"Agent: {Util.DescribeAddress(this.findAgentInterfacePtr)}");
+            ImGui.TextUnformatted($"Agent: {Util.DescribeAddress(this.agentInterfacePtr)}");
             ImGui.SameLine();
 
             if (ImGui.Button("C"))
-                ImGui.SetClipboardText(this.findAgentInterfacePtr.ToInt64().ToString("X"));
+                ImGui.SetClipboardText(this.agentInterfacePtr.Address.ToString("X"));
         }
     }
 }

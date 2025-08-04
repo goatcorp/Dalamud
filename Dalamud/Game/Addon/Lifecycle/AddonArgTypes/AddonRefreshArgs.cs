@@ -38,4 +38,12 @@ public class AddonRefreshArgs : AddonArgs, ICloneable
 
     /// <inheritdoc cref="Clone"/>
     object ICloneable.Clone() => this.Clone();
+
+    /// <inheritdoc cref="AddonArgs.Clear"/>
+    internal override void Clear()
+    {
+        base.Clear();
+        this.AtkValueCount = default;
+        this.AtkValues = default;
+    }
 }

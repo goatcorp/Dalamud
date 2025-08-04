@@ -330,7 +330,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
         this.entriesReadOnlyCopy = null;
     }
 
-    private AtkUnitBase* GetDtr() => (AtkUnitBase*)this.gameGui.GetAddonByName("_DTR").ToPointer();
+    private AtkUnitBase* GetDtr() => this.gameGui.GetAddonByName("_DTR").Struct;
 
     private void Update(IFramework unused)
     {
@@ -427,7 +427,7 @@ internal sealed unsafe class DtrBar : IInternalDisposableService, IDtrBar
 
     private void FixCollision(AddonEvent eventType, AddonArgs addonInfo)
     {
-        var addon = (AtkUnitBase*)addonInfo.Addon;
+        var addon = addonInfo.Addon.Struct;
         if (addon->RootNode is null || addon->UldManager.NodeList is null) return;
 
         float minX = addon->RootNode->Width;

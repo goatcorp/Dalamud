@@ -238,7 +238,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         }
 
         using var returner = this.argsPool.Rent(out AddonSetupArgs arg);
-        arg.AddonInternal = (nint)addon;
+        arg.Clear();
+        arg.Addon = (nint)addon;
         arg.AtkValueCount = valueCount;
         arg.AtkValues = (nint)values;
         this.InvokeListenersSafely(AddonEvent.PreSetup, arg);
@@ -270,7 +271,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         }
 
         using var returner = this.argsPool.Rent(out AddonFinalizeArgs arg);
-        arg.AddonInternal = (nint)atkUnitBase[0];
+        arg.Clear();
+        arg.Addon = (nint)atkUnitBase[0];
         this.InvokeListenersSafely(AddonEvent.PreFinalize, arg);
 
         try
@@ -286,7 +288,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     private void OnAddonDraw(AtkUnitBase* addon)
     {
         using var returner = this.argsPool.Rent(out AddonDrawArgs arg);
-        arg.AddonInternal = (nint)addon;
+        arg.Clear();
+        arg.Addon = (nint)addon;
         this.InvokeListenersSafely(AddonEvent.PreDraw, arg);
 
         try
@@ -304,7 +307,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     private void OnAddonUpdate(AtkUnitBase* addon, float delta)
     {
         using var returner = this.argsPool.Rent(out AddonUpdateArgs arg);
-        arg.AddonInternal = (nint)addon;
+        arg.Clear();
+        arg.Addon = (nint)addon;
         arg.TimeDeltaInternal = delta;
         this.InvokeListenersSafely(AddonEvent.PreUpdate, arg);
 
@@ -325,7 +329,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
         var result = false;
 
         using var returner = this.argsPool.Rent(out AddonRefreshArgs arg);
-        arg.AddonInternal = (nint)addon;
+        arg.Clear();
+        arg.Addon = (nint)addon;
         arg.AtkValueCount = valueCount;
         arg.AtkValues = (nint)values;
         this.InvokeListenersSafely(AddonEvent.PreRefresh, arg);
@@ -348,7 +353,8 @@ internal unsafe class AddonLifecycle : IInternalDisposableService
     private void OnRequestedUpdate(AtkUnitBase* addon, NumberArrayData** numberArrayData, StringArrayData** stringArrayData)
     {
         using var returner = this.argsPool.Rent(out AddonRequestedUpdateArgs arg);
-        arg.AddonInternal = (nint)addon;
+        arg.Clear();
+        arg.Addon = (nint)addon;
         arg.NumberArrayData = (nint)numberArrayData;
         arg.StringArrayData = (nint)stringArrayData;
         this.InvokeListenersSafely(AddonEvent.PreRequestedUpdate, arg);

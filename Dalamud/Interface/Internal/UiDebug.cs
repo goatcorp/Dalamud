@@ -12,8 +12,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 
-using Lumina.Text.ReadOnly;
-
 // Customised version of https://github.com/aers/FFXIVUIDebug
 
 namespace Dalamud.Interface.Internal;
@@ -102,8 +100,8 @@ internal unsafe class UiDebug
         }
 
         ImGui.Separator();
-        ImGuiHelpers.ClickToCopyText($"Address: {(ulong)atkUnitBase:X}", $"{(ulong)atkUnitBase:X}");
-        ImGuiHelpers.ClickToCopyText($"Agent: {(ulong)agent:X}", $"{(ulong)agent:X}");
+        ImGuiHelpers.ClickToCopyText($"Address: {(nint)atkUnitBase:X}", $"{(nint)atkUnitBase:X}");
+        ImGuiHelpers.ClickToCopyText($"Agent: {(nint)agent:X}", $"{(nint)agent:X}");
         ImGui.Separator();
 
         ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
