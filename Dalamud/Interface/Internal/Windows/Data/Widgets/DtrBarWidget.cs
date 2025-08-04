@@ -1,11 +1,10 @@
 ﻿using System.Linq;
 using System.Threading;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Gui.Dtr;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

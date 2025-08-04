@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Network;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
 
-using ImGuiNET;
+using ImGuiTable = Dalamud.Interface.Utility.ImGuiTable;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -42,9 +43,9 @@ internal class NetworkMonitorWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "network", "netmon", "networkmonitor" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Network Monitor"; 
+    public string DisplayName { get; init; } = "Network Monitor";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -59,7 +60,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
         this.packets.Clear();
         this.Ready = true;
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
@@ -203,7 +204,7 @@ internal class NetworkMonitorWidget : IDataWindowWidget
     /// <remarks> The filter should find opCodes by number (decimal and hex) and name, if existing. </remarks>
     private string OpCodeToString(ushort opCode)
         => $"{opCode}\0{opCode:X}";
-    
+
 #pragma warning disable SA1313
     private readonly record struct NetworkPacketData(ushort OpCode, NetworkMessageDirection Direction, uint SourceActorId, uint TargetActorId)
 #pragma warning restore SA1313

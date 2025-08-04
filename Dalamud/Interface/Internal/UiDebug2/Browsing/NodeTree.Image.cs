@@ -1,19 +1,18 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
+using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTreeNodeFlags;
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
 using static FFXIVClientStructs.FFXIV.Component.GUI.TextureType;
-using static ImGuiNET.ImGuiTableColumnFlags;
-using static ImGuiNET.ImGuiTableFlags;
-using static ImGuiNET.ImGuiTreeNodeFlags;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 
@@ -227,13 +226,13 @@ internal unsafe partial class ImageNodeTree : ResNodeTree
 
                 ImGui.TableNextColumn();
 
-                ImGui.TextColored(!hiRes ? new(1) : new(0.6f, 0.6f, 0.6f, 1), "Standard:\t");
+                ImGui.TextColored(!hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Standard:\t");
                 ImGui.SameLine();
                 var cursX = ImGui.GetCursorPosX();
 
                 PrintPartCoords(u / 2f, v / 2f, width / 2f, height / 2f);
 
-                ImGui.TextColored(hiRes ? new(1) : new(0.6f, 0.6f, 0.6f, 1), "Hi-Res:\t");
+                ImGui.TextColored(hiRes ? new Vector4(1) : new(0.6f, 0.6f, 0.6f, 1), "Hi-Res:\t");
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(cursX);
 

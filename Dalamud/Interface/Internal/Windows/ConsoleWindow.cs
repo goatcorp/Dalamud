@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Console;
 using Dalamud.Game;
@@ -21,9 +22,6 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using Serilog;
 using Serilog.Events;
 
@@ -114,10 +112,7 @@ internal class ConsoleWindow : Window, IDisposable
 
         this.configuration.DalamudConfigurationSaved += this.OnDalamudConfigurationSaved;
 
-        unsafe
-        {
-            this.clipperPtr = new(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-        }
+        this.clipperPtr = ImGui.ImGuiListClipper();
     }
 
     /// <summary>Gets the queue where log entries that are not processed yet are stored.</summary>
@@ -840,11 +835,9 @@ internal class ConsoleWindow : Window, IDisposable
         }
     }
 
-    private unsafe int CommandInputCallback(ImGuiInputTextCallbackData* data)
+    private int CommandInputCallback(ref ImGuiInputTextCallbackData data)
     {
-        var ptr = new ImGuiInputTextCallbackDataPtr(data);
-
-        switch (data->EventFlag)
+        switch (data.EventFlag)
         {
             case ImGuiInputTextFlags.CallbackEdit:
                 this.completionZipText = null;
@@ -852,9 +845,7 @@ internal class ConsoleWindow : Window, IDisposable
                 break;
 
             case ImGuiInputTextFlags.CallbackCompletion:
-                var textBytes = new byte[data->BufTextLen];
-                Marshal.Copy((IntPtr)data->Buf, textBytes, 0, data->BufTextLen);
-                var text = Encoding.UTF8.GetString(textBytes);
+                var text = Encoding.UTF8.GetString(data.BufTextSpan);
 
                 var words = text.Split();
 
@@ -899,8 +890,8 @@ internal class ConsoleWindow : Window, IDisposable
 
                     if (toComplete != null)
                     {
-                        ptr.DeleteChars(0, ptr.BufTextLen);
-                        ptr.InsertChars(0, toComplete);
+                        data.DeleteChars(0, data.BufTextLen);
+                        data.InsertChars(0, toComplete);
                     }
                 }
 
@@ -909,14 +900,14 @@ internal class ConsoleWindow : Window, IDisposable
             case ImGuiInputTextFlags.CallbackHistory:
                 var prevPos = this.historyPos;
 
-                if (ptr.EventKey == ImGuiKey.UpArrow)
+                if (data.EventKey == ImGuiKey.UpArrow)
                 {
                     if (this.historyPos == -1)
                         this.historyPos = this.configuration.LogCommandHistory.Count - 1;
                     else if (this.historyPos > 0)
                         this.historyPos--;
                 }
-                else if (data->EventKey == ImGuiKey.DownArrow)
+                else if (data.EventKey == ImGuiKey.DownArrow)
                 {
                     if (this.historyPos != -1)
                     {
@@ -931,8 +922,8 @@ internal class ConsoleWindow : Window, IDisposable
                 {
                     var historyStr = this.historyPos >= 0 ? this.configuration.LogCommandHistory[this.historyPos] : string.Empty;
 
-                    ptr.DeleteChars(0, ptr.BufTextLen);
-                    ptr.InsertChars(0, historyStr);
+                    data.DeleteChars(0, data.BufTextLen);
+                    data.InsertChars(0, historyStr);
                 }
 
                 break;
@@ -1121,7 +1112,7 @@ internal class ConsoleWindow : Window, IDisposable
         charOffsets[charOffsetsIndex++] = line.Length;
 
         var screenPos = ImGui.GetCursorScreenPos();
-        var drawList = ImGui.GetWindowDrawList().NativePtr;
+        var drawList = ImGui.GetWindowDrawList().Handle;
         var font = ImGui.GetFont();
         var size = ImGui.GetFontSize();
         var scale = size / font.FontSize;

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
@@ -14,14 +15,10 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Memory;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
-
-using ImGuiNET;
-
 using Lumina.Data;
 using Lumina.Data.Files.Excel;
 using Lumina.Data.Structs.Excel;
@@ -227,7 +224,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEW);
+            ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEw);
 
             if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
@@ -571,7 +568,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             }
         }).OrderBy(sheetName => sheetName, StringComparer.InvariantCulture).ToArray();
 
-        var sheetChanged = ImGui.Combo("Sheet Name", ref this.importSelectedSheetName, this.validImportSheetNames, this.validImportSheetNames.Length);
+        var sheetChanged = ImGui.Combo("Sheet Name", ref this.importSelectedSheetName, this.validImportSheetNames);
 
         try
         {
@@ -686,7 +683,7 @@ internal class SeStringCreatorWidget : IDataWindowWidget
             ImGui.TableNextColumn(); // Type
             var type = (int)entry.Type;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.Combo($"##Type{i}", ref type, ["String", "Macro", "Fixed"], 3))
+            if (ImGui.Combo($"##Type{i}", ref type, ["String", "Macro", "Fixed"]))
             {
                 entry.Type = (TextEntryType)type;
                 updateString |= true;

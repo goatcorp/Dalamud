@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -39,7 +38,7 @@ public interface IFontAtlas : IDisposable
     string Name { get; }
 
     /// <summary>
-    /// Gets a value how the atlas should be rebuilt when the relevant Dalamud Configuration changes. 
+    /// Gets a value how the atlas should be rebuilt when the relevant Dalamud Configuration changes.
     /// </summary>
     FontAtlasAutoRebuildMode AutoRebuildMode { get; }
 
@@ -153,7 +152,7 @@ public interface IFontAtlas : IDisposable
     void BuildFontsImmediately();
 
     /// <summary>
-    /// Rebuilds fonts asynchronously, on any thread. 
+    /// Rebuilds fonts asynchronously, on any thread.
     /// </summary>
     /// <returns>The task.</returns>
     /// <exception cref="InvalidOperationException">If <see cref="AutoRebuildMode"/> is <see cref="FontAtlasAutoRebuildMode.OnNewFrame"/>.</exception>

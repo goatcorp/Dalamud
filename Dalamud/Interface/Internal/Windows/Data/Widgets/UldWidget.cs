@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.Colors;
@@ -12,9 +13,6 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Memory;
-
-using ImGuiNET;
-
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Uld;
 
@@ -103,7 +101,7 @@ internal class UldWidget : IDataWindowWidget
         }
 
         var selectedUldPrev = this.selectedUld;
-        ImGui.Combo("##selectUld", ref this.selectedUld, uldNames, uldNames.Length);
+        ImGui.Combo("##selectUld", ref this.selectedUld, uldNames);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectUldLeft", FontAwesomeIcon.AngleLeft))
             this.selectedUld = ((this.selectedUld + uldNames.Length) - 1) % uldNames.Length;
@@ -119,7 +117,7 @@ internal class UldWidget : IDataWindowWidget
             ClearTask(ref this.selectedUldFileTask);
         }
 
-        ImGui.Combo("##selectTheme", ref this.selectedTheme, ThemeDisplayNames, ThemeDisplayNames.Length);
+        ImGui.Combo("##selectTheme", ref this.selectedTheme, ThemeDisplayNames);
         ImGui.SameLine();
         if (ImGuiComponents.IconButton("selectThemeLeft", FontAwesomeIcon.AngleLeft))
             this.selectedTheme = ((this.selectedTheme + ThemeDisplayNames.Length) - 1) % ThemeDisplayNames.Length;
@@ -289,7 +287,7 @@ internal class UldWidget : IDataWindowWidget
             var texturePath = GetStringNullTerminated(textureEntry.Path);
             ImGui.TextUnformatted($"Base path at {texturePath}:");
             if (textureManager.Shared.GetFromGame(texturePath).TryGetWrap(out var wrap, out var e))
-                ImGui.Image(wrap.ImGuiHandle, wrap.Size);
+                ImGui.Image(wrap.Handle, wrap.Size);
             else if (e is not null)
                 ImGui.TextUnformatted(e.ToString());
 
@@ -298,7 +296,7 @@ internal class UldWidget : IDataWindowWidget
                 var texturePathThemed = this.ToThemedPath(texturePath);
                 ImGui.TextUnformatted($"Themed path at {texturePathThemed}:");
                 if (textureManager.Shared.GetFromGame(texturePathThemed).TryGetWrap(out wrap, out e))
-                    ImGui.Image(wrap.ImGuiHandle, wrap.Size);
+                    ImGui.Image(wrap.Handle, wrap.Size);
                 else if (e is not null)
                     ImGui.TextUnformatted(e.ToString());
             }
@@ -535,7 +533,7 @@ internal class UldWidget : IDataWindowWidget
             {
                 var uv0 = new Vector2(partsDataPart.U, partsDataPart.V);
                 var uv1 = uv0 + partSize;
-                ImGui.Image(wrap.ImGuiHandle, partSize * ImGuiHelpers.GlobalScale, uv0 / wrap.Size, uv1 / wrap.Size);
+                ImGui.Image(wrap.Handle, partSize * ImGuiHelpers.GlobalScale, uv0 / wrap.Size, uv1 / wrap.Size);
             }
 
             if (ImGui.IsItemClicked())

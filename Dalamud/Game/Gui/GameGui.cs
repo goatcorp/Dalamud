@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 
 using Dalamud.Game.NativeWrapper;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Hooking;
 using Dalamud.Interface.Utility;
@@ -18,8 +19,6 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using ImGuiNET;
 
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;

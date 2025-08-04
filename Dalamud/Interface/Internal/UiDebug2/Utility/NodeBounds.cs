@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static System.MathF;
+
 using static Dalamud.Interface.ColorHelpers;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Utility;

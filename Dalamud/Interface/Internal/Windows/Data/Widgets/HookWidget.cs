@@ -3,16 +3,14 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Hooking;
-using Dalamud.Hooking.Internal;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using ImGuiNET;
-using PInvoke;
 using Serilog;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -42,7 +40,7 @@ internal unsafe class HookWidget : IDataWindowWidget
         IntPtr hWnd,
         [MarshalAs(UnmanagedType.LPWStr)] string text,
         [MarshalAs(UnmanagedType.LPWStr)] string caption,
-        NativeFunctions.MessageBoxType type);
+        MESSAGEBOX_STYLE type);
 
     private delegate void AddonFinalizeDelegate(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase);
 
@@ -90,7 +88,7 @@ internal unsafe class HookWidget : IDataWindowWidget
                 this.messageBoxMinHook?.Disable();
 
             if (ImGui.Button("Call Original"))
-                this.messageBoxMinHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", NativeFunctions.MessageBoxType.Ok);
+                this.messageBoxMinHook?.Original(IntPtr.Zero, "Hello from .Original", "Hook Test", MESSAGEBOX_STYLE.MB_OK);
 
             if (ImGui.Button("Dispose"))
             {
@@ -99,7 +97,7 @@ internal unsafe class HookWidget : IDataWindowWidget
             }
 
             if (ImGui.Button("Test"))
-                _ = NativeFunctions.MessageBoxW(IntPtr.Zero, "Hi", "Hello", NativeFunctions.MessageBoxType.Ok);
+                _ = global::Windows.Win32.PInvoke.MessageBox(HWND.Null, "Hi", "Hello", MESSAGEBOX_STYLE.MB_OK);
 
             if (this.messageBoxMinHook != null)
                 ImGui.Text("Enabled: " + this.messageBoxMinHook?.IsEnabled);
@@ -186,13 +184,13 @@ internal unsafe class HookWidget : IDataWindowWidget
         };
     }
 
-    private int MessageBoxWDetour(IntPtr hwnd, string text, string caption, NativeFunctions.MessageBoxType type)
+    private int MessageBoxWDetour(IntPtr hwnd, string text, string caption, MESSAGEBOX_STYLE type)
     {
         Log.Information("[DATAHOOK] {Hwnd} {Text} {Caption} {Type}", hwnd, text, caption, type);
 
-        var result = this.messageBoxWOriginal!(hwnd, "Cause Access Violation?", caption, NativeFunctions.MessageBoxType.YesNo);
+        var result = this.messageBoxWOriginal!(hwnd, "Cause Access Violation?", caption, MESSAGEBOX_STYLE.MB_YESNO);
 
-        if (result == (int)User32.MessageBoxResult.IDYES)
+        if (result == (int)MESSAGEBOX_RESULT.IDYES)
         {
             Marshal.ReadByte(IntPtr.Zero);
         }

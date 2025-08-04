@@ -1,12 +1,11 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -61,14 +60,14 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             this.device.Get()->GetImmediateContext(pdc);
 
         this.emptyTexture = emptyTexture;
-        this.srv = new((ID3D11ShaderResourceView*)emptyTexture.ImGuiHandle);
+        this.srv = new((ID3D11ShaderResourceView*)emptyTexture.Handle.Handle);
     }
 
     /// <summary>Finalizes an instance of the <see cref="DrawListTextureWrap"/> class.</summary>
     ~DrawListTextureWrap() => this.RealDispose();
 
     /// <inheritdoc/>
-    public nint ImGuiHandle => (nint)this.srv.Get();
+    public ImTextureID Handle => new(this.srv.Get());
 
     /// <inheritdoc cref="IDrawListTextureWrap.Width"/>
     public int Width
@@ -192,7 +191,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             || drawData.CmdListsCount < 1
             || drawData.TotalIdxCount < 1
             || drawData.TotalVtxCount < 1
-            || drawData.CmdLists == 0
+            || drawData.CmdLists.IsNull
             || drawData.DisplaySize.X <= 0
             || drawData.DisplaySize.Y <= 0
             || drawData.FramebufferScale.X == 0
@@ -227,7 +226,7 @@ internal sealed unsafe partial class DrawListTextureWrap : IDrawListTextureWrap,
             this.rtvPremultiplied.Reset();
             this.width = newWidth;
             this.Height = newHeight;
-            this.srv = new((ID3D11ShaderResourceView*)this.emptyTexture.ImGuiHandle);
+            this.srv = new((ID3D11ShaderResourceView*)this.emptyTexture.Handle.Handle);
             return S.S_FALSE;
         }
 

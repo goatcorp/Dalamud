@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.Inventory;
 using Dalamud.Game.Text;
@@ -10,11 +11,7 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Client.Game;
-
-using ImGuiNET;
-
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -151,7 +148,7 @@ internal class InventoryWidget : IDataWindowWidget
 
                 if (this.textureManager.Shared.TryGetFromGameIcon(new GameIconLookup(iconId, item.IsHq), out var tex) && tex.TryGetWrap(out var texture, out _))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(ImGui.GetTextLineHeight()));
+                    ImGui.Image(texture.Handle, new Vector2(ImGui.GetTextLineHeight()));
 
                     if (ImGui.IsItemHovered())
                     {
@@ -159,7 +156,7 @@ internal class InventoryWidget : IDataWindowWidget
                         ImGui.BeginTooltip();
                         ImGui.TextUnformatted("Click to copy IconId");
                         ImGui.TextUnformatted($"ID: {iconId} – Size: {texture.Width}x{texture.Height}");
-                        ImGui.Image(texture.ImGuiHandle, new(texture.Width, texture.Height));
+                        ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();
                     }
 

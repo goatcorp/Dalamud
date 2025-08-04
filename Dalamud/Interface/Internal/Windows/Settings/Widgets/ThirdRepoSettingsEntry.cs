@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
@@ -13,7 +14,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -30,7 +30,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
     {
         this.timeSinceOpened = DateTime.Now;
     }
-    
+
     public override void OnClose()
     {
         this.thirdRepoList =
@@ -59,7 +59,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
     public override void Draw()
     {
         var config = Service<DalamudConfiguration>.Get();
-        
+
         using var id = ImRaii.PushId("thirdRepo");
         ImGui.TextUnformatted(Loc.Localize("DalamudSettingsCustomRepo", "Custom Plugin Repositories"));
         if (this.thirdRepoListChanged)
@@ -70,14 +70,14 @@ public class ThirdRepoSettingsEntry : SettingsEntry
                 ImGui.TextUnformatted(Loc.Localize("DalamudSettingsChanged", "(Changed)"));
             }
         }
-        
+
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingCustomRepoHint", "Add custom plugin repositories."));
-        
+
         ImGuiHelpers.ScaledDummy(2);
 
         config.ThirdRepoSpeedbumpDismissed ??= config.ThirdRepoList.Any(x => x.IsEnabled);
         var disclaimerDismissed = config.ThirdRepoSpeedbumpDismissed.Value;
-        
+
         ImGui.PushFont(InterfaceManager.IconFont);
         ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
         ImGuiHelpers.SafeTextWrapped(FontAwesomeIcon.ExclamationTriangle.ToIconString());
@@ -100,7 +100,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
         ImGuiHelpers.SafeTextWrapped(Loc.Localize("DalamudSettingCustomRepoWarning3", "Please make absolutely sure that you only install plugins from developers you trust."));
 
         ImGui.PopStyleColor();
-        
+
         if (!disclaimerDismissed)
         {
             const int speedbumpTime = 15;
@@ -121,7 +121,7 @@ public class ThirdRepoSettingsEntry : SettingsEntry
                 }
             }
         }
-        
+
         ImGuiHelpers.ScaledDummy(2);
 
         using var disabled = ImRaii.Disabled(!disclaimerDismissed);

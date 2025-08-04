@@ -3,12 +3,11 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.IoC.Internal;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

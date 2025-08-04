@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Reflection;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -11,8 +12,6 @@ using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-using ImGuiNET;
-
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.StyleEditor;
@@ -85,7 +84,7 @@ public class StyleEditorWindow : Window
 
         var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
         ImGui.Text(Loc.Localize("StyleEditorChooseStyle", "Choose Style:"));
-        if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry, styleAry.Length))
+        if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry))
         {
             var newStyle = config.SavedStyles[this.currentSel];
             newStyle.Apply();
@@ -112,7 +111,7 @@ public class StyleEditorWindow : Window
 
         if (isBuiltinStyle)
             ImGui.BeginDisabled();
-        
+
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash) && this.currentSel != 0)
         {
             this.currentSel--;
@@ -157,7 +156,7 @@ public class StyleEditorWindow : Window
 
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
-        
+
         if (isBuiltinStyle)
             ImGui.EndDisabled();
 
@@ -246,7 +245,7 @@ public class StyleEditorWindow : Window
                     ImGui.Text("Alignment");
                     ImGui.SliderFloat2("WindowTitleAlign", ref style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
                     var windowMenuButtonPosition = (int)style.WindowMenuButtonPosition + 1;
-                    if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, "None\0Left\0Right\0"))
+                    if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, ["None", "Left", "Right"]))
                         style.WindowMenuButtonPosition = (ImGuiDir)(windowMenuButtonPosition - 1);
                     ImGui.SliderFloat2("ButtonTextAlign", ref style.ButtonTextAlign, 0.0f, 1.0f, "%.2f");
                     ImGui.SameLine();
@@ -288,7 +287,7 @@ public class StyleEditorWindow : Window
 
                     foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
                     {
-                        if (imGuiCol == ImGuiCol.COUNT)
+                        if (imGuiCol == ImGuiCol.Count)
                             continue;
 
                         ImGui.PushID(imGuiCol.ToString());

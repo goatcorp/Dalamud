@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.Unicode;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -42,7 +41,7 @@ public static class FontAtlasBuildToolkitUtilities
         default(FluentGlyphRangeBuilder).With(range);
 
     /// <summary>
-    /// Compiles given <see cref="char"/>s into an array of <see cref="ushort"/> containing ImGui glyph ranges. 
+    /// Compiles given <see cref="char"/>s into an array of <see cref="ushort"/> containing ImGui glyph ranges.
     /// </summary>
     /// <param name="enumerable">The chars.</param>
     /// <param name="addFallbackCodepoints">Add fallback codepoints to the range.</param>
@@ -56,7 +55,7 @@ public static class FontAtlasBuildToolkitUtilities
         enumerable.BeginGlyphRange().Build(addFallbackCodepoints, addEllipsisCodepoints);
 
     /// <summary>
-    /// Compiles given <see cref="char"/>s into an array of <see cref="ushort"/> containing ImGui glyph ranges. 
+    /// Compiles given <see cref="char"/>s into an array of <see cref="ushort"/> containing ImGui glyph ranges.
     /// </summary>
     /// <param name="span">The chars.</param>
     /// <param name="addFallbackCodepoints">Add fallback codepoints to the range.</param>
@@ -70,7 +69,7 @@ public static class FontAtlasBuildToolkitUtilities
         span.BeginGlyphRange().Build(addFallbackCodepoints, addEllipsisCodepoints);
 
     /// <summary>
-    /// Compiles given string into an array of <see cref="ushort"/> containing ImGui glyph ranges. 
+    /// Compiles given string into an array of <see cref="ushort"/> containing ImGui glyph ranges.
     /// </summary>
     /// <param name="string">The string.</param>
     /// <param name="addFallbackCodepoints">Add fallback codepoints to the range.</param>
@@ -93,10 +92,11 @@ public static class FontAtlasBuildToolkitUtilities
     /// <returns>The relevant config pointer, or empty config pointer if not found.</returns>
     public static unsafe ImFontConfigPtr FindConfigPtr(this IFontAtlasBuildToolkit toolkit, ImFontPtr fontPtr)
     {
-        foreach (ref var c in toolkit.NewImAtlas.ConfigDataWrapped().DataSpan)
+        for (var i = 0; i < toolkit.NewImAtlas.ConfigData.Size; i++)
         {
-            if (c.DstFont == fontPtr.NativePtr)
-                return new((nint)Unsafe.AsPointer(ref c));
+            var c = toolkit.NewImAtlas.ConfigData[i];
+            if (c.DstFont == fontPtr.Handle)
+                return new((ImFontConfig*)Unsafe.AsPointer(ref c));
         }
 
         return default;

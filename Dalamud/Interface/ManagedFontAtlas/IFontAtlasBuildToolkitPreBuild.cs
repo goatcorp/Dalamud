@@ -2,12 +2,10 @@
 using System.IO;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.Utility;
-using Dalamud.Utility;
-
-using ImGuiNET;
 
 using TerraFX.Interop.DirectX;
 
@@ -72,12 +70,12 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// Adds a font from memory region allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.<br />
     /// <b>It WILL crash if you try to use a memory pointer allocated in some other way.</b><br />
     /// <b>
-    /// Do NOT call <see cref="ImGuiNative.igMemFree"/> on the <paramref name="dataPointer"/> once this function has
+    /// Do NOT call <see cref="ImGui.MemFree"/> on the <paramref name="dataPointer"/> once this function has
     /// been called, unless <paramref name="freeOnException"/> is set and the function has thrown an error.
     /// </b>
     /// </summary>
     /// <param name="dataPointer">Memory address for the data allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.</param>
-    /// <param name="dataSize">The size of the font file..</param>
+    /// <param name="dataSize">The size of the font file.</param>
     /// <param name="fontConfig">The font config.</param>
     /// <param name="freeOnException">Free <paramref name="dataPointer"/> if an exception happens.</param>
     /// <param name="debugTag">A debug tag.</param>
@@ -99,12 +97,12 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// Adds a font from memory region allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.<br />
     /// <b>It WILL crash if you try to use a memory pointer allocated in some other way.</b><br />
     /// <b>
-    /// Do NOT call <see cref="ImGuiNative.igMemFree"/> on the <paramref name="dataPointer"/> once this function has
+    /// Do NOT call <see cref="ImGui.MemFree"/> on the <paramref name="dataPointer"/> once this function has
     /// been called, unless <paramref name="freeOnException"/> is set and the function has thrown an error.
     /// </b>
     /// </summary>
     /// <param name="dataPointer">Memory address for the data allocated using <see cref="ImGuiHelpers.AllocateMemory"/>.</param>
-    /// <param name="dataSize">The size of the font file..</param>
+    /// <param name="dataSize">The size of the font file.</param>
     /// <param name="fontConfig">The font config.</param>
     /// <param name="freeOnException">Free <paramref name="dataPointer"/> if an exception happens.</param>
     /// <param name="debugTag">A debug tag.</param>
@@ -157,7 +155,7 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// used as the font size. Specify -1 to use the default font size.
     /// </param>
     /// <param name="glyphRanges">The glyph ranges. Use <see cref="FontAtlasBuildToolkitUtilities"/>.ToGlyphRange to build.</param>
-    /// <returns>A font returned from <see cref="ImFontAtlasPtr.AddFont"/>.</returns>
+    /// <returns>A font returned from <see cref="ImFontAtlasPtr.AddFont(ImFontConfig*)"/>.</returns>
     ImFontPtr AddDalamudDefaultFont(float sizePx, ushort[]? glyphRanges = null);
 
     /// <summary>
@@ -211,7 +209,7 @@ public interface IFontAtlasBuildToolkitPreBuild : IFontAtlasBuildToolkit
     /// </param>
     /// <param name="style">The font style, in range from <c>0</c> to <c>2</c>. <c>0</c> is normal.</param>
     /// <remarks>
-    /// <para>May do nothing at all if <paramref name="cultureInfo"/> is unsupported by Dalamud font handler.</para> 
+    /// <para>May do nothing at all if <paramref name="cultureInfo"/> is unsupported by Dalamud font handler.</para>
     /// <para>See
     /// <a href="https://learn.microsoft.com/en-us/windows/apps/design/globalizing/loc-international-fonts">Microsoft
     /// Learn</a> for the fonts.</para>

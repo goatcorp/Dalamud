@@ -5,14 +5,12 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Ipc.Internal;
-
-using ImGuiNET;
-
 using Newtonsoft.Json;
 
 using Formatting = Newtonsoft.Json.Formatting;
@@ -122,23 +120,13 @@ internal class DataShareWidget : IDataWindowWidget
 
             ImGui.SameLine();
             if (ImGui.Button("Copy"))
-            {
-                fixed (byte* pData = data)
-                    ImGuiNative.igSetClipboardText(pData);
-            }
+                ImGui.SetClipboardText(data);
 
-            fixed (byte* pLabel = "text"u8)
-            fixed (byte* pData = data)
-            {
-                ImGuiNative.igInputTextMultiline(
-                    pLabel,
-                    pData,
-                    (uint)data.Length,
-                    ImGui.GetContentRegionAvail(),
-                    ImGuiInputTextFlags.ReadOnly,
-                    null,
-                    null);
-            }
+            ImGui.InputTextMultiline(
+                "text"u8,
+                data,
+                ImGui.GetContentRegionAvail(),
+                ImGuiInputTextFlags.ReadOnly);
         }
 
         this.nextTab = -1;
@@ -148,7 +136,7 @@ internal class DataShareWidget : IDataWindowWidget
     {
         if (mi is null)
             return "-";
-        
+
         var sb = new StringBuilder();
         sb.Append(ReprType(mi.DeclaringType))
           .Append("::")

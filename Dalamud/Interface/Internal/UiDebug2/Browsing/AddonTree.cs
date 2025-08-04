@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static Dalamud.Interface.FontAwesomeIcon;
 using static Dalamud.Interface.Internal.UiDebug2.ElementSelector;
@@ -122,7 +121,7 @@ public unsafe partial class AddonTree : IDisposable
         ImGui.SameLine();
 
         ImGui.SameLine();
-        ImGui.TextColored(isVisible ? new(0.1f, 1f, 0.1f, 1f) : new(0.6f, 0.6f, 0.6f, 1), isVisible ? "Visible" : "Not Visible");
+        ImGui.TextColored(isVisible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new(0.6f, 0.6f, 0.6f, 1), isVisible ? "Visible" : "Not Visible");
 
         ImGui.SameLine(ImGui.GetWindowWidth() - 100);
 

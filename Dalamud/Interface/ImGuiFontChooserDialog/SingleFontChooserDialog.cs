@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.FontIdentifier;
@@ -12,9 +13,6 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -89,7 +87,7 @@ public sealed class SingleFontChooserDialog : IDisposable
     private bool popupSizeChanged;
     private Vector2 popupPosition = new(float.NaN);
     private Vector2 popupSize = new(float.NaN);
-    
+
     /// <summary>Initializes a new instance of the <see cref="SingleFontChooserDialog"/> class.</summary>
     /// <param name="uiBuilder">The relevant instance of UiBuilder.</param>
     /// <param name="isGlobalScaled">Whether the fonts in the atlas is global scaled.</param>
@@ -207,8 +205,8 @@ public sealed class SingleFontChooserDialog : IDisposable
 
     /// <summary>Gets or sets a value indicating whether this popup should be modal, blocking everything behind from
     /// being interacted.</summary>
-    /// <remarks>If <c>true</c>, then <see cref="ImGui.BeginPopupModal(string, ref bool, ImGuiWindowFlags)"/> will be
-    /// used. Otherwise, <see cref="ImGui.Begin(string, ref bool, ImGuiWindowFlags)"/> will be used.</remarks>
+    /// <remarks>If <c>true</c>, then <see cref="ImGui.BeginPopupModal(ImU8String, ref bool, ImGuiWindowFlags)"/> will be
+    /// used. Otherwise, <see cref="ImGui.Begin(ImU8String, ref bool, ImGuiWindowFlags)"/> will be used.</remarks>
     public bool IsModal { get; set; } = true;
 
     /// <summary>Gets or sets the window flags.</summary>
@@ -274,7 +272,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         return new Vector2(40, 30) * ImGui.GetTextLineHeight();
     }
 
-    /// <inheritdoc/> 
+    /// <inheritdoc/>
     public void Dispose()
     {
         this.fontHandle?.Dispose();
@@ -432,7 +430,7 @@ public sealed class SingleFontChooserDialog : IDisposable
         this.firstDrawAfterRefresh = false;
     }
 
-    private static float GetDistanceFromMonitor(Vector2 point, ImGuiPlatformMonitorPtr monitor)
+    private static float GetDistanceFromMonitor(Vector2 point, ImGuiPlatformMonitor monitor)
     {
         var lt = monitor.MainPos;
         var rb = monitor.MainPos + monitor.MainSize;
@@ -560,21 +558,10 @@ public sealed class SingleFontChooserDialog : IDisposable
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
             using (this.fontHandle?.Push())
             {
-                unsafe
-                {
-                    fixed (byte* buf = this.fontPreviewText)
-                    fixed (byte* label = "##fontPreviewText"u8)
-                    {
-                        ImGuiNative.igInputTextMultiline(
-                            label,
-                            buf,
-                            (uint)this.fontPreviewText.Length,
-                            ImGui.GetContentRegionAvail(),
-                            ImGuiInputTextFlags.None,
-                            null,
-                            null);
-                    }
-                }
+                ImGui.InputTextMultiline(
+                    "##fontPreviewText"u8,
+                    this.fontPreviewText,
+                    ImGui.GetContentRegionAvail());
             }
         }
     }
@@ -610,15 +597,15 @@ public sealed class SingleFontChooserDialog : IDisposable
                 ref this.familySearch,
                 255,
                 ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.CallbackHistory,
-                data =>
+                (ref ImGuiInputTextCallbackData data) =>
                 {
                     if (families.Count == 0)
                         return 0;
 
                     var baseIndex = this.selectedFamilyIndex;
-                    if (data->SelectionStart == 0 && data->SelectionEnd == data->BufTextLen)
+                    if (data.SelectionStart == 0 && data.SelectionEnd == data.BufTextLen)
                     {
-                        switch (data->EventKey)
+                        switch (data.EventKey)
                         {
                             case ImGuiKey.DownArrow:
                                 this.selectedFamilyIndex = (this.selectedFamilyIndex + 1) % families.Count;
@@ -634,13 +621,13 @@ public sealed class SingleFontChooserDialog : IDisposable
                         if (changed)
                         {
                             ImGuiHelpers.SetTextFromCallback(
-                                data,
+                                ref data,
                                 this.ExtractName(families[this.selectedFamilyIndex]));
                         }
                     }
                     else
                     {
-                        switch (data->EventKey)
+                        switch (data.EventKey)
                         {
                             case ImGuiKey.DownArrow:
                                 this.selectedFamilyIndex = families.FindIndex(
@@ -691,7 +678,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##familyList", ImGui.GetContentRegionAvail()))
         {
-            var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if ((changed || this.firstDrawAfterRefresh) && this.selectedFamilyIndex != -1)
@@ -778,15 +765,15 @@ public sealed class SingleFontChooserDialog : IDisposable
                 ref this.fontSearch,
                 255,
                 ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.CallbackHistory,
-                data =>
+                (ref ImGuiInputTextCallbackData data) =>
                 {
                     if (fonts.Count == 0)
                         return 0;
 
                     var baseIndex = this.selectedFontIndex;
-                    if (data->SelectionStart == 0 && data->SelectionEnd == data->BufTextLen)
+                    if (data.SelectionStart == 0 && data.SelectionEnd == data.BufTextLen)
                     {
-                        switch (data->EventKey)
+                        switch (data.EventKey)
                         {
                             case ImGuiKey.DownArrow:
                                 this.selectedFontIndex = (this.selectedFontIndex + 1) % fonts.Count;
@@ -801,13 +788,13 @@ public sealed class SingleFontChooserDialog : IDisposable
                         if (changed)
                         {
                             ImGuiHelpers.SetTextFromCallback(
-                                data,
+                                ref data,
                                 this.ExtractName(fonts[this.selectedFontIndex]));
                         }
                     }
                     else
                     {
-                        switch (data->EventKey)
+                        switch (data.EventKey)
                         {
                             case ImGuiKey.DownArrow:
                                 this.selectedFontIndex = fonts.FindIndex(
@@ -858,7 +845,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##fontList"))
         {
-            var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if ((changed || this.firstDrawAfterRefresh) && this.selectedFontIndex != -1)
@@ -927,9 +914,9 @@ public sealed class SingleFontChooserDialog : IDisposable
                 255,
                 ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.CallbackHistory |
                 ImGuiInputTextFlags.CharsDecimal,
-                data =>
+                (ref ImGuiInputTextCallbackData data) =>
                 {
-                    switch (data->EventKey)
+                    switch (data.EventKey)
                     {
                         case ImGuiKey.DownArrow:
                             this.selectedFont = this.selectedFont with
@@ -948,7 +935,7 @@ public sealed class SingleFontChooserDialog : IDisposable
                     }
 
                     if (changed)
-                        ImGuiHelpers.SetTextFromCallback(data, $"{this.selectedFont.SizePt:0.##}");
+                        ImGuiHelpers.SetTextFromCallback(ref data, $"{this.selectedFont.SizePt:0.##}");
 
                     return 0;
                 }))
@@ -962,7 +949,7 @@ public sealed class SingleFontChooserDialog : IDisposable
 
         if (ImGui.BeginChild("##fontSizeList"))
         {
-            var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            var clipper = ImGui.ImGuiListClipper();
             var lineHeight = ImGui.GetTextLineHeightWithSpacing();
 
             if (changed && this.selectedFontIndex != -1)
@@ -1131,25 +1118,25 @@ public sealed class SingleFontChooserDialog : IDisposable
                 255,
                 ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.CallbackHistory |
                 ImGuiInputTextFlags.CharsDecimal,
-                data =>
+                (ref ImGuiInputTextCallbackData data) =>
                 {
-                    switch (data->EventKey)
+                    switch (data.EventKey)
                     {
                         case ImGuiKey.DownArrow:
                             changed2 = true;
                             value = Math.Min(max, (MathF.Round(value / step) * step) + step);
-                            ImGuiHelpers.SetTextFromCallback(data, $"{value:0.##}");
+                            ImGuiHelpers.SetTextFromCallback(ref data, $"{value:0.##}");
                             break;
                         case ImGuiKey.UpArrow:
                             changed2 = true;
                             value = Math.Max(min, (MathF.Round(value / step) * step) - step);
-                            ImGuiHelpers.SetTextFromCallback(data, $"{value:0.##}");
+                            ImGuiHelpers.SetTextFromCallback(ref data, $"{value:0.##}");
                             break;
                     }
 
                     return 0;
                 });
-            
+
             if (stylePushed)
                 ImGui.PopStyleColor();
 

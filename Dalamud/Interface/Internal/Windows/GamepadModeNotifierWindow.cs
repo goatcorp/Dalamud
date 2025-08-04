@@ -1,9 +1,9 @@
 using System.Numerics;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;
 

@@ -3,13 +3,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Toast;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
-
-using ImGuiNET;
-
 using TerraFX.Interop.Windows;
 
 using static TerraFX.Interop.Windows.Windows;
@@ -38,13 +35,13 @@ namespace Dalamud.Interface.Internal;
 internal sealed unsafe class ImGuiClipboardFunctionProvider : IInternalDisposableService
 {
     private static readonly ModuleLog Log = new(nameof(ImGuiClipboardFunctionProvider));
-    private readonly nint clipboardUserDataOriginal;
-    private readonly nint setTextOriginal;
-    private readonly nint getTextOriginal;
+    private readonly void* clipboardUserDataOriginal;
+    private readonly void* setTextOriginal;
+    private readonly void* getTextOriginal;
 
     [ServiceManager.ServiceDependency]
     private readonly ToastGui toastGui = Service<ToastGui>.Get();
-    
+
     private ImVectorWrapper<byte> clipboardData;
     private GCHandle clipboardUserData;
 
@@ -58,9 +55,9 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IInternalDisposabl
         this.clipboardUserDataOriginal = io.ClipboardUserData;
         this.setTextOriginal = io.SetClipboardTextFn;
         this.getTextOriginal = io.GetClipboardTextFn;
-        io.ClipboardUserData = GCHandle.ToIntPtr(this.clipboardUserData = GCHandle.Alloc(this));
-        io.SetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*, void>)&StaticSetClipboardTextImpl;
-        io.GetClipboardTextFn = (nint)(delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
+        io.ClipboardUserData = GCHandle.ToIntPtr(this.clipboardUserData = GCHandle.Alloc(this)).ToPointer();
+        io.SetClipboardTextFn = (delegate* unmanaged<nint, byte*, void>)&StaticSetClipboardTextImpl;
+        io.GetClipboardTextFn = (delegate* unmanaged<nint, byte*>)&StaticGetClipboardTextImpl;
 
         this.clipboardData = new(0);
         return;
@@ -118,7 +115,7 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IInternalDisposabl
             var hMem = GlobalAlloc(GMEM.GMEM_MOVEABLE, (nuint)((str.Length + 1) * 2));
             if (hMem == 0)
                 throw new OutOfMemoryException();
-            
+
             var ptr = (char*)GlobalLock(hMem);
             if (ptr == null)
             {
@@ -150,7 +147,7 @@ internal sealed unsafe class ImGuiClipboardFunctionProvider : IInternalDisposabl
     private byte* GetClipboardTextImpl()
     {
         this.clipboardData.Clear();
-        
+
         var formats = stackalloc uint[] { CF.CF_UNICODETEXT, CF.CF_TEXT };
         if (GetPriorityClipboardFormat(formats, 2) < 1 || !this.OpenClipboardOrShowError())
         {

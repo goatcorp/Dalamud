@@ -1,6 +1,6 @@
 using System.Numerics;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 using Lumina.Text.Payloads;
 
@@ -21,7 +21,7 @@ public record struct SeStringDrawParams
     public SeStringReplacementEntity.GetEntityDelegate? GetEntity { get; set; }
 
     /// <summary>Gets or sets the screen offset of the left top corner.</summary>
-    /// <value>Screen offset to draw at, or <c>null</c> to use <see cref="ImGui.GetCursorScreenPos"/>.</value>
+    /// <value>Screen offset to draw at, or <c>null</c> to use <see cref="ImGui.GetCursorScreenPos()"/>.</value>
     public Vector2? ScreenOffset { get; set; }
 
     /// <summary>Gets or sets the font to use.</summary>
@@ -40,7 +40,7 @@ public record struct SeStringDrawParams
 
     /// <summary>Gets or sets the wrapping width.</summary>
     /// <value>Width in pixels, or <c>null</c> to wrap at the end of available content region from
-    /// <see cref="ImGui.GetContentRegionAvail"/> (the default).</value>
+    /// <see cref="ImGui.GetContentRegionAvail()"/> (the default).</value>
     public float? WrapWidth { get; set; }
 
     /// <summary>Gets or sets the thickness of underline under links.</summary>
@@ -105,8 +105,8 @@ public record struct SeStringDrawParams
 
     /// <summary>Gets the effective font.</summary>
     internal readonly unsafe ImFont* EffectiveFont =>
-        (this.Font ?? ImGui.GetFont()) is var f && f.NativePtr is not null
-            ? f.NativePtr
+        (this.Font ?? ImGui.GetFont()) is var f && f.Handle is not null
+            ? f.Handle
             : throw new ArgumentException("Specified font is empty.");
 
     /// <summary>Gets the effective line height in pixels.</summary>

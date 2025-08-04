@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -45,7 +44,7 @@ internal interface IFontHandleSubstance : IDisposable
     /// </summary>
     /// <param name="toolkitPreBuild">The toolkit.</param>
     void OnPreBuild(IFontAtlasBuildToolkitPreBuild toolkitPreBuild);
-    
+
     /// <summary>
     /// Called between <see cref="OnPreBuild"/> and <see cref="ImFontAtlasPtr.Build"/> calls.<br />
     /// Any further modification to <see cref="IFontAtlasBuildToolkit.Fonts"/> will result in undefined behavior.

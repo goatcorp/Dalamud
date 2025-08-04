@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Text;
 using Dalamud.Hooking.WndProcHook;
@@ -18,8 +19,6 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 #if IMEDEBUG
 using Serilog;
@@ -136,7 +135,8 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         this.interfaceManager = imws.Manager;
         this.setPlatformImeDataDelegate = this.ImGuiSetPlatformImeData;
 
-        ImGui.GetIO().SetPlatformImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate);
+        var io = ImGui.GetIO();
+        io.SetPlatformImeDataFn = Marshal.GetFunctionPointerForDelegate(this.setPlatformImeDataDelegate).ToPointer();
         this.interfaceManager.Draw += this.Draw;
         this.wndProcHookManager.PreWndProc += this.WndProcHookManagerOnPreWndProc;
     }
@@ -169,7 +169,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 return true;
             if (!ImGui.GetIO().ConfigInputTextCursorBlink)
                 return true;
-            var textState = CustomNativeFunctions.igCustom_GetInputTextState();
+            var textState = GetInputTextState();
             if (textState->Id == 0 || (textState->Flags & ImGuiInputTextFlags.ReadOnly) != 0)
                 return true;
             if (textState->CursorAnim <= 0)
@@ -227,6 +227,12 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         }
     }
 
+    private static ImGuiInputTextStateWrapper* GetInputTextState()
+    {
+        var ctx = ImGui.GetCurrentContext();
+        return (ImGuiInputTextStateWrapper*)&ctx.Handle->InputTextState;
+    }
+
     private static (string String, bool Supported) ToUcs2(char* data, int nc = -1)
     {
         if (nc == -1)
@@ -278,7 +284,10 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
     private void ReleaseUnmanagedResources()
     {
         if (ImGuiHelpers.IsImGuiInitialized)
-            ImGui.GetIO().SetPlatformImeDataFn = nint.Zero;
+        {
+            var io = ImGui.GetIO();
+            io.SetPlatformImeDataFn = null;
+        }
     }
 
     private void WndProcHookManagerOnPreWndProc(WndProcEventArgs args)
@@ -322,7 +331,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         try
         {
-            var textState = CustomNativeFunctions.igCustom_GetInputTextState();
+            var textState = GetInputTextState();
             var invalidTarget = textState->Id == 0 || (textState->Flags & ImGuiInputTextFlags.ReadOnly) != 0;
 
 #if IMEDEBUG
@@ -477,7 +486,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                     if (!string.IsNullOrEmpty(ImmGetCompositionString(hImc, GCS.GCS_COMPSTR)))
                     {
                         ImmNotifyIME(hImc, NI.NI_COMPOSITIONSTR, CPS_COMPLETE, 0);
-                        
+
                         // Disable further handling of mouse button down event, or something would lock up the cursor.
                         args.SuppressWithValue(1);
                     }
@@ -552,7 +561,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
         this.ReflectCharacterEncounters(newString);
 
-        var textState = CustomNativeFunctions.igCustom_GetInputTextState();
+        var textState = GetInputTextState();
         if (this.temporaryUndoSelection is not null)
         {
             textState->Undo();
@@ -611,7 +620,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         this.compositionCursorOffset = 0;
         this.temporaryUndoSelection = null;
 
-        var textState = CustomNativeFunctions.igCustom_GetInputTextState();
+        var textState = GetInputTextState();
         textState->Stb.SelectStart = textState->Stb.Cursor = textState->Stb.SelectEnd;
 
         this.candidateStrings.Clear();
@@ -670,7 +679,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
             return;
 
         var viewport = ime.associatedViewport;
-        if (viewport.NativePtr is null)
+        if (viewport.Handle is null)
             return;
 
         var drawCand = ime.candidateStrings.Count != 0;
@@ -963,7 +972,7 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct ImGuiInputTextState
+    private struct ImGuiInputTextStateWrapper
     {
         public uint Id;
         public int CurLenW;
@@ -981,13 +990,15 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
         public bool Edited;
         public ImGuiInputTextFlags Flags;
 
-        public ImVectorWrapper<char> TextW => new((ImVector*)&this.ThisPtr->TextWRaw);
+        public ImVectorWrapper<char> TextW => new((ImVector*)&this.ThisWrapperPtr->TextWRaw);
 
         public (int Start, int End, int Cursor) SelectionTuple
         {
             get => (this.Stb.SelectStart, this.Stb.SelectEnd, this.Stb.Cursor);
             set => (this.Stb.SelectStart, this.Stb.SelectEnd, this.Stb.Cursor) = value;
         }
+
+        private ImGuiInputTextStateWrapper* ThisWrapperPtr => (ImGuiInputTextStateWrapper*)Unsafe.AsPointer(ref this);
 
         private ImGuiInputTextState* ThisPtr => (ImGuiInputTextState*)Unsafe.AsPointer(ref this);
 
@@ -1016,14 +1027,14 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
                 (s, e) = (e, s);
         }
 
-        public void Undo() => CustomNativeFunctions.igCustom_StbTextUndo(this.ThisPtr);
+        public void Undo() => ImGuiP.Custom_StbTextUndo(this.ThisPtr);
 
         public bool MakeUndoReplace(int offset, int oldLength, int newLength)
         {
             if (oldLength == 0 && newLength == 0)
                 return false;
 
-            CustomNativeFunctions.igCustom_StbTextMakeUndoReplace(this.ThisPtr, offset, oldLength, newLength);
+            ImGuiP.Custom_StbTextMakeUndoReplace(this.ThisPtr, offset, oldLength, newLength);
             return true;
         }
 
@@ -1097,20 +1108,6 @@ internal sealed unsafe class DalamudIme : IInternalDisposableService
 
             return true;
         }
-    }
-
-    private static class CustomNativeFunctions
-    {
-#pragma warning disable SA1300
-        [DllImport("cimgui")]
-        public static extern ImGuiInputTextState* igCustom_GetInputTextState();
-
-        [DllImport("cimgui")]
-        public static extern void igCustom_StbTextMakeUndoReplace(ImGuiInputTextState* str, int where, int old_length, int new_length);
-
-        [DllImport("cimgui")]
-        public static extern void igCustom_StbTextUndo(ImGuiInputTextState* str);
-#pragma warning restore SA1300
     }
 
 #if IMEDEBUG

@@ -1,8 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Common.Math;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
 

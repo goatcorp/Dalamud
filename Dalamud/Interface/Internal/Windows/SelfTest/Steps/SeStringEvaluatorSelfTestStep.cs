@@ -1,8 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Evaluator;
-
-using ImGuiNET;
-
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;

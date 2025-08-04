@@ -1,13 +1,12 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
-using static ImGuiNET.ImGuiTableColumnFlags;
-using static ImGuiNET.ImGuiTableFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
 
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
 
@@ -58,11 +57,11 @@ public static class Events
                     ImGui.TableNextColumn();
                     ImGui.TextUnformatted($"{evt->State.StateFlags}");
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted($"{evt->State.UnkFlags1}");
+                    ImGui.TextUnformatted($"{evt->State.ReturnFlags}");
                     ImGui.TableNextColumn();
-                    ImGuiHelpers.ClickToCopyText($"{(nint)evt->Target:X}", null, new Vector4(0.6f, 0.6f, 0.6f, 1));
+                    ImGuiHelpers.ClickToCopyText($"{(nint)evt->Target:X}", default, new Vector4(0.6f, 0.6f, 0.6f, 1));
                     ImGui.TableNextColumn();
-                    ImGuiHelpers.ClickToCopyText($"{(nint)evt->Listener:X}", null, new Vector4(0.6f, 0.6f, 0.6f, 1));
+                    ImGuiHelpers.ClickToCopyText($"{(nint)evt->Listener:X}", default, new Vector4(0.6f, 0.6f, 0.6f, 1));
                     evt = evt->NextEvent;
                 }
             }

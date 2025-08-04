@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Inventory;
 using Dalamud.Game.Inventory.InventoryEventArgTypes;
@@ -7,9 +8,6 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Logging.Internal;
-
-using ImGuiNET;
-
 using Serilog.Events;
 
 namespace Dalamud.Interface.Internal.Windows.Data;
@@ -46,7 +44,7 @@ internal class GameInventoryTestWidget : IDataWindowWidget
                 ImGuiColors.DalamudRed,
                 "Enable LogLevel=Information display to see the logs.");
         }
-        
+
         using var table = ImRaii.Table(this.DisplayName, 3, ImGuiTableFlags.SizingFixedFit);
         if (!table.Success)
             return;

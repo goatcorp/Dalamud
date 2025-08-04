@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -13,8 +14,6 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.AutoUpdate;
 using Dalamud.Plugin.Internal.Types;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
 
@@ -119,14 +118,14 @@ public class SettingsTabAutoUpdates : SettingsTab
                     pic.TryGetIcon(pmPlugin, pmPlugin.Manifest, pmPlugin.IsThirdParty, out var icon, out _);
                     icon ??= pic.DefaultIcon;
 
-                    ImGui.Image(icon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.Image(icon.Handle, new Vector2(pluginLineHeight));
 
                     if (pmPlugin.IsDev)
                     {
                         ImGui.SetCursorPos(cursorBeforeIcon);
                         using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, 0.7f))
                         {
-                            ImGui.Image(pic.DevPluginIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                            ImGui.Image(pic.DevPluginIcon.Handle, new Vector2(pluginLineHeight));
                         }
                     }
 
@@ -143,7 +142,7 @@ public class SettingsTabAutoUpdates : SettingsTab
                 }
                 else
                 {
-                    ImGui.Image(pic.DefaultIcon.ImGuiHandle, new Vector2(pluginLineHeight));
+                    ImGui.Image(pic.DefaultIcon.Handle, new Vector2(pluginLineHeight));
                     ImGui.SameLine();
 
                     var text = Loc.Localize("DalamudSettingsAutoUpdateOptInUnknownPlugin", "Unknown plugin");

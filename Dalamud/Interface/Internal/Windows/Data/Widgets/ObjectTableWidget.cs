@@ -1,10 +1,10 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Gui;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -19,24 +19,24 @@ internal class ObjectTableWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "ot", "objecttable" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Object Table"; 
+    public string DisplayName { get; init; } = "Object Table";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
-    
+
     /// <inheritdoc/>
     public void Load()
     {
         this.Ready = true;
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
         ImGui.Checkbox("Resolve GameData", ref this.resolveGameData);
-        
+
         var chatGui = Service<ChatGui>.Get();
         var clientState = Service<ClientState>.Get();
         var gameGui = Service<GameGui>.Get();

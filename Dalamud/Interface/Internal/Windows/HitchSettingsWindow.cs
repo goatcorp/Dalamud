@@ -1,7 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Windowing;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;
 
@@ -22,7 +21,7 @@ public class HitchSettingsWindow : Window
         this.ShowCloseButton = true;
         this.RespectCloseHotkey = true;
     }
-    
+
     /// <inheritdoc/>
     public override void Draw()
     {
@@ -41,14 +40,14 @@ public class HitchSettingsWindow : Window
             config.FrameworkUpdateHitch = frameworkUpdateHitch;
             config.QueueSave();
         }
-        
+
         var gameNetworkUpHitch = (float)config.GameNetworkUpHitch;
         if (ImGui.SliderFloat("GameNetworkUpHitch", ref gameNetworkUpHitch, MinHitch, MaxHitch))
         {
             config.GameNetworkUpHitch = gameNetworkUpHitch;
             config.QueueSave();
         }
-        
+
         var gameNetworkDownHitch = (float)config.GameNetworkDownHitch;
         if (ImGui.SliderFloat("GameNetworkDownHitch", ref gameNetworkDownHitch, MinHitch, MaxHitch))
         {

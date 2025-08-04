@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -10,11 +11,7 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using ImGuiNET;
-
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Payloads;
@@ -118,7 +115,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
         ImGui.SameLine();
         var t4 = this.style.ThemeIndex ?? AtkStage.Instance()->AtkUIColorHolder->ActiveColorThemeType;
         ImGui.PushItemWidth(ImGui.CalcTextSize("WWWWWWWWWWWWWW").X);
-        if (ImGui.Combo("##theme", ref t4, ThemeNames, ThemeNames.Length))
+        if (ImGui.Combo("##theme", ref t4, ThemeNames))
             this.style.ThemeIndex = t4;
 
         ImGui.SameLine();
@@ -193,7 +190,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 var addon = Service<DataManager>.GetNullable()?.GetExcelSheet<Addon>() ??
                             throw new InvalidOperationException("Addon sheet not loaded.");
 
-                var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+                var clipper = ImGui.ImGuiListClipper();
                 clipper.Begin(addon.Count);
                 while (clipper.Step())
                 {
@@ -266,14 +263,10 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         fixed (byte* labelPtr = "Test Input"u8)
         {
-            if (ImGuiNative.igInputTextMultiline(
+            if (ImGui.InputTextMultiline(
                     labelPtr,
-                    this.testStringBuffer.Data,
-                    (uint)this.testStringBuffer.Capacity,
-                    new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3),
-                    0,
-                    null,
-                    null) != 0)
+                    this.testStringBuffer.StorageSpan,
+                    new(ImGui.GetContentRegionAvail().X, ImGui.GetTextLineHeight() * 3)))
             {
                 var len = this.testStringBuffer.StorageSpan.IndexOf((byte)0);
                 if (len + 4 >= this.testStringBuffer.Capacity)
@@ -281,7 +274,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                 if (len < this.testStringBuffer.Capacity)
                 {
                     this.testStringBuffer.LengthUnsafe = len;
-                    this.testStringBuffer.StorageSpan[len] = default;
+                    this.testStringBuffer.StorageSpan[len] = 0;
                 }
 
                 this.testString = string.Empty;
@@ -393,7 +386,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                       .GetFromGame(Encoding.UTF8.GetString(state.Span[(byteOffset + 4)..(byteOffset + off)]))
                       .GetWrapOrEmpty();
             state.Draw(
-                tex.ImGuiHandle,
+                tex.Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 tex.Size * (state.FontSize / tex.Size.Y),
                 Vector2.Zero,
@@ -411,7 +404,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
                       .GetFromGameIcon(parsed)
                       .GetWrapOrEmpty();
             state.Draw(
-                tex.ImGuiHandle,
+                tex.Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 tex.Size * (state.FontSize / tex.Size.Y),
                 Vector2.Zero,
@@ -420,7 +413,7 @@ internal unsafe class SeStringRendererTestWidget : IDataWindowWidget
 
         static void DrawAsset(scoped in SeStringDrawState state, Vector2 offset, DalamudAsset asset) =>
             state.Draw(
-                Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(asset).ImGuiHandle,
+                Service<DalamudAssetManager>.Get().GetDalamudTextureWrap(asset).Handle,
                 offset + new Vector2(0, (state.LineHeight - state.FontSize) / 2),
                 new(state.FontSize, state.FontSize),
                 Vector2.Zero,

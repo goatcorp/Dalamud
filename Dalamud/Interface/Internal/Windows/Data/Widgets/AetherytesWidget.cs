@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Aetherytes;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -14,9 +13,9 @@ internal class AetherytesWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "aetherytes" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Aetherytes"; 
+    public string DisplayName { get; init; } = "Aetherytes";
 
     /// <inheritdoc/>
     public void Load()

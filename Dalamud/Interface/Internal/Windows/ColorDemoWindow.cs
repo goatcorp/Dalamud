@@ -3,9 +3,9 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows;
 

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Text;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
@@ -10,8 +11,6 @@ using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Windowing;
 using Dalamud.Storage.Assets;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -74,17 +73,9 @@ internal class ImGuiWidget : IDataWindowWidget
 
         ImGui.Checkbox("##manualType", ref this.notificationTemplate.ManualType);
         ImGui.SameLine();
-        ImGui.Combo(
-            "Type##type",
-            ref this.notificationTemplate.TypeInt,
-            NotificationTemplate.TypeTitles,
-            NotificationTemplate.TypeTitles.Length);
+        ImGui.Combo("Type##type", ref this.notificationTemplate.TypeInt, NotificationTemplate.TypeTitles);
 
-        ImGui.Combo(
-            "Icon##iconCombo",
-            ref this.notificationTemplate.IconInt,
-            NotificationTemplate.IconTitles,
-            NotificationTemplate.IconTitles.Length);
+        ImGui.Combo("Icon##iconCombo", ref this.notificationTemplate.IconInt, NotificationTemplate.IconTitles);
         switch (this.notificationTemplate.IconInt)
         {
             case 1 or 2:
@@ -97,8 +88,7 @@ internal class ImGuiWidget : IDataWindowWidget
                 ImGui.Combo(
                     "Asset##iconAssetCombo",
                     ref this.notificationTemplate.IconAssetInt,
-                    NotificationTemplate.AssetSources,
-                    NotificationTemplate.AssetSources.Length);
+                    NotificationTemplate.AssetSources);
                 break;
             case 3 or 7:
                 ImGui.InputText(
@@ -117,20 +107,17 @@ internal class ImGuiWidget : IDataWindowWidget
         ImGui.Combo(
             "Initial Duration",
             ref this.notificationTemplate.InitialDurationInt,
-            NotificationTemplate.InitialDurationTitles,
-            NotificationTemplate.InitialDurationTitles.Length);
+            NotificationTemplate.InitialDurationTitles);
 
         ImGui.Combo(
             "Extension Duration",
             ref this.notificationTemplate.HoverExtendDurationInt,
-            NotificationTemplate.HoverExtendDurationTitles,
-            NotificationTemplate.HoverExtendDurationTitles.Length);
+            NotificationTemplate.HoverExtendDurationTitles);
 
         ImGui.Combo(
             "Progress",
             ref this.notificationTemplate.ProgressMode,
-            NotificationTemplate.ProgressModeTitles,
-            NotificationTemplate.ProgressModeTitles.Length);
+            NotificationTemplate.ProgressModeTitles);
 
         ImGui.Checkbox("Respect UI Hidden", ref this.notificationTemplate.RespectUiHidden);
 
@@ -457,7 +444,7 @@ internal class ImGuiWidget : IDataWindowWidget
 
         public DisposeLoggingTextureWrap(IDalamudTextureWrap inner) => this.inner = inner;
 
-        public nint ImGuiHandle => this.inner.ImGuiHandle;
+        public ImTextureID Handle => this.inner.Handle;
 
         public int Width => this.inner.Width;
 

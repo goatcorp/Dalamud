@@ -2,13 +2,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
-
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 

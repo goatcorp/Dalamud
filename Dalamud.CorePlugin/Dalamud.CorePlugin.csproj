@@ -38,15 +38,6 @@
         <ProjectReference Include="..\Dalamud\Dalamud.csproj">
             <Private>false</Private>
         </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj">
-            <Private>false</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj">
-            <Private>false</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj">
-            <Private>false</Private>
-        </ProjectReference>
     </ItemGroup>
 
     <ItemGroup>

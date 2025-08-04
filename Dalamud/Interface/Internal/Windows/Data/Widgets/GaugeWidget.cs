@@ -1,8 +1,8 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -13,9 +13,9 @@ internal class GaugeWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "gauge", "jobgauge", "job" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Job Gauge"; 
+    public string DisplayName { get; init; } = "Job Gauge";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }

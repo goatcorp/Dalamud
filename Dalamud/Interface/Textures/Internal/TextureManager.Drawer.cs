@@ -2,11 +2,9 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 
@@ -60,7 +58,7 @@ internal sealed partial class TextureManager
         /// <param name="device">The device.</param>
         public void Setup(ID3D11Device* device)
         {
-            var assembly = typeof(ImGuiScene.ImGui_Impl_DX11).Assembly;
+            var assembly = typeof(SimpleDrawerImpl).Assembly;
 
             // Create the vertex shader
             if (this.vertexShader.IsEmpty() || this.inputLayout.IsEmpty())
@@ -214,10 +212,10 @@ internal sealed partial class TextureManager
             {
                 var data = stackalloc ImDrawVert[]
                 {
-                    new() { col = uint.MaxValue, pos = new(-1, 1), uv = new(0, 0) },
-                    new() { col = uint.MaxValue, pos = new(-1, -1), uv = new(0, 1) },
-                    new() { col = uint.MaxValue, pos = new(1, 1), uv = new(1, 0) },
-                    new() { col = uint.MaxValue, pos = new(1, -1), uv = new(1, 1) },
+                    new() { Col = uint.MaxValue, Pos = new(-1, 1), Uv = new(0, 0) },
+                    new() { Col = uint.MaxValue, Pos = new(-1, -1), Uv = new(0, 1) },
+                    new() { Col = uint.MaxValue, Pos = new(1, 1), Uv = new(1, 0) },
+                    new() { Col = uint.MaxValue, Pos = new(1, -1), Uv = new(1, 1) },
                 };
                 var desc = new D3D11_BUFFER_DESC(
                     (uint)(sizeof(ImDrawVert) * 4),
@@ -295,10 +293,10 @@ internal sealed partial class TextureManager
                     return;
                 _ = new Span<ImDrawVert>(mapped.pData, 4)
                 {
-                    [0] = new() { col = uint.MaxValue, pos = new(-1, 1), uv = uv0 },
-                    [1] = new() { col = uint.MaxValue, pos = new(-1, -1), uv = new(uv0.X, uv1.Y) },
-                    [2] = new() { col = uint.MaxValue, pos = new(1, 1), uv = new(uv1.X, uv0.Y) },
-                    [3] = new() { col = uint.MaxValue, pos = new(1, -1), uv = uv1 },
+                    [0] = new() { Col = uint.MaxValue, Pos = new(-1, 1), Uv = uv0 },
+                    [1] = new() { Col = uint.MaxValue, Pos = new(-1, -1), Uv = new(uv0.X, uv1.Y) },
+                    [2] = new() { Col = uint.MaxValue, Pos = new(1, 1), Uv = new(uv1.X, uv0.Y) },
+                    [3] = new() { Col = uint.MaxValue, Pos = new(1, -1), Uv = uv1 },
                 };
                 ctx->Unmap((ID3D11Resource*)buffer, 0u);
             }
@@ -382,7 +380,7 @@ internal sealed partial class TextureManager
             ctx->PSSetShader(this.pixelShader, null, 0);
             var simp = this.sampler.Get();
             ctx->PSSetSamplers(0, 1, &simp);
-            var ppn = (ID3D11ShaderResourceView*)Service<DalamudAssetManager>.Get().White4X4.ImGuiHandle;
+            var ppn = (ID3D11ShaderResourceView*)Service<DalamudAssetManager>.Get().White4X4.Handle.Handle;
             ctx->PSSetShaderResources(0, 1, &ppn);
 
             ctx->GSSetShader(null, null, 0);

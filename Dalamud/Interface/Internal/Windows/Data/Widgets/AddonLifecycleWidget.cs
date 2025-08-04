@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -19,11 +18,11 @@ public class AddonLifecycleWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string DisplayName { get; init; } = "Addon Lifecycle";
-    
+
     /// <inheritdoc/>
     [MemberNotNullWhen(true, "AddonLifecycle")]
     public bool Ready { get; set; }
-    
+
     private AddonLifecycle? AddonLifecycle { get; set; }
 
     /// <inheritdoc/>
@@ -38,7 +37,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
                     this.Ready = true;
                 });
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
@@ -62,11 +61,11 @@ public class AddonLifecycleWidget : IDataWindowWidget
             ImGui.Unindent();
         }
     }
-    
+
     private void DrawEventListeners()
     {
         if (!this.Ready) return;
-        
+
         foreach (var eventType in Enum.GetValues<AddonEvent>())
         {
             if (ImGui.CollapsingHeader(eventType.ToString()))
@@ -78,7 +77,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
                 {
                     ImGui.Text("No Listeners Registered for Event");
                 }
-                
+
                 if (ImGui.BeginTable("AddonLifecycleListenersTable", 2))
                 {
                     ImGui.TableSetupColumn("##AddonName", ImGuiTableColumnFlags.WidthFixed, 100.0f * ImGuiHelpers.GlobalScale);
@@ -92,10 +91,10 @@ public class AddonLifecycleWidget : IDataWindowWidget
                         ImGui.TableNextColumn();
                         ImGui.Text($"{listener.FunctionDelegate.Method.DeclaringType?.FullName ?? "Unknown Declaring Type"}::{listener.FunctionDelegate.Method.Name}");
                     }
-                    
+
                     ImGui.EndTable();
                 }
-                
+
                 ImGui.Unindent();
             }
         }
@@ -111,7 +110,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
         {
             ImGui.Text("No ReceiveEvent Hooks are Registered");
         }
-        
+
         foreach (var receiveEventListener in this.AddonLifecycle.ReceiveEventListeners)
         {
             if (ImGui.CollapsingHeader(string.Join(", ", receiveEventListener.AddonNames)))
@@ -135,7 +134,7 @@ public class AddonLifecycleWidget : IDataWindowWidget
                     var text = receiveEventListener.Hook.IsEnabled ? "Enabled" : "Disabled";
                     ImGui.TextColored(color, text);
                 }
-                
+
                 ImGui.Columns(1);
             }
         }

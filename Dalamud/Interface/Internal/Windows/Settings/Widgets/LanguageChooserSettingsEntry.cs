@@ -3,11 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -71,7 +70,7 @@ public sealed class LanguageChooserSettingsEntry : SettingsEntry
     public override void Draw()
     {
         ImGui.Text(this.Name);
-        ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages, this.locLanguages.Length);
+        ImGui.Combo("##XlLangCombo", ref this.langIndex, this.locLanguages);
         ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, Loc.Localize("DalamudSettingsLanguageHint", "Select the language Dalamud will be displayed in."));
     }
 }

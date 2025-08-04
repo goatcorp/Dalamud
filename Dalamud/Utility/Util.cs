@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -12,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
@@ -20,16 +20,16 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Support;
-using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Serilog;
 using TerraFX.Interop.Windows;
-using Windows.Win32.Storage.FileSystem;
 using Windows.Win32.System.Memory;
 using Windows.Win32.System.Ole;
+using Windows.Win32.UI.WindowsAndMessaging;
 
-using static TerraFX.Interop.Windows.Windows;
-
+using FLASHWINFO = Windows.Win32.UI.WindowsAndMessaging.FLASHWINFO;
+using HWND = Windows.Win32.Foundation.HWND;
+using MEMORY_BASIC_INFORMATION = Windows.Win32.System.Memory.MEMORY_BASIC_INFORMATION;
 using Win32_PInvoke = Windows.Win32.PInvoke;
 
 namespace Dalamud.Utility;
@@ -37,7 +37,7 @@ namespace Dalamud.Utility;
 /// <summary>
 /// Class providing various helper methods for use in Dalamud and plugins.
 /// </summary>
-public static class Util
+public static partial class Util
 {
     private static readonly string[] PageProtectionFlagNames = [
         "PAGE_NOACCESS",
@@ -209,14 +209,14 @@ public static class Util
         }
 
         MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery((void*)p, &mbi, (nuint)sizeof(MEMORY_BASIC_INFORMATION)) == 0)
+        if (Win32_PInvoke.VirtualQuery((void*)p, &mbi, (nuint)sizeof(MEMORY_BASIC_INFORMATION)) == 0)
             return $"0x{p:X}(???)";
 
         var sb = new StringBuilder();
         sb.Append($"0x{p:X}(");
         for (int i = 0, c = 0; i < PageProtectionFlagNames.Length; i++)
         {
-            if ((mbi.Protect & (1 << i)) == 0)
+            if (((uint)mbi.Protect & (1 << i)) == 0)
                 continue;
             if (c++ != 0)
                 sb.Append(" | ");
@@ -409,9 +409,9 @@ public static class Util
     /// <param name="exit">Specify whether to exit immediately.</param>
     public static void Fatal(string message, string caption, bool exit = true)
     {
-        var flags = NativeFunctions.MessageBoxType.Ok | NativeFunctions.MessageBoxType.IconError |
-                    NativeFunctions.MessageBoxType.Topmost;
-        _ = NativeFunctions.MessageBoxW(Process.GetCurrentProcess().MainWindowHandle, message, caption, flags);
+        var flags = MESSAGEBOX_STYLE.MB_OK | MESSAGEBOX_STYLE.MB_ICONERROR |
+                    MESSAGEBOX_STYLE.MB_TOPMOST;
+        _ = Windows.Win32.PInvoke.MessageBox(new HWND(Process.GetCurrentProcess().MainWindowHandle), message, caption, flags);
 
         if (exit)
         {
@@ -585,24 +585,43 @@ public static class Util
     }
 
     /// <summary>
+    /// Returns true if the current application has focus, false otherwise.
+    /// </summary>
+    /// <returns>
+    /// If the current application is focused.
+    /// </returns>
+    public static unsafe bool ApplicationIsActivated()
+    {
+        var activatedHandle = Win32_PInvoke.GetForegroundWindow();
+        if (activatedHandle == IntPtr.Zero)
+            return false; // No window is currently activated
+
+        uint pid;
+        _ = Win32_PInvoke.GetWindowThreadProcessId(activatedHandle, &pid);
+        if (Marshal.GetLastWin32Error() != 0)
+            return false;
+
+        return pid == Environment.ProcessId;
+    }
+
+    /// <summary>
     /// Request that Windows flash the game window to grab the user's attention.
     /// </summary>
     /// <param name="flashIfOpen">Attempt to flash even if the game is currently focused.</param>
-    public static void FlashWindow(bool flashIfOpen = false)
+    public static unsafe void FlashWindow(bool flashIfOpen = false)
     {
-        if (NativeFunctions.ApplicationIsActivated() && !flashIfOpen)
+        if (ApplicationIsActivated() && !flashIfOpen)
             return;
 
-        var flashInfo = new NativeFunctions.FlashWindowInfo
+        var flashInfo = new FLASHWINFO
         {
-            Size = (uint)Marshal.SizeOf<NativeFunctions.FlashWindowInfo>(),
-            Count = uint.MaxValue,
-            Timeout = 0,
-            Flags = NativeFunctions.FlashWindow.All | NativeFunctions.FlashWindow.TimerNoFG,
-            Hwnd = Process.GetCurrentProcess().MainWindowHandle,
+            cbSize = (uint)sizeof(FLASHWINFO),
+            uCount = uint.MaxValue,
+            dwTimeout = 0,
+            dwFlags = FLASHWINFO_FLAGS.FLASHW_ALL | FLASHWINFO_FLAGS.FLASHW_TIMERNOFG,
+            hwnd = new HWND(Process.GetCurrentProcess().MainWindowHandle),
         };
-
-        NativeFunctions.FlashWindowEx(ref flashInfo);
+        Win32_PInvoke.FlashWindowEx(flashInfo);
     }
 
     /// <summary>Gets a temporary file name, for use as the sourceFileName in

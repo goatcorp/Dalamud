@@ -1,11 +1,13 @@
 ﻿using System.Collections.Concurrent;
 using System.Globalization;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.MarketBoard;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+
+using ImGuiTable = Dalamud.Interface.Utility.ImGuiTable;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 

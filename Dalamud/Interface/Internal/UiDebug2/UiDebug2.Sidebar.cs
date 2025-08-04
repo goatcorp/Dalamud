@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static System.StringComparison;
+
 using static Dalamud.Interface.FontAwesomeIcon;
 
 namespace Dalamud.Interface.Internal.UiDebug2;

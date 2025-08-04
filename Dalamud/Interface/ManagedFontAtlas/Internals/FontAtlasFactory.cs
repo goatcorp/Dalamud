@@ -5,24 +5,20 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
+using Dalamud.Interface.ImGuiBackend;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
-using ImGuiScene;
-
 using Lumina.Data.Files;
-
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -52,9 +48,9 @@ internal sealed partial class FontAtlasFactory
         this.Framework = framework;
         this.InterfaceManager = interfaceManager;
         this.dalamudAssetManager = dalamudAssetManager;
-        this.SceneTask = Service<InterfaceManager.InterfaceManagerWithScene>
+        this.BackendTask = Service<InterfaceManager.InterfaceManagerWithScene>
                          .GetAsync()
-                         .ContinueWith(r => r.Result.Manager.Scene);
+                         .ContinueWith(r => r.Result.Manager.Backend);
 
         var gffasInfo = Enum.GetValues<GameFontFamilyAndSize>()
                             .Select(
@@ -133,7 +129,7 @@ internal sealed partial class FontAtlasFactory
 
     /// <summary>
     /// Gets the service instance of <see cref="InterfaceManager"/>.<br />
-    /// <see cref="Internal.InterfaceManager.Scene"/> may not yet be available.
+    /// <see cref="Internal.InterfaceManager.Backend"/> may not yet be available.
     /// </summary>
     public InterfaceManager InterfaceManager { get; }
 
@@ -143,9 +139,9 @@ internal sealed partial class FontAtlasFactory
     public TextureManager TextureManager => Service<TextureManager>.Get();
 
     /// <summary>
-    /// Gets the async task for <see cref="RawDX11Scene"/> inside <see cref="InterfaceManager"/>.
+    /// Gets the async task for <see cref="IImGuiBackend"/> inside <see cref="InterfaceManager"/>.
     /// </summary>
-    public Task<RawDX11Scene> SceneTask { get; }
+    public Task<IImGuiBackend> BackendTask { get; }
 
     /// <summary>
     /// Gets the default glyph ranges (glyph ranges of <see cref="GameFontFamilyAndSize.Axis12"/>).

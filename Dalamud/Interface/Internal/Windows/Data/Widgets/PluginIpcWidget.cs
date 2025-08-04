@@ -1,10 +1,10 @@
-﻿using Dalamud.Game.ClientState;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Ipc.Internal;
 using Dalamud.Utility;
-using ImGuiNET;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -17,18 +17,18 @@ internal class PluginIpcWidget : IDataWindowWidget
     // IPC
     private ICallGateProvider<string, string>? ipcPub;
     private ICallGateSubscriber<string, string>? ipcSub;
-    
+
     // IPC
     private ICallGateProvider<ICharacter?, string>? ipcPubGo;
     private ICallGateSubscriber<ICharacter?, string>? ipcSubGo;
-    
+
     private string callGateResponse = string.Empty;
-    
+
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "ipc" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Plugin IPC"; 
+    public string DisplayName { get; init; } = "Plugin IPC";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -108,17 +108,17 @@ internal class PluginIpcWidget : IDataWindowWidget
         {
             this.callGateResponse = this.ipcSub.InvokeFunc("button2");
         }
-        
+
         if (ImGui.Button("Action GO"))
         {
             this.ipcSubGo.InvokeAction(Service<ClientState>.Get().LocalPlayer);
         }
-        
+
         if (ImGui.Button("Func GO"))
         {
             this.callGateResponse = this.ipcSubGo.InvokeFunc(Service<ClientState>.Get().LocalPlayer);
         }
-        
+
         if (!this.callGateResponse.IsNullOrEmpty())
             ImGui.Text($"Response: {this.callGateResponse}");
     }

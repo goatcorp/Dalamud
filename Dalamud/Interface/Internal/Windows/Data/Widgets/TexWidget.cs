@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Textures;
@@ -16,9 +17,6 @@ using Dalamud.Interface.Utility.Internal;
 using Dalamud.Plugin.Services;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using TerraFX.Interop.DirectX;
 
 using TextureManager = Dalamud.Interface.Textures.Internal.TextureManager;
@@ -73,7 +71,7 @@ internal class TexWidget : IDataWindowWidget
 
     private enum DrawBlameTableColumnUserId
     {
-        NativeAddress,
+        NativeAddress = 1,
         Actions,
         Name,
         Width,
@@ -233,7 +231,7 @@ internal class TexWidget : IDataWindowWidget
             ImGui.PopID();
         }
 
-        if (ImGui.CollapsingHeader($"CropCopy##{this.DrawExistingTextureModificationArgs}"))
+        if (ImGui.CollapsingHeader($"CropCopy##{nameof(this.DrawExistingTextureModificationArgs)}"))
         {
             ImGui.PushID(nameof(this.DrawExistingTextureModificationArgs));
             this.DrawExistingTextureModificationArgs();
@@ -297,7 +295,7 @@ internal class TexWidget : IDataWindowWidget
                 {
                     if (t.GetTexture(this.textureManager) is { } source)
                     {
-                        var psrv = (ID3D11ShaderResourceView*)source.ImGuiHandle;
+                        var psrv = (ID3D11ShaderResourceView*)source.Handle.Handle;
                         var rcsrv = psrv->AddRef() - 1;
                         psrv->Release();
 
@@ -325,7 +323,7 @@ internal class TexWidget : IDataWindowWidget
                         if (this.inputTexScale != Vector2.Zero)
                             scale *= this.inputTexScale;
 
-                        ImGui.Image(tex.ImGuiHandle, scale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
+                        ImGui.Image(tex.Handle, scale, this.inputTexUv0, this.inputTexUv1, this.inputTintCol);
                     }
                     else
                     {
@@ -413,13 +411,13 @@ internal class TexWidget : IDataWindowWidget
         ImGui.TableHeadersRow();
 
         var sortSpecs = ImGui.TableGetSortSpecs();
-        if (sortSpecs.NativePtr is not null && (sortSpecs.SpecsDirty || shouldSortAgain))
+        if (sortSpecs.Handle is not null && (sortSpecs.SpecsDirty || shouldSortAgain))
         {
             allBlames.Sort(
                 static (a, b) =>
                 {
                     var sortSpecs = ImGui.TableGetSortSpecs();
-                    var specs = new Span<ImGuiTableColumnSortSpecs>(sortSpecs.NativePtr->Specs, sortSpecs.SpecsCount);
+                    var specs = new Span<ImGuiTableColumnSortSpecs>(sortSpecs.Handle->Specs, sortSpecs.SpecsCount);
                     Span<bool> sorted = stackalloc bool[(int)DrawBlameTableColumnUserId.ColumnCount];
                     foreach (ref var spec in specs)
                     {
@@ -451,7 +449,7 @@ internal class TexWidget : IDataWindowWidget
             sortSpecs.SpecsDirty = false;
         }
 
-        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        var clipper = ImGui.ImGuiListClipper();
         clipper.Begin(allBlames.Count);
 
         while (clipper.Step())
@@ -471,14 +469,14 @@ internal class TexWidget : IDataWindowWidget
                 {
                     _ = Service<DevTextureSaveMenu>.Get().ShowTextureSaveMenuAsync(
                         this.DisplayName,
-                        $"{wrap.ImGuiHandle:X16}",
+                        $"{wrap.Handle.Handle:X16}",
                         Task.FromResult(wrap.CreateWrapSharingLowLevelResource()));
                 }
 
                 if (ImGui.IsItemHovered())
                 {
                     ImGui.BeginTooltip();
-                    ImGui.Image(wrap.ImGuiHandle, wrap.Size);
+                    ImGui.Image(wrap.Handle, wrap.Size);
                     ImGui.EndTooltip();
                 }
 
@@ -540,7 +538,7 @@ internal class TexWidget : IDataWindowWidget
             (ImGui.GetStyle().ItemSpacing.X * 1 * numIcons));
         ImGui.TableHeadersRow();
 
-        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        var clipper = ImGui.ImGuiListClipper();
         clipper.Begin(textures.Count);
 
         using (var enu = textures.GetEnumerator())
@@ -601,7 +599,7 @@ internal class TexWidget : IDataWindowWidget
                     if (ImGui.IsItemHovered() && texture.GetWrapOrDefault(null) is { } immediate)
                     {
                         ImGui.BeginTooltip();
-                        ImGui.Image(immediate.ImGuiHandle, immediate.Size);
+                        ImGui.Image(immediate.Handle, immediate.Size);
                         ImGui.EndTooltip();
                     }
 
@@ -711,8 +709,7 @@ internal class TexWidget : IDataWindowWidget
         if (ImGui.Combo(
                 "Assembly",
                 ref this.inputManifestResourceAssemblyIndex,
-                this.inputManifestResourceAssemblyCandidateNames,
-                this.inputManifestResourceAssemblyCandidateNames.Length))
+                this.inputManifestResourceAssemblyCandidateNames))
         {
             this.inputManifestResourceNameIndex = 0;
             this.inputManifestResourceNameCandidates = null;
@@ -729,8 +726,7 @@ internal class TexWidget : IDataWindowWidget
         ImGui.Combo(
             "Name",
             ref this.inputManifestResourceNameIndex,
-            this.inputManifestResourceNameCandidates,
-            this.inputManifestResourceNameCandidates.Length);
+            this.inputManifestResourceNameCandidates);
 
         var name =
             this.inputManifestResourceNameIndex >= 0
@@ -846,15 +842,14 @@ internal class TexWidget : IDataWindowWidget
         ImGui.Combo(
             nameof(this.textureModificationArgs.DxgiFormat),
             ref this.renderTargetChoiceInt,
-            this.supportedRenderTargetFormatNames,
-            this.supportedRenderTargetFormatNames.Length);
+            this.supportedRenderTargetFormatNames);
 
         Span<int> wh = stackalloc int[2];
         wh[0] = this.textureModificationArgs.NewWidth;
         wh[1] = this.textureModificationArgs.NewHeight;
-        if (ImGui.InputInt2(
+        if (ImGui.InputInt(
                 $"{nameof(this.textureModificationArgs.NewWidth)}/{nameof(this.textureModificationArgs.NewHeight)}",
-                ref wh[0]))
+                wh))
         {
             this.textureModificationArgs.NewWidth = wh[0];
             this.textureModificationArgs.NewHeight = wh[1];

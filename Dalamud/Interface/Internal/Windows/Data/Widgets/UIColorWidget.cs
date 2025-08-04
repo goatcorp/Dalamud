@@ -2,13 +2,11 @@ using System.Buffers.Binary;
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
-
-using ImGuiNET;
-
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -66,7 +64,7 @@ internal class UiColorWidget : IDataWindowWidget
         ImGui.TableSetupColumn("Clear Blue", ImGuiTableColumnFlags.WidthFixed, colorw);
         ImGui.TableHeadersRow();
 
-        var clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        var clipper = ImGui.ImGuiListClipper();
         clipper.Begin(colors.Count, ImGui.GetFrameHeightWithSpacing());
         while (clipper.Step())
         {

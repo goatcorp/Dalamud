@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;

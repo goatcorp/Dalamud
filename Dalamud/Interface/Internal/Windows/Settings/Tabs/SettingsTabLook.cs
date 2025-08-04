@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Text;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.Text;
@@ -17,7 +18,6 @@ using Dalamud.Interface.Internal.Windows.Settings.Widgets;
 using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-using ImGuiNET;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Tabs;
@@ -188,7 +188,7 @@ public class SettingsTabLook : SettingsTab
 
         var buttonSize =
             GlobalUiScalePresets
-                .Select(x => ImGui.CalcTextSize(x.Item1, 0, x.Item1.IndexOf('#')))
+                .Select(x => ImGui.CalcTextSize(x.Item1, true))
                 .Aggregate(Vector2.Zero, Vector2.Max)
             + (ImGui.GetStyle().FramePadding * 2);
         foreach (var (buttonLabel, scale) in GlobalUiScalePresets)
@@ -210,7 +210,8 @@ public class SettingsTabLook : SettingsTab
                 var len = Encoding.UTF8.GetByteCount(buildingFonts);
                 var p = stackalloc byte[len];
                 Encoding.UTF8.GetBytes(buildingFonts, new(p, len));
-                ImGuiNative.igTextUnformatted(p, (p + len + ((Environment.TickCount / 200) % 3)) - 2);
+                ImGui.TextUnformatted(
+                    new ReadOnlySpan<byte>(p, len)[..((len + ((Environment.TickCount / 200) % 3)) - 2)]);
             }
         }
 

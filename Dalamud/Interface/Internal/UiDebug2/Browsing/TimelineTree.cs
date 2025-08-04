@@ -2,20 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
+using static Dalamud.Bindings.ImGui.ImGuiTableColumnFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTableFlags;
+using static Dalamud.Bindings.ImGui.ImGuiTreeNodeFlags;
 using static Dalamud.Interface.ColorHelpers;
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
 using static FFXIVClientStructs.FFXIV.Component.GUI.NodeType;
-using static ImGuiNET.ImGuiTableColumnFlags;
-using static ImGuiNET.ImGuiTableFlags;
-using static ImGuiNET.ImGuiTreeNodeFlags;
 
 // ReSharper disable SuggestBaseTypeForParameter
 namespace Dalamud.Interface.Internal.UiDebug2.Browsing;
@@ -75,7 +74,7 @@ public readonly unsafe partial struct TimelineTree
                         ("Frame Time", $"{this.NodeTimeline->FrameTime:F2} ({this.NodeTimeline->FrameTime * 30:F0})"));
 
                     PrintFieldValuePairs(("Active Label Id", $"{this.NodeTimeline->ActiveLabelId}"), ("Duration", $"{this.NodeTimeline->LabelFrameIdxDuration}"), ("End Frame", $"{this.NodeTimeline->LabelEndFrameIdx}"));
-                    ImGui.TextColored(new(0.6f, 0.6f, 0.6f, 1), "Animation List");
+                    ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Animation List");
 
                     for (var a = 0; a < animationCount; a++)
                     {

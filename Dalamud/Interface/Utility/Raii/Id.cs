@@ -1,4 +1,4 @@
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Utility.Raii;
 
@@ -6,7 +6,7 @@ namespace Dalamud.Interface.Utility.Raii;
 // If condition is false, no id is pushed.
 public static partial class ImRaii
 {
-    public static Id PushId(string id, bool enabled = true)
+    public static Id PushId(ImU8String id, bool enabled = true)
         => enabled ? new Id().Push(id) : new Id();
 
     public static Id PushId(int id, bool enabled = true)
@@ -19,7 +19,7 @@ public static partial class ImRaii
     {
         private int count;
 
-        public Id Push(string id, bool condition = true)
+        public Id Push(ImU8String id, bool condition = true)
         {
             if (condition)
             {
@@ -41,11 +41,11 @@ public static partial class ImRaii
             return this;
         }
 
-        public Id Push(IntPtr id, bool condition = true)
+        public unsafe Id Push(IntPtr id, bool condition = true)
         {
             if (condition)
             {
-                ImGui.PushID(id);
+                ImGui.PushID(id.ToPointer());
                 ++this.count;
             }
 

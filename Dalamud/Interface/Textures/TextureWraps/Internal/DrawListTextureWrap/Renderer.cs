@@ -4,11 +4,10 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -50,7 +49,7 @@ internal sealed unsafe partial class DrawListTextureWrap
         {
             try
             {
-                this.device = new((ID3D11Device*)iwms.Manager.Device!.NativePointer);
+                this.device = new((ID3D11Device*)iwms.Manager.Backend!.DeviceHandle);
                 fixed (ID3D11DeviceContext** p = &this.deviceContext.GetPinnableReference())
                     this.device.Get()->GetImmediateContext(p);
                 this.deviceContext.Get()->AddRef();
@@ -80,7 +79,7 @@ internal sealed unsafe partial class DrawListTextureWrap
             if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0
                 || !drawData.Valid || drawData.CmdListsCount < 1)
                 return;
-            var cmdLists = new Span<ImDrawListPtr>(drawData.NativePtr->CmdLists, drawData.NativePtr->CmdListsCount);
+            var cmdLists = new Span<ImDrawListPtr>(drawData.CmdLists, drawData.CmdListsCount);
 
             // Create and grow vertex/index buffers if needed
             if (this.vertexBufferSize < drawData.TotalVtxCount)
@@ -135,8 +134,8 @@ internal sealed unsafe partial class DrawListTextureWrap
                 var targetIndices = new Span<ushort>(indexData.pData, this.indexBufferSize);
                 foreach (ref var cmdList in cmdLists)
                 {
-                    var vertices = new ImVectorWrapper<ImDrawVert>(&cmdList.NativePtr->VtxBuffer);
-                    var indices = new ImVectorWrapper<ushort>(&cmdList.NativePtr->IdxBuffer);
+                    var vertices = new ImVectorWrapper<ImDrawVert>(cmdList.VtxBuffer.ToUntyped());
+                    var indices = new ImVectorWrapper<ushort>(cmdList.IdxBuffer.ToUntyped());
 
                     vertices.DataSpan.CopyTo(targetVertices);
                     indices.DataSpan.CopyTo(targetIndices);
@@ -226,7 +225,7 @@ internal sealed unsafe partial class DrawListTextureWrap
                 new Vector4(drawData.FramebufferScale, drawData.FramebufferScale.X, drawData.FramebufferScale.Y);
             foreach (ref var cmdList in cmdLists)
             {
-                var cmds = new ImVectorWrapper<ImDrawCmd>(&cmdList.NativePtr->CmdBuffer);
+                var cmds = new ImVectorWrapper<ImDrawCmd>(cmdList.CmdBuffer.ToUntyped());
                 foreach (ref var cmd in cmds.DataSpan)
                 {
                     var clipV4 = (cmd.ClipRect - clipOff) * frameBufferScaleV4;
@@ -238,11 +237,11 @@ internal sealed unsafe partial class DrawListTextureWrap
 
                     this.deviceContext.Get()->RSSetScissorRects(1, &clipRect);
 
-                    if (cmd.UserCallback == nint.Zero)
+                    if (cmd.UserCallback == null)
                     {
                         // Bind texture and draw
                         var samplerp = this.samplerState.Get();
-                        var srvp = (ID3D11ShaderResourceView*)cmd.TextureId;
+                        var srvp = (ID3D11ShaderResourceView*)cmd.TextureId.Handle;
                         this.deviceContext.Get()->PSSetShader(this.drawToPremulPixelShader, null, 0);
                         this.deviceContext.Get()->PSSetSamplers(0, 1, &samplerp);
                         this.deviceContext.Get()->PSSetShaderResources(0, 1, &srvp);

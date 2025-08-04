@@ -1,8 +1,7 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Game.Text.Noun;
 using Dalamud.Game.Text.Noun.Enums;
-
-using ImGuiNET;
 
 using LSheets = Lumina.Excel.Sheets;
 
@@ -212,7 +211,7 @@ internal class NounProcessorSelfTestStep : ISelfTestStep
         for (var i = 0; i < this.tests.Length; i++)
         {
             var e = this.tests[i];
-            
+
             var nounParams = new NounParams()
             {
                 SheetName = e.SheetName,
