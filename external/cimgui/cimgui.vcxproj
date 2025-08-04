@@ -21,6 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lib\cimgui\cimgui.h" />
+    <ClInclude Include="..\..\lib\cimgui\imgui\imgui.h" />
+    <ClInclude Include="..\..\lib\cimgui\imgui\imgui_internal.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -56,8 +58,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-      <OutDir>bin\$(Configuration)\</OutDir>
-      <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>bin\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -71,7 +73,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;CIMGUI_EXPORTS;_WINDOWS;_USRDLL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1;IMGUI_USER_CONFIG="cimgui_user.h";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -87,7 +89,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;CIMGUI_EXPORTS;_WINDOWS;_USRDLL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1;IMGUI_USER_CONFIG="cimgui_user.h";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

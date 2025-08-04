@@ -2,14 +2,12 @@
 using System.Numerics;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.DesignSystem;
 
@@ -41,11 +39,11 @@ internal static partial class DalamudComponents
             var width = ImGuiHelpers.GlobalScale * 300;
 
             ImGui.SetNextItemWidth(width);
-            ImGui.InputTextWithHint("###pluginPickerSearch", Locs.SearchHint, ref pickerSearch, 255);
+            ImGui.InputTextWithHint("###pluginPickerSearch"u8, Locs.SearchHint, ref pickerSearch, 255);
 
             var currentSearchString = pickerSearch;
 
-            using var listBox = ImRaii.ListBox("###pluginPicker", new Vector2(width, width - 80));
+            using var listBox = ImRaii.ListBox("###pluginPicker"u8, new Vector2(width, width - 80));
             if (listBox.Success)
             {
                 // TODO: Plugin searching should be abstracted... installer and this should use the same search

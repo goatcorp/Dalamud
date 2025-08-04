@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Gui.Toast;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -26,15 +25,15 @@ internal class ToastSelfTestStep : ISelfTestStep
             this.sentToasts = true;
         }
 
-        ImGui.Text("Did you see a normal toast, a quest toast and an error toast?");
+        ImGui.Text("Did you see a normal toast, a quest toast and an error toast?"u8);
 
-        if (ImGui.Button("Yes"))
+        if (ImGui.Button("Yes"u8))
         {
             return SelfTestStepResult.Pass;
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("No"))
+        if (ImGui.Button("No"u8))
         {
             return SelfTestStepResult.Fail;
         }

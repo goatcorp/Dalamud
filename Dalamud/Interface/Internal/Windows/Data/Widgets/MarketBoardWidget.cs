@@ -1,11 +1,13 @@
 ﻿using System.Collections.Concurrent;
 using System.Globalization;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.MarketBoard;
 using Dalamud.Game.Network.Structures;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+
+using ImGuiTable = Dalamud.Interface.Utility.ImGuiTable;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -67,7 +69,7 @@ internal class MarketBoardWidget : IDataWindowWidget
     public void Draw()
     {
         var marketBoard = Service<MarketBoard>.Get();
-        if (ImGui.Checkbox("Track MarketBoard Events", ref this.trackMarketBoard))
+        if (ImGui.Checkbox("Track MarketBoard Events"u8, ref this.trackMarketBoard))
         {
             if (this.trackMarketBoard)
             {
@@ -88,21 +90,21 @@ internal class MarketBoardWidget : IDataWindowWidget
         }
 
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X / 2);
-        if (ImGui.DragInt("Stored Number of Events", ref this.trackedEvents, 0.1f, 1, 512))
+        if (ImGui.DragInt("Stored Number of Events"u8, ref this.trackedEvents, 0.1f, 1, 512))
         {
             this.trackedEvents = Math.Clamp(this.trackedEvents, 1, 512);
         }
 
-        if (ImGui.Button("Clear Stored Events"))
+        if (ImGui.Button("Clear Stored Events"u8))
         {
             this.marketBoardHistoryQueue.Clear();
         }
 
-        using (var tabBar = ImRaii.TabBar("marketTabs"))
+        using (var tabBar = ImRaii.TabBar("marketTabs"u8))
         {
             if (tabBar)
             {
-                using (var tabItem = ImRaii.TabItem("History"))
+                using (var tabItem = ImRaii.TabItem("History"u8))
                 {
                     if (tabItem)
                     {
@@ -110,7 +112,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                     }
                 }
 
-                using (var tabItem = ImRaii.TabItem("Offerings"))
+                using (var tabItem = ImRaii.TabItem("Offerings"u8))
                 {
                     if (tabItem)
                     {
@@ -118,7 +120,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                     }
                 }
 
-                using (var tabItem = ImRaii.TabItem("Purchases"))
+                using (var tabItem = ImRaii.TabItem("Purchases"u8))
                 {
                     if (tabItem)
                     {
@@ -126,7 +128,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                     }
                 }
 
-                using (var tabItem = ImRaii.TabItem("Purchase Requests"))
+                using (var tabItem = ImRaii.TabItem("Purchase Requests"u8))
                 {
                     if (tabItem)
                     {
@@ -134,7 +136,7 @@ internal class MarketBoardWidget : IDataWindowWidget
                     }
                 }
 
-                using (var tabItem = ImRaii.TabItem("Taxes"))
+                using (var tabItem = ImRaii.TabItem("Taxes"u8))
                 {
                     if (tabItem)
                     {
@@ -204,105 +206,105 @@ internal class MarketBoardWidget : IDataWindowWidget
     private void DrawMarketBoardHistory((IMarketBoardHistory History, IMarketBoardHistoryListing Listing) data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.History.ItemId.ToString());
+        ImGui.Text(data.History.ItemId.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.Quantity.ToString());
+        ImGui.Text(data.Listing.Quantity.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.IsHq.ToString());
+        ImGui.Text(data.Listing.IsHq.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.SalePrice.ToString());
+        ImGui.Text(data.Listing.SalePrice.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.BuyerName);
+        ImGui.Text(data.Listing.BuyerName);
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.PurchaseTime.ToString(CultureInfo.InvariantCulture));
+        ImGui.Text(data.Listing.PurchaseTime.ToString(CultureInfo.InvariantCulture));
     }
 
     private void DrawMarketBoardCurrentOfferings((IMarketBoardCurrentOfferings MarketBoardCurrentOfferings, IMarketBoardItemListing Listing) data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.ItemId.ToString());
+        ImGui.Text(data.Listing.ItemId.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.ItemQuantity.ToString());
+        ImGui.Text(data.Listing.ItemQuantity.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.IsHq.ToString());
+        ImGui.Text(data.Listing.IsHq.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.PricePerUnit.ToString());
+        ImGui.Text(data.Listing.PricePerUnit.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.Listing.RetainerName);
+        ImGui.Text(data.Listing.RetainerName);
     }
 
     private void DrawMarketBoardPurchases(IMarketBoardPurchase data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.CatalogId.ToString());
+        ImGui.Text(data.CatalogId.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.ItemQuantity.ToString());
+        ImGui.Text(data.ItemQuantity.ToString());
     }
 
     private void DrawMarketBoardPurchaseRequests(IMarketBoardPurchaseHandler data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.CatalogId.ToString());
+        ImGui.Text(data.CatalogId.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.IsHq.ToString());
+        ImGui.Text(data.IsHq.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.ItemQuantity.ToString());
+        ImGui.Text(data.ItemQuantity.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.PricePerUnit.ToString());
+        ImGui.Text(data.PricePerUnit.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.TotalTax.ToString());
+        ImGui.Text(data.TotalTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.RetainerCityId.ToString());
+        ImGui.Text(data.RetainerCityId.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.ListingId.ToString());
+        ImGui.Text(data.ListingId.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.RetainerId.ToString());
+        ImGui.Text(data.RetainerId.ToString());
     }
 
     private void DrawMarketTaxRates(IMarketTaxRates data)
     {
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.UldahTax.ToString());
+        ImGui.Text(data.UldahTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.LimsaLominsaTax.ToString());
+        ImGui.Text(data.LimsaLominsaTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.GridaniaTax.ToString());
+        ImGui.Text(data.GridaniaTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.IshgardTax.ToString());
+        ImGui.Text(data.IshgardTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.KuganeTax.ToString());
+        ImGui.Text(data.KuganeTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.CrystariumTax.ToString());
+        ImGui.Text(data.CrystariumTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.SharlayanTax.ToString());
+        ImGui.Text(data.SharlayanTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.TuliyollalTax.ToString());
+        ImGui.Text(data.TuliyollalTax.ToString());
 
         ImGui.TableNextColumn();
-        ImGui.TextUnformatted(data.ValidUntil.ToString(CultureInfo.InvariantCulture));
+        ImGui.Text(data.ValidUntil.ToString(CultureInfo.InvariantCulture));
     }
 }

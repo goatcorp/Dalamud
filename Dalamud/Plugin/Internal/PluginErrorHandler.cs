@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Plugin.Internal.Types;
-
-using ImGuiNET;
 
 using Serilog;
 
@@ -113,7 +112,7 @@ internal class PluginErrorHandler : IServiceType
         this.activeNotification = this.notificationManager.AddNotification(notification);
         this.activeNotification.DrawActions += _ =>
         {
-            if (ImGui.Button("Show console"))
+            if (ImGui.Button("Show console"u8))
             {
                 this.di.OpenLogWindow(this.plugin.InternalName);
                 this.activeNotification.DismissNow();
@@ -121,12 +120,12 @@ internal class PluginErrorHandler : IServiceType
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Show the console filtered to this plugin");
+                ImGui.SetTooltip("Show the console filtered to this plugin"u8);
             }
 
             ImGui.SameLine();
 
-            if (ImGui.Button("Disable notifications"))
+            if (ImGui.Button("Disable notifications"u8))
             {
                 devPlugin.NotifyForErrors = false;
                 this.activeNotification.DismissNow();
@@ -134,7 +133,7 @@ internal class PluginErrorHandler : IServiceType
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Disable error notifications for this plugin");
+                ImGui.SetTooltip("Disable error notifications for this plugin"u8);
             }
         };
     }

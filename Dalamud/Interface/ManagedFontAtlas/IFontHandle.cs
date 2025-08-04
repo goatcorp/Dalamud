@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 
@@ -56,9 +56,9 @@ public interface IFontHandle : IDisposable
     /// You may not access the font once you dispose this object.
     /// </summary>
     /// <returns>A disposable object that will pop the font on dispose.</returns>
-    /// <exception cref="InvalidOperationException">If called outside of the main thread.</exception>
+    /// <exception cref="InvalidOperationException">If called outside the main thread.</exception>
     /// <remarks>
-    /// <para>This function uses <see cref="ImGui.PushFont"/>, and may do extra things. 
+    /// <para>This function uses <see cref="ImGui.PushFont(ImFontPtr)"/>, and may do extra things.
     /// Use <see cref="IDisposable.Dispose"/> or <see cref="Pop"/> to undo this operation.
     /// Do not use <see cref="ImGui.PopFont"/>.</para>
     /// </remarks>
@@ -66,18 +66,18 @@ public interface IFontHandle : IDisposable
     /// <b>Push a font with `using` clause.</b>
     /// <code>
     /// using (fontHandle.Push())
-    ///     ImGui.TextUnformatted("Test");
+    ///     ImGui.Text("Test"u8);
     /// </code>
     /// <b>Push a font with a matching call to <see cref="Pop"/>.</b>
     /// <code>
     /// fontHandle.Push();
-    /// ImGui.TextUnformatted("Test 2");
+    /// ImGui.Text("Test 2"u8);
     /// fontHandle.Pop();
     /// </code>
     /// <b>Push a font between two choices.</b>
     /// <code>
     /// using ((someCondition ? myFontHandle : dalamudPluginInterface.UiBuilder.MonoFontHandle).Push())
-    ///     ImGui.TextUnformatted("Test 3"); 
+    ///     ImGui.Text("Test 3"u8);
     /// </code>
     /// </example>
     IDisposable Push();

@@ -1,6 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Fates;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -19,11 +19,11 @@ internal class FateTableSelfTestStep : ISelfTestStep
     {
         var fateTable = Service<FateTable>.Get();
 
-        ImGui.Text("Checking fate table...");
+        ImGui.Text("Checking fate table..."u8);
 
         if (fateTable.Length == 0)
         {
-            ImGui.Text("Go to a zone that has FATEs currently up.");
+            ImGui.Text("Go to a zone that has FATEs currently up."u8);
             return SelfTestStepResult.Waiting;
         }
 

@@ -1,6 +1,5 @@
-﻿using Dalamud.Game.DutyState;
-
-using ImGuiNET;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.DutyState;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -20,7 +19,7 @@ internal class DutyStateSelfTestStep : ISelfTestStep
     {
         var dutyState = Service<DutyState>.Get();
 
-        ImGui.Text("Enter a duty now...");
+        ImGui.Text("Enter a duty now..."u8);
 
         if (!this.subscribed)
         {

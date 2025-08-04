@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
-
-using ImGuiNET;
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
@@ -24,7 +23,7 @@ internal class ConditionSelfTestStep : ISelfTestStep
             return SelfTestStepResult.Fail;
         }
 
-        ImGui.Text("Please jump...");
+        ImGui.Text("Please jump..."u8);
 
         return condition[ConditionFlag.Jumping] ? SelfTestStepResult.Pass : SelfTestStepResult.Waiting;
     }

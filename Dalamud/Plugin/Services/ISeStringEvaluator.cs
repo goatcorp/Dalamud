@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.Evaluator;
@@ -11,7 +9,6 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// Defines a service for retrieving localized text for various in-game entities.
 /// </summary>
-[Experimental("SeStringEvaluator")]
 public interface ISeStringEvaluator
 {
     /// <summary>
@@ -31,6 +28,15 @@ public interface ISeStringEvaluator
     /// <param name="language">An optional language override.</param>
     /// <returns>An evaluated <see cref="ReadOnlySeString"/>.</returns>
     ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null);
+
+    /// <summary>
+    /// Evaluates macros in a macro string.
+    /// </summary>
+    /// <param name="macroString">The macro string.</param>
+    /// <param name="localParameters">An optional list of local parameters.</param>
+    /// <param name="language">An optional language override.</param>
+    /// <returns>An evaluated <see cref="ReadOnlySeString"/>.</returns>
+    ReadOnlySeString EvaluateMacroString(string macroString, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null);
 
     /// <summary>
     /// Evaluates macros in text from the Addon sheet.

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -67,19 +66,19 @@ internal class AddonLifecycleSelfTestStep : ISelfTestStep
         switch (this.currentStep)
         {
             case TestStep.CharacterRefresh:
-                ImGui.Text("Open Character Window.");
+                ImGui.Text("Open Character Window."u8);
                 break;
 
             case TestStep.CharacterSetup:
-                ImGui.Text("Open Character Window.");
+                ImGui.Text("Open Character Window."u8);
                 break;
 
             case TestStep.CharacterRequestedUpdate:
-                ImGui.Text("Change tabs, or un-equip/equip gear.");
+                ImGui.Text("Change tabs, or un-equip/equip gear."u8);
                 break;
 
             case TestStep.CharacterFinalize:
-                ImGui.Text("Close Character Window.");
+                ImGui.Text("Close Character Window."u8);
                 break;
 
             case TestStep.CharacterUpdate:

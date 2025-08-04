@@ -1,18 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.ImGuiNotification.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Ipc.Internal;
-
-using ImGuiNET;
-
 using Newtonsoft.Json;
 
 using Formatting = Newtonsoft.Json.Formatting;
@@ -53,13 +51,13 @@ internal class DataShareWidget : IDataWindowWidget
     /// <inheritdoc/>
     public unsafe void Draw()
     {
-        using var tabbar = ImRaii.TabBar("##tabbar");
+        using var tabbar = ImRaii.TabBar("##tabbar"u8);
         if (!tabbar.Success)
             return;
 
         var d = true;
         using (var tabitem = ImRaii.TabItem(
-                   "Data Share##tabbar-datashare",
+                   "Data Share##tabbar-datashare"u8,
                    ref d,
                    NoCloseButton | (this.nextTab == 0 ? ImGuiTabItemFlags.SetSelected : 0)))
         {
@@ -68,7 +66,7 @@ internal class DataShareWidget : IDataWindowWidget
         }
 
         using (var tabitem = ImRaii.TabItem(
-                   "Call Gate##tabbar-callgate",
+                   "Call Gate##tabbar-callgate"u8,
                    ref d,
                    NoCloseButton | (this.nextTab == 1 ? ImGuiTabItemFlags.SetSelected : 0)))
         {
@@ -90,7 +88,7 @@ internal class DataShareWidget : IDataWindowWidget
             if (!tabitem.Success)
                 continue;
 
-            if (ImGui.Button("Refresh"))
+            if (ImGui.Button("Refresh"u8))
                 data = null;
 
             if (data is null)
@@ -121,24 +119,14 @@ internal class DataShareWidget : IDataWindowWidget
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("Copy"))
-            {
-                fixed (byte* pData = data)
-                    ImGuiNative.igSetClipboardText(pData);
-            }
+            if (ImGui.Button("Copy"u8))
+                ImGui.SetClipboardText(data);
 
-            fixed (byte* pLabel = "text"u8)
-            fixed (byte* pData = data)
-            {
-                ImGuiNative.igInputTextMultiline(
-                    pLabel,
-                    pData,
-                    (uint)data.Length,
-                    ImGui.GetContentRegionAvail(),
-                    ImGuiInputTextFlags.ReadOnly,
-                    null,
-                    null);
-            }
+            ImGui.InputTextMultiline(
+                "text"u8,
+                data,
+                ImGui.GetContentRegionAvail(),
+                ImGuiInputTextFlags.ReadOnly);
         }
 
         this.nextTab = -1;
@@ -148,7 +136,7 @@ internal class DataShareWidget : IDataWindowWidget
     {
         if (mi is null)
             return "-";
-        
+
         var sb = new StringBuilder();
         sb.Append(ReprType(mi.DeclaringType))
           .Append("::")
@@ -226,7 +214,7 @@ internal class DataShareWidget : IDataWindowWidget
         var offset = ImGui.GetCursorScreenPos() + new Vector2(0, framepad ? ImGui.GetStyle().FramePadding.Y : 0);
         if (framepad)
             ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted(s);
+        ImGui.Text(s);
         if (ImGui.IsItemHovered())
         {
             ImGui.SetNextWindowPos(offset - ImGui.GetStyle().WindowPadding);
@@ -236,7 +224,7 @@ internal class DataShareWidget : IDataWindowWidget
             using (ImRaii.Tooltip())
             {
                 ImGui.PushTextWrapPos(wrx);
-                ImGui.TextWrapped((tooltip?.Invoke() ?? s).Replace("%", "%%"));
+                ImGui.TextWrapped(tooltip?.Invoke() ?? s);
                 ImGui.PopTextWrapPos();
             }
         }
@@ -254,15 +242,15 @@ internal class DataShareWidget : IDataWindowWidget
     private void DrawCallGate()
     {
         var callGate = Service<CallGate>.Get();
-        if (ImGui.Button("Purge empty call gates"))
+        if (ImGui.Button("Purge empty call gates"u8))
             callGate.PurgeEmptyGates();
 
-        using var table = ImRaii.Table("##callgate-table", 5);
-        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.DefaultSort);
-        ImGui.TableSetupColumn("Action");
-        ImGui.TableSetupColumn("Func");
-        ImGui.TableSetupColumn("#", ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
-        ImGui.TableSetupColumn("Subscriber");
+        using var table = ImRaii.Table("##callgate-table"u8, 5);
+        ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.DefaultSort);
+        ImGui.TableSetupColumn("Action"u8);
+        ImGui.TableSetupColumn("Func"u8);
+        ImGui.TableSetupColumn("#"u8, ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("Subscriber"u8);
         ImGui.TableHeadersRow();
 
         var gates2 = callGate.Gates;
@@ -299,16 +287,16 @@ internal class DataShareWidget : IDataWindowWidget
 
     private void DrawDataShare()
     {
-        if (!ImGui.BeginTable("###DataShareTable", 5, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg))
+        if (!ImGui.BeginTable("###DataShareTable"u8, 5, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg))
             return;
 
         try
         {
-            ImGui.TableSetupColumn("Shared Tag");
-            ImGui.TableSetupColumn("Show");
-            ImGui.TableSetupColumn("Creator Assembly");
-            ImGui.TableSetupColumn("#", ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Consumers");
+            ImGui.TableSetupColumn("Shared Tag"u8);
+            ImGui.TableSetupColumn("Show"u8);
+            ImGui.TableSetupColumn("Creator Assembly"u8);
+            ImGui.TableSetupColumn("#"u8, ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("Consumers"u8);
             ImGui.TableHeadersRow();
             foreach (var share in Service<DataShare>.Get().GetAllShares())
             {

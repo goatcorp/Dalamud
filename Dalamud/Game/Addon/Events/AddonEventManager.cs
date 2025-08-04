@@ -24,21 +24,21 @@ internal unsafe class AddonEventManager : IInternalDisposableService
     /// PluginName for Dalamud Internal use.
     /// </summary>
     public static readonly Guid DalamudInternalKey = Guid.NewGuid();
-    
+
     private static readonly ModuleLog Log = new("AddonEventManager");
-    
+
     [ServiceManager.ServiceDependency]
     private readonly AddonLifecycle addonLifecycle = Service<AddonLifecycle>.Get();
 
     private readonly AddonLifecycleEventListener finalizeEventListener;
-    
+
     private readonly AddonEventManagerAddressResolver address;
     private readonly Hook<UpdateCursorDelegate> onUpdateCursor;
 
     private readonly ConcurrentDictionary<Guid, PluginEventController> pluginEventControllers;
-    
+
     private AddonCursorType? cursorOverride;
-    
+
     [ServiceManager.ServiceConstructor]
     private AddonEventManager(TargetSigScanner sigScanner)
     {
@@ -47,7 +47,7 @@ internal unsafe class AddonEventManager : IInternalDisposableService
 
         this.pluginEventControllers = new ConcurrentDictionary<Guid, PluginEventController>();
         this.pluginEventControllers.TryAdd(DalamudInternalKey, new PluginEventController());
-        
+
         this.cursorOverride = null;
 
         this.onUpdateCursor = Hook<UpdateCursorDelegate>.FromAddress(this.address.UpdateCursor, this.UpdateCursorDetour);
@@ -69,7 +69,7 @@ internal unsafe class AddonEventManager : IInternalDisposableService
         {
             pluginEventController.Dispose();
         }
-        
+
         this.addonLifecycle.UnregisterListener(this.finalizeEventListener);
     }
 
@@ -80,19 +80,19 @@ internal unsafe class AddonEventManager : IInternalDisposableService
     /// <param name="atkUnitBase">The parent addon for this event.</param>
     /// <param name="atkResNode">The node that will trigger this event.</param>
     /// <param name="eventType">The event type for this event.</param>
-    /// <param name="eventHandler">The handler to call when event is triggered.</param>
+    /// <param name="eventDelegate">The delegate to call when event is triggered.</param>
     /// <returns>IAddonEventHandle used to remove the event.</returns>
-    internal IAddonEventHandle? AddEvent(Guid pluginId, IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler)
+    internal IAddonEventHandle? AddEvent(Guid pluginId, nint atkUnitBase, nint atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventDelegate eventDelegate)
     {
         if (this.pluginEventControllers.TryGetValue(pluginId, out var controller))
         {
-            return controller.AddEvent(atkUnitBase, atkResNode, eventType, eventHandler);
+            return controller.AddEvent(atkUnitBase, atkResNode, eventType, eventDelegate);
         }
         else
         {
             Log.Verbose($"Unable to locate controller for {pluginId}. No event was added.");
         }
-        
+
         return null;
     }
 
@@ -112,7 +112,7 @@ internal unsafe class AddonEventManager : IInternalDisposableService
             Log.Verbose($"Unable to locate controller for {pluginId}. No event was removed.");
         }
     }
-    
+
     /// <summary>
     /// Force the game cursor to be the specified cursor.
     /// </summary>
@@ -167,21 +167,21 @@ internal unsafe class AddonEventManager : IInternalDisposableService
             pluginList.Value.RemoveForAddon(addonInfo.AddonName);
         }
     }
-    
+
     private nint UpdateCursorDetour(RaptureAtkModule* module)
     {
         try
         {
             var atkStage = AtkStage.Instance();
-            
+
             if (this.cursorOverride is not null && atkStage is not null)
             {
                 var cursor = (AddonCursorType)atkStage->AtkCursor.Type;
-                if (cursor != this.cursorOverride) 
+                if (cursor != this.cursorOverride)
                 {
                     AtkStage.Instance()->AtkCursor.SetCursorType((AtkCursor.CursorType)this.cursorOverride, 1);
                 }
-                
+
                 return nint.Zero;
             }
         }
@@ -218,7 +218,7 @@ internal class AddonEventManagerPluginScoped : IInternalDisposableService, IAddo
     public AddonEventManagerPluginScoped(LocalPlugin plugin)
     {
         this.plugin = plugin;
-        
+
         this.eventManagerService.AddPluginEventController(plugin.EffectiveWorkingPluginId);
     }
 
@@ -236,28 +236,28 @@ internal class AddonEventManagerPluginScoped : IInternalDisposableService, IAddo
             this.eventManagerService.RemovePluginEventController(this.plugin.EffectiveWorkingPluginId);
         }).Wait();
     }
-    
+
     /// <inheritdoc/>
-    public IAddonEventHandle? AddEvent(IntPtr atkUnitBase, IntPtr atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventHandler eventHandler) 
-        => this.eventManagerService.AddEvent(this.plugin.EffectiveWorkingPluginId, atkUnitBase, atkResNode, eventType, eventHandler);
+    public IAddonEventHandle? AddEvent(nint atkUnitBase, nint atkResNode, AddonEventType eventType, IAddonEventManager.AddonEventDelegate eventDelegate)
+        => this.eventManagerService.AddEvent(this.plugin.EffectiveWorkingPluginId, atkUnitBase, atkResNode, eventType, eventDelegate);
 
     /// <inheritdoc/>
     public void RemoveEvent(IAddonEventHandle eventHandle)
         => this.eventManagerService.RemoveEvent(this.plugin.EffectiveWorkingPluginId, eventHandle);
-    
+
     /// <inheritdoc/>
     public void SetCursor(AddonCursorType cursor)
     {
         this.isForcingCursor = true;
-        
+
         this.eventManagerService.SetCursor(cursor);
     }
-    
+
     /// <inheritdoc/>
     public void ResetCursor()
     {
         this.isForcingCursor = false;
-        
+
         this.eventManagerService.ResetCursor();
     }
 }

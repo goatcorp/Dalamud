@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data;
 
@@ -16,13 +15,13 @@ internal class WidgetUtil
     /// <param name="tooltipText">The text in the tooltip.</param>
     internal static void DrawCopyableText(string text, string tooltipText = "Copy")
     {
-        ImGuiHelpers.SafeTextWrapped(text);
+        ImGui.TextWrapped(text);
 
         if (ImGui.IsItemHovered())
         {
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
             ImGui.BeginTooltip();
-            ImGui.TextUnformatted(tooltipText);
+            ImGui.Text(tooltipText);
             ImGui.EndTooltip();
         }
 

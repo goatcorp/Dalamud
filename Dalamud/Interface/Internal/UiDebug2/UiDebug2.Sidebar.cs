@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
-
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static System.StringComparison;
+
 using static Dalamud.Interface.FontAwesomeIcon;
 
 namespace Dalamud.Interface.Internal.UiDebug2;
@@ -49,7 +49,7 @@ internal unsafe partial class UiDebug2
     /// Gets the base address for all unit lists.
     /// </summary>
     /// <returns>The address, if found.</returns>
-    internal static AtkUnitList* GetUnitListBaseAddr() => &((UIModule*)GameGui.GetUIModule())->GetRaptureAtkModule()->RaptureAtkUnitManager.AtkUnitManager.DepthLayerOneList;
+    internal static AtkUnitList* GetUnitListBaseAddr() => &RaptureAtkUnitManager.Instance()->DepthLayerOneList;
 
     private void DrawSidebar()
     {
@@ -64,7 +64,7 @@ internal unsafe partial class UiDebug2
 
     private void DrawNameSearch()
     {
-        using var ch = ImRaii.Child("###sidebar_nameSearch", new(250, 40), true);
+        using var ch = ImRaii.Child("###sidebar_nameSearch"u8, new(250, 40), true);
 
         if (ch.Success)
         {
@@ -78,13 +78,13 @@ internal unsafe partial class UiDebug2
 
             if (ImGui.IsItemHovered())
             {
-                ImGui.SetTooltip("Filter by visibility");
+                ImGui.SetTooltip("Filter by visibility"u8);
             }
 
             ImGui.SameLine();
 
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-            if (ImGui.InputTextWithHint("###atkUnitBaseSearch", "Filter by name", ref atkUnitBaseSearch, 0x20))
+            if (ImGui.InputTextWithHint("###atkUnitBaseSearch"u8, "Filter by name"u8, ref atkUnitBaseSearch, 0x20))
             {
                 this.addonNameSearch = atkUnitBaseSearch;
             }
@@ -93,7 +93,7 @@ internal unsafe partial class UiDebug2
 
     private void DrawAddonSelectionList()
     {
-        using var ch = ImRaii.Child("###sideBar_addonList", new(250, -44), true, ImGuiWindowFlags.AlwaysVerticalScrollbar);
+        using var ch = ImRaii.Child("###sideBar_addonList"u8, new(250, -44), true, ImGuiWindowFlags.AlwaysVerticalScrollbar);
         if (ch.Success)
         {
             var unitListBaseAddr = GetUnitListBaseAddr();

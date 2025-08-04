@@ -1,6 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Aetherytes;
 using Dalamud.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -19,7 +19,7 @@ internal class AetheryteListSelfTestStep : ISelfTestStep
     {
         var list = Service<AetheryteList>.Get();
 
-        ImGui.Text("Checking aetheryte list...");
+        ImGui.Text("Checking aetheryte list..."u8);
 
         if (this.index == list.Length - 1)
         {

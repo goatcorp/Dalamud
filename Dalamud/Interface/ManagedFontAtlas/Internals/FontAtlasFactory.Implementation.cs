@@ -8,15 +8,13 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.GameFonts;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 using JetBrains.Annotations;
 
@@ -74,12 +72,12 @@ internal sealed partial class FontAtlasFactory
                 var wrapsCopy = this.wraps = new();
                 this.Garbage.Add(() => wrapsCopy.Clear());
 
-                var atlasPtr = ImGuiNative.ImFontAtlas_ImFontAtlas();
+                var atlasPtr = ImGui.ImFontAtlas();
                 this.Atlas = atlasPtr;
-                if (this.Atlas.NativePtr is null)
+                if (this.Atlas.Handle is null)
                     throw new OutOfMemoryException($"Failed to allocate a new {nameof(ImFontAtlas)}.");
 
-                this.Garbage.Add(() => ImGuiNative.ImFontAtlas_destroy(atlasPtr));
+                this.Garbage.Add(() => this.Atlas.Destroy());
                 this.IsBuildInProgress = true;
 
                 Interlocked.Increment(ref numActiveInstances);
@@ -128,7 +126,7 @@ internal sealed partial class FontAtlasFactory
             if (this.wraps is null)
                 throw new ObjectDisposedException(nameof(FontAtlasBuiltData));
 
-            var handle = wrap.ImGuiHandle;
+            var handle = wrap.Handle;
             var index = this.ImTextures.IndexOf(x => x.TexID == handle);
             if (index == -1)
             {
@@ -189,7 +187,7 @@ internal sealed partial class FontAtlasFactory
 
                 case IRefCountable.RefCountResult.FinalRelease:
 #if VeryVerboseLog
-                    Log.Verbose("[{name}] 0x{ptr:X}: Disposing", this.Owner?.Name ?? "<?>", (nint)this.Atlas.NativePtr);
+                    Log.Verbose("[{name}] 0x{ptr:X}: Disposing", this.Owner?.Name ?? "<?>", (nint)this.Atlas.Handle);
 #endif
 
                     if (this.IsBuildInProgress)
@@ -200,7 +198,7 @@ internal sealed partial class FontAtlasFactory
                                 "[{name}] 0x{ptr:X}: Trying to dispose while build is in progress; disposing later.\n" +
                                 "Stack:\n{trace}",
                                 this.Owner?.Name ?? "<?>",
-                                (nint)this.Atlas.NativePtr,
+                                (nint)this.Atlas.Handle,
                                 new StackTrace());
                         }
 
@@ -310,7 +308,7 @@ internal sealed partial class FontAtlasFactory
                 throw;
             }
 
-            this.factory.SceneTask.ContinueWith(
+            this.factory.BackendTask.ContinueWith(
                 r =>
                 {
                     lock (this.syncRoot)
@@ -318,8 +316,8 @@ internal sealed partial class FontAtlasFactory
                         if (this.disposed)
                             return;
 
-                        r.Result.OnNewRenderFrame += this.ImGuiSceneOnNewRenderFrame;
-                        this.disposables.Add(() => r.Result.OnNewRenderFrame -= this.ImGuiSceneOnNewRenderFrame);
+                        r.Result.NewRenderFrame += this.ImGuiSceneOnNewRenderFrame;
+                        this.disposables.Add(() => r.Result.NewRenderFrame -= this.ImGuiSceneOnNewRenderFrame);
                     }
 
                     if (this.AutoRebuildMode == FontAtlasAutoRebuildMode.OnNewFrame)
@@ -372,7 +370,7 @@ internal sealed partial class FontAtlasFactory
         public Task BuildTask => this.buildTask;
 
         /// <inheritdoc/>
-        public bool HasBuiltAtlas => !(this.builtData?.Atlas.IsNull() ?? true);
+        public bool HasBuiltAtlas => !(this.builtData?.Atlas.IsNull ?? true);
 
         /// <inheritdoc/>
         public bool IsGlobalScaled { get; }
@@ -386,7 +384,7 @@ internal sealed partial class FontAtlasFactory
             if (this.disposed)
                 return;
 
-            this.BeforeDispose?.InvokeSafely(this);
+            this.BeforeDispose.InvokeSafely(this);
 
             try
             {
@@ -400,25 +398,11 @@ internal sealed partial class FontAtlasFactory
                     this.disposables.Dispose();
                 }
 
-                try
-                {
-                    this.AfterDispose?.Invoke(this, null);
-                }
-                catch
-                {
-                    // ignore
-                }
+                this.AfterDispose.InvokeSafely(this, null);
             }
             catch (Exception e)
             {
-                try
-                {
-                    this.AfterDispose?.Invoke(this, e);
-                }
-                catch
-                {
-                    // ignore
-                }
+                this.AfterDispose.InvokeSafely(this, e);
             }
 
             GC.SuppressFinalize(this);
@@ -569,7 +553,7 @@ internal sealed partial class FontAtlasFactory
                     }
 
                     var res = await this.RebuildFontsPrivate(true, scale);
-                    if (res.Atlas.IsNull())
+                    if (res.Atlas.IsNull)
                         return res;
 
                     this.PromoteBuiltData(rebuildIndex, res, nameof(this.BuildFontsAsync));
@@ -664,10 +648,10 @@ internal sealed partial class FontAtlasFactory
             {
                 res = new(this, scale);
                 foreach (var fhm in this.fontHandleManagers)
-                    res.InitialAddSubstance(fhm.NewSubstance(res)); 
+                    res.InitialAddSubstance(fhm.NewSubstance(res));
                 unsafe
                 {
-                    atlasPtr = (nint)res.Atlas.NativePtr;
+                    atlasPtr = (nint)res.Atlas.Handle;
                 }
 
                 Log.Verbose(
@@ -699,10 +683,10 @@ internal sealed partial class FontAtlasFactory
 
                     res = new(this, scale);
                     foreach (var fhm in this.fontHandleManagers)
-                        res.InitialAddSubstance(fhm.NewSubstance(res)); 
+                        res.InitialAddSubstance(fhm.NewSubstance(res));
                     unsafe
                     {
-                        atlasPtr = (nint)res.Atlas.NativePtr;
+                        atlasPtr = (nint)res.Atlas.Handle;
                     }
 
                     toolkit = res.CreateToolkit(this.factory, isAsync);
@@ -735,7 +719,7 @@ internal sealed partial class FontAtlasFactory
                 foreach (var font in toolkit.Fonts)
                     toolkit.BuildLookupTable(font);
 
-                if (this.factory.SceneTask is { IsCompleted: false } sceneTask)
+                if (this.factory.BackendTask is { IsCompleted: false } backendTask)
                 {
                     Log.Verbose(
                         "[{name}:{functionname}] 0x{ptr:X}: await SceneTask (at {sw}ms)",
@@ -743,7 +727,7 @@ internal sealed partial class FontAtlasFactory
                         nameof(this.RebuildFontsPrivateReal),
                         atlasPtr,
                         sw.ElapsedMilliseconds);
-                    await sceneTask.ConfigureAwait(!isAsync);
+                    await backendTask.ConfigureAwait(!isAsync);
                 }
 
 #if VeryVerboseLog
@@ -828,7 +812,7 @@ internal sealed partial class FontAtlasFactory
             this.factory.Framework.RunOnFrameworkThread(
                 () =>
                 {
-                    this.RebuildRecommend?.InvokeSafely();
+                    this.RebuildRecommend.InvokeSafely();
 
                     switch (this.AutoRebuildMode)
                     {

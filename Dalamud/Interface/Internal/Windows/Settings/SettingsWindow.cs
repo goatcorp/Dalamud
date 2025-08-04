@@ -2,7 +2,7 @@ using System.Linq;
 using System.Numerics;
 
 using CheapLoc;
-
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Internal.Windows.Settings.Tabs;
@@ -11,8 +11,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings;
 
@@ -42,7 +40,7 @@ internal class SettingsWindow : Window
         };
 
         this.SizeCondition = ImGuiCond.FirstUseEver;
-        
+
         this.tabs =
         [
             new SettingsTabGeneral(),
@@ -142,7 +140,7 @@ internal class SettingsWindow : Window
     {
         var windowSize = ImGui.GetWindowSize();
 
-        if (ImGui.BeginTabBar("###settingsTabs"))
+        if (ImGui.BeginTabBar("###settingsTabs"u8))
         {
             if (string.IsNullOrEmpty(this.searchInput))
             {
@@ -154,7 +152,7 @@ internal class SettingsWindow : Window
                         flags |= ImGuiTabItemFlags.SetSelected;
                         this.setActiveTab = null;
                     }
- 
+
                     using var tab = ImRaii.TabItem(settingsTab.Title, flags);
                     if (tab)
                     {
@@ -192,7 +190,7 @@ internal class SettingsWindow : Window
             }
             else
             {
-                if (ImGui.BeginTabItem("Search Results"))
+                if (ImGui.BeginTabItem("Search Results"u8))
                 {
                     var any = false;
 
@@ -220,7 +218,7 @@ internal class SettingsWindow : Window
                     }
 
                     if (!any)
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, "No results found...");
+                        ImGui.TextColored(ImGuiColors.DalamudGrey, "No results found..."u8);
 
                     ImGui.EndTabItem();
                 }
@@ -231,7 +229,7 @@ internal class SettingsWindow : Window
 
         ImGui.SetCursorPos(windowSize - ImGuiHelpers.ScaledVector2(70));
 
-        using (var buttonChild = ImRaii.Child("###settingsFinishButton"))
+        using (var buttonChild = ImRaii.Child("###settingsFinishButton"u8))
         {
             if (buttonChild)
             {
@@ -261,7 +259,7 @@ internal class SettingsWindow : Window
 
         ImGui.SetCursorPos(new Vector2(windowSize.X - 250, ImGui.GetTextLineHeightWithSpacing() + (ImGui.GetStyle().FramePadding.Y * 2)));
         ImGui.SetNextItemWidth(240);
-        ImGui.InputTextWithHint("###searchInput", "Search for settings...", ref this.searchInput, 100);
+        ImGui.InputTextWithHint("###searchInput"u8, "Search for settings..."u8, ref this.searchInput, 100);
     }
 
     private void Save()

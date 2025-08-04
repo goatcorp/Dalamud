@@ -4,14 +4,12 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using Serilog;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -79,13 +77,16 @@ internal abstract class FontHandle : IFontHandle
     /// <param name="font">The font, locked during the call of <see cref="ImFontChanged"/>.</param>
     public void InvokeImFontChanged(ILockedImFont font)
     {
-        try
+        foreach (var d in Delegate.EnumerateInvocationList(this.ImFontChanged))
         {
-            this.ImFontChanged?.Invoke(this, font);
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, $"{nameof(this.InvokeImFontChanged)}: error");
+            try
+            {
+                d(this, font);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"{nameof(this.InvokeImFontChanged)}: error calling {d.Method.Name}");
+            }
         }
     }
 
@@ -181,7 +182,7 @@ internal abstract class FontHandle : IFontHandle
             }
 
             var fontPtr = substance.GetFontPtr(this);
-            if (fontPtr.IsNull())
+            if (fontPtr.IsNull)
             {
                 // The font for the requested handle is unavailable. Release the reference and try again.
                 substance.DataRoot.Release();

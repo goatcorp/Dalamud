@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -17,7 +16,7 @@ internal class KeyStateSelfTestStep : ISelfTestStep
     {
         var keyState = Service<KeyState>.Get();
 
-        ImGui.Text("Hold down D,A,L,M,U");
+        ImGui.Text("Hold down D,A,L,M,U"u8);
 
         if (keyState[VirtualKey.D]
             && keyState[VirtualKey.A]

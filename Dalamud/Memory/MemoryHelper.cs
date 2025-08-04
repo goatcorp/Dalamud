@@ -6,13 +6,11 @@ using System.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory.Exceptions;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Client.System.String;
-
 using Microsoft.Extensions.ObjectPool;
-
-using static Dalamud.NativeFunctions;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.Memory;
 
 using LPayloadType = Lumina.Text.Payloads.PayloadType;
 using LSeString = Lumina.Text.SeString;
@@ -28,6 +26,8 @@ public static unsafe class MemoryHelper
 {
     private static readonly ObjectPool<StringBuilder> StringBuilderPool =
         ObjectPool.Create(new StringBuilderPooledObjectPolicy());
+
+    private static readonly HANDLE ThisProcessPseudoHandle = new(unchecked((nint)0xFFFFFFFF));
 
     #region Cast
 
@@ -743,16 +743,16 @@ public static unsafe class MemoryHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static nint Allocate(int length)
     {
-        var address = VirtualAlloc(
-            nint.Zero,
+        var address = Windows.Win32.PInvoke.VirtualAlloc(
+            null,
             (nuint)length,
-            AllocationType.Commit | AllocationType.Reserve,
-            MemoryProtection.ExecuteReadWrite);
+            VIRTUAL_ALLOCATION_TYPE.MEM_COMMIT | VIRTUAL_ALLOCATION_TYPE.MEM_RESERVE,
+            PAGE_PROTECTION_FLAGS.PAGE_EXECUTE_READWRITE);
 
-        if (address == nint.Zero)
+        if (address == null)
             throw new MemoryAllocationException($"Unable to allocate {length} bytes.");
 
-        return address;
+        return new IntPtr(address);
     }
 
     /// <summary>
@@ -773,7 +773,7 @@ public static unsafe class MemoryHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Free(nint memoryAddress)
     {
-        return VirtualFree(memoryAddress, nuint.Zero, AllocationType.Release);
+        return Windows.Win32.PInvoke.VirtualFree(memoryAddress.ToPointer(), nuint.Zero, VIRTUAL_FREE_TYPE.MEM_RELEASE);
     }
 
     /// <summary>
@@ -785,7 +785,11 @@ public static unsafe class MemoryHelper
     /// <returns>The old page permissions.</returns>
     public static MemoryProtection ChangePermission(nint memoryAddress, int length, MemoryProtection newPermissions)
     {
-        var result = VirtualProtect(memoryAddress, (nuint)length, newPermissions, out var oldPermissions);
+        var result = Windows.Win32.PInvoke.VirtualProtect(
+            memoryAddress.ToPointer(),
+            (nuint)length,
+            (PAGE_PROTECTION_FLAGS)newPermissions,
+            out var oldPermissions);
 
         if (!result)
             throw new MemoryPermissionException($"Unable to change permissions at {Util.DescribeAddress(memoryAddress)} of length {length} and permission {newPermissions} (result={result})");
@@ -794,7 +798,7 @@ public static unsafe class MemoryHelper
         if (last > 0)
             throw new MemoryPermissionException($"Unable to change permissions at {Util.DescribeAddress(memoryAddress)} of length {length} and permission {newPermissions} (error={last})");
 
-        return oldPermissions;
+        return (MemoryProtection)oldPermissions;
     }
 
     /// <summary>
@@ -860,14 +864,22 @@ public static unsafe class MemoryHelper
         unchecked
         {
             var length = value.Length;
-            var result = NativeFunctions.ReadProcessMemory((nint)0xFFFFFFFF, memoryAddress, value, length, out _);
+            fixed (byte* pVal = value)
+            {
+                var result = Windows.Win32.PInvoke.ReadProcessMemory(
+                    ThisProcessPseudoHandle,
+                    memoryAddress.ToPointer(),
+                    pVal,
+                    (nuint)length,
+                    null);
 
-            if (!result)
-                throw new MemoryReadException($"Unable to read memory at {Util.DescribeAddress(memoryAddress)} of length {length} (result={result})");
+                if (!result)
+                    throw new MemoryReadException($"Unable to read memory at {Util.DescribeAddress(memoryAddress)} of length {length} (result={result})");
 
-            var last = Marshal.GetLastWin32Error();
-            if (last > 0)
-                throw new MemoryReadException($"Unable to read memory at {Util.DescribeAddress(memoryAddress)} of length {length} (error={last})");
+                var last = Marshal.GetLastWin32Error();
+                if (last > 0)
+                    throw new MemoryReadException($"Unable to read memory at {Util.DescribeAddress(memoryAddress)} of length {length} (error={last})");
+            }
         }
     }
 
@@ -882,14 +894,22 @@ public static unsafe class MemoryHelper
         unchecked
         {
             var length = data.Length;
-            var result = NativeFunctions.WriteProcessMemory((nint)0xFFFFFFFF, memoryAddress, data, length, out _);
+            fixed (byte* pData = data)
+            {
+                var result = Windows.Win32.PInvoke.WriteProcessMemory(
+                    ThisProcessPseudoHandle,
+                    memoryAddress.ToPointer(),
+                    pData,
+                    (nuint)length,
+                    null);
 
-            if (!result)
-                throw new MemoryWriteException($"Unable to write memory at {Util.DescribeAddress(memoryAddress)} of length {length} (result={result})");
+                if (!result)
+                    throw new MemoryWriteException($"Unable to write memory at {Util.DescribeAddress(memoryAddress)} of length {length} (result={result})");
 
-            var last = Marshal.GetLastWin32Error();
-            if (last > 0)
-                throw new MemoryWriteException($"Unable to write memory at {Util.DescribeAddress(memoryAddress)} of length {length} (error={last})");
+                var last = Marshal.GetLastWin32Error();
+                if (last > 0)
+                    throw new MemoryWriteException($"Unable to write memory at {Util.DescribeAddress(memoryAddress)} of length {length} (error={last})");
+            }
         }
     }
 

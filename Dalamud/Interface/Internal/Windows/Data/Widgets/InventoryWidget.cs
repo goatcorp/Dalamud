@@ -2,19 +2,15 @@ using System.Buffers.Binary;
 using System.Numerics;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.Inventory;
-using Dalamud.Game.Text;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-
 using FFXIVClientStructs.FFXIV.Client.Game;
-
-using ImGuiNET;
-
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
@@ -66,11 +62,11 @@ internal class InventoryWidget : IDataWindowWidget
 
     private unsafe void DrawInventoryTypeList()
     {
-        using var table = ImRaii.Table("InventoryTypeTable", 2, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings, new Vector2(300, -1));
+        using var table = ImRaii.Table("InventoryTypeTable"u8, 2, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings, new Vector2(300, -1));
         if (!table) return;
 
-        ImGui.TableSetupColumn("Type");
-        ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("Type"u8);
+        ImGui.TableSetupColumn("Size"u8, ImGuiTableColumnFlags.WidthFixed, 40);
         ImGui.TableSetupScrollFreeze(2, 1);
         ImGui.TableHeadersRow();
 
@@ -91,12 +87,12 @@ internal class InventoryWidget : IDataWindowWidget
             {
                 if (contextMenu)
                 {
-                    if (ImGui.MenuItem("Copy Name"))
+                    if (ImGui.MenuItem("Copy Name"u8))
                     {
                         ImGui.SetClipboardText(inventoryType.ToString());
                     }
 
-                    if (ImGui.MenuItem("Copy Address"))
+                    if (ImGui.MenuItem("Copy Address"u8))
                     {
                         var container = InventoryManager.Instance()->GetInventoryContainer((InventoryType)inventoryType);
                         ImGui.SetClipboardText($"0x{(nint)container:X}");
@@ -105,7 +101,7 @@ internal class InventoryWidget : IDataWindowWidget
             }
 
             ImGui.TableNextColumn(); // Size
-            ImGui.TextUnformatted(items.Length.ToString());
+            ImGui.Text(items.Length.ToString());
         }
     }
 
@@ -114,16 +110,16 @@ internal class InventoryWidget : IDataWindowWidget
         var items = GameInventoryItem.GetReadOnlySpanOfInventory(inventoryType);
         if (items.IsEmpty)
         {
-            ImGui.TextUnformatted($"{inventoryType} is empty.");
+            ImGui.Text($"{inventoryType} is empty.");
             return;
         }
 
-        using var itemTable = ImRaii.Table("InventoryItemTable", 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
+        using var itemTable = ImRaii.Table("InventoryItemTable"u8, 4, ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY | ImGuiTableFlags.NoSavedSettings);
         if (!itemTable) return;
-        ImGui.TableSetupColumn("Slot", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("ItemId", ImGuiTableColumnFlags.WidthFixed, 70);
-        ImGui.TableSetupColumn("Quantity", ImGuiTableColumnFlags.WidthFixed, 70);
-        ImGui.TableSetupColumn("Item");
+        ImGui.TableSetupColumn("Slot"u8, ImGuiTableColumnFlags.WidthFixed, 40);
+        ImGui.TableSetupColumn("ItemId"u8, ImGuiTableColumnFlags.WidthFixed, 70);
+        ImGui.TableSetupColumn("Quantity"u8, ImGuiTableColumnFlags.WidthFixed, 70);
+        ImGui.TableSetupColumn("Item"u8);
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableHeadersRow();
 
@@ -135,7 +131,7 @@ internal class InventoryWidget : IDataWindowWidget
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn(); // Slot
-            ImGui.TextUnformatted(slotIndex.ToString());
+            ImGui.Text(slotIndex.ToString());
 
             ImGui.TableNextColumn(); // ItemId
             ImGuiHelpers.ClickToCopyText(item.ItemId.ToString());
@@ -151,15 +147,15 @@ internal class InventoryWidget : IDataWindowWidget
 
                 if (this.textureManager.Shared.TryGetFromGameIcon(new GameIconLookup(iconId, item.IsHq), out var tex) && tex.TryGetWrap(out var texture, out _))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(ImGui.GetTextLineHeight()));
+                    ImGui.Image(texture.Handle, new Vector2(ImGui.GetTextLineHeight()));
 
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                         ImGui.BeginTooltip();
-                        ImGui.TextUnformatted("Click to copy IconId");
-                        ImGui.TextUnformatted($"ID: {iconId} – Size: {texture.Width}x{texture.Height}");
-                        ImGui.Image(texture.ImGuiHandle, new(texture.Width, texture.Height));
+                        ImGui.Text("Click to copy IconId"u8);
+                        ImGui.Text($"ID: {iconId} – Size: {texture.Width}x{texture.Height}");
+                        ImGui.Image(texture.Handle, new(texture.Width, texture.Height));
                         ImGui.EndTooltip();
                     }
 
@@ -177,7 +173,7 @@ internal class InventoryWidget : IDataWindowWidget
                 {
                     if (contextMenu)
                     {
-                        if (ImGui.MenuItem("Copy Name"))
+                        if (ImGui.MenuItem("Copy Name"u8))
                         {
                             ImGui.SetClipboardText(itemName);
                         }
@@ -189,15 +185,15 @@ internal class InventoryWidget : IDataWindowWidget
                 using var itemInfoTable = ImRaii.Table($"{inventoryType}_{slotIndex}_Table", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
                 if (!itemInfoTable) continue;
 
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthFixed, 150);
-                ImGui.TableSetupColumn("Value");
+                ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.WidthFixed, 150);
+                ImGui.TableSetupColumn("Value"u8);
                 // ImGui.TableHeadersRow();
 
                 static void AddKeyValueRow(string fieldName, string value)
                 {
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGui.TextUnformatted(fieldName);
+                    ImGui.Text(fieldName);
                     ImGui.TableNextColumn();
                     ImGuiHelpers.ClickToCopyText(value);
                 }
@@ -265,14 +261,14 @@ internal class InventoryWidget : IDataWindowWidget
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted("Stains");
+                        ImGui.Text("Stains"u8);
                         ImGui.TableNextColumn();
 
                         using var stainTable = ImRaii.Table($"{inventoryType}_{slotIndex}_StainTable", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
                         if (!stainTable) continue;
 
-                        ImGui.TableSetupColumn("Stain Id", ImGuiTableColumnFlags.WidthFixed, 80);
-                        ImGui.TableSetupColumn("Name");
+                        ImGui.TableSetupColumn("Stain Id"u8, ImGuiTableColumnFlags.WidthFixed, 80);
+                        ImGui.TableSetupColumn("Name"u8);
                         ImGui.TableHeadersRow();
 
                         for (var i = 0; i < itemRow.DyeCount; i++)
@@ -286,14 +282,14 @@ internal class InventoryWidget : IDataWindowWidget
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
-                        ImGui.TextUnformatted("Materia");
+                        ImGui.Text("Materia"u8);
                         ImGui.TableNextColumn();
 
                         using var materiaTable = ImRaii.Table($"{inventoryType}_{slotIndex}_MateriaTable", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.NoSavedSettings);
                         if (!materiaTable) continue;
 
-                        ImGui.TableSetupColumn("Materia Id", ImGuiTableColumnFlags.WidthFixed, 80);
-                        ImGui.TableSetupColumn("MateriaGrade Id");
+                        ImGui.TableSetupColumn("Materia Id"u8, ImGuiTableColumnFlags.WidthFixed, 80);
+                        ImGui.TableSetupColumn("MateriaGrade Id"u8);
                         ImGui.TableHeadersRow();
 
                         for (var i = 0; i < Math.Min(itemRow.MateriaSlotCount, item.Materia.Length); i++)

@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-using ImGuiNET;
-
-using ImPlotNET;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImPlot;
 
 namespace Dalamud.Interface.Utility.Raii;
 
@@ -13,26 +12,44 @@ public static partial class ImRaii
 {
     #region EndObjects
 
-    public static IEndObject Plot(string title_id, Vector2 size, ImPlotFlags flags)
-        => new EndConditionally(ImPlot.EndPlot, ImPlot.BeginPlot(title_id, size, flags));
+    public static IEndObject Plot(string titleId, Vector2 size, ImPlotFlags flags)
+        => new EndConditionally(ImPlot.EndPlot, ImPlot.BeginPlot(titleId, size, flags));
 
-    public static IEndObject AlignedPlots(string group_id, bool vertical = true)
-        => new EndConditionally(ImPlot.EndAlignedPlots, ImPlot.BeginAlignedPlots(group_id, vertical));
+    public static IEndObject Plot(ReadOnlySpan<byte> titleId, Vector2 size, ImPlotFlags flags)
+        => new EndConditionally(ImPlot.EndPlot, ImPlot.BeginPlot(titleId, size, flags));
 
-    public static IEndObject LegendPopup(string label_id, ImGuiMouseButton mouse_button = ImGuiMouseButton.Right)
-        => new EndConditionally(ImPlot.EndLegendPopup, ImPlot.BeginLegendPopup(label_id, mouse_button));
+    public static IEndObject AlignedPlots(string groupId, bool vertical = true)
+        => new EndConditionally(ImPlot.EndAlignedPlots, ImPlot.BeginAlignedPlots(groupId, vertical));
 
-    public static IEndObject Subplots(string title_id, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
-        => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(title_id, rows, cols, size, flags));
+    public static IEndObject AlignedPlots(ReadOnlySpan<byte> groupId, bool vertical = true)
+        => new EndConditionally(ImPlot.EndAlignedPlots, ImPlot.BeginAlignedPlots(groupId, vertical));
 
-    public static IEndObject Subplots(string title_id, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float row_ratios, ref float col_ratios)
-        => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(title_id, rows, cols, size, flags, ref row_ratios, ref col_ratios));
+    public static IEndObject LegendPopup(string labelId, ImGuiMouseButton mouseButton = ImGuiMouseButton.Right)
+        => new EndConditionally(ImPlot.EndLegendPopup, ImPlot.BeginLegendPopup(labelId, mouseButton));
+
+    public static IEndObject LegendPopup(ReadOnlySpan<byte> labelId, ImGuiMouseButton mouseButton = ImGuiMouseButton.Right)
+        => new EndConditionally(ImPlot.EndLegendPopup, ImPlot.BeginLegendPopup(labelId, mouseButton));
+
+    public static IEndObject Subplots(string titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
+        => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(titleId, rows, cols, size, flags));
+
+    public static IEndObject Subplots(ReadOnlySpan<byte> titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags = ImPlotSubplotFlags.None)
+        => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(titleId, rows, cols, size, flags));
+
+    public static IEndObject Subplots(string titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float rowRatios, ref float colRatios)
+        => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(titleId, rows, cols, size, flags, ref rowRatios, ref colRatios));
+
+    public static IEndObject Subplots(ReadOnlySpan<byte> titleId, int rows, int cols, Vector2 size, ImPlotSubplotFlags flags, ref float rowRatios, ref float colRatios)
+        => new EndConditionally(ImPlot.EndSubplots, ImPlot.BeginSubplots(titleId, rows, cols, size, flags, ref rowRatios, ref colRatios));
 
     public static IEndObject DragDropSourceAxis(ImAxis axis, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
         => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourceAxis(axis, flags));
-    
-    public static IEndObject DragDropSourceItem(string label_id, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
-        => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourceItem(label_id, flags));
+
+    public static IEndObject DragDropSourceItem(string labelId, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
+        => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourceItem(labelId, flags));
+
+    public static IEndObject DragDropSourceItem(ReadOnlySpan<byte> labelId, ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
+        => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourceItem(labelId, flags));
 
     public static IEndObject DragDropSourcePlot(ImGuiDragDropFlags flags = ImGuiDragDropFlags.None)
         => new EndConditionally(ImPlot.EndDragDropSource, ImPlot.BeginDragDropSourcePlot(flags));
@@ -94,9 +111,9 @@ public static partial class ImRaii
                 ImPlotStyleVar.FillAlpha => type != typeof(float),
                 ImPlotStyleVar.ErrorBarSize => type != typeof(float),
                 ImPlotStyleVar.ErrorBarWeight => type != typeof(float),
-                ImPlotStyleVar.DigitalBitHeight => type != typeof(float),
-                ImPlotStyleVar.DigitalBitGap => type != typeof(float),
-                ImPlotStyleVar.PlotBorderSize => type != typeof(float),
+                // ImPlotStyleVar.DigitalBitHeight => type != typeof(float),
+                // ImPlotStyleVar.DigitalBitGap => type != typeof(float),
+                // ImPlotStyleVar.PlotBorderSize => type != typeof(float),
                 ImPlotStyleVar.MinorAlpha => type != typeof(float),
                 ImPlotStyleVar.MajorTickLen => type != typeof(Vector2),
                 ImPlotStyleVar.MinorTickLen => type != typeof(Vector2),
@@ -104,7 +121,7 @@ public static partial class ImRaii
                 ImPlotStyleVar.MinorTickSize => type != typeof(Vector2),
                 ImPlotStyleVar.MajorGridSize => type != typeof(Vector2),
                 ImPlotStyleVar.MinorGridSize => type != typeof(Vector2),
-                ImPlotStyleVar.PlotPadding => type != typeof(Vector2),
+                // ImPlotStyleVar.PlotPadding => type != typeof(Vector2),
                 ImPlotStyleVar.LabelPadding => type != typeof(Vector2),
                 ImPlotStyleVar.LegendPadding => type != typeof(Vector2),
                 ImPlotStyleVar.LegendInnerPadding => type != typeof(Vector2),
@@ -112,8 +129,8 @@ public static partial class ImRaii
                 ImPlotStyleVar.MousePosPadding => type != typeof(Vector2),
                 ImPlotStyleVar.AnnotationPadding => type != typeof(Vector2),
                 ImPlotStyleVar.FitPadding => type != typeof(Vector2),
-                ImPlotStyleVar.PlotDefaultSize => type != typeof(Vector2),
-                ImPlotStyleVar.PlotMinSize => type != typeof(Vector2),
+                // ImPlotStyleVar.PlotDefaultSize => type != typeof(Vector2),
+                // ImPlotStyleVar.PlotMinSize => type != typeof(Vector2),
                 _ => throw new ArgumentOutOfRangeException(nameof(idx), idx, null),
             };
 
@@ -133,9 +150,9 @@ public static partial class ImRaii
                 ImPlotStyleVar.FillAlpha => new Vector2(style.FillAlpha, float.NaN),
                 ImPlotStyleVar.ErrorBarSize => new Vector2(style.ErrorBarSize, float.NaN),
                 ImPlotStyleVar.ErrorBarWeight => new Vector2(style.ErrorBarWeight, float.NaN),
-                ImPlotStyleVar.DigitalBitHeight => new Vector2(style.DigitalBitHeight, float.NaN),
-                ImPlotStyleVar.DigitalBitGap => new Vector2(style.DigitalBitGap, float.NaN),
-                ImPlotStyleVar.PlotBorderSize => new Vector2(style.PlotBorderSize, float.NaN),
+                // ImPlotStyleVar.DigitalBitHeight => new Vector2(style.DigitalBitHeight, float.NaN),
+                // ImPlotStyleVar.DigitalBitGap => new Vector2(style.DigitalBitGap, float.NaN),
+                // ImPlotStyleVar.PlotBorderSize => new Vector2(style.PlotBorderSize, float.NaN),
                 ImPlotStyleVar.MinorAlpha => new Vector2(style.MinorAlpha, float.NaN),
                 ImPlotStyleVar.MajorTickLen => style.MajorTickLen,
                 ImPlotStyleVar.MinorTickLen => style.MinorTickLen,
@@ -143,7 +160,7 @@ public static partial class ImRaii
                 ImPlotStyleVar.MinorTickSize => style.MinorTickSize,
                 ImPlotStyleVar.MajorGridSize => style.MajorGridSize,
                 ImPlotStyleVar.MinorGridSize => style.MinorGridSize,
-                ImPlotStyleVar.PlotPadding => style.PlotPadding,
+                // ImPlotStyleVar.PlotPadding => style.PlotPadding,
                 ImPlotStyleVar.LabelPadding => style.LabelPadding,
                 ImPlotStyleVar.LegendPadding => style.LegendPadding,
                 ImPlotStyleVar.LegendInnerPadding => style.LegendInnerPadding,
@@ -151,8 +168,8 @@ public static partial class ImRaii
                 ImPlotStyleVar.MousePosPadding => style.MousePosPadding,
                 ImPlotStyleVar.AnnotationPadding => style.AnnotationPadding,
                 ImPlotStyleVar.FitPadding => style.FitPadding,
-                ImPlotStyleVar.PlotDefaultSize => style.PlotDefaultSize,
-                ImPlotStyleVar.PlotMinSize => style.PlotMinSize,
+                // ImPlotStyleVar.PlotDefaultSize => style.PlotDefaultSize,
+                // ImPlotStyleVar.PlotMinSize => style.PlotMinSize,
                 _ => throw new ArgumentOutOfRangeException(nameof(idx), idx, null),
             };
         }

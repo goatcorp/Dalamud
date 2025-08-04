@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.GameFonts;
@@ -14,11 +15,7 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Storage.Assets;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using SharpDX.DXGI;
-
 using TerraFX.Interop.DirectX;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
@@ -119,7 +116,7 @@ internal sealed partial class FontAtlasFactory
             foreach (var s in this.data.Substances)
             {
                 var f = s.GetFontPtr(fontHandle);
-                if (!f.IsNull())
+                if (!f.IsNull)
                     return f;
             }
 
@@ -155,7 +152,7 @@ internal sealed partial class FontAtlasFactory
             Log.Verbose(
                 "[{name}] 0x{atlas:X}: {funcname}(0x{dataPointer:X}, 0x{dataSize:X}, ...) from {tag}",
                 this.data.Owner?.Name ?? "(error)",
-                (nint)this.NewImAtlas.NativePtr,
+                (nint)this.NewImAtlas.Handle,
                 nameof(this.AddFontFromImGuiHeapAllocatedMemory),
                 (nint)dataPointer,
                 dataSize,
@@ -169,7 +166,7 @@ internal sealed partial class FontAtlasFactory
                 var raw = fontConfig.Raw with
                 {
                     FontData = dataPointer,
-                    FontDataOwnedByAtlas = 1,
+                    FontDataOwnedByAtlas = true,
                     FontDataSize = dataSize,
                 };
 
@@ -181,7 +178,7 @@ internal sealed partial class FontAtlasFactory
 
                 TrueTypeUtils.CheckImGuiCompatibleOrThrow(raw);
 
-                font = this.NewImAtlas.AddFont(&raw);
+                font = this.NewImAtlas.AddFont(raw);
 
                 var dataHash = default(HashCode);
                 dataHash.AddBytes(new(dataPointer, dataSize));
@@ -218,11 +215,11 @@ internal sealed partial class FontAtlasFactory
             }
             catch
             {
-                if (!font.IsNull())
+                if (!font.IsNull)
                 {
                     // Note that for both RemoveAt calls, corresponding destructors will be called.
 
-                    var configIndex = this.data.ConfigData.FindIndex(x => x.DstFont == font.NativePtr);
+                    var configIndex = this.data.ConfigData.FindIndex(x => x.DstFont == font.Handle);
                     if (configIndex >= 0)
                         this.data.ConfigData.RemoveAt(configIndex);
 
@@ -233,7 +230,7 @@ internal sealed partial class FontAtlasFactory
 
                 // ImFontConfig has no destructor, and does not free the data.
                 if (freeOnException)
-                    ImGuiNative.igMemFree(dataPointer);
+                    ImGui.MemFree(dataPointer);
 
                 throw;
             }
@@ -265,21 +262,21 @@ internal sealed partial class FontAtlasFactory
                 stream = ms;
             }
 
-            var length = checked((int)(uint)stream.Length);
+            var length = checked((uint)stream.Length);
             var memory = ImGuiHelpers.AllocateMemory(length);
             try
             {
-                stream.ReadExactly(new(memory, length));
+                stream.ReadExactly(new(memory, checked((int)length)));
                 return this.AddFontFromImGuiHeapAllocatedMemory(
                     memory,
-                    length,
+                    checked((int)length),
                     fontConfig,
                     false,
                     $"{nameof(this.AddFontFromStream)}({debugTag})");
             }
             catch
             {
-                ImGuiNative.igMemFree(memory);
+                ImGui.MemFree(memory);
                 throw;
             }
         }
@@ -291,7 +288,7 @@ internal sealed partial class FontAtlasFactory
             string debugTag)
         {
             var length = span.Length;
-            var memory = ImGuiHelpers.AllocateMemory(length);
+            var memory = ImGuiHelpers.AllocateMemory(checked((uint)length));
             try
             {
                 span.CopyTo(new(memory, length));
@@ -304,7 +301,7 @@ internal sealed partial class FontAtlasFactory
             }
             catch
             {
-                ImGuiNative.igMemFree(memory);
+                ImGui.MemFree(memory);
                 throw;
             }
         }
@@ -334,14 +331,14 @@ internal sealed partial class FontAtlasFactory
                 }
             }
 
-            if (font.IsNull())
+            if (font.IsNull)
             {
                 // fall back to AXIS fonts
                 font = this.AddGameGlyphs(new(GameFontFamily.Axis, sizePx), glyphRanges, default);
             }
 
             this.AttachExtraGlyphsForDalamudLanguage(new() { SizePx = sizePx, MergeFont = font });
-            if (this.Font.IsNull())
+            if (this.Font.IsNull)
                 this.Font = font;
             return font;
         }
@@ -416,9 +413,9 @@ internal sealed partial class FontAtlasFactory
             int style = (int)DWRITE_FONT_STYLE.DWRITE_FONT_STYLE_NORMAL)
         {
             var targetFont = fontConfig.MergeFont;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 targetFont = this.Font;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 return;
 
             // https://learn.microsoft.com/en-us/windows/apps/design/globalizing/loc-international-fonts
@@ -559,9 +556,9 @@ internal sealed partial class FontAtlasFactory
         public void AttachExtraGlyphsForDalamudLanguage(in SafeFontConfig fontConfig)
         {
             var targetFont = fontConfig.MergeFont;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 targetFont = this.Font;
-            if (targetFont.IsNull())
+            if (targetFont.IsNull)
                 return;
 
             var dalamudConfiguration = Service<DalamudConfiguration>.Get();
@@ -653,7 +650,7 @@ internal sealed partial class FontAtlasFactory
                 foreach (var c in FallbackCodepoints)
                 {
                     var g = font.FindGlyphNoFallback(c);
-                    if (g.NativePtr == null)
+                    if (g == null)
                         continue;
 
                     font.UpdateFallbackChar(c);
@@ -663,7 +660,7 @@ internal sealed partial class FontAtlasFactory
                 foreach (var c in EllipsisCodepoints)
                 {
                     var g = font.FindGlyphNoFallback(c);
-                    if (g.NativePtr == null)
+                    if (g == null)
                         continue;
 
                     font.EllipsisChar = c;
@@ -699,8 +696,8 @@ internal sealed partial class FontAtlasFactory
                 {
                     ref var texture = ref textureSpan[i];
                     var name =
-                        $"{nameof(FontAtlasBuiltData)}[{this.data.Owner?.Name ?? "-"}][0x{(long)this.data.Atlas.NativePtr:X}][{i}]";
-                    if (texture.TexID != 0)
+                        $"{nameof(FontAtlasBuiltData)}[{this.data.Owner?.Name ?? "-"}][0x{(long)this.data.Atlas.Handle:X}][{i}]";
+                    if (!texture.TexID.IsNull)
                     {
                         // Nothing to do
                     }
@@ -712,7 +709,7 @@ internal sealed partial class FontAtlasFactory
                             name);
                         this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
-                        texture.TexID = wrap.ImGuiHandle;
+                        texture.TexID = wrap.Handle;
                     }
                     else if (texture.TexPixelsAlpha8 is not null)
                     {
@@ -758,7 +755,7 @@ internal sealed partial class FontAtlasFactory
                             name);
                         this.factory.TextureManager.Blame(wrap, this.data.Owner?.OwnerPlugin);
                         this.data.AddExistingTexture(wrap);
-                        texture.TexID = wrap.ImGuiHandle;
+                        texture.TexID = wrap.Handle;
                         continue;
                     }
                     else
@@ -769,9 +766,9 @@ internal sealed partial class FontAtlasFactory
                     }
 
                     if (texture.TexPixelsRGBA32 is not null)
-                        ImGuiNative.igMemFree(texture.TexPixelsRGBA32);
+                        ImGui.MemFree(texture.TexPixelsRGBA32);
                     if (texture.TexPixelsAlpha8 is not null)
-                        ImGuiNative.igMemFree(texture.TexPixelsAlpha8);
+                        ImGui.MemFree(texture.TexPixelsAlpha8);
                     texture.TexPixelsRGBA32 = null;
                     texture.TexPixelsAlpha8 = null;
                 }
@@ -795,8 +792,8 @@ internal sealed partial class FontAtlasFactory
             var targetFound = false;
             foreach (var f in this.Fonts)
             {
-                sourceFound |= f.NativePtr == source.NativePtr;
-                targetFound |= f.NativePtr == target.NativePtr;
+                sourceFound |= f.Handle == source.Handle;
+                targetFound |= f.Handle == target.Handle;
             }
 
             if (sourceFound && targetFound)
@@ -817,8 +814,8 @@ internal sealed partial class FontAtlasFactory
         public unsafe void BuildLookupTable(ImFontPtr font)
         {
             // Need to clear previous Fallback pointers before BuildLookupTable, or it may crash
-            font.NativePtr->FallbackGlyph = null;
-            font.NativePtr->FallbackHotData = null;
+            font.Handle->FallbackGlyph = null;
+            font.Handle->FallbackHotData = null;
             font.BuildLookupTable();
 
             // Need to fix our custom ImGui, so that imgui_widgets.cpp:3656 stops thinking
@@ -826,7 +823,7 @@ internal sealed partial class FontAtlasFactory
             // Otherwise, having a fallback character in ImGui.InputText gets strange.
             var indexedHotData = font.IndexedHotDataWrapped();
             var indexLookup = font.IndexLookupWrapped();
-            ref var fallbackHotData = ref *(ImGuiHelpers.ImFontGlyphHotDataReal*)font.NativePtr->FallbackHotData;
+            ref var fallbackHotData = ref *(ImGuiHelpers.ImFontGlyphHotDataReal*)font.Handle->FallbackHotData;
             for (var codepoint = 0; codepoint < indexedHotData.Length; codepoint++)
             {
                 if (indexLookup[codepoint] == ushort.MaxValue)

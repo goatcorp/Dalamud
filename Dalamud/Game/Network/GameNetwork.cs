@@ -17,7 +17,7 @@ namespace Dalamud.Game.Network;
 /// This class handles interacting with game network events.
 /// </summary>
 [ServiceManager.EarlyLoadedService]
-internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetwork
+internal sealed unsafe class GameNetwork : IInternalDisposableService
 {
     private readonly GameNetworkAddressResolver address;
     private readonly Hook<PacketDispatcher.Delegates.OnReceivePacket> processZonePacketDownHook;
@@ -28,7 +28,7 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetw
 
     [ServiceManager.ServiceDependency]
     private readonly DalamudConfiguration configuration = Service<DalamudConfiguration>.Get();
-    
+
     [ServiceManager.ServiceConstructor]
     private unsafe GameNetwork(TargetSigScanner sigScanner)
     {
@@ -51,11 +51,23 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetw
         this.processZonePacketUpHook.Enable();
     }
 
+    /// <summary>
+    /// The delegate type of a network message event.
+    /// </summary>
+    /// <param name="dataPtr">The pointer to the raw data.</param>
+    /// <param name="opCode">The operation ID code.</param>
+    /// <param name="sourceActorId">The source actor ID.</param>
+    /// <param name="targetActorId">The taret actor ID.</param>
+    /// <param name="direction">The direction of the packed.</param>
+    public delegate void OnNetworkMessageDelegate(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction);
+
     [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
     private delegate byte ProcessZonePacketUpDelegate(IntPtr a1, IntPtr dataPtr, IntPtr a3, byte a4);
 
-    /// <inheritdoc/>
-    public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
+    /// <summary>
+    /// Event that is called when a network message is sent/received.
+    /// </summary>
+    public event OnNetworkMessageDelegate? NetworkMessage;
 
     /// <inheritdoc/>
     void IInternalDisposableService.DisposeService()
@@ -71,32 +83,36 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetw
         // Go back 0x10 to get back to the start of the packet header
         dataPtr -= 0x10;
 
-        try
+        foreach (var d in Delegate.EnumerateInvocationList(this.NetworkMessage))
         {
-            // Call events
-            this.NetworkMessage?.Invoke(dataPtr + 0x20, (ushort)Marshal.ReadInt16(dataPtr, 0x12), 0, targetId, NetworkMessageDirection.ZoneDown);
-
-            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
-        }
-        catch (Exception ex)
-        {
-            string header;
             try
             {
-                var data = new byte[32];
-                Marshal.Copy(dataPtr, data, 0, 32);
-                header = BitConverter.ToString(data);
+                d.Invoke(
+                    dataPtr + 0x20,
+                    (ushort)Marshal.ReadInt16(dataPtr, 0x12),
+                    0,
+                    targetId,
+                    NetworkMessageDirection.ZoneDown);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                header = "failed";
+                string header;
+                try
+                {
+                    var data = new byte[32];
+                    Marshal.Copy(dataPtr, data, 0, 32);
+                    header = BitConverter.ToString(data);
+                }
+                catch (Exception)
+                {
+                    header = "failed";
+                }
+
+                Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
             }
-
-            Log.Error(ex, "Exception on ProcessZonePacketDown hook. Header: " + header);
-
-            this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
         }
 
+        this.processZonePacketDownHook.Original(dispatcher, targetId, dataPtr + 0x10);
         this.hitchDetectorDown.Stop();
     }
 
@@ -131,40 +147,4 @@ internal sealed unsafe class GameNetwork : IInternalDisposableService, IGameNetw
 
         return this.processZonePacketUpHook.Original(a1, dataPtr, a3, a4);
     }
-}
-
-/// <summary>
-/// Plugin-scoped version of a AddonLifecycle service.
-/// </summary>
-[PluginInterface]
-[ServiceManager.ScopedService]
-#pragma warning disable SA1015
-[ResolveVia<IGameNetwork>]
-#pragma warning restore SA1015
-internal class GameNetworkPluginScoped : IInternalDisposableService, IGameNetwork
-{
-    [ServiceManager.ServiceDependency]
-    private readonly GameNetwork gameNetworkService = Service<GameNetwork>.Get();
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="GameNetworkPluginScoped"/> class.
-    /// </summary>
-    internal GameNetworkPluginScoped()
-    {
-        this.gameNetworkService.NetworkMessage += this.NetworkMessageForward;
-    }
-    
-    /// <inheritdoc/>
-    public event IGameNetwork.OnNetworkMessageDelegate? NetworkMessage;
-
-    /// <inheritdoc/>
-    void IInternalDisposableService.DisposeService()
-    {
-        this.gameNetworkService.NetworkMessage -= this.NetworkMessageForward;
-
-        this.NetworkMessage = null;
-    }
-
-    private void NetworkMessageForward(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
-        => this.NetworkMessage?.Invoke(dataPtr, opCode, sourceActorId, targetActorId, direction);
 }

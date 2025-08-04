@@ -1,8 +1,6 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Text.Evaluator;
-
-using ImGuiNET;
-
 using Lumina.Text.ReadOnly;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
@@ -25,26 +23,26 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
         switch (this.step)
         {
             case 0:
-                ImGui.TextUnformatted("Is this the current time, and is it ticking?");
+                ImGui.Text("Is this the current time, and is it ticking?"u8);
 
                 // This checks that EvaluateFromAddon fetches the correct Addon row,
                 // that MacroDecoder.GetMacroTime()->SetTime() has been called
                 // and that local and global parameters have been read correctly.
 
-                ImGui.TextUnformatted(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ExtractText());
+                ImGui.Text(seStringEvaluator.EvaluateFromAddon(31, [(uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()]).ExtractText());
 
-                if (ImGui.Button("Yes"))
+                if (ImGui.Button("Yes"u8))
                     this.step++;
 
                 ImGui.SameLine();
 
-                if (ImGui.Button("No"))
+                if (ImGui.Button("No"u8))
                     return SelfTestStepResult.Fail;
 
                 break;
 
             case 1:
-                ImGui.TextUnformatted("Checking pcname macro using the local player name...");
+                ImGui.Text("Checking pcname macro using the local player name..."u8);
 
                 // This makes sure that NameCache.Instance()->TryGetCharacterInfoByEntityId() has been called,
                 // that it returned the local players name by using its EntityId,
@@ -54,9 +52,9 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
                 var localPlayer = clientState.LocalPlayer;
                 if (localPlayer is null)
                 {
-                    ImGui.TextUnformatted("You need to be logged in for this step.");
+                    ImGui.Text("You need to be logged in for this step."u8);
 
-                    if (ImGui.Button("Skip"))
+                    if (ImGui.Button("Skip"u8))
                         return SelfTestStepResult.NotRan;
 
                     return SelfTestStepResult.Waiting;
@@ -67,11 +65,11 @@ internal class SeStringEvaluatorSelfTestStep : ISelfTestStep
 
                 if (evaluatedPlayerName != localPlayerName)
                 {
-                    ImGui.TextUnformatted("The player name doesn't match:");
-                    ImGui.TextUnformatted($"Evaluated Player Name (got): {evaluatedPlayerName}");
-                    ImGui.TextUnformatted($"Local Player Name (expected): {localPlayerName}");
+                    ImGui.Text("The player name doesn't match:"u8);
+                    ImGui.Text($"Evaluated Player Name (got): {evaluatedPlayerName}");
+                    ImGui.Text($"Local Player Name (expected): {localPlayerName}");
 
-                    if (ImGui.Button("Continue"))
+                    if (ImGui.Button("Continue"u8))
                         return SelfTestStepResult.Fail;
 
                     return SelfTestStepResult.Waiting;

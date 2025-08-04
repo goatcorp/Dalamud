@@ -28,6 +28,7 @@ namespace Dalamud.Interface.Textures.Internal;
 [ResolveVia<ITextureProvider>]
 [ResolveVia<ITextureSubstitutionProvider>]
 [ResolveVia<ITextureReadbackProvider>]
+[InherentDependency<TextureManager>]
 #pragma warning restore SA1015
 internal sealed class TextureManagerPluginScoped
     : IInternalDisposableService,
@@ -310,7 +311,7 @@ internal sealed class TextureManagerPluginScoped
         texture = null;
         return false;
     }
-    
+
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromGame(string path)
     {
@@ -326,7 +327,7 @@ internal sealed class TextureManagerPluginScoped
         shared.AddOwnerPlugin(this.plugin);
         return shared;
     }
-    
+
     /// <inheritdoc/>
     public ISharedImmediateTexture GetFromFile(FileInfo file)
     {

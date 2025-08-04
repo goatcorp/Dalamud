@@ -3,13 +3,10 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
 using Dalamud.Interface.Utility;
-
 using FFXIVClientStructs.FFXIV.Component.GUI;
-
-using ImGuiNET;
-
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 
@@ -150,7 +147,7 @@ public unsafe ref struct SeStringDrawState
     /// <param name="channelIndex">Channel to switch to.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly void SetCurrentChannel(SeStringDrawChannel channelIndex) =>
-        ImGuiNative.ImDrawListSplitter_SetCurrentChannel(this.splitter, this.drawList, (int)channelIndex);
+        this.splitter->SetCurrentChannel(this.drawList, (int)channelIndex);
 
     /// <summary>Draws a single texture.</summary>
     /// <param name="igTextureId">ImGui texture ID to draw from.</param>
@@ -160,7 +157,7 @@ public unsafe ref struct SeStringDrawState
     /// <param name="uv1">Right bottom corner of the glyph w.r.t. its glyph origin in the source texture.</param>
     /// <param name="color">Color of the glyph in RGBA.</param>
     public readonly void Draw(
-        nint igTextureId,
+        ImTextureID igTextureId,
         Vector2 offset,
         Vector2 size,
         Vector2 uv0,
@@ -193,7 +190,7 @@ public unsafe ref struct SeStringDrawState
     ///     top and bottom pixels to apply faux italicization by <see cref="Vector2.X"/> and <see cref="Vector2.Y"/>
     ///     respectively.</param>
     public readonly void Draw(
-        nint igTextureId,
+        ImTextureID igTextureId,
         Vector2 offset,
         Vector2 xy0,
         Vector2 xy1,
@@ -305,7 +302,7 @@ public unsafe ref struct SeStringDrawState
     internal readonly ref ImGuiHelpers.ImFontGlyphReal FindGlyph(Rune rune)
     {
         var p = rune.Value is >= ushort.MinValue and < ushort.MaxValue
-                    ? ImGuiNative.ImFont_FindGlyph(this.Font, (ushort)rune.Value)
+                    ? this.Font->FindGlyph((ushort)rune.Value)
                     : this.Font->FallbackGlyph;
         return ref *(ImGuiHelpers.ImFontGlyphReal*)p;
     }
@@ -340,8 +337,7 @@ public unsafe ref struct SeStringDrawState
             return 0;
 
         return MathF.Round(
-            ImGuiNative.ImFont_GetDistanceAdjustmentForPair(
-                this.Font,
+            this.Font->GetDistanceAdjustmentForPair(
                 (ushort)left.Value,
                 (ushort)right.Value) * this.FontSizeScale);
     }
@@ -398,9 +394,9 @@ public unsafe ref struct SeStringDrawState
     /// <summary>Splits the draw list.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal readonly void SplitDrawList() =>
-        ImGuiNative.ImDrawListSplitter_Split(this.splitter, this.drawList, ChannelCount);
+        this.splitter->Split(this.drawList, ChannelCount);
 
     /// <summary>Merges the draw list.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal readonly void MergeDrawList() => ImGuiNative.ImDrawListSplitter_Merge(this.splitter, this.drawList);
+    internal readonly void MergeDrawList() => this.splitter->Merge(this.drawList);
 }

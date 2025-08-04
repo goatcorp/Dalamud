@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Components;
 
@@ -30,7 +29,7 @@ public static partial class ImGuiComponents
             {
                 using (ImRaii.Tooltip())
                 {
-                    ImGui.TextUnformatted(hint);
+                    ImGui.Text(hint);
                 }
             }
         }

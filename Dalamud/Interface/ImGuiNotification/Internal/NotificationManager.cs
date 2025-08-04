@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.GameFonts;
@@ -12,8 +13,6 @@ using Dalamud.IoC;
 using Dalamud.IoC.Internal;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Plugin.Services;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 

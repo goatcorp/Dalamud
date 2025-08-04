@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -20,7 +19,7 @@ internal class LoginEventSelfTestStep : ISelfTestStep
     {
         var clientState = Service<ClientState>.Get();
 
-        ImGui.Text("Log in now...");
+        ImGui.Text("Log in now..."u8);
 
         if (!this.subscribed)
         {

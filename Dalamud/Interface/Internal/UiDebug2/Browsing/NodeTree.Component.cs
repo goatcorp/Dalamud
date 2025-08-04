@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static Dalamud.Interface.Internal.UiDebug2.Utility.Gui;
 using static Dalamud.Utility.Util;
@@ -58,7 +58,13 @@ internal unsafe class ComponentNodeTree : ResNodeTree
     /// <inheritdoc/>
     private protected override void PrintChildNodes()
     {
-        base.PrintChildNodes();
+        var prevNode = this.CompNode->Component->UldManager.RootNode;
+        while (prevNode != null)
+        {
+            GetOrCreate(prevNode, this.AddonTree).Print(null);
+            prevNode = prevNode->PrevSiblingNode;
+        }
+
         var count = this.UldManager->NodeListCount;
         PrintNodeListAsTree(this.UldManager->NodeList, count, $"Node List [{count}]:", this.AddonTree, new(0f, 0.5f, 0.8f, 1f));
     }
@@ -83,25 +89,25 @@ internal unsafe class ComponentNodeTree : ResNodeTree
         {
             case TextInput:
                 var textInputComponent = (AtkComponentTextInput*)this.Component;
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"InputBase Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText1.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"InputBase Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->AtkComponentInputBase.UnkText2.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"Text1: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText01.StringPtr))}");
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"Text2: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText02.StringPtr))}");
-                ImGui.TextUnformatted(
-                    $"Text3: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText03.StringPtr))}");
-                ImGui.TextUnformatted(
-                    $"Text4: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText04.StringPtr))}");
-                ImGui.TextUnformatted(
-                    $"Text5: {Marshal.PtrToStringAnsi(new(textInputComponent->UnkText05.StringPtr))}");
+                ImGui.Text(
+                    $"AvailableLines: {Marshal.PtrToStringAnsi(new(textInputComponent->AvailableLines.StringPtr))}");
+                ImGui.Text(
+                    $"HighlightedAutoTranslateOptionColorPrefix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorPrefix.StringPtr))}");
+                ImGui.Text(
+                    $"HighlightedAutoTranslateOptionColorSuffix: {Marshal.PtrToStringAnsi(new(textInputComponent->HighlightedAutoTranslateOptionColorSuffix.StringPtr))}");
                 break;
             case List:
             case TreeList:
                 var l = (AtkComponentList*)this.Component;
-                if (ImGui.SmallButton("Inc.Selected"))
+                if (ImGui.SmallButton("Inc.Selected"u8))
                 {
                     l->SelectedItemIndex++;
                 }

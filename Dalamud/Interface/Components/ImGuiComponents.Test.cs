@@ -1,4 +1,4 @@
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace Dalamud.Interface.Components;
 
@@ -12,6 +12,6 @@ public static partial class ImGuiComponents
     /// </summary>
     public static void Test()
     {
-        ImGui.Text("You are viewing the test component. The test was a success.");
+        ImGui.Text("You are viewing the test component. The test was a success."u8);
     }
 }

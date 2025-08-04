@@ -5,11 +5,10 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal.Windows.Data.Widgets;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
-
-using ImGuiNET;
 
 using Lumina.Data.Files;
 
@@ -214,7 +213,7 @@ public interface ITextureProvider
     /// to read using <see cref="CreateFromClipboardAsync"/>.</summary>
     /// <returns><c>true</c> if it is the case.</returns>
     bool HasClipboardImage();
-    
+
     /// <summary>Gets a shared texture corresponding to the given game resource icon specifier.</summary>
     /// <remarks>
     /// <para>This function does not throw exceptions.</para>

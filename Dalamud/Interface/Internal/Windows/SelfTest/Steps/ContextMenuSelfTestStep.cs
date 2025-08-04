@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Data;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Gui.ContextMenu;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using ImGuiNET;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Serilog;
@@ -61,19 +61,19 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                 {
                     ImGui.Text($"Is the data in the submenu correct?");
 
-                    if (ImGui.Button("Yes"))
+                    if (ImGui.Button("Yes"u8))
                         this.currentSubStep++;
 
                     ImGui.SameLine();
 
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                         return SelfTestStepResult.Fail;
                 }
                 else
                 {
                     ImGui.Text("Right-click an item and select \"Self Test\".");
 
-                    if (ImGui.Button("Skip"))
+                    if (ImGui.Button("Skip"u8))
                         this.currentSubStep++;
                 }
 
@@ -84,19 +84,19 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                 {
                     ImGui.Text($"Did you click \"{character.Name}\" ({character.ClassJob.Value.Abbreviation.ExtractText()})?");
 
-                    if (ImGui.Button("Yes"))
+                    if (ImGui.Button("Yes"u8))
                         this.currentSubStep++;
 
                     ImGui.SameLine();
 
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                         return SelfTestStepResult.Fail;
                 }
                 else
                 {
-                    ImGui.Text("Right-click a character.");
+                    ImGui.Text("Right-click a character."u8);
 
-                    if (ImGui.Button("Skip"))
+                    if (ImGui.Button("Skip"u8))
                         this.currentSubStep++;
                 }
 
@@ -145,7 +145,7 @@ internal class ContextMenuSelfTestStep : ISelfTestStep
                             var targetItem = (a.Target as MenuTargetInventory)!.TargetItem;
                             if (targetItem is { } item)
                             {
-                                name = (this.itemSheet.GetRowOrDefault(item.ItemId)?.Name.ExtractText() ?? $"Unknown ({item.ItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
+                                name = (this.itemSheet.GetRowOrDefault(item.BaseItemId)?.Name.ExtractText() ?? $"Unknown ({item.BaseItemId})") + (item.IsHq ? $" {SeIconChar.HighQuality.ToIconString()}" : string.Empty);
                                 count = item.Quantity;
                             }
                             else

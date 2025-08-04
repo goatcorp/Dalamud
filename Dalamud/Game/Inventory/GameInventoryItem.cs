@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Dalamud.Data;
+using Dalamud.Game.Inventory.Records;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -157,6 +159,29 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
             }
 
             return materiaGrades;
+        }
+    }
+
+    /// <summary>
+    /// Gets a list of materia entries for this item. Exists as a user-friendly interface to <see cref="Materia"/> and
+    /// <see cref="MateriaGrade"/>.
+    /// </summary>
+    public IReadOnlyList<MateriaEntry> MateriaEntries
+    {
+        get
+        {
+            if (ItemUtil.IsEventItem(this.BaseItemId) || this.IsMateriaUsedForDate)
+                return [];
+
+            var result = new List<MateriaEntry>();
+            for (byte i = 0; i < this.InternalItem.GetMateriaCount(); i++)
+            {
+                var entry = new MateriaEntry(this.InternalItem.GetMateriaId(i), this.InternalItem.GetMateriaGrade(i));
+                if (entry.IsValid())
+                    result.Add(entry);
+            }
+
+            return result;
         }
     }
 

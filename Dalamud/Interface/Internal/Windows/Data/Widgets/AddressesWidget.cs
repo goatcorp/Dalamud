@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -19,7 +18,7 @@ internal class AddressesWidget : IDataWindowWidget
     public string[]? CommandShortcuts { get; init; } = { "address" };
 
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Addresses"; 
+    public string DisplayName { get; init; } = "Addresses";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -29,12 +28,12 @@ internal class AddressesWidget : IDataWindowWidget
     {
         this.Ready = true;
     }
-    
+
     /// <inheritdoc/>
     public void Draw()
     {
-        ImGui.InputText(".text sig", ref this.inputSig, 400);
-        if (ImGui.Button("Resolve"))
+        ImGui.InputText(".text sig"u8, ref this.inputSig, 400);
+        if (ImGui.Button("Resolve"u8))
         {
             try
             {
@@ -54,10 +53,10 @@ internal class AddressesWidget : IDataWindowWidget
 
         foreach (var debugScannedValue in BaseAddressResolver.DebugScannedValues)
         {
-            ImGui.TextUnformatted($"{debugScannedValue.Key}");
+            ImGui.Text($"{debugScannedValue.Key}");
             foreach (var valueTuple in debugScannedValue.Value)
             {
-                ImGui.TextUnformatted(
+                ImGui.Text(
                     $"      {valueTuple.ClassName} - {Util.DescribeAddress(valueTuple.Address)}");
                 ImGui.SameLine();
 

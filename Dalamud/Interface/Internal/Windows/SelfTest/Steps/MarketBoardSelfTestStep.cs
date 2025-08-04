@@ -1,9 +1,10 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.MarketBoard;
 using Dalamud.Game.Network.Structures;
-using ImGuiNET;
+using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -50,24 +51,24 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
 
                 if (this.historyListing == null)
                 {
-                    ImGui.Text("Goto a Market Board. Open any item that has historical sale listings.");
+                    ImGui.Text("Goto a Market Board. Open any item that has historical sale listings."u8);
                 }
                 else
                 {
-                    ImGui.Text("Does one of the historical sales match this information?");
+                    ImGui.Text("Does one of the historical sales match this information?"u8);
                     ImGui.Separator();
                     ImGui.Text($"Quantity: {this.historyListing.Quantity.ToString()}");
                     ImGui.Text($"Buyer: {this.historyListing.BuyerName}");
                     ImGui.Text($"Sale Price: {this.historyListing.SalePrice.ToString()}");
-                    ImGui.Text($"Purchase Time: {this.historyListing.PurchaseTime.ToString(CultureInfo.InvariantCulture)}");
+                    ImGui.Text($"Purchase Time: {this.historyListing.PurchaseTime.ToLocalTime().ToString(CultureInfo.InvariantCulture)}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct / Skip"))
+                    if (ImGui.Button("Looks Correct / Skip"u8))
                     {
                         this.currentSubStep++;
                     }
 
                     ImGui.SameLine();
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                     {
                         return SelfTestStepResult.Fail;
                     }
@@ -78,24 +79,24 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
 
                 if (this.itemListing == null)
                 {
-                    ImGui.Text("Goto a Market Board. Open any item that has sale listings.");
+                    ImGui.Text("Goto a Market Board. Open any item that has sale listings."u8);
                 }
                 else
                 {
-                    ImGui.Text("Does one of the sales match this information?");
+                    ImGui.Text("Does one of the sales match this information?"u8);
                     ImGui.Separator();
                     ImGui.Text($"Quantity: {this.itemListing.ItemQuantity.ToString()}");
                     ImGui.Text($"Price Per Unit: {this.itemListing.PricePerUnit}");
                     ImGui.Text($"Retainer Name: {this.itemListing.RetainerName}");
                     ImGui.Text($"Is HQ?: {(this.itemListing.IsHq ? "Yes" : "No")}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct / Skip"))
+                    if (ImGui.Button("Looks Correct / Skip"u8))
                     {
                         this.currentSubStep++;
                     }
 
                     ImGui.SameLine();
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                     {
                         return SelfTestStepResult.Fail;
                     }
@@ -105,23 +106,23 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
             case SubStep.PurchaseRequests:
                 if (this.marketBoardPurchaseRequest == null)
                 {
-                    ImGui.Text("Goto a Market Board. Purchase any item, the cheapest you can find.");
+                    ImGui.Text("Goto a Market Board. Purchase any item, the cheapest you can find."u8);
                 }
                 else
                 {
-                    ImGui.Text("Does this information match the purchase you made? This is testing the request to the server.");
+                    ImGui.TextWrapped("Does this information match the purchase you made? This is testing the request to the server."u8);
                     ImGui.Separator();
                     ImGui.Text($"Quantity: {this.marketBoardPurchaseRequest.ItemQuantity.ToString()}");
                     ImGui.Text($"Item ID: {this.marketBoardPurchaseRequest.CatalogId}");
                     ImGui.Text($"Price Per Unit: {this.marketBoardPurchaseRequest.PricePerUnit}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct / Skip"))
+                    if (ImGui.Button("Looks Correct / Skip"u8))
                     {
                         this.currentSubStep++;
                     }
 
                     ImGui.SameLine();
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                     {
                         return SelfTestStepResult.Fail;
                     }
@@ -131,22 +132,22 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
             case SubStep.Purchases:
                 if (this.marketBoardPurchase == null)
                 {
-                    ImGui.Text("Goto a Market Board. Purchase any item, the cheapest you can find.");
+                    ImGui.Text("Goto a Market Board. Purchase any item, the cheapest you can find."u8);
                 }
                 else
                 {
-                    ImGui.Text("Does this information match the purchase you made? This is testing the response from the server.");
+                    ImGui.TextWrapped("Does this information match the purchase you made? This is testing the response from the server."u8);
                     ImGui.Separator();
                     ImGui.Text($"Quantity: {this.marketBoardPurchase.ItemQuantity.ToString()}");
                     ImGui.Text($"Item ID: {this.marketBoardPurchase.CatalogId}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct / Skip"))
+                    if (ImGui.Button("Looks Correct / Skip"u8))
                     {
                         this.currentSubStep++;
                     }
 
                     ImGui.SameLine();
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                     {
                         return SelfTestStepResult.Fail;
                     }
@@ -156,11 +157,11 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
             case SubStep.Taxes:
                 if (this.marketTaxRate == null)
                 {
-                    ImGui.Text("Goto a Retainer Vocate and talk to then. Click the 'View market tax rates' menu item.");
+                    ImGui.TextWrapped("Goto a Retainer Vocate and talk to then. Click the 'View market tax rates' menu item."u8);
                 }
                 else
                 {
-                    ImGui.Text("Does this market tax rate information look correct?");
+                    ImGui.Text("Does this market tax rate information look correct?"u8);
                     ImGui.Separator();
                     ImGui.Text($"Uldah: {this.marketTaxRate.UldahTax.ToString()}");
                     ImGui.Text($"Gridania: {this.marketTaxRate.GridaniaTax.ToString()}");
@@ -171,13 +172,13 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
                     ImGui.Text($"Sharlayan: {this.marketTaxRate.SharlayanTax.ToString()}");
                     ImGui.Text($"Tuliyollal: {this.marketTaxRate.TuliyollalTax.ToString()}");
                     ImGui.Separator();
-                    if (ImGui.Button("Looks Correct / Skip"))
+                    if (ImGui.Button("Looks Correct / Skip"u8))
                     {
                         this.currentSubStep++;
                     }
 
                     ImGui.SameLine();
-                    if (ImGui.Button("No"))
+                    if (ImGui.Button("No"u8))
                     {
                         return SelfTestStepResult.Fail;
                     }

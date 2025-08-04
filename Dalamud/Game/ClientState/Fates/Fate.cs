@@ -3,7 +3,6 @@ using System.Numerics;
 using Dalamud.Data;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Memory;
-using Dalamud.Utility;
 
 using Lumina.Excel;
 
@@ -68,12 +67,6 @@ public interface IFate : IEquatable<IFate>
     /// Gets the progress amount of this <see cref="Fate"/>.
     /// </summary>
     byte Progress { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether this <see cref="Fate"/> has a EXP bonus.
-    /// </summary>
-    [Obsolete($"Use {nameof(HasBonus)} instead")]
-    bool HasExpBonus { get; }
 
     /// <summary>
     /// Gets a value indicating whether this <see cref="Fate"/> has a bonus.
@@ -221,10 +214,6 @@ internal unsafe partial class Fate : IFate
 
     /// <inheritdoc/>
     public byte Progress => this.Struct->Progress;
-
-    /// <inheritdoc/>
-    [Api13ToDo("Remove")]
-    public bool HasExpBonus => this.HasBonus;
 
     /// <inheritdoc/>
     public bool HasBonus => this.Struct->IsBonus;

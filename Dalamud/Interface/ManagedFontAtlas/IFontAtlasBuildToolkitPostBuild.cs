@@ -1,7 +1,5 @@
-using Dalamud.Interface.Internal;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures.TextureWraps;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas;
 

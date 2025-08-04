@@ -2,9 +2,8 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -18,7 +17,7 @@ internal static partial class TrueTypeUtils
     /// and throws an appropriate exception if it is the case.
     /// </summary>
     /// <param name="fontConfig">The font config.</param>
-    public static unsafe void CheckImGuiCompatibleOrThrow(in ImFontConfig fontConfig)
+    public static unsafe void CheckImGuiCompatibleOrThrow(in ImFontConfigPtr fontConfig)
     {
         var ranges = fontConfig.GlyphRanges;
         var sfnt = AsSfntFile(fontConfig);
@@ -35,7 +34,7 @@ internal static partial class TrueTypeUtils
     /// <param name="fontConfig">The font config.</param>
     /// <returns>The enumerable of pair adjustments. Distance values need to be multiplied by font size in pixels.</returns>
     public static IEnumerable<(char Left, char Right, float Distance)> ExtractHorizontalPairAdjustments(
-        ImFontConfig fontConfig)
+        ImFontConfigPtr fontConfig)
     {
         float multiplier;
         Dictionary<ushort, char[]> glyphToCodepoints;
@@ -107,7 +106,7 @@ internal static partial class TrueTypeUtils
         }
     }
 
-    private static unsafe SfntFile AsSfntFile(in ImFontConfig fontConfig)
+    private static unsafe SfntFile AsSfntFile(in ImFontConfigPtr fontConfig)
     {
         var memory = new PointerSpan<byte>((byte*)fontConfig.FontData, fontConfig.FontDataSize);
         if (memory.Length < 4)

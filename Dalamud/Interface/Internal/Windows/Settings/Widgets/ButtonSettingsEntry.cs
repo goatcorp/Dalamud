@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -36,6 +36,6 @@ public class ButtonSettingsEntry : SettingsEntry
             this.runs.Invoke();
         }
 
-        ImGuiHelpers.SafeTextColoredWrapped(ImGuiColors.DalamudGrey, this.description);
+        ImGui.TextColoredWrapped(ImGuiColors.DalamudGrey, this.description);
     }
 }

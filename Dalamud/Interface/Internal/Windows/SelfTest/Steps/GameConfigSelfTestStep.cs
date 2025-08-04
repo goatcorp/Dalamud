@@ -1,6 +1,5 @@
-﻿using Dalamud.Game.Config;
-
-using ImGuiNET;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.Config;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -44,7 +43,7 @@ internal class GameConfigSelfTestStep : ISelfTestStep
                 }
                 else
                 {
-                    ImGui.Text("Switch Movement Type to Standard");
+                    ImGui.Text("Switch Movement Type to Standard"u8);
                 }
 
                 return SelfTestStepResult.Waiting;
@@ -58,7 +57,7 @@ internal class GameConfigSelfTestStep : ISelfTestStep
                 }
                 else
                 {
-                    ImGui.Text("Switch Movement Type to Legacy");
+                    ImGui.Text("Switch Movement Type to Legacy"u8);
                 }
 
                 return SelfTestStepResult.Waiting;
@@ -74,7 +73,7 @@ internal class GameConfigSelfTestStep : ISelfTestStep
                  }
                  else
                  {
-                     ImGui.Text("Switch Movement Type to Legacy");
+                     ImGui.Text("Switch Movement Type to Legacy"u8);
                  }
 
                  return SelfTestStepResult.Waiting;
@@ -88,7 +87,7 @@ internal class GameConfigSelfTestStep : ISelfTestStep
                  }
                  else
                  {
-                     ImGui.Text("Switch Movement Type to Standard");
+                     ImGui.Text("Switch Movement Type to Standard"u8);
                  }
 
                  return SelfTestStepResult.Waiting;

@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="HexaGen.Runtime" Version="1.1.20" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Generated\Functions\**" />
+      <Compile Remove="Generated\Structs\**" />
+      <Compile Remove="Internals\Functions\**" />
+      <Compile Remove="Manual\Functions\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Generated\Functions\**" />
+      <EmbeddedResource Remove="Generated\Structs\**" />
+      <EmbeddedResource Remove="Internals\Functions\**" />
+      <EmbeddedResource Remove="Manual\Functions\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Generated\Functions\**" />
+      <None Remove="Generated\Structs\**" />
+      <None Remove="Internals\Functions\**" />
+      <None Remove="Manual\Functions\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Internals\" />
+      <Folder Include="Manual\" />
+    </ItemGroup>
+
+</Project>

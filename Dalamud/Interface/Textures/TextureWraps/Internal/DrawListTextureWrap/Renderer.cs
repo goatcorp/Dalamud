@@ -4,11 +4,10 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
@@ -50,7 +49,7 @@ internal sealed unsafe partial class DrawListTextureWrap
         {
             try
             {
-                this.device = new((ID3D11Device*)iwms.Manager.Device!.NativePointer);
+                this.device = new((ID3D11Device*)iwms.Manager.Backend!.DeviceHandle);
                 fixed (ID3D11DeviceContext** p = &this.deviceContext.GetPinnableReference())
                     this.device.Get()->GetImmediateContext(p);
                 this.deviceContext.Get()->AddRef();
@@ -80,7 +79,7 @@ internal sealed unsafe partial class DrawListTextureWrap
             if (drawData.DisplaySize.X <= 0 || drawData.DisplaySize.Y <= 0
                 || !drawData.Valid || drawData.CmdListsCount < 1)
                 return;
-            var cmdLists = new Span<ImDrawListPtr>(drawData.NativePtr->CmdLists, drawData.NativePtr->CmdListsCount);
+            var cmdLists = new Span<ImDrawListPtr>(drawData.CmdLists, drawData.CmdListsCount);
 
             // Create and grow vertex/index buffers if needed
             if (this.vertexBufferSize < drawData.TotalVtxCount)
@@ -135,8 +134,8 @@ internal sealed unsafe partial class DrawListTextureWrap
                 var targetIndices = new Span<ushort>(indexData.pData, this.indexBufferSize);
                 foreach (ref var cmdList in cmdLists)
                 {
-                    var vertices = new ImVectorWrapper<ImDrawVert>(&cmdList.NativePtr->VtxBuffer);
-                    var indices = new ImVectorWrapper<ushort>(&cmdList.NativePtr->IdxBuffer);
+                    var vertices = new ImVectorWrapper<ImDrawVert>(cmdList.VtxBuffer.ToUntyped());
+                    var indices = new ImVectorWrapper<ushort>(cmdList.IdxBuffer.ToUntyped());
 
                     vertices.DataSpan.CopyTo(targetVertices);
                     indices.DataSpan.CopyTo(targetIndices);
@@ -226,7 +225,7 @@ internal sealed unsafe partial class DrawListTextureWrap
                 new Vector4(drawData.FramebufferScale, drawData.FramebufferScale.X, drawData.FramebufferScale.Y);
             foreach (ref var cmdList in cmdLists)
             {
-                var cmds = new ImVectorWrapper<ImDrawCmd>(&cmdList.NativePtr->CmdBuffer);
+                var cmds = new ImVectorWrapper<ImDrawCmd>(cmdList.CmdBuffer.ToUntyped());
                 foreach (ref var cmd in cmds.DataSpan)
                 {
                     var clipV4 = (cmd.ClipRect - clipOff) * frameBufferScaleV4;
@@ -238,11 +237,11 @@ internal sealed unsafe partial class DrawListTextureWrap
 
                     this.deviceContext.Get()->RSSetScissorRects(1, &clipRect);
 
-                    if (cmd.UserCallback == nint.Zero)
+                    if (cmd.UserCallback == null)
                     {
                         // Bind texture and draw
                         var samplerp = this.samplerState.Get();
-                        var srvp = (ID3D11ShaderResourceView*)cmd.TextureId;
+                        var srvp = (ID3D11ShaderResourceView*)cmd.TextureId.Handle;
                         this.deviceContext.Get()->PSSetShader(this.drawToPremulPixelShader, null, 0);
                         this.deviceContext.Get()->PSSetSamplers(0, 1, &samplerp);
                         this.deviceContext.Get()->PSSetShaderResources(0, 1, &srvp);
@@ -259,15 +258,16 @@ internal sealed unsafe partial class DrawListTextureWrap
         }
 
         /// <summary>Renders draw data.</summary>
-        /// <param name="puav">The pointer to a Texture2D UAV to make straight.</param>
-        public void MakeStraight(ID3D11UnorderedAccessView* puav)
+        /// <param name="psrv">The pointer to a Texture2D SRV to read premultiplied data from.</param>
+        /// <param name="prtv">The pointer to a Texture2D RTV to write straightened data.</param>
+        public void MakeStraight(ID3D11ShaderResourceView* psrv, ID3D11RenderTargetView* prtv)
         {
             ThreadSafety.AssertMainThread();
 
             D3D11_TEXTURE2D_DESC texDesc;
             using (var texRes = default(ComPtr<ID3D11Resource>))
             {
-                puav->GetResource(texRes.GetAddressOf());
+                prtv->GetResource(texRes.GetAddressOf());
 
                 using var tex = default(ComPtr<ID3D11Texture2D>);
                 texRes.As(&tex).ThrowOnError();
@@ -292,10 +292,9 @@ internal sealed unsafe partial class DrawListTextureWrap
             var viewport = new D3D11_VIEWPORT(0, 0, texDesc.Width, texDesc.Height);
             this.deviceContext.Get()->RSSetViewports(1, &viewport);
 
-            this.deviceContext.Get()->OMSetBlendState(null, null, 0xFFFFFFFF);
+            this.deviceContext.Get()->OMSetBlendState(null, null, 0xffffffff);
             this.deviceContext.Get()->OMSetDepthStencilState(this.depthStencilState, 0);
-            var nullrtv = default(ID3D11RenderTargetView*);
-            this.deviceContext.Get()->OMSetRenderTargetsAndUnorderedAccessViews(1, &nullrtv, null, 1, 1, &puav, null);
+            this.deviceContext.Get()->OMSetRenderTargets(1, &prtv, null);
 
             this.deviceContext.Get()->VSSetShader(this.makeStraightVertexShader.Get(), null, 0);
             this.deviceContext.Get()->PSSetShader(this.makeStraightPixelShader.Get(), null, 0);
@@ -304,6 +303,7 @@ internal sealed unsafe partial class DrawListTextureWrap
             this.deviceContext.Get()->DSSetShader(null, null, 0);
             this.deviceContext.Get()->CSSetShader(null, null, 0);
 
+            this.deviceContext.Get()->PSSetShaderResources(0, 1, &psrv);
             this.deviceContext.Get()->DrawIndexed(6, 0, 0);
         }
 

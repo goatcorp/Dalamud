@@ -127,7 +127,7 @@ public enum JobFlags : ulong
     RedMage = 1ul << 24,
 
     /// <summary>
-    /// Blue mage (BLM).
+    /// Blue mage (BLU).
     /// </summary>
     BlueMage = 1ul << 25,
 

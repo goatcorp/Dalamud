@@ -350,17 +350,13 @@ internal sealed class Framework : IInternalDisposableService, IFramework
     /// <param name="frameworkInstance">The Framework Instance to pass to delegate.</param>
     internal void ProfileAndInvoke(IFramework.OnUpdateDelegate? eventDelegate, IFramework frameworkInstance)
     {
-        if (eventDelegate is null) return;
-
-        var invokeList = eventDelegate.GetInvocationList();
-
         // Individually invoke OnUpdate handlers and time them.
-        foreach (var d in invokeList)
+        foreach (var d in Delegate.EnumerateInvocationList(eventDelegate))
         {
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                d.Method.Invoke(d.Target, new object[] { frameworkInstance });
+                d(frameworkInstance);
             }
             catch (Exception ex)
             {
@@ -370,8 +366,7 @@ internal sealed class Framework : IInternalDisposableService, IFramework
             stopwatch.Stop();
 
             var key = $"{d.Target}::{d.Method.Name}";
-            if (this.NonUpdatedSubDelegates.Contains(key))
-                this.NonUpdatedSubDelegates.Remove(key);
+            this.NonUpdatedSubDelegates.Remove(key);
 
             AddToStats(key, stopwatch.Elapsed.TotalMilliseconds);
         }

@@ -1,5 +1,6 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game;
 using Dalamud.Game.Gui;
 using Dalamud.Interface.ImGuiSeStringRenderer.Internal;
@@ -10,8 +11,6 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
-
 using Lumina.Text.ReadOnly;
 
 // Customised version of https://github.com/aers/FFXIVUIDebug
@@ -65,17 +64,17 @@ internal unsafe class UiDebug
     public void Draw()
     {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(3, 2));
-        ImGui.BeginChild("st_uiDebug_unitBaseSelect", new Vector2(250, -1), true);
+        ImGui.BeginChild("st_uiDebug_unitBaseSelect"u8, new Vector2(250, -1), true);
 
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputTextWithHint("###atkUnitBaseSearch", "Search", ref this.searchInput, 0x20);
+        ImGui.InputTextWithHint("###atkUnitBaseSearch"u8, "Search"u8, ref this.searchInput, 0x20);
 
         this.DrawUnitBaseList();
         ImGui.EndChild();
         if (this.selectedUnitBase != null)
         {
             ImGui.SameLine();
-            ImGui.BeginChild("st_uiDebug_selectedUnitBase", new Vector2(-1, -1), true);
+            ImGui.BeginChild("st_uiDebug_selectedUnitBase"u8, new Vector2(-1, -1), true);
             this.DrawUnitBase(this.selectedUnitBase);
             ImGui.EndChild();
         }
@@ -89,25 +88,25 @@ internal unsafe class UiDebug
         var addonName = atkUnitBase->NameString;
         var agent = Service<GameGui>.Get().FindAgentInterface(atkUnitBase);
 
-        ImGui.Text($"{addonName}");
+        ImGui.Text(addonName);
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, isVisible ? 0xFF00FF00 : 0xFF0000FF);
         ImGui.Text(isVisible ? "Visible" : "Not Visible");
         ImGui.PopStyleColor();
 
         ImGui.SameLine(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X - 25);
-        if (ImGui.SmallButton("V"))
+        if (ImGui.SmallButton("V"u8))
         {
             atkUnitBase->IsVisible = !atkUnitBase->IsVisible;
         }
 
         ImGui.Separator();
-        ImGuiHelpers.ClickToCopyText($"Address: {(ulong)atkUnitBase:X}", $"{(ulong)atkUnitBase:X}");
-        ImGuiHelpers.ClickToCopyText($"Agent: {(ulong)agent:X}", $"{(ulong)agent:X}");
+        ImGuiHelpers.ClickToCopyText($"Address: {(nint)atkUnitBase:X}", $"{(nint)atkUnitBase:X}");
+        ImGuiHelpers.ClickToCopyText($"Agent: {(nint)agent:X}", $"{(nint)agent:X}");
         ImGui.Separator();
 
         ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
-        ImGui.Text($"Scale: {atkUnitBase->Scale * 100}%%");
+        ImGui.Text($"Scale: {atkUnitBase->Scale * 100}%");
         ImGui.Text($"Widget Count {atkUnitBase->UldManager.ObjectCount}");
 
         ImGui.Separator();
@@ -185,7 +184,7 @@ internal unsafe class UiDebug
                 popped = true;
             }
 
-            ImGui.Text("Node: ");
+            ImGui.Text("Node: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
             ImGui.SameLine();
@@ -209,11 +208,11 @@ internal unsafe class UiDebug
             {
                 case NodeType.Text:
                     var textNode = (AtkTextNode*)node;
-                    ImGui.Text("text: ");
+                    ImGui.Text("text: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textNode->NodeText);
 
-                    ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new IntPtr(textNode->NodeText.StringPtr), (uint)textNode->NodeText.BufSize);
+                    ImGui.InputText($"Replace Text##{(ulong)textNode:X}", new(textNode->NodeText.StringPtr, (int)textNode->NodeText.BufSize));
 
                     ImGui.SameLine();
                     if (ImGui.Button($"Encode##{(ulong)textNode:X}"))
@@ -250,7 +249,7 @@ internal unsafe class UiDebug
                     break;
                 case NodeType.Counter:
                     var counterNode = (AtkCounterNode*)node;
-                    ImGui.Text("text: ");
+                    ImGui.Text("text: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(counterNode->NodeText);
                     break;
@@ -284,7 +283,7 @@ internal unsafe class UiDebug
             {
                 if (partId > partsList->PartCount)
                 {
-                    ImGui.Text("part id > part count?");
+                    ImGui.Text("part id > part count?"u8);
                 }
                 else
                 {
@@ -301,7 +300,7 @@ internal unsafe class UiDebug
                         if (ImGui.TreeNode($"Texture##{(ulong)kernelTexture->D3D11ShaderResourceView:X}"))
                         {
                             ImGui.Image(
-                                new IntPtr(kernelTexture->D3D11ShaderResourceView),
+                                new ImTextureID(kernelTexture->D3D11ShaderResourceView),
                                 new Vector2(kernelTexture->ActualWidth, kernelTexture->ActualHeight));
                             ImGui.TreePop();
                         }
@@ -312,7 +311,7 @@ internal unsafe class UiDebug
                                 $"Texture##{(ulong)textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView:X}"))
                         {
                             ImGui.Image(
-                                new IntPtr(textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView),
+                                new ImTextureID(textureInfo->AtkTexture.KernelTexture->D3D11ShaderResourceView),
                                 new Vector2(
                                     textureInfo->AtkTexture.KernelTexture->ActualWidth,
                                     textureInfo->AtkTexture.KernelTexture->ActualHeight));
@@ -349,7 +348,7 @@ internal unsafe class UiDebug
             }
             else
             {
-                ImGui.Text("no texture loaded");
+                ImGui.Text("no texture loaded"u8);
             }
         }
     }
@@ -385,12 +384,12 @@ internal unsafe class UiDebug
                 popped = true;
             }
 
-            ImGui.Text("Node: ");
+            ImGui.Text("Node: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)node:X}");
             ImGui.SameLine();
             Util.ShowStruct(*compNode, (ulong)compNode);
-            ImGui.Text("Component: ");
+            ImGui.Text("Component: "u8);
             ImGui.SameLine();
             ImGuiHelpers.ClickToCopyText($"{(ulong)compNode->Component:X}");
             ImGui.SameLine();
@@ -415,33 +414,33 @@ internal unsafe class UiDebug
             {
                 case ComponentType.TextInput:
                     var textInputComponent = (AtkComponentTextInput*)compNode->Component;
-                    ImGui.Text("InputBase Text1: ");
+                    ImGui.Text("InputBase Text1: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText1);
 
-                    ImGui.Text("InputBase Text2: ");
+                    ImGui.Text("InputBase Text2: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->AtkComponentInputBase.UnkText2);
 
-                    ImGui.Text("Text1: ");
+                    ImGui.Text("Text1: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText01);
 
-                    ImGui.Text("Text2: ");
+                    ImGui.Text("Text2: "u8);
                     ImGui.SameLine();
                     Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText02);
 
-                    ImGui.Text("Text3: ");
+                    ImGui.Text("AvailableLines: "u8);
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText03);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->AvailableLines);
 
-                    ImGui.Text("Text4: ");
+                    ImGui.Text("HighlightedAutoTranslateOptionColorPrefix: "u8);
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText04);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->HighlightedAutoTranslateOptionColorPrefix);
 
-                    ImGui.Text("Text5: ");
+                    ImGui.Text("HighlightedAutoTranslateOptionColorSuffix: "u8);
                     ImGui.SameLine();
-                    Service<SeStringRenderer>.Get().Draw(textInputComponent->UnkText05);
+                    Service<SeStringRenderer>.Get().Draw(textInputComponent->HighlightedAutoTranslateOptionColorSuffix);
                     break;
             }
 
@@ -605,7 +604,7 @@ internal unsafe class UiDebug
 
         if (noResults)
         {
-            ImGui.TextDisabled("No Results");
+            ImGui.TextDisabled("No Results"u8);
         }
 
         if (!foundSelected)

@@ -1,8 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Utility;
 
 namespace Dalamud.Interface.Internal.Windows.Settings.Widgets;
 
@@ -30,6 +30,6 @@ public class HintSettingsEntry : SettingsEntry
 
     public override void Draw()
     {
-        ImGuiHelpers.SafeTextColoredWrapped(this.color, this.text);
+        ImGui.TextColoredWrapped(this.color, this.text);
     }
 }

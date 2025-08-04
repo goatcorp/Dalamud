@@ -67,6 +67,24 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
     public int Length => objectTableLength;
 
     /// <inheritdoc/>
+    public IEnumerable<IBattleChara> PlayerObjects => this.GetPlayerObjects();
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> CharacterManagerObjects => this.GetObjectsInRange(..199);
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> ClientObjects => this.GetObjectsInRange(200..448);
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> EventObjects => this.GetObjectsInRange(449..488);
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> StandObjects => this.GetObjectsInRange(489..628);
+
+    /// <inheritdoc/>
+    public IEnumerable<IGameObject> ReactionEventObjects => this.GetObjectsInRange(629..728);
+
+    /// <inheritdoc/>
     public IGameObject? this[int index]
     {
         get
@@ -144,6 +162,28 @@ internal sealed partial class ObjectTable : IServiceType, IObjectTable
             ObjectKind.Ornament => new Npc(address),
             _ => new GameObject(address),
         };
+    }
+
+    private IEnumerable<IBattleChara> GetPlayerObjects()
+    {
+        for (var index = 0; index < 200; index += 2)
+        {
+            if (this[index] is IBattleChara { ObjectKind: ObjectKind.Player } gameObject)
+            {
+                yield return gameObject;
+            }
+        }
+    }
+
+    private IEnumerable<IGameObject> GetObjectsInRange(Range range)
+    {
+        for (var index = range.Start.Value; index <= range.End.Value; index++)
+        {
+            if (this[index] is { } gameObject)
+            {
+                yield return gameObject;
+            }
+        }
     }
 
     /// <summary>Stores an object table entry, with preallocated concrete types.</summary>

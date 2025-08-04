@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal.Windows.SelfTest.Steps;
@@ -9,7 +11,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging.Internal;
-using ImGuiNET;
 using Lumina.Excel.Sheets;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest;
@@ -54,6 +55,7 @@ internal class SelfTestWindow : Window
         new SheetRedirectResolverSelfTestStep(),
         new NounProcessorSelfTestStep(),
         new SeStringEvaluatorSelfTestStep(),
+        new CompletionSelfTestStep(),
         new LogoutEventSelfTestStep()
     ];
 
@@ -61,7 +63,7 @@ internal class SelfTestWindow : Window
 
     private bool selfTestRunning = false;
     private int currentStep = 0;
-
+    private int scrollToStep = -1;
     private DateTimeOffset lastTestStart;
 
     /// <summary>
@@ -90,9 +92,10 @@ internal class SelfTestWindow : Window
 
             if (ImGuiComponents.IconButton(FontAwesomeIcon.StepForward))
             {
-                this.testIndexToResult.Add(this.currentStep, (SelfTestStepResult.NotRan, null));
+                this.testIndexToResult[this.currentStep] = (SelfTestStepResult.NotRan, null);
                 this.steps[this.currentStep].CleanUp();
                 this.currentStep++;
+                this.scrollToStep = this.currentStep;
                 this.lastTestStart = DateTimeOffset.Now;
 
                 if (this.currentStep >= this.steps.Count)
@@ -107,6 +110,7 @@ internal class SelfTestWindow : Window
             {
                 this.selfTestRunning = true;
                 this.currentStep = 0;
+                this.scrollToStep = this.currentStep;
                 this.testIndexToResult.Clear();
                 this.lastTestStart = DateTimeOffset.Now;
             }
@@ -114,13 +118,13 @@ internal class SelfTestWindow : Window
 
         ImGui.SameLine();
 
-        ImGui.TextUnformatted($"Step: {this.currentStep} / {this.steps.Count}");
+        ImGui.Text($"Step: {this.currentStep} / {this.steps.Count}");
 
-        ImGuiHelpers.ScaledDummy(10);
+        ImGui.Spacing();
 
         this.DrawResultTable();
 
-        ImGuiHelpers.ScaledDummy(10);
+        ImGui.Spacing();
 
         if (this.currentStep >= this.steps.Count)
         {
@@ -131,11 +135,11 @@ internal class SelfTestWindow : Window
 
             if (this.testIndexToResult.Any(x => x.Value.Result == SelfTestStepResult.Fail))
             {
-                ImGui.TextColored(ImGuiColors.DalamudRed, "One or more checks failed!");
+                ImGui.TextColoredWrapped(ImGuiColors.DalamudRed, "One or more checks failed!"u8);
             }
             else
             {
-                ImGui.TextColored(ImGuiColors.HealerGreen, "All checks passed!");
+                ImGui.TextColoredWrapped(ImGuiColors.HealerGreen, "All checks passed!"u8);
             }
 
             return;
@@ -146,10 +150,11 @@ internal class SelfTestWindow : Window
             return;
         }
 
-        ImGui.Separator();
+        using var resultChild = ImRaii.Child("SelfTestResultChild"u8, ImGui.GetContentRegionAvail());
+        if (!resultChild) return;
 
         var step = this.steps[this.currentStep];
-        ImGui.TextUnformatted($"Current: {step.Name}");
+        ImGui.Text($"Current: {step.Name}");
 
         ImGuiHelpers.ScaledDummy(10);
 
@@ -164,13 +169,12 @@ internal class SelfTestWindow : Window
             result = SelfTestStepResult.Fail;
         }
 
-        ImGui.Separator();
-
         if (result != SelfTestStepResult.Waiting)
         {
             var duration = DateTimeOffset.Now - this.lastTestStart;
-            this.testIndexToResult.Add(this.currentStep, (result, duration));
+            this.testIndexToResult[this.currentStep] = (result, duration);
             this.currentStep++;
+            this.scrollToStep = this.currentStep;
 
             this.lastTestStart = DateTimeOffset.Now;
         }
@@ -178,90 +182,111 @@ internal class SelfTestWindow : Window
 
     private void DrawResultTable()
     {
-        if (ImGui.BeginTable("agingResultTable", 5, ImGuiTableFlags.Borders))
+        var tableSize = ImGui.GetContentRegionAvail();
+
+        if (this.selfTestRunning)
+            tableSize -= new Vector2(0, 200);
+
+        tableSize.Y = Math.Min(tableSize.Y, ImGui.GetWindowViewport().Size.Y * 0.5f);
+
+        using var table = ImRaii.Table("agingResultTable"u8, 5, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY, tableSize);
+        if (!table)
+            return;
+
+        ImGui.TableSetupColumn("###index"u8, ImGuiTableColumnFlags.WidthFixed, 12f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("Name"u8);
+        ImGui.TableSetupColumn("Result"u8, ImGuiTableColumnFlags.WidthFixed, 40f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("Duration"u8, ImGuiTableColumnFlags.WidthFixed, 90f * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn(string.Empty, ImGuiTableColumnFlags.WidthFixed, 30f * ImGuiHelpers.GlobalScale);
+
+        ImGui.TableSetupScrollFreeze(0, 1);
+        ImGui.TableHeadersRow();
+
+        for (var i = 0; i < this.steps.Count; i++)
         {
-            ImGui.TableSetupColumn("###index", ImGuiTableColumnFlags.WidthFixed, 12f * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Name");
-            ImGui.TableSetupColumn("Result", ImGuiTableColumnFlags.WidthFixed, 40f * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 90f * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn(string.Empty, ImGuiTableColumnFlags.WidthFixed, 30f * ImGuiHelpers.GlobalScale);
+            var step = this.steps[i];
+            ImGui.TableNextRow();
 
-            ImGui.TableHeadersRow();
-
-            for (var i = 0; i < this.steps.Count; i++)
+            if (this.selfTestRunning && this.currentStep == i)
             {
-                var step = this.steps[i];
-                ImGui.TableNextRow();
+                ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(ImGuiCol.TableRowBgAlt));
+            }
 
-                ImGui.TableSetColumnIndex(0);
-                ImGui.Text(i.ToString());
+            ImGui.TableSetColumnIndex(0);
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(i.ToString());
 
-                ImGui.TableSetColumnIndex(1);
-                ImGui.Text(step.Name);
+            if (this.selfTestRunning && this.scrollToStep == i)
+            {
+                ImGui.SetScrollHereY();
+                this.scrollToStep = -1;
+            }
 
-                if (this.testIndexToResult.TryGetValue(i, out var result))
+            ImGui.TableSetColumnIndex(1);
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(step.Name);
+
+            if (this.testIndexToResult.TryGetValue(i, out var result))
+            {
+                ImGui.TableSetColumnIndex(2);
+                ImGui.AlignTextToFramePadding();
+
+                switch (result.Result)
                 {
-                    ImGui.TableSetColumnIndex(2);
-                    ImGui.PushFont(InterfaceManager.MonoFont);
+                    case SelfTestStepResult.Pass:
+                        ImGui.TextColored(ImGuiColors.HealerGreen, "PASS"u8);
+                        break;
+                    case SelfTestStepResult.Fail:
+                        ImGui.TextColored(ImGuiColors.DalamudRed, "FAIL"u8);
+                        break;
+                    default:
+                        ImGui.TextColored(ImGuiColors.DalamudGrey, "NR"u8);
+                        break;
+                }
 
-                    switch (result.Result)
-                    {
-                        case SelfTestStepResult.Pass:
-                            ImGui.TextColored(ImGuiColors.HealerGreen, "PASS");
-                            break;
-                        case SelfTestStepResult.Fail:
-                            ImGui.TextColored(ImGuiColors.DalamudRed, "FAIL");
-                            break;
-                        default:
-                            ImGui.TextColored(ImGuiColors.DalamudGrey, "NR");
-                            break;
-                    }
-
-                    ImGui.PopFont();
-
-                    ImGui.TableSetColumnIndex(3);
-                    if (result.Duration.HasValue)
-                    {
-                        ImGui.TextUnformatted(result.Duration.Value.ToString("g"));
-                    }
+                ImGui.TableSetColumnIndex(3);
+                if (result.Duration.HasValue)
+                {
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text(this.FormatTimeSpan(result.Duration.Value));
+                }
+            }
+            else
+            {
+                ImGui.TableSetColumnIndex(2);
+                ImGui.AlignTextToFramePadding();
+                if (this.selfTestRunning && this.currentStep == i)
+                {
+                    ImGui.TextColored(ImGuiColors.DalamudGrey, "WAIT"u8);
                 }
                 else
                 {
-                    ImGui.TableSetColumnIndex(2);
-                    if (this.selfTestRunning && this.currentStep == i)
-                    {
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, "WAIT");
-                    }
-                    else
-                    {
-                        ImGui.TextColored(ImGuiColors.DalamudGrey, "NR");
-                    }
-
-                    ImGui.TableSetColumnIndex(3);
-                    if (this.selfTestRunning && this.currentStep == i)
-                    {
-                        ImGui.TextUnformatted((DateTimeOffset.Now - this.lastTestStart).ToString("g"));
-                    }
+                    ImGui.TextColored(ImGuiColors.DalamudGrey, "NR"u8);
                 }
 
-                ImGui.TableSetColumnIndex(4);
-                using var id = ImRaii.PushId($"selfTest{i}");
-                if (ImGuiComponents.IconButton(FontAwesomeIcon.FastForward))
+                ImGui.TableSetColumnIndex(3);
+                ImGui.AlignTextToFramePadding();
+                if (this.selfTestRunning && this.currentStep == i)
                 {
-                    this.StopTests();
-                    this.testIndexToResult.Remove(i);
-                    this.currentStep = i;
-                    this.selfTestRunning = true;
-                    this.lastTestStart = DateTimeOffset.Now;
-                }
-
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.SetTooltip("Jump to this test");
+                    ImGui.Text(this.FormatTimeSpan(DateTimeOffset.Now - this.lastTestStart));
                 }
             }
 
-            ImGui.EndTable();
+            ImGui.TableSetColumnIndex(4);
+            using var id = ImRaii.PushId($"selfTest{i}");
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.FastForward))
+            {
+                this.StopTests();
+                this.testIndexToResult.Remove(i);
+                this.currentStep = i;
+                this.selfTestRunning = true;
+                this.lastTestStart = DateTimeOffset.Now;
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Jump to this test"u8);
+            }
         }
     }
 
@@ -280,5 +305,12 @@ internal class SelfTestWindow : Window
                 Log.Error(ex, $"Could not clean up AgingStep: {agingStep.Name}");
             }
         }
+    }
+
+    private string FormatTimeSpan(TimeSpan ts)
+    {
+        var str = ts.ToString("g", CultureInfo.InvariantCulture);
+        var commaPos = str.LastIndexOf('.');
+        return commaPos > -1 && commaPos + 5 < str.Length ? str[..(commaPos + 5)] : str;
     }
 }

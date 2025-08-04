@@ -1,7 +1,6 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -15,9 +14,9 @@ internal class ConditionWidget : IDataWindowWidget
 
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "condition" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Condition"; 
+    public string DisplayName { get; init; } = "Condition";
 
     /// <inheritdoc/>
     public void Load()
@@ -34,7 +33,7 @@ internal class ConditionWidget : IDataWindowWidget
         ImGui.Text($"ptr: {Util.DescribeAddress(condition.Address)}");
 #endif
 
-        ImGui.Text("Current Conditions:");
+        ImGui.Text("Current Conditions:"u8);
         ImGui.Separator();
 
         var didAny = false;
@@ -52,6 +51,6 @@ internal class ConditionWidget : IDataWindowWidget
         }
 
         if (!didAny)
-            ImGui.Text("None. Talk to a shop NPC or visit a market board to find out more!");
+            ImGui.Text("None. Talk to a shop NPC or visit a market board to find out more!"u8);
     }
 }

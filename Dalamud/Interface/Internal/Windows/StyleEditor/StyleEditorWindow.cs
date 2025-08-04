@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Reflection;
 
 using CheapLoc;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
@@ -11,8 +12,6 @@ using Dalamud.Interface.Style;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-using ImGuiNET;
-
 using Serilog;
 
 namespace Dalamud.Interface.Internal.Windows.StyleEditor;
@@ -90,7 +89,7 @@ public class StyleEditorWindow : Window
 
         var styleAry = config.SavedStyles.Select(x => x.Name).ToArray();
         ImGui.Text(Loc.Localize("StyleEditorChooseStyle", "Choose Style:"));
-        if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry, styleAry.Length))
+        if (ImGui.Combo("###styleChooserCombo", ref this.currentSel, styleAry))
         {
             var newStyle = config.SavedStyles[this.currentSel];
             newStyle.Apply();
@@ -119,7 +118,7 @@ public class StyleEditorWindow : Window
 
         if (isBuiltinStyle)
             ImGui.BeginDisabled();
-        
+
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash) && this.currentSel != 0)
         {
             this.currentSel--;
@@ -165,7 +164,7 @@ public class StyleEditorWindow : Window
 
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(Loc.Localize("StyleEditorCopy", "Copy style to clipboard for sharing"));
-        
+
         if (isBuiltinStyle)
             ImGui.EndDisabled();
 
@@ -218,7 +217,7 @@ public class StyleEditorWindow : Window
         {
             ImGui.Text(Loc.Localize("StyleEditorApplying", "Applying style..."));
         }
-        else if (ImGui.BeginTabBar("StyleEditorTabs"))
+        else if (ImGui.BeginTabBar("StyleEditorTabs"u8))
         {
             var style = ImGui.GetStyle();
             var changes = false;
@@ -234,29 +233,28 @@ public class StyleEditorWindow : Window
                     changes |= ImGui.SliderFloat2("ItemSpacing", ref style.ItemSpacing, 0.0f, 20.0f, "%.0f");
                     changes |= ImGui.SliderFloat2("ItemInnerSpacing", ref style.ItemInnerSpacing, 0.0f, 20.0f, "%.0f");
                     changes |= ImGui.SliderFloat2("TouchExtraPadding", ref style.TouchExtraPadding, 0.0f, 10.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("IndentSpacing", ref style.IndentSpacing, 0.0f, 30.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("ScrollbarSize", ref style.ScrollbarSize, 1.0f, 20.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("GrabMinSize", ref style.GrabMinSize, 1.0f, 20.0f, "%.0f");
-                    ImGui.Text("Borders");
-                    changes |= ImGui.SliderFloat("WindowBorderSize", ref style.WindowBorderSize, 0.0f, 1.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("ChildBorderSize", ref style.ChildBorderSize, 0.0f, 1.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("PopupBorderSize", ref style.PopupBorderSize, 0.0f, 1.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("FrameBorderSize", ref style.FrameBorderSize, 0.0f, 1.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("TabBorderSize", ref style.TabBorderSize, 0.0f, 1.0f, "%.0f");
-                    ImGui.Text("Rounding");
-                    changes |= ImGui.SliderFloat("WindowRounding", ref style.WindowRounding, 0.0f, 12.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("ChildRounding", ref style.ChildRounding, 0.0f, 12.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("FrameRounding", ref style.FrameRounding, 0.0f, 12.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("PopupRounding", ref style.PopupRounding, 0.0f, 12.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("ScrollbarRounding", ref style.ScrollbarRounding, 0.0f, 12.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("GrabRounding", ref style.GrabRounding, 0.0f, 12.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("LogSliderDeadzone", ref style.LogSliderDeadzone, 0.0f, 12.0f, "%.0f");
-                    changes |= ImGui.SliderFloat("TabRounding", ref style.TabRounding, 0.0f, 12.0f, "%.0f");
-                    ImGui.Text("Alignment");
+                    changes |= ImGui.SliderFloat("IndentSpacing"u8, ref style.IndentSpacing, 0.0f, 30.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("ScrollbarSize"u8, ref style.ScrollbarSize, 1.0f, 20.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("GrabMinSize"u8, ref style.GrabMinSize, 1.0f, 20.0f, "%.0f"u8);
+                    ImGui.Text("Borders"u8);
+                    changes |= ImGui.SliderFloat("WindowBorderSize"u8, ref style.WindowBorderSize, 0.0f, 1.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("ChildBorderSize"u8, ref style.ChildBorderSize, 0.0f, 1.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("PopupBorderSize"u8, ref style.PopupBorderSize, 0.0f, 1.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("FrameBorderSize"u8, ref style.FrameBorderSize, 0.0f, 1.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("TabBorderSize"u8, ref style.TabBorderSize, 0.0f, 1.0f, "%.0f"u8);
+                    ImGui.Text("Rounding"u8);
+                    changes |= ImGui.SliderFloat("WindowRounding"u8, ref style.WindowRounding, 0.0f, 12.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("ChildRounding"u8, ref style.ChildRounding, 0.0f, 12.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("FrameRounding"u8, ref style.FrameRounding, 0.0f, 12.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("PopupRounding"u8, ref style.PopupRounding, 0.0f, 12.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("ScrollbarRounding"u8, ref style.ScrollbarRounding, 0.0f, 12.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("GrabRounding"u8, ref style.GrabRounding, 0.0f, 12.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("LogSliderDeadzone"u8, ref style.LogSliderDeadzone, 0.0f, 12.0f, "%.0f"u8);
+                    changes |= ImGui.SliderFloat("TabRounding"u8, ref style.TabRounding, 0.0f, 12.0f, "%.0f"u8);
+                    ImGui.Text("Alignment"u8);
                     changes |= ImGui.SliderFloat2("WindowTitleAlign", ref style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
                     var windowMenuButtonPosition = (int)style.WindowMenuButtonPosition + 1;
-                    if (ImGui.Combo("WindowMenuButtonPosition", ref windowMenuButtonPosition, "None\0Left\0Right\0"))
-                    {
+                    if (ImGui.Combo("WindowMenuButtonPosition"u8, ref windowMenuButtonPosition, ["None", "Left", "Right"]))
                         style.WindowMenuButtonPosition = (ImGuiDir)(windowMenuButtonPosition - 1);
                         changes = true;
                     }
@@ -280,17 +278,17 @@ public class StyleEditorWindow : Window
 
             if (ImGui.BeginTabItem(Loc.Localize("StyleEditorColors", "Colors")))
             {
-                if (ImGui.BeginChild("ScrollingColors", ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
+                if (ImGui.BeginChild("ScrollingColors"u8, ImGuiHelpers.ScaledVector2(0, -30), true, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoBackground))
                 {
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 5);
 
-                    if (ImGui.RadioButton("Opaque", this.alphaFlags == ImGuiColorEditFlags.None))
+                    if (ImGui.RadioButton("Opaque"u8, this.alphaFlags == ImGuiColorEditFlags.None))
                         this.alphaFlags = ImGuiColorEditFlags.None;
                     ImGui.SameLine();
-                    if (ImGui.RadioButton("Alpha", this.alphaFlags == ImGuiColorEditFlags.AlphaPreview))
+                    if (ImGui.RadioButton("Alpha"u8, this.alphaFlags == ImGuiColorEditFlags.AlphaPreview))
                         this.alphaFlags = ImGuiColorEditFlags.AlphaPreview;
                     ImGui.SameLine();
-                    if (ImGui.RadioButton("Both", this.alphaFlags == ImGuiColorEditFlags.AlphaPreviewHalf))
+                    if (ImGui.RadioButton("Both"u8, this.alphaFlags == ImGuiColorEditFlags.AlphaPreviewHalf))
                         this.alphaFlags = ImGuiColorEditFlags.AlphaPreviewHalf;
                     ImGui.SameLine();
 
@@ -301,7 +299,7 @@ public class StyleEditorWindow : Window
 
                     foreach (var imGuiCol in Enum.GetValues<ImGuiCol>())
                     {
-                        if (imGuiCol == ImGuiCol.COUNT)
+                        if (imGuiCol == ImGuiCol.Count)
                             continue;
 
                         ImGui.PushID(imGuiCol.ToString());
@@ -309,7 +307,7 @@ public class StyleEditorWindow : Window
                         changes |= ImGui.ColorEdit4("##color", ref style.Colors[(int)imGuiCol], ImGuiColorEditFlags.AlphaBar | this.alphaFlags);
 
                         ImGui.SameLine(0.0f, style.ItemInnerSpacing.X);
-                        ImGui.TextUnformatted(imGuiCol.ToString());
+                        ImGui.Text(imGuiCol.ToString());
 
                         ImGui.PopID();
                     }
@@ -337,7 +335,7 @@ public class StyleEditorWindow : Window
                         }
 
                         ImGui.SameLine(0.0f, style.ItemInnerSpacing.X);
-                        ImGui.TextUnformatted(property.Name);
+                        ImGui.Text(property.Name);
 
                         ImGui.PopID();
                     }
@@ -384,12 +382,12 @@ public class StyleEditorWindow : Window
             ImGui.Text(Loc.Localize("StyleEditorEnterName", "Please enter the new name for this style."));
             ImGui.Spacing();
 
-            ImGui.InputText("###renameModalInput", ref this.renameText, 255);
+            ImGui.InputText("###renameModalInput"u8, ref this.renameText, 255);
 
             const float buttonWidth = 120f;
             ImGui.SetCursorPosX((ImGui.GetWindowWidth() - buttonWidth) / 2);
 
-            if (ImGui.Button("OK", new Vector2(buttonWidth, 40)))
+            if (ImGui.Button("OK"u8, new Vector2(buttonWidth, 40)))
             {
                 config.SavedStyles[this.currentSel].Name = this.renameText;
                 config.QueueSave();

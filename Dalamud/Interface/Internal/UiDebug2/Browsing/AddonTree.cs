@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
 
 using static Dalamud.Interface.FontAwesomeIcon;
 using static Dalamud.Interface.Internal.UiDebug2.ElementSelector;
@@ -81,7 +82,7 @@ public unsafe partial class AddonTree : IDisposable
         {
             var ptr = GameGui.GetAddonByName(name);
 
-            if ((AtkUnitBase*)ptr != null)
+            if (!ptr.IsNull)
             {
                 if (AddonTrees.TryGetValue(name, out var tree))
                 {
@@ -118,11 +119,11 @@ public unsafe partial class AddonTree : IDisposable
 
         var isVisible = addon->IsVisible;
 
-        ImGui.TextUnformatted($"{this.AddonName}");
+        ImGui.Text($"{this.AddonName}");
         ImGui.SameLine();
 
         ImGui.SameLine();
-        ImGui.TextColored(isVisible ? new(0.1f, 1f, 0.1f, 1f) : new(0.6f, 0.6f, 0.6f, 1), isVisible ? "Visible" : "Not Visible");
+        ImGui.TextColored(isVisible ? new Vector4(0.1f, 1f, 0.1f, 1f) : new(0.6f, 0.6f, 0.6f, 1), isVisible ? "Visible"u8 : "Not Visible"u8);
 
         ImGui.SameLine(ImGui.GetWindowWidth() - 100);
 
@@ -133,7 +134,7 @@ public unsafe partial class AddonTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Visibility");
+            ImGui.SetTooltip("Toggle Visibility"u8);
         }
 
         ImGui.SameLine();
@@ -144,7 +145,7 @@ public unsafe partial class AddonTree : IDisposable
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Toggle Popout Window");
+            ImGui.SetTooltip("Toggle Popout Window"u8);
         }
 
         PaddedSeparator(1);
@@ -152,7 +153,7 @@ public unsafe partial class AddonTree : IDisposable
         var uldManager = addon->UldManager;
 
         PrintFieldValuePair("Address", $"{(nint)addon:X}");
-        PrintFieldValuePair("Agent", $"{GameGui.FindAgentInterface(addon):X}");
+        PrintFieldValuePair("Agent", $"{(nint)GameGui.FindAgentInterface(addon):X}");
 
         PrintFieldValuePairs(
             ("X", $"{addon->X}"),
@@ -234,7 +235,7 @@ public unsafe partial class AddonTree : IDisposable
     /// <returns>true if the addon is found.</returns>
     private bool ValidateAddon(out AtkUnitBase* addon)
     {
-        addon = (AtkUnitBase*)GameGui.GetAddonByName(this.AddonName);
+        addon = GameGui.GetAddonByName(this.AddonName).Struct;
         if (addon == null || (nint)addon != this.InitialPtr)
         {
             this.Dispose();

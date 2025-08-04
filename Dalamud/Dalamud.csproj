@@ -6,7 +6,7 @@
 
     <PropertyGroup Label="Feature">
         <Description>XIV Launcher addon framework</Description>
-        <DalamudVersion>12.0.0.15</DalamudVersion>
+        <DalamudVersion>13.0.0.0</DalamudVersion>
         <AssemblyVersion>$(DalamudVersion)</AssemblyVersion>
         <Version>$(DalamudVersion)</Version>
         <FileVersion>$(DalamudVersion)</FileVersion>
@@ -35,6 +35,10 @@
         <Deterministic>true</Deterministic>
         <Nullable>annotations</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <!-- Enable when cswin32 properly supports implementing COM interfaces and we can
+             make IDropTarget work -->
+        <!-- <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling> -->
     </PropertyGroup>
 
     <PropertyGroup Label="Configuration">
@@ -66,10 +70,12 @@
         <PackageReference Include="Lumina" Version="$(LuminaVersion)" />
         <PackageReference Include="Lumina.Excel" Version="$(LuminaExcelVersion)" />
         <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0-preview.1.24081.5" />
-        <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.46-beta">
+        <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="MinSharp" Version="1.0.4" />
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
         <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
         <PackageReference Include="Serilog" Version="4.0.2" />
         <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
@@ -88,12 +94,21 @@
         <PackageReference Include="TerraFX.Interop.Windows" Version="10.0.22621.2" />
     </ItemGroup>
     <ItemGroup>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\imgui-frag.hlsl.bytes">
+          <LogicalName>imgui-frag.hlsl.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Interface\ImGuiBackend\Renderers\imgui-vertex.hlsl.bytes">
+          <LogicalName>imgui-vertex.hlsl.bytes</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="..\Dalamud.Common\Dalamud.Common.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.Bindings.ImGuizmo\Dalamud.Bindings.ImGuizmo.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.Bindings.ImGui\Dalamud.Bindings.ImGui.csproj" />
+        <ProjectReference Include="..\imgui\Dalamud.Bindings.ImPlot\Dalamud.Bindings.ImPlot.csproj" />
+        <ProjectReference Include="..\imgui\ImGuiScene\ImGuiScene.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
         <ProjectReference Include="..\lib\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
-        <ProjectReference Include="..\lib\ImGuiScene\deps\ImGui.NET\src\ImGui.NET-472\ImGui.NET-472.csproj" />
-        <ProjectReference Include="..\lib\ImGuiScene\deps\SDL2-CS\SDL2-CS.csproj" />
-        <ProjectReference Include="..\lib\ImGuiScene\ImGuiScene\ImGuiScene.csproj" />
     </ItemGroup>
 
     <ItemGroup>

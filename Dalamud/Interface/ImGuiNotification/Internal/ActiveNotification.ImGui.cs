@@ -1,11 +1,10 @@
 using System.Numerics;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ImGuiNotification.Internal;
 
@@ -155,7 +154,11 @@ internal sealed partial class ActiveNotification
 
         if (!isTakingKeyboardInput && !isHovered && isFocused)
         {
-            ImGui.SetWindowFocus(null);
+            unsafe
+            {
+                ImGui.SetWindowFocus((byte*)null);
+            }
+
             isFocused = false;
         }
 
@@ -215,7 +218,7 @@ internal sealed partial class ActiveNotification
     /// <summary>Calculates the effective expiry, taking ImGui window state into account.</summary>
     /// <param name="warrantsExtension">Notification will not dismiss while this paramter is <c>true</c>.</param>
     /// <returns>The calculated effective expiry.</returns>
-    /// <remarks>Expected to be called BETWEEN <see cref="ImGui.Begin(string)"/> and <see cref="ImGui.End"/>.</remarks>
+    /// <remarks>Expected to be called BETWEEN <see cref="ImGui.Begin(ImU8String, ImGuiWindowFlags)"/> and <see cref="ImGui.End()"/>.</remarks>
     private DateTime CalculateEffectiveExpiry(ref bool warrantsExtension)
     {
         DateTime expiry;
@@ -380,7 +383,7 @@ internal sealed partial class ActiveNotification
             ImGui.PushStyleVar(ImGuiStyleVar.Alpha, ImGui.GetStyle().Alpha * relativeOpacity);
             ImGui.SetCursorPos(new(NotificationConstants.ScaledWindowPadding));
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
-            ImGui.TextUnformatted(
+            ImGui.Text(
                 ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByActiveItem)
                     ? this.CreatedAt.LocAbsolute()
                     : ReducedMotions
@@ -401,7 +404,7 @@ internal sealed partial class ActiveNotification
             var agoSize = ImGui.CalcTextSize(agoText);
             ImGui.SetCursorPos(new(width - ((height + agoSize.X) / 2f), NotificationConstants.ScaledWindowPadding));
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.WhenTextColor);
-            ImGui.TextUnformatted(agoText);
+            ImGui.Text(agoText);
             ImGui.PopStyleColor();
 
             this.DrawIcon(
@@ -412,7 +415,7 @@ internal sealed partial class ActiveNotification
                 windowPos + new Vector2(width - height, height),
                 true);
             ImGui.SetCursorPos(new(height, NotificationConstants.ScaledWindowPadding));
-            ImGui.TextUnformatted(this.EffectiveMinimizedText);
+            ImGui.Text(this.EffectiveMinimizedText);
             ImGui.PopClipRect();
 
             ImGui.PopStyleVar();
@@ -499,13 +502,13 @@ internal sealed partial class ActiveNotification
         if ((this.Title ?? this.Type.ToTitle()) is { } title)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.TitleTextColor);
-            ImGui.TextUnformatted(title);
+            ImGui.Text(title);
             ImGui.PopStyleColor();
         }
 
         ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.BlameTextColor);
         ImGui.SetCursorPos(minCoord with { Y = ImGui.GetCursorPosY() });
-        ImGui.TextUnformatted(this.InitiatorString);
+        ImGui.Text(this.InitiatorString);
         ImGui.PopStyleColor();
 
         ImGui.PopTextWrapPos();
@@ -517,7 +520,7 @@ internal sealed partial class ActiveNotification
         ImGui.SetCursorPos(minCoord);
         ImGui.PushTextWrapPos(minCoord.X + width);
         ImGui.PushStyleColor(ImGuiCol.Text, NotificationConstants.BodyTextColor);
-        ImGui.TextUnformatted(this.Content);
+        ImGui.Text(this.Content);
         ImGui.PopStyleColor();
         ImGui.PopTextWrapPos();
     }
@@ -596,9 +599,9 @@ internal sealed partial class ActiveNotification
             verts[vertPtr++] = lastOff;
         unsafe
         {
-            var dlist = ImGui.GetWindowDrawList().NativePtr;
+            var dlist = ImGui.GetWindowDrawList().Handle;
             fixed (Vector2* pvert = verts)
-                ImGuiNative.ImDrawList_AddConvexPolyFilled(dlist, pvert, vertPtr, color);
+                dlist->AddConvexPolyFilled(pvert, vertPtr, color);
         }
     }
 

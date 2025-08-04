@@ -140,12 +140,6 @@ internal class DalamudCommands : IServiceType
                 "Open Dalamud's startup timing profiler."),
         });
 
-        commandManager.AddHandler("/imdebug", new CommandInfo(this.OnDebugImInfoCommand)
-        {
-            HelpMessage = "ImGui DEBUG",
-            ShowInHelp = false,
-        });
-
         commandManager.AddHandler("/xlcopylog", new CommandInfo(this.OnCopyLogCommand)
         {
             HelpMessage = Loc.Localize(
@@ -303,29 +297,6 @@ internal class DalamudCommands : IServiceType
     private void OnOpenLog(string command, string arguments)
     {
         Service<DalamudInterface>.Get().ToggleLogWindow();
-    }
-
-    private void OnDebugImInfoCommand(string command, string arguments)
-    {
-        var io = Service<InterfaceManager>.Get().LastImGuiIoPtr;
-        var info = $"WantCaptureKeyboard: {io.WantCaptureKeyboard}\n";
-        info += $"WantCaptureMouse: {io.WantCaptureMouse}\n";
-        info += $"WantSetMousePos: {io.WantSetMousePos}\n";
-        info += $"WantTextInput: {io.WantTextInput}\n";
-        info += $"WantSaveIniSettings: {io.WantSaveIniSettings}\n";
-        info += $"BackendFlags: {(int)io.BackendFlags}\n";
-        info += $"DeltaTime: {io.DeltaTime}\n";
-        info += $"DisplaySize: {io.DisplaySize.X} {io.DisplaySize.Y}\n";
-        info += $"Framerate: {io.Framerate}\n";
-        info += $"MetricsActiveWindows: {io.MetricsActiveWindows}\n";
-        info += $"MetricsRenderWindows: {io.MetricsRenderWindows}\n";
-        info += $"MousePos: {io.MousePos.X} {io.MousePos.Y}\n";
-        info += $"MouseClicked: {io.MouseClicked}\n";
-        info += $"MouseDown: {io.MouseDown}\n";
-        info += $"NavActive: {io.NavActive}\n";
-        info += $"NavVisible: {io.NavVisible}\n";
-
-        Log.Information(info);
     }
 
     private void OnVersionInfoCommand(string command, string arguments)

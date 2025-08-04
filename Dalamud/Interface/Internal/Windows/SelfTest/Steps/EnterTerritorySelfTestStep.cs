@@ -1,6 +1,5 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.SelfTest.Steps;
 
@@ -33,7 +32,7 @@ internal class EnterTerritorySelfTestStep : ISelfTestStep
     {
         var clientState = Service<ClientState>.Get();
 
-        ImGui.TextUnformatted(this.Name);
+        ImGui.Text(this.Name);
 
         if (!this.subscribed)
         {

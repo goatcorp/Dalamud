@@ -1,7 +1,5 @@
 using System.Runtime.InteropServices;
 
-using ImGuiNET;
-
 using TerraFX.Interop.DirectX;
 using TerraFX.Interop.Windows;
 

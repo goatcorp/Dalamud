@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Configuration.Internal;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
@@ -14,12 +15,7 @@ using Dalamud.Interface.ManagedFontAtlas.Internals;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Internal.Types;
 using Dalamud.Utility;
-
-using ImGuiNET;
-
 using Serilog;
-
-using SharpDX.Direct3D11;
 
 namespace Dalamud.Interface;
 
@@ -129,12 +125,22 @@ public interface IUiBuilder
     /// <summary>
     /// Gets the game's active Direct3D device.
     /// </summary>
-    Device Device { get; }
+    // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
+    [Obsolete($"Use {nameof(DeviceHandle)} and wrap it using DirectX wrapper library of your choice.")]
+    SharpDX.Direct3D11.Device Device { get; }
 
-    /// <summary>
-    /// Gets the game's main window handle.
-    /// </summary>
-    IntPtr WindowHandlePtr { get; }
+    /// <summary>Gets the game's active Direct3D device.</summary>
+    /// <value>Pointer to the instance of IUnknown that the game is using and should be containing an ID3D11Device,
+    /// or 0 if it is not available yet.</value>
+    /// <remarks>Use
+    /// <a href="https://learn.microsoft.com/en-us/windows/win32/api/unknwn/nf-unknwn-iunknown-queryinterface(q)">
+    /// QueryInterface</a> with IID of <c>IID_ID3D11Device</c> if you want to ensure that the interface type contained
+    /// within is indeed an instance of ID3D11Device.</remarks>
+    nint DeviceHandle { get; }
+
+    /// <summary>Gets the game's main window handle.</summary>
+    /// <value>HWND of the main game window, or 0 if it is not available yet.</value>
+    nint WindowHandlePtr { get; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
@@ -267,6 +273,8 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
     private IFontHandle? iconFontHandle;
     private IFontHandle? monoFontHandle;
     private IFontHandle? iconFontFixedWidthHandle;
+
+    private SharpDX.Direct3D11.Device? sdxDevice;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UiBuilder"/> class and registers it.
@@ -442,15 +450,17 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
                     this.InterfaceManagerWithScene?.MonoFontHandle
                     ?? throw new InvalidOperationException("Scene is not yet ready.")));
 
-    /// <summary>
-    /// Gets the game's active Direct3D device.
-    /// </summary>
-    public Device Device => this.InterfaceManagerWithScene!.Device!;
+    /// <inheritdoc/>
+    // TODO: Remove it on API11/APIXI, and remove SharpDX/PInvoke/etc. dependency from Dalamud.
+    [Obsolete($"Use {nameof(DeviceHandle)} and wrap it using DirectX wrapper library of your choice.")]
+    public SharpDX.Direct3D11.Device Device =>
+        this.sdxDevice ??= new(this.InterfaceManagerWithScene!.Backend!.DeviceHandle);
 
-    /// <summary>
-    /// Gets the game's main window handle.
-    /// </summary>
-    public IntPtr WindowHandlePtr => this.InterfaceManagerWithScene!.WindowHandlePtr;
+    /// <inheritdoc/>
+    public nint DeviceHandle => this.InterfaceManagerWithScene?.Backend?.DeviceHandle ?? 0;
+
+    /// <inheritdoc/>
+    public nint WindowHandlePtr => this.InterfaceManagerWithScene is { } imws ? imws.GameWindowHandle : 0;
 
     /// <summary>
     /// Gets or sets a value indicating whether this plugin should hide its UI automatically when the game's UI is hidden.
@@ -736,14 +746,17 @@ public sealed class UiBuilder : IDisposable, IUiBuilder
             this.stopwatch.Restart();
         }
 
-        if (this.hasErrorWindow && ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
+        if (this.hasErrorWindow)
         {
-            ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
-            ImGui.Spacing();
-
-            if (ImGui.Button("OK"))
+            if (ImGui.Begin($"{this.namespaceName} Error", ref this.hasErrorWindow, ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
             {
-                this.hasErrorWindow = false;
+                ImGui.Text($"The plugin {this.namespaceName} ran into an error.\nContact the plugin developer for support.\n\nPlease try restarting your game.");
+                ImGui.Spacing();
+
+                if (ImGui.Button("OK"u8))
+                {
+                    this.hasErrorWindow = false;
+                }
             }
 
             ImGui.End();

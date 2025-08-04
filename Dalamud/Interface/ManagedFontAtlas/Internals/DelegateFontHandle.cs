@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility;
 using Dalamud.Logging.Internal;
 using Dalamud.Utility;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.ManagedFontAtlas.Internals;
 
@@ -66,7 +65,7 @@ internal sealed class DelegateFontHandle : FontHandle
             var key = new DelegateFontHandle(this, buildStepDelegate);
             lock (this.syncRoot)
                 this.handles.Add(key);
-            this.RebuildRecommend?.Invoke();
+            this.RebuildRecommend.InvokeSafely();
             return key;
         }
 
@@ -159,7 +158,7 @@ internal sealed class DelegateFontHandle : FontHandle
                 {
                     toolkitPreBuild.Font = default;
                     k.CallOnBuildStepChange(toolkitPreBuild);
-                    if (toolkitPreBuild.Font.IsNull())
+                    if (toolkitPreBuild.Font.IsNull)
                     {
                         if (fontCountPrevious == fontsVector.Length)
                         {
@@ -177,7 +176,7 @@ internal sealed class DelegateFontHandle : FontHandle
                         {
                             for (var i = fontCountPrevious; !found && i < fontsVector.Length; i++)
                             {
-                                if (fontsVector[i].NativePtr == toolkitPreBuild.Font.NativePtr)
+                                if (fontsVector[i].Handle == toolkitPreBuild.Font.Handle)
                                     found = true;
                             }
                         }
@@ -223,7 +222,7 @@ internal sealed class DelegateFontHandle : FontHandle
                         {
                             unsafe
                             {
-                                if (fontsVector[i].NativePtr == fontsVector[j].NativePtr)
+                                if (fontsVector[i].Handle == fontsVector[j].Handle)
                                     throw new InvalidOperationException("An already added font has been added again.");
                             }
                         }
@@ -247,7 +246,7 @@ internal sealed class DelegateFontHandle : FontHandle
                     {
                         var distinct =
                             fontsVector
-                                .DistinctBy(x => (nint)x.NativePtr) // Remove duplicates
+                                .DistinctBy(x => (nint)x.Handle) // Remove duplicates
                                 .Where(x => x.ValidateUnsafe() is null) // Remove invalid entries without freeing them
                                 .ToArray();
 
@@ -259,7 +258,7 @@ internal sealed class DelegateFontHandle : FontHandle
             }
         }
 
-        /// <inheritdoc/>        
+        /// <inheritdoc/>
         public void OnPreBuildCleanup(IFontAtlasBuildToolkitPreBuild toolkitPreBuild)
         {
             // irrelevant

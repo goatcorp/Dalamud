@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 
+using Dalamud.Bindings.ImGui;
+
 namespace Dalamud.Utility;
 
 /// <summary>
@@ -10,7 +12,6 @@ public static class DiagnosticUtil
 {
     private static readonly string[] IgnoredNamespaces = [
         nameof(System),
-        nameof(ImGuiNET.ImGuiNative)
     ];
 
     /// <summary>

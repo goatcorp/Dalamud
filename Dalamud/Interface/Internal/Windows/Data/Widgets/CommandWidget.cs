@@ -1,9 +1,9 @@
-﻿using System.Linq;
+using System.Linq;
 
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Command;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-
-using ImGuiNET;
 
 namespace Dalamud.Interface.Internal.Windows.Data.Widgets;
 
@@ -14,9 +14,9 @@ internal class CommandWidget : IDataWindowWidget
 {
     /// <inheritdoc/>
     public string[]? CommandShortcuts { get; init; } = { "command" };
-    
+
     /// <inheritdoc/>
-    public string DisplayName { get; init; } = "Command"; 
+    public string DisplayName { get; init; } = "Command";
 
     /// <inheritdoc/>
     public bool Ready { get; set; }
@@ -34,17 +34,17 @@ internal class CommandWidget : IDataWindowWidget
 
         var tableFlags = ImGuiTableFlags.ScrollY | ImGuiTableFlags.Borders | ImGuiTableFlags.SizingStretchProp |
                          ImGuiTableFlags.Sortable | ImGuiTableFlags.SortTristate;
-        using var table = ImRaii.Table("CommandList", 4, tableFlags);
+        using var table = ImRaii.Table("CommandList"u8, 4, tableFlags);
         if (table)
         {
             ImGui.TableSetupScrollFreeze(0, 1);
 
-            ImGui.TableSetupColumn("Command");
-            ImGui.TableSetupColumn("Plugin");
-            ImGui.TableSetupColumn("HelpMessage", ImGuiTableColumnFlags.NoSort);
-            ImGui.TableSetupColumn("In Help?", ImGuiTableColumnFlags.NoSort);
+            ImGui.TableSetupColumn("Command"u8);
+            ImGui.TableSetupColumn("Plugin"u8);
+            ImGui.TableSetupColumn("HelpMessage"u8, ImGuiTableColumnFlags.NoSort);
+            ImGui.TableSetupColumn("In Help?"u8, ImGuiTableColumnFlags.NoSort);
             ImGui.TableHeadersRow();
-            
+
             var sortSpecs = ImGui.TableGetSortSpecs();
             var commands = commandManager.Commands.ToArray();
 
@@ -65,16 +65,16 @@ internal class CommandWidget : IDataWindowWidget
             foreach (var command in commands)
             {
                 ImGui.TableNextRow();
-            
+
                 ImGui.TableSetColumnIndex(0);
                 ImGui.Text(command.Key);
-            
+
                 ImGui.TableNextColumn();
                 ImGui.Text(commandManager.GetHandlerAssemblyName(command.Key, command.Value));
-            
+
                 ImGui.TableNextColumn();
                 ImGui.TextWrapped(command.Value.HelpMessage);
-            
+
                 ImGui.TableNextColumn();
                 ImGui.Text(command.Value.ShowInHelp ? "Yes" : "No");
             }

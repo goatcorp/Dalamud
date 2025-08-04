@@ -13,8 +13,6 @@ using Dalamud.Data;
 using Dalamud.Game.Gui;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.Sanitizer;
-using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Internal.Windows.PluginInstaller;
@@ -427,39 +425,6 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
 
     #endregion
 
-    #region Chat Links
-
-    // TODO API9: Move to chatgui, don't allow passing own commandId
-
-    /// <summary>
-    /// Register a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    /// <param name="commandAction">The action to be executed.</param>
-    /// <returns>Returns an SeString payload for the link.</returns>
-    public DalamudLinkPayload AddChatLinkHandler(uint commandId, Action<uint, SeString> commandAction)
-    {
-        return Service<ChatGui>.Get().AddChatLinkHandler(this.plugin.InternalName, commandId, commandAction);
-    }
-
-    /// <summary>
-    /// Remove a chat link handler.
-    /// </summary>
-    /// <param name="commandId">The ID of the command.</param>
-    public void RemoveChatLinkHandler(uint commandId)
-    {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName, commandId);
-    }
-
-    /// <summary>
-    /// Removes all chat link handlers registered by the plugin.
-    /// </summary>
-    public void RemoveChatLinkHandler()
-    {
-        Service<ChatGui>.Get().RemoveChatLinkHandler(this.plugin.InternalName);
-    }
-    #endregion
-
     #region Dependency Injection
 
     /// <inheritdoc/>
@@ -523,22 +488,18 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     /// <summary>
     /// Dispatch the active plugins changed event.
     /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    internal void NotifyActivePluginsChanged(PluginListInvalidationKind kind, bool affectedThisPlugin)
+    /// <param name="args">The event arguments containing information about the change.</param>
+    internal void NotifyActivePluginsChanged(ActivePluginsChangedEventArgs args)
     {
-        if (this.ActivePluginsChanged is { } callback)
+        foreach (var action in Delegate.EnumerateInvocationList(this.ActivePluginsChanged))
         {
-            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.ActivePluginsChangedDelegate>())
+            try
             {
-                try
-                {
-                    action(kind, affectedThisPlugin);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                }
+                action(args);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
             }
         }
     }
@@ -547,18 +508,15 @@ internal sealed class DalamudPluginInterface : IDalamudPluginInterface, IDisposa
     {
         this.UiLanguage = langCode;
 
-        if (this.LanguageChanged is { } callback)
+        foreach (var action in Delegate.EnumerateInvocationList(this.LanguageChanged))
         {
-            foreach (var action in callback.GetInvocationList().Cast<IDalamudPluginInterface.LanguageChangedDelegate>())
+            try
             {
-                try
-                {
-                    action(langCode);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                }
+                action(langCode);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Exception during raise of {handler}", action.Method);
             }
         }
     }
