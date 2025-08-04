@@ -16,13 +16,12 @@ using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Application.Network;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 using Lumina.Excel.Sheets;
 
 using Action = System.Action;
+using CSPlayerState = FFXIVClientStructs.FFXIV.Client.Game.UI.PlayerState;
 
 namespace Dalamud.Game.ClientState;
 
@@ -37,7 +36,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     private readonly GameLifecycle lifecycle;
     private readonly ClientStateAddressResolver address;
     private readonly Hook<EventFramework.Delegates.SetTerritoryTypeId> setupTerritoryTypeHook;
-    private readonly Hook<UIModule.Delegates.HandlePacket> uiModuleHandlePacketHook;
     private readonly Hook<LogoutCallbackInterface.Delegates.OnLogout> onLogoutHook;
 
     [ServiceManager.ServiceDependency]
@@ -63,14 +61,12 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         Log.Verbose($"SetupTerritoryType address {Util.DescribeAddress(setTerritoryTypeAddr)}");
 
         this.setupTerritoryTypeHook = Hook<EventFramework.Delegates.SetTerritoryTypeId>.FromAddress(setTerritoryTypeAddr, this.SetupTerritoryTypeDetour);
-        this.uiModuleHandlePacketHook = Hook<UIModule.Delegates.HandlePacket>.FromAddress((nint)UIModule.StaticVirtualTablePointer->HandlePacket, this.UIModuleHandlePacketDetour);
         this.onLogoutHook = Hook<LogoutCallbackInterface.Delegates.OnLogout>.FromAddress((nint)LogoutCallbackInterface.StaticVirtualTablePointer->OnLogout, this.OnLogoutDetour);
 
         this.framework.Update += this.FrameworkOnOnUpdateEvent;
         this.networkHandlers.CfPop += this.NetworkHandlersOnCfPop;
 
         this.setupTerritoryTypeHook.Enable();
-        this.uiModuleHandlePacketHook.Enable();
         this.onLogoutHook.Enable();
     }
 
@@ -80,10 +76,10 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public event Action<ushort>? TerritoryChanged;
 
     /// <inheritdoc/>
-    public event IClientState.ClassJobChangeDelegate? ClassJobChanged;
+    public event IPlayerState.ClassJobChangeDelegate? ClassJobChanged;
 
     /// <inheritdoc/>
-    public event IClientState.LevelChangeDelegate? LevelChanged;
+    public event IPlayerState.LevelChangeDelegate? LevelChanged;
 
     /// <inheritdoc/>
     public event Action? Login;
@@ -120,7 +116,7 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     public IPlayerCharacter? LocalPlayer => Service<ObjectTable>.GetNullable()?[0] as IPlayerCharacter;
 
     /// <inheritdoc/>
-    public unsafe ulong LocalContentId => PlayerState.Instance()->ContentId;
+    public ulong LocalContentId => 0;
 
     /// <inheritdoc/>
     public unsafe bool IsLoggedIn
@@ -173,7 +169,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
     void IInternalDisposableService.DisposeService()
     {
         this.setupTerritoryTypeHook.Dispose();
-        this.uiModuleHandlePacketHook.Dispose();
         this.onLogoutHook.Dispose();
 
         this.framework.Update -= this.FrameworkOnOnUpdateEvent;
@@ -209,54 +204,6 @@ internal sealed class ClientState : IInternalDisposableService, IClientState
         }
 
         this.setupTerritoryTypeHook.Original(eventFramework, territoryType);
-    }
-
-    private unsafe void UIModuleHandlePacketDetour(
-        UIModule* thisPtr, UIModulePacketType type, uint uintParam, void* packet)
-    {
-        this.uiModuleHandlePacketHook.Original(thisPtr, type, uintParam, packet);
-
-        switch (type)
-        {
-            case UIModulePacketType.ClassJobChange:
-            {
-                var classJobId = uintParam;
-
-                foreach (var action in Delegate.EnumerateInvocationList(this.ClassJobChanged))
-                {
-                    try
-                    {
-                        action(classJobId);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                    }
-                }
-
-                break;
-            }
-
-            case UIModulePacketType.LevelChange:
-            {
-                var classJobId = *(uint*)packet;
-                var level = *(ushort*)((nint)packet + 4);
-
-                foreach (var action in Delegate.EnumerateInvocationList(this.LevelChanged))
-                {
-                    try
-                    {
-                        action(classJobId, level);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Exception during raise of {handler}", action.Method);
-                    }
-                }
-
-                break;
-            }
-        }
     }
 
     private void FrameworkOnOnUpdateEvent(IFramework framework1)
@@ -356,10 +303,10 @@ internal class ClientStatePluginScoped : IInternalDisposableService, IClientStat
     public event Action<ushort>? TerritoryChanged;
 
     /// <inheritdoc/>
-    public event IClientState.ClassJobChangeDelegate? ClassJobChanged;
+    public event IPlayerState.ClassJobChangeDelegate? ClassJobChanged;
 
     /// <inheritdoc/>
-    public event IClientState.LevelChangeDelegate? LevelChanged;
+    public event IPlayerState.LevelChangeDelegate? LevelChanged;
 
     /// <inheritdoc/>
     public event Action? Login;
