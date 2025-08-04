@@ -166,7 +166,7 @@ public class StyleEditorWindow : Window
         {
             this.SaveStyle();
 
-            var styleJson = ImGui.GetClipboardTextS();
+            var styleJson = ImGui.GetClipboardText();
 
             try
             {

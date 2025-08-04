@@ -174,7 +174,7 @@ internal class ProfileManagerWidget
         {
             try
             {
-                profman.ImportProfile(ImGui.GetClipboardTextS());
+                profman.ImportProfile(ImGui.GetClipboardText());
                 Service<NotificationManager>.Get().AddNotification(Locs.NotificationImportSuccess, type: NotificationType.Success);
             }
             catch (Exception ex)
