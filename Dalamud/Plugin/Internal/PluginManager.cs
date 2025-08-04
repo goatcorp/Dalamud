@@ -1307,9 +1307,7 @@ internal class PluginManager : IInternalDisposableService
                 continue;
 
             installedPlugin.DalamudInterface.NotifyActivePluginsChanged(
-                kind,
-                // ReSharper disable once PossibleMultipleEnumeration
-                affectedInternalNames.Contains(installedPlugin.Manifest.InternalName));
+                new ActivePluginsChangedEventArgs(kind, affectedInternalNames));
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
@@ -32,9 +32,8 @@ public interface IDalamudPluginInterface
     /// <summary>
     /// Delegate for events that listen to changes to the list of active plugins.
     /// </summary>
-    /// <param name="kind">What action caused this event to be fired.</param>
-    /// <param name="affectedThisPlugin">If this plugin was affected by the change.</param>
-    public delegate void ActivePluginsChangedDelegate(PluginListInvalidationKind kind, bool affectedThisPlugin);
+    /// <param name="args">The event arguments containing information about the change.</param>
+    public delegate void ActivePluginsChangedDelegate(ActivePluginsChangedEventArgs args);
 
     /// <summary>
     /// Event that gets fired when loc is changed
