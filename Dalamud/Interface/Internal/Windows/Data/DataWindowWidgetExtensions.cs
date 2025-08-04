@@ -41,7 +41,7 @@ internal static class DataWindowWidgetExtensions
             ImGui.SetNextWindowSizeConstraints(Vector2.One, new(wrx, float.MaxValue));
             ImGui.BeginTooltip();
             ImGui.PushTextWrapPos(wrx);
-            ImGui.TextWrapped(s.Replace("%", "%%"));
+            ImGui.TextWrapped(s);
             ImGui.PopTextWrapPos();
             ImGui.EndTooltip();
         }

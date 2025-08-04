@@ -106,7 +106,7 @@ internal unsafe class UiDebug
         ImGui.Separator();
 
         ImGui.Text($"Position: [ {atkUnitBase->X} , {atkUnitBase->Y} ]");
-        ImGui.Text($"Scale: {atkUnitBase->Scale * 100}%%");
+        ImGui.Text($"Scale: {atkUnitBase->Scale * 100}%");
         ImGui.Text($"Widget Count {atkUnitBase->UldManager.ObjectCount}");
 
         ImGui.Separator();

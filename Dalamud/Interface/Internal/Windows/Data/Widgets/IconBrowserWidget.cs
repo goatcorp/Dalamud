@@ -204,7 +204,7 @@ public class IconBrowserWidget : IDataWindowWidget
             }
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip($"{iconId}\n{exc}".Replace("%", "%%"));
+                ImGui.SetTooltip($"{iconId}\n{exc}");
 
             ImGui.GetWindowDrawList().AddRect(
                 cursor,

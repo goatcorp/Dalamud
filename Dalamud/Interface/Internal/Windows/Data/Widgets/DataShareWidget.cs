@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -224,7 +224,7 @@ internal class DataShareWidget : IDataWindowWidget
             using (ImRaii.Tooltip())
             {
                 ImGui.PushTextWrapPos(wrx);
-                ImGui.TextWrapped((tooltip?.Invoke() ?? s).Replace("%", "%%"));
+                ImGui.TextWrapped(tooltip?.Invoke() ?? s);
                 ImGui.PopTextWrapPos();
             }
         }
