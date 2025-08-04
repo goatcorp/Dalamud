@@ -7,22 +7,18 @@ namespace Dalamud.Bindings.ImGui;
 public static unsafe partial class ImGui
 {
     public static void AddCallback(
-        ImDrawListPtr self, delegate*<ImDrawList*, ImDrawCmd*, void> callback, void* callbackData = null) =>
-        ImGuiNative.AddCallback(self, callback, callbackData);
-
-    public static void AddCallback(
         ImDrawListPtr self, delegate*<ImDrawListPtr, ImDrawCmdPtr, void> callback, void* callbackData = null) =>
-        AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData);
+        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData);
 
     public static void AddCallback(
         ImDrawListPtr self, delegate*<ref ImDrawList, ref ImDrawCmd, void> callback, void* callbackData = null) =>
-        AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData);
+        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)callback, callbackData);
 
     public static void AddCallback(ImDrawListPtr self, ImDrawCallbackEnum presetCallback)
     {
         if (!Enum.IsDefined(presetCallback))
             throw new ArgumentOutOfRangeException(nameof(presetCallback), presetCallback, null);
-        AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)presetCallback);
+        ImGuiNative.AddCallback(self, (delegate*<ImDrawList*, ImDrawCmd*, void>)(nint)presetCallback);
     }
 
     public static ImGuiPayloadPtr AcceptDragDropPayload(
