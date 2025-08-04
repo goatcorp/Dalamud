@@ -59,7 +59,7 @@ internal class MarketBoardSelfTestStep : ISelfTestStep
                     ImGui.Text($"Quantity: {this.historyListing.Quantity.ToString()}");
                     ImGui.Text($"Buyer: {this.historyListing.BuyerName}");
                     ImGui.Text($"Sale Price: {this.historyListing.SalePrice.ToString()}");
-                    ImGui.Text($"Purchase Time: {this.historyListing.PurchaseTime.ToString(CultureInfo.InvariantCulture)}");
+                    ImGui.Text($"Purchase Time: {this.historyListing.PurchaseTime.ToLocalTime().ToString(CultureInfo.InvariantCulture)}");
                     ImGui.Separator();
                     if (ImGui.Button("Looks Correct / Skip"))
                     {

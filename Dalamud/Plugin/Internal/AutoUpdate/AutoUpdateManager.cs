@@ -100,8 +100,6 @@ internal class AutoUpdateManager : IServiceType
         this.openInstallerWindowLinkTask =
             Service<ChatGui>.GetAsync().ContinueWith(
                 chatGuiTask => chatGuiTask.Result.AddChatLinkHandler(
-                    "Dalamud",
-                    1001,
                     (_, _) =>
                      {
                          Service<DalamudInterface>.GetNullable()?.OpenPluginInstallerTo(PluginInstallerOpenKind.InstalledPlugins);

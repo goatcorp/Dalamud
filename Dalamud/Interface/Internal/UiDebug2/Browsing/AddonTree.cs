@@ -80,7 +80,7 @@ public unsafe partial class AddonTree : IDisposable
         {
             var ptr = GameGui.GetAddonByName(name);
 
-            if ((AtkUnitBase*)ptr != null)
+            if (!ptr.IsNull)
             {
                 if (AddonTrees.TryGetValue(name, out var tree))
                 {
@@ -151,7 +151,7 @@ public unsafe partial class AddonTree : IDisposable
         var uldManager = addon->UldManager;
 
         PrintFieldValuePair("Address", $"{(nint)addon:X}");
-        PrintFieldValuePair("Agent", $"{GameGui.FindAgentInterface(addon):X}");
+        PrintFieldValuePair("Agent", $"{(nint)GameGui.FindAgentInterface(addon):X}");
 
         PrintFieldValuePairs(
             ("X", $"{addon->X}"),
@@ -233,7 +233,7 @@ public unsafe partial class AddonTree : IDisposable
     /// <returns>true if the addon is found.</returns>
     private bool ValidateAddon(out AtkUnitBase* addon)
     {
-        addon = (AtkUnitBase*)GameGui.GetAddonByName(this.AddonName);
+        addon = GameGui.GetAddonByName(this.AddonName).Struct;
         if (addon == null || (nint)addon != this.InitialPtr)
         {
             this.Dispose();

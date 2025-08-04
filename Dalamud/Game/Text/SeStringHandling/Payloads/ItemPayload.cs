@@ -72,33 +72,6 @@ public class ItemPayload : Payload
     {
     }
 
-    /// <summary>
-    /// Kinds of items that can be fetched from this payload.
-    /// </summary>
-    [Api13ToDo("Move this out of ItemPayload. It's used in other classes too.")]
-    public enum ItemKind : uint
-    {
-        /// <summary>
-        /// Normal items.
-        /// </summary>
-        Normal,
-
-        /// <summary>
-        /// Collectible Items.
-        /// </summary>
-        Collectible = 500_000,
-
-        /// <summary>
-        /// High-Quality items.
-        /// </summary>
-        Hq = 1_000_000,
-
-        /// <summary>
-        /// Event/Key items.
-        /// </summary>
-        EventItem = 2_000_000,
-    }
-
     /// <inheritdoc/>
     public override PayloadType Type => PayloadType.Item;
 

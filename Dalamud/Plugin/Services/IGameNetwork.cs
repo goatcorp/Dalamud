@@ -5,6 +5,7 @@ namespace Dalamud.Plugin.Services;
 /// <summary>
 /// This class handles interacting with game network events.
 /// </summary>
+[Obsolete("Will be removed in a future release. Use packet handler hooks instead.", true)]
 public interface IGameNetwork
 {
     // TODO(v9): we shouldn't be passing pointers to the actual data here

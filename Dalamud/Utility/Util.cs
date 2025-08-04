@@ -624,37 +624,6 @@ public static partial class Util
         Win32_PInvoke.FlashWindowEx(flashInfo);
     }
 
-    /// <summary>
-    /// Overwrite text in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="text">The text to write.</param>
-    [Api13ToDo("Remove.")]
-    [Obsolete("Replaced with FilesystemUtil.WriteAllTextSafe()")]
-    public static void WriteAllTextSafe(string path, string text) => FilesystemUtil.WriteAllTextSafe(path, text);
-
-    /// <summary>
-    /// Overwrite text in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="text">The text to write.</param>
-    /// <param name="encoding">Encoding to use.</param>
-    [Api13ToDo("Remove.")]
-    [Obsolete("Replaced with FilesystemUtil.WriteAllTextSafe()")]
-    public static void WriteAllTextSafe(string path, string text, Encoding encoding) => FilesystemUtil.WriteAllTextSafe(path, text, encoding);
-
-    /// <summary>
-    /// Overwrite data in a file by first writing it to a temporary file, and then
-    /// moving that file to the path specified.
-    /// </summary>
-    /// <param name="path">The path of the file to write to.</param>
-    /// <param name="bytes">The data to write.</param>
-    [Api13ToDo("Remove.")]
-    [Obsolete("Replaced with FilesystemUtil.WriteAllBytesSafe()")]
-    public static void WriteAllBytesSafe(string path, byte[] bytes) => FilesystemUtil.WriteAllBytesSafe(path, bytes);
-
     /// <summary>Gets a temporary file name, for use as the sourceFileName in
     /// <see cref="File.Replace(string,string,string?)"/>.</summary>
     /// <param name="targetFile">The target file.</param>

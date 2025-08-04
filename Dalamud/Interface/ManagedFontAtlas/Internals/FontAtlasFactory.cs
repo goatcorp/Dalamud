@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -116,19 +116,11 @@ internal sealed partial class FontAtlasFactory
     public IFontSpec DefaultFontSpec =>
         this.DefaultFontSpecOverride
         ?? Service<DalamudConfiguration>.Get().DefaultFontSpec
-#pragma warning disable CS0618 // Type or member is obsolete
-        ?? (Service<DalamudConfiguration>.Get().UseAxisFontsFromGame
-#pragma warning restore CS0618 // Type or member is obsolete
-                ? new()
-                {
-                    FontId = new GameFontAndFamilyId(GameFontFamily.Axis),
-                    SizePx = InterfaceManager.DefaultFontSizePx,
-                }
-                : new SingleFontSpec
-                {
-                    FontId = new DalamudAssetFontAndFamilyId(DalamudAsset.NotoSansJpMedium),
-                    SizePx = InterfaceManager.DefaultFontSizePx + 1,
-                });
+        ?? new SingleFontSpec()
+        {
+            FontId = new GameFontAndFamilyId(GameFontFamily.Axis),
+            SizePx = InterfaceManager.DefaultFontSizePx,
+        };
 
     /// <summary>
     /// Gets the service instance of <see cref="Framework"/>.

@@ -1,4 +1,4 @@
-﻿using Dalamud.Plugin.Services;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -34,16 +34,9 @@ internal unsafe class AddonEventEntry
     public required nint Node { get; init; }
 
     /// <summary>
-    /// Gets the handler that gets called when this event is triggered.
-    /// </summary>
-    [Obsolete("Use AddonEventDelegate Delegate instead")]
-    public IAddonEventManager.AddonEventHandler Handler { get; init; }
-
-    /// <summary>
     /// Gets the delegate that gets called when this event is triggered.
     /// </summary>
-    [Api13ToDo("Make this field required")]
-    public IAddonEventManager.AddonEventDelegate Delegate { get; init; }
+    public required IAddonEventManager.AddonEventDelegate Delegate { get; init; }
 
     /// <summary>
     /// Gets the unique id for this event.
