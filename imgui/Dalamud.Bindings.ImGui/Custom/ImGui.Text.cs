@@ -282,6 +282,22 @@ public static unsafe partial class ImGui
         text.Dispose();
     }
 
+    public static void TextColoredWrapped(uint col, ImU8String text)
+    {
+        PushStyleColor(ImGuiCol.Text, col);
+        TextWrapped(text.Span);
+        PopStyleColor();
+        text.Dispose();
+    }
+
+    public static void TextColoredWrapped(scoped in Vector4 col, ImU8String text)
+    {
+        PushStyleColor(ImGuiCol.Text, col);
+        TextWrapped(text.Span);
+        PopStyleColor();
+        text.Dispose();
+    }
+
     public static bool TreeNode(ImU8String label)
     {
         var window = ImGuiP.GetCurrentWindow();
