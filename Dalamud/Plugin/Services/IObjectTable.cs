@@ -20,6 +20,38 @@ public interface IObjectTable : IEnumerable<IGameObject>
     public int Length { get; }
 
     /// <summary>
+    /// Gets an enumerator for accessing player objects. This will only contain BattleChara objects.
+    /// Does not contain any mounts, minions, or accessories.
+    /// </summary>
+    public IEnumerable<IBattleChara> PlayerObjects { get; }
+
+    /// <summary>
+    /// Gets an enumerator for accessing character manager objects. Contains all objects in indexes [0, 199].
+    /// Includes mounts, minions, accessories, and players.
+    /// </summary>
+    public IEnumerable<IGameObject> CharacterManagerObjects { get; }
+
+    /// <summary>
+    /// Gets an enumerator for accessing client objects. Contains all objects in indexes [200, 448].
+    /// </summary>
+    public IEnumerable<IGameObject> ClientObjects { get; }
+
+    /// <summary>
+    /// Gets an enumerator for accessing event objects. Contains all objects in indexes [449, 488].
+    /// </summary>
+    public IEnumerable<IGameObject> EventObjects { get; }
+
+    /// <summary>
+    /// Gets an enumerator for accessing stand objects. Contains all objects in indexes [489, 628].
+    /// </summary>
+    public IEnumerable<IGameObject> StandObjects { get; }
+
+    /// <summary>
+    /// Gets an enumerator for accessing reaction event objects. Contains all objects in indexes [629, 728].
+    /// </summary>
+    public IEnumerable<IGameObject> ReactionEventObjects { get; }
+
+    /// <summary>
     /// Get an object at the specified spawn index.
     /// </summary>
     /// <param name="index">Spawn index.</param>
