@@ -162,6 +162,10 @@ public unsafe struct GameInventoryItem : IEquatable<GameInventoryItem>
         }
     }
 
+    /// <summary>
+    /// Gets a list of materia entries for this item. Exists as a user-friendly interface to <see cref="Materia"/> and
+    /// <see cref="MateriaGrade"/>.
+    /// </summary>
     public IReadOnlyList<MateriaEntry> MateriaEntries
     {
         get
